@@ -1,0 +1,27 @@
+with unpivoted as (
+	select fy_timerange, projectid, array[
+	  map(array['key','value'], array['Trucker', cast(vision_truckers as varchar)]), 
+	  map(array['key', 'value'], array['Allied', cast(vision_allied + vision_partner as varchar)])
+	] as category
+  from profile_63885
+),
+final as (
+  	select fy_timerange, projectid,
+  	kvpair['key'] as f_category,
+	sum(cast(kvpair['value'] as bigint)) as total_sum
+  	from unpivoted
+	cross join UNNEST(category) as t(kvpair)
+  	group by 1,2,3
+  
+  	union all
+  
+  	select f_reg_date as fy_timerange, projectid, f_category, count(*) as total_sum
+  	from profile_59462
+  	where vision in ('1012445', '1012446', '1012447', '1012448', '1012449')
+  	group by 1,2,3
+)
+
+select fy_timerange, projectid, f_category, sum(total_sum) as total_sum 
+from final
+group by 1,2,3
+
