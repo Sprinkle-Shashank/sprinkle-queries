@@ -1,0 +1,58 @@
+drop table if exists orgId25_visio;
+create table if not exists orgId25_visio
+with (
+  format = 'JSON',
+  external_location = 's3://athena-sprinkle-test/sprinkle/appci/sprinkleAthena/queryoutput/fd645a095dd64cd5a07c55a248ffc4caJS/',
+  bucketed_by = ARRAY['projectid'], 
+  bucket_count = 1
+)
+as select * from (
+
+with unpivoted as (
+	select fy_timerange, projectid, array[
+	  map(array['key','value', 'vision'], array['Trucker', cast(nv_truck as varchar), 'Near Vision']), 
+	  map(array['key', 'value', 'vision'], array['Allied', cast(nv_allied + nv_partner as varchar), 'Near Vision']),
+	  map(array['key','value', 'vision'], array['Trucker', cast(dv_truck as varchar), 'Distance Vision']), 
+	  map(array['key', 'value', 'vision'], array['Allied', cast(dv_allied + dv_partner as varchar), 'Distance Vision']),
+	  map(array['key','value', 'vision'], array['Trucker', cast(cv_truck as varchar), 'Complex Vision']), 
+	  map(array['key', 'value', 'vision'], array['Allied', cast(cv_allied + cv_partner as varchar), 'Complex Vision']),
+	  map(array['key','value', 'vision'], array['Trucker', cast(cata_truck as varchar), 'Cataract']), 
+	  map(array['key', 'value', 'vision'], array['Allied', cast(cata_allied + cata_partner as varchar), 'Cataract']),
+	  map(array['key','value', 'vision'], array['Trucker', cast(cata_surgery_truck as varchar), 'Cataract Surgery']), 
+	  map(array['key', 'value', 'vision'], array['Allied', cast(cata_surgery_allied + cata_surgery_partner as varchar), 'Cataract Surgery'])
+	] as category
+  from profile_63886
+),
+
+final as (
+  	select concat(fy_timerange['start'], '|', fy_timerange['end']) as fy_timerange, projectid,
+  	kvpair['key'] as f_category,
+  	kvpair['vision'] as vision,
+	sum(cast(kvpair['value'] as bigint)) as total_sum
+  	from unpivoted
+	cross join UNNEST(category) as t(kvpair)
+  	group by 1,2,3,4
+  
+  	union all
+  
+  	select concat(f_reg_date, '|', f_reg_date) as fy_timerange, projectid, f_category, 
+  	case
+  		when vision = '1012445' then 'Distance Vision'
+  		when vision = '1012446' then 'Cataract'
+  		when vision = '1012447' then 'Complex Vision'
+  		when vision = '1012448' then 'Near Vision'
+  		when vision = '1059858' then 'Cataract Surgery'
+  		when vision = '1012449' then 'Normal Vision'
+  		else ''
+  	end as vision,
+  	count(*) as total_sum
+  	from profile_59462
+  	where vision in ('1012445', '1012446', '1012447', '1012448', '1012449', '1059858')
+  	group by 1,2,3,4
+)
+
+select fy_timerange, projectid, f_category, vision, sum(total_sum) as total_sum
+from final
+group by 1,2,3,4
+
+)
