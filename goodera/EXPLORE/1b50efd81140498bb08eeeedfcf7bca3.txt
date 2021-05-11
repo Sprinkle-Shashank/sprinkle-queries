@@ -1,0 +1,41 @@
+with unpivoted as (
+	select fy_timerange, projectid, array[
+	  map(array['key','value'], array['Trucker', cast(hypertension_truckers as varchar)]), 
+	  map(array['key', 'value'], array['Allied', cast(hypertension_allied as varchar)])
+	] as category
+  from profile_63887
+),
+final as (
+  	select fy_timerange, projectid,
+  	kvpair['key'] as f_category,
+	sum(cast(kvpair['value'] as bigint)) as total_sum
+  	from unpivoted
+	cross join UNNEST(category) as t(kvpair)
+  	group by 1,2,3),
+
+unpivoted_risk as (
+	select fy_timerange, projectid, array[
+	  map(array['key','value', 'hypertension'], array['Trucker', cast(at_risk_hypertension_truckers as varchar), 'At Risk']), 
+	  map(array['key', 'value', 'diabetes'], array['Allied', cast(at_risk_hypertension_allied as varchar), 'At Risk'])
+	] as category
+  from profile_63887),
+
+final_risk as (
+  	select concat(fy_timerange['start'], '|', fy_timerange['end']) as fy_timerange, cast(projectid as bigint) as projectid,
+  	kvpair['key'] as f_category,
+  	kvpair['hypertension'] as hypertension,
+	sum(cast(kvpair['value'] as bigint)) as total_sum
+  	from unpivoted_risk 
+	cross join UNNEST(category) as t(kvpair)
+  	group by 1,2,3,4  
+  
+  	union all
+  
+  	select f_reg_date as fy_timerange, projectid, f_category, count(*) as total_sum
+  	from profile_59462
+  	where hypertension in ('1012466', '1012467')
+  	group by 1,2,3
+)
+
+Select final.fy_timerange, final.projectid, final.f_category, final_risk.hypertension, final.total_sum - final_risk.total_sum as "Not at Risk" from final 
+LEFT JOIN final_risk ON final.projectid = final_risk.projectid AND final.fy_timerange = final_risk.fy_timerange AND final.f_category = final_risk.f_category
