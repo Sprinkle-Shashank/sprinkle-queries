@@ -1,0 +1,32 @@
+with unpivoted as (
+	select fy_timerange, projectid, array[
+	  map(array['key','value'], array['Extra', cast(sti_gu as varchar), 'Genital Ulcer (GU)']),
+	  map(array['key','value'], array['Extra', cast(sti_ud as varchar), 'Urethral Discharge (UD)']),
+	  map(array['key','value'], array['Extra', cast(sti_vd as varchar), 'Vaginal Discharge (VD)']),
+	  map(array['key','value'], array['Extra', cast(sti_lap as varchar), 'Lower Abdomen Pain (LAP)']),
+	  map(array['key','value'], array['Extra', cast(sti_ss as varchar), 'Scrotal Swelling (SS)']),
+	  map(array['key','value'], array['Extra', cast(sti_ss as varchar), 'Inguinal Swelling (IS)']),
+	  map(array['key','value'], array['Extra', cast(sti_others as varchar), 'Others']) 
+	] as category
+  from profile_63885
+),
+final as (
+  	select fy_timerange, projectid,
+  	kvpair['key'] as sti,
+	sum(cast(kvpair['value'] as bigint)) as total_sum
+  	from unpivoted
+	cross join UNNEST(sti) as t(kvpair)
+  	group by 1,2,3
+  
+  	union all
+  
+  	select f_reg_date as fy_timerange, projectid, count(*) as total_sum
+  	from profile_59462
+  	where sti in ('1012469', '1012471', '1012472', '1012473', '1012474', '1012475', '1012476', '1063860')
+  	group by 1,2,3
+)
+
+select fy_timerange, projectid, sti, sum(total_sum) as total_sum 
+from final
+group by 1,2,3
+
