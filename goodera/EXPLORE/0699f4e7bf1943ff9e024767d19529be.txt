@@ -5,17 +5,17 @@ with unpivoted as (
 	] as category
   from profile_63887
 ),
+
 final as (
-  	select fy_timerange, projectid,
+  	select concat(substr(fy_timerange['start'],1,10), '|', substr(fy_timerange['end'],1,10)) as fy_timerange, projectid,
   	kvpair['key'] as f_category,
 	sum(cast(kvpair['value'] as bigint)) as total_sum
   	from unpivoted
 	cross join UNNEST(category) as t(kvpair)
   	group by 1,2,3
-  
   	union all
   
-  	select f_reg_date as fy_timerange, projectid, f_category, count(*) as total_sum
+  	select concat(f_reg_date, '|', f_reg_date) as fy_timerange, projectid, f_category, count(*) as total_sum
   	from profile_59462
   	where tb in ('1059863')
   	group by 1,2,3
