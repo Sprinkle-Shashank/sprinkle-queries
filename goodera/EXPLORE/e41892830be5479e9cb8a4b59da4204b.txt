@@ -7,15 +7,15 @@ with unpivoted as (
 	  map(array['key','value'], array['Extra', cast(sti_ss as varchar), 'Scrotal Swelling (SS)']),
 	  map(array['key','value'], array['Extra', cast(sti_ss as varchar), 'Inguinal Swelling (IS)']),
 	  map(array['key','value'], array['Extra', cast(sti_others as varchar), 'Others']) 
-	] as sti
+	] as category
   from profile_63885
 ),
 final as (
   	select fy_timerange, projectid,
-  	kvpair['key'] as sti,
+  	kvpair['key'] as new_category,
 	sum(cast(kvpair['value'] as bigint)) as total_sum
   	from unpivoted
-	cross join UNNEST(sti) as t(kvpair)
+	cross join UNNEST(category) as t(kvpair)
   	group by 1,2,3
   
   	union all
@@ -26,7 +26,7 @@ final as (
   	group by 1,2,3
 )
 
-select fy_timerange, projectid, sti, sum(total_sum) as total_sum 
+select fy_timerange, projectid, new_category, sum(total_sum) as total_sum 
 from final
 group by 1,2,3
 
