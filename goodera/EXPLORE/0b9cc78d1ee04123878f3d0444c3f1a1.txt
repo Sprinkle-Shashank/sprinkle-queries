@@ -17,8 +17,8 @@ final as (
 
 unpivoted_risk as (
 	select fy_timerange, projectid, array[
-	  map(array['key','value', 'diabetes'], array['Trucker', cast(diabetes_truck as varchar), 'At Risk']), 
-	  map(array['key', 'value', 'diabetes'], array['Allied', cast(diabetes_allied + diabetes_partner as varchar), 'At Risk'])
+	  map(array['key','value'], array['Trucker', cast(diabetes_truck as varchar)]), 
+	  map(array['key', 'value'], array['Allied', cast(diabetes_allied + diabetes_partner as varchar)])
 	] as category
   from profile_63886
 ),
@@ -26,7 +26,6 @@ unpivoted_risk as (
 final_risk as (
   	select concat(substr(fy_timerange['start'],1,10), '|', substr(fy_timerange['end'],1,10)) as fy_timerange, projectid,
   	kvpair['key'] as f_category,
-  	kvpair['diabetes'] as diabetes,
 	sum(cast(kvpair['value'] as bigint)) as total_sum
   	from unpivoted_risk 
 	cross join UNNEST(category) as t(kvpair)
@@ -34,8 +33,10 @@ final_risk as (
 ),
 
 historical as (
-  	select final.fy_timerange, final.projectid, final.f_category, 'Not at Risk' as diabetes,
-  	sum(final.total_sum - final_risk.total_sum) as total_sum
+  	select final.fy_timerange, final.projectid, final.f_category, array[
+	  map(array['diabetes', 'value'], array['Not at Risk', cast(final.total_sum - coalesce(final_risk.total_sum, 0) as varchar)]),
+	  map(array['diabetes', 'value'], array['At Risk', cast(final_risk.total_sum as varchar)])
+	] as dia_cat
   	from final
   	left join final_risk on
   	final.projectid = final_risk.projectid and final.f_category = final_risk.f_category and
@@ -45,8 +46,13 @@ historical as (
 
 final_q as (
 
-  	select * from historical
-
+  	select fy_timerange, projectid, f_category, 
+  	kv['diabetes'] as diabetes,
+  	sum(cast(kvpair['value'] as bigint)) as total_sum 
+  	from historical
+	cross join UNNEST(category) as t(kv)
+  	group by 1,2,3,4 
+  
 	union all
   
   	select concat(f_reg_date, '|', f_reg_date) as fy_timerange, projectid, f_category, 
