@@ -11,14 +11,16 @@ final as (
 	sum(cast(kvpair['value'] as bigint)) as total_sum
   	from unpivoted
 	cross join UNNEST(category) as t(kvpair)
-  	group by 1,2,3),
+  	group by 1,2,3
+),
 
 unpivoted_risk as (
 	select fy_timerange, projectid, array[
 	  map(array['key','value', 'diabetes'], array['Trucker', cast(diabetes_truck as varchar), 'At Risk']), 
 	  map(array['key', 'value', 'diabetes'], array['Allied', cast(diabetes_allied + diabetes_partner as varchar), 'At Risk'])
 	] as category
-  from profile_63886),
+  from profile_63886
+),
 
 final_risk as (
   	select concat(fy_timerange['start'], '|', fy_timerange['end']) as fy_timerange, projectid,
@@ -39,5 +41,4 @@ final_risk as (
 
 select * from final_risk;
 
---Select final.fy_timerange, final.projectid, final.f_category, final_risk.diabetes, final.total_sum - final_risk.total_sum as "Not at Risk" from final 
---LEFT JOIN final_risk ON final.projectid = final_risk.projectid 
+--Select final.fy_timerange, final.projectid, final.f_category, final_risk.diabetes, final.total_sum - final_risk.total_sum as "Not at Risk" from final LEFT JOIN final_risk ON final.projectid = final_risk.projectid 
