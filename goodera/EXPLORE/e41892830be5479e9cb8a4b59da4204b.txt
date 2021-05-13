@@ -12,7 +12,7 @@ with unpivoted as (
 ),
 final as (
   	select concat(fy_timerange['start'], '|', fy_timerange['end']) as fy_timerange, projectid,
-  	kvpair['key'] as new_category,
+  	kvpair['key'] as sti,
 	sum(cast(kvpair['value'] as bigint)) as total_sum
   	from unpivoted
 	cross join UNNEST(category) as t(kvpair)
@@ -20,10 +20,11 @@ final as (
   
   	union all
   
-  	select concat(f_reg_date, '|', f_reg_date) as fy_timerange, projectid, count(*) as total_sum
+  	select concat(f_reg_date, '|', f_reg_date) as fy_timerange, projectid, ds_mysql_tagelement.name as sti, count(*) as total_sum
   	from profile_59462
-  	where sti in ('1012469', '1012471', '1012472', '1012473', '1012474', '1012475', '1012476', '1063860')
-  	group by 1,2,3
+  left join ds_mysql_tagelement on profile_59462.sti = ds_mysql_tagelement.id 
+  where profile_59462.sti in ('1012469', '1012471', '1012472', '1012473', '1012474', '1012475', '1012476', '1063860')
+  group by 1,2,3
 )
 
 select fy_timerange, projectid, new_category, sum(total_sum) as total_sum 
