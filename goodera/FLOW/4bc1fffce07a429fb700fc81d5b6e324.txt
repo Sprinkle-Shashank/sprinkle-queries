@@ -4,14 +4,16 @@ create table if not exists demo_test with (format='ORC') as
 select projectid,
 cast(json_extract(json_parse(a.data),'$.timerange_timerange') as map(varchar, varchar)) as timerange_timerange,
 
-case when data['site_id']  is null then 0 else cast(data['site_id'] as bigint) end as site_id,
-cast(data['site_name'] as varchar) as site_name,
-cast(data['tier'] as bigint) as tier,
-cast(data['location'] as bigint) as location,
-cast(data['site_status'] as bigint) as site_status,
-cast(data['zip'] as varchar) as zip,
-cast(data['test_question'] as bigint) as test_question,
-cast(data['country'] as bigint) as country
-				
+case when json_extract(json_parse(a.data),'$.site_id') is null then 0 else cast(json_extract(json_parse(a.data),'$.site_id') as bigint) end as site_id,
+
+cast(json_extract(json_parse(a.data),'$.site_name') as varchar) as site_name,
+cast(json_extract(json_parse(a.data),'$.tier') as varchar) as tier,
+cast(json_extract(json_parse(a.data),'$.location') as varchar) as location,
+cast(json_extract(json_parse(a.data),'$.site_status') as varchar) as site_status,
+cast(json_extract(json_parse(a.data),'$.zip') as varchar) as zip,
+
+case when json_extract(json_parse(a.data),'$.test_question') is null then 0 else cast(json_extract(json_parse(a.data),'$.test_question') as bigint) end as test_question,
+
+cast(json_extract(json_parse(a.data),'$.country') as varchar) as country				
 
 from ds_demo_mongo_profileinstance a  where a.profileid= '29368';
