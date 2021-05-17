@@ -15,7 +15,7 @@ cast(json_extract(json_parse(a.data),'$.zip') as varchar) as zip,
 case when json_extract(json_parse(a.data),'$.test_question') is null then 0 else cast(json_extract(json_parse(a.data),'$.test_question') as bigint) end as test_question,
 
 cast(json_extract(json_parse(a.data),'$.country') as varchar) as country,
-substr(a.modified,1,10) as modified
+cast(date(from_unixtime(cast(modified as bigint)/1000)) as varchar) as modified
 
 from ds_demo_mongo_profileinstance a  
-where a.profileid= '29368' and modified > '${sprinkle.latest.partition}';
+where a.profileid= '29368' and date(from_unixtime(cast(modified as bigint)/1000)) >= date_add('day', ${window}, cast(date_parse('${sprinkle_latest_partition}', '%Y-%m-%d') as date))
