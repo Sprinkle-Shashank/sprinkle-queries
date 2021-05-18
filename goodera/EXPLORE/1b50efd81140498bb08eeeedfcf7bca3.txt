@@ -1,7 +1,9 @@
 with unpivoted as (
 	select fy_timerange, projectid, array[
 	  map(array['key','value'], array['Trucker', cast(hypertension_truckers as varchar)]), 
-	  map(array['key', 'value'], array['Allied', cast(hypertension_allied as varchar)])
+	  map(array['key','value'], array['At Risk Trucker', cast(at_risk_hypertension_truckers as varchar)]), 
+	  map(array['key', 'value'], array['Allied', cast(hypertension_allied as varchar)]),
+	  map(array['key', 'value'], array['At Risk Allied', cast(at_risk_hypertension_allied as varchar)])
 	] as category
   from profile_63887
 ),
@@ -12,13 +14,6 @@ final as (
   	from unpivoted
 	cross join UNNEST(category) as t(kvpair)
   	group by 1,2,3),
-
-unpivoted_risk as (
-	select fy_timerange, projectid, array[
-	  map(array['key','value', 'hypertension'], array['Trucker', cast(at_risk_hypertension_truckers as varchar), 'At Risk']), 
-	  map(array['key', 'value', 'hypertension'], array['Allied', cast(at_risk_hypertension_allied as varchar), 'At Risk'])
-	] as category
-  from profile_63887),
 
 final_risk as (
   	select concat(fy_timerange['start'], '|', fy_timerange['end']) as fy_timerange, cast(projectid as bigint) as projectid,
