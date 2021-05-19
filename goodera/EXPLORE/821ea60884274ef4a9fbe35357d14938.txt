@@ -1,0 +1,73 @@
+with unpivoted as (
+	select fy_timerange, projectid, array[
+	  map(array['key','value'], array['Trucker', cast(hiv_truckers as varchar)]), 
+	  map(array['key', 'value'], array['Allied', cast(hiv_allied + hiv_partner as varchar)])
+	] as category
+  from profile_63885
+),
+
+final as (
+  	select concat(substr(fy_timerange['start'],1,10), '|', substr(fy_timerange['end'],1,10)) as fy_timerange, projectid,
+  	kvpair['key'] as f_category,
+	sum(cast(kvpair['value'] as bigint)) as total_sum
+  	from unpivoted
+	cross join UNNEST(category) as t(kvpair)
+  	group by 1,2,3
+),
+
+unpivoted_risk as (
+	select fy_timerange, projectid, array[
+	  map(array['key','value'], array['Trucker', cast(hiv_reactive_truck as varchar)]), 
+	  map(array['key','value'], array['Trucker', cast(linked_art_truck as varchar)]), 
+	  map(array['key', 'value'], array['Allied', cast(hiv_reactive_allied + hiv_reactive_partner as varchar)]),
+	  	  map(array['key','value'], array['Allied', cast(linked_art_allied + linked_art_partner as varchar)])
+	] as category
+  from profile_63886
+),
+
+final_risk as (
+  	select concat(substr(fy_timerange['start'],1,10), '|', substr(fy_timerange['end'],1,10)) as fy_timerange, projectid,
+  	kvpair['key'] as f_category,
+	sum(cast(kvpair['value'] as bigint)) as total_sum
+  	from unpivoted_risk 
+	cross join UNNEST(category) as t(kvpair)
+  	group by 1,2,3
+),
+
+historical as (
+  	select final.fy_timerange, final.projectid, final.f_category, array[
+	  map(array['hiv', 'value'], array['Non Reactive', cast(final.total_sum - coalesce(final_risk.total_sum, 0) as varchar)]),
+	  map(array['hiv', 'value'], array['Reactive', cast(coalesce(final_risk.total_sum, 0) as varchar)])
+	] as hiv_r
+  	from final
+  	left join final_risk on
+  	final.projectid = final_risk.projectid and final.f_category = final_risk.f_category and
+  	final.fy_timerange = final_risk.fy_timerange
+  	group by 1,2,3,4
+),
+
+final_q as (
+
+  	select fy_timerange, projectid, f_category, 
+  	kv['hiv'] as hiv,
+  	sum(cast(kv['value'] as bigint)) as total_sum 
+  	from historical
+	cross join UNNEST(hiv_r) as t(kv)
+  	group by 1,2,3,4 
+  
+	union all
+  
+  	select concat(f_reg_date, '|', f_reg_date) as fy_timerange, projectid, f_category, 
+  	case when hiv = '1012478' then 'Reactive' 
+  		when hiv = '1012483' then 'Non Reactive'
+    	when hiv = '1012477' then 'On ART'
+  		else '' end as hiv, count(*) as total_sum
+  	from profile_59462
+  	where hiv in ('1012478', '1012483', '1012477')
+  	group by 1,2,3,4
+	
+)
+
+select fy_timerange, projectid, f_category, hiv, sum(total_sum) as total_sum
+from final_q
+group by 1,2,3,4
