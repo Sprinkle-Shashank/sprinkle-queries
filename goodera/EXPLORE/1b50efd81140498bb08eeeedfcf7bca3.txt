@@ -3,9 +3,11 @@ with unpivoted as (
 	  map(array['key','value', 'hypertension'], array['Trucker', cast(hypertension_truckers as varchar), 'Overall']), 
 	  map(array['key', 'value', 'hypertension'], array['Trucker', cast(at_risk_hypertension_truckers as varchar), 'At Risk']),
 	  	  map(array['key','value', 'hypertension'], array['Allied', cast(hypertension_allied as varchar), 'Overall']), 
-	  map(array['key', 'value', 'hypertension'], array['Allied', cast(at_risk_hypertension_allied as varchar), 'At Risk'])
+	  map(array['key', 'value', 'hypertension'], array['Allied', cast(at_risk_hypertension_allied as varchar), 'At Risk']),
+map(array['key', 'value', 'hypertension'], array['Trucker', cast(hypertension_truckers - at_risk_hypertension_truckers as varchar), 'Not at Risk']),
+map(array['key', 'value', 'hypertension'], array['Allied', cast(hypertension_allied - at_risk_hypertension_allied as varchar), 'Not at Risk'])
 	] as category
-  from profile_63886
+  from profile_63887
 ),
 
 final as (
@@ -30,6 +32,5 @@ final as (
   	group by 1,2,3,4
 )
 
-
-Select final.fy_timerange, final.projectid, final.f_category, final_risk.hypertension, final.total_sum - final_risk.total_sum as "Not at Risk" from final 
-LEFT JOIN final_risk ON final.projectid = final_risk.projectid AND final.fy_timerange = final_risk.fy_timerange AND final.f_category = final_risk.f_category
+Select fy_timerange, projectid, f_category, hypertension, sum(total_sum) as total_sum from final
+group by 1,2,3,4
