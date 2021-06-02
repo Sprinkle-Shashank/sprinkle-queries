@@ -1,5 +1,5 @@
 with unpivoted_risk as (
-	select profile_63886.fy_timerange, profile_63886.projectid, array[
+	select fy_timerange, projectid, array[
 	  map(array['key','value','hiv'], array['Trucker', cast(profile_63886.hiv_reactive_truck as varchar),'Reactive']), 
 	  map(array['key','value','hiv'], array['Trucker', cast(profile_63886.linked_art_truck as varchar),'On ART']), 
 	  map(array['key', 'value','hiv'], array['Allied', cast(profile_63886.hiv_reactive_allied + profile_63886.hiv_reactive_partner as varchar),'Reactive']),
@@ -9,6 +9,16 @@ with unpivoted_risk as (
 
 ),
 
+final_risk as (
+	select fy_timerange, projectid,
+  	kvpair['key'] as f_category,
+  	kvpair['hiv'] as hiv,
+  	sum(cast(kvpair['value'] as bigint)) as total_sum
+  	from unpivoted_risk
+  	cross join UNNEST(category) as t(kvpair)
+  	group by 1,2,3,4
+
+),
 
 final_q as (
 
