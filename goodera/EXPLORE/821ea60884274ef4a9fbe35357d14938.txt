@@ -9,17 +9,6 @@ with unpivoted_risk as (
 
 ),
 
-final_risk as (
-	select fy_timerange, projectid,
-  	kvpair['key'] as f_category,
-  	kvpair['hiv'] as hiv,
-  	sum(cast(kvpair['value'] as bigint)) as total_sum
-  	from unpivoted_risk
-  	cross join UNNEST(category) as t(kvpair)
-  	group by 1,2,3,4
-
-),
-
 non_react as (
 	select p2.fy_timerange, p2.projectid, array[
 	  map(array['key','value'], array['Trucker', cast(p2.hiv_truckers - coalesce(p1.hiv_reactive_truck,0) as varchar)]), 
@@ -64,5 +53,5 @@ final_q as (
 
 select sum(total_sum)
 from final_q
-where f_category = 'Trucker' and projectid = '52380' and fy_timerange between '2002-04-01|2002-04-01' and '2019-12-31|2019-12-31'
+where hiv in ('Reactive', 'Non Reactive') and f_category = 'Trucker' and projectid = '52380' and fy_timerange between '2002-04-01|2002-04-01' and '2019-12-31|2019-12-31'
 group by null
