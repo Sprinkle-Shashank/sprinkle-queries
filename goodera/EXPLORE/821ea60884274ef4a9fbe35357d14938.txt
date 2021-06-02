@@ -1,11 +1,14 @@
 with unpivoted_risk as (
-	select fy_timerange, projectid, array[
+	select p2.fy_timerange, p2.projectid, array[
 	  map(array['key','value','hiv'], array['Trucker', cast(profile_63886.hiv_reactive_truck as varchar),'Reactive']), 
 	  map(array['key','value','hiv'], array['Trucker', cast(profile_63886.linked_art_truck as varchar),'On ART']), 
 	  map(array['key', 'value','hiv'], array['Allied', cast(profile_63886.hiv_reactive_allied + profile_63886.hiv_reactive_partner as varchar),'Reactive']),
-	  map(array['key','value','hiv'], array['Allied', cast(profile_63886.linked_art_allied + profile_63886.linked_art_partner as varchar),'On ART'])
+	  map(array['key','value','hiv'], array['Allied', cast(profile_63886.linked_art_allied + profile_63886.linked_art_partner as varchar),'On ART']),
+	  map(array['key','value', 'hiv'], array['Trucker', cast(p2.hiv_truckers - coalesce(p1.hiv_reactive_truck,0) as varchar), 'Non Reactive']), 
+	  map(array['key', 'value', 'hiv'], array['Allied', cast(p2.hiv_allied + p2.hiv_partner  - coalesce(p1.hiv_reactive_allied,0) - coalesce(p1.hiv_reactive_partner,0) as varchar), 'Non Reactive'])
 	] as category
-  from profile_63886
+	from profile_63886 as p1, profile_63885 as p2
+  where p1.projectid = p2.projectid and p1.fy_timerange = p2.fy_timerange
 
 ),
 
@@ -20,15 +23,6 @@ final_risk as (
 
 ),
 
-non_react as (
-	select p2.fy_timerange, p2.projectid, array[
-	  map(array['key','value'], array['Trucker', cast(p2.hiv_truckers - coalesce(p1.hiv_reactive_truck,0) as varchar)]), 
-	  map(array['key', 'value'], array['Allied', cast(p2.hiv_allied + p2.hiv_partner  - coalesce(p1.hiv_reactive_allied,0) - coalesce(p1.hiv_reactive_partner,0) as varchar)])
-	] as category
-  from profile_63886 as p1, profile_63885 as p2
-  where p1.projectid = p2.projectid and p1.fy_timerange = p2.fy_timerange
-),
-
 final_q as (
   
   	select concat(substr(fy_timerange['start'],1,10), '|', substr(fy_timerange['end'],1,10)) as fy_timerange, projectid,
@@ -40,16 +34,6 @@ final_q as (
   	group by 1,2,3,4
   
   	union all
-  
-  	select concat(substr(fy_timerange['start'],1,10), '|', substr(fy_timerange['end'],1,10)) as fy_timerange, projectid,
-  	kvpair['key'] as f_category,
-  	'Non Reactive' as hiv,
-  	sum(cast(kvpair['value'] as bigint)) as total_sum
-  	from non_react
-  	cross join UNNEST(category) as t(kvpair)
-  	group by 1,2,3,4
-  
-	union all
   
   	select concat(f_reg_date, '|', f_reg_date) as fy_timerange, projectid, f_category, 
   	case when hiv = '1012478' then 'Reactive' 
