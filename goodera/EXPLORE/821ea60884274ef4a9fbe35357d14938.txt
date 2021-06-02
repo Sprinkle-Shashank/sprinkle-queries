@@ -13,24 +13,15 @@ with unpivoted_risk as (
 
 ),
 
-final_risk as (
+final_q as (
+
   	select concat(substr(fy_timerange['start'],1,10), '|', substr(fy_timerange['end'],1,10)) as fy_timerange, projectid,
   	kvpair['key'] as f_category,
     kvpair['hiv'] as hiv,
 	sum(cast(kvpair['value'] as bigint)) as total_sum
   	from unpivoted_risk 
-	cross join UNNEST(category) as t(kvpair)
-  
-  group by 1,2,3,4
-  
-),
-
-final_q as (
-
-  	select fy_timerange, projectid, f_category, hiv,
-  	sum(total_sum) as total_sum 
-  	from final_risk
-  	group by 1,2,3,4 
+	cross join UNNEST(category) as t(kvpair)  
+  	group by 1,2,3,4
   
 	union all
   
