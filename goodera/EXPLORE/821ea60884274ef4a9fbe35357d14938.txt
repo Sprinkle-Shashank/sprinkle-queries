@@ -3,15 +3,12 @@ with unpivoted_risk as (
 	  map(array['key','value','hiv'], array['Trucker', cast(profile_63886.hiv_reactive_truck as varchar),'Reactive']), 
 	  map(array['key','value','hiv'], array['Trucker', cast(profile_63886.linked_art_truck as varchar),'On ART']), 
 	  map(array['key', 'value','hiv'], array['Allied', cast(profile_63886.hiv_reactive_allied + profile_63886.hiv_reactive_partner as varchar),'Reactive']),
-	  map(array['key','value','hiv'], array['Allied', cast(profile_63886.linked_art_allied + profile_63886.linked_art_partner as varchar),'On ART']),
-	  map(array['key','value','hiv'], array['Trucker', cast(profile_63885.hiv_truckers - profile_63886.hiv_reactive_truck as varchar),'Non Reactive']),
-	  map(array['key','value','hiv'], array['Allied', cast(profile_63885.hiv_allied + profile_63885.hiv_partner - profile_63886.hiv_reactive_allied - profile_63886.hiv_reactive_partner as varchar),'Non Reactive'])
+	  map(array['key','value','hiv'], array['Allied', cast(profile_63886.linked_art_allied + profile_63886.linked_art_partner as varchar),'On ART'])
 	] as category
-  from profile_63886, profile_63885
-	where  profile_63885.projectid = profile_63886.projectid and
-  	profile_63885.fy_timerange = profile_63886.fy_timerange
+  from profile_63886
 
 ),
+
 
 final_q as (
 
@@ -36,7 +33,6 @@ final_q as (
 	
 )
 
-select fy_timerange, project.name as projectid, f_category, hiv, sum(total_sum) as total_sum
-from final_q, ds_mysql_project as project
-where project.id = cast(final_q.projectid  as bigint) 
-group by 1,2,3,4
+select sum(total_sum)
+from final_risk
+where hiv = 'Reactive'
