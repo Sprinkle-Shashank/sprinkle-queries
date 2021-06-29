@@ -9,8 +9,9 @@ left join (select cast(y._id as varchar) as recordId, y.project_manager as proje
 
 where p_27396.focus_area = '430784'
 ),
+
 sub2 as (
-select _id, recordid, project_manager27396, hdfc_cost_monthly,
+select _id, projectid, recordid, project_manager27396, hdfc_cost_monthly, ngo_partner,
 case
   		when fy27396 = '432699' then '2015-2016'
   		when fy27396 = '432701' then '2016-2017'
@@ -50,9 +51,9 @@ case
   	end as project_manager27420
 from sub1
 left join (select cast(y.project_code as varchar) as project_code, y.project_manager as project_manager27420, y.fy as fy27420 from profile_27420 y) p_27420 on sub1.recordid = p_27420.project_code
-)
-
-select _id, project_manager27396, project_manager27420, fy27420, fy, fy27396, hdfc_cost_monthly,
+),
+sub3 as (
+select _id, projectid, project_manager27396, project_manager27420, fy27420, fy, fy27396, hdfc_cost_monthly, ngo_partner,
 case
   		WHEN fy27396 = fy THEN project_manager27396
     	ELSE project_manager27420
@@ -60,3 +61,9 @@ case
 from sub2
 where fy27420 <= fy
 order by fy27420 desc
+)
+
+select _id, projectid, project_manager27396, project_manager27420, fy27420, fy, fy27396, hdfc_cost_monthly, ngo_partner, p_27395.ngo_partner_name, p_27395._id27395
+from sub3
+left join (select cast(y._id as varchar) as _id27395, y.name as ngo_partner_name
+from profile_27395 y) p_27395 on ngo_partner = p_27395._id27395
