@@ -1,5 +1,5 @@
 with sub1 as (
-select p.pname, p_30171._id, p_30171.projectid, p_27396.recordId, p_27396.project_manager27396, p_27396.project_duration, p_27396.ngo_partner, p_27396.focus_area, p_27396.intervention_type, p_27420.project_manager27420,
+select p.pname, p_30171._id, p_30171.projectid, p_30171.monthly_cost, p_27396.name, p_27396.recordId, p_27396.project_manager27396, p_27396.project_duration, p_27396.ngo_partner, p_27396.focus_area, p_27396.intervention_type, p_27420.project_manager27420,
 case
   		when p_27396.fy27396 = '432699' then '2015-2016'
   		when p_27396.fy27396 = '432701' then '2016-2017'
@@ -42,9 +42,9 @@ from profile_27396 y) p_27396 on p.pname = p_27396.name
 join (select cast(y.project_code as varchar) as project_code, y.project_manager as project_manager27420, y.fy as fy27420 from profile_27420 y) p_27420 on p_27396.recordid = p_27420.project_code
 
 where p_27396.focus_area = '430784'
-)
-
-select pname, _id, projectid, recordId, project_manager27396, project_duration, ngo_partner, focus_area, intervention_type, project_manager27420, fy27396,fy,
+),
+sub2 as (
+select _id, recordId, projectid, name as proj, project_manager27396, project_duration, ngo_partner, focus_area, intervention_type, project_manager27420, fy27396, fy, monthly_cost,
 case
   		WHEN  fy27420 IS NULL THEN fy27396
     	ELSE  fy27420
@@ -56,3 +56,9 @@ case
 from sub1
 where fy27420 <= fy
 order by fy27420 desc
+)
+select _id, recordId, projectid, name as proj, project_manager27396, project_duration, ngo_partner, focus_area, intervention_type, project_manager27420, fy27396, fy, fy27420, monthly_cost,
+case
+  		WHEN fy27396 = fy THEN project_manager27396
+    	ELSE project_manager27420
+  	end as project_manager
