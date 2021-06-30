@@ -70,8 +70,8 @@ sub4 as (
 select recordId, intervention_type, fy, project_manager, ngo_partner, sum(monthly_cost) as monthly_cost
 from sub3
 group by 1,2,3,4,5
-)
-
+),
+sub5 as (
 select recordId, intervention_type, fy, project_manager, ngo_partner, monthly_cost, p_29974.id_29974, p_29974.hdfc_cost_monthly, p.census_code, p_27489.state
 from sub4
 
@@ -81,3 +81,8 @@ from profile_29974 y) p_29974 on sub4.recordId = p_29974.prj_code
 join (select cast(y.id as varchar) as id, cast(SPLIT_PART(y.name, '|', 3) as varchar) as census_code from ds_mysql_project y) p on p_29974.id_29974=p.id
 
 join (select cast(y.name as varchar) as name, y.state from profile_27489 y) p_27489 on p.census_code=p_27489.name
+)
+
+select recordId, intervention_type, fy, project_manager, ngo_partner, monthly_cost, UPPER(state) as state, sum(hdfc_cost_monthly) as hdfc_cost_monthly
+from sub5
+group by 1,2,3,4,5,6,7
