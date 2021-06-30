@@ -57,6 +57,7 @@ from sub1
 where fy27420 <= fy
 order by fy27420 desc
 ),
+
 sub3 as (
 select _id, recordId, projectid, proj, project_manager27396, project_duration, ngo_partner, focus_area, intervention_type, project_manager27420, fy27396, fy, fy27420, monthly_cost,
 case
@@ -64,7 +65,14 @@ case
     	ELSE project_manager27420
   	end as project_manager
 from sub2
-)
+),
+sub4 as (
 select recordId, intervention_type, fy, project_manager, ngo_partner, sum(monthly_cost) as monthly_cost
 from sub3
 group by 1,2,3,4,5
+)
+
+select recordId, intervention_type, fy, project_manager, ngo_partner, monthly_cost
+from sub4
+join (select cast(y.prj_code as varchar) as prj_code, y.projectid as id_29974, y.hdfc_cost_monthly
+from profile_29974 y) p_29974 on sub4.recordId = p_29974.prj_code
