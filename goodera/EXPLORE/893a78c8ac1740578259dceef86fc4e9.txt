@@ -58,19 +58,27 @@ where fy27420 <= fy
 order by fy27420 desc
 ),
 
+sub2_2 as (
+  select _id, recordId, projectid, proj, project_manager27396, ngo_partner,  intervention_type, project_manager27420, fy27396, fy, fy27420, monthly_cost
+  from sub2
+  group by 1,2,3,4,5,6,7,8,9,10,11,12
+),
+
 sub3 as (
-select _id, recordId, projectid, proj, project_manager27396, project_duration, ngo_partner, focus_area, intervention_type, project_manager27420, fy27396, fy, fy27420, monthly_cost,
+select _id, recordId, projectid, proj, project_manager27396, ngo_partner, intervention_type, project_manager27420, fy27396, fy, fy27420, monthly_cost,
 case
   		WHEN fy27396 = fy THEN project_manager27396
     	ELSE project_manager27420
   	end as project_manager
-from sub2
+from sub2_2
 ),
+
 sub4 as (
 select recordId, intervention_type, fy, project_manager, ngo_partner, sum(monthly_cost) as monthly_cost
 from sub3
 group by 1,2,3,4,5
 ),
+
 sub5 as (
 select recordId, intervention_type, fy, project_manager, ngo_partner, monthly_cost, p_29974.id_29974, p_29974.hdfc_cost_monthly, p.census_code, p_27489.state
 from sub4
@@ -82,13 +90,14 @@ join (select cast(y.id as varchar) as id, cast(SPLIT_PART(y.name, '|', 3) as var
 
 join (select cast(y.name as varchar) as name, y.state from profile_27489 y) p_27489 on p.census_code=p_27489.name
 ),
+
 sub6 as (
 select recordId, intervention_type, fy, project_manager, ngo_partner, monthly_cost, UPPER(state) as state, sum(hdfc_cost_monthly) as hdfc_cost_monthly
 from sub5
 group by 1,2,3,4,5,6,7
 )
 
-select state, intervention_type, sum(monthly_cost) as monthly_cost
+select state, intervention_type, fy, project_manager, ngo_partner, sum(monthly_cost) as monthly_cost
 from sub6
-group by 1,2
-order by state desc
+group by 1,2,3,4,5
+order by state
