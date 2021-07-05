@@ -31,8 +31,16 @@ where p_27396.focus_area = '430784'
 ),
 
 sub5 as (
-select census_code, _id, prj_code, projectid, state, district, village, recordId, project_manager27396, project_duration, ngo_partner, focus_area, p_27420.project_manager27420,
-case
+select census_code, _id, prj_code, projectid, state, district, village, recordId, project_manager27396, project_duration, ngo_partner, focus_area, p_27420.project_manager27420, fy27396, p_27420.fy27420, fy
+from sub4
+
+left join (select cast(y.project_code as varchar) as project_code, y.project_manager as project_manager27420, y.fy as fy27420 from profile_27420 y) p_27420 on sub4.recordid = p_27420.project_code
+),
+
+sub5_1 as (
+  
+select census_code, _id, prj_code, projectid, state, district, village, recordId, project_manager27396, project_duration, ngo_partner, focus_area, project_manager27420,
+  case
   		when fy27396 = '432699' then '2015-2016'
   		when fy27396 = '432701' then '2016-2017'
   		when fy27396 = '432700' then '2017-2018'
@@ -65,9 +73,7 @@ case
   		when fy = '1302340' then '2022-2023'
   		else ''
   	end as fy
-from sub4
-
-left join (select cast(y.project_code as varchar) as project_code, y.project_manager as project_manager27420, y.fy as fy27420 from profile_27420 y) p_27420 on sub4.recordid = p_27420.project_code
+from sub5
 ),
 
 sub6 as (
@@ -78,8 +84,9 @@ case
   	end as project_manager27420,
 case
   		WHEN  fy27420 = '' THEN fy27396
+    	ELSE  fy27420
   	end as fy27420
-from sub5
+from sub5_1
 )
 
 select census_code, _id, prj_code, projectid, state, district, village, recordId, project_manager27396, project_duration, ngo_partner, focus_area, fy, fy27396, fy27420, project_manager27420
