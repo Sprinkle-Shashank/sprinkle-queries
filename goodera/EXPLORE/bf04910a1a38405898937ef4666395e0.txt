@@ -93,10 +93,16 @@ sub7 as (
 select state, village, _id, fy, projectid, ngo_partner, project_manager, sum(hdfc_cost_monthly) as hdfc_cost_monthly
 from sub6
 group by 1,2,3,4,5,6,7
-)
+),
 
+sub8 as (
 select state, village, _id, fy, projectid, p_27395.ngo_partner_name as ngo_partner, project_manager, hdfc_cost_monthly
 from sub7
 
 left join (select cast(y._id as varchar) as _id27395, y.name as ngo_partner_name
 from profile_27395 y) p_27395 on ngo_partner = p_27395._id27395
+)
+
+select state, fy, ngo_partner, project_manager, sum(hdfc_cost_monthly) as hdfc_cost_monthly, count(distinct village) as villagecount
+from sub7
+group by 1,2,3,4
