@@ -6,21 +6,21 @@ left join (select cast(y.id as varchar) as id, y.name, cast(SPLIT_PART(SPLIT_PAR
 ),
 
 sub2 as (
-select projectCode, p_27396.proj, parent, _id, fy, projectid, state, district, village, p_27396.recordId, p_27396.project_manager27396, p_27396.fy27396, p_27396.project_duration, p_27396.ngo_partner, p_27396.focus_area
+select projectCode, p_27396.proj, parent, _id, fy, projectid, p_27396.recordId, p_27396.project_manager27396, p_27396.fy27396, p_27396.project_duration, p_27396.ngo_partner, p_27396.focus_area
 from sub1
 
 left join (select cast(y._id as varchar) as recordId, y.project_manager as project_manager27396, y.fy as fy27396, y.ngo_partner, y.focus_area, y.project_duration, y.name as proj from profile_27396 y) p_27396 on sub1.projectCode = p_27396.proj
 ),
 
 sub5 as (
-select projectCode, _id, proj, p_27420.renewproj, projectid, state, district, village, recordId, project_manager27396, project_duration, ngo_partner, focus_area, p_27420.project_manager27420, fy27396, p_27420.fy27420, fy
+select projectCode, _id, proj, p_27420.renewproj, projectid, recordId, project_manager27396, project_duration, ngo_partner, focus_area, p_27420.project_manager27420, fy27396, p_27420.fy27420, fy
 from sub4
 
 left join (select cast(y.project_code as varchar) as project_code, y.project_manager as project_manager27420, y.fy as fy27420, y.name as renewproj from profile_27420 y) p_27420 on sub4.recordid = p_27420.project_code
 ),
 
 sub5_1 as (
-select projectCode, _id, proj, renewproj, projectid, state, district, village, recordId, project_manager27396, project_duration, ngo_partner, focus_area, project_manager27420,
+select projectCode, _id, proj, renewproj, projectid, recordId, project_manager27396, project_duration, ngo_partner, focus_area, project_manager27420,
   case
   when fy27396 = '432699' then '2015-2016'
   when fy27396 = '432701' then '2016-2017'
@@ -58,7 +58,7 @@ from sub5
 ),
 
 sub6 as (
-select projectCode, _id, proj, renewproj, projectid, state, district, village, recordId, project_manager27396, project_duration, ngo_partner, focus_area, fy, fy27396,
+select projectCode, _id, proj, renewproj, projectid, recordId, project_manager27396, project_duration, ngo_partner, focus_area, fy, fy27396,
 case
   WHEN  project_manager27420 IS NULL THEN project_manager27396
     ELSE  project_manager27420
@@ -71,7 +71,7 @@ from sub5_1
 ),
 
 sub7 as (
-select projectCode, _id, proj, renewproj, projectid, state, district, recordId, project_manager27396, project_duration, ngo_partner, focus_area, fy, fy27396, fy27420, project_manager27420,
+select projectCode, _id, proj, renewproj, projectid, recordId, project_manager27396, project_duration, ngo_partner, focus_area, fy, fy27396, fy27420, project_manager27420,
 case
   WHEN fy27396 = fy THEN project_manager27396
     ELSE project_manager27420
@@ -82,14 +82,13 @@ order by fy27420
 ),
 
 sub8 as(
-select state, fy, ngo_partner, project_manager, count(Distinct proj) as projcount,
+select fy, ngo_partner, project_manager, count(Distinct proj) as projcount,
 count(Distinct renewproj) as renewcount
 from sub7
-where state IS NOT NULL and state != ''
 group by 1,2,3,4
 )
 
-select state, fy, ngo_partner, project_manager, sum(projcount - renewcount) as projcount,
+select fy, ngo_partner, project_manager, sum(projcount - renewcount) as projcount,
 sum(renewcount) as renewcount
 from sub8
 group by 1,2,3,4
