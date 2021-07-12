@@ -1,32 +1,15 @@
 with sub1 as (
-select p.census_code, cast(p.parent as varchar) as parent, p_54963._id, p_54963.fy, p_54963.projectid
+select p.projectCode, cast(p.parent as varchar) as parent, p_54963._id, p_54963.fy, p_54963.projectid
 from profile_54963 p_54963
 
-left join (select cast(y.id as varchar) as id, y.name, cast(SPLIT_PART(y.name, '|', 3) as varchar) as census_code, y.parent from ds_mysql_project y) p on p_54963.projectid=p.id
-
+left join (select cast(y.id as varchar) as id, y.name, cast(SPLIT_PART(SPLIT_PART(y.name, '|', 1), '.', 1) as varchar) as projectCode, y.parent from ds_mysql_project y) p on p_54963.projectid=p.id
 ),
 
 sub2 as (
-select census_code, p_27489.name27489, parent, _id, fy, projectid, UPPER(p_27489.state) as state, p_27489.district, p_27489.village
+select projectCode, sub1.name, p_27396.proj, parent, _id, fy, projectid, state, district, village, p_27396.recordId, p_27396.project_manager27396, p_27396.fy27396, p_27396.project_duration, p_27396.ngo_partner, p_27396.focus_area
 from sub1
 
-left join (select cast(y.name as varchar) as name27489, y.state, y.village, y.district from profile_27489 y) p_27489 on census_code = p_27489.name27489
-),
-
-sub3 as (
-select census_code, name27489, p.name, parent, _id, fy, projectid, state, district, village
-from sub2
-
-left join (select cast(y.id as varchar) as id, cast(SPLIT_PART(y.name, '|', 1) as varchar) as name from ds_mysql_project y) p on parent = p.id
-),
-
-sub4 as (
-select census_code, sub3.name, p_27396.proj, parent, _id, fy, projectid, state, district, village, p_27396.recordId, p_27396.project_manager27396, p_27396.fy27396, p_27396.project_duration, p_27396.ngo_partner, p_27396.focus_area
-from sub3
-
-left join (select cast(y._id as varchar) as recordId, y.project_manager as project_manager27396, y.fy as fy27396, y.ngo_partner, y.focus_area, y.project_duration, y.name as proj from profile_27396 y) p_27396 on sub3.name = p_27396.proj
-
-where p_27396.focus_area = '430784'
+left join (select cast(y._id as varchar) as recordId, y.project_manager as project_manager27396, y.fy as fy27396, y.ngo_partner, y.focus_area, y.project_duration, y.name as proj from profile_27396 y) p_27396 on sub1.projectCode = p_27396.proj
 ),
 
 sub5 as (
