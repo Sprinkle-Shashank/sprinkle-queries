@@ -99,9 +99,12 @@ order by fy27420
 ),
 
 sub8 as(
-select state, fy, ngo_partner, project_manager, count(Distinct proj) as projcount,
+select state, fy, ngo_partner, t.name as project_manager, count(Distinct proj) as projcount,
 count(Distinct renewproj) as renewcount
 from sub7
+  
+left join (select cast(x.id as varchar) as id, x.tagid, x.name, x.parent, x.sortorder, x.sourceid, x.start  from ds_mysql_tagelement x) t on project_manager=t.id
+  
 where state IS NOT NULL and state != ''
 group by 1,2,3,4
 )
