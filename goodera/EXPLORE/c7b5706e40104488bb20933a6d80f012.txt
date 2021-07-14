@@ -62,7 +62,7 @@ left join (select cast(y.project_code as varchar) as project_code, y.project_man
 
 sub4 as (
 select _id, hdfc_cost_monthly, prj_code, projectid, projname,
-recordId, project_manager27396, ngo_partner, fy, fy27396, 
+recordId, project_manager27396, ngo_partner, fy, fy27396, state,
 case
   		WHEN  fy27420 = '' THEN fy27396
     	ELSE  fy27420
@@ -78,7 +78,7 @@ order by fy27420 desc
 
 sub5 as (
 select _id, hdfc_cost_monthly, prj_code, projectid, projname,
-recordId, project_manager27396, ngo_partner, fy, fy27396, fy27420, project_manager27420,
+recordId, project_manager27396, ngo_partner, fy, fy27396, fy27420, project_manager27420, state,
 case
   		WHEN fy27396 = fy THEN project_manager27396
     	ELSE project_manager27420
@@ -88,16 +88,16 @@ where fy27420 <= fy
 ),
 
 sub6 as (
-select projname, ngo_partner, fy, project_manager, sum(hdfc_cost_monthly) as hdfc_cost_monthly, count(Distinct projectid) as projects
+select projname, ngo_partner, fy, project_manager, state, sum(hdfc_cost_monthly) as hdfc_cost_monthly, count(Distinct projectid) as projects
 from sub5
-group by 1,2,3,4
+group by 1,2,3,4,5
 )
 
-select projname, ngo_partner, fy, project_manager, hdfc_cost_monthly, projects
+select projname, p_27395.ngo_partner_name as ngo_partner, fy, project_manager, hdfc_cost_monthly, state, projects
 
 from sub6
 
 left join (select cast(y._id as varchar) as _id27395, y.name as ngo_partner_name
-from profile_27395 y) p_27395 on ngo_partner = p_27395._id27395
+from profile_27395 y) p_27395 on sub6.ngo_partner = p_27395._id27395
   
 left join (select cast(x.id as varchar) as id, x.tagid, x.name, x.parent, x.sortorder, x.sourceid, x.start  from ds_mysql_tagelement x) t on project_manager=t.id
