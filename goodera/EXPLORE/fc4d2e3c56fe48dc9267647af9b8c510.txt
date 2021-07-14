@@ -8,14 +8,8 @@ where p_29974.fy = '432710'
 ),
 
 sub2 as (
-select parentid, projectid, p.name as code, fy
-from sub1
-
-left join (select cast(y.id as varchar) as id, cast(SPLIT_PART(y.name, '|', 1) as varchar) as name, y.parent from ds_mysql_project y) p on sub1.parentid = p.id
-)
-
-select code, count(Distinct projectid) as projects,
-case
+select parentid, projectid, p.name as code,
+ case
   		when fy = '432699' then '2015-2016'
   		when fy = '432701' then '2016-2017'
   		when fy = '432700' then '2017-2018'
@@ -26,5 +20,11 @@ case
   		when fy = '1302340' then '2022-2023'
   		else ''
   	end as fy
+from sub1
+
+left join (select cast(y.id as varchar) as id, cast(SPLIT_PART(y.name, '|', 1) as varchar) as name, y.parent from ds_mysql_project y) p on sub1.parentid = p.id
+)
+
+select code, fy, count(Distinct projectid) as projects
 from sub2
 group by 1,2
