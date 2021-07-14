@@ -85,8 +85,19 @@ case
   	end as project_manager
 from sub4
 where fy27420 <= fy
-)
+),
 
+sub6 as (
 select projname, ngo_partner, fy, project_manager, sum(hdfc_cost_monthly) as hdfc_cost_monthly, count(Distinct projectid) as projects
 from sub5
 group by 1,2,3,4
+)
+
+select projname, ngo_partner, fy, project_manager, hdfc_cost_monthly, projects
+
+from sub6
+
+left join (select cast(y._id as varchar) as _id27395, y.name as ngo_partner_name
+from profile_27395 y) p_27395 on ngo_partner = p_27395._id27395
+  
+left join (select cast(x.id as varchar) as id, x.tagid, x.name, x.parent, x.sortorder, x.sourceid, x.start  from ds_mysql_tagelement x) t on project_manager=t.id
