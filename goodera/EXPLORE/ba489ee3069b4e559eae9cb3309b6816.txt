@@ -1,82 +1,9 @@
 with sub1 as (
-select p.projectCode, cast(p.parent as varchar) as parent, p_54963._id, p_54963.fy, p_54963.projectid
+select resp.projectCode, cast(resp.parent as varchar) as parent, p_54963._id, p_54963.fy, p_54963.projectid, p_54963.subcat_output, p_54963.deviation_check, p_54963.focus_area, p_54963.month, p_54963.flag_deviation_delay
 from profile_54963 p_54963
 
-left join (select cast(y.id as varchar) as id, y.name, cast(SPLIT_PART(SPLIT_PART(y.name, '|', 1), '.', 1) as varchar) as projectCode, y.parent from ds_mysql_project y) p on p_54963.projectid=p.id
-),
-
-sub2 as (
-select projectCode, p_27396.proj, parent, _id, fy, projectid, p_27396.recordId, p_27396.project_manager27396, p_27396.fy27396, p_27396.project_duration, p_27396.ngo_partner, p_27396.focus_area
-from sub1
-
-left join (select cast(y._id as varchar) as recordId, y.project_manager as project_manager27396, y.fy as fy27396, y.ngo_partner, y.focus_area, y.project_duration, y.name as proj from profile_27396 y) p_27396 on sub1.projectCode = p_27396.proj
-),
-
-sub5 as (
-select projectCode, _id, proj, p_27420.renewproj, projectid, recordId, project_manager27396, project_duration, ngo_partner, focus_area, p_27420.project_manager27420, fy27396, p_27420.fy27420, fy
-from sub2
-
-left join (select cast(y.project_code as varchar) as project_code, y.project_manager as project_manager27420, y.fy as fy27420, y.name as renewproj from profile_27420 y) p_27420 on sub2.recordid = p_27420.project_code
-),
-
-sub5_1 as (
-select projectCode, fy, _id, proj, renewproj, projectid, recordId, project_manager27396, project_duration, ngo_partner, focus_area, project_manager27420,
-  case
-  when fy27396 = '432699' then '2015-2016'
-  when fy27396 = '432701' then '2016-2017'
-  when fy27396 = '432700' then '2017-2018'
-  when fy27396 = '432710' then '2018-2019'
-  when fy27396 = '432703' then '2019-2020'
-  when fy27396 = '918237' then '2020-2021'
-  when fy27396 = '1302339' then '2021-2022'
-  when fy27396 = '1302340' then '2022-2023'
-  else ''
-  end as fy27396,
-case
-  when fy27420 = '432699' then '2015-2016'
-  when fy27420 = '432701' then '2016-2017'
-  when fy27420 = '432700' then '2017-2018'
-  when fy27420 = '432710' then '2018-2019'
-  when fy27420 = '432703' then '2019-2020'
-  when fy27420 = '918237' then '2020-2021'
-  when fy27420 = '1302339' then '2021-2022'
-  when fy27420 = '1302340' then '2022-2023'
-  else ''
-  end as fy27420
-from sub5
-),
-
-sub6 as (
-select projectCode, _id, proj, renewproj, projectid, recordId, project_manager27396, project_duration, ngo_partner, focus_area, fy, fy27396,
-case
-  WHEN  project_manager27420 IS NULL THEN project_manager27396
-    ELSE  project_manager27420
-  end as project_manager27420,
-case
-  WHEN  fy27420 = '' THEN fy27396
-    ELSE  fy27420
-  end as fy27420
-from sub5_1
-),
-
-sub7 as (
-select projectCode, _id, proj, renewproj, projectid, recordId, project_manager27396, project_duration, ngo_partner, focus_area, fy, fy27396, fy27420, project_manager27420,
-case
-  WHEN fy27396 = fy THEN project_manager27396
-    ELSE project_manager27420
-  end as project_manager
-from sub6
-order by fy27420
-),
-
-sub8 as(
-select fy, t.displayName
-from sub7
- 
-left join (select cast(x.id as varchar) as id, x.tagid, x.name as displayName, x.parent, x.sortorder, x.sourceid, x.start  from ds_mysql_tagelement x) t on fy=t.id 
+left join (select cast(y.status as varchar) as status from ds_mongo2_taskresponse y) resp on p_54963._id=resp.profileinstanceid
 )
 
-select fy, displayName
-from sub8
-group by 1,2
-order by displayName
+select _id, fy, projectid, subcat_output, deviation_check, focus_area, month, flag_deviation_delay
+from sub1
