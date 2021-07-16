@@ -1,47 +1,47 @@
 with sub1 as (
-select cast(p.parent as varchar) as parent, p_54963._id, p_54963.sub_cat_out_plan, p_54963.month, p_54963.fy, p_54963.subcat_output, p_54963.projectid
+select cast(p.parent as varchar) as parent, p_54963._id, p_54963.sub_cat_out_plan, p_54963.month, p_54963.fy, p_54963.subcat_output, p_54963.projectid,  p_54963.focus_area, p_54963.act_cat, p_54963.subcat
 from profile_54963 p_54963
 
 left join (select cast(y.id as varchar) as id, y.parent from ds_mysql_project y) p on p_54963.projectid=p.id
 ),
 
 sub2 as (
-select p.name, _id, sub_cat_out_plan, month, fy, subcat_output, projectid, parent
+select p.name, _id, sub_cat_out_plan, month, fy, subcat_output, projectid, focus_area, act_cat, subcat, parent
 from sub1
 
 left join (select cast(y.id as varchar) as id, cast(SPLIT_PART(y.name, '|', 1) as varchar) as name from ds_mysql_project y) p on parent = p.id
 ),
 
 sub3 as (
-select _id, sub_cat_out_plan, month, fy, subcat_output, projectid, parent, name, p_27396.recordId, p_27396.fy27396, p_27396.project_manager27396
+select _id, sub_cat_out_plan, month, fy, subcat_output, projectid, focus_area, act_cat, subcat, parent, name, p_27396.recordId, p_27396.fy27396, p_27396.project_manager27396
 from sub2
 
 left join (select cast(y._id as varchar) as recordId, y.project_manager as project_manager27396, y.fy as fy27396, y.name as proj from profile_27396 y) p_27396 on sub2.name = p_27396.proj
 ),
 
 sub4 as (
-select _id, sub_cat_out_plan, month, fy, subcat_output, projectid, parent, name, recordId, fy27396, project_manager27396, p_27420.fy27420, p_27420.project_manager27420
+select _id, sub_cat_out_plan, month, fy, subcat_output, projectid, focus_area, act_cat, subcat, parent, name, recordId, fy27396, project_manager27396, p_27420.fy27420, p_27420.project_manager27420
 from sub3
 
 left join (select cast(y.project_code as varchar) as project_code, y.project_manager as project_manager27420, y.fy as fy27420 from profile_27420 y) p_27420 on sub3.recordid = p_27420.project_code
 ),
 
 sub5 as (
-select _id, sub_cat_out_plan, month, fy, subcat_output, projectid, parent, name, recordId, fy27396, project_manager27396, fy27420, project_manager27420, t.fy_value
+select _id, sub_cat_out_plan, month, fy, subcat_output, projectid, focus_area, act_cat, subcat, parent, name, recordId, fy27396, project_manager27396, fy27420, project_manager27420, t.fy_value
 from sub4
 
 left join (select cast(x.id as varchar) as id, x.tagid, x.name as fy_value, x.sortorder, x.sourceid, x.start from ds_mysql_tagelement  x) t on sub4.fy = t.id
 ),
 
 sub6 as (
-select _id, sub_cat_out_plan, month, fy, subcat_output, projectid, parent, name, recordId, fy27396, project_manager27396, fy27420, project_manager27420, fy_value, t.fy27420_value
+select _id, sub_cat_out_plan, month, fy, subcat_output, projectid, focus_area, act_cat, subcat, parent, name, recordId, fy27396, project_manager27396, fy27420, project_manager27420, fy_value, t.fy27420_value
 from sub5
 
 left join (select cast(x.id as varchar) as id, x.tagid, x.name as fy27420_value, x.sortorder, x.sourceid, x.start from ds_mysql_tagelement  x) t on sub5.fy27420 = t.id
 ),
 
 sub7 as (
-select _id, sub_cat_out_plan, month, fy, subcat_output, projectid, parent, name, recordId, fy27396, project_manager27396, fy27420, project_manager27420, fy_value, fy27420_value,
+select _id, sub_cat_out_plan, month, fy, subcat_output, projectid, focus_area, act_cat, subcat, parent, name, recordId, fy27396, project_manager27396, fy27420, project_manager27420, fy_value, fy27420_value,
 case
   WHEN fy27420_value <= fy_value THEN project_manager27420
     ELSE project_manager27396
@@ -49,6 +49,6 @@ case
 from sub6
 )
 
-select month, _id, fy, subcat_output, projectid, parent, name, sub_cat_out_plan, recordId, fy27396, project_manager27396, fy27420, project_manager27420, fy_value, fy27420_value, project_manager
+select month, _id, fy, project_manager, focus_area, act_cat, subcat, subcat_output, projectid, parent, name, sub_cat_out_plan, recordId, fy27396, project_manager27396, fy27420, project_manager27420, fy_value, fy27420_value
 from sub7
 order by fy_value
