@@ -16,10 +16,18 @@ order by datacheck desc
 ),
 
 sub3 as(
-select p.parent, subcat_output, deviation_check, _id, focus_area, fy, month, projectId, flag_deviation_delay, status, approvallog, datacheck from sub2
+select subcat_output, deviation_check, _id, focus_area, fy, month, projectId, flag_deviation_delay, status, approvallog, datacheck, p.parent 
+from sub2
 
-left join (select cast(y.id as varchar) as id, y.parent from ds_mysql_project y) p on sub2.projectid=p.id
+left join (select cast(y.id as varchar) as id, y.parent from ds_mysql_project y) p on projectid=p.id
+),
+
+sub4 as (
+select subcat_output, deviation_check, _id, focus_area, fy, month, projectId, flag_deviation_delay, status, approvallog, datacheck, parent, p.name 
+from sub3
+
+left join (select cast(y.id as varchar) as id, cast(SPLIT_PART(y.name, '|', 1) as varchar) as name from ds_mysql_project y) p on parent = p.id
 )
 
 select subcat_output, deviation_check, _id, focus_area, fy, month, projectId, flag_deviation_delay, status, approvallog, datacheck, parent
-from sub3
+from sub4
