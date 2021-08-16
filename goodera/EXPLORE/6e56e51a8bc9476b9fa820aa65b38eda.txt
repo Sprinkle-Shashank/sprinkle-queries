@@ -1,3 +1,8 @@
+-- CHANGES --
+--Changed the table to profileinstance_optimized
+--Removed json_parse function - is not making any difference to the runtime
+
+--query1
 with temp1b as (select projectid,
 s_clinic_type,
 case when sti_truckers is not null then 'Sexually Transmitted Diseases' end as Disease,
@@ -64,7 +69,7 @@ group by 1,2,3,4),
 
 --query2
 temp2b as (select projectid, s_clinic_type, patient_name, govt, p_id, f_category, f_reg_date as fy_timerange, 
-case when name='Not checked' or name is null then 0 else 1 end as final_tb,
+case when ds_mysql_prod_tagelement.name='Not checked' or ds_mysql_prod_tagelement.name is null then 0 else 1 end as final_tb,
 case when general='1012465' or general is null then 0 else 1 end as final_general,
 case when oral='1012465' or oral is null then 0 else 1 end as final_oral,
 case when vision='1012444' or vision is null then 0 else 1 end as final_vision,
@@ -73,6 +78,231 @@ case when hiv='1012480' or hiv is null then 0 else 1 end as final_hiv,
 case when sti='1012470' or sti is null then 0 else 1 end as final_sti,
 case when hypertension='1012468' or hypertension is null then 0 else 1 end as final_hypertension
 from profile_59462 t1
-left join ds_mysql_prod_tagelement on t1.tb=id)
+left join ds_mysql_prod_tagelement on t1.tb=ds_mysql_prod_tagelement.id),
 
-select * from temp2b;
+temp2c as (select projectid, patient_name, govt, p_id, s_clinic_type,fy_timerange, f_category,
+case when final_general is not null then 'General Check Up' end as disease,
+sum(final_general) as final_sum
+from temp2b where f_category='Trucker'
+group by 1,2,3,4,5,6,7,8
+union all
+select projectid, patient_name, govt, p_id, s_clinic_type,fy_timerange, f_category,
+case when final_vision is not null then 'Vision Screening' end as disease,
+sum(final_vision) as final_sum
+from temp2b where f_category='Trucker'
+group by 1,2,3,4,5,6,7,8
+union all
+select projectid, patient_name, govt, p_id, s_clinic_type,fy_timerange, f_category,
+case when final_tb is not null then 'Tuberculosis' end as disease,
+sum(final_tb) as final_sum
+from temp2b where f_category='Trucker'
+group by 1,2,3,4,5,6,7,8
+union all
+select projectid, patient_name, govt, p_id, s_clinic_type,fy_timerange, f_category,
+case when final_diabetes is not null then 'Diabetes' end as disease,
+sum(final_diabetes) as final_sum
+from temp2b where f_category='Trucker'
+group by 1,2,3,4,5,6,7,8
+union all
+select projectid, patient_name, govt, p_id, s_clinic_type,fy_timerange, f_category,
+case when final_hiv is not null then 'HIV' end as disease,
+sum(final_hiv) as final_sum
+from temp2b where f_category='Trucker'
+group by 1,2,3,4,5,6,7,8
+union all
+select projectid, patient_name, govt, p_id, s_clinic_type,fy_timerange, f_category,
+case when final_sti is not null then 'Sexually Transmitted Diseases' end as disease,
+sum(final_sti) as final_sum
+from temp2b where f_category='Trucker'
+group by 1,2,3,4,5,6,7,8
+union all
+select projectid, patient_name, govt, p_id, s_clinic_type,fy_timerange, f_category,
+case when final_hypertension is not null then 'Hypertension' end as disease,
+sum(final_hypertension) as final_sum
+from temp2b where f_category='Trucker'
+group by 1,2,3,4,5,6,7,8
+union all
+select projectid, patient_name, govt, p_id, s_clinic_type,fy_timerange, f_category,
+case when final_oral is not null then 'Oral Hygiene' end as disease,
+sum(final_oral) as final_sum
+from temp2b where f_category='Trucker'
+group by 1,2,3,4,5,6,7,8),
+
+--query3
+
+-- reading from this table profile_63887
+--query4
+
+temp4b as (select projectid, s_clinic_type, fy_timerange,
+case when sti_allied is not null then 'Sexually Transmitted Diseases' end as Disease,
+sum(sti_allied+sti_partner) as final_sum
+from profile_63885
+where s_clinic_type in ('1064192','1064191','1064079','1064078','1099507')
+group by 1,2,3,4
+
+union all
+
+select projectid, s_clinic_type, fy_timerange,
+case when gen_allied is not null then 'General Check Up' end as Disease,
+sum(gen_allied+gen_partner) as final_sum
+from profile_63885
+where s_clinic_type in ('1064192','1064191','1064079','1064078','1099507')
+group by 1,2,3,4
+
+union all
+
+select projectid, s_clinic_type, fy_timerange,
+case when vision_allied is not null then 'Vision Screening' end as Disease,
+sum(vision_allied+vision_partner) as final_sum
+from profile_63885
+where s_clinic_type in ('1064192','1064191','1064079','1064078','1099507')
+group by 1,2,3,4
+
+union all
+
+select projectid, s_clinic_type, fy_timerange,
+case when hiv_allied is not null then 'HIV' end as Disease,
+sum(hiv_allied+hiv_partner) as final_sum
+from profile_63885
+where s_clinic_type in ('1064192','1064191','1064079','1064078','1099507')
+group by 1,2,3,4
+
+union all
+
+select projectid, s_clinic_type, fy_timerange,
+case when tb_allied is not null then 'Tuberculosis' end as Disease,
+sum(tb_allied+tb_partner) as final_sum
+from profile_63885
+where s_clinic_type in ('1064192','1064191','1064079','1064078','1099507')
+group by 1,2,3,4
+
+union all
+
+select projectid, s_clinic_type, fy_timerange,
+case when diabetes_allied is not null then 'Diabetes' end as Disease,
+sum(diabetes_allied+diabetes_partner) as final_sum
+from profile_63885
+where s_clinic_type in ('1064192','1064191','1064079','1064078','1099507')
+group by 1,2,3,4),
+
+--query5
+
+temp5b as (select projectid, s_clinic_type, patient_name, govt, p_id, f_category, f_reg_date as fy_timerange, 
+case when tag.name='Not checked' or tag.name is null then 0 else 1 end as final_tb,
+case when general='1012465' or general is null then 0 else 1 end as final_general,
+case when oral='1012465' or oral is null then 0 else 1 end as final_oral,
+case when vision='1012444' or vision is null then 0 else 1 end as final_vision,
+case when diabetes='1012463' or diabetes is null then 0 else 1 end as final_diabetes,
+case when hiv='1012480' or hiv is null then 0 else 1 end as final_hiv,
+case when sti='1012470' or sti is null then 0 else 1 end as final_sti,
+case when hypertension='1012468' or hypertension is null then 0 else 1 end as final_hypertension
+from profile_59462 t1
+left join ds_mysql_prod_tagelement tag on t1.tb=tag.id),
+
+temp5c as (select projectid, patient_name, govt, p_id, s_clinic_type,fy_timerange, f_category,
+case when final_general is not null then 'General Check Up' end as disease,
+sum(final_general) as final_sum
+from temp5b where f_category in ('Allied','Partner','Other')
+group by 1,2,3,4,5,6,7,8
+union all
+select projectid, patient_name, govt, p_id, s_clinic_type,fy_timerange, f_category,
+case when final_vision is not null then 'Vision Screening' end as disease,
+sum(final_vision) as final_sum
+from temp5b where f_category in ('Allied','Partner','Other')
+group by 1,2,3,4,5,6,7,8
+union all
+select projectid, patient_name, govt, p_id, s_clinic_type,fy_timerange, f_category,
+case when final_tb is not null then 'Tuberculosis' end as disease,
+sum(final_tb) as final_sum
+from temp5b where f_category in ('Allied','Partner','Other')
+group by 1,2,3,4,5,6,7,8
+union all
+select projectid, patient_name, govt, p_id, s_clinic_type,fy_timerange, f_category,
+case when final_diabetes is not null then 'Diabetes' end as disease,
+sum(final_diabetes) as final_sum
+from temp5b where f_category in ('Allied','Partner','Other')
+group by 1,2,3,4,5,6,7,8
+union all
+select projectid, patient_name, govt, p_id, s_clinic_type,fy_timerange, f_category,
+case when final_hiv is not null then 'HIV' end as disease,
+sum(final_hiv) as final_sum
+from temp5b where f_category in ('Allied','Partner','Other')
+group by 1,2,3,4,5,6,7,8
+union all
+select projectid, patient_name, govt, p_id, s_clinic_type,fy_timerange, f_category,
+case when final_sti is not null then 'Sexually Transmitted Diseases' end as disease,
+sum(final_sti) as final_sum
+from temp5b where f_category in ('Allied','Partner','Other')
+group by 1,2,3,4,5,6,7,8
+union all
+select projectid, patient_name, govt, p_id, s_clinic_type,fy_timerange, f_category,
+case when final_hypertension is not null then 'Hypertension' end as disease,
+sum(final_hypertension) as final_sum
+from temp5b where f_category in ('Allied','Partner','Other')
+group by 1,2,3,4,5,6,7,8
+union all
+select projectid, patient_name, govt, p_id, s_clinic_type,fy_timerange, f_category,
+case when final_oral is not null then 'Oral Hygiene' end as disease,
+sum(final_oral) as final_sum
+from temp5b where f_category in ('Allied','Partner','Other')
+group by 1,2,3,4,5,6,7,8),
+
+--query6
+
+---- reading from this table profile_63887
+
+final_temp as (select projectid,
+disease,
+fy_timerange,
+sum(total_sum) as final_sum
+from temp1b
+group by 1,2,3
+
+union
+			   
+select projectid,
+disease,
+fy_timerange,
+sum(final_sum) as final_sum
+from temp2c
+group by 1,2,3
+			   
+union
+
+select projectid, 
+'Tuberculosis' as disease, 
+fy_timerange,
+sum(tb_pres_screen_s_truckers+tb_pres_screen_x_truckers+tb_pres_screen_both_truckers) as final_sum
+from profile_63887
+group by 1,2,3
+
+union
+			   
+select projectid, 
+disease,
+fy_timerange,
+sum(final_sum) as final_sum
+from temp4b
+group by 1,2,3
+
+union
+			   
+select projectid,
+disease,
+fy_timerange,
+sum(final_sum) as final_sum
+from temp5c
+group by 1,2,3
+
+union
+			   
+select projectid,
+'Tuberculosis' as disease,
+fy_timerange,
+sum(tb_pres_screen_s_allied+tb_pres_screen_x_allied+tb_pres_screen_both_allied) as final_sum
+from profile_63887
+group by 1,2,3)
+
+select projectid,disease,fy_timerange, sum(final_sum) as total_sum
+from final_temp
+group by 1,2,3
