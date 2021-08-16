@@ -1,1 +1,39 @@
-select * from profile_27396;
+with sub1 as (
+select p.census_code, cast(p.parent as varchar) as parent, p_29974._id, p_29974.fy, p_29974.hdfc_cost_monthly, p_29974.prj_code, p_29974.projectid
+from profile_29974 p_29974
+
+left join (select cast(y.id as varchar) as id, y.name, cast(SPLIT_PART(y.name, '|', 3) as varchar) as census_code, y.parent from ds_mysql_prod_project y) p on p_29974.projectid=p.id
+
+),
+
+sub2 as (
+select census_code, p_27489.name27489, parent, _id, fy, prj_code, projectid, p_27489.state as state, p_27489.district, p_27489.village
+from sub1
+
+left join (select cast(y.name as varchar) as name27489, y.state, y.village, y.district from profile_27489 y) p_27489 on census_code = p_27489.name27489
+),
+
+sub3 as (
+select census_code, name27489, p.name, parent, _id, fy, prj_code, projectid, state, district, village
+from sub2
+
+left join (select cast(y.id as varchar) as id, cast(SPLIT_PART(y.name, '|', 1) as varchar) as name from ds_mysql_prod_project y) p on parent = p.id
+),
+
+sub4 as (
+select census_code, sub3.name, p_27396.proj, parent, _id, fy, prj_code, projectid, state, district, village, p_27396.recordId, p_27396.project_manager27396, p_27396.fy27396, p_27396.project_duration, p_27396.ngo_partner, p_27396.focus_area
+from sub3
+
+left join (select cast(y._id as varchar) as recordId, y.project_manager as project_manager27396, y.fy as fy27396, y.ngo_partner, y.focus_area, y.project_duration, y.name as proj from profile_27396 y) p_27396 on sub3.name = p_27396.proj
+
+where p_27396.focus_area = '430784'
+),
+
+sub5 as (
+select census_code, _id, proj, p_27420.renewproj, prj_code, projectid, state, district, village, recordId, project_manager27396, project_duration, ngo_partner, focus_area, p_27420.project_manager27420, fy27396, p_27420.fy27420, fy
+from sub4
+
+left join (select cast(y.project_code as varchar) as project_code, y.project_manager as project_manager27420, y.fy as fy27420, y.name as renewproj from profile_27420 y) p_27420 on sub4.recordid = p_27420.project_code
+)
+
+select * from sub5;
