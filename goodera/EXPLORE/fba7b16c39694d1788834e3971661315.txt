@@ -1,2 +1,26 @@
-select data.fy, data.school, data.video_100, data.video_90, data.video_80
-from ds_mongo_profileinstance where profileId= '55669' and active = 't'
+with tab as (
+  select tagfy.name FY, tagsch.name as School, t1.sign_100, t1.sign_90, 
+  t1.sign_80
+  from rakesh_t1 t1
+  left join ds_mysql_prod_tagelement tagfy
+  on ds.data.fy = tagfy.id
+  left join ds_mysql_prod_tagelement tagsch
+  on ds.data.school = tagsch.id
+  where ds.profileid = 55669 and ds.active = 't'
+),
+temp as (
+  select 'sign_100' as col
+  union all
+  select 'sign_90' as col
+  union all
+  select 'sign_80' as col
+)
+select tab.fy, tab.school, temp.col,
+	case col
+	when 'sign_80' then tab.sign_80
+	when 'sign_90' then tab.sign_90
+	when 'sign_100' then tab.sign_100
+	Else Null
+	End as value	
+from tab
+cross join temp
