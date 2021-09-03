@@ -1,4 +1,19 @@
-select year_text, sum(beneficiaries_enrolled) as direct,sum(beneficiaries_indirect) as indirect
-from dell_profile_67395
-group by year_text
+with temp as (
+  select 'direct' as col
+  union all
+  select 'indirect' as col
+),
+inter as (
+	select year_text, sum(beneficiaries_enrolled) as 		direct,sum(beneficiaries_indirect) as indirect
+	from dell_profile_67395
+	group by year_text
+)
 
+select inter.year_text,temp.col,
+case col
+	when 'direct' then inter.direct
+	when 'indirect' then inter.indirect
+	else Null
+	end as Value
+from inter
+cross join temp;
