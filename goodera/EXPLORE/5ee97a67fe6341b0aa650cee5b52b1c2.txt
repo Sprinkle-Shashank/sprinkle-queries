@@ -26,7 +26,7 @@ case
   when (extract(month from pd.end_date) >2) then ('FY'|| (extract(year from pd.end_date)+1-2000))
   end as FY,
   temp.col as Dimensions,
-  case col
+  (case col
   when   'beneficiaries_enrolled_for_first_time' then sq.beneficiaries_enrolled_for_first_time
   when 'beneficiaries_enrolled' then sq.beneficiaries_enrolled
   when 'underrepresented_beneficiaries_direct' then sq.underrepresented_beneficiaries_direct
@@ -38,7 +38,7 @@ case
   when 'beneficiaries_successfully_receiving_certification' then sq.beneficiaries_successfully_receiving_certification
   when 'beneficiaries_completing_vocational_training' then sq.beneficiaries_completing_vocational_training
   else Null
-  end as Values
+  end) as Values
 FROM dell_profile_67395 sq
 left join dell_profile_62886 pd on sq.program_name=pd._id
 left join ds_mysql_prod_project as t 
@@ -49,3 +49,5 @@ left join ds_mysql_prod_project as t
   on t2.parent=t3.id 
   left join ds_mysql_prod_project as t4
   on t3.parent=t4.id 
+
+group by sq.projectId, sq.fy_timerange, sq.program_name, pd.end_date, FY, t2.name,t3.name,t4.name, Dimensions
