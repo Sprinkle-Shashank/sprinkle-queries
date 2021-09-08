@@ -1,4 +1,23 @@
-Select sq.projectId, sq.fy_timerange, sq.program_name, sq.male_indirect_beneficiaries AS Male_INDIRECT, sq.neither_gender_indirect_beneficiaries AS Other_INDIRECT, sq.male_direct_beneficiaries AS Male_DIRECT, sq.female_indirect_beneficiaries AS Female_INDIRECT, sq.no_gender_disclosure_indirect_beneficiaries AS Gender_not_disclosed_INDIRECT, sq.no_gender_disclosure_direct_beneficiaries AS Gender_not_disclosed_DIRECT, sq.female_direct_beneficiaries AS Female_DIRECT, sq.neither_gender_direct_beneficiaries AS Other_DIRECT,
+with temp as (
+  select 'male_indirect_beneficiaries' as col
+  union all
+  select 'neither_gender_indirect_beneficiaries' as col
+	union all
+  select 'male_direct_beneficiaries' as col
+	union all
+  select 'female_indirect_beneficiaries' as col
+	union all
+  select 'no_gender_disclosure_indirect_beneficiaries' as col
+	union all
+  select 'no_gender_disclosure_direct_beneficiaries' as col
+	union all
+  select 'female_direct_beneficiaries' as col
+	union all
+  select 'neither_gender_direct_beneficiaries' as col
+	union all
+)
+
+Select sq.projectId, sq.fy_timerange, sq.program_name, t.name as projectname,t2.name as Partner,t3.name as Country,t4.name as Region,
 case
 	when sq.Region=47864 then 'North America' 
 	end as NAvsRest,
@@ -14,8 +33,23 @@ case
 case
 	when sq.Region=52614 then 'Greater China'
 	end as ChinavsRest,
-concat("FY",sub(if(lte(MONTH(pd.end_date),2),Year(pd.end_date),sum(year(pd.end_date),1)),2000)) AS FY
+case 
+  when (extract(month from pd.end_date) <=2) then ('FY' || (extract(year from pd.end_date)-2000))
+  when (extract(month from pd.end_date) >2) then ('FY'|| (extract(year from pd.end_date)+1-2000))
+  end as FY, temp.col as Dimensions, temp.col as Dimensions,
+sum(case col
+	when 'male_indirect_beneficiaries' then sq.male_indirect_beneficiaries
+	when 'neither_gender_indirect_beneficiaries' then sq.neither_gender_indirect_beneficiaries
+	when 'male_direct_beneficiaries' then sq.male_direct_beneficiaries
+	when 'female_indirect_beneficiaries' then sq.female_indirect_beneficiaries
+	when 'no_gender_disclosure_indirect_beneficiaries' then sq.no_gender_disclosure_indirect_beneficiaries
+	when 'no_gender_disclosure_direct_beneficiaries' then sq.no_gender_disclosure_direct_beneficiaries
+	when 'female_direct_beneficiaries' then sq.female_direct_beneficiaries
+	when 'neither_gender_direct_beneficiaries' then sq.neither_gender_direct_beneficiaries
+	else Null
+	end) as Values
 FROM dell_profile_67395 sq
+cross join temp
 left join dell_profile_62886 pd on sq.program_name=pd._id 
 left join ds_mysql_prod_project as t 
   on sq.projectId = t.id
@@ -25,3 +59,4 @@ left join ds_mysql_prod_project as t
   on t2.parent=t3.id 
   left join ds_mysql_prod_project as t4
   on t3.parent=t4.id 
+group by sq.projectId, sq.fy_timerange, sq.program_name, Partner, Country, Region, end_date, Dimensions, NAvsRest, APJvsRest, EMEAvsRest, LATAMvsRest, ChinavsRest
