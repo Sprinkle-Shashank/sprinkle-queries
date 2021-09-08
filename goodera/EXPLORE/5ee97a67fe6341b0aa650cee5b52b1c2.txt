@@ -1,4 +1,4 @@
-with(
+with temp as(
  select 'beneficiaries_enrolled_for_first_time' as col 
   union all
   select 'beneficiaries_enrolled' as col
@@ -26,7 +26,7 @@ case
   when (extract(month from pd.end_date) >2) then ('FY'|| (extract(year from pd.end_date)+1-2000))
   end as FY,
   temp.col as Dimensions,
-  (case col
+  sum(case col
   when   'beneficiaries_enrolled_for_first_time' then sq.beneficiaries_enrolled_for_first_time
   when 'beneficiaries_enrolled' then sq.beneficiaries_enrolled
   when 'underrepresented_beneficiaries_direct' then sq.underrepresented_beneficiaries_direct
@@ -40,6 +40,8 @@ case
   else Null
   end) as Values
 FROM dell_profile_67395 sq
+cross join temp
+
 left join dell_profile_62886 pd on sq.program_name=pd._id
 left join ds_mysql_prod_project as t 
   on sq.projectId = t.id
