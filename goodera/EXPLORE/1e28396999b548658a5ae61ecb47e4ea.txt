@@ -1,2 +1,72 @@
-Select sq.projectId, sq.fy_timerange, sq.program_name, sq.male_indirect_beneficiaries AS Male_INDIRECT, sq.neither_gender_indirect_beneficiaries AS Other_INDIRECT, sq.male_direct_beneficiaries AS Male_DIRECT, sq.female_indirect_beneficiaries AS Female_INDIRECT, sq.neither_gender_direct_beneficiaries AS Other_DIRECT, sq.no_gender_disclosure_indirect_beneficiaries AS Gender_not_disclosed_indirect, sq.no_gender_disclosure_direct_beneficiaries Gender_not_disclosed_direct, sq.female_direct_beneficiaries Female_DIRECT, sq.location
+with temp as (
+  select 'male_indirect_beneficiaries' as col
+  union all
+  select 'neither_gender_indirect_beneficiaries' as col
+	union all
+  select 'male_direct_beneficiaries' as col
+	union all
+  select 'female_indirect_beneficiaries' as col
+	union all
+  select 'no_gender_disclosure_indirect_beneficiaries' as col
+	union all
+  select 'no_gender_disclosure_direct_beneficiaries' as col
+	union all
+  select 'female_direct_beneficiaries' as col
+	union all
+  select 'neither_gender_direct_beneficiaries' as col
+)
+
+Select sq.projectId, sq.fy_timerange, sq.program_name, t.name as projectname,t2.name as Partner,t3.name as Country,t4.name as Region, sta.name as location1,cou.name as location2,
+case
+	when Region=47864 then 'North America' 
+	else 'Rest of the World'
+	end as NAvsRest,
+case
+	when Region=46380 then 'Asia Pacific Japan'
+	else 'Rest of the World'
+	end as APJvsRest,
+case
+	when Region=51897 then 'Eurpoe Middle-East Africa'
+	else 'Rest of the World'
+	end as EMEAvsRest,
+case
+	when Region=52056 then 'Latin America'
+	else 'Rest of the World'
+	end as LATAMvsRest,
+case
+	when Region=52614 then 'Greater China'
+	else 'Rest of the World'
+	end as ChinavsRest,
+case 
+  when (extract(month from pd.end_date) <=2) then ('FY' || (extract(year from pd.end_date)-2000))
+  when (extract(month from pd.end_date) >2) then ('FY'|| (extract(year from pd.end_date)+1-2000))
+  end as FY, temp.col as Dimensions, temp.col as Dimensions,
+sum(case col
+	when 'male_indirect_beneficiaries' then sq.male_indirect_beneficiaries
+	when 'neither_gender_indirect_beneficiaries' then sq.neither_gender_indirect_beneficiaries
+	when 'male_direct_beneficiaries' then sq.male_direct_beneficiaries
+	when 'female_indirect_beneficiaries' then sq.female_indirect_beneficiaries
+	when 'no_gender_disclosure_indirect_beneficiaries' then sq.no_gender_disclosure_indirect_beneficiaries
+	when 'no_gender_disclosure_direct_beneficiaries' then sq.no_gender_disclosure_direct_beneficiaries
+	when 'female_direct_beneficiaries' then sq.female_direct_beneficiaries
+	when 'neither_gender_direct_beneficiaries' then sq.neither_gender_direct_beneficiaries
+	else Null
+	end) as Values
 FROM dell_profile_67395 sq
+cross join temp
+left join dell_profile_62886 pd on sq.program_name=pd._id 
+left join ds_mysql_prod_project as t 
+  on sq.projectId = t.id
+  left join ds_mysql_prod_project as t2
+  on t.parent=t2.id
+  left join ds_mysql_prod_project as t3
+  on t2.parent=t3.id 
+  left join ds_mysql_prod_project as t4
+  on t3.parent=t4.id 
+   left join ds_mysql_prod_tagelement cit
+on sq.location = cit.id
+left join ds_mysql_prod_tagelement sta
+on cit.parent = sta.id
+left join ds_mysql_prod_tagelement cou
+on sta.parent = cou.id
+group by sq.projectId, sq.fy_timerange, sq.program_name, t2.name, t3.name, t4.name, pd.end_date, Dimensions, NAvsRest, APJvsRest, EMEAvsRest, LATAMvsRest, ChinavsRest, t.name
