@@ -15,8 +15,14 @@
    union all
    select 'female_direct_beneficiaries' as col
   )
-Select qi._id, qi.fy_timerange, qi.program_name ,qi.projectId,pd.end_date, t.name as projectname,t2.name as Partner,t3.name as Country,t4.name as Region,temp.col as Gender_and_type,
-(case col
+
+Select qi._id, qi.fy_timerange, qi.program_name, qi.projectId,pd.end_date, t.name as projectname,t2.name as Partner,t3.name as Country,t4.name as Region,
+temp.col as Gender_and_type,
+case 
+  when (extract(month from pd.end_date) <=2) then ('FY' || (extract(year from pd.end_date)-2000))
+  when (extract(month from pd.end_date) >2) then ('FY'|| (extract(year from pd.end_date)+1-2000))
+  end as FY,
+ sum(case col
   when 'male_indirect_beneficiaries' then qi.male_indirect_beneficiaries
   when 'neither_gender_indirect_beneficiaries' then qi.neither_gender_indirect_beneficiaries
   when 'male_direct_beneficiaries' then qi.male_direct_beneficiaries
@@ -27,14 +33,16 @@ Select qi._id, qi.fy_timerange, qi.program_name ,qi.projectId,pd.end_date, t.nam
   when 'female_direct_beneficiaries' then qi.female_direct_beneficiaries
    else NULL
    end )as Beneficiaries,
-   
-   case( 
-  when (extract(month from pd.end_date) <=2) then ('FY' || (extract(year from pd.end_date)-2000))
-  when (extract(month from pd.end_date) >2) then ('FY'|| (extract(year from pd.end_date)+1-2000))
-  end )as FY,
- 
+   case 
+   when (temp.col) LIKE 'Ma%'  then 'Male'
+   when (temp.col) LIKE 'Fe%'  then 'Female'
+   when (temp.col) LIKE 'Ge%'  then 'Gender not disclosed'
+	else 'Other'
+	end as Gender_bucket
+      
 
 from dell_profile_67395 qi
+cross join temp
 left join dell_profile_62886 pd on qi.program_name=pd._id
 left join ds_mysql_prod_project as t 
   on qi.projectId = t.id
@@ -44,3 +52,4 @@ left join ds_mysql_prod_project as t
   on t2.parent=t3.id 
   left join ds_mysql_prod_project as t4
   on t3.parent=t4.id 
+   
