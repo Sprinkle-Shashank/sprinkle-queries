@@ -1,9 +1,106 @@
+  with temp as (
+  select 'age_11_to_13_years_indirect' as col
+	union all
+  select 'age_19_to_23_years_indirect' as col
+	union all
+  select 'age_6_to_10_years_direct' as col
+	union all
+  select 'age_14_to_18_years_direct' as col
+	union all
+  select 'age_above_37_years_indirect' as col
+	union all
+  select 'age_14_to_18_years_indirect' as col
+	union all
+  select 'age_above_37_years_direct' as col
+	union all
+  select 'age_below_5_years_indirect' as col
+	union all
+  select 'age_24_to_28_years_direct' as col
+	union all
+  select 'age_19_to_23_years_direct' as col
+	union all
+  select 'age_below_5_years_direct' as col
+	union all
+  select 'age_33_to_36_years_indirect' as col
+	union all
+  select 'age_33_to_36_years_direct' as col
+	union all
+  select 'age_24_to_28_years_indirect' as col
+	union all
+  select 'age_6_to_10_years_indirect' as col
+	union all
+  select 'age_29_to_32_years_indirect' as col
+	union all
+  select 'age_29_to_32_years_direct' as col
+	union all
+	select 'age_unreported_direct' as col
+	union all
+	select 'age_11_to_13_years_direct' as col
+	
+) 
 Select sq.projectId, sq.fy_timerange, sq.location, sq.program_name, sq.age_below_5_years_indirect, sq.age_11_to_13_years_direct, sq.age_29_to_32_years_indirect, sq.age_24_to_28_years_direct, sq.age_19_to_23_years_indirect, sq.age_below_5_years_direct, sq.age_33_to_36_years_indirect, sq.age_33_to_36_years_direct, sq.age_above_37_years_indirect, sq.age_11_to_13_years_indirect, sq.age_6_to_10_years_indirect, sq.age_14_to_18_years_indirect, sq.age_above_37_years_direct, sq.age_6_to_10_years_direct, sq.age_14_to_18_years_direct, sq.age_29_to_32_years_direct, sq.age_24_to_28_years_indirect, sq.age_19_to_23_years_direct, sq.age_unreported_direct, t.name as projectname,t2.name as Partner,t3.name as Country,t4.name as Region,sta.name as location1,cou.name as location2,pd.end_date,
 case 
   when (extract(month from pd.end_date) <=2) then ('FY' || (extract(year from pd.end_date)-2000))
   when (extract(month from pd.end_date) >2) then ('FY'|| (extract(year from pd.end_date)+1-2000))
-  end as FY
+  end as FY,temp.col as age_dimensions,
+  
+ sum( case col
+  
+  when 'age_11_to_13_years_indirect' then sq.age_11_to_13_years_indirect
+  when 'age_19_to_23_years_indirect' then sq.age_19_to_23_years_indirect
+  when 'age_6_to_10_years_direct' then sq.age_6_to_10_years_direct
+  when 'age_14_to_18_years_direct' then sq.age_14_to_18_years_direct
+  when 'age_above_37_years_indirect' then sq.age_above_37_years_indirect
+  when 'age_14_to_18_years_indirect' then sq.age_14_to_18_years_indirect
+  when 'age_above_37_years_direct' then sq.age_above_37_years_direct
+  when 'age_below_5_years_indirect' then sq.age_below_5_years_indirect
+  when 'age_24_to_28_years_direct' then sq.age_24_to_28_years_direct
+  when 'age_19_to_23_years_direct' then sq.age_19_to_23_years_direct
+  when 'age_below_5_years_direct' then sq.age_below_5_years_direct
+  when 'age_33_to_36_years_indirect' then sq.age_33_to_36_years_indirect
+  when 'age_33_to_36_years_direct' then sq.age_33_to_36_years_direct
+  when 'age_24_to_28_years_indirect' then sq.age_24_to_28_years_indirect
+  when 'age_6_to_10_years_indirect' then sq.age_6_to_10_years_indirect
+  when 'age_29_to_32_years_indirect' then sq.age_29_to_32_years_indirect
+  when 'age_29_to_32_years_direct' then sq.age_29_to_32_years_direct
+  when 'age_unreported_direct' then sq.age_unreported_direct
+  when 'age_11_to_13_years_direct' then sq.age_11_to_13_years_direct
+  else Null
+  end
+  )as Beneficiaries,
+  
+  case 
+   	when  (temp.col) LIKE '%5%'  then 'Below 5 years'
+	when  (temp.col) LIKE '%6%'  then '6 to 10 years'
+   	when  (temp.col) LIKE '%11%'  then '11 to 13 years'
+   	when  (temp.col) LIKE '%14%'  then '14 to 18 years'
+   	when  (temp.col) LIKE '%19%'  then '19 to 23 years'
+	when  (temp.col) LIKE '%24%'  then '24 to 28 years'
+   	when  (temp.col) LIKE '%29%'  then '29 to 32 years'
+   	when  (temp.col) LIKE '%33%'  then '33 to 36 years'
+   	when  (temp.col) LIKE '%37%'  then 'above 37 years'
+   	else 'age unreported'
+	end as age_bucket,
+  case 
+   	when  (temp.col) LIKE '%5%'  then 1
+	when  (temp.col) LIKE '%6%'  then 2
+   	when  (temp.col) LIKE '%11%'  then 3
+   	when  (temp.col) LIKE '%14%'  then 4
+   	when  (temp.col) LIKE '%19%'  then 5
+	when  (temp.col) LIKE '%24%'  then 6
+   	when  (temp.col) LIKE '%29%'  then 7
+   	when  (temp.col) LIKE '%33%'  then 8
+   	when  (temp.col) LIKE '%37%'  then 9
+	else 10
+	end as sort_order,
+
+  case 
+   	when  (temp.col) LIKE '%indirect%'  then 'Indirect'
+	else 'Direct'
+	end as beneficiary_type
+  
 from dell_profile_67395 sq
+cross join temp
 left join dell_profile_62886 pd on sq.program_name=pd._id
 left join ds_mysql_prod_project as t 
   on sq.projectId = t.id
@@ -20,6 +117,7 @@ on cit.parent = sta.id
 left join ds_mysql_prod_tagelement cou
 on sta.parent = cou.id;
 
+group by  sq.projectId, sq.fy_timerange, sq.location, sq.program_name, pd.end_date, FY, t2.name,t3.name,t4.name ,sta.name, cou.name, age_dimensions, age_bucket, beneficiary_type, sort_order
 
  
 
