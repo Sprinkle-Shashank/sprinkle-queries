@@ -1,0 +1,16 @@
+SELECT sq.projectId, sq.fy_timerange, sq.program_name, pd.ed_date,
+case 
+  when (extract(month from pd.end_date) <=2) then ('FY' || (extract(year from pd.end_date)-2000))
+  when (extract(month from pd.end_date) >2) then ('FY'|| (extract(year from pd.end_date)+1-2000))
+  end as FY, temp.col as Dimensions,
+ FROM Dell_profile_67395 sq
+ LEFT JOIN Dell_profile_62886 pd
+ ON sq.program_name=pd._id
+ left join ds_mysql_prod_project as t 
+  on sq.projectId = t.id
+  left join ds_mysql_prod_project as t2
+  on t.parent=t2.id
+  left join ds_mysql_prod_project as t3
+  on t2.parent=t3.id 
+  left join ds_mysql_prod_project as t4
+  on t3.parent=t4.id 
