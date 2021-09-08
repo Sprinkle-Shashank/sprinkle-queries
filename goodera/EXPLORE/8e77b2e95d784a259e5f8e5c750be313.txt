@@ -1,3 +1,57 @@
-SELECT sq.projectId, sq.fy_timerange, sq.program_name, sq.underrepresented_beneficiaries_direct, sq.beneficiaries_placed_in_an_internship_job_shadow, sq.beneficiaries_enrolled, sq.underrepresented_beneficiaries_indirect, sq.beneficiary_learning_training_hours, sq.beneficiaries_completing_vocational_training, sq.beneficiaries_enrolled_for_first_time, sq.beneficiaries_completed_the_program, sq.beneficiaries_successfully_receiving_certification, sq.beneficiaries_placed_in_full_time_job, pd.end_date
+with temp as(
+ select 'beneficiaries_enrolled_for_first_time' as col 
+  union all
+  select 'beneficiaries_enrolled' as col
+  union all
+  select 'underrepresented_beneficiaries_direct' as col 
+  union all
+  select 'underrepresented_beneficiaries_indirect' as col
+  union all
+  select 'beneficiaries_completed_the_program' as col 
+  union all
+  select 'beneficiary_learning_training_hours' as col 
+  union all
+  select 'beneficiaries_placed_in_an_internship_job_shadow' as col  
+  union all
+  select 'beneficiaries_placed_in_full_time_job' as col 
+  union all
+  select 'beneficiaries_successfully_receiving_certification' as col 
+  union all
+  select 'beneficiaries_completing_vocational_training' as col
+)
+
+SELECT sq.projectId, sq.fy_timerange, sq.program_name, pd.end_date,t2.name as Partner,t3.name as Country,t4.name as Region,
+case 
+  when (extract(month from pd.end_date) <=2) then ('FY' || (extract(year from pd.end_date)-2000))
+  when (extract(month from pd.end_date) >2) then ('FY'|| (extract(year from pd.end_date)+1-2000))
+  end as FY,
+  temp.col as Dimensions,
+  sum(case col
+  when   'beneficiaries_enrolled_for_first_time' then sq.beneficiaries_enrolled_for_first_time
+  when 'beneficiaries_enrolled' then sq.beneficiaries_enrolled
+  when 'underrepresented_beneficiaries_direct' then sq.underrepresented_beneficiaries_direct
+  when 'underrepresented_beneficiaries_indirect' then sq.underrepresented_beneficiaries_indirect
+  when 'beneficiaries_completed_the_program' then sq.beneficiaries_completed_the_program
+  when 'beneficiary_learning_training_hours' then sq.beneficiary_learning_training_hours
+  when 'beneficiaries_placed_in_an_internship_job_shadow' then sq.beneficiaries_placed_in_an_internship_job_shadow
+  when 'beneficiaries_placed_in_full_time_job' then sq.beneficiaries_placed_in_full_time_job
+  when 'beneficiaries_successfully_receiving_certification' then sq.beneficiaries_successfully_receiving_certification
+  when 'beneficiaries_completing_vocational_training' then sq.beneficiaries_completing_vocational_training
+  else Null
+  end) as Values,
+  case 
+   	when  (temp.col) LIKE '%indirect%'  then 'Indirect'
+	else 'Direct'
+	end as beneficiary_type
 FROM dell_profile_67394 sq
-LEFT JOIN Dell_profile_62886 pd ON sq.program_name=pd._id
+left join dell_profile_62886 pd on sq.program_name=pd._id
+left join ds_mysql_prod_project as t 
+  on sq.projectId = t.id
+  left join ds_mysql_prod_project as t2
+  on t.parent=t2.id
+  left join ds_mysql_prod_project as t3
+  on t2.parent=t3.id 
+  left join ds_mysql_prod_project as t4
+  on t3.parent=t4.id 
+
+group by sq.projectId, sq.fy_timerange, sq.program_name, pd.end_date, FY, t2.name,t3.name,t4.name, Dimensions
