@@ -1,5 +1,5 @@
 with tab1 as(
-select t.name as FY,p.focus_area,n.name as Projectname 
+select t.name as FY,p.focus_area,n.name as Projectname, p.projectid
 from profileup_59426 p
 left join ds_mysql_prod_tagelement t on
 t.id = p.fy
@@ -7,18 +7,17 @@ left join ds_mysql_prod_project n on
 n.id = p.projectid),
 
 tab2 as(
-select substring(second,1,charindex('|',second)-1) as state_id , FY, focus_area, projectname
-from (select substring(first,charindex('|',first)+1,len(first)) as second,FY, focus_area,projectname 
-from (select substring(projectname,charindex('|',projectname)+1,len(projectname)) as first,FY, focus_area,projectname 
+select substring(second,1,charindex('|',second)-1) as state_id , FY, focus_area, projectname,projectid
+from (select substring(first,charindex('|',first)+1,len(first)) as second,FY, focus_area,projectname,projectid 
+from (select substring(projectname,charindex('|',projectname)+1,len(projectname)) as first,FY, focus_area,projectname,projectid 
 from tab1)) where len(second)>7)
 
-
-select t.state, p.FY,p.focus_area,n.parent
+select t.state, p.FY,p.focus_area,n.parent, p.projectid
 from tab2 p
-left join profile_27489 t on
-t.name = p.state_id
-left join ds_mysql_prod_project n on 
-n.name = p.projectname
+
+
+
+
 
 
 
