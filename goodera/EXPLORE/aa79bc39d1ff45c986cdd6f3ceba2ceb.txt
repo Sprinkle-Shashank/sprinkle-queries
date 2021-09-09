@@ -1,4 +1,7 @@
-Select soc.projectId, soc.year, soc.month, soc.beneficiary, soc.beneficiary_photo, soc.fy_timerange, soc.testimonial, t2.name as Partner,t3.name as Country,t4.name as Region,t5.name as Partner_Text, cast(soc.fy_timerange.end as date),soc.date_of_photo,
+Select soc.projectId, soc.year, soc.month, soc.beneficiary, soc.beneficiary_photo, soc.fy_timerange, soc.testimonial, t2.name as Partner,t3.name as Country,t4.name as Region,t5.name as Partner_Text, case 
+  when (extract(month from STRING_SPLIT(fy_timerange,':') <=2)) then ('FY' || (extract(year from STRING_SPLIT(fy_timerange,':')-2000))
+  when (extract(month from to_char(soc.fy_timerange, 'MON-DD-YYYY HH12:MIPM'))>2) then ('FY'|| (extract(year from to_char(soc.fy_timerange, 'MON-DD-YYYY HH12:MIPM'))+1-2000))
+  end as FY,
 (soc.title || '-'|| t5.name) as Title
 from profile_60972 soc
 left join ds_mysql_prod_project as t 
