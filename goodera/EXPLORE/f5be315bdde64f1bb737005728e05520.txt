@@ -10,8 +10,9 @@ tab2 as(
 select substring(second,1,charindex('|',second)-1) as state_id , FY, focus_area, projectname,projectid
 from (select substring(first,charindex('|',first)+1,len(first)) as second,FY, focus_area,projectname,projectid 
 from (select substring(projectname,charindex('|',projectname)+1,len(projectname)) as first,FY, focus_area,projectname,projectid 
-from tab1)) where len(second)>7)
+from tab1)) where len(second)>7),
 
+tab3 as (
 select t.state, p.FY,p.focus_area,m.name as parentname
 from tab2 p
 left join profile_27489 t on
@@ -19,15 +20,31 @@ t.name = p.state_id
 left join ds_mysql_prod_project n on 
 n.id = p.projectid
 left join ds_mysql_prod_project m on
-n.parent = m.id
+n.parent = m.id),
 
+tab4 as(
+select substring(parentname,1,charindex('|',parentname)-1) as projectcode,FY,focus_area,state 
+from tab3),
 
+tab5 as (
+select p.projectcode,p.FY, p.focus_area, p.state, m.name as projectmanager1,n.name as fy1, y.name as projectmanager2,z.name as fy2
+from tab4 p
+left join profile_27396 t on
+p.projectcode = t.name
+left join ds_mysql_prod_tagelement m on
+t.project_manager = m.id
+left join ds_mysql_prod_tagelement n on
+t.fy = n.id
+left join profileup_27420 x on
+p.projectcode = x.name
+left join ds_mysql_prod_tagelement y on
+t.project_manager = y.id
+left join ds_mysql_prod_tagelement z on
+t.fy = z.id)
 
-
-
-
-
-
+select projectcode, fy, fy1, fy2,focus_area,state,projectmanager1,projectmanager2, count(*) as count
+from tab5
+group by projectcode, fy, fy1, fy2,focus_area,state,projectmanager1,projectmanager2
 
 
 
