@@ -7,17 +7,14 @@ with temp as (select
 	t.name,
 	cast(timestamp 'epoch' + CAST(t.start AS BIGINT)/1000 * interval '1 second' as varchar) as startdate,
 	timestamp 'epoch' + CAST(t.end AS BIGINT)/1000 * interval '1 second' as enddate,
-	st.xquestionid,
+	st.xquestionid as hi,
 	q.questiontype,
 	q.keyword,
 	q.questiontext,
 	st.datanum ,
-	case when q.questiontype='NUMBER' then st.datanum
-	 	when q.questiontype='TEXT' then st.datatext 
-	 	when q.questiontype='DATE' then st.datatext 
-	 	when q.questiontype='TAGREF' then st.datatagref 
-	 ELSE st.datatable 
-	end as value,
+	st.datatext,
+	st.datatagref,
+	st.datatable, 
 	st.measureunit
 from ds_mongo_prod_sustainabilityTask st
 left join ds_mysql_prod_question q on st.xquestionid = q.id
@@ -26,5 +23,5 @@ left join ds_mysql_prod_tagelement t on st.financialperiod = t.id
 where xprofileId= '56999'
 and status = 'APPROVED'
 and keyword in ('propane_usage','electricity_usage'))
+ select * from temp
 
-select concat(concat(substring(cast(startdate as varchar), 1, 10),'T'), concat(split_part(startdate, ' ',2),'.000Z')), startdate, enddate, substring(enddate, 1, 26) as end_splt from temp
