@@ -1,4 +1,14 @@
-SELECT sq.month, sq.time_period_timerange AS fy_timerange, sq.partner_reference, sq.cash_disbursed AS Cash_disbursed, sq.products_disbursed_cogs AS Products_disbursed_COGS, sq.products_disbursedfmv AS Products_disbursed_FMV, sq.year,pd.projectId AS Region, pd.partner_name AS Partner, pd.fy AS FY, 
+with temp as(
+
+Select 'products_disbursed_cogs' as col
+  union all
+  Select 'productfmv' as col
+  union all
+  Select 'Total_Funds_Disbursed' as col
+  union all
+  Select 'cash_disbursed' as col
+)
+SELECT sq.month, sq.time_period_timerange AS fy_timerange, sq.partner_reference, sq.cash_disbursed AS Cash_disbursed, sq.products_disbursed_cogs AS Products_disbursed_COGS, sq.product_fmv AS Products_disbursed_FMV, sq.year,pd.projectId AS Region, pd.partner_name AS Partner, pd.fy AS FY, 
 case
 	when sq.month=1059437 then 'Q1'
 	when sq.month=1059438 then 'Q1'
@@ -13,8 +23,19 @@ case
 	when sq.month=1059447 then 'Q4'
 	when sq.month=1059448 then 'Q4'
 	end as Quarter,
-	(sq.cash_disbursed+sq.products_disbursed_cogs) AS Total_Funds_Disbursed
-FROM Dell_profile_063523 sq 
+	(sq.cash_disbursed+sq.products_disbursed_cogs) AS Total_Funds_Disbursed,
+	
+	
+case col
+	when 'products_disbursed_cogs' then sq.products_disbursed_cogs
+	when 'product_fmv' then sq.productfmv
+	when 'Total_Funds_Disbursed' then Total_Funds_Disbursed
+	when 'cash_disbursed' then sq.cash_disbursed
+	
+	else Null
+	end as Values
+FROM Dell_profile_063523 sq
+cross join temp
 LEFT JOIN Dell_Profile_63522 pd ON sq.partner_reference=pd._id
 
 
