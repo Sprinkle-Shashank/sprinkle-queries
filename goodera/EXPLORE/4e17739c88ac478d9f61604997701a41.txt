@@ -1,0 +1,24 @@
+with temp as (
+  select 'product_grant_received' as col
+  union all
+  select 'cash_grant_received' as col
+)
+
+SELECT fr.projectId, fr.time_period_timerange AS fy_timerange, fr.currency, fr.product_grant_received, fr.cash_grant_received, t2.name as Partner,t3.name as Country,t4.name as Region, temp.col As Fund_Type,
+sum(case col
+	when 'product_grant_received' then fr.product_grant_received
+	when 'cash_grant_received' then fr.cash_grant_received
+	else Null
+	end) as Fund
+FROM
+profile_63524 fr
+CROSS JOIN temp
+left join ds_mysql_prod_project as t 
+  on fr.projectId = t.id
+  left join ds_mysql_prod_project as t2
+  on t.parent=t2.id
+  left join ds_mysql_prod_project as t3
+  on t2.parent=t3.id 
+  left join ds_mysql_prod_project as t4
+  on t3.parent=t4.id 
+group by fr.projectId, fr.time_period_timerange, fr.currency, t2.name, t3.name, t4.name, Fund_Type
