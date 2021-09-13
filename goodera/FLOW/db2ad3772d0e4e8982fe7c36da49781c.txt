@@ -1,28 +1,89 @@
-with temp as (select 
-	st.xprojectid,
-	p.name,
-	st.financialperiod,
-	t.name,
-	timestamp 'epoch' + CAST(t.start AS BIGINT)/1000 * interval '1 second' as startdate,
-	timestamp 'epoch' + CAST(t.end AS BIGINT)/1000 * interval '1 second' as enddate,
-	st.xquestionid,
-	q.questiontype,
-	q.keyword,
-	q.questiontext,
-	case when q.questiontype='NUMBER' then st.datanum 
-	 when q.questiontype='TEXT' then st.datatext 
-	 when q.questiontype='DATE' then st.datatext 
-	 when q.questiontype='TAGREF' then st.datatagref 
-	 ELSE st.datatable 
-end as value,
-	nvl(st.datanum ,st.datatext,st.datatagref,st.datatable) as qkeyword,
-	st.measureunit
-from ds_mongo_prod_sustainabilityTask st
-left join ds_mysql_prod_question q on st.xquestionid = q.id
-left join ds_mysql_prod_project p on st.xprojectid = p.id
-left join ds_mysql_prod_tagelement t on st.financialperiod = t.id
-where xprofileId= '56999'
-and status = 'APPROVED'
-and keyword in ('propane_usage','electricity_usage'))
-
-select * from temp
+drop table if exists profile_56999;
+ create table profile_56999 as
+ SELECT projectid, _id,
+ with temp as (select 
+				st.xprojectid,
+				p.name,
+				st.financialperiod,
+				t.name,
+				cast(timestamp 'epoch' + CAST(t.start AS BIGINT)/1000 * interval '1 second' as varchar) as startdate,
+				timestamp 'epoch' + CAST(t.end AS BIGINT)/1000 * interval '1 second' as enddate,
+				st.xquestionid,
+				q.questiontype,
+				q.keyword,
+				q.questiontext,
+				st.datanum ,case when q.keyword='corporate_hours_worked' then cast(st.datanum as FLOAT) END as corporate_hours_worked,
+case when q.keyword='near_miss_hazard_identification' then cast(st.datanum as FLOAT) END as near_miss_hazard_identification,
+case when q.keyword='biomedical_disposal' then cast(st.datanum as FLOAT) END as biomedical_disposal,
+case when q.keyword='name' then cast(st.datatext as VARCHAR) END as name,
+case when q.keyword='hazwaste_landfill' then cast(st.datanum as FLOAT) END as hazwaste_landfill,
+case when q.keyword='water_usage_utility_provider' then cast(st.datanum as FLOAT) END as water_usage_utility_provider,
+case when q.keyword='electricity_usage' then cast(st.datanum as FLOAT) END as electricity_usage,
+case when q.keyword='government_inspections' then cast(st.datanum as FLOAT) END as government_inspections,
+case when q.keyword='paper' then cast(st.datanum as FLOAT) END as paper,
+case when q.keyword='nonhaz_landfill' then cast(st.datanum as FLOAT) END as nonhaz_landfill,
+case when q.keyword='nonhaz_reg_landfill' then cast(st.datanum as FLOAT) END as nonhaz_reg_landfill,
+case when q.keyword='first_aid_nurse' then cast(st.datanum as FLOAT) END as first_aid_nurse,
+case when q.keyword='water_usage_new_water_reclaimed' then cast(st.datanum as FLOAT) END as water_usage_new_water_reclaimed,
+case when q.keyword='hazwaste_treatment' then cast(st.datanum as FLOAT) END as hazwaste_treatment,
+case when q.keyword='government_violations' then cast(st.datanum as FLOAT) END as government_violations,
+case when q.keyword='biomedical_cost' then cast(st.datanum as FLOAT) END as biomedical_cost,
+case when q.keyword='cardoard' then cast(st.datanum as FLOAT) END as cardoard,
+case when q.keyword='nonhaz_incinerated' then cast(st.datanum as FLOAT) END as nonhaz_incinerated,
+case when q.keyword='electricity_cost' then cast(st.datanum as FLOAT) END as electricity_cost,
+case when q.keyword='nonhaz_reg_treatment' then cast(st.datanum as FLOAT) END as nonhaz_reg_treatment,
+case when q.keyword='recordable_injuries' then cast(st.datanum as FLOAT) END as recordable_injuries,
+case when q.keyword='hazwaste_incinerated' then cast(st.datanum as FLOAT) END as hazwaste_incinerated,
+case when q.keyword='water_usage_reclaimed_storm' then cast(st.datanum as FLOAT) END as water_usage_reclaimed_storm,
+case when q.keyword='ehs_outreach_events' then cast(st.datanum as FLOAT) END as ehs_outreach_events,
+case when q.keyword='pallets' then cast(st.datanum as FLOAT) END as pallets,
+case when q.keyword='nonhaz_other' then cast(st.datanum as FLOAT) END as nonhaz_other,
+case when q.keyword='natural_gas_usage' then cast(st.datanum as FLOAT) END as natural_gas_usage,
+case when q.keyword='nonhaz_reg_waste' then cast(st.datanum as FLOAT) END as nonhaz_reg_waste,
+case when q.keyword='lost_time_injuries' then cast(st.datanum as FLOAT) END as lost_time_injuries,
+case when q.keyword='hazwaste_fuels' then cast(st.datanum as FLOAT) END as hazwaste_fuels,
+case when q.keyword='water_usage_well_water' then cast(st.datanum as FLOAT) END as water_usage_well_water,
+case when q.keyword='ehs_community_awards' then cast(st.datanum as FLOAT) END as ehs_community_awards,
+case when q.keyword='total_nonhaz' then cast(st.datanum as FLOAT) END as total_nonhaz,
+case when q.keyword='natural_gas_cost' then cast(st.datanum as FLOAT) END as natural_gas_cost,
+case when q.keyword='cafe_grease' then cast(st.datanum as FLOAT) END as cafe_grease,
+case when q.keyword='nonhaz_reg_fuels' then cast(st.datanum as FLOAT) END as nonhaz_reg_fuels,
+case when q.keyword='hours_worked_employees' then cast(st.datanum as FLOAT) END as hours_worked_employees,
+case when q.keyword='hazwaste_other' then cast(st.datanum as FLOAT) END as hazwaste_other,
+case when q.keyword='ehs_spills_fires_incidents' then cast(st.datanum as FLOAT) END as ehs_spills_fires_incidents,
+case when q.keyword='nonhaz_cost' then cast(st.datanum as FLOAT) END as nonhaz_cost,
+case when q.keyword='propane_usage' then cast(st.datanum as FLOAT) END as propane_usage,
+case when q.keyword='water_usage_onsite_recycled' then cast(st.datanum as FLOAT) END as water_usage_onsite_recycled,
+case when q.keyword='plastic' then cast(st.datanum as FLOAT) END as plastic,
+case when q.keyword='nonhaz_reg_other' then cast(st.datanum as FLOAT) END as nonhaz_reg_other,
+case when q.keyword='hours_worked_temp' then cast(st.datanum as FLOAT) END as hours_worked_temp,
+case when q.keyword='total_hazwaste' then cast(st.datanum as FLOAT) END as total_hazwaste,
+case when q.keyword='total_water_usage' then cast(st.datanum as FLOAT) END as total_water_usage,
+case when q.keyword='diesel_fuel_usage' then cast(st.datanum as FLOAT) END as diesel_fuel_usage,
+case when q.keyword='metals' then cast(st.datanum as FLOAT) END as metals,
+case when q.keyword='nonhaz_reg_total' then cast(st.datanum as FLOAT) END as nonhaz_reg_total,
+case when q.keyword='total_hours_worked' then cast(st.datanum as FLOAT) END as total_hours_worked,
+case when q.keyword='total_hazwaste_cost' then cast(st.datanum as FLOAT) END as total_hazwaste_cost,
+case when q.keyword='water_cost' then cast(st.datanum as FLOAT) END as water_cost,
+case when q.keyword='diesel_fuel_cost' then cast(st.datanum as FLOAT) END as diesel_fuel_cost,
+case when q.keyword='electronics' then cast(st.datanum as FLOAT) END as electronics,
+case when q.keyword='nonhaz_reg_cost' then cast(st.datanum as FLOAT) END as nonhaz_reg_cost,
+case when q.keyword='total_campus_hours_worked' then cast(st.datanum as FLOAT) END as total_campus_hours_worked,
+case when q.keyword='gasoline_usage' then cast(st.datanum as FLOAT) END as gasoline_usage,
+case when q.keyword='incinerated_for_fuel' then cast(st.datanum as FLOAT) END as incinerated_for_fuel,
+case when q.keyword='recordable_injury_rate' then cast(st.datanum as FLOAT) END as recordable_injury_rate,
+case when q.keyword='propane_cost' then cast(st.datanum as FLOAT) END as propane_cost,
+case when q.keyword='landscape_organic_waste' then cast(st.datanum as FLOAT) END as landscape_organic_waste,
+case when q.keyword='lost_time_injury_rate' then cast(st.datanum as FLOAT) END as lost_time_injury_rate,
+case when q.keyword='gasoline_cost' then cast(st.datanum as FLOAT) END as gasoline_cost,
+case when q.keyword='recycled_other' then cast(st.datanum as FLOAT) END as recycled_other,
+case when q.keyword='electricity_solar' then cast(st.datanum as FLOAT) END as electricity_solar,
+case when q.keyword='total_nonhaz_recycled' then cast(st.datanum as FLOAT) END as total_nonhaz_recycled,
+case when q.keyword='nonhaz_recycle_cost' then cast(st.datanum as FLOAT) END as nonhaz_recycle_cost,
+st.measureunit
+				from ds_mongo_prod_sustainabilityTask st
+				left join ds_mysql_prod_question q on st.xquestionid = q.id
+				left join ds_mysql_prod_project p on st.xprojectid = p.id
+				left join ds_mysql_prod_tagelement t on st.financialperiod = t.id
+				where xprofileId= '56999'
+				and status = 'APPROVED')
