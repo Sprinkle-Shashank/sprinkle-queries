@@ -1,0 +1,29 @@
+create table sus_56999 as
+with temp as (select 
+	st.xprojectid,
+	p.name,
+	st.financialperiod,
+	t.name,
+	timestamp 'epoch' + CAST(t.start AS BIGINT)/1000 * interval '1 second' as startdate,
+	timestamp 'epoch' + CAST(t.end AS BIGINT)/1000 * interval '1 second' as enddate,
+	st.xquestionid,
+	q.questiontype,
+	q.keyword,
+	q.questiontext,
+	st.datanum ,
+	case when q.questiontype='NUMBER' then st.datanum
+	 	when q.questiontype='TEXT' then st.datatext 
+	 	when q.questiontype='DATE' then st.datatext 
+	 	when q.questiontype='TAGREF' then st.datatagref 
+	 ELSE st.datatable 
+	end as value,
+	st.measureunit
+from ds_mongo_prod_sustainabilityTask st
+left join ds_mysql_prod_question q on st.xquestionid = q.id
+left join ds_mysql_prod_project p on st.xprojectid = p.id
+left join ds_mysql_prod_tagelement t on st.financialperiod = t.id
+where xprofileId= '56999'
+and status = 'APPROVED'
+and keyword in ('propane_usage','electricity_usage'))
+
+select split_part(startdate, '+', 1), startdate from temp
