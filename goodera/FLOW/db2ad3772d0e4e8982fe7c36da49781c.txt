@@ -1,14 +1,18 @@
-drop table if exists profile_55410;
- create table profile_55410 as
- SELECT projectid, _id,
- CAST(data.name as VARCHAR), 
- CAST(data.site_id as INT), 
- CAST(data.site_name as VARCHAR), 
- CAST(data.tier as INT), 
- CAST(data.location as INT), 
- CAST(data.site_status as INT), 
- CAST(data.zip as VARCHAR), 
- CAST(data.keyword_1_timerange as SUPER), 
- CAST(data.keyword_2 as VARCHAR), 
- CAST(data.keyword_3 as VARCHAR) 
-from ds_mongo_profileinstance where profileId='55410' and active = 't'
+select 
+	st.xprojectid,
+	p.name,
+	st.financialperiod,
+	t.start, t.end,
+	st.xquestionid,
+	q.questiontype,
+	q.keyword,
+	q.questiontext,
+	nvl(st.datanum,st.datatext,st.datatagref,st.datatable) as value,
+	st.measureunit
+from ds_mongo_prod_sustainabilityTask st
+left join ds_mysql_prod_question q on st.xquestionid = q.id
+left join ds_mysql_prod_project p on st.xprojectid = p.id
+left join ds_mysql_prod_tagelement t on st.financialperiod = t.id
+where xprofileId= '56999'
+and status = 'APPROVED'
+and keyword in ('propane_usage','electricity_usage')
