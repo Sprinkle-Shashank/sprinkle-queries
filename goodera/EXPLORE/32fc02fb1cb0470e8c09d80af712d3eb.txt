@@ -1,4 +1,4 @@
-Select sq.fy_timerange, sq.number_enrolled_batch, mr.region, sq.module_name,pd.pvh_id, t.name as name
+Select sq.fy_timerange, sq.number_enrolled_batch, mr.region, sq.module_name,pd.pvh_id, t.name as name, t2.name as program_type
 FROM profile_62486 sq
 LEFT JOIN profile_62948 pd
 ON pd.project_id=sq.project_id
@@ -6,6 +6,8 @@ LEFT JOIN profile_60928 mr
 ON pd.pvh_id=mr.factory_id
 left join ds_mysql_prod_tagelement t on
 sq.module_name=t.id
+left join ds_mysql_prod_tagelement t2 on
+t.parent=t2.id
 WHERE pd.pvh_id IS NOT NULL AND sq.fy_timerange IS NOT NULL AND extract(year from(cast(fy_timerange.start as datetime)))>=2020
 GROUP BY sq.module_name, sq.fy_timerange, sq.number_enrolled_batch, pd.pvh_id,mr.region,mr.timeperiod_timerange, t.name
 ORDER BY mr.timeperiod_timerange DESC
