@@ -1,18 +1,25 @@
 SELECT * FROM (
+@household= ((SELECT active_household FROM table_name FETCH NEXT COUNT(1) ROWS ONLY)+
+(SELECT household_no FROM table_name OFFSET 1 ROWS FETCH NEXT COUNT(1) ROWS ONLY)-
+(SELECT household_closed FROM table_name OFFSET 1 ROWS FETCH NEXT COUNT(1) ROWS ONLY))
+PRINT @household
+
 DECLARE @Counter INT
+DECLARE @household INTEGER
 SET @Counter=1
 WHILE(@Counter<=COUNT(*)-1)
 BEGIN
-PRINT ((SELECT active_household
-FROM profile_59871
-FETCH NEXT COUNT(*) ROWS ONLY)+
-(SELECT household_no
-FROM profile_59871
-OFFSET 1 ROWS
-FETCH NEXT n-1 ROWS ONLY)-
-(SELECT household_closed
-FROM profile_59871
-OFFSET 1 ROWS
-FETCH NEXT n-1 ROWS ONLY))
-END
-)
+	@household= ((SELECT @household
+	FROM table_name
+	OFFSET 1 ROWS
+	FETCH NEXT COUNT(*)-1 ROWS ONLY)+
+	(SELECT household_no
+	FROM table_name
+	OFFSET 2 ROWS
+	FETCH NEXT COUNT(*)-2 ROWS ONLY)-
+	(SELECT household_closed
+	FROM table_name
+	OFFSET 2 ROWS
+	FETCH NEXT COUNT(*)-2 ROWS ONLY))
+	PRINT @household
+END  )
