@@ -4,6 +4,7 @@ with table1 as (
   select  p.projectid as project, p._id as parent_id, p.fy_timerange, p.country,               p.activity, p.activity_description, p.partner, p.business_units, p.focus_area, p.currency,   p.brand_of_prods_donated as prod_brand, p.product_description as prod_desc,                 p.no_of_reckitt_prods_donated, p.sequence, multi_brands, cast(fy_timerange.start as date)   as start_date
   from profile_78057 p, p.other_brand multi_brands),
   
+  
 table2 as (
   select t3.name as project_name, parent_id, fy_timerange, t5.name as country, activity,       activity_description, partner, t6.name as business_units, t7.name as focus_area, t8.name     as currency, t2.name as brand, prod_desc, no_of_reckitt_prods_donated as reckitt_prods,     multi_brands, sequence, t4.name as prod_brand, t.product_description, t.reckitt_kits,       concat('brand',row_number() over (partition by sequence order by t4.name asc)) as           brand_sequence, extract(month from start_date) as month,
   case
@@ -30,6 +31,7 @@ table2 as (
 	left join ds_mysql_prod_tagelement t7 on focus_area = t7.id
 	left join ds_mysql_prod_tagelement t8 on currency = t8.id)
 	
+	
 select project_name, parent_id, sequence, fy_timerange, quarter country, activity, activity_description, partner, business_units, focus_area, currency, brand, prod_desc, reckitt_prods,
 	max(case
 			when brand_sequence = 'brand1' then prod_brand
@@ -43,6 +45,7 @@ select project_name, parent_id, sequence, fy_timerange, quarter country, activit
 			when brand_sequence = 'brand1' then reckitt_kits
 			else NULL
 		end) as brand1_reckitt_kits,
+		
 	max(case
 			when brand_sequence = 'brand2' then prod_brand
 			else NULL
