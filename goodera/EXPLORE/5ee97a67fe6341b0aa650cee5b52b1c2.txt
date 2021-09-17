@@ -20,7 +20,7 @@ with temp as(
   select 'beneficiaries_completing_vocational_training' as col
 )
 
-Select t.name as projectID, sq.fy_timerange, sq.program_name,pd.end_date,t2.name as Partner,t3.name as Country,t4.name as Region,
+Select sq.projectId, sq.fy_timerange, sq.program_name,pd.end_date,t2.name as Partner,t3.name as Country,t4.name as Region,t5.name,
 case 
   when (extract(month from pd.end_date) <=2) then ('FY' || (extract(year from pd.end_date)-2000))
   when (extract(month from pd.end_date) >2) then ('FY'|| (extract(year from pd.end_date)+1-2000))
@@ -55,5 +55,7 @@ left join ds_mysql_prod_project as t
   on t2.parent=t3.id 
   left join ds_mysql_prod_project as t4
   on t3.parent=t4.id 
+  left join ds_mysql_prod_tagelement as t5
+  on sq.projectID=t5.id 
 
-group by t.name, sq.fy_timerange, sq.program_name, pd.end_date, FY, t2.name,t3.name,t4.name, Dimensions
+group by sq.projectId, sq.fy_timerange, sq.program_name, pd.end_date, FY, t2.name,t3.name,t4.name, Dimensions,t5.name
