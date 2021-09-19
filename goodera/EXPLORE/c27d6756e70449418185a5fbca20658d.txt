@@ -1,0 +1,34 @@
+SELECT * FROM (
+@household= ((SELECT active_household FROM profile_59871 FETCH NEXT COUNT(1) ROWS ONLY)+
+(SELECT household_no FROM profile_59871 OFFSET 1 ROWS FETCH NEXT COUNT(1) ROWS ONLY)-
+(SELECT household_closed FROM profile_59871 OFFSET 1 ROWS FETCH NEXT COUNT(1) ROWS ONLY))
+PRINT @household
+
+DECLARE @Counter INT
+DECLARE @household INTEGER
+  declare cursor_vinayak CURSOR FOR
+Select household FROM  profile_59871
+
+OPEN cursor_vinayak
+
+FETCH NEXT FROM cursor_vinayak INTO @household
+  
+SET @Counter=1
+WHILE(@Counter<=COUNT(*)-1)
+BEGIN
+	@household= ((SELECT @household
+	FROM profile_59871
+	OFFSET 1 ROWS
+	FETCH NEXT COUNT(*)-1 ROWS ONLY)+
+	(SELECT household_no
+	FROM profile_59871
+	OFFSET 2 ROWS
+	FETCH NEXT COUNT(*)-2 ROWS ONLY)-
+	(SELECT household_closed
+	FROM profile_59871
+	OFFSET 2 ROWS
+	FETCH NEXT COUNT(*)-2 ROWS ONLY))
+	PRINT @household
+END  )
+CLOSE @cursor_vinayak
+DEALLOCATE cursor_vinayak
