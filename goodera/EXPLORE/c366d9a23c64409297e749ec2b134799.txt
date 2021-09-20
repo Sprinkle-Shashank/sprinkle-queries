@@ -7,30 +7,18 @@ Select c.name as ProjectCode,a.name as fy_timerange,CONCAT(c.name,CONCAT(CONCAT(
 from profile_27396 c
 left join ds_mysql_prod_tagelement a on
 c.fy=a.id),
-Focus_area as (select upper(k.village) as Villages,fy_timerange,Project_Manager,ProjectCode,focusarea,CONCAT(ProjectCode,CONCAT(CONCAT('[',fy_timerange),']')) as CODE from (select m.name as Project_Manager,ProjectCode,CensusCode,focusarea,fy_timerange from
-(select split_part(ProjectCode,'.',1) as ProjectCode, CensusCode,focusarea,fy_timerange from 
-(select  split_part(prod.name,'|',1) as ProjectCode,split_part(prod.name,'|',3) as CensusCode, t.name as fy_timerange, p.focus_area as focusarea 
-from profile_59426 p 
+Category_breakup as(select Project_Manager,ProjectCode,focusarea,fy_timerange,Asset_type ,CONCAT(ProjectCode,CONCAT(CONCAT('[',fy_timerange),']')) as CODE   from(select m.name as Project_Manager,ProjectCode,focusarea,fy_timerange,Asset_type from 
+(select  split_part(split_part(prod.name,'|',1),'.',1) as ProjectCode, t.name as fy_timerange, p.focus_area as focusarea,p.asset_cat as Asset_type 
+ from profile_59426 p 
 left join ds_mysql_prod_project prod on
 prod.id=p.projectid
 left join ds_mysql_prod_tagelement t on
-p.fy=t.id) )
+p.fy=t.id)
 left join profile_27396 n on
 ProjectCode=n.name
 left join ds_mysql_prod_tagelement m on
-n.project_manager=m.id)
-left join profile_27489 k on
-CensusCode=k.name),Base as (
-
-
-
-select l.Villages,l.fy_timerange,l.Project_Manager,l.ProjectCode,l.focusarea from Lookup h
-left join Focus_area l on
-h.CODE1=l.CODE)
+n.project_manager=m.id)),Base as(Select l.Project_Manager,l.ProjectCode,l.focusarea,l.fy_timerange,l.Asset_type ,count(l.Asset_type) as Distribution from Lookup p left join Category_breakup l
+on p.CODE1=l.CODE 
+group by
+l.Project_Manager,l.ProjectCode,l.focusarea,l.fy_timerange,l.Asset_type)
 select * from Base
-
---alter table Base add column Position int default NULL
-
-
-
-
