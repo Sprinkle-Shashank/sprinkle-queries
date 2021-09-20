@@ -8,7 +8,7 @@ Select 'products_disbursed_cogs' as col
   union all
   Select 'cash_disbursed' as col
 )
-SELECT sq.month, sq.time_period_timerange AS fy_timerange, sq.year,pd.projectId AS Region, pd.partner_name AS Partner, pd.fy AS FY, 
+SELECT t.name as month, sq.time_period_timerange AS fy_timerange, t2.name as year,t3.name as AS Region, t4.name as Partner, pd.fy AS FY, 
 case
 	when sq.month=1059437 then 'Q1'
 	when sq.month=1059438 then 'Q1'
@@ -38,6 +38,14 @@ sum(case col
 FROM Dell_profile_063523 sq
 cross join temp
 LEFT JOIN Dell_Profile_63522 pd ON sq.partner_reference=pd._id
-group by sq.year, sq.month, sq.time_period_timerange, pd.projectId, pd.partner_name, pd.fy, Quarter, Dimensions,Total_Funds_Disbursed
+left join ds_mysql_prod_tagelement as t 
+  on sq.month = t.id
+   left join ds_mysql_prod_tagelement as t2
+   on sq.year=t2.id
+   eft join ds_mysql_prod_tagelement as t3
+   on pd.projectId=t3.id
+   left join ds_mysql_prod_tagelement as t4 
+  on   pd.partner_name = t4.id
+group by sq.time_period_timerange, t.name,t2.name,t3.name,t4.name pd.fy, Quarter, Dimensions,Total_Funds_Disbursed
 
 
