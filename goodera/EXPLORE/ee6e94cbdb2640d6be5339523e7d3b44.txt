@@ -9,7 +9,7 @@ left join ds_mysql_prod_tagelement a on
 c.fy=a.id),
 Asset_details as(
 select CODE,Project_Manager,ProjectCode,State,District,Village,NGO,focusarea,fy_timerange,Date_of_Creation,Asset_Category,Asset_sub_Category,Beneficiary_Type,No_of_Beneficiaries,Picture1,Picture2 from(select CODE,Project_Manager,ProjectCode,l.state as State,l.district as District,l.village as Village,NGO,focusarea,fy_timerange,Date_of_Creation,
-Asset_Category,Asset_sub_Category,Beneficiary_Type,No_of_Beneficiaries,Picture1,Picture2 from(select CODE,m.name as Project_Manager,n.ngo_partner as NGO,ProjectCode,CensusCode,focusarea,fy_timerange,Date_of_Creation,Asset_Category,Asset_sub_Category,Beneficiary_Type,No_of_Beneficiaries,Picture1,Picture2 from
+Asset_Category,Asset_sub_Category,Beneficiary_Type,No_of_Beneficiaries,Picture1,Picture2 from(select CODE,m.name as Project_Manager,w.name as NGO,ProjectCode,CensusCode,focusarea,fy_timerange,Date_of_Creation,Asset_Category,Asset_sub_Category,Beneficiary_Type,No_of_Beneficiaries,Picture1,Picture2 from
 (select  ProjectCode,CensusCode, focusarea,fy_timerange,CONCAT(ProjectCode,CONCAT(CONCAT('[',fy_timerange),']')) as CODE,Date_of_Creation,Asset_Category,Asset_sub_Category,Beneficiary_Type,No_of_Beneficiaries,Picture1,Picture2  from 
 (select  split_part(split_part(prod.name,'|',1),'.',1)as ProjectCode,split_part(prod.name,'|',3) as CensusCode, t.name as fy_timerange,p.date as Date_of_Creation ,p.focus_area as focusarea,p.asset_cat as Asset_Category,s.name as Asset_sub_Category,
  b.name as Beneficiary_Type,p.bennum as No_of_Beneficiaries,p.pic1 as Picture1,p.pic2 as Picture2  from profile_59426 p 
@@ -23,11 +23,14 @@ left join ds_mysql_prod_tagelement b on
 p.bene=b.id
 ))
 left join profile_27396 n on
-ProjectCode=n.name
+ProjectCode=n.name																			  left join profile_27395 w on
+n.ngo_partner=w._id																							 
+																							  
 left join ds_mysql_prod_tagelement m on
 n.project_manager=m.id																							 )
 left join profile_27489 l on
-CensusCode=l.name)),Base as(select l.Project_Manager,l.ProjectCode,l.State,l.District,l.Village,l.NGO,l.focusarea,l.fy_timerange,l.Date_of_Creation,l.Asset_Category,l.Asset_sub_Category,l.Beneficiary_Type,sum(l.No_of_Beneficiaries) as No_of_Beneficiaries,l.Picture1,l.Picture2 from Lookup p 
+CensusCode=l.name
+)),Base as(select l.Project_Manager,l.ProjectCode,l.State,l.District,l.Village,l.NGO,l.focusarea,l.fy_timerange,l.Date_of_Creation,l.Asset_Category,l.Asset_sub_Category,l.Beneficiary_Type,sum(l.No_of_Beneficiaries) as No_of_Beneficiaries,l.Picture1,l.Picture2 from Lookup p 
 left join Asset_details l on 
 p.CODE1=l.CODE 
 						group by
