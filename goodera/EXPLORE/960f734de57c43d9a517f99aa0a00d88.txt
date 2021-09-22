@@ -1,4 +1,4 @@
-SELECT sq.time_period_timerange AS fy_timerange, t5.name as FY,t6.name as region,
+SELECT sq.time_period_timerange AS fy_timerange, t5.name as FY,t6.name as region, pd.fy, pd.projectId,t.name as Partner_Name
 case
 	when sq.month=1059437 then 'Q1'
 	when sq.month=1059438 then 'Q1'
@@ -15,18 +15,9 @@ case
 	end as Quarter, pd.partner_name, (sq.cash_disbursed+sq.products_disbursed_cogs+sq.services_provided_cogs) AS Total_Investments, pd.projectId AS Region, pd.fy AS FY
 FROM Dell_profile_063523 sq
 LEFT JOIN Dell_Profile_63522 pd
-ON pd._id=sq.partner_reference 
-left join ds_mysql_prod_project as t 
-  on sq.projectId = t.id
-  left join ds_mysql_prod_project as t2
-  on t.parent=t2.id
-  left join ds_mysql_prod_project as t3
-  on t2.parent=t3.id 
-  left join ds_mysql_prod_project as t4
-  on t3.Parent=t4.id 
-left join ds_mysql_prod_tagelement as t5
-  on t.Parent=t5.id
-left join ds_mysql_prod_tagelement as t6
-  on t3.parent=t6.id
+ON pd._id=sq.partner_reference
+left join ds_mysql_prod_taglement t
+on pd.partner_name=t.id
 
-GROUP BY sq.time_period_timerange, pd.projectId, pd.fy, pd.partner_name, Quarter, Total_Investments, t5.name,t6.name
+
+GROUP BY sq.time_period_timerange, pd.projectId, pd.fy, pd.partner_name, Quarter, Total_Investments, t5.name,t6.name,t.name
