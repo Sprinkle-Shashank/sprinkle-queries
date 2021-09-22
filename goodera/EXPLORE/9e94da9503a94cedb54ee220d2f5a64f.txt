@@ -1,13 +1,15 @@
---with Base1 as(select f.name as fy_timerange,count(*) as Number from profile_27395 p 
---left join ds_mysql_prod_tagelement f on
---p.fy=f.id group by f.name),
---Base2 as(
+with Base1 as(select f.name as fy_timerange,count(*) as Number,case when len(fy_timerange)<>0 then 'New Due Diligence' end as Category
+			  from profile_27395 p 
+left join ds_mysql_prod_tagelement f on
+p.fy=f.id group by f.name),
+Base2 as(
 select f.name as fy_timerange,count(*) as Number,case when len(fy_timerange)<>0 then
-'Renewal' end as Category
+'Renewals' end as Category
 from profile_27405 p
 left join profile_27395 l on
 p.ia=l._id
 left join ds_mysql_prod_tagelement f
 on p.fy=f.id group by f.name
---)
---select * from Base1 groupby name
+),Base3 as (select * from Base1 union all Base2)
+select * from Base3
+
