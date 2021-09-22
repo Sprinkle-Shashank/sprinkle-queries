@@ -1,20 +1,24 @@
---select  case when datediff(year,p.registration_date,current_date)<3 then NULL
---when 3<=datediff(year,p.registration_date,current_date)<=10 then "3-10 years"
---when 11<=datediff(year,p.registration_date,current_date)<=20 then "11-20 years"
---when 21<=datediff(year,p.registration_date,current_date)<=30 then "21-30 years"
---else "30+ years" 
---end as year
---from profile_27395 p
-with Base1 as(Select p.registration_date as registrationdate,p._id, floor(datediff(month,p.registration_date,current_date)*1.0/12) as age from  profile_27395 p),Base2 as(select age,registrationdate ,_id,
-case when age<3 then NULL
-when age>=3 and age<=10 then '3-10 years'
-when age>=11 and age<=20 then '11-20 years'
-when age>=20 and age<=30 then '21-30 years'
-when age>30 then '30+ years' 
-else 'NA'																							
-end as Age_Category from Base1)
+
+--with Base1 as(Select p.registration_date as registrationdate,p._id, floor(datediff(month,p.registration_date,current_date)*1.0/12) as age from  profile_27395 p),Base2 as(select age,registrationdate ,_id,
+--case when age<3 then NULL
+--when age>=3 and age<=10 then '3-10 years'
+--when age>=11 and age<=20 then '11-20 years'
+--when age>=20 and age<=30 then '21-30 years'
+--when age>30 then '30+ years' 
+--else 'NA'																							
+--end as Age_Category from Base1)
 --select * from Base2
 
 
-select Age_category,count(*) as ngo_no from Base2 where Age_category<>'NA' group by Age_category
+--select Age_category,count(*) as ngo_no from Base2 where Age_category<>'NA' group by Age_category
 --select Age_Category,count(*) as ngo_no from Base2 where age is not NULL  and Age_Category<>'NA' group by Age_Category
+
+with Base1 as(Select p.registration_date as registrationdate,p._id, datediff(month,p.registration_date,current_date) as age_in_months,age/12 age_in_yrs from  profile_27395 p),Base2 as(select age_in_months,age_in_yrs,registrationdate ,_id,
+case when age_in_yrs<3 then NULL
+when age_in_yrs>=3 and age_in_yrs<=10 then '3-10 years'
+when age_in_yrs>=11 and age_in_yrs<=20 then '11-20 years'
+when age_in_yrs>=20 and age_in_yrs<=30 then '21-30 years'
+when age_in_yrs>30 then '30+ years' 
+else 'NA'																							
+end as Age_Category from Base1)
+select * from Base2
