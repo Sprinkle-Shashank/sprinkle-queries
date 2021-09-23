@@ -6,12 +6,12 @@ with sub1 as (
 	left join profile_60928 t2 on t1.pvh_id = t2.factory_id
 	left join ds_mysql_prod_project t3 on t3.id = p.projectid
   group by t3.name, fy_timerange, t1.pvh_id, t2.region
-	)
+	),
 	
-/*sub2 as(
-  select s1.*, cast(country as int) from sub1 s1, s1.region country),
+sub2 as(
+  select s1.*, country from sub1 s1, s1.region country)
 
-sub3 as(
+/*sub3 as(
 	select projectid, fy_timerange, pvh_id, start_date, first_value(country) over (partition by projectid, pvh_id order by start_date desc rows between unbounded preceding and unbounded following) as country from sub2 group by projectid, pvh_id, start_date, country, fy_timerange)
 	
 select projectid, fy_timerange, pvh_id, array_agg(DISTINCT t4.name ORDER BY t4.name) as country, count(*)
@@ -19,6 +19,7 @@ from sub3
 --	left join ds_mysql_prod_tagelement t4 on t4.id = country
 group by projectid, pvh_id, t4.name, fy_timerange*/
 
-select s1.projectid, s1.fy_timerange, s1.pvh_id, country, count(*)
-	from sub1 s1, s1.region country
-	group by projectid, fy_timerange, pvh_id, country
+select s2.projectid, s2.fy_timerange, s2.pvh_id, t2.name as country, count(*)
+	from sub2 s2
+	left join ds_mysql_prod_tagelement t1 on t1.id = s2. country
+	group by projectid, fy_timerange, pvh_id, t2.name
