@@ -65,7 +65,7 @@ with temp as (
 ),
 
 sub2 as(
-SELECT tt.name as projectId, sq.fy_timerange, pd.end_date, t2.name as Partner,t3.name as Country,t4.name as Region,t5.name as program_name,
+SELECT t.name as projectId, sq.fy_timerange, pd.end_date, t2.name as Partner,t3.name as Country,t4.name as Region,t5.name as program_name,
 case 
   when (extract(month from pd.end_date) <=2) then ('FY' || (extract(year from pd.end_date)-2000))
   when (extract(month from pd.end_date) >2) then ('FY'|| (extract(year from pd.end_date)+1-2000))
@@ -116,7 +116,7 @@ sum(case col
  LEFT JOIN Dell_profile_62886 pd
  ON sq.program_name=pd._id
  left join ds_mysql_prod_project as t 
-  on sq.projectId = t.id
+  on sq.projectid = t.id
   left join ds_mysql_prod_project as t2
   on t.parent=t2.id
   left join ds_mysql_prod_project as t3
@@ -125,8 +125,7 @@ sum(case col
   on t3.parent=t4.id
   left join dell_profile_62886  t5 on
   sq.program_name=t5._id
-  left join ds_mysql_prod_project tt on
-  tt.id = sq.projectid)
+)
   
 select projectId, fy_timerange, program_name, end_date, Partner, Country, Region, Dimensions, FY, sum(Values) from sub2 group by projectId, fy_timerange, program_name, end_date, Partner, Country, Region, Dimensions, FY
 
