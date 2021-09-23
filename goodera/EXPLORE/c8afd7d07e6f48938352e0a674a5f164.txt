@@ -10,10 +10,10 @@ sub2 as(
   select s1.*, cast(country as int) from sub1 s1, s1.region country),
 
 sub3 as(
-	select projectid, fy_timerange, pvh_id, start_date, last_value(country) over (partition by projectid, pvh_id order by 			start_date desc rows between unbounded preceding and unbounded following) from sub2 group by projectid, pvh_id, start_date,     last_value, fy_timerange)
+	select projectid, fy_timerange, pvh_id, start_date, last_value(country) over (partition by projectid, pvh_id order by 			start_date desc rows between unbounded preceding and unbounded following) as country from sub2 group by projectid, pvh_id,       start_date, country, fy_timerange)
 	
 select projectid, fy_timerange, pvh_id, t4.name as country, count(*)
 from sub3
-	left join ds_mysql_prod_tagelement t4 on t4.id = last_value
+	left join ds_mysql_prod_tagelement t4 on t4.id = country
 group by projectid, pvh_id, t4.name, fy_timerange
 
