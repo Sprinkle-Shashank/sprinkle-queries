@@ -13,9 +13,10 @@ sub2 as(
 sub3 as(
 	select projectid, fy_timerange, pvh_id, start_date, first_value(country) over (partition by projectid, pvh_id order by start_date desc rows between unbounded preceding and unbounded following) as country from sub2 group by projectid, pvh_id, start_date, country, fy_timerange)
 	
-select fy_timerange, pvh_id, t4.name as country, count(*)
+select fy_timerange, pvh_id, t4.name as country, count(*) as batches
 from sub3
 left join ds_mysql_prod_tagelement t4 on t4.id = sub3.country
+order by batches
 group by pvh_id,t4.name, fy_timerange
 
 
