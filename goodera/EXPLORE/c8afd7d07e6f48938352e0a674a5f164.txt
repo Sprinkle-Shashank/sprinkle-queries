@@ -5,6 +5,12 @@ from profile_62491 p1
 	left join profile_60928 p3 on p2.pvh_id = p3.factory_id),
 	
 sub2 as(
-  select s1.*, cast(country as int) from sub1 s1, s1.region country)
+  select s1.*, cast(country as int) from sub1 s1, s1.region country),
   
-select project_id, fy_timerange, pvh_id, first_value(country) over (partition by project_id, pvh_id, fy_timerange order by cast(fy_timerange.start_date as date) desc rows between unbounded preceding and unbounded following) as country from sub2
+sub3 as(
+  select project_id, fy_timerange, pvh_id, first_value(country) over (partition by project_id, pvh_id, fy_timerange order by cast(fy_timerange.start_date as date) desc rows between unbounded preceding and unbounded following) as country from sub2)
+  
+ select project_id, fy_timerange, pvh_id, t1.name, count(*)
+ from sub3
+ left join ds_mysql_prod_project t1 on t1.id = sub3.country
+ group by project_id, fy_timerange, pvh_id, t1.name
