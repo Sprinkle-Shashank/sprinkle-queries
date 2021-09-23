@@ -12,8 +12,8 @@ sub2 as(
 sub3 as(
 	select projectid, fy_timerange, pvh_id, start_date, last_value(country) over (partition by projectid, pvh_id order by 			start_date desc rows between unbounded preceding and unbounded following) from sub2 group by projectid, fy_timerange, 			pvh_id, country, start_date)
 	
-select s3.projectid, s3.fy_timerange, s3.pvh_id, count(*), t4.name as country
-from sub3 s3
-	left join ds_mysql_prod_tagelement t4 on t4.id = s3.last_value
-group by s3.projectid, s3.fy_timerange, s3.pvh_id, s3.country
+select projectid, fy_timerange, pvh_id, count(*), t4.name as country
+from sub3
+	left join ds_mysql_prod_tagelement t4 on t4.id = last_value
+group by projectid, fy_timerange, pvh_id, country
 
