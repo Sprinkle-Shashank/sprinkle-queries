@@ -1,10 +1,6 @@
-with base as(
 SELECT household_no,household_closed,fy_timerange,projectid,
-(household_no-household_closed) AS active_household,
+(household_no-household_closed) AS intermediate_active_household,
+sum(household_no-household_closed) over(oder by fy_timerange unbounded preceeding) AS active_household,
 lag(active_household, 1) over (order by fy_timerange asc) as next_month
 from profile_59871
-ORDER BY fy_timerange asc)
-
-select household_no,household_closed,fy_timerange,projectid, (household_no-household_closed+next_month) AS active_household_v2,active_household, next_month
-from base
-order by fy_timerange asc
+ORDER BY fy_timerange asc
