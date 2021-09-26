@@ -1,4 +1,4 @@
-select p.sub_cat_out_plan as Planned,p.subcat_output as Actual,m.name,f.name,a.name,s.name from profile_54963
+with Base1 as(select p.sub_cat_out_plan as Planned,p.subcat_output as Actual,m.name as Month,f.name as focusarea,a.name as Activity_Category,s.name as Activity_Sub_Category from profile_54963
 p left join ds_mysql_prod_tagelement f on
 p.focus_area=f.id
 left join ds_mysql_prod_tagelement a on
@@ -6,4 +6,5 @@ p.act_cat=a.id
 left join ds_mysql_prod_tagelement s on
 p.subcat=s.id
 left join ds_mysql_prod_tagelement m on
-p.month=m.id
+p.month=m.id),Base2 as(select focusarea,Activity_Category,Activity_Sub_Category,Month,count(Planned) as Plannned,count(Actual) from Base1 group by focusarea,Activity_Category,Activity_Sub_Category,Month)
+select * from Base2
