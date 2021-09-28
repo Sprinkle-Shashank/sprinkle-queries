@@ -1,11 +1,19 @@
-SELECT sq.fy_timerange, pd.pvh_id, mr.region, SUM(sq.num_females) AS fem
-FROM profile_62491 sq
-LEFT JOIN profile_62948 pd
-ON sq.project_id=pd.project_id
-LEFT JOIN profile_60928 mr
-ON pd.project_id=mr.factory_id
-WHERE pd.pvh_id IS NOT NULL AND extract(year from(cast(fy_timerange.start as datetime)))>=2020
-GROUP BY sq.fy_timerange, sq.num_females, pd.pvh_id, sq.name, mr.region
-
-
---3rd new field & 5th & 6th left--
+with sub1 as(
+	select p1._id as id, p1.project_id, p1.fy_timerange, p2.pvh_id, p3.region, p1.end_date_2 as end_date, p1.num_females, p1.project_name, p1.source_div, extract(year from cast(fy_timerange.start as date)) as year, p1.program_type_3
+from profile_62491 p1
+	left join profile_62948 p2 on p2.project_id = p1.project_id
+	left join profile_60928 p3 on p2.pvh_id = p3.factory_id
+    where p2.pvh_id is not NULL),
+	
+sub2 as(
+  select id, project_id, project_name, end_date, fy_timerange, pvh_id, region, sum(num_females) as females,  program_type_3, source_div
+  from sub1 
+	group by project_id, fy_timerange, project_name, end_date, id, region, pvh_id,  program_type_3, source_div),
+	
+sub3 as(
+  select s2.*, country from sub2 s2, s2.region country)
+  
+select s3.fy_timerange, s3.pvh_id, t1.name as region, females,  program_type_3
+	from sub3 s3
+	left join ds_mysql_prod_tagelement t1 on t1.id = s3.country
+	group by s3.fy_timerange, t1.name, s3.pvh_id, females,  program_type_3, source_div
