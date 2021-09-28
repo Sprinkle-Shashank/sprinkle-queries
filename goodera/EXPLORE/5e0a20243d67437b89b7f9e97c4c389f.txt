@@ -6,15 +6,15 @@ from profile_62491 p1
     where  year >= 2020 and p2.pvh_id is not NULL),
 	
 sub2 as(
-  select id, project_id, project_name, end_date, fy_timerange, pvh_id, region, sum(num_females) as fems, source_div
+  select id, project_id, project_name, end_date, fy_timerange, pvh_id, region, source_div
   from sub1 
 	group by project_id, fy_timerange, project_name, end_date, id, region, pvh_id, source_div),
 	
 sub3 as(
   select s2.*, source_div1, country from sub2 s2, s2.region country, s2.source_div source_div1)
 
-select s3.fy_timerange, s3.pvh_id, t1.name as region, t2.name as source_div, fems
+select s3.fy_timerange, s3.pvh_id, t1.name as region, t2.name as source_div, sum(num_females) as fems
 	from sub3 s3
 	left join ds_mysql_prod_tagelement t1 on t1.id = s3.country
 	left join ds_mysql_prod_tagelement t2 on t2.id =s3.source_div1
-	group by s3.fy_timerange, t1.name, s3.pvh_id, fems, t2.name
+	group by s3.fy_timerange, t1.name, s3.pvh_id, t2.name
