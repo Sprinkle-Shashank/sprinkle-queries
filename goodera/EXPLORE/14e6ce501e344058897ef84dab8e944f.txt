@@ -1,4 +1,5 @@
-select t1.name as projectid, t2.name as project_parent, t3.name as budget_head, p1.name as proj_bud_head, t4.name as gy, p.timerange_timerange as fy_timerange, p.amount, p.fund, p1.stan_bud_head,
+with sub1 as(
+	select t1.name as projectId, t2.name as project, t3.name as budget_head, p1.name as proj_bud_head, t4.name as gy, p.timerange_timerange as fy_timerange, p.amount, p.fund, p1.stan_bud_head,
 		case
 			when(p1.stan_bud_head = 900014) then 1
 			when(p1.stan_bud_head = 900016) then 2
@@ -13,5 +14,12 @@ select t1.name as projectid, t2.name as project_parent, t3.name as budget_head, 
 	left join profile_58433 p1 on p1._id = p.proj_bud_head
 	left join ds_mysql_prod_tagelement t3 on t3.id = p.budget_head
 	left join ds_mysql_prod_tagelement t4 on t4.id = p.gy
-	where p.fund = 897399
+	where p.fund = 897399)
+	
+select s1.projectId, s1.project, s1.budget_head, t5.name as fund, proj_bud_head, gy, fy_timerange, t6.name as stan_bud_head, sum(amount)
+	from sub1 s1
+	left join ds_mysql_prod_tagelement t5 on t5.id = s1.fund
+	left join ds_mysql_prod_tagelement t6 on t6.id = s1.stan_bud_head
+	group by s1.projectId, s1.project, s1.budget_head, t5.name, proj_bud_head, gy, 
+	fy_timerange, t6.name
 	
