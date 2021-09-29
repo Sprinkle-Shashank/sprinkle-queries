@@ -1,17 +1,21 @@
---Select sq.fy_timerange,
---count(sq.fy_timerange) as count
---FROM profile_62972 sq
---GROUP BY  sq.fy_timerange, sq.source_div
+with sub1 as(
+	select p1.fy_timerange, p1.region, p1.source_div, p1.country as region 
+from profile_62972 p1
+    where  year >= 2020 and p2.pvh_id is not NULL),
+	
+sub2 as(
+  select fy_timerange, region, source_div, sum(num_females) as num_females
+  from sub1 
+	group by region, fy_timerange, source_div),
+	
+sub3 as(
+  select s2.*, source_div2, country from sub2 s2, s2.region country, s2.source_div source_div2)
 
-
-Select sq.country as region, Source,sq.fy_timerange,sum(sq.num_females) as num_females,t2.name,
-count(sq.fy_timerange) as count
-FROM profile_62972 sq, sq.source_div  Source
-left join ds_mysql_prod_tagelement t2 on
-Source=t2.id
---left join ds_mysql_prod_tagelement t on
---sq.country=t.id
-
-GROUP BY  sq.fy_timerange,sq.country,Source,t2.name
-
-
+select s3.fy_timerange, case
+(when 1==1 then 1
+else 0
+end) as count
+	from sub3 s3
+	left join ds_mysql_prod_tagelement t1 on t1.id = s3.country
+	left join ds_mysql_prod_tagelement t2 on t2.id =s3.source_div2
+	group by s3.fy_timerange
