@@ -1,16 +1,25 @@
-SELECT sq.fy_timerange, sq.score, pd.pvh_id, mr.region, t.name as Region2
+with sub1 as(
+SELECT sq.module_name, sq.fy_timerange, sq.score, sq.score2, pd.pvh_id, sq.name, mr.timeperiod_timerange, mr.region, extract(year from cast(fy_timerange.start as date)) as year
 FROM profile_62486 sq
 LEFT JOIN profile_62948 pd
 ON sq.project_id=pd.project_id
 LEFT JOIN profile_60928 mr
 ON pd.pvh_id=mr.factory_id
-left join ds_mysql_prod_tagelement t on
-mr.region=t.id
-WHERE pd.pvh_id IS NOT NULL AND sq.pre_post_yn=1105732 AND extract(year from(cast(fy_timerange.start as datetime)))>=2020
+left join ds_mysql_prod_tagelement t 
+on mr.region=t.id
+WHERE year>=2020 AND pd.pvh_id IS NOT NULL AND sq.pre_post_yn=1105732),
+
+sub2 as(
 GROUP BY sq.module_name, sq.fy_timerange, sq.score, sq.score2, pd.pvh_id, sq.name, mr.region, mr.timeperiod_timerange, t.name
-ORDER BY mr.timeperiod_timerange DESC
+ORDER BY mr.timeperiod_timerange DESC),
 
-
+sub3 as(
+  Select s2.*, country sub2 from s2, s2.region country, s2.module_name program_type)
 														
+
+Select fy_timerange, score, pvh_id, region, name as Region2, 
+FROM sub3 s3
+LEFT JOIN ds_mysql_prod_tagelement t1 on t1.id = s3.country
+LEFT JOIN ds_mysql_prod_tagelement t2 on t2.parent =s3.program_type
 
 --3rd, 9th, 13th, 14th left--
