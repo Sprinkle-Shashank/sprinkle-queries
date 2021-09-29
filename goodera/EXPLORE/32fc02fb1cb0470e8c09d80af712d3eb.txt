@@ -1,16 +1,23 @@
-Select sq.fy_timerange, sq.number_enrolled_batch, mr.region, sq.module_name,pd.pvh_id, t.name as name, t2.name as program_type
-FROM profile_62486 sq
-LEFT JOIN profile_62948 pd
-ON pd.project_id=sq.project_id
-LEFT JOIN profile_60928 mr
-ON pd.pvh_id=mr.factory_id
-left join ds_mysql_prod_tagelement t on
-sq.module_name=t.id
-left join ds_mysql_prod_tagelement t2 on
-t.parent=t2.id
-WHERE pd.pvh_id IS NOT NULL AND sq.fy_timerange IS NOT NULL AND extract(year from(cast(fy_timerange.start as datetime)))>=2020
-GROUP BY sq.module_name, sq.fy_timerange, sq.number_enrolled_batch, pd.pvh_id,mr.region,mr.timeperiod_timerange, t.name, t2.name
-ORDER BY mr.timeperiod_timerange DESC
-
-
-----left 3rd 8th 13th--
+with sub1 as(
+	select p1.name, p1.module_name, p1.fy_timerange, p3.timeperiod_timerange, p2.pvh_id, p1.number_enrolled_batch,p3.region, extract(year from cast(fy_timerange.start as date)) as year
+from profile_62486 p1
+	left join profile_62948 p2 on p2.project_id = p1.project_id
+	left join profile_60928 p3 on p2.pvh_id = p3.factory_id
+    where year >= 2020 and p2.pvh_id is not NULL),
+	
+sub2 as(
+  select module_name, fy_timerange, pvh_id, timeperiod_timerange, number_enrolled_batch, region, name
+  from sub1 
+	group by module_name, fy_timerange, pvh_id, number_enrolled_batch, name, timeperiod_timerange, region),
+	
+sub3 as(
+  select s2.*, country from sub2 s2, s2.region country)
+  
+select s3.fy_timerange, s3.pvh_id, t1.name as region, t2.name as program_type, s3.number_enrolled_batch, substring(t3.name,3, LEN(t3.name)-2) as module_name
+	from sub3 s3
+	left join ds_mysql_prod_tagelement t1 on t1.id = s3.country
+    
+	left join ds_mysql_prod_tagelement t3 on t3.id = s3.module_name
+	left join ds_mysql_prod_tagelement t2 on t2.id=t3.parent
+	group by s3.fy_timerange, t1.name, s3.pvh_id, s3.number_enrolled_batch, t2.name, t3.name, s3.timeperiod_timerange
+	ORDER BY s3.timeperiod_timerange desc
