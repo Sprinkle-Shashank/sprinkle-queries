@@ -1,4 +1,4 @@
---with sub1 as(
+with sub1 as(
   select p2.name as projectId, p.name, p1.name as milestone, p.status, p.date, p.comm, p1.start_date, p1.end_date, p1.timerange_timerange as fy_timerange, extract(day from p1.start_date) as sday, extract(day from p1.end_date) as eday, extract(year from p1.start_date) as syear, extract(year from p1.end_date) as eyear, extract(month from p1.start_date) as smonth, extract(month from p1.end_date) as emonth,
 
 		case
@@ -48,9 +48,13 @@
 		else 'Mon'
 		end as emonth,
 	
-	(sday || '-' || smonth || '-' || syear) as start_date, (eday || '-' || emonth || '-' || eyear) as end_date
+	(sday || '-' || smonth || '-' || syear) as p1_start_date, (eday || '-' || emonth || '-' || eyear) as p1_end_date
 	from profile_55649 p
 	left join profile_55648 p1 on p1._id = p.milestone
 	left join ds_mysql_prod_project p2 on p2.id = p.projectid
-	where p1.start_date is not null
+	where p1.start_date is not null)
+	
+	
+select s1.projectId, s1.milestone, s1.start_date, s1.fy_timerange
+	first_value(status1) over (partition by s1.projectid, s1.milestone order by s1.date desc rows between unbounded preceding and unbounded following) as fstatus
 	
