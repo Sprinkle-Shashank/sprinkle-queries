@@ -1,38 +1,9 @@
---select distinct(m.name) as Project_Manager from
---(select split_part(ProjectCode,'.',1) as ProjectCode from 
---(select  split_part(prod.name,'|',1) as ProjectCode
- --from profile_59426 p 
---left join ds_mysql_prod_project prod on
---prod.id=p.projectid
---) )
---left join profile_27396 n on
---ProjectCode=n.name
---left join ds_mysql_prod_tagelement m on
---n.project_manager=m.id
---group by
---m.name
-
---Select b.name as fy_timerange,k.name as Project_Manager
---from profile_27420 d
---left join ds_mysql_prod_tagelement b on
---d.fy=b.id
---left join ds_mysql_prod_tagelement k on
---d.project_manager=k.id
---union
---Select a.name as fy_timerange,p.name as Project_Manager
---from profile_27396 c
---left join ds_mysql_prod_tagelement a on
---c.fy=a.id
---left join ds_mysql_prod_tagelement p on
---c.project_manager=p.id
---------------------------------------------------
 with Lookup as (Select b.name as ProjectCode1,d.name as fy_timerange1,d.name as CODE1
 ,k.name as Project_Manager from profile_27420 d
 left join ds_mysql_prod_tagelement b on
 d.fy=b.id
 left join ds_mysql_prod_tagelement k on
-d.project_manager=k.id
-				
+d.project_manager=k.id				
 union
 Select c.name as ProjectCode,a.name as fy_timerange,CONCAT(c.name,CONCAT(CONCAT('[',a.name),']')) as CODE,p.name as Project_Manager
 from profile_27396 c
@@ -40,14 +11,12 @@ left join ds_mysql_prod_tagelement a on
 c.fy=a.id
 left join ds_mysql_prod_tagelement p on
 c.project_manager=p.id),Base1 as(
-select fy_timerange,ProjectCode,CONCAT(ProjectCode,CONCAT(CONCAT('[',fy_timerange),']')) as CODE from 
-(select  split_part(split_part(prod.name,'|',1),'.',1) as ProjectCode, t.name as fy_timerange,
+select fy_timerange,ProjectCode,CONCAT(ProjectCode,CONCAT(CONCAT('[',fy_timerange),']')) as CODE from (select  split_part(split_part(prod.name,'|',1),'.',1) as ProjectCode, t.name as fy_timerange,
  from profile_59426 p 
 left join ds_mysql_prod_project prod on
 prod.id=p.projectid
 left join ds_mysql_prod_tagelement t on
-p.fy=t.id) )
-,
+p.fy=t.id)),
 Base2 as(select p.fy_timerange,p.Project_Manager from Base1 l left join Lookup p on l.CODE=p.CODE1
 group by p.fy_timerange,p.Project_Manager)
 select * from Base2
