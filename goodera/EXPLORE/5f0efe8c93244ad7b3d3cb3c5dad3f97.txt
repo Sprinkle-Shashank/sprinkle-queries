@@ -1,17 +1,20 @@
-Select sq.fy_timerange, sq.attendance, pd.pvh_id, mr.region
-FROM profile_62486 sq
-LEFT JOIN profile_62948 pd
-ON sq.project_id=pd.project_id
-LEFT JOIN profile_60928 mr
-ON pd.pvh_id=mr.factory_id
-----left join ds_mysql_prod_tagelement t
-----On mr.program_type=t.id
-WHERE pd.pvh_id IS NOT NULL AND sq.fy_timerange IS NOT NULL AND extract(year from(cast(fy_timerange.start as datetime)))>=2020
-----left join ds_mysql_prod_tagelement_parent tp
-----On mr.=tp.
-GROUP BY sq.module_name, sq.fy_timerange, pd.pvh_id, sq.attendance, mr.region, mr.timeperiod_timerange
-ORDER BY mr.timeperiod_timerange DESC
-
-
-------program type need to be printed
------- 3  6 8  13 left
+with sub1 as(
+	select p1.name, p1.module_name, p1.fy_timerange, p2.pvh_id, p1.attendance,p3.region
+from profile_62486 p1
+	left join profile_62948 p2 on p2.project_id = p1.project_id
+	left join profile_60928 p3 on p2.pvh_id = p3.factory_id
+    where p2.pvh_id is not NULL),
+	
+sub2 as(
+  select module_name, fy_timerange, pvh_id, attendance, region, name
+  from sub1 
+	group by module_name, fy_timerange, pvh_id, attendance, name),
+	
+sub3 as(
+  select s2.*, country from sub2 s2, s2.region country)
+  
+select s3.fy_timerange, s3.pvh_id, t1.name as region, s3.attendance, substring(name,3, LEN(s3.name)-2
+	from sub3 s3
+	left join ds_mysql_prod_tagelement t1 on t1.id = s3.country
+	group by s3.fy_timerange, t1.name, s3.pvh_id
+	ORDER BY timeperiod_timerange desc
