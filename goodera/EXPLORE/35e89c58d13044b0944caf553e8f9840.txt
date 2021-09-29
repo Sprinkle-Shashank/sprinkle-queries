@@ -1,0 +1,22 @@
+with sub1 as(
+Select sq.select_modules, sq.end_date_2, fy_timerange, num_females_graduated, num_males, hours, num_females, num_females_dropout, num_males_graduated, num_males_dropout, pvh_id, name, extract(year from cast(fy_timerange.start as date)) as year
+FROM profile_62491 sq
+LEFT JOIN profile_62948 p2 
+ON p2.project_id=sq.project_id
+LEFT JOIN profile_60928 p3
+ON p2.pvh_id=p3.factory_id
+where year >= 2020 and p2.pvh_id IS NOT NULL),
+
+sub2 as(
+  Select select_modules, end_date_2, fy_timerange, num_females_graduated, num_males, hours, num_females, num_females_dropout, num_males_graduated, num_males_dropout, pvh_id, name
+  from sub1
+  group by select_modules, end_date_2, fy_timerange, num_females_graduated, hours, num_males, num_females, num_females_dropout, num_males_graduated, num_males_dropout, pvh_id, name),
+  
+sub3 as(
+  Select s2.*, country from sub2 s2, s2.region country
+) 
+
+Select ('P.'||'A.'||'C.'||'E.') as program, fy_timerange, pvh_id, region, sum(hours) as hours, program
+from sub3 s3
+LEFT JOIN ds_mysql_prod_tagelement t1 on t1.id = s3.country
+GROUP BY fy_timerange, region, pvh_id
