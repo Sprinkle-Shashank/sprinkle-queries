@@ -1,0 +1,34 @@
+with temp as(
+  select 'outreach_male' as col
+  union all
+  select 'outreach_female' as col
+  union all
+  select 'outreach_other' as col
+  union all
+  select 'outreach_pwd' as col
+  union all
+  select 'outreach_unidentified' as col)
+
+select p1.name as site, p.date, temp.col as Dimensions, 
+(extract(day from cast(p.date as date)) || '/' || extract(month from cast(p.date as date)) || '/' || extract(year from cast(p.date as date))) as x_date,
+sum(case col
+		when 'outreach_male' then p.outreach_male
+		when 'outreach_female' then p.outreach_female
+		when 'outreach_other' then p.outreach_other
+		when 'outreach_pwd' then p.outreach_pwd
+		when 'outreach_unidentified' then p.outreach_unidentified
+	else NULL
+	end) as values,
+	
+case
+	when(temp.col) like '%male' then 'Male'
+	when(temp.col) like '%female' then 'Female'
+	when(temp.col) like '%other' then 'Third Gender'
+	when(temp.col) like '%pwd' then 'PWD'
+	else 'Unidentfied'
+end as beneficiary_type
+
+from profile_78085 p
+	cross join temp
+	left join profile_78079 p1 on p1._id = p.site
+	group by p1.name, p.date, dimensions, beneficiary_type, x_date
