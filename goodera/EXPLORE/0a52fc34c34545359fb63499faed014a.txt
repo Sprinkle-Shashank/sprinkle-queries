@@ -1,14 +1,13 @@
-Select b.name as fy_timerange
-from profile_27420 d
-left join ds_mysql_prod_tagelement b on
-d.fy=b.id
+with Base1 as(select split_part(split_part(prod.name,'|',1),'.',1) as ProjectCode from profile_59426 p 
+left join ds_mysql_prod_project prod on
+prod.id=p.projectid
+),Base2 as(select split_part(c.name,'.',1) as ProjectCode,m.name as Project_Manager,f.name as fy_timerange from profile_27396 c 
+left join 	ds_mysql_prod_tagelement m on
+c.project_manager=m.id
+left join 	ds_mysql_prod_tagelement f on
+c.fy=f.id
 union
-Select a.name as fy_timerange
-from profile_27396 c
-left join ds_mysql_prod_tagelement a on
-c.fy=a.id
-union 
-select f.name as fy_timerange
-from profile_59426 p
-left join ds_mysql_prod_tagelement f on
-p.fy=f.id
+select split_part(split_part(b.name,'[',1),'.',1) as ProjectCode,m.name as Project_Manager,split_part(split_part(b.name,'[',2),']',1) as fy_timerange from profile_27420 b
+left join ds_mysql_prod_tagelement m on
+b.project_manager=m.id),Base3 as(select  l.fy_timerange from Base1 p left join Base2 l on p.ProjectCode=l.ProjectCode group by l.fy_timerange)
+select * from Base3 where len(Project_Manager)>0
