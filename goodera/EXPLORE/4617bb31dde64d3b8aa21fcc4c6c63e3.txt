@@ -66,28 +66,41 @@
 --group by p.fy_timerange,p.Project_Manager,l.ProjectCode)
 --select * from Lookup
 --------------------------------------
-with Lookup as (Select b.name as ProjectCode1,split_part(split_part(d.name,'[',2),']',1) as fy_timerange,d.name as CODE1
-,k.name as Project_Manager from profile_27420 d
-left join ds_mysql_prod_tagelement b on
-d.fy=b.id
-left join ds_mysql_prod_tagelement k on
-d.project_manager=k.id				
-union
-Select c.name as ProjectCode,a.name as fy_timerange,CONCAT(c.name,CONCAT(CONCAT('[',a.name),']')) as CODE,p.name as Project_Manager
-from profile_27396 c
-left join ds_mysql_prod_tagelement a on
-c.fy=a.id
-left join ds_mysql_prod_tagelement p on
-c.project_manager=p.id),Base1 as(
-select fy_timerange,ProjectCode,CONCAT(ProjectCode,CONCAT(CONCAT('[',fy_timerange),']')) as CODE from (select  split_part(split_part(prod.name,'|',1),'.',1) as ProjectCode, t.name as fy_timerange
- from profile_59426 p 
+--with Lookup as (Select b.name as ProjectCode1,split_part(split_part(d.name,'[',2),']',1) as fy_timerange,d.name as CODE1
+--,k.name as Project_Manager from profile_27420 d
+--left join ds_mysql_prod_tagelement b on
+--d.fy=b.id
+--left join ds_mysql_prod_tagelement k on
+--d.project_manager=k.id				
+--union
+--Select c.name as ProjectCode,a.name as fy_timerange,CONCAT(c.name,CONCAT(CONCAT('[',a.name),']')) as CODE,p.name as Project_Manager
+--from profile_27396 c
+--left join ds_mysql_prod_tagelement a on
+--c.fy=a.id
+--left join ds_mysql_prod_tagelement p on
+--c.project_manager=p.id),Base1 as(
+--select fy_timerange,ProjectCode,CONCAT(ProjectCode,CONCAT(CONCAT('[',fy_timerange),']')) as CODE from (select  split_part(split_part(prod.name,'|',1),'.',1) as ProjectCode, t.name as fy_timerange
+ --from profile_59426 p 
+--left join ds_mysql_prod_project prod on
+--prod.id=p.projectid
+--left join ds_mysql_prod_tagelement t on
+--p.fy=t.id)),
+--Base2 as(select p.fy_timerange,p.Project_Manager,l.ProjectCode from   Lookup p  left join   Base1 l on l.CODE=p.CODE1
+--group by p.fy_timerange,p.Project_Manager,l.ProjectCode)
+--select * from Base2
+--select * from Lookup
+-------------------------------------------------------------
+with Base1 as(select split_part(split_part(prod.name,'|',1),'.',1) as ProjectCode from profile_59426 p 
 left join ds_mysql_prod_project prod on
 prod.id=p.projectid
-left join ds_mysql_prod_tagelement t on
-p.fy=t.id)),
-Base2 as(select p.fy_timerange,p.Project_Manager,l.ProjectCode from   Lookup p  left join   Base1 l on l.CODE=p.CODE1
-group by p.fy_timerange,p.Project_Manager,l.ProjectCode)
-select * from Base2
---select * from Lookup
-
+),Base2 as(select split_part(c.name,'.',1) as ProjectCode,m.name as Project_Manager,f.name as fy_timerange from profile_27396 c 
+left join 	ds_mysql_prod_tagelement m on
+c.project_manager=m.id
+left join 	ds_mysql_prod_tagelement f on
+c.fy=f.id
+union
+select split_part(split_part(b.name,'[',1),'.',1) as ProjectCode,m.name as Project_Manager,split_part(split_part(b.name,'[',2),']',1) as fy_timerange from profile_27420 b
+left join ds_mysql_prod_tagelement m on
+b.project_manager=m.id),Base3 as(select  l.fy_timerange,l.Project_Manager,p.ProjectCode from Base1 p left join Base2 l on p.ProjectCode=l.ProjectCode group by l.Project_Manager,l.fy_timerange,p.ProjectCode)
+select * from Base3 where len(Project_Manager)>0
 
