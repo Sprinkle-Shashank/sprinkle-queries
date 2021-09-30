@@ -6,7 +6,7 @@ group by factory_id
 
 sub1 as (
 Select
-sp.pvh_id,sq.partner_type, fr.fy_timerange, fr.num_females,sq.name_vendor, sq.name_vendor_filter, ss.source_div, ss.timeperiod_timerange, ss.region,
+sp.pvh_id,sq.partner_type, fr.fy_timerange, fr.num_females,sq.name_vendor, sq.name_vendor_filter, ss.source_div, ss.region,
   case
   when fr.start_date>=sp.offset_date then 1
   else 0
@@ -23,8 +23,8 @@ where sp.pvh_id IS NOT NULL and flag=1
 ),
 
 sub2 as (
-  select fy_timerange, timeperiod_timerange, region, pvh_id, source_div, sum(num_females) as num_females from sub1
-group by fy_timerange, num_females, timeperiod_timerange,region, pvh_id, source_div),
+  select fy_timerange, region, pvh_id, source_div, sum(num_females) as num_females from sub1
+group by fy_timerange, num_females, region, pvh_id, source_div),
 
 sub3 as(
   select s2.*, country, source_div1 from sub2 s2, s2.region country, s2.source_div source_div1
@@ -33,7 +33,7 @@ where country is not NULL and source_div1 is not NULL)
 SELECT s3.fy_timerange, s3.pvh_id, sum(s3.num_females) as num_females, t1.name as region, ('P.'||'A.'||'C.'||'E.') as program
 FROM sub3 s3
 left join ds_mysql_prod_tagelement t1 on t1.id = s3.country
-group by s3.fy_timerange, s3.pvh_id, t1.name, program, timeperiod_timerange
-order by timeperiod_timerange DESC
+group by s3.fy_timerange, s3.pvh_id, t1.name, program
+--order by timeperiod_timerange DESC
 
 
