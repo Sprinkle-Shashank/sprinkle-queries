@@ -1,3 +1,13 @@
+ with temp as (
+   select 'cash_disbursed' as col
+   union all
+   select 'products_disbursedfmv' as col
+   union all
+   select 'Total Funds Disbursed' as col
+   union all
+   select 'products_disbursed_cogs' as col
+  )
+
 SELECT sq.month, sq.time_period_timerange as fy_timerange, sq.partner_reference, sq.cash_disbursed, sq.products_disbursed_cogs, sq.products_disbursedfmv, sq.year, pd.projectId as Region, pd.partner_name as Partner_name, pd.fy as FY
 case
 	when sq.month=1059437 then 'Q1'
@@ -12,10 +22,15 @@ case
 	when sq.month=1059446 then 'Q4'
 	when sq.month=1059447 then 'Q4'
 	when sq.month=1059448 then 'Q4'
-	end as Quarter,  (sq.cash_disbursed+sq.products_disbursed_cogs+sq.services_provided_cogs) AS Total_Investments
+	end as Quarter,  (sq.cash_disbursed+sq.products_disbursed_cogs+sq.services_provided_cogs) AS Total_Investments, 
+	 sum(case col
+  when 'cash_disbursed' then qi.cash_disbursed
+  when 'products_disbursedfmv' then qi.products_disbursedfmv
+  when 'Total Funds Disbursed' then qi.Total Funds Disbursed
+  when 'products_disbursed_cogs' then qi.products_disbursed_cogs 
+   else NULL
+   end )as Dimensions
 FROM dell_profile_63523 sq
 LEFT JOIN dell_profile_63523 pd
 GROUP BY sq.time_period_timerange, pd.projectId, pd.partner_name, pd.FY, Quarter, Dimensions
 
-
----PIVOT left--
