@@ -59,7 +59,7 @@ with temp as(
   union all
   select 'unidentified_second_60' as col)
   
-select p.site, p.date, temp.col as Dimensions,
+select p1.name as site, p.date, temp.col as Dimensions,
 sum(case col
 		when 'male_first_18_44' then p.male_first_18_44
   		when 'female_first_18_44' then p.female_first_18_44
@@ -93,9 +93,15 @@ sum(case col
  		when 'other_second_60' then p.other_second_60
   		when 'pwd_second_60' then p.pwd_second_60
   		when 'unidentified_second_60' then p.unidentified_second_60
-   		else NULL
-   		end) as values
+   	else NULL
+   	end) as values,
+		
+case
+	when(temp.col) like '%first%' then 'First Dose'
+	else 'Second Dose'
+end as dose
   
 from profile_78081 p
 	cross join temp
-	group by p.site, p.date, dimensions
+	left join profile_78079 p1 on p1._id = p.site
+	group by p.site, p.date, dimensions, dose
