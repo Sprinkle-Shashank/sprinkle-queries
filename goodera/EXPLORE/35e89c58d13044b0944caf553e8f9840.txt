@@ -1,23 +1,23 @@
-with inter as (
+/*with inter as (
   SELECT ANY_VALUE(region) as region, factory_id FROM profile_60928
-  GROUP BY region, factory_id),
+  GROUP BY region, factory_id),*/
 
-sub1 as(
+ with sub1 as(
 Select sq.select_modules, sq.end_date_2, sq.fy_timerange, sq.num_females_graduated, sq.num_males, sq.hours, sq.num_females, sq.num_females_dropout, sq.num_males_graduated, sq.num_males_dropout, p2.pvh_id, sq.name, p3.region, extract(year from cast(fy_timerange.start as date)) as year
 FROM profile_62491 sq
 LEFT JOIN profile_62948 p2 
 ON p2.project_id=sq.project_id
-LEFT JOIN inter p3
+LEFT JOIN profile_60928 p3
 ON p2.pvh_id=p3.factory_id
 where year >= 2020 and p2.pvh_id IS NOT NULL),
 
 sub2 as(
-  Select select_modules, end_date_2, fy_timerange, num_females_graduated, num_males, sum(hours) as hours, num_females, num_females_dropout, num_males_graduated, num_males_dropout, pvh_id, name, region as country
+  Select select_modules, end_date_2, fy_timerange, num_females_graduated, num_males, sum(hours) as hours, num_females, num_females_dropout, num_males_graduated, num_males_dropout, pvh_id, name, region
   from sub1
   group by select_modules, end_date_2, fy_timerange, num_females_graduated, hours, num_males, num_females, num_females_dropout, num_males_graduated, num_males_dropout, pvh_id, name, region),
   
 sub3 as(
-  Select s2.* from sub2 s2
+  Select s2.*, country from sub2 s2
 ) 
 
 Select ('P.'||'A.'||'C.'||'E.') as program, fy_timerange, pvh_id, t1.name as region, sum(hours) as hours
