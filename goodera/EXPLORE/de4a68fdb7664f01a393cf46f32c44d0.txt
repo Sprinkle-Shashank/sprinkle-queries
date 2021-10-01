@@ -4,17 +4,15 @@ EXTRACT(YEAR FROM(CAST(PF.month_timerange.start AS datetime))) AS fy_timerange,
 PD.start_date, t.name AS entity, PD.project_name, t3.name AS direct_or_partner, PD.partner, t2.name AS state, PD.budget_outlay, PD.item, PD.local_area, PD.csr_registration, PD.CSR,
 PP.completed, PP.date AS end_date,
 
-case 
-  when (extract(month from PD.start_date) <04) then (extract(year from PD.start_date)-1)
-  else  (extract(year from PD.start_date))
-  end as fy_start_date,
+CASE 
+  WHEN (extract(month from PD.start_date) <04) THEN (extract(year from PD.start_date)-1)
+  ELSE  (extract(year from PD.start_date))
+  END AS fy_start_date,
   
- case 
-  when (extract(month from PP.date) <4) then  (extract(year from PP.date)-1)
-  else  (extract(year from PP.date))
-  end as fy_end_date,
-
-
+ CASE 
+  WHEN (extract(month from PP.date) <4) THEN (extract(year from PP.date)-1)
+  ELSE (extract(year from PP.date))
+  END AS fy_end_date,
 
 CASE
 	WHEN fy_start_date = fy_end_date
@@ -22,27 +20,7 @@ CASE
 	fy_end_date = EXTRACT(YEAR FROM(CAST(PF.month_timerange.start AS datetime)))
 	THEN 1
 	ELSE 0
-END AS ertyuio
-
-
-
-
-
-
-/*CASE 
-	WHEN EXTRACT(YEAR FROM(CAST(PD.start_date AS datetime)))
-	= EXTRACT(YEAR FROM(CAST(PP.date AS datetime)))
-	AND
-	EXTRACT(YEAR FROM(CAST(PP.date AS datetime)))
-	= EXTRACT(YEAR FROM(CAST(PF.month_timerange.start AS datetime)))
-	THEN 1
-	ELSE 0
-END AS buhbj
-*/
-
-
-
-
+	END AS result
 
 FROM profile_55194 AS PF
 
@@ -64,3 +42,4 @@ ON PD.direct_or_partner = t3.id
 WHERE PF.project_code_new IS NOT NULL
 AND PD.CSR = 1395093
 AND PP.completed = 939857
+AND result = 1
