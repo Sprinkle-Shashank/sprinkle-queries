@@ -1,0 +1,15 @@
+with temp as(
+  select 'covishield_vials_pcmc' as col 
+  union all
+  select 'covaxin_vials_pcmc' as col)
+
+select p1.name as site, (p.date||'|'||p.date) as fy_timerange, temp.col as Dimensions,
+sum(case col
+		when 'covishield_vials_pcmc' then p.covishield_vials_pcmc
+		when 'covaxin_vials_pcmc' then p.covaxin_vials_pcmc
+		else NULL
+	end) as values
+from profile_78081 p
+	cross join temp
+	left join profile_78079 p1 on p1._id = p.site
+	group by p1.name, fy_timerange , dimensions
