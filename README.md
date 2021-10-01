@@ -1,2 +1,3 @@
 # sprinkle-queries
-Sprinkle queries
+
+These are some queries for Sprinkle used by Goodera.
