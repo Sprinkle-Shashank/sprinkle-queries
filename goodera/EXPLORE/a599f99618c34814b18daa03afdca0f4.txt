@@ -1,0 +1,39 @@
+with temp as(
+  select 'doctors' as col
+  union all
+  select 'nurses' as col
+  union all
+  select 'healthcare_assistant' as col
+  union all
+  select 'community_mobilizers' as col
+  union all
+  select 'aasha_workers' as col
+  union all
+  select 'other_staff' as col
+  union all
+  select 'total_eligible' as col)
+  
+select p._id as id, p.name as site, temp.col as Dimesions,
+
+sum(case col
+		when(temp.col = 'doctors') then p.doctors
+		when(temp.col = 'nurses') then p.nurses
+		when(temp.col = 'healthcare_assistant') then p.healthcare_assistant
+		when(temp.col = 'community_mobilizers') then p.community_mobilizers
+		when(temp.col = 'aasha_workers') then p.aasha_workers
+		when(temp.col = 'other_staff') then p.other_staff
+		when(temp.col = 'total_eligible') then p.total_eligible
+	else NULL
+end) as values,
+	
+case
+	when(p.end_date is NULL) then
+	(p.start_date||'|'||cast(current_date as datetime))
+	else
+	(p.start_date||'|'||p.end_date)
+end as fy_timerange
+
+from profile_78079 p
+	group by id, site
+  
+  
