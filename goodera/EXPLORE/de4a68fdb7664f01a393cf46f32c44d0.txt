@@ -1,8 +1,8 @@
 SELECT PF.projectid, PF.project_code_new AS _id, PD.name AS project_code_new,
 EXTRACT(YEAR FROM(CAST(PF.month_timerange.start AS datetime))) AS fy_timerange,
 /*SUM(PF.amount) AS amount_disbursed,*/
-PD.start_date, PD.entity, PD.project_name, PD.direct_or_partner, PD.partner, PD.state, PD.budget_outlay, PD.item, PD.local_area, PD.csr_registration, PD.CSR,
-PP.completed, PP.date
+PD.start_date, t.name AS entity, PD.project_name, PD.direct_or_partner, PD.partner, PD.state, PD.budget_outlay, PD.item, PD.local_area, PD.csr_registration, PD.CSR,
+PP.completed, PP.date AS end_date
 
 FROM profile_55194 AS PF
 
@@ -12,5 +12,9 @@ ON PF.project_code_new = PD._id
 LEFT JOIN profile_55471 AS PP
 ON PD.project_code = PP.project_code
 
+LEFT JOIN ds_mysql_prod_tagelement AS t
+ON PD.entity = t.id
+
 WHERE PF.project_code_new IS NOT NULL
 AND PD.CSR = 1395093
+PP.completed = 939857
