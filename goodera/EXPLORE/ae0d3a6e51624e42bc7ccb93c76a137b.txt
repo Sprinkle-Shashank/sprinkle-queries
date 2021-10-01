@@ -65,7 +65,8 @@ sub2 as(
 	from sub1 s1)
 	
 	
-select s2.projectId, s2.milestone, s2.start_date, s2.fy_timerange, s2.fstatus, s2.pstart, s2.pend, s2.comm, extract(month from s2.date) as month,
+sub3 as(
+  select s2.projectId, s2.milestone, s2.start_date, s2.fy_timerange, s2.fstatus, s2.pstart, s2.pend, s2.comm, extract(month from s2.date) as month,
 case
 		when(month = 1) then 'Jan'
 		when(month = 2) then 'Feb'
@@ -80,9 +81,10 @@ case
 		when(month = 11) then 'Nov'
 		when(month = 12) then 'Dec'
 	else 'Mon'
-end as month,
+end as mon,
+(mon||' '||extract(year from date)-2000) as date
+from sub2 s2)
 
-(month||' '||extract(year from date)-2000) as date
-from sub2 s2
-	group by s2.projectId, s2.milestone, s2.start_date, s2.fy_timerange, s2.fstatus, s2.pstart, s2.pend, s2.comm, s2.date
-
+select projectId, milestone, start_date, fy_timerange, fstatus, pstart, pend, comm, date
+from sub3
+	group by projectId, milestone, start_date, fy_timerange, fstatus, pstart, pend, comm, date
