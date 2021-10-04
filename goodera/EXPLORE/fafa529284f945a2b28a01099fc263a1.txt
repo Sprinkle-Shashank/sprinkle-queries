@@ -1,0 +1,84 @@
+
+with temp as (
+  select 'sq.cash_grant' as col 
+  union all
+  select 'sq.product_cogs'as col
+  union all
+  select 'sq.product_fmv' as col
+  union all
+  select 'pd.cash_disbursed' as col
+  union all
+  select 'pd.products_disbursed_cogs' as col
+  union all
+  select 'pd.products_disbursedfmv' as col
+	
+) 
+SELECT  tt.name as projectId, sq.time_period_timerange AS fy_timerange,t.name as month, t2.name as year, t3.name as partner_name, t4.name as pillar, t5.name as initiative,  t6.name as spend_category,t7.name as program_type, sq.description, t7.name AS FY, pd.notes, t9.name AS fy_cal, cit.name AS fy_str,
+case
+	when sq.month=1059437 then 'Q4'
+	when sq.month=1059438 then 'Q4'
+	when sq.month=1059439 then 'Q4'
+	when sq.month=1059440 then 'Q1'
+	when sq.month=1059441 then 'Q1'
+	when sq.month=1059442 then 'Q1'
+	when sq.month=1059443 then 'Q2'
+	when sq.month=1059444 then 'Q2'
+	when sq.month=1059445 then 'Q2'
+	when sq.month=1059446 then 'Q3'
+	when sq.month=1059447 then 'Q3'
+	when sq.month=1059448 then 'Q3'
+	end as Quarter,
+case
+	when sq.month=1059437 then 'Q4'
+	when sq.month=1059438 then 'Q1'
+	when sq.month=1059439 then 'Q1'
+	when sq.month=1059440 then 'Q1'
+	when sq.month=1059441 then 'Q2'
+	when sq.month=1059442 then 'Q2'
+	when sq.month=1059443 then 'Q3'
+	when sq.month=1059444 then 'Q3'
+	when sq.month=1059445 then 'Q3'
+	when sq.month=1059446 then 'Q3'
+	when sq.month=1059447 then 'Q4'
+	when sq.month=1059448 then 'Q4'
+	end as Quarter_Dell_Fiscal,
+	temp.col as Dimensions,
+sum(case col
+  when 'sq.cash_grant' then sq.cash_grant
+  when 'sq.product_cogs'then sq.product_cogs
+  when 'sq.product_fmv' then sq.product_fmv
+  when 'pd.cash_disbursed' then pd.cash_disbursed
+   when 'pd.products_disbursed_cogs' then pd.products_disbursed_cogs
+  when 'pd.products_disbursedfmv' then pd.products_disbursedfmv
+	else Null 
+	end
+	) as Values
+FROM Dell_Profile_63522 sq
+cross join temp
+LEFT JOIN Dell_profile_063523 pd
+ON sq._id=pd.partner_reference
+left join ds_mysql_prod_tagelement cit
+on sq.year+2 = cit.id
+left join ds_mysql_prod_tagelement as t 
+  on sq.month = t.id
+   left join ds_mysql_prod_tagelement as t2 
+  on sq.year = t2.id
+   left join ds_mysql_prod_tagelement as t3 
+  on   sq.partner_name = t3.id
+  left join ds_mysql_prod_tagelement as t4 
+  on   sq.pillar = t4.id
+  left join ds_mysql_prod_tagelement as t5 
+  on   sq.initiative = t5.id
+   left join ds_mysql_prod_tagelement as t6
+  on sq.spend_category = t6.id
+   left join ds_mysql_prod_tagelement as t7
+  on sq.program_type = t7.id
+  left join ds_mysql_prod_tagelement as t8 
+  on sq.fy = t8.id
+  left join ds_mysql_prod_tagelement as t9 
+  on sq.year+2 = t9.id
+  left join ds_mysql_prod_project tt on
+  sq.projectId=tt.id
+group by  fy_timerange, t.name , t2.name, t3.name,t4.name, t5.name, t6.name,t7.name, sq.description, t8.name, pd.notes, t9.name, fy_str, Quarter,sq.projectId,Dimensions,Quarter_Dell_Fiscal,tt.name
+
+  
