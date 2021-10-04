@@ -1,12 +1,16 @@
 with sub1 as(
-  select p1.name as projectId, p.file, p.name, t1.name as file_type, p.project_name, p.timerange_timerange as fy_timerange, p.desc, 'Download' as title,
+  select p1._id as id, p1.name as projectId, p.file, p.name, t1.name as file_type, p.project_name, p.timerange_timerange as fy_timerange, p.desc, 'Download' as title,
 cast(timestamp 'epoch' + p.created/1000 * interval '1 second' as date) as create_date,
 to_char(create_date, 'DD-MM-YYYY') as last_submitted
 	from profile_54318 p
 	left join ds_mysql_prod_project p1 on p1.id = p.projectid
-	left join ds_mysql_prod_tagelement t1 on t1.id = p.file_type)
+	left join ds_mysql_prod_tagelement t1 on t1.id = p.file_type),
 	
-select s1.*, cast(documents as varchar) from sub1 s1, s1.file documents
+sub2 as(
+  select s1.*, cast(documents as varchar) from sub1 s1, s1.file documents)
+  
+select s2.id, s2.projectid, s2.name, s2.file_type, s2.project_name, s2.fy_timerange, s2.desc, s2.title, s2.last_submitted, listagg(distinct documents, ',') within group (order by s2.id)
+from sub2 s2
 	
 
 
