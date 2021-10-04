@@ -93,7 +93,7 @@
 --select * from Lookup
 ---------------------------------------------------------------------
 with Lookup as
-(select split_part(split_part(prod.name,'|',1),'.',1)  as ProjectCode,f.name as fy_timerange,split_part(prod.name,'|',3) as CensusCode,p.focus_area as Focusarea,p.date as Date_of_creation,b.name as Beneficiary_Type,p.bennum as Beneficiary_Number,p.pic1 as Pic1,p.pic2 as Pic2,case when len(p.pic1)>0 then 'Download' end as Picture1,case when len(p.pic2)>0 then 'Download' end as Picture2
+(select split_part(split_part(prod.name,'|',1),'.',1)  as ProjectCode,f.name as fy_timerange,split_part(prod.name,'|',3) as CensusCode,p.focus_area as Focusarea,p.asset_cat as Asset_Category,s.name as Asset_sub_Category,p.date as Date_of_creation,b.name as Beneficiary_Type,p.bennum as Beneficiary_Number,p.pic1 as Pic1,p.pic2 as Pic2,case when len(p.pic1)>0 then 'Download' end as Picture1,case when len(p.pic2)>0 then 'Download' end as Picture2
 ,CONCAT(ProjectCode,fy_timerange) as CODE
 from profile_59426 p 
 left join ds_mysql_prod_project prod on
@@ -102,8 +102,10 @@ left join ds_mysql_prod_tagelement f on
 p.fy=f.id
 left join ds_mysql_prod_tagelement b on
 p.bene=b.id
+left join ds_mysql_prod_tagelement s on
+p.cat=s.id
 )
-,Base1 as (select p.ProjectCode,p.fy_timerange,p.CensusCode,p.Focusarea,p.Date_of_creation,p.Beneficiary_Type,p.Beneficiary_Number,k.name as NGO,p.Pic1,p.Pic2,p.Picture1,p.Picture2,p.CODE from Lookup p left join profile_27396 l
+,Base1 as (select p.ProjectCode,p.fy_timerange,p.CensusCode,p.Focusarea,p.Asset_Category,p.Asset_sub_Category,p.Date_of_creation,p.Beneficiary_Type,p.Beneficiary_Number,k.name as NGO,p.Pic1,p.Pic2,p.Picture1,p.Picture2,p.CODE from Lookup p left join profile_27396 l
 on p.ProjectCode=l.name
 left join profile_27395 k
 on l.ngo_partner=k._id
@@ -124,7 +126,8 @@ c.fy=f.id
 left join ds_mysql_prod_tagelement m on
 c.project_manager=m.id)
 ,Base3 as(select
-p.fy_timerange,l.Project_Manager,p.ProjectCode,p.Focusarea,p.CensusCode,p.Date_of_creation,p.Beneficiary_Type,p.Beneficiary_Number,p.NGO,p.Pic1,p.Pic2,p.Picture1,p.Picture2 from Base1 p left join 
-Base2 l on p.CODE=l.CODE)
+p.fy_timerange,l.Project_Manager,p.ProjectCode,p.Focusarea,p.CensusCode,p.Asset_Category,p.Asset_sub_Category,p.Date_of_creation,p.Beneficiary_Type,p.Beneficiary_Number,p.NGO,p.Pic1,p.Pic2,p.Picture1,p.Picture2 from Base1 p left join 
+Base2 l on p.CODE=l.CODE),Base4 as (select p.fy_timerange,l.Project_Manager,cast(p.ProjectCode as varchar),p.Focusarea,l.state,l.district,l.village,p.NGO,,p.Asset_Category,p.Asset_sub_Category,p.Date_of_creation,p.Beneficiary_Type,p.Beneficiary_Number,p.Pic1,p.Pic2,p.Picture1,p.Picture2 left join profile_27489 l on
+p.CensusCode=l.name)
 
-select * from Base3
+select * from Base4
