@@ -1,5 +1,5 @@
- select proj.name as projectid,fy_timerange ,center.name as center,patients_id ,patients_name ,gender.name as gender,
- diagno.name as diagnosis,eval.name as evaluated,surg_requ.name as surgery_require,proced_perf.name as procedure_performed ,age_in_years+age_in_months/12.0 as age ,
+ select proj.name as projectid,fy_timerange ,center.name as center,patients_id ,father_name ,patients_name ,mother_name,gender.name as gender,age_in_years,age_in_months ,contact_number,patients_address,
+ patient_govt_id,state.name ,priority,diagno.name as diagnosis,eval.name as evaluated,surg_requ.name as surgery_require,admission_date ,surgery_date ,discharge_date,proced_perf.name as procedure_performed ,other_interventions , age_in_years+age_in_months/12.0 as age ,
   
   case when age>0 and age<=2 then '0-2'
        when age>2 and age<=6 then '2-6'
@@ -8,7 +8,10 @@
 	   
 	  end as age_ragne 
 	
-  
+  /*case when procedure_performed =  'Cleft Palate Repair' then 1
+       when procedure_performed = 'Cleft Lip Repair' then 1
+	   else null
+	   end as cleft_surgery*/
  
  from profile_78655 p 
 
@@ -16,7 +19,8 @@
     on p.center_name = center.id
     left join ds_mysql_prod_tagelement gender
 	on p.gender = gender.id
-	
+	left join ds_mysql_prod_tagelement state
+	on p.state= state.id
 	left join ds_mysql_prod_tagelement diagno
 	on p.diagnosis= diagno.id
 	left join ds_mysql_prod_tagelement eval
@@ -29,4 +33,5 @@
 	on p.projectid= proj.id 
 	
 	WHERE p.surgery_require = True
-    GROUP BY proj.name ,fy_timerange ,center.name,patients_id  ,patients_name ,gender.name ,age,diagno.name,eval.name ,surg_requ.name,proced_perf.name,age_range
+    GROUP BY proj.name ,fy_timerange ,center.name,patients_id ,father_name ,patients_name ,mother_name,gender.name,age_in_years,age_in_months ,age,contact_number,patients_address,
+ patient_govt_id,state.name,priority,diagno.name,eval.name ,surg_requ.name,admission_date ,surgery_date ,discharge_date,proced_perf.name,other_interventions 
