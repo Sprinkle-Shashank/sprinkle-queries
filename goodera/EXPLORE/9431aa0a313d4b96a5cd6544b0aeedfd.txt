@@ -1,15 +1,19 @@
-with table1 as (
-  select  p.projectid as project, p._id as parent_id, p.fy_timerange, p.country, p.activity, p.activity_description, p.partner, p.business_units, p.focus_area, p.currency,   p.brand_of_prods_donated as prod_brand, p.product_description as prod_desc, p.no_of_reckitt_prods_donated, p.sequence, is_array(p.other_brand) as array_check, cast(fy_timerange.start as date) as start_date,
+with sub1 as (
+  select  p.projectid as project, p._id as parent_id, p.fy_timerange, p.country, p.activity, p.activity_description, p.partner, p.business_units, p.focus_area, p.currency,  p.brand_of_prods_donated as prod_brand, p.product_description as prod_desc, p.no_of_reckitt_prods_donated, p.sequence, is_array(p.other_brand) as array_check, cast(fy_timerange.start as date) as start_date,
 	case
 		when(array_check = false) then array(p.other_brand)
 		else p.other_brand
 	end as other
 	from profile_78057 p),
+	
+sub2 as(
+  select s1.*, multi_brands from sub1 s1, s1.other multi_brands)
   
   
-table2 as (
-  select t3.name as project_name, t1.parent_id, t1.fy_timerange, t5.name as country, t1.activity, t1.activity_description, t1.partner, t6.name as business_units, t7.name as focus_area, t8.name as currency, t2.name as brand, t1.prod_desc, t1.no_of_reckitt_prods_donated as reckitt_prods, t1.other, t1.sequence, t4.name as prod_brand, t.product_description, t.reckitt_kits, 
-concat('brand',row_number() over (partition by sequence order by t4.name asc)) as brand_sequence, extract(month from start_date) as month,
+sub3 as (
+  select t3.name as project_name, s2.parent_id, s2.fy_timerange, t5.name as country, s2.activity, s2.activity_description, s2.partner, t6.name as business_units, t7.name as focus_area, t8.name as currency, t2.name as brand, s2.prod_desc, s2.no_of_reckitt_prods_donated as reckitt_prods, s2.multi_brands, s2.sequence, p1.name as prod_brand, p1.product_description, p1.reckitt_kits, 
+concat('brand',row_number() over (partition by sequence order by t4.name asc)) as brand_sequence, 
+extract(month from start_date) as month,
   case
   	when month = 1 then 'Q4'
 	when month = 2 then 'Q4'
@@ -24,15 +28,15 @@ concat('brand',row_number() over (partition by sequence order by t4.name asc)) a
 	when month = 11 then 'Q3'
 	when month = 12 then 'Q3'
   end as quarter
-  from table1 t1
-	left join profile_78062 t on t1.other = t._id
-	left join ds_mysql_prod_tagelement t2 on t1.prod_brand = t2.id
-	left join ds_mysql_prod_project t3 on t1.project = t3.id
+  from sub2 s2	
+	left join profile_78062 p1 on s2.multi_brands = p1._id
+	left join ds_mysql_prod_tagelement t2 on s2.prod_brand = t2.id
+	left join ds_mysql_prod_project t3 on s2.project = t3.id
 	left join ds_mysql_prod_tagelement t4 on t.product_brand = t4.id
-	left join ds_mysql_prod_tagelement t5 on t1.country = t5.id
-	left join ds_mysql_prod_tagelement t6 on t1.business_units = t6.id
-	left join ds_mysql_prod_tagelement t7 on t1.focus_area = t7.id
-	left join ds_mysql_prod_tagelement t8 on t1.currency = t8.id)
+	left join ds_mysql_prod_tagelement t5 on s2.country = t5.id
+	left join ds_mysql_prod_tagelement t6 on s2.business_units = t6.id
+	left join ds_mysql_prod_tagelement t7 on s2.focus_area = t7.id
+	left join ds_mysql_prod_tagelement t8 on s2.currency = t8.id)
 	
 	
 select project_name, parent_id, sequence, fy_timerange, quarter, country, activity, activity_description, partner, business_units, focus_area, currency, brand, prod_desc, reckitt_prods,
@@ -63,7 +67,7 @@ select project_name, parent_id, sequence, fy_timerange, quarter, country, activi
 		end) as brand2_reckitt_kits
 from table2 
   group by project_name, parent_id, sequence, fy_timerange, country, activity, activity_description, partner, business_units, focus_area, currency, brand, prod_desc, reckitt_prods, quarter 
-  order by sequence asc*/
+  order by sequence asc
 
 
 
