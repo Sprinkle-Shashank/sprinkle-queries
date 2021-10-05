@@ -23,12 +23,15 @@ temp as(
   	union all
   	select 'reckitt_kits' as col)
 	
-select s3.projectid, s3.fy_timerange, s3.country, s3.focus_area, s3.prod_brand, temp.col as dimensions,
-	sum(case col
-			when 'no_of_reckitt_prods_donated' then s3.no_of_reckitt_prods_donated
-			when 'reckitt_kits' then s3.reckitt_kits
-		else NULL
-	end) as values
-from sub3 s3
+sub4 as(
+  	select s3.projectid, s3.fy_timerange, s3.country, s3.focus_area, s3.prod_brand, temp.col as dimensions,
+		sum(case col
+				when 'no_of_reckitt_prods_donated' then s3.no_of_reckitt_prods_donated
+				when 'reckitt_kits' then s3.reckitt_kits
+			else NULL
+		end) as values
+	from sub3 s3
 	cross join temp
-	group by s3.projectid, s3.fy_timerange, s3.country, s3.focus_area, s3.prod_brand, temp.col
+	group by s3.projectid, s3.fy_timerange, s3.country, s3.focus_area, s3.prod_brand, temp.col)
+	
+select s4.* from sub4 where values is not null
