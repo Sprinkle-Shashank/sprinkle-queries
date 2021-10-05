@@ -7,7 +7,7 @@ with temp as (
   union all
   select 'Total_fund_disbursed' as col
 )
-Select sq.projectId, sq.time_period_timerange as fy_timerange, sq.partner_reference, (sq.cash_disbursed + sq.products_disbursed_cogs) AS Total_fund_disbursed, temp.col as Dimensions,t1.name as fy,
+Select  sq.time_period_timerange as fy_timerange, sq.partner_reference, (sq.cash_disbursed + sq.products_disbursed_cogs) AS Total_fund_disbursed, temp.col as Dimensions,t1.name as fy,t2.name as projectId
 sum( case col
 	when 'cash_disbursed' then sq.cash_disbursed
 	when 'products_disbursed_cogs' then sq.products_disbursed_cogs
@@ -25,4 +25,6 @@ LEFT JOIN ds_mysql_prod_project AS t
 ON t.parent=sq.projectId
 LEFT JOIN ds_mysql_prod_tagelement t1
 on pd.fy=t1.id
-GROUP BY sq.projectId, sq.time_period_timerange, pd.partner_name, pd.fy,sq.cash_disbursed,sq.products_disbursed_cogs, sq.products_disbursedfmv, sq.partner_reference, Dimensions, t1.name
+LEFT JOIN ds_mysql_tagelement t2
+on sq.projectId=t2.id
+GROUP BY sq.projectId, sq.time_period_timerange, pd.partner_name, pd.fy,sq.cash_disbursed,sq.products_disbursed_cogs, sq.products_disbursedfmv, sq.partner_reference, Dimensions, t1.name,t2.name
