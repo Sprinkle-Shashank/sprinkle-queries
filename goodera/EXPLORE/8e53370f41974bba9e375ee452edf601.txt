@@ -7,12 +7,28 @@ with sub1 as(
   	from profile_78057 p1),
 	
 sub2 as(
- 	select s1.*, multi_brand from sub1 s1, s1.others multi_brand)
+ 	select s1.*, multi_brand from sub1 s1, s1.others multi_brand),
   
-select p2.name as projectid, s2.fy_timerange, t1.name as country, t2.name as focus_area, t3.name as prod_brand, s2.no_of_reckitt_prods_donated, p3.reckitt_kits
+sub3 as(
+  	select p2.name as projectid, s2.fy_timerange, t1.name as country, t2.name as focus_area, t3.name as prod_brand, s2.no_of_reckitt_prods_donated, p3.reckitt_kits
 from sub2 s2
 	left join ds_mysql_prod_project p2 on p2.id = s2.projectid
 	left join profile_78062 p3 on p3._id = s2. multi_brand
 	left join ds_mysql_prod_tagelement t1 on t1.id = s2.country
 	left join ds_mysql_prod_tagelement t2 on t2.id = s2.focus_area
-	left join ds_mysql_prod_tagelement t3 on t3.id = s2.brand_of_prods_donated
+	left join ds_mysql_prod_tagelement t3 on t3.id = s2.brand_of_prods_donated),
+	
+temp as(
+  	select 'no_of_reckitt_prods_donated' as col 
+  	union all
+  	select 'reckitt_kits' as col)
+	
+select s3.projectid, s3.fy_timerange, s3.country, s3.focus_area, s3.prod_brand, temp.col as dimensions,
+	sum(case col
+			when 'no_of_reckitt_prods_donated' then s3.no_of_reckitt_prods_donated
+			when 'reckitt_kits' then s3.reckitt_kits
+		else NULL
+	end) as values
+from sub3 s3
+	cross join temp
+	group by projectid, s3.fy_timerange, s3.country, s3.focus_area, s3.prod_brand, temp.col
