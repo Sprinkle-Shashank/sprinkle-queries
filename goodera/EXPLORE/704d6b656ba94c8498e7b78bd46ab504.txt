@@ -7,9 +7,10 @@ with sub1 as(
   from profile_32441 p1),
   
 sub2 as(
-  select s1.*, fund from sub1 s1, s1.funds fund)
+  select s1.*, fund from sub1 s1, s1.funds fund),
 
-select p2.name as projectid, s2.time_timerange as fy_timerange, t1.name as country, t2.name as focus_area, t3.name as prod_brand, sum(p3.amount) as investment
+sub3 as(
+  select p2.name as projectid, s2.time_timerange as fy_timerange, t1.name as country, t2.name as focus_area, t3.name as prod_brand, sum(p3.amount) as investment
 from sub2 s2
 	left join ds_mysql_prod_project p2 on p2.id = s2.projectid
 	left join profile_54871 p3 on p3._id = s2.fund
@@ -17,4 +18,6 @@ from sub2 s2
 	left join ds_mysql_prod_tagelement t1 on t1.id = s2.country
 	left join ds_mysql_prod_tagelement t2 on t2.id = p4.foc_area
 	left join ds_mysql_prod_tagelement t3 on t3.id = p3.brand
-group by p2.name, s2.time_timerange, t1.name, t2.name, t3.name
+group by p2.name, s2.time_timerange, t1.name, t2.name, t3.name)
+
+select s3.* from sub3 where investment is not null
