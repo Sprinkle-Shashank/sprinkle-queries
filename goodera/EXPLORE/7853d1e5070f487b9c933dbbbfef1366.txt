@@ -1,0 +1,58 @@
+with sub1 as(
+	select t1.name as projectId, t2.name as project, t3.name as budget_head, p1.name as proj_bud_head, t4.name as gy, p.timerange_timerange as fy_timerange, p.amount, p.fund, p1.stan_bud_head,
+		case
+			when(p1.stan_bud_head = 900014) then 1
+			when(p1.stan_bud_head = 900016) then 2
+			when(p1.stan_bud_head = 900015) then 3
+			when(p1.stan_bud_head = 900018) then 4
+			when(p1.stan_bud_head = 900017) then 5
+			else cast(null as int) 
+			end as sort
+	from profile_54306 p
+ 	left join ds_mysql_prod_project t1 on t1.id = p.projectid
+	left join ds_mysql_prod_project t2 on t2.id = t1.parent
+	left join profile_58433 p1 on p1._id = p.proj_bud_head
+	left join ds_mysql_prod_tagelement t3 on t3.id = p.budget_head
+	left join ds_mysql_prod_tagelement t4 on t4.id = p.gy
+	where p.fund = 897399),
+	
+sub2 as(
+  select s1.projectId, s1.project, s1.budget_head, t5.name as fund, s1.proj_bud_head, s1.gy, s1.fy_timerange, t6.name as stan_bud_head, s1.sort, sum(amount) as amount
+	from sub1 s1
+	left join ds_mysql_prod_tagelement t5 on t5.id = s1.fund
+	left join ds_mysql_prod_tagelement t6 on t6.id = s1.stan_bud_head
+	group by s1.projectId, s1.project, s1.budget_head, t5.name, s2.proj_bud_head, s2.gy, s2.fy_timerange, t6.name, s1.sort
+	order by s1.sort asc),
+	
+
+with sub3 as(
+	select t1.name as projectId, t2.name as project, t3.name as budget_head, p1.name as proj_bud_head, t4.name as gy, p.timerange_timerange as fy_timerange, p.amount, p.fund, p1.stan_bud_head,
+		case
+			when(p1.stan_bud_head = 900014) then 1
+			when(p1.stan_bud_head = 900016) then 2
+			when(p1.stan_bud_head = 900015) then 3
+			when(p1.stan_bud_head = 900018) then 4
+			when(p1.stan_bud_head = 900017) then 5
+			else cast(null as int) 
+			end as sort
+	from profile_54306 p
+ 	left join ds_mysql_prod_project t1 on t1.id = p.projectid
+	left join ds_mysql_prod_project t2 on t2.id = t1.parent
+	left join profile_58433 p1 on p1._id = p.proj_bud_head
+	left join ds_mysql_prod_tagelement t3 on t3.id = p.budget_head
+	left join ds_mysql_prod_tagelement t4 on t4.id = p.gy
+	where p.fund = 897400),
+	
+sub4 as(
+  select s3.projectId, s3.project, s3.budget_head, t5.name as fund, s3.proj_bud_head, s3.gy, s3.fy_timerange, t6.name as stan_bud_head, s3.sort, sum(amount) as amount
+	from sub3 s3
+	left join ds_mysql_prod_tagelement t5 on t5.id = s3.fund
+	left join ds_mysql_prod_tagelement t6 on t6.id = s13stan_bud_head
+	group by s3.projectId, s3.project, s3.budget_head, t5.name, s3.proj_bud_head, s3.gy, s3.fy_timerange, t6.name, s3.sort
+	order by s1.sort asc),
+	
+select * from sub2
+union all
+select * from sub4
+	
+	
