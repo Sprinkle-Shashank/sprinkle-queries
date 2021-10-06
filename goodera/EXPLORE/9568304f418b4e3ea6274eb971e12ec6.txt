@@ -1,2 +1,29 @@
-Select p1.projectid, p1.fy_timerange, p1.proj_name, p1.location, p1.sdg, p1.proj_tenure, p1.proj_object, p1.imp_partner, p1.start, focus_area
-from profile_60166 p1, p1.mca_focus focus_area
+with sub1 as(
+  select p1.*, is_array(p1.location) as location_array_check, is_array(p1.sdg) as sdg_array_check, is_array(p1.sdg_icon) as sdg_icon_array_check, is_array(p1.mca_focus) as focus_area_array_check,
+  
+  case
+  	when (location_array_check = false) then array(p1.location)
+  	else p1.location
+  end as location_new,
+  
+  case
+  	when (sdg_array_check = false) then array(p1.sdg)
+  	else p1.sdg
+  end as sdg_new,
+  
+  case
+  	when (sdg_icon_array_check = false) then array(p1.sdg_icon)
+  	else p1.sdg_icon
+  end as sdg_icon_new,
+  
+  case
+  	when (focus_area_array_check = false) then array(p1.mca_focus)
+  	else p1.mca_focus
+  end as focus_area_new
+
+from profile_60166 p1)
+  
+select s1.*, location, sdg, sdg_icon, focus_area 
+from sub1 s1, s1.location_new location, s1.sdg_new sdg, s1.sdg_icon_new sdg_icon, s1.focus_area_new focus_area
+  
+  
