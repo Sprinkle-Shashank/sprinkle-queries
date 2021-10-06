@@ -1,3 +1,27 @@
-select projectid, year.name as fy, sum(total_people) as total_people from profile_58414 
+with temp as (
+  select 'Total People' as C
+  Union all 
+  select 'VAP Prepared' as C
+  Union all 
+  select 'VAP Approved' as C
+  Union all
+  select 'Women Trained' as C
+  Union all
+  select 'VAP' as C
+  Union all
+  select 'PARA' as C
+)
+  select projectid, year.name as year, sum(total_people) as total_people,
+  Case C
+    When 'Total People' then p.total_people
+	When 'VAP Prepared' then p.vap_prepared
+	When 'VAP Approved' then p.vap_approved
+	When 'Women Trained' then p.women_trained 
+	When 'VAP' then p.vap
+	When 'PARA' then p.para
+	Else Null
+END as values , temp.C as dimensions
+    from profile_58414 p
+	cross join temp
 left join ds_mysql_prod_tagelement as year on profile_58414.fy = year.id 
-group by projectid,year.name
+group by projectid,year.name,temp.C
