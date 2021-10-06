@@ -11,7 +11,7 @@ with temp as (
   Union all
   select 'PARA' as C
 )
-  select projectid, quarter, geography, year.name as year, sum(total_people) as total_people,
+  select projectid, quarter.name as quarter, geography.name as geography, year.name as year, sum(total_people) as total_people,
 SUM( Case C
  When 'Total People' then profile_58414.total_people
 	When 'VAP Prepared' then profile_58414.vap_prepared
@@ -25,5 +25,9 @@ END) as values , temp.C as dimensions
 From profile_58414
 Cross join temp
 
-left join ds_mysql_prod_tagelement as year on profile_58414.fy = year.id 
-group by projectid, quarter, geography,year.name,temp.C
+left join ds_mysql_prod_tagelement as year on profile_58414.fy = year.id
+
+left join ds_mysql_prod_tagelement as quarter on profile_58414.quarter = quarter.id
+
+left join ds_mysql_prod_tagelement as geography on profile_58414.geography = geography.id
+group by projectid, quarter.name, geography.name,year.name,temp.C
