@@ -1,0 +1,50 @@
+SELECT PF.projectid, PF.project_code_new AS _id, PD.name AS project_code_new,
+EXTRACT(YEAR FROM(CAST(PF.month_timerange.start AS datetime))) AS fy_timerange,
+--SUM(PF.amount) AS amount_disbursed,
+PD.start_date, t.name AS entity, PD.project_name, t3.name AS direct_or_partner, PD.partner, t2.name AS state, PD.budget_outlay, PD.item, PD.local_area, PD.csr_registration, PD.CSR,
+PP.completed, PP.date AS end_date, UA.unspent_amount,
+
+/*CASE 
+  WHEN (EXTRACT(month from PD.start_date) <04) THEN (EXTRACT(year from PD.start_date)-1)
+  ELSE  (EXTRACT(year from PD.start_date))
+  END AS fy_start_date,
+ */
+ 
+ CASE 
+  WHEN (EXTRACT(month from PP.date) <4) THEN (EXTRACT(year from PP.date)-1)
+  ELSE (EXTRACT(year from PP.date))
+  END AS fy_end_date,
+
+CASE
+	WHEN
+	fy_end_date = EXTRACT(YEAR FROM(CAST(PF.month_timerange.start AS datetime)))
+	THEN "Completed"
+	ELSE "Ongoing"
+	END AS status
+
+FROM profile_55194 AS PF
+
+LEFT JOIN profile_62881 AS PD
+ON PF.project_code_new = PD._id
+
+LEFT JOIN profile_55471 AS PP
+ON PD.project_code = PP.project_code
+
+LEFT JOIN profile_78756 AS UA
+ON PD.project_code = UA.project_code
+
+LEFT JOIN ds_mysql_prod_tagelement AS t
+ON PD.entity = t.id
+
+LEFT JOIN ds_mysql_prod_tagelement AS t2
+ON PD.state = t2.id
+
+LEFT JOIN ds_mysql_prod_tagelement AS t3
+ON PD.direct_or_partner = t3.id
+
+WHERE PF.project_code_new IS NOT NULL
+AND PD.CSR = 1395093
+AND PP.completed = 939857
+AND result = 1
+
+/*GROUP BY PF.projectid, pf.project_code_new, PD.name, PD.start_date, t.name, PD.project_name, t3.name, PD.partner, t2.name, PD.budget_outlay, PD.item, PD.local_area, PD.csr_registration, PD.CSR, PP.completed, PP.date, PF.month_timerange*/
