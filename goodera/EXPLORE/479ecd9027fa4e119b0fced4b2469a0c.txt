@@ -1,7 +1,17 @@
-Select sq.projectId, sq.start_date, sq.end_date , count(*),
+Select sq.projectId, sq.start_date as start, sq.end_date as end, count(*),t.name as partner, t3.name as region
+
+obj(kv("start",$start_date),kv("end",$end_date))
+
 case
   when (extract(month from sq.end_date) <=2) then ('FY' || (extract(year from sq.end_date)-2000))
   when (extract(month from sq.end_date) >2) then ('FY'|| (extract(year from sq.end_date)+1-2000))
   end as FY
 FROM dell_profile_62886 sq
+left join ds_mysql_prod_project as t 
+  on sq.projectId = t.id
+  left join ds_mysql_prod_project as t2
+  on t.parent=t2.id
+  left join ds_mysql_prod_project as t3
+  on t2.parent=t3.id 
+GROUP BY FY, sq.Partner, sq.Region, t3.name, t.name
 WHERE sq.projectId!='51739'
