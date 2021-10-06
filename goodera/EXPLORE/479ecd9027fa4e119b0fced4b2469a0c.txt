@@ -1,7 +1,4 @@
-Select sq.projectId, sq.start_date as start, sq.end_date as end, count(*),t.name as partner, t3.name as region
-
-obj(kv("start",$start_date),kv("end",$end_date))
-
+Select sq.projectId, sq.start_date as start, sq.end_date as end, count(*),t.name as partner, t3.name as region,
 case
   when (extract(month from sq.end_date) <=2) then ('FY' || (extract(year from sq.end_date)-2000))
   when (extract(month from sq.end_date) >2) then ('FY'|| (extract(year from sq.end_date)+1-2000))
@@ -13,5 +10,5 @@ left join ds_mysql_prod_project as t
   on t.parent=t2.id
   left join ds_mysql_prod_project as t3
   on t2.parent=t3.id 
-GROUP BY FY, sq.Partner, sq.Region, t3.name, t.name
+GROUP BY FY, sq.Partner, sq.Region, t3.name, t.name, sq.start_date, sq.end_date, sq.projectId
 WHERE sq.projectId!='51739'
