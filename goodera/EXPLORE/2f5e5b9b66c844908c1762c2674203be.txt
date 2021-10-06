@@ -26,7 +26,7 @@ Select members,
  picture ,
  tar_bene ,
  ach_bene ,business_unit,
- case col
+ sum(case col
   when 'beneficiary_type' then beneficiary_type
   when 'solution_app' then solution_app
   when 'solution_platform' then solution_platform
@@ -35,7 +35,7 @@ Select members,
   when 'members' then members
   when 'sector' then sector
   else null
-  end as Values,temp.col as dimensions
+  end) as Values,temp.col as dimensions
 
  from profile_76974 
  cross join temp
@@ -52,11 +52,12 @@ q4 as (
   solution_platform ,
  picture ,
  tar_bene ,
- ach_bene ,business_unit,dimensions,q2.values),
+ ach_bene ,business_unit,dimensions),
   q3 as (
 	select qq.* ,sectorr,bene_type from q4 qq,
 	qq.sector sectorr,
-	qq.beneficiary_type bene_type )
+	qq.beneficiary_type bene_type
+  )
 	
 select  t4.name as sector ,
  t3.name as sdg ,
@@ -74,3 +75,15 @@ select  t4.name as sector ,
  on q3.sectorr=t4.id
  left join ds_mysql_prod_tagelement t5
  on q3.bene_type=t5.id
+ 
+ group by  
+  members,
+ fy_timerange ,
+  sector,
+  sdg ,
+  beneficiary_type ,
+  solution_app ,
+  solution_platform ,
+ picture ,
+ tar_bene ,
+ ach_bene ,business_unit,dimensions
