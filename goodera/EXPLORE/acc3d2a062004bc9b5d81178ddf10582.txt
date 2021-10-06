@@ -1,0 +1,48 @@
+with temp as(
+  select 'baseline_basic_level' as col 
+  union all
+  select 'baseline_level1' as col 
+  union all
+  select 'baseline_level2' as col 
+  union all
+  select 'baseline_cleared_all' as col 
+  union all
+  select 'endline_basic_level' as col 
+  union all
+  select 'endline_level1' as col 
+  union all
+  select 'endline_level2' as col 
+  union all
+  select 'endline_cleared_all' as col)
+  
+select p1.fy_timerange, t1.name as standard, t2.name as subject, temp.col as dimensions, 
+
+sum(case col 
+		when 'baseline_basic_level' then p1.baseline_basic_level
+		when 'baseline_level1' then p1.baseline_level1
+		when 'baseline_level2' then p1.baseline_level2
+		when 'baseline_cleared_all' then p1.baseline_cleared_all
+		when 'endline_basic_level' then p1.endline_basic_level
+		when 'endline_level1' then p1.endline_level1
+		when 'endline_level2' then p1.endline_level2
+		when 'endline_cleared_all' then p1.endline_cleared_all
+	else null
+end) as values,
+
+case
+	when (temp.col) like 'baseline%' then 'Baseline'
+	else 'Endline'
+end as assessment_type,
+
+case 
+	when (temp.col) like '%basic_level' then 'Basic Level'
+	when (temp.col) like '%level1' then 'Level 1'
+	when (temp.col) like '%level2' then 'Level 2'
+	else 'Cleared All'
+end as x_axis
+
+from profile_78617 p1 
+cross join temp
+left join ds_mysql_prod_tagelement t1 on t1.id = p1.standard
+left join ds_mysql_prod_tagelement t2 on t2.id = p2.subject
+group by p1.fy_timerange, t1.name, t2.name, temp.col, assessment_type, x_axis
