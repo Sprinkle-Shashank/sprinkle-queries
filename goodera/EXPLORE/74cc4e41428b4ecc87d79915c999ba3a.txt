@@ -1,0 +1,48 @@
+with temp as(
+  select 'hygiene_sessions_3g' as col
+  union all
+  select 'hygiene_students_3g' as col
+  union all
+  select 'punctuality_sessions_3g' as col
+  union all
+  select 'punctuality_students_3g' as col
+  union all
+  select 'empathy_sessions_3g' as col
+  union all
+  select 'empathy_students_3g' as col
+  union all
+  select 'wash_sessions_3g' as col
+  union all
+  select 'wash_students_3g' as col)
+  
+select p1.fy_timerange, temp.col,
+
+sum(case col 
+		when 'hygiene_sessions_3g' then p1.hygiene_sessions_3g
+		when 'hygiene_students_3g' then p1.hygiene_students_3g
+		when 'punctuality_sessions_3g' then p1.punctuality_sessions_3g
+		when 'punctuality_students_3g' then p1.punctuality_students_3g
+		when 'empathy_sessions_3g' then p1.empathy_sessions_3g
+		when 'empathy_students_3g' then p1.empathy_students_3g
+		when 'wash_sessions_3g' then p1.wash_sessions_3g
+		when 'wash_students_3g' then p1.wash_students_3g
+	else null
+end) as values,
+
+case
+	when (temp.col) like 'hygiene%' then 'Hygiene'
+	when (temp.col) like 'puctuality%' then 'Punctuality'
+	when (temp.col) like 'empathy%' then 'Empathy'
+	else 'Wash'
+end as topic,
+
+case 
+	when (temp.col) like '%sessions' then 'Session' 
+	else 'Students'
+end as category
+
+from profile_78618 p1
+cross join temp 
+group by fy_timerange, temp.col, topic, category
+  
+  
