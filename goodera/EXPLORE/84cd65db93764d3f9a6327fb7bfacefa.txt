@@ -1,4 +1,4 @@
- select proj.name as projectid,fy_timerange ,center.name as center,patients_id  ,patients_name ,gender.name as gender ,diagno.name as diagnosis,eval.name as evaluated,/*surg_requ.name as*/ p.surgery_require ,proced_perf.name as procedure_performed , age_in_years+age_in_months/12.0 as age ,
+ select proj.name as projectid,fy_timerange ,center.name as center,patients_id  ,patients_name ,gender.name as gender ,diagno.name as diagnosis,eval.name as evaluated,surg_requ.name as surgery_require ,proced_perf.name as procedure_performed , age_in_years+age_in_months/12.0 as age ,
   
   case when age>0 and age<=2 then '0-2'
        when age>2 and age<=6 then '2-6'
@@ -6,7 +6,7 @@
 	   else '12+'
 	   
 	  end as age_ragne ,
-	case when surgery_require = 257696 then 1
+	case when surgery_require = 74400 then 1
 	else 0
 	end as count
 	
@@ -24,12 +24,12 @@
 	on p.diagnosis= diagno.id
 	left join ds_mysql_prod_tagelement eval
 	on p.evaluated= eval.id
-	/*left join ds_mysql_prod_tagelement surg_requ
-	on p.surgery_require= surg_requ.id*/
+	left join ds_mysql_prod_tagelement surg_requ
+	on p.surgery_require= surg_requ.id
 	left join ds_mysql_prod_tagelement proced_perf
 	on p.procedure_performed= proced_perf.id
 	left join ds_mysql_prod_project proj
 	on p.projectid= proj.id 
 	
-	WHERE p.surgery_require = True
-    GROUP BY proj.name ,fy_timerange ,center.name,patients_id ,patients_name ,gender.name ,age ,diagno.name,eval.name ,proced_perf.name,p.surgery_require
+	WHERE p.surgery_require = Yes
+    GROUP BY proj.name ,fy_timerange ,center.name,patients_id ,patients_name ,gender.name ,age ,diagno.name,eval.name ,proced_perf.name,p.surgery_require,surg_requ.name
