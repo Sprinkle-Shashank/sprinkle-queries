@@ -19,29 +19,9 @@ Select projectId,members,
   solution_app ,
   solution_platform ,
  tar_bene ,
- ach_bene ,business_unit,
-  max(case col
-  when 'solution_app' then t.name
-  when 'solution_platform' then t2.name
-  when 'business_unit' then t6.name
-  when 'sector' then t4.name
- when 'sdg' then t3.name
-  else null
-  end) as Values,temp.col as dimensions
-   from profile_76974 
-
-   cross join temp	
- left join ds_mysql_prod_tagelement t
- on solution_app=t.id
- left join ds_mysql_prod_tagelement t2
- on solution_platform=t2.id
- left join ds_mysql_prod_tagelement t3
- on sdg=t3.id
- left join ds_mysql_prod_tagelement t4
- on sector=t4.id
- left join ds_mysql_prod_tagelement t6
- on business_unit=t6.id 
-    GROUP BY _id,temp.col,
+ ach_bene ,business_unit
+ from profile_76974 
+    GROUP BY _id,
   projectId,
   members,
  fy_timerange ,
@@ -54,19 +34,44 @@ Select projectId,members,
  
   ),
 
- q3 as (
+  q3 as (
 	select qq.* ,sectorr from q2 qq,
 	qq.sector sectorr
+	 group by  qq.projectId,
+  qq.fy_timerange,qq.members,qq.tar_bene ,
+ qq.ach_bene ,qq.sector,qq.sdg,qq.business_unit,qq.solution_app,qq.solution_platform,sectorr
+	
 
-  )	
+  )
+	
 select  q3.projectId,q3.fy_timerange,q3.tar_bene ,
- q3.ach_bene ,q3.members,q3.dimensions,max(q3.Values),
+ q3.ach_bene ,q3.members,
 
- count(*) as Num from q3
+ max(case col
+  when 'solution_app' then t.name
+  when 'solution_platform' then t2.name
+  when 'business_unit' then t6.name
+  when 'sector' then t4.name
+ when 'sdg' then t3.name
+  else null
+  end) as Values,temp.col as dimensions,count(*)  AS Number from q3
+   cross join temp	
+ left join ds_mysql_prod_tagelement t
+ on q3.solution_app=t.id
+ left join ds_mysql_prod_tagelement t2
+ on q3.solution_platform=t2.id
+ left join ds_mysql_prod_tagelement t3
+ on q3.sdg=t3.id
+ left join ds_mysql_prod_tagelement t4
+ on q3.sectorr=t4.id
+ left join ds_mysql_prod_tagelement t6
+ on q3.business_unit=t6.id 
  
  group by  q3.projectId,
   q3.fy_timerange,
-q3.dimensions,q3.members,q3.tar_bene ,
+dimensions,q3.members,q3.tar_bene ,
  q3.ach_bene 
 
 
+
+ 
