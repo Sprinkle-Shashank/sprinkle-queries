@@ -1,4 +1,28 @@
-select projectid ,fy_timerange,home_type.name as home_type,gender.name as gender  ,total_child_provide_home,child_age_6_14_provided_home,child_age_15_18_provided_home,child_age_18_provided_home from profile_78765 as p
+with temp as (
+  select 'gender' as C
+  Union all 
+  select 'total_child_provide_home' as C
+  Union all 
+  select 'child_age_6_14_provided_home' as C
+  Union all
+  select 'child_age_15_18_provided_home' as C
+  Union all
+  select 'child_age_18_provided_home' as C
+	)
+
+
+select projectid ,fy_timerange,home_type.name as home_type, 
+Sum(Case C
+	When 'gender' then p.gender
+	When 'total_child_provide_home' then p.total_child_provide_home
+	When 'child_age_6_14_provided_home' then p.child_age_6_14_provided_home
+	When 'child_age_15_18_provided_home' then p.child_age_15_18_provided_home
+	When 'child_age_18_provided_home' then p.child_age_18_provided_home
+	Else Null
+END) as values , temp.C as dimensions
+from profile_78765 as p
+
+cross join temp
 
 left join ds_mysql_prod_tagelement as gender 
   on p.gender = gender.id
