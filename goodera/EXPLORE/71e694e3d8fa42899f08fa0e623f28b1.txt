@@ -17,7 +17,21 @@ left join profile_78780 p2 on p2._id = s2.logic),
 sub4 as(
   select s3.*, add_up from sub3 s3, s3.add_up_2 add_up)
   
-select s4.indicator, t1.name as year_text, t2.name as add_up, (s4.indicator||'_'||year_text) as look_up
+sub5 as(
+  select s4.indicator, t1.name as year_text, t2.name as add_up, (s4.indicator||'_'||year_text) as look_up
 from sub4 s4
 left join ds_mysql_prod_tagelement t1 on t1.id = s4.year
-left join ds_mysql_prod_tagelement t2 on t2.id = s4.add_up
+left join ds_mysql_prod_tagelement t2 on t2.id = s4.add_up)
+
+------------------------------------------------------------------------------------------------------
+
+sub6 as(
+  select p3.*, is_array(p3.indicator) as indicator_array_check,
+  case
+	when (indicator_array_check = false) then array(p1.indicator)
+	else p1.indicator
+  end as indicator_new
+  from profile_55605 p3)
+  
+select s6.*, indicator_605 from sub6 s6
+  	
