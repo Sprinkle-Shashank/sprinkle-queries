@@ -1,8 +1,13 @@
 with sub1 as(
-  select p1.*, cast(photos as varchar) from profile_60403 p1, p1.picture photos)
+  select p1.*, cast(photos as varchar) from profile_60403 p1, p1.picture photos),
 
-select s1._id as id, p2.name as projectid, p3.name as imp_partner , s1.desc, s1.event_name, s1.fy_timerange, s1.weblink,
+sub2 as(
+  select s1._id as id, p2.name as projectid, p3.name as imp_partner , s1.desc, s1.event_name, s1.fy_timerange, s1.weblink,
 first_value(photos) over (partition by s1.projectid, s1._id rows between unbounded preceding and unbounded following) as photo
 from sub1 s1
 left join ds_mysql_prod_project p2 on p2.id = s1.projectid
-left join ds_mysql_prod_project p3 on p3.id = p2.parent
+left join ds_mysql_prod_project p3 on p3.id = p2.parent)
+
+select id, projectid, imp_partner , desc, evern_name, fy_timerange, weblink, photo 
+from sub2 
+group by id, projectid, imp_partner , desc, evern_name, fy_timerange, weblink, photo 
