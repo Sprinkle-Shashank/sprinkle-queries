@@ -40,41 +40,41 @@
 --when Project_Manager is NULL then 'NAP' end as Project_Manager
 --from Base3 
 ---------------------------------------------------------
-with Lookup as
-(select cast((split_part(split_part(prod.name,'|',1),'.',1)) as varchar) as ProjectCode,f.name as fy_timerange,CONCAT(ProjectCode,fy_timerange) as CODE
-from profile_59426 p 
-left join ds_mysql_prod_project prod on
-prod.id=p.projectid
-left join ds_mysql_prod_tagelement f on
-p.fy=f.id
-)
+--with Lookup as
+--(select cast((split_part(split_part(prod.name,'|',1),'.',1)) as varchar) as --ProjectCode,f.name as fy_timerange,CONCAT(ProjectCode,fy_timerange) as CODE
+--from profile_59426 p 
+--left join ds_mysql_prod_project prod on
+--prod.id=p.projectid
+--left join ds_mysql_prod_tagelement f on
+--p.fy=f.id
+--)
 
-,Base1 as
-(select cast(q.name as varchar) as ProjectCode,f.name as fy_timerange,
-m.name as Project_Manager,CONCAT(ProjectCode,fy_timerange) as CODE
-from profile_27420 d
-left join ds_mysql_prod_tagelement f on
-d.fy=f.id
-left join ds_mysql_prod_tagelement m on
-d.project_manager=m.id
-left join profile_27396 q on
-d.project_code=q._id
-union 
-select cast(c.name as varchar)as ProjectCode,f.name as fy_timerange,m.name as Project_Manager
-,CONCAT(ProjectCode,fy_timerange) as CODE 
-from profile_27396 c	
-left join ds_mysql_prod_tagelement f on
-c.fy=f.id
-left join ds_mysql_prod_tagelement m on
-c.project_manager=m.id)
+--,Base1 as
+--(select cast(q.name as varchar) as ProjectCode,f.name as fy_timerange,
+--m.name as Project_Manager,CONCAT(ProjectCode,fy_timerange) as CODE
+--from profile_27420 d
+--left join ds_mysql_prod_tagelement f on
+--d.fy=f.id
+--left join ds_mysql_prod_tagelement m on
+--d.project_manager=m.id
+--left join profile_27396 q on
+--d.project_code=q._id
+--union 
+---select cast(c.name as varchar)as ProjectCode,f.name as fy_timerange,m.name as --Project_Manager
+---,CONCAT(ProjectCode,fy_timerange) as CODE 
+---from profile_27396 c	
+--left join ds_mysql_prod_tagelement f on
+--c.fy=f.id
+--left join ds_mysql_prod_tagelement m on
+--c.project_manager=m.id)
 
-,Base2 as
-(select p.fy_timerange,l.Project_Manager
-from Lookup p
-left join Base1 l
-on p.CODE=l.CODE)
+--,Base2 as
+--(select p.fy_timerange,l.Project_Manager
+--from Lookup p
+---left join Base1 l
+--on p.CODE=l.CODE)
  --group by p.fy_timerange,l.Project_Manager,p.ProjectCode,p.Focusarea )
-select distinct * from Base2
+--select distinct * from Base2
  
  
 --select fy_timerange,case
@@ -86,6 +86,44 @@ select distinct * from Base2
 --where len(Project_Manager)>0
 --where fy_timerange='2017-2018' and ProjectCode='P0118' 
 --group by fy_timerange,Project_Manager,ProjectCode,Focusarea
+---------------------------------------------------------------------
+with Lookup as
+(select cast((split_part(split_part(prod.name,'|',1),'.',1)) as varchar) as ProjectCode,f.name as fy_timerange,CONCAT(ProjectCode,fy_timerange) as CODE
+from profile_59426 p 
+left join ds_mysql_prod_project prod on
+prod.id=p.projectid
+left join ds_mysql_prod_tagelement f on
+p.fy=f.id
+)
+
+,Base1 as
+(select cast(q.name as varchar) as ProjectCode,f.name as fy_timerange,m.name as Project_Manager,CONCAT(ProjectCode,fy_timerange) as CODE
+from profile_27420 d
+left join ds_mysql_prod_tagelement f on
+d.fy=f.id
+left join ds_mysql_prod_tagelement m on
+d.project_manager=m.id
+left join profile_27396 q on
+d.project_code=q._id
+union
+select cast(c.name as varchar)as ProjectCode,f.name as fy_timerange,m.name as Project_Manager,CONCAT(ProjectCode,fy_timerange) as CODE 
+from profile_27396 c	
+left join ds_mysql_prod_tagelement f on
+c.fy=f.id
+left join ds_mysql_prod_tagelement m on
+c.project_manager=m.id)
+
+,Base2 as
+(select p.fy_timerange,l.Project_Manager
+from Lookup p
+left join Base1 l
+on p.CODE=l.CODE
+group by p.fy_timerange,l.Project_Manager )
+
+ 
+ 
+select fy_timerange,case when len(Project_Manager)>0 then Project_Manager
+when Project_Manager is NULL then 'N/A' from Base2
 
 
 
