@@ -1,79 +1,87 @@
 
 with temp as (
-select 'solution_app' as col
+select 'beneficiary_type' as col
+  union all
+ select 'solution_app' as col
   union all
   Select 'solution_platform' as col
   union all
+  select 'tar_bene' as col
+  union all
+  select 'ach_bene' as col
+  union all 
+  select 'members' as col
+  union all
   select 'sector' as col
-  union all
-  select 'sdg' as col
-  union all
-  select 'business_unit' as col
 )
 ,
 q2 as(
-Select
-  projectId,
-  members,
+Select members,
  fy_timerange ,
-  t4.name as sector,
-  t3.name as sdg ,
-  t.name as solution_app ,
-  t2.name as solution_platform ,
+  sector,
+  sdg ,
+  beneficiary_type ,
+  solution_app ,
+  solution_platform ,
+ picture ,
  tar_bene ,
- ach_bene ,t5.name as business_unit,
+ ach_bene ,business_unit,
  sum(case col
-  
-  when 'solution_app' then t.name
-  when 'solution_platform' then t2.name
-  when 'sdg' then t3.name
-  when 'sector' then t4.name
-when 'business_unit' then t5.name
+  when 'beneficiary_type' then beneficiary_type
+  when 'solution_app' then solution_app
+  when 'solution_platform' then solution_platform
+  when 'tar_bene' then tar_bene
+  when 'ach_bene' then ach_bene
+  when 'members' then members
+  when 'sector' then sector
   else null
   end) as Values,temp.col as dimensions
 
- from profile_76974  aq
+ from profile_76974 
  cross join temp
-  left join ds_mysql_prod_tagelement t
- on aq.solution_app=t.id
- left join ds_mysql_prod_tagelement t2
- on aq.solution_platform=t2.id
- left join ds_mysql_prod_tagelement t3
- on aq.sdg=t3.id
- left join ds_mysql_prod_tagelement t4
- on aq.sector=t4.id
-  left join ds_mysql_prod_tagelement t5
- on aq.business_unit=t5.id
   GROUP BY 
-  projectId,
   members,
  fy_timerange ,
   sector,
   sdg ,
+  beneficiary_type ,
   solution_app ,
   solution_platform ,
+ picture ,
  tar_bene ,
- ach_bene ,business_unit,dimensions,t.name,t2.name,t3.name,t4.name,t5.name
+ ach_bene ,business_unit,dimensions
   ),
 q4 as (
-  SELECT members,fy_timerange ,sector,sdg ,solution_app ,solution_platform ,tar_bene ,ach_bene ,business_unit,dimensions,Values FROM q2
+  SELECT members,fy_timerange ,sector,sdg ,beneficiary_type ,solution_app ,solution_platform ,picture,tar_bene ,ach_bene ,business_unit,dimensions,Values FROM q2
   ),
   q3 as (
-	select qq.* ,sectorr from q4 qq,
-	qq.sector sectorr
+	select qq.* ,sectorr,bene_type from q4 qq,
+	qq.sector sectorr,
+	qq.beneficiary_type bene_type
   )
 	
-select  q3.projectID,q3.sectorr ,q3.members,
- q3.sdg ,
- q3.solution_app ,
- q3.solution_platform ,q3.tar_bene,q3.ach_bene,
+select  t4.name as sector ,
+ t3.name as sdg ,
+ t5.name as beneficiary_type ,
+ t.name as solution_app ,
+ t2.name as solution_platform ,
  q3.dimensions,q3.fy_timerange,sum(values) from q3
 	
+ left join ds_mysql_prod_tagelement t
+ on q3.solution_app=t.id
+ left join ds_mysql_prod_tagelement t2
+ on solution_platform=t2.id
+ left join ds_mysql_prod_tagelement t3
+ on sdg=t3.id
+ left join ds_mysql_prod_tagelement t4
+ on q3.sectorr=t4.id
+ left join ds_mysql_prod_tagelement t5
+ on q3.bene_type=t5.id
  
  group by  
   q3.fy_timerange,
- q3.dimensions,q3.projectID,q3.sectorr ,q3.members,
- q3.sdg ,
- q3.solution_app ,
- q3.solution_platform ,q3.tar_bene,q3.ach_bene,values
+ q3.dimensions,t.name,t2.name,t3.name,t4.name,t5.name
  
+
+
+
