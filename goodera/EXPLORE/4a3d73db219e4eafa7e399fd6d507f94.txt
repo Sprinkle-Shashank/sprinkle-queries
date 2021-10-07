@@ -1,0 +1,18 @@
+with temp as(
+  select 'activities' as col
+  union all
+  select 'num_employees' as col
+  union all
+  select 'num_students' as col)
+  
+select p1._id, p1.fy_timerange, t1.name as volunteering_skills, temp.col as dimensions,
+sum(case col
+		when 'activities' then 1
+		when 'num_employees' then p1.num_employees
+		when 'num_students' then p1.num_students
+	else null
+end) as values, 
+from profile_77286 p1
+cross join temp
+left join ds_mysql_prod_tagelement t1 on t1.id = p1.volunteering_skills
+group by p1._id, p1.fy_timerange, t1.name, temp.col
