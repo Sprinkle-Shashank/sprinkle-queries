@@ -6,13 +6,11 @@ select 'beneficiary_type' as col
   union all
   Select 'solution_platform' as col
   union all
-  select 'tar_bene' as col
-  union all
-  select 'ach_bene' as col
-  union all 
-  select 'members' as col
+  select 'business_unit' as col
   union all
   select 'sector' as col
+  union all
+  select 'sdg' as col
 )
 ,
 q2 as(
@@ -25,17 +23,7 @@ Select members,
   solution_platform ,
  picture ,
  tar_bene ,
- ach_bene ,business_unit,
- sum(case col
-  when 'beneficiary_type' then beneficiary_type
-  when 'solution_app' then solution_app
-  when 'solution_platform' then solution_platform
-  when 'tar_bene' then tar_bene
-  when 'ach_bene' then ach_bene
-  when 'members' then members
-  when 'sector' then sector
-  else null
-  end) as Values,temp.col as dimensions
+ ach_bene ,business_unit
 
  from profile_76974 
  cross join temp
@@ -65,7 +53,17 @@ select  t4.name as sector ,
  t5.name as beneficiary_type ,
  t.name as solution_app ,
  t2.name as solution_platform ,
- q3.dimensions,q3.fy_timerange,sum(values) from q3
+ t6.name as business_unit,
+ q3.dimensions,q3.fy_timerange,,
+ sum(case col
+  when 'beneficiary_type' then t5.name
+  when 'solution_app' then t.name
+  when 'solution_platform' then t2.name
+  when 'business_unit' then t6.name
+  when 'sector' then t4.name
+	when 'sdg' then t3.name
+  else null
+  end) as Values,temp.col as dimensions from q3
 	
  left join ds_mysql_prod_tagelement t
  on q3.solution_app=t.id
@@ -77,10 +75,12 @@ select  t4.name as sector ,
  on q3.sectorr=t4.id
  left join ds_mysql_prod_tagelement t5
  on q3.bene_type=t5.id
+ left join ds_mysql_prod_tagelement t6
+ on q3.business_unit=t6.id
  
  group by  
   q3.fy_timerange,
- q3.dimensions,t.name,t2.name,t3.name,t4.name,t5.name
+ q3.dimensions,t.name,t2.name,t3.name,t4.name,t5.name,t6.name
  
 
 
