@@ -7,9 +7,10 @@ with sub1 as(
   from profile_32441 p1),
   
 sub2 as(
-  select s1.*, fund_new from sub1 s1, s1.funds fund_new)
+  select s1.*, fund_new from sub1 s1, s1.funds fund_new),
 
 
+sub3 as(
   select s2.time_timerange as fy_timerange, t1.name as country, t2.name as focus_area, t3.name as prod_brand, sum(p2.amount) as investment, cast('Global Programmes' as varchar) as x_axis, extract(year from cast(fy_timerange.start as date)) as year_1,
   	case
   		when(year_1 = extract(year from current_date)) then 'Current year'
@@ -22,4 +23,9 @@ from sub2 s2
 	left join ds_mysql_prod_tagelement t1 on t1.id = s2.country
 	left join ds_mysql_prod_tagelement t2 on t2.id = p3.foc_area
 	left join ds_mysql_prod_tagelement t3 on t3.id = p3.product_brand
-group by p2.name, s2.time_timerange, t1.name, t2.name, t3.name, x_axis, year_1, year_status
+  	where p2.amount is not null
+group by p2.name, s2.time_timerange, t1.name, t2.name, t3.name, x_axis, year_1, year_status)
+
+-------------------------------------------------------------------------------------------------------------
+--Investment Details (Above)
+-------------------------------------------------------------------------------------------------------------
