@@ -1,5 +1,73 @@
-select projectid, fy_timerange,sum(total_health_checkpu)as total_health_checkpu ,sum(total_child_health_camps)as total_child_health_camps,sum(child_serious_illness) as child_serious_illness,sum(child_surgery)as child_surgery,sum(child_passed_away)as child_passed_away,sum(child_take_hospital)as child_take_hospital,sum(staff_trained_first_aid)as staff_trained_first_aid,sum(child_trained_first_aid)as child_trained_first_aid,sum(mental_health_session)as mental_health_session,sum(child_attended_mental_health) as child_attended_mental_health from profile_78778 p
+with table1 as(select projectid, fy_timerange,total_health_checkpu , total_child_health_camps,child_serious_illness as serious_illness,child_surgery as surgery,child_passed_away as passed_away, child_take_hospital, staff_trained_first_aid,child_trained_first_aid,mental_health_session, child_attended_mental_health from profile_78778 )
+
+
+
+temp as (
+  select 'total_health_checkpu' as C
+  Union all
+  select 'total_child_health_camps' as C
+  Union all 
+  select 'serious_illness' as C
+  Union all 
+  select 'surgery' as C
+  Union all
+  select ' passed_away' as C
+  Union all
+  select 'child_take_hospital' as C
+  Union all
+  select 'staff_trained_first_aid' as C
+  Union all
+  select 'child_trained_first_aid' as C
+  Union all
+  select 'mental_health_session' as C
+  Union all
+  select 'child_attended_mental_health' as C
+	)
+
+
+select pro.name as projectid ,fy_timerange, 
+
+Sum(Case C
+	When 'total_health_checkpu' then tab1.total_health_checkpu
+	when 'total_child_health_camps' then tab1.total_child_health_camps
+	When 'serious_illness' then tab1.serious_illness
+	When 'surgery' then tab1.surgery
+	When 'passed_away' then tab1.passed_away
+	When 'child_take_hospital' then tab1.child_take_hospital
+	When 'staff_trained_first_aid' then tab1.staff_trained_first_aid
+	When 'child_trained_first_aid' then tab1.child_trained_first_aid
+	When 'mental_health_session' then tab1.mental_health_session
+	When 'child_attended_mental_health' then tab1.child_attended_mental_health
+	Else Null
+	
+END) as values , temp.C as dimensions
+from table1 as tab1
+
+cross join temp
+
+ left join ds_mysql_prod_project as pro
+  on tab1.projectid = pro.id
+
+  
+  group by tab1.projectid, tab1.fy_timerange,temp.c
+
+
+
+
+
+
+
+
+/*select projectid, fy_timerange,sum(total_health_checkpu)as total_health_checkpu ,sum(total_child_health_camps)as total_child_health_camps,sum(child_serious_illness) as child_serious_illness,sum(child_surgery)as child_surgery,sum(child_passed_away)as child_passed_away,sum(child_take_hospital)as child_take_hospital,sum(staff_trained_first_aid)as staff_trained_first_aid,sum(child_trained_first_aid)as child_trained_first_aid,sum(mental_health_session)as mental_health_session,sum(child_attended_mental_health) as child_attended_mental_health from profile_78778 p
 
 left join ds_mysql_prod_project as pro
 on p.projectid = pro.id
 group by projectid, fy_timerange, pro.name
+*/
+
+
+
+
+
+
+
