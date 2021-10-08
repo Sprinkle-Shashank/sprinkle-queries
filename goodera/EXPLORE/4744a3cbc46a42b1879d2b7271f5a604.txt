@@ -13,7 +13,7 @@ from profile_78098 p1
 	left join profile_78083 p2 on p2.name = (t3.name||'_'||extract(year from cast(fy_timerange.start as date)))
 	left join profile_78788 p3 on p3.name = t1.name
 	where p1.value_of_reckitt_products is not null
-group by p1.fy_timerange, t1.name, t2.name, t3.name, t4.name, p3.map_code, x_axis, year_check, year_status)
+group by p1.fy_timerange, t1.name, t2.name, t3.name, t4.name, p3.map_code, x_axis, year_check, year_status),
 
 
 -----------------------------------------------------------------------------------------------------------
@@ -21,7 +21,8 @@ group by p1.fy_timerange, t1.name, t2.name, t3.name, t4.name, p3.map_code, x_axi
 -----------------------------------------------------------------------------------------------------------
 
 
-select p4.fy_timerange, t5.name as country, t6.name as focus_area, t8.name as prod_brand, sum(p4.value_of_reckitt_products*p5.conversion_factor) as prod_donation, cast('Product Donation' as varchar) as x_axis, extract(year from cast(fy_timerange.start as date)) as year_check, (t7.name||'_'||year_check) as currency_new, p6.map_code,
+sub2 as(
+  select p4.fy_timerange, t5.name as country, t6.name as focus_area, t8.name as prod_brand, sum(p4.value_of_reckitt_products*p5.conversion_factor) as prod_donation, cast('Product Donation' as varchar) as x_axis, extract(year from cast(fy_timerange.start as date)) as year_check, (t7.name||'_'||year_check) as currency_new, p6.map_code,
   	case
   		when(year_check = extract(year from current_date)) then 'Current year'
   		when(year_check = extract(year from current_date)-1) then 'Previous year'
@@ -34,4 +35,13 @@ from profile_78057 p4
 	left join ds_mysql_prod_tagelement t8 on t8.id = p4.product_brand
 	left join profile_78083 p5 on p5.name = (t7.name||'_'||extract(year from cast(fy_timerange.start as date)))
 	left join profile_78788 p6 on p6.name = t5.name
-group by p4.fy_timerange, t5.name, t6.name, t7.name, t8.name, p6.map_code, x_axis, year_check, year_status
+	where p4.value_of_reckitt_products is not null
+group by p4.fy_timerange, t5.name, t6.name, t7.name, t8.name, p6.map_code, x_axis, year_check, year_status)
+
+
+---------------------------------------------------------------------------------------------------------------
+--ONE OFF (Above)
+---------------------------------------------------------------------------------------------------------------
+
+select fy_timerange, country, map_code, prod_brand, focus_area, year_check, year_status, x_axis, prod_donation from sub1 union all
+select fy_timerange, country, map_code, prod_brand, focus_area, year_check, year_status, x_axis, prod_donation from sub2
