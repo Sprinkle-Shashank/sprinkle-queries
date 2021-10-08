@@ -72,7 +72,7 @@ from profile_78098 p8
 	left join profile_78083 p9 on p9.name = (t10.name||'_'||extract(year from cast(fy_timerange.start as date)))
   	left join profile_78788 p10 on p10.name = t8.name
 	where p8.direct_cash_donations is not null or p8.edu_spend is not null
-group by p8.fy_timerange, t8.name, t9.name, t10.name, t11.name, p10.map_code, x_axis, year_check, year_status)
+group by p8.fy_timerange, t8.name, t9.name, t10.name, t11.name, p10.map_code, x_axis, year_check, year_status),
 
 
 -------------------------------------------------------------------------------------------------------------
@@ -80,11 +80,65 @@ group by p8.fy_timerange, t8.name, t9.name, t10.name, t11.name, p10.map_code, x_
 -------------------------------------------------------------------------------------------------------------
 
 
-select fy_timerange, country, map_code, focus_area, prod_brand, x_axis, year_check, year_status, investment
+sub6 as(
+  select fy_timerange, country, map_code, focus_area, prod_brand, x_axis, year_check, year_status, investment
 from sub3
 union all
 select fy_timerange, country, map_code, focus_area, prod_brand, x_axis, year_check, year_status, investment
 from sub4
 union all
 select fy_timerange, country, map_code, focus_area, prod_brand, x_axis, year_check, year_status, investment 
-from sub5
+from sub5),
+
+
+--------------xxxxxxx-------------Our Programmes--------------------xxxxx--------------------------------------
+
+
+sub7 as(
+  select p11.fy_timerange, t12.name as country, t13.name as focus_area, t15.name as prod_brand, sum(p11.value_of_reckitt_products*p12.conversion_factor) as prod_donation, cast('Product Donation' as varchar) as x_axis, extract(year from cast(fy_timerange.start as date)) as year_check, (t14.name||'_'||year_check) as currency_new, p13.map_code, ('FY'||' '||extract(year from cast(p11.fy_timerange.start as date))) as x_axis2,
+  	case
+  		when(year_check = extract(year from current_date)) then 'Current year'
+  		when(year_check = extract(year from current_date)-1) then 'Previous year'
+  	else 'Not Applicable'
+  	end as year_status
+from profile_78098 p11
+	left join ds_mysql_prod_tagelement t12 on t12.id = p11.country
+	left join ds_mysql_prod_tagelement t13 on t13.id = p11.focus_area
+	left join ds_mysql_prod_tagelement t14 on t14.id = p11.currency
+	left join ds_mysql_prod_tagelement t15 on t15.id = p11.product_brand
+	left join profile_78083 p12 on p12.name = (t3.name||'_'||extract(year from cast(fy_timerange.start as date)))
+	left join profile_78788 p13 on p13.name = t12.name
+	where p11.value_of_reckitt_products is not null
+group by p11.fy_timerange, t12.name, t13.name, t14.name, t15.name, p13.map_code, x_axis, year_check, year_status, x_axis2),
+
+
+-----------------------------------------------------------------------------------------------------------
+--Brand Led (Above)
+-----------------------------------------------------------------------------------------------------------
+
+
+sub8 as(
+  select p14.fy_timerange, t16.name as country, t17.name as focus_area, t19.name as prod_brand, sum(p14.value_of_reckitt_products*p15.conversion_factor) as prod_donation, cast('Product Donation' as varchar) as x_axis, extract(year from cast(fy_timerange.start as date)) as year_check, (t18.name||'_'||year_check) as currency_new, p16.map_code, ('FY'||' '||extract(year from cast(p14.fy_timerange.start as date))) as x_axis2,
+  	case
+  		when(year_check = extract(year from current_date)) then 'Current year'
+  		when(year_check = extract(year from current_date)-1) then 'Previous year'
+  	else 'Not Applicable'
+  	end as year_status
+from profile_78057 p14
+	left join ds_mysql_prod_tagelement t16 on t16.id = p14.country
+	left join ds_mysql_prod_tagelement t17 on t17.id = p14.focus_area
+	left join ds_mysql_prod_tagelement t18 on t18.id = p14.currency
+	left join ds_mysql_prod_tagelement t19 on t19.id = p14.product_brand
+	left join profile_78083 p15 on p15.name = (t18.name||'_'||extract(year from cast(fy_timerange.start as date)))
+	left join profile_78788 p16 on p16.name = t16.name
+	where p14.value_of_reckitt_products is not null
+group by p14.fy_timerange, t16.name, t17.name, t18.name, t19.name, p16.map_code, x_axis, year_check, year_status, x_axis2)
+
+
+---------------------------------------------------------------------------------------------------------------
+--ONE OFF (Above)
+---------------------------------------------------------------------------------------------------------------
+
+select fy_timerange, country, map_code, prod_brand, focus_area, year_check, year_status, x_axis, x_axis2, prod_donation from sub7
+union all
+select fy_timerange, country, map_code, prod_brand, focus_area, year_check, year_status, x_axis, x_axis2, prod_donation from sub8
