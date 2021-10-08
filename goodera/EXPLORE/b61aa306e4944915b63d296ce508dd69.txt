@@ -1,0 +1,18 @@
+with sub1 as(
+  	select p1.*, is_array(p1.other_brand) as array_check,
+  		case
+			when(array_check = false) then array(p1.other_brand)
+			else p1.other_brand
+		end as others
+  	from profile_78057 p1),
+	
+sub2 as(
+ 	select s1.*, multi_brand from sub1 s1, s1.others multi_brand)
+  
+  
+  select  s2.fy_timerange, t1.name as country, t2.name as focus_area, t3.name as prod_brand, (s2.no_of_reckitt_prods_donated+ p3.reckitt_kits) as total_products
+from sub2 s2
+	left join profile_78062 p3 on p3._id = s2. multi_brand
+	left join ds_mysql_prod_tagelement t1 on t1.id = s2.country
+	left join ds_mysql_prod_tagelement t2 on t2.id = s2.focus_area
+	left join ds_mysql_prod_tagelement t3 on t3.id = s2.product_brand
