@@ -95,7 +95,7 @@ from sub5),
 
 
 sub7 as(
-  select p11.fy_timerange, t12.name as country, t13.name as focus_area, t15.name as prod_brand, sum(p11.value_of_reckitt_products*p12.conversion_factor) as prod_donation, cast('Product Donation' as varchar) as x_axis, extract(year from cast(fy_timerange.start as date)) as year_check, (t14.name||'_'||year_check) as currency_new, p13.map_code, ('FY'||' '||extract(year from cast(p11.fy_timerange.start as date))) as x_axis2,
+  select p11.fy_timerange, t12.name as country, t13.name as focus_area, t15.name as prod_brand, sum(p11.value_of_reckitt_products*p12.conversion_factor) as investment, cast('Product Donation' as varchar) as x_axis, extract(year from cast(fy_timerange.start as date)) as year_check, (t14.name||'_'||year_check) as currency_new, p13.map_code, ('FY'||' '||extract(year from cast(p11.fy_timerange.start as date))) as x_axis2,
   	case
   		when(year_check = extract(year from current_date)) then 'Current year'
   		when(year_check = extract(year from current_date)-1) then 'Previous year'
@@ -118,7 +118,7 @@ group by p11.fy_timerange, t12.name, t13.name, t14.name, t15.name, p13.map_code,
 
 
 sub8 as(
-  select p14.fy_timerange, t16.name as country, t17.name as focus_area, t19.name as prod_brand, sum(p14.value_of_reckitt_products*p15.conversion_factor) as prod_donation, cast('Product Donation' as varchar) as x_axis, extract(year from cast(fy_timerange.start as date)) as year_check, (t18.name||'_'||year_check) as currency_new, p16.map_code, ('FY'||' '||extract(year from cast(p14.fy_timerange.start as date))) as x_axis2,
+  select p14.fy_timerange, t16.name as country, t17.name as focus_area, t19.name as prod_brand, sum(p14.value_of_reckitt_products*p15.conversion_factor) as investment, cast('Product Donation' as varchar) as x_axis, extract(year from cast(fy_timerange.start as date)) as year_check, (t18.name||'_'||year_check) as currency_new, p16.map_code, ('FY'||' '||extract(year from cast(p14.fy_timerange.start as date))) as x_axis2,
   	case
   		when(year_check = extract(year from current_date)) then 'Current year'
   		when(year_check = extract(year from current_date)-1) then 'Previous year'
@@ -132,13 +132,22 @@ from profile_78057 p14
 	left join profile_78083 p15 on p15.name = (t18.name||'_'||extract(year from cast(fy_timerange.start as date)))
 	left join profile_78788 p16 on p16.name = t16.name
 	where p14.value_of_reckitt_products is not null
-group by p14.fy_timerange, t16.name, t17.name, t18.name, t19.name, p16.map_code, x_axis, year_check, year_status, x_axis2)
+group by p14.fy_timerange, t16.name, t17.name, t18.name, t19.name, p16.map_code, x_axis, year_check, year_status, x_axis2),
 
 
 ---------------------------------------------------------------------------------------------------------------
 --ONE OFF (Above)
 ---------------------------------------------------------------------------------------------------------------
 
-select fy_timerange, country, map_code, prod_brand, focus_area, year_check, year_status, x_axis, x_axis2, prod_donation from sub7
+sub9 as(
+  select fy_timerange, country, map_code, prod_brand, focus_area, year_check, year_status, x_axis, x_axis2, investment from sub7
 union all
-select fy_timerange, country, map_code, prod_brand, focus_area, year_check, year_status, x_axis, x_axis2, prod_donation from sub8
+select fy_timerange, country, map_code, prod_brand, focus_area, year_check, year_status, x_axis, x_axis2, investment from sub8)
+
+
+----xxxxxxxx---------------------Product Donation----------------------------------------------xxxxxx----------
+
+
+select fy_timerange, country, map_code, prod_brand, focus_area, year_check, year_status, x_axis, investment from sub6
+union all
+select fy_timerange, country, map_code, prod_brand, focus_area, year_check, year_status, x_axis, investment from sub9
