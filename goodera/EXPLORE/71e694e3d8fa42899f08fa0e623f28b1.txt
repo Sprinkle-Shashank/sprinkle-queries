@@ -23,7 +23,7 @@ from sub4 s4
 left join ds_mysql_prod_tagelement t1 on t1.id = s4.year
 left join ds_mysql_prod_tagelement t2 on t2.id = s4.add_up),
 
-----------------------------------------------------------------------------
+----------------------------------Table (Subquery) created for KPI Logic-----------------------------------------
 
 sub6 as(
   select p3.*, is_array(p3.indicator) as indicator_array_check,
@@ -55,11 +55,26 @@ sub9 as (
 from sub8 s8),
   
 sub10 as(
-  select s9.*, countries from sub9 s9, s9.country_new countries)
+  select s9.*, countries from sub9 s9, s9.country_new countries),
   
-select s10.id, s10.fy_timerange, s10.indicator, s10.add_up, t3.name as country, t4.name as prod_brand, t5.name as focus_area, s10.x_axis, sum(s10.data)
+sub11(
+  select s10.id, s10.fy_timerange, s10.indicator, s10.add_up, t3.name as country, t4.name as prod_brand, t5.name as focus_area, s10.x_axis, sum(s10.data)
 from sub10 s10 
 left join ds_mysql_prod_tagelement t3 on t3.id = s10.countries
 left join ds_mysql_prod_tagelement t4 on t4.id = s10.product_brand
 left join ds_mysql_prod_tagelement t5 on t5.id = s10.foc_area
-group by s10.id, s10.fy_timerange, s10.indicator, s10.add_up, t3.name, t4.name, t5.name, s10.x_axis
+group by s10.id, s10.fy_timerange, s10.indicator, s10.add_up, t3.name, t4.name, t5.name, s10.x_axis)
+
+
+--------------------------------------------------------------------------------------------------
+-- KPIs - Data Input (Above)
+--------------------------------------------------------------------------------------------------
+
+
+select p7._id as id, p7.fy_timerange, t6.name as country, t7.name as prod_brand, t8.name as focus_area,
+('FY'||' '||extract(year from cast(p7.fy_timerange.start as date))) as x_axis, sum(p7.no_of_individuals_directly_engaged)
+from profile_78057 p7
+left join ds_mysql_prod_tagelement t6 on t6.id = p7.country
+left join ds_mysql_prod_tagelement t7 on t7.id = p7.product_brand
+left join ds_mysql_prod_tagelement t8 on t8.id = p7.focus_area
+group by p7._id, p7.fy_timerange, t6.name, t7.name, t8.name, x_axis
