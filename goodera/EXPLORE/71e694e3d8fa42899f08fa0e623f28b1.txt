@@ -63,17 +63,30 @@ from sub10 s10
 left join ds_mysql_prod_tagelement t3 on t3.id = s10.countries
 left join ds_mysql_prod_tagelement t4 on t4.id = s10.product_brand
 left join ds_mysql_prod_tagelement t5 on t5.id = s10.foc_area
-group by s10.id, s10.fy_timerange, s10.indicator, s10.add_up, t3.name, t4.name, t5.name, s10.x_axis)
+group by s10.id, s10.fy_timerange, s10.indicator, s10.add_up, t3.name, t4.name, t5.name, s10.x_axis),
 
 
 --------------------------------------------------------------------------------------------------
 -- KPIs - Data Input (Above)
+--------------------------------------------------------------------------------------------------
 
-
-select p7._id as id, p7.fy_timerange, t6.name as country, t7.name as prod_brand, t8.name as focus_area,
+sub11 as(
+  select p7._id as id, p7.fy_timerange, t6.name as country, t7.name as prod_brand, t8.name as focus_area,
 ('FY'||' '||extract(year from cast(p7.fy_timerange.start as date))) as x_axis, sum(p7.no_of_individuals_directly_engaged)
 from profile_78057 p7
 left join ds_mysql_prod_tagelement t6 on t6.id = p7.country
 left join ds_mysql_prod_tagelement t7 on t7.id = p7.product_brand
 left join ds_mysql_prod_tagelement t8 on t8.id = p7.focus_area
-group by p7._id, p7.fy_timerange, t6.name, t7.name, t8.name, x_axis
+group by p7._id, p7.fy_timerange, t6.name, t7.name, t8.name, x_axis)
+
+--------------------------------------------------------------------------------------------------------
+--ONE-OFF Donations (Above)
+--------------------------------------------------------------------------------------------------------
+
+select p8._id as id, p8._fy_timerange, t9.name as country, t10.name as prod_brand, t11.name as focus_area,
+('FY'||' '||extract(year from cast(p7.fy_timerange.start as date))) as x_axis, sum(p8.direct_reach)
+from profile_78098 p8
+left join ds_mysql_prod_tagelement t9 on t9.id = p8.country
+left join ds_mysql_prod_tagelement t10 on t11.id = p8.product_brand
+left join ds_mysql_prod_tagelement t11 on t11.id = p8.focus_area
+group by p8._id, p8.fy_timerange, t9.name, t10.name, t11.name, x_axis
