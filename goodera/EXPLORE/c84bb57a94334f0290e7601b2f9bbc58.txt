@@ -11,10 +11,11 @@ sub2 as(
 
 
 sub3 as(
-  select s2.time_timerange as fy_timerange, t1.name as country, t2.name as focus_area, t3.name as prod_brand, sum(p2.amount) as investment, cast('Global Programmes' as varchar) as x_axis, extract(year from cast(fy_timerange.start as date)) as year_1,
+  select s2.time_timerange as fy_timerange, t1.name as country, t2.name as focus_area, t3.name as prod_brand, sum(p2.amount) as investment, cast('Global Programmes' as varchar) as x_axis, 
+extract(year from cast(fy_timerange.start as date)) as year_check,
   	case
-  		when(year_1 = extract(year from current_date)) then 'Current year'
-  		when(year_1 = extract(year from current_date)-1) then 'Previous year'
+  		when(year_check = extract(year from current_date)) then 'Current year'
+  		when(year_check = extract(year from current_date)-1) then 'Previous year'
   	else 'Not Applicable'
   	end as year_status
 from sub2 s2
@@ -24,7 +25,7 @@ from sub2 s2
 	left join ds_mysql_prod_tagelement t2 on t2.id = p3.foc_area
 	left join ds_mysql_prod_tagelement t3 on t3.id = p3.product_brand
   	where p2.amount is not null
-group by s2.time_timerange, t1.name, t2.name, t3.name, x_axis, year_1, year_status),
+group by s2.time_timerange, t1.name, t2.name, t3.name, x_axis, year_check, year_status),
 
 -------------------------------------------------------------------------------------------------------------
 --Investment Details (Above)
@@ -74,8 +75,8 @@ group by p6.fy_timerange, t8.name, t9.name, t10.name, t11.name, x_axis, year_che
 -------------------------------------------------------------------------------------------------------------
 
 
-select fy_timerange, country, focus_area, prod_brand, x_axis, year_status from sub3
+select fy_timerange, country, focus_area, prod_brand, x_axis, year_check, year_status, investment from sub3
 union all
-select fy_timerange, country, focus_area, prod_brand, x_axis, year_status from sub4
+select fy_timerange, country, focus_area, prod_brand, x_axis, year_check, year_status, investment from sub4
 union all
-select fy_timerange, country, focus_area, prod_brand, x_axis, year_status from sub5
+select fy_timerange, country, focus_area, prod_brand, x_axis, year_check, year_status, investment from sub5
