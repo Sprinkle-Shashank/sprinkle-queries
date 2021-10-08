@@ -1,3 +1,22 @@
-Select projectid,fy_timerange,sum(target_teachers) , sum(target_students_basic),sum(target_students_adv),sum(target_stem_ses) from profile_78789 
+
+with temp as (
+  select 'target_teachers' as C
+  Union all 
+  select 'target_students_basic' as C
+  Union all 
+  select 'target_students_adv' as C
+  Union all
+  select 'target_stem_ses' as C
+	)
+
+Select projectid,fy_timerange,
+Sum(Case C
+	When 'target_teachers' then profile_78789.target_teachers
+	When 'target_students_basic' then profile_78789.target_students_basic
+	When 'target_students_adv' then profile_78789.target_students_adv
+	When 'target_stem_ses' then profile_78789.target_stem_ses
+	Else Null
+END) as values , temp.C as dimensions
+from profile_78789 
 GROUP BY 
-projectid,fy_timerange
+projectid,fy_timerange,temp.C
