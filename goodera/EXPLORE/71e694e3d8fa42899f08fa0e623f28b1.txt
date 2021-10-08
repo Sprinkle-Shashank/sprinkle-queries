@@ -38,7 +38,8 @@ sub7 as(
  
 sub8 as (
   select s7._id as id, s7.time_timerange as fy_timerange, p5.indicator, p4.data, s8.add_up, p6.country, p6.product_brand, p6.foc_area,
-(p5.indicator||'_'||extract(year from cast(s7.time_timerange.start as date))) as indicator_year
+(p5.indicator||'_'||extract(year from cast(s7.time_timerange.start as date))) as indicator_year,
+('FY'||' '||extract(year from cast(s7.time_timerange.start as date))) as x_axis
 from sub7 s7
 left join profile_55606 p4 on p4._id = s7.indicator_605
 left join profile_55604 p5 on p5._id = p4.indicator
@@ -56,11 +57,9 @@ from sub8 s8),
 sub10 as(
   select s9.*, countries from sub9 s9, s9.country_new countries)
   
-/*select s10.id, s10.fy_timerange, s10.indicator, s10.add_up, t3.name as country, t4.name as prod_brand, t5.name as focus_area, sum(s10.data)
+select s10.id, s10.fy_timerange, s10.indicator, s10.add_up, t3.name as country, t4.name as prod_brand, t5.name as focus_area, s10.x_axis, sum(s10.data)
 from sub10 s10 
 left join ds_mysql_prod_tagelement t3 on t3.id = s10.countries
 left join ds_mysql_prod_tagelement t4 on t4.id = s10.product_brand
 left join ds_mysql_prod_tagelement t5 on t5.id = s10.foc_area
-group by s10.id, s10.fy_timerange, s10.indicator, s10.add_up, t3.name, t4.name, t5.name*/
-
-select * from sub10
+group by s10.id, s10.fy_timerange, s10.indicator, s10.add_up, t3.name, t4.name, t5.name, s10.x_axis
