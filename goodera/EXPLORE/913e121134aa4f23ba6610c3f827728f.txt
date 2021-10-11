@@ -1,32 +1,43 @@
 
 with temp as (
-  select 'beneficiary_type'::beneficiary_type as col
+
+  select 'business_unit' as col
+  union all
+  select 'beneficiary_type' as col
+  
 )
 ,
 q2 as(
 Select projectId,
  fy_timerange ,
-  beneficiary_type
-  from profile_76974 
-
+  beneficiary_type,
+  business_unit
+ from profile_76974 
+    
+ 
   ),
 
   q3 as (
 	select qq.* ,bene_type from q2 qq,
 	qq.beneficiary_type bene_type
-	  )
+	 
+ )
 	
 select  q3.projectId,q3.fy_timerange,
 
  max(case col
  
+  when 'business_unit' then t6.name
   when 'beneficiary_type' then t4.name
+
   else null
-  end) as Values,temp.col as dimensions,count(*)  AS Number 
-  from q3
-  cross join temp
+  end) as Values,temp.col as dimensions,count(*)  AS Number from q3
+   cross join temp	
+
  left join ds_mysql_prod_tagelement t4
  on q3.bene_type=t4.id
+ left join ds_mysql_prod_tagelement t6
+ on q3.business_unit=t6.id 
  
  group by  q3.projectId,
   q3.fy_timerange,
