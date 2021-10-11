@@ -1,13 +1,14 @@
 
 with temp as (
   select 'beneficiary_type' as col
+  union all
 )
 ,
 q2 as(
 Select projectId,
  fy_timerange ,
   beneficiary_type
- from profile_76974 
+  from profile_76974 
     
  
   ),
@@ -21,14 +22,21 @@ Select projectId,
 select  q3.projectId,q3.fy_timerange,
 
  max(case col
-  
+ 
   when 'beneficiary_type' then t4.name
   else null
   end) as Values,temp.col as dimensions,count(*)  AS Number from q3
    cross join temp	
-
+ left join ds_mysql_prod_tagelement t
+ on q3.solution_app=t.id
+ left join ds_mysql_prod_tagelement t2
+ on q3.solution_platform=t2.id
+ left join ds_mysql_prod_tagelement t3
+ on q3.sdg=t3.id
  left join ds_mysql_prod_tagelement t4
  on q3.bene_type=t4.id
+ left join ds_mysql_prod_tagelement t6
+ on q3.business_unit=t6.id 
  
  group by  q3.projectId,
   q3.fy_timerange,
