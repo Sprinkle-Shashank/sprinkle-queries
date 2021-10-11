@@ -39,10 +39,17 @@ case
 	when (temp.col) like '%level1' then 'Level 1'
 	when (temp.col) like '%level2' then 'Level 2'
 	else 'Cleared All'
-end as x_axis
+end as x_axis,
+
+case
+	when (x_axis = 'Basic Level') then 1
+	when (x_axis = 'Level 1') then 2
+	when (x_axis = 'Level 2') then 3
+	else 4
+end as x_sort
 
 from profile_78617 p1 
 cross join temp
 left join ds_mysql_prod_tagelement t1 on t1.id = p1.standard
 left join ds_mysql_prod_tagelement t2 on t2.id = p1.subject
-group by p1._id, p1.fy_timerange, t1.name, t2.name, temp.col, assessment_type, x_axis
+group by p1._id, p1.fy_timerange, t1.name, t2.name, temp.col, assessment_type, x_axis, x_sort
