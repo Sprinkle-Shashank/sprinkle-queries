@@ -37,7 +37,7 @@ sub7 as(
   select s6.*, indicator_605 from sub6 s6, s6.indicator_new indicator_605),
  
 sub8 as (
-  select s7._id as id, s7.time_timerange as fy_timerange, p5.indicator, p4.data, s8.add_up, p6.country, p6.product_brand, p6.foc_area,
+  select s7._id as id, s7.time_timerange as fy_timerange, p5.indicator, p4.data, s8.add_up, p6.country_new, p6.product_brand, p6.focus_area,
 (p5.indicator||'_'||extract(year from cast(s7.time_timerange.start as date))) as indicator_year,
 ('FY'||' '||extract(year from cast(s7.time_timerange.start as date))) as x_axis
 from sub7 s7
@@ -45,33 +45,25 @@ left join profile_55606 p4 on p4._id = s7.indicator_605
 left join profile_55604 p5 on p5._id = p4.indicator
 left join profile_63775 p6 on p6._id = p5.prog_name
 left join sub5 s8 on s8.look_up = (p5.indicator||'_'||extract(year from cast(s7.time_timerange.start as date)))),
-
+  
 sub9 as(
-  select s8.*, is_array(s8.country) as country_array_check,
-  case 
-  	when (country_array_check = false) then array(s8.country)
-  	else s8.country
-  end as country_new
-from sub8 s8),
+  select s8.*, countries from sub8 s8, s8.country_new countries),
   
 sub10 as(
-  select s9.*, countries from sub9 s9, s9.country_new countries),
-  
-sub11 as(
-  select s10.id, s10.fy_timerange, s10.indicator, s10.add_up, t3.name as country, t4.name as prod_brand, t5.name as focus_area, s10.x_axis, sum(s10.data)
-from sub10 s10 
-left join ds_mysql_prod_tagelement t3 on t3.id = s10.countries
-left join ds_mysql_prod_tagelement t4 on t4.id = s10.product_brand
-left join ds_mysql_prod_tagelement t5 on t5.id = s10.foc_area
-where s10.add_up = 'Impacted' and s10.data is not null
-group by s10.id, s10.fy_timerange, s10.indicator, s10.add_up, t3.name, t4.name, t5.name, s10.x_axis),
+  select s9.id, s9.fy_timerange, s9.indicator, s9.add_up, t3.name as country, t4.name as prod_brand, t5.name as focus_area, s9.x_axis, sum(s9.data)
+from sub10 s9 
+left join ds_mysql_prod_tagelement t3 on t3.id = s9.countries
+left join ds_mysql_prod_tagelement t4 on t4.id = s9.product_brand
+left join ds_mysql_prod_tagelement t5 on t5.id = s9.focus_area
+where s9.add_up = 'Impacted' and s9.data is not null
+group by s9.id, s9.fy_timerange, s9.indicator, s9.add_up, t3.name, t4.name, t5.name, s9.x_axis),
 
 
 --------------------------------------------------------------------------------------------------
 -- KPIs - Data Input (Above)
 --------------------------------------------------------------------------------------------------
 
-sub12 as(
+sub11 as(
   select p7._id as id, p7.fy_timerange, t6.name as country, t7.name as prod_brand, t8.name as focus_area,
 ('FY'||' '||extract(year from cast(p7.fy_timerange.start as date))) as x_axis, sum(p7.no_of_individuals_reporting_improvement)
 from profile_78057 p7
@@ -85,7 +77,7 @@ group by p7._id, p7.fy_timerange, t6.name, t7.name, t8.name, x_axis),
 --ONE-OFF Donations (Above)
 --------------------------------------------------------------------------------------------------------
 
-sub13 as(
+sub12 as(
   select p8._id as id, p8.fy_timerange, t9.name as country, t10.name as prod_brand, t11.name as focus_area,
 ('FY'||' '||extract(year from cast(p8.fy_timerange.start as date))) as x_axis, sum(p8.no_of_individuals_reporting_improvement)
 from profile_78098 p8
@@ -99,9 +91,9 @@ group by p8._id, p8.fy_timerange, t9.name, t10.name, t11.name, x_axis)
 --Brand Led (Above)
 -----------------------------------------------------------------------------------------------------------
 
+select id, fy_timerange, country, prod_brand, focus_area, x_axis, sum from sub10
+union all
 select id, fy_timerange, country, prod_brand, focus_area, x_axis, sum from sub11
 union all
 select id, fy_timerange, country, prod_brand, focus_area, x_axis, sum from sub12
-union all
-select id, fy_timerange, country, prod_brand, focus_area, x_axis, sum from sub13
 	
