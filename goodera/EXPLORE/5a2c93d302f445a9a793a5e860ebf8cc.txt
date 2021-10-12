@@ -1,0 +1,51 @@
+with unpivoted as (
+	select fy_timerange, projectid, array[
+	  map(array['key','value', 'tb'], array['Trucker', cast(tb_pres_screen_s_truckers as varchar), 'TB Screening Done (Sputum)']), 
+	  map(array['key', 'value', 'tb'], array['Allied', cast(tb_pres_screen_s_allied as varchar), 'TB Screening Done (Sputum)']),
+	  map(array['key','value', 'tb'], array['Trucker', cast(tb_pres_screen_x_truckers as varchar), 'TB Screening Done (X-Rays)']), 
+	  map(array['key', 'value', 'tb'], array['Allied', cast(tb_pres_screen_x_allied as varchar), 'TB Screening Done (X-Rays)']),
+	  map(array['key','value', 'tb'], array['Trucker', cast(tb_pres_screen_both_truckers as varchar), 'TB Screening Done (Sputum and X-ray Both)']), 
+	  map(array['key', 'value', 'tb'], array['Allied', cast(tb_pres_screen_both_allied as varchar), 'TB Screening Done (Sputum and X-ray Both)']),
+	  map(array['key','value', 'tb'], array['Trucker', cast(tb_confirmed_truckers as varchar), 'TB Confirmed']), 
+	  map(array['key', 'value', 'tb'], array['Allied', cast(tb_confirmed_allied as varchar), 'TB Confirmed']),
+	  map(array['key','value', 'tb'], array['Trucker', cast(tb_put_dot_truckers as varchar), 'Put on DOTs']), 
+	  map(array['key', 'value', 'tb'], array['Allied', cast(tb_put_on_dot_allied as varchar), 'Put on DOTs']),
+	  map(array['key','value', 'tb'], array['Trucker', cast(tb_completed_dot_truckers as varchar), 'Completed DOTs']), 
+	  map(array['key', 'value', 'tb'], array['Allied', cast(tb_completed_dot_allied as varchar), 'Completed DOTs'])
+	] as category
+  from profile_63887
+),
+
+final as (
+  	select concat(fy_timerange['start'], '|', fy_timerange['end']) as fy_timerange, cast(projectid as bigint) as projectid,
+  	kvpair['key'] as f_category,
+  	kvpair['tb'] as tb,
+	sum(cast(kvpair['value'] as bigint)) as total_sum
+  	from unpivoted
+	cross join UNNEST(category) as t(kvpair)
+  	group by 1,2,3,4
+  
+  	union all
+  
+  	select concat(f_reg_date, '|', f_reg_date) as fy_timerange, cast(projectid as bigint) as projectid, f_category, 
+  	case
+  		when tb1 = '1012452' then 'TB Screening Done (Sputum)'
+  		when tb1 = '1012454' then 'TB Screening Done (X-Rays)'
+  		when tb1 = '1059862' then 'TB Screening Done (Sputum and X-ray Both)'
+  		when tb1 = '1012458' then 'TB Confirmed'
+  		when tb1 = '1012459' then 'Put on DOTs'
+  		when tb1 = '1012456' then 'Completed DOTs'
+  		else ''
+  	end as tb,
+  	count(*) as total_sum
+  	from profile_59462
+  cross join UNNEST (tb) as t(tb1)
+  where contains (tb, '1012452')OR contains(tb,'1012454') OR contains(tb, '1059862') OR contains (tb, '1012458') OR contains (tb,'1012459') OR contains (tb, '1012456')
+   group by 1,2,3,4
+)
+
+select fy_timerange, project.name as projectid, f_category, tb, sum(total_sum) as total_sum
+from final
+left join ds_mysql_project as project
+on project.id = cast(final.projectid as bigint)
+group by 1,2,3,4
