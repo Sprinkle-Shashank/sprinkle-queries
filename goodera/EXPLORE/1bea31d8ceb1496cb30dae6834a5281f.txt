@@ -16,13 +16,29 @@ left join ds_mysql_prod_tagelement t2 on t2.id = p3.focus_area),
 sub3 as(
   select p4.fy_timerange, t3.name as focus_area
 from profile_78057 p4
-left join ds_mysql_prod_tagelement t3 on t3.id = p4.focus_area)
+left join ds_mysql_prod_tagelement t3 on t3.id = p4.focus_area),
 
 --Brand Led (Above)
 
-select fy_timerange, focus_area from sub1
-union all
-select fy_timerange, focus_area from sub2
-union all
-select fy_timerange, focus_area from sub3
+sub4 as(
+  select p5.*, is_array(p5.indicator) as indicator_array_check,
+  case 
+  	when (indicator_array_check = false) then array(p5.indicator)
+	else p3.indicator
+  end as indicator_new
+  from profile_55605 p5),
+  
+sub5 as(
+  select s4.*, indicator_605 from sub4 s4, s4.indicator_new indicator_605),
+  
+sub6 as(
+  select s5.time_timerange as fy_timerange, t4.name as focus_area
+from sub5 s5
+left join profile_55606 p6 on p6._id = s5.indicator_new
+left join profile_55604 p7 on p7._id = p6.indicator
+left join profile_63775 p8 on p8._id = p7.prog_name
+left join ds_mysql_prod_tagelement t4 on t4.id = p8.foc_area)
+  
+
+select * from sub4
 
