@@ -1,28 +1,69 @@
-with Lookup as (Select b.name as ProjectCode1,d.name as fy_timerange1,d.name as CODE1
-from profile_27420 d
-left join ds_mysql_prod_tagelement b on
-d.fy=b.id
-union
-Select c.name as ProjectCode,a.name as fy_timerange,CONCAT(c.name,CONCAT(CONCAT('[',a.name),']')) as CODE
-from profile_27396 c
-left join ds_mysql_prod_tagelement a on
-c.fy=a.id),
-Base1 as(select CODE,ProjectCode,Village,Planned,Actual,Month,fy_timerange,k.name as Project_Manager,focusarea,Activity_Category,Activity_Sub_Category from(select split_part(split_part(prod.name,'|',1),'.',1) as ProjectCode,CONCAT(ProjectCode,CONCAT(CONCAT('[',y.name),']')) as CODE,split_part(prod.name,'|',2) as Village,p.sub_cat_out_plan as Planned,p.subcat_output as Actual,m.name as Month,y.name as fy_timerange,f.name as focusarea,a.name as Activity_Category,s.name as Activity_Sub_Category from profile_54963
-p left join ds_mysql_prod_project prod on
+--with Lookup as (Select b.name as ProjectCode1,d.name as fy_timerange1,d.name as CODE1
+--from profile_27420 d
+--left join ds_mysql_prod_tagelement b on
+--d.fy=b.id
+--union
+--Select c.name as ProjectCode,a.name as --fy_timerange,CONCAT(c.name,CONCAT(CONCAT('[',a.name),']')) as CODE
+--from profile_27396 c
+--left join ds_mysql_prod_tagelement a on
+--c.fy=a.id),
+--Base1 as(select CODE,ProjectCode,Village,Planned,Actual,Month,fy_timerange,k.name as --Project_Manager,focusarea,Activity_Category,Activity_Sub_Category from(select --split_part(split_part(prod.name,'|',1),'.',1) as --ProjectCode,CONCAT(ProjectCode,CONCAT(CONCAT('[',y.name),']')) as --CODE,split_part(prod.name,'|',2) as Village,p.sub_cat_out_plan as Planned,p.subcat_output as --Actual,m.name as Month,y.name as fy_timerange,f.name as focusarea,a.name as --Activity_Category,s.name as Activity_Sub_Category from profile_54963
+--p left join ds_mysql_prod_project prod on
+--prod.id=p.projectid
+--left join ds_mysql_prod_tagelement f on
+--p.focus_area=f.id
+--left join ds_mysql_prod_tagelement a on
+--p.act_cat=a.id
+--left join ds_mysql_prod_tagelement s on
+--p.subcat=s.id
+--left join ds_mysql_prod_tagelement m on
+--p.month=m.id
+--left join ds_mysql_prod_tagelement y on
+--p.fy=y.id)
+--left join profile_27396 n on
+--ProjectCode=n.name
+--left join ds_mysql_prod_tagelement k on
+--n.project_manager=k.id)
+--,Base2 as(select 		 --l.fy_timerange,l.Project_Manager,l.Village,l.focusarea,l.Activity_Category,l.Activity_Sub_Ca--tegory,l.Month,count(Planned) as Planned,count(Actual) as Actual from Base1 l left join --Lookup p on l.CODE=p.CODE1 group by --l.focusarea,l.Activity_Category,l.Activity_Sub_Category,l.Month,l.fy_timerange,l.Project_Man--ager,l.ProjectCode,l.Village)
+--select *,count(*) as Count from Base2 group by --fy_timerange,Project_Manager,Village,focusarea,Activity_Category,Activity_Sub_Category,Month--,Planned,Actual
+---------------------------------------------------------------------------------------
+with Lookup as
+(select cast((split_part(split_part(prod.name,'|',1),'.',1)) as varchar) as ProjectCode,f.name as fy_timerange,split_part(prod.name,'|',2) as Village,o.name as Focusarea,CONCAT(ProjectCode,fy_timerange) as CODE,p.sub_cat_out_plan as Planned,p.subcat_output as Actual,m.name as Month,a.name as Activity_Category,s.name as Activity_Sub_Category
+ from profile_54963 p 
+left join ds_mysql_prod_project prod on
 prod.id=p.projectid
 left join ds_mysql_prod_tagelement f on
-p.focus_area=f.id
+p.fy=f.id
 left join ds_mysql_prod_tagelement a on
 p.act_cat=a.id
 left join ds_mysql_prod_tagelement s on
 p.subcat=s.id
 left join ds_mysql_prod_tagelement m on
 p.month=m.id
-left join ds_mysql_prod_tagelement y on
-p.fy=y.id)
-left join profile_27396 n on
-ProjectCode=n.name
-left join ds_mysql_prod_tagelement k on
-n.project_manager=k.id)
-,Base2 as(select 		 l.fy_timerange,l.Project_Manager,l.Village,l.focusarea,l.Activity_Category,l.Activity_Sub_Category,l.Month,count(Planned) as Planned,count(Actual) as Actual from Base1 l left join Lookup p on l.CODE=p.CODE1 group by l.focusarea,l.Activity_Category,l.Activity_Sub_Category,l.Month,l.fy_timerange,l.Project_Manager,l.ProjectCode,l.Village)
-select *,count(*) as Count from Base2 group by fy_timerange,Project_Manager,Village,focusarea,Activity_Category,Activity_Sub_Category,Month,Planned,Actual
+left join ds_mysql_prod_tagelement o on
+p.focus_area=o.id
+)
+
+,Base1 as
+(select cast(q.name as varchar) as ProjectCode,f.name as fy_timerange,m.name as Project_Manager,CONCAT(ProjectCode,fy_timerange) as CODE
+from profile_27420 d
+left join ds_mysql_prod_tagelement f on
+d.fy=f.id
+left join ds_mysql_prod_tagelement m on
+d.project_manager=m.id
+left join profile_27396 q on
+d.project_code=q._id
+union
+select cast(c.name as varchar)as ProjectCode,f.name as fy_timerange,m.name as Project_Manager,CONCAT(ProjectCode,fy_timerange) as CODE 
+from profile_27396 c	
+left join ds_mysql_prod_tagelement f on
+c.fy=f.id
+left join ds_mysql_prod_tagelement m on
+c.project_manager=m.id)
+
+,Base2 as
+(select p.fy_timerange,l.Project_Manager,p.ProjectCode,p.Village,p.Focusarea,p.Month,p.Activity_Category,p.Activity_Sub_Category,count(p.Planned) as Planned,count(p.Actual) as Actual from lookup p left join Base1 l on p.CODE=l.CODE group by p.fy_timerange,l.Project_Manager,p.ProjectCode,p.Village,p.Focusarea,p.Month,p.Activity_Category,p.Activity_Sub_Category 
+ )
+
+
+select  p.fy_timerange,case when p.Project_manager is NULL then 'N/A' else p.Project_Manager end as Project_Manager,p.ProjectCode,p.Village,p.Focusarea,p.Month,p.Activity_Category,p.Activity_Sub_Category,p.Planned,p.Actual from Base2 p
