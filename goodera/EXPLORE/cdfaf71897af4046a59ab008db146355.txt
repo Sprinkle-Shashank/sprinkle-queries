@@ -1,4 +1,4 @@
-with table1 as(select pro.name as parent1, fy_timerange, twopc, overhead_expenses, setoff_amount, setoff_amount_preceeding, surplus_previousfy, actual_csr, unspent_account, impact_assessment, netprofit ,twopc+surplus_previousfy+setoff_amount as total_csr_obligation,actual_csr+overhead_expenses+impact_assessment as  total_amount_current , total_amount_current+twopc as excess_current ,excess_current+surplus_previousfy as setoff_succeed ,
+with table1 as(select  parent1, fy_timerange, twopc, overhead_expenses, setoff_amount, setoff_amount_preceeding, surplus_previousfy, actual_csr, unspent_account, impact_assessment, netprofit ,twopc+surplus_previousfy+setoff_amount as total_csr_obligation,actual_csr+overhead_expenses+impact_assessment as  total_amount_current , total_amount_current+twopc as excess_current ,excess_current+surplus_previousfy as setoff_succeed ,
 
 case when excess_current<0 or excess_current=0 then 0
        
@@ -14,10 +14,9 @@ case when setoff_succeed<0 or setoff_succeed=0 then 0
 
 from profile_78824
 
-left join ds_mysql_prod_project as pro
-  on projectId = pro.id			   
+		   
 
-group by pro.name,parent1, fy_timerange, netprofit, twopc, overhead_expenses, setoff_amount, setoff_amount_preceeding, surplus_previousfy, actual_csr, unspent_account, impact_assessment, total_csr_obligation, total_amount_current, new_excess_current, new_setoff_succeed),
+group by parent1, fy_timerange, netprofit, twopc, overhead_expenses, setoff_amount, setoff_amount_preceeding, surplus_previousfy, actual_csr, unspent_account, impact_assessment, total_csr_obligation, total_amount_current, new_excess_current, new_setoff_succeed),
 
 temp as (
   select 'twopc' as C
@@ -52,7 +51,7 @@ temp as (
 	)
 
 
-select   fy_timerange,          
+select  pro.name as parent1, tab1.fy_timerange,          
 /*twopc, overhead_expense, setoff_amount, setoff_amount_preceeding, surplus_previousfy, actual_csr, unspent_account, impact_assessment, total_csr_obligation, total_amount_current, excess_current, setoff_succeed, netprofit*/
 
 Sum(Case C
@@ -77,7 +76,10 @@ from table1 as tab1
 
 cross join temp
 
-
+left join ds_mysql_prod_project as pro
+  on tab1.parent1 = pro.id	
+  
+group by tab1.parent1,tab1.fy_timerange ,temp.C  
 
 
 
