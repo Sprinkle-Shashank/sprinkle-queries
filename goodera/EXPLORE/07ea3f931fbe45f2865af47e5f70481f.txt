@@ -1,18 +1,26 @@
-
---with temp as (
---  select 'module_5' as C
---  Union all 
---  select 'enrollment' as C
+ with temp as (
+  select 'module_5' as C
+  Union all 
+  select 'enrollment' as C
   
---  )											--Pivot column names
+  )											--Pivot column names
 
-SELECT _id, projectid,year.name as year,  module_5, enrollment,lg_status	--Select values
+SELECT projectid,year.name as year,			--Select values
+
+SUM(Case C
+	When 'module_5' then p.module_5
+	When 'enrollment' then p.enrollment
+	Else Null
+END) as val , temp.C as Dim
  
  from profile_29179 p
-  -- cross join temp							--pivot cross join
+  cross join temp							--pivot cross join
   
  left join ds_mysql_prod_tagelement year
  on p.year = year.id 
   
- WHERE coalesce(lg_status,0) != 847851				-- lg_status for inactiv
+ WHERE coalesce(lg_status) <> 847851				-- lg_status for inactive
+ 
+ GROUP BY projectid, year.name,temp.C
+
  
