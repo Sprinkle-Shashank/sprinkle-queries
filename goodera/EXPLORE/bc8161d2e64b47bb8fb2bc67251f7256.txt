@@ -1,0 +1,23 @@
+with temp as (
+  select 'number_of_loans' as C
+  Union all 
+  select 'amount_of_financing' as C
+  
+  )											--Pivot column names
+
+SELECT projectid,year.name as year,			--Select values
+
+SUM(Case C
+	When 'number_of_loans' then p.number_of_loans
+	When 'amount_of_financing' then p.amount_of_financing
+	Else Null
+END) as val , temp.C as Dim
+ 
+ from profile_26656 p
+  cross join temp							--pivot cross join
+  
+ left join ds_mysql_prod_tagelement year
+ on p.year = year.id 
+			
+ 
+ GROUP BY projectid, year.name,temp.C
