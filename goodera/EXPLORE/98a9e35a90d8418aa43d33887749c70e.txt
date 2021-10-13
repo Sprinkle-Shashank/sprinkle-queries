@@ -1,0 +1,25 @@
+with base1 as (select  p.projectId,  f.name as fy_timerange, q.name as status,p.zone_db as zone, p.partner_db as partner_name, p.center_name_db as center_id, p.batch_id_db as batch_id, p.batch_end_db  as end_e, t2.name as project,p.placed, case when status='Dropout (post training)' then 1 else 0 end as Count from profile_145 p
+left join ds_mysql_prod_tagelement f on
+p.financial_year=f.id
+left join ds_mysql_prod_tagelement q on
+p.placed = q.id			   
+LEFT JOIN ds_mysql_prod_project t on p.projectId=t.id
+LEFT JOIN ds_mysql_prod_project t1 on t.parent=t1.id
+LEFT JOIN ds_mysql_prod_project t2 on t1.parent=t2.id
+
+union all
+select  m.projectId,f.name as fy_timerange, q.name as status, m.zone_db as zone, m.partner_db as partner_name, m.center_name_db as center_id, m.batch_id_db as batch_id, m.batch_end_db as end_e ,t2.name as project , m.placed,case when status='Dropout (post training)' then 1 else 0 end as Count from profile_36901 m
+left join ds_mysql_prod_tagelement f on
+m.financial_year=f.id
+			   
+left join ds_mysql_prod_tagelement q on
+m.placed = q.id			   
+			   
+LEFT JOIN ds_mysql_prod_project t on m.projectId=t.id
+LEFT JOIN ds_mysql_prod_project t1 on t.parent=t1.id
+LEFT JOIN ds_mysql_prod_project t2 on t1.parent=t2.id
+)
+select fy_timerange, zone,  partner_name,  center_id,  project ,batch_id, sum(Count) as count from base1
+
+group by fy_timerange,  zone,  partner_name,  center_id, batch_id,
+ project 
