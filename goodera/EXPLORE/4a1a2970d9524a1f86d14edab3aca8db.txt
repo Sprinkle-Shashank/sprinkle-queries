@@ -1,7 +1,13 @@
-select split_part(split_part(prod.name,'|',1),'.',1) as ProjectCode,f.name as fy_timerange ,k.name as Focusarea,p.focus_area,p.planned_s1,p.planned_s2,p.progress_s1,p.progress_s2, ((p.progress_s1+p.progress_s2)/(p.planned_s1+p.planned_s2))*100 as Progress from profile_27414 p 
+with lookup as(select cast(split_part(split_part(prod.name,'|',1),'.',1) as varchar)as ProjectCode,f.name as fy_timerange, CONCAT(ProjectCode,fy_timerange) as CODE ,k.name as Focusarea,p.focus_area,p.planned_s1,p.planned_s2,p.progress_s1,p.progress_s2, ((p.progress_s1+p.progress_s2)/(p.planned_s1+p.planned_s2))*100 as Progress from profile_27414 p 
 left join ds_mysql_prod_project prod on
 prod.id=p.projectid
 left join ds_mysql_prod_tagelement f on
 p.fy=f.id
 left join ds_mysql_prod_tagelement k on
-p.focus_area=k.id
+p.focus_area=k.id)
+,Base1 as(select cast(c.name as varchar)as ProjectCode,f.name as fy_timerange,m.name as Project_Manager,CONCAT(ProjectCode,fy_timerange) as CODE 
+from profile_27396 c	
+left join ds_mysql_prod_tagelement f on
+c.fy=f.id
+left join ds_mysql_prod_tagelement m on
+c.project_manager=m.id)
