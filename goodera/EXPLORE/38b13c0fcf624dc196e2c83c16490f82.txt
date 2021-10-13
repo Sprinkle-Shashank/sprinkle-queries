@@ -9,9 +9,19 @@ select p.p_id,p.patient_name,tb,p.s_clinic_type,p.oral,p.hiv,p.general from prof
 	),
 	test4 as (
 	select p.p_id,p.patient_name,p.tb,p.tb_name,p.s_clinic_type,p.clinic_name,p.oral,t.name as oral_name,p.hiv,p.general from test3 p left join ds_mysql_prod_tagelement t on p.oral=t.id
-		)
+		),
+		unp as (
 		select  'tb_name' as c from test4
 		union all
 		select  'clinic_name' as c from test4
 		union all
 		select  'oral_name' as c from test4
+		  )
+		  select p.p_id,p.patient_name,t.c as category,
+		  case d
+		  	when 'tb_name' then p.tb_name
+			when 'clinic_name' then p.clinic_name
+			when 'oral_name' then p.oral_name
+			else null
+			end as value
+			from test4 p cross join unp t
