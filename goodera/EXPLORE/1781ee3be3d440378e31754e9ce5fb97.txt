@@ -1,0 +1,22 @@
+with sub1 as(
+  select p1.*, is_array(p1.fund_details) as array_check,
+  	case
+		when(array_check = false) then array(p1.fund_details)
+		else p1.fund_details
+	end as funds
+  from profile_32441 p1),
+  
+sub2 as(
+  select s1.*, fund_new from sub1 s1, s1.funds fund_new),
+
+
+sub3 as(
+  select s2.time_timerange as fy_timerange, p3.name as title, p3.name_partner, p3.manager, t1.name as country, t2.name as focus_area, t3.name as prod_brand, sum(p2.amount) as investment
+from sub2 s2
+	left join profile_54871 p2 on p2._id = s2.fund_new
+	left join profile_63775 p3 on p3._id = s2.program_name 
+	left join ds_mysql_prod_tagelement t1 on t1.id = s2.country_new
+	left join ds_mysql_prod_tagelement t2 on t2.id = p3.focus_area
+	left join ds_mysql_prod_tagelement t3 on t3.id = p3.product_brand
+  	where p2.amount is not null
+group by s2.time_timerange, p3.name, p3.name_partner, p3.manager, t1.name, t2.name, t3.name
