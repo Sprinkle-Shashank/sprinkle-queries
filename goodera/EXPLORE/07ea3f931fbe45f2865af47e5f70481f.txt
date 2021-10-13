@@ -1,2 +1,44 @@
-select * from test_profile_78588
+with sub1 as(
+  select p1.*, is_array(p1.location) as location_array_check, is_array(p1.sdg) as sdg_array_check, is_array(p1.sdg_icon) as sdg_icon_array_check, is_array(p1.mca_focus) as focus_area_array_check,
+  
+  case
+  	when (location_array_check = false) then array(p1.location)
+  	else p1.location
+  end as location_new,
+  
+  case
+  	when (sdg_array_check = false) then array(p1.sdg)
+  	else p1.sdg
+  end as sdg_new,
+  
+  case
+  	when (sdg_icon_array_check = false) then array(p1.sdg_icon)
+  	else p1.sdg_icon
+  end as sdg_icon_new,
+  
+  case
+  	when (focus_area_array_check = false) then array(p1.mca_focus)
+  	else p1.mca_focus
+  end as focus_area_new
 
+from profile_60166 p1),
+  
+sub2 as (
+  select s1.*, locations, sdgs, cast(sdg_icon as varchar) as sdg_icons, focus_areas 
+from sub1 s1, s1.location_new locations, s1.sdg_new sdgs, s1.sdg_icon_new sdg_icon, s1.focus_area_new focus_areas),
+  
+sub3 as(
+  select s2._id as id, p2.name as projectid, s2.fy_timerange, s2.proj_name, t1.name as location, t2.name as theme, t3.name as sdg, s2.proj_tenure, s2.sdg_icons, s2.proj_object, p3.name as implementation_partner, p3.logo, to_char(cast(s2.start as date), 'DD/MM/YYYY') as start_date, t4.name as focus_area
+from sub2 s2 
+		left join ds_mysql_prod_project p2 on p2.id = s2.projectid
+		left join profile_60167 p3 on p3._id = s2.imp_partner
+		left join ds_mysql_prod_tagelement t1 on t1.id = s2.locations
+		left join ds_mysql_prod_tagelement t2 on t2.id = s2.theme
+		left join ds_mysql_prod_tagelement t3 on t3.id = s2.sdgs
+		left join ds_mysql_prod_tagelement t4 on t4.id = s2.focus_areas)
+		
+select id, projectid, fy_timerange, proj_name, proj_tenure, proj_object, implementation_partner, start_date, logo, theme, listagg(distinct location, ', ') as location, listagg(distinct sdg, ', ') as sdg, 
+listagg(distinct sdg_icons, ', ') as sdg_icons, listagg(distinct focus_area, ', ') as focus_area
+from sub3
+group by id, projectid, fy_timerange, proj_name, proj_tenure, proj_object, implementation_partner, start_date, theme, logo
+		
