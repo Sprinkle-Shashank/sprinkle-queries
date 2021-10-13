@@ -1,4 +1,4 @@
-select projectId as parent1, fy_timerange, twopc, overhead_expenses, setoff_amount, setoff_amount_preceeding, surplus_previousfy, actual_csr, unspent_account, impact_assessment, netprofit ,twopc+surplus_previousfy+setoff_amount as total_csr_obligation,actual_csr+overhead_expenses+impact_assessment as  total_amount_current , total_amount_current+twopc as excess_current ,excess_current+surplus_previousfy as setoff_succeed ,
+with table1(select projectId as parent1, fy_timerange, twopc, overhead_expenses, setoff_amount, setoff_amount_preceeding, surplus_previousfy, actual_csr, unspent_account, impact_assessment, netprofit ,twopc+surplus_previousfy+setoff_amount as total_csr_obligation,actual_csr+overhead_expenses+impact_assessment as  total_amount_current , total_amount_current+twopc as excess_current ,excess_current+surplus_previousfy as setoff_succeed ,
 
 case when excess_current<0 or excess_current=0 then 0
        
@@ -14,5 +14,68 @@ case when setoff_succeed<0 or setoff_succeed=0 then 0
 
 from profile_78824
 
-group by parent1, fy_timerange, netprofit, twopc, overhead_expenses, setoff_amount, setoff_amount_preceeding, surplus_previousfy, actual_csr, unspent_account, impact_assessment, total_csr_obligation, total_amount_current, new_excess_current, new_setoff_succeed
+group by parent1, fy_timerange, netprofit, twopc, overhead_expenses, setoff_amount, setoff_amount_preceeding, surplus_previousfy, actual_csr, unspent_account, impact_assessment, total_csr_obligation, total_amount_current, new_excess_current, new_setoff_succeed),
+
+temp as (
+  select 'twopc' as C
+  Union all
+  select 'overhead_expenses' as C
+  Union all 
+  select 'setoff_amount' as C
+  Union all 
+  select 'setoff_amount_preceeding' as C
+  Union all
+  select 'surplus_previousfy' as C
+  Union all
+  select 'actual_csr' as C
+  Union all
+  select 'unspent_account' as C
+  Union all
+  select 'impact_assessment' as C
+  Union all
+  select 'total_csr_obligation' as C
+  Union all
+  select 'total_amount_current' as C
+  Union all
+  select 'new_excess_current' as C
+  Union all
+  select 'new_setoff_succeed' as C
+  Union all
+  select 'netprofit' as C
+  
+  
+  
+ 
+	)
+
+
+select pro.name as parent1, fy_timerange,          
+/*twopc, overhead_expense, setoff_amount, setoff_amount_preceeding, surplus_previousfy, actual_csr, unspent_account, impact_assessment, total_csr_obligation, total_amount_current, excess_current, setoff_succeed, netprofit*/
+
+Sum(Case C
+	When 'twopc' then tab1.twopc
+	when 'overhead_expenses' then tab1.Female
+	When 'setoff_amount' then tab1.setoff_amount
+	When 'setoff_amount_preceeding' then tab1.setoff_amount_preceeding
+	When 'surplus_previousfy' then tab1.surplus_previousfy
+	When 'actual_csr' then tab1.actual_csr
+	When 'unspent_account' then tab1.unspent_account
+	When 'impact_assessment' then tab1.impact_assessment
+	When 'total_csr_obligation' then tab1.total_csr_obligation
+	When 'total_amount_current' then tab1.total_amount_current
+	When 'new_excess_current' then tab1.new_excess_current
+	When 'new_setoff_succeed' then tab1.new_setoff_succeed
+	When 'netprofit' then tab1.netprofit
+	
+	Else Null
+	
+END) as values , temp.C as dimensions
+from table1 as tab1
+
+cross join temp
+
+left join ds_mysql_prod_project as pro
+  on tab1.parent1 = pro.id
+
+
 
