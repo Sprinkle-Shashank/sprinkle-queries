@@ -10,7 +10,7 @@ sub2 as(
   select s1.*, indicator_605 from sub1 s1, s1.indicator_new indicator_605),
   
 sub3 as(
-  select s2.time_timerange as fy_timerange, p2.data, p3.indicator, p4.name as title, p4.name_partner, p4.country_new, p4.product_brand, p4.manager, p4.focus_area, p5.add_up_2
+  select s2._id as id, s2.time_timerange as fy_timerange, p2.data, p3.indicator, p4.name as title, p4.name_partner, p4.country_new, p4.product_brand, p4.manager, p4.focus_area, p5.add_up_2
 from sub2 s2
 left join profile_55606 p2 on p2._id = s2.indicator_605
 left join profile_55604	p3 on p3._id = p2.indicator
@@ -20,10 +20,10 @@ left join profile_78780 p5 on p5.name = (p3.indicator||'_'||extract(year from ca
 sub4 as(
   select s3.*, countries, add_up from sub3 s3, s3.country_new countries, s3.add_up_2 add_up)
   
-select s4.fy_timerange, s4.title, s4.name_partner, s4.manager, s4.indicator, listagg(distinct t1.name, ', ') as country, t2.name as prod_brand, t3.name as focus_area, t4.name as add_up, sum(s4.data)
+select s4.id, s4.fy_timerange, s4.title, s4.name_partner, s4.manager, s4.indicator, listagg(distinct t1.name, ', ') as country, t2.name as prod_brand, t3.name as focus_area, t4.name as add_up, sum(s4.data)
 from sub4 s4
 left join ds_mysql_prod_tagelement t1 on t1.id = s4.countries
 left join ds_mysql_prod_tagelement t2 on t2.id = s4.product_brand
 left join ds_mysql_prod_tagelement t3 on t3.id = s4.focus_area
 left join ds_mysql_prod_tagelement t4 on t4.id = s4.add_up
-group by s4.fy_timerange, s4.title, s4.name_partner, s4.manager, s4.indicator, t2.name, t3.name, t4.name
+group by s4.id, s4.fy_timerange, s4.title, s4.name_partner, s4.manager, s4.indicator, t2.name, t3.name, t4.name
