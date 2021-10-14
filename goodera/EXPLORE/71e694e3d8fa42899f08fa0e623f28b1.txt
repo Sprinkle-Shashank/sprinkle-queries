@@ -1,62 +1,35 @@
 with sub1 as(
-  select p1.indicator, is_array(p1.aggregation_logic) as logic_array_check,
-case
-	when (logic_array_check = false) then array(p1.aggregation_logic)
-	else p1.aggregation_logic
-end as logic_new
-from profile_55604 p1),
-
+  select p1.*, is_array(p1.indicator) as indicator_array_check,
+  case
+  	when (indicator_array_check = false) then array(p1.indicator)
+  	else p1.indicator
+  end as indicator_new
+  from profile_55605 p1),
+  
 sub2 as(
-  select s1.*, logic from sub1 s1, s1.logic_new logic),
+  select s1.*, indicator_605 from sub1 s1, s1.indicator_new indicator_605),
   
 sub3 as(
-  select s2.indicator, p2.year, p2.add_up_2
+  select s2._id as id, s2.time_timerange as fy_timerange, p2.data, p3.indicator, p4.country_new,
+ ('FY'||' '||extract(year from cast(s2.time_timerange.start as date))) as x_axis, p4.product_brand, p4.focus_area, p5.add_up_2
 from sub2 s2
-left join profile_78780 p2 on p2._id = s2.logic),
+left join profile_55606 p2 on p2._id = s2.indicator_605
+left join profile_55604	p3 on p3._id = p2.indicator
+left join profile_63775 p4 on p4._id = p3.prog_name
+left join profile_78780 p5 on p5.name = (p3.indicator||'_'||extract(year from cast(s2.time_timerange.start as date)))),
 
 sub4 as(
-  select s3.*, add_up from sub3 s3, s3.add_up_2 add_up),
-
+  select s3.*, countries, add_up from sub3 s3, s3.country_new countries, s3.add_up_2 add_up),
+  
 sub5 as(
-  select s4.indicator, t1.name as year_text, t2.name as add_up, (s4.indicator||'_'||year_text) as look_up
+  select s4.id, s4.fy_timerange, s4.indicator, t1.name as country, t2.name as prod_brand, t3.name as focus_area, t4.name as add_up, s4.x_axis, sum(s4.data)
 from sub4 s4
-left join ds_mysql_prod_tagelement t1 on t1.id = s4.year
-left join ds_mysql_prod_tagelement t2 on t2.id = s4.add_up),
-
-----------------------------------Table (Subquery) created for KPI Logic-----------------------------
-
-sub6 as(
-  select p3.*, is_array(p3.indicator) as indicator_array_check,
-  case
-	when (indicator_array_check = false) then array(p3.indicator)
-	else p3.indicator
-  end as indicator_new
-  from profile_55605 p3),
-  
-sub7 as(
-  select s6.*, indicator_605 from sub6 s6, s6.indicator_new indicator_605),
- 
-sub8 as (
-  select s7._id as id, s7.time_timerange as fy_timerange, p5.indicator, p4.data, s8.add_up, p6.country_new, p6.product_brand, p6.focus_area,
-(p5.indicator||'_'||extract(year from cast(s7.time_timerange.start as date))) as indicator_year,
-('FY'||' '||extract(year from cast(s7.time_timerange.start as date))) as x_axis
-from sub7 s7
-left join profile_55606 p4 on p4._id = s7.indicator_605
-left join profile_55604 p5 on p5._id = p4.indicator
-left join profile_63775 p6 on p6._id = p5.prog_name
-left join sub5 s8 on s8.look_up = (p5.indicator||'_'||extract(year from cast(s7.time_timerange.start as date)))),
-
-sub9 as(
-  select s8.*, countries from sub8 s8, s8.country_new countries),
-  
-sub10 as(
-  select s9.id, s9.fy_timerange, s9.indicator, s9.add_up, t3.name as country, t4.name as prod_brand, t5.name as focus_area, s9.x_axis, sum(s9.data)
-from sub9 s9 
-left join ds_mysql_prod_tagelement t3 on t3.id = s9.countries
-left join ds_mysql_prod_tagelement t4 on t4.id = s9.product_brand
-left join ds_mysql_prod_tagelement t5 on t5.id = s9.focus_area
-where s9.add_up = 'Engaged' and s9.data is not null
-group by s9.id, s9.fy_timerange, s9.indicator, s9.add_up, t3.name, t4.name, t5.name, s9.x_axis),
+left join ds_mysql_prod_tagelement t1 on t1.id = s4.countries
+left join ds_mysql_prod_tagelement t2 on t2.id = s4.product_brand
+left join ds_mysql_prod_tagelement t3 on t3.id = s4.focus_area
+left join ds_mysql_prod_tagelement t4 on t4.id = s4.add_up
+where t4.name = 'Engaged' and s4.data is not null
+group by s4.id, s4.fy_timerange, s4.indicator, t1.name, t2.name, t3.name, t4.name, s4.x_axis),
 
 --------------------------------------------------------------------------------------------------
 -- KPIs - Data Input (Above)
@@ -90,7 +63,7 @@ group by p8._id, p8.fy_timerange, t9.name, t10.name, t11.name, x_axis)
 --Brand Led (Above)
 -----------------------------------------------------------------------------------------------------------
 
-select id, fy_timerange, country, prod_brand, focus_area, x_axis, sum from sub10
+select id, fy_timerange, country, prod_brand, focus_area, x_axis, sum from sub5
 union all
 select id, fy_timerange, country, prod_brand, focus_area, x_axis, sum from sub11
 union all
