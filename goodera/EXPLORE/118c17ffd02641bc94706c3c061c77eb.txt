@@ -1,1 +1,59 @@
-select count(*) from profile_67395
+ with temp as (
+   select 'male_indirect_beneficiaries' as col
+   union all
+   select 'neither_gender_indirect_beneficiaries' as col
+   union all
+   select 'male_direct_beneficiaries' as col
+   union all
+   select 'female_indirect_beneficiaries' as col
+   union all
+   select 'neither_gender_direct_beneficiaries' as col
+   union all
+   select 'no_gender_disclosure_indirect_beneficiaries' as col
+   union all
+   select 'no_gender_disclosure_direct_beneficiaries' as col 
+   union all
+   select 'female_direct_beneficiaries' as col
+  )
+
+Select qi._id, t.name as projectId,qi.fy_timerange, t5.name as program_name, pd.end_date, 
+case 
+  when (extract(month from pd.end_date) <=2) then ('FY' || (extract(year from pd.end_date)-2000))
+  when (extract(month from pd.end_date) >2) then ('FY'|| (extract(year from pd.end_date)+1-2000))
+  end as FY,
+t2.name as Partner,t3.name as Country,t4.name as Region,
+
+temp.col as Gender_and_type,
+  case 
+   	when  (temp.col) LIKE '%indirect%'  then 'Indirect'
+	else 'Direct'
+	end as Type_Bucket,
+ sum(case col
+  when 'male_indirect_beneficiaries' then qi.male_indirect_beneficiaries
+  when 'neither_gender_indirect_beneficiaries' then qi.neither_gender_indirect_beneficiaries
+  when 'male_direct_beneficiaries' then qi.male_direct_beneficiaries
+  when 'female_indirect_beneficiaries' then qi.female_indirect_beneficiaries
+  when 'neither_gender_direct_beneficiaries' then qi.neither_gender_direct_beneficiaries 
+  when 'no_gender_disclosure_indirect_beneficiaries' then qi.no_gender_disclosure_indirect_beneficiaries  
+  when 'no_gender_disclosure_direct_beneficiaries' then qi.no_gender_disclosure_direct_beneficiaries
+  when 'female_direct_beneficiaries' then qi.female_direct_beneficiaries
+   else NULL
+   end )as Beneficiaries
+ 
+      
+
+from dell_profile_67395 qi
+cross join temp
+left join dell_profile_62886 pd on qi.program_name=pd._id
+left join ds_mysql_prod_project as t 
+  on qi.projectId = t.id
+  left join ds_mysql_prod_project as t2
+  on t.parent=t2.id
+  left join ds_mysql_prod_project as t3
+  on t2.parent=t3.id 
+  left join ds_mysql_prod_project as t4
+  on t3.parent=t4.id 
+   left join dell_profile_62886 as t5 
+  on qi.program_name =t5._id
+   group by qi.male_indirect_beneficiaries,qi.neither_gender_indirect_beneficiaries, qi.male_direct_beneficiaries, qi.female_indirect_beneficiaries,qi.neither_gender_direct_beneficiaries , qi.no_gender_disclosure_indirect_beneficiaries,qi.no_gender_disclosure_direct_beneficiaries, qi.female_direct_beneficiaries
+   , qi._id, qi.projectId, qi.fy_timerange, pd.end_date, t.name, t2.name,t3.name,t4.name, Gender_and_type, Type_Bucket,t5.name
