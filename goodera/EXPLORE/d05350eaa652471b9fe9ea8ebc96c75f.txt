@@ -4,6 +4,14 @@ with sub1 as(
   	when (indicator_array_check = false) then array(p1.indicator)
   	else p1.indicator
   end as indicator_new
-  from profile_55605 p1)
+  from profile_55605 p1),
   
-select * from sub1
+sub2 as(
+  select s1.*, indicator_605 from profile sub1 s1, s1.indicator_new indicator_605)
+  
+select s2.time_timerange as fy_timerange, p2.data, p3.indicator, p4.name as title, p4.name_partner, p4.country_new, p4.product_brand, p4.manager, p4.focus_area
+from sub2 s2
+left join profile_55606 p2 on p2._id = s2.indicator_605
+left join profile_55604	p3 on p3._id = p2.indicator
+left join profile_63775 p4 on p4._id = p3.prog_name
+left join profile_78780 p5 on p5.name = (p3.indicator||'_'||extract(year from cast(s2.time_timerange.start as date)
