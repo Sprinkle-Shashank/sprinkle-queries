@@ -1,3 +1,20 @@
-Select year_timerange
-group by year_timerange
-order by year_timerange DESC;
+Select id, projectId, facility_name, year_timerange, gbv_goals, cnt as country, director_region, facility_type, female_workers, male_workers, female_managers, female_supervisors, male_supervisors, male_managers,
+female_workers+(male_workers+(female_managers+(male_managers+(male_supervisors+female_supervisors)))) AS total_emp,
+(indepth_workers+indepth_managers)
+AS total_trained,
+total_trained *100 AS a1,
+a1/total_emp AS trained,
+CASE WHEN (trained>100) THEN 'YES'
+ELSE 
+'NO'
+END AS result,
+
+ven.name as vendor from profile_76755
+
+
+left join ds_mysql_prod_tagelement cnt 
+on projectId.parent = cnt.id
+left join ds_mysql_prod_tagelement ven 
+on cnt.parent=ven.id
+
+group by  projectId, facility_name, year_timerange,country,director_region,facility_type,vendor,result,count(*) as count
