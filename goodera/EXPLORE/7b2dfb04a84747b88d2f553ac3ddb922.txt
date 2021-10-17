@@ -1,6 +1,6 @@
 Select  p.projectId, p.facility_name, p.pace, p.strategic_yn, p.year_timerange, p.country, p.director_region,p.pace_goals, 
 ven.name AS Vendor,certified_mts*100 AS a1,
-a1/certified_trainers AS master,profile_76895.certified_trainers , profile_76895.certified_mts , profile_76895.pace_introduced , CASE WHEN (pace = 'YES') AND (master>30) AND (pace_introduced = 57472) THEN 'YES'
+a1/certified_trainers AS master,p1.certified_trainers , p1.certified_mts , p1.pace_introduced , CASE WHEN (pace = 'YES') AND (master>30) AND (pace_introduced = 57472) THEN 'YES'
 ELSE 
 'NO'
 END AS result
@@ -8,14 +8,17 @@ END AS result
 
 
 from profile_76755 p
+cross join temp
+left join profile_76895 p1
+on p.pace_goals = profile_76895._projectId
+
+
 left join ds_mysql_prod_project fac
 on p.projectId = fac.id
 left join ds_mysql_prod_tagelement ven
 on fac.parent = ven.id
 
 
-left join p
-on p.pace_goals = profile_76895.projectId
 
 
 WHERE p.strategic_yn ='Yes'
