@@ -1,0 +1,77 @@
+select p.projectId, p.year_timerange, p.other_status, yr.name as start_year, ven.name as vendor, cou.name as country, yr.name as year, sb.name as status_begin, syb.name as survey_yn_begin, spb.name as service_provider_begin , 
+su.name as status_updated, fu.name as feature_updated, spu.name as service_provider_updated, syu.name as survey_yn_updated, 
+profile_65025.status as status, profile_65025.service_provider as service_provider, profile_65025.survey_yn as survey_yn, profile_65025.features as features,
+nvl2(status_updated, status_updated, status_begin) as wep_status,
+nvl2(service_provider_updated, service_provider_updated, service_provider_begin) as service_provider,
+nvl2(survey_yn_updated, survey_yn_updated, survey_yn_begin) as survey_yn
+--,regexp_substr(vendor, '\(', 1, 1, 'i') as vendor_name
+
+
+from profile_60670 p
+
+left join ds_mysql_prod_project fac
+on p.projectid = fac.id
+left join ds_mysql_prod_project ven
+on fac.parent = ven.id
+left join ds_mysql_prod_project cou
+on ven.parent = cou.id
+
+
+
+left join ds_mysql_prod_tagelement yr
+on p.start_year = yr.id
+
+
+left join ds_mysql_prod_tagelement sb
+on p.status = sb.id
+
+left join ds_mysql_prod_tagelement syb
+on p.survey_yn = syb.id
+
+left join ds_mysql_prod_tagelement spb
+on p.service_provider = spb.id
+
+left join profile_65025
+on p.projectId = profile_65025.projectId 
+
+
+left join ds_mysql_prod_tagelement su
+on p.status = su.id
+
+left join ds_mysql_prod_tagelement fu
+on p.features = fu.id
+
+left join ds_mysql_prod_tagelement spu
+on p.service_provider = spu.id
+
+left join ds_mysql_prod_tagelement syu
+on p.survey_yn = syu.id
+
+--count *
+--group by p.projectId, p.year_timerange, year, wep_status, profile_65025.service_provider, profile_65025.survey_yn, vendor, country
+
+/*
+select p.fy_timerange,l.Project_Manager,p.ProjectCode,p.Village,p.Focusarea,p.Month,p.Activity_Category,p.Activity_Sub_Category,sum(p.Planned) as Planned,sum(p.Actual) as Actual from lookup p left join Base1 l on p.CODE=l.CODE group by p.fy_timerange,l.Project_Manager,p.ProjectCode,p.Village,p.Focusarea,p.Month,p.Activity_Category,p.Activity_Sub_Category 
+
+
+left join profile_65025
+on p.projectId = profile_65025.projectId
+set p.status =  profile_65025.status,
+	p.service_provider = profile_65025.service_provider, 
+	p.survey_yn = profile_65025.survey_yn, 
+	p.features = profile_65025.features
+
+
+
+
+UPDATE table1,profile_65025
+SET table1.value=table2.value 
+WHERE profile_65025.id=table1.id
+
+
+group by projectId, year_timerange, year, wep_status, service_provider, survey_yn, vendor, country
+
+where (country != 13761) and (wep_status == 'Active')
+
+*/
+
