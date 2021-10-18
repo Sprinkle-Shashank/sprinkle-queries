@@ -1,6 +1,11 @@
-select projectId, service_provider, status, other_status, start_year, brand,
+select profile_65025.projectId, service_provider, status, other_status, start_year, brand,
 ven.name as vendor, yr.name as year, sb.name as status_begin, spb.name as service_provider_begin,
-profile_65025.service_provider as service_provider, profile_65025.status as status
+profile_65025.service_provider as service_provider, profile_65025.status as status,
+su.name as status_updated, spu.name as service_provider_updated,
+nvl2(status_updated, status_updated, status_begin) as wep_status,
+nvl2(service_provider_updated, service_provider_updated, service_provider_begin) as service_provider,
+SUBSTRING(vendor, 1, POSITION(' (' in vendor)) as vendor_name,
+nvl2(vendor_name, vendor_name, vendor) as vendor
 from profile_60670
 
 left join prject_65025 on
@@ -24,3 +29,11 @@ on p.status = sb.id
 
 left join ds_mysql_prod_tagelement spb
 on p.service_provider = spb.id
+
+left join ds_mysql_prod_tagelement su
+on p.status = su.id
+
+left join ds_mysql_prod_tagelement spu
+on p.service_provider = spu.id
+
+Group By projectId, year, country, wep_status, service_provider, vendor_name, vendor, start_year
