@@ -1,6 +1,6 @@
-select p.projectId,p.facility_name,p.strategic_yn,p.year_timerange,p.country,director_region,p.female_workers, p.male_workers, p.female_supervisors, p.male_supervisors,
+select p.projectId,p.facility_name,p.strategic_yn,p.year_timerange,p.country,director_region,p.female_workers, p.male_workers, p.female_supervisors, p.male_supervisors,ven.name as Vendor,
 female_workers*100 AS f,
-(female_supervisors+male_supervisors) AS t,
+(female_workers+male_workers) AS t,
 CAST (f AS FLOAT) as fw,
 CAST (t as FLOAT) as tw,
 
@@ -19,7 +19,7 @@ case
 	end
 	as count,
 
-CASE WHEN (supervisor > worker) THEN 'YES'
+CASE WHEN (supervisor >= worker) THEN 'YES'
 ELSE
 'NO'
 END as result
@@ -29,9 +29,6 @@ on p.projectId = fac.id
 left join ds_mysql_prod_project ven
 on fac.parent = ven.id
  
-WHERE p.strategic_yn ='Yes' and result='YES'
+WHERE p.strategic_yn ='Yes' AND result = 'Yes'
 group by p.projectId, p.facility_name, p.year_timerange, p.country, director_region,p.strategic_yn,  result, ven.name,p.female_workers, p.male_workers, p.female_supervisors, p.male_supervisors
-
-
-
 
