@@ -3,7 +3,7 @@ left join ds_mysql_prod_project prod on
 prod.id=p.projectid
 left join ds_mysql_prod_tagelement f on
 p.fy=f.id			   ),Base1 as
-(select p.name as ProjectCode,f.name as fy_timerange,concat(ProjectCode,fy_timerange) as CODE,l.name as NGO,concat(p.start_date,concat('-',p.end_date)) as Start_End_Date,m.name  as Project_Manager,s.name as State,k.payment_amount from profile_27396 p
+(select p.name as ProjectCode,f.name as fy_timerange,concat(ProjectCode,fy_timerange) as CODE,p.name_project as Project_Name,l.name as NGO,concat(p.start_date,concat('-',p.end_date)) as Start_End_Date,m.name  as Project_Manager,s.name as State,k.payment_amount from profile_27396 p
 left join profile_27398 k
 on p.name=k._id
 left join profile_27395 l on
@@ -16,7 +16,7 @@ left join ds_mysql_prod_tagelement f on
 p.fy=f.id
 
 union
-select l.name as ProjectCode,f.name as fy_timerange,concat(ProjectCode,fy_timerange) as CODE,p.ngo as NGO,concat(p.start_date,concat('-',p.end_date)),m.name as Project_Manager,s.name as state,k.payment_amount
+select l.name as ProjectCode,f.name as fy_timerange,concat(ProjectCode,fy_timerange) as CODE,l.name_project,p.ngo as NGO,concat(p.start_date,concat('-',p.end_date)),m.name as Project_Manager,s.name as state,k.payment_amount
 from profile_27420 p
 left join profile_27396 l on
 p.project_code=l._id
@@ -32,7 +32,7 @@ p.fy=f.id
 --,Base2 as(select p.ProjectCode,p.fy_timerange,p.CODE,l.village from lookup p left join
 --profile_27489 l		  
 --on p.census=l.name)
-,Base2 as(select p.ProjectCode,p.fy_timerange,k.village,l.NGO,l.Start_End_Date,l.Project_Manager,l.State,p.CODE from lookup p left join Base1 l on p.CODE=l.CODE 
+,Base2 as(select p.ProjectCode,p.fy_timerange,k.village,l.NGO,l.Start_End_Date,l.Project_Manager,l.Project_Name,l.State,p.CODE from lookup p left join Base1 l on p.CODE=l.CODE 
 left join profile_27489 k on
 p.census=k.name
 
@@ -48,7 +48,7 @@ select m.name as ProjectCode,p.monthly_cost as cost from profile_30171 p
 left join 
 profile_27396 m
 on p.prj_code=m._id
-), Base4 as(select p.ProjectCode,p.fy_timerange,p.village,p.NGO as ProjectName,p.Start_End_Date,p.Project_Manager,p.State,l.cost as Cost,p.CODE from Base2 p left join Base3 l on p.ProjectCode=l.ProjectCode )
+), Base4 as(select p.ProjectCode,p.fy_timerange,p.village,p.NGO,p.Project_Name,p.Start_End_Date,p.Project_Manager,p.State,l.cost as Cost,p.CODE from Base2 p left join Base3 l on p.ProjectCode=l.ProjectCode )
 ,Base5 as (select l.name as ProjectCode ,f.name as fy_timerange ,p.payment_amount,p.amnt_nt_utlzd,concat(l.name,f.name) as CODE from profile_27398 p left join profile_27396 l on
 p.project_name=l._id
 left join ds_mysql_prod_tagelement f on
@@ -59,7 +59,7 @@ p.project_renew=l.Project_code
 left join profile_27396 k on
 l.project_code=k._id
 left join ds_mysql_prod_tagelement f on
-p.fy=f.id),Base6 as(select p.ProjectCode,p.fy_timerange,p.village,p.ProjectName,p.Start_End_Date,p.Project_Manager,p.State,p.Cost,l.payment_amount,l.amnt_nt_utlzd from Base4 p left join Base5 l on p.CODE=l.CODE)
+p.fy=f.id),Base6 as(select p.ProjectCode,p.fy_timerange,,p.Project_Manager,p.village,p.NGO,p.Project_Name,p.Start_End_Date,p.State,p.Cost as Budget_allocated,l.payment_amount as Amount_Disbursted,l.amnt_nt_utlzd  as Amount_utilized from Base4 p left join Base5 l on p.CODE=l.CODE)
 																								   
 
 select * from Base6
