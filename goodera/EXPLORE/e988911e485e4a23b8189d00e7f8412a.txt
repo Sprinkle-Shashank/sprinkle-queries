@@ -1,19 +1,33 @@
-select projectId,facility_name,strategic_yn,year_timerange,country,director_region,facility_type,female_workers, male_workers, female_supervisors, male_supervisors,
-female_workers*100 AS fw,
-(female_supervisors+male_supervisors) AS tw,
+select p.projectId,p.facility_name,p.strategic_yn,p.year_timerange,p.country,director_region,p.female_workers, p.male_workers, p.female_supervisors, p.male_supervisors,
+female_workers*100 AS f,
+(female_supervisors+male_supervisors) AS t,
+CAST (f AS FLOAT) as fw,
+CAST (t as FLOAT) as tw,
+
+
 fw/tw AS worker,
 
-female_supervisors*100 AS fs,
-(male_supervisors+female_supervisors) AS ts,
+female_supervisors*100 AS f1,
+(male_supervisors+female_supervisors) AS t1,
+CAST (f1 AS FLOAT) as fs,
+CAST (t1 as FLOAT) as ts,
 fs/ts AS supervisor,
+case 
+	when 1=1
+	then 1
+	else 0
+	end
+	as count,
 
 CASE WHEN (supervisor > worker) THEN 'YES'
 ELSE
 'NO'
-END as result,
-
- ven.name AS Vendor from profile_76755
-left join ds_mysql_prod_tagelement ven
-
-on profile_76755.projectId = ven.id 
-WHERE profile_76755.strategic_yn ='Yes'
+END as result
+from profile_76755 p
+left join ds_mysql_prod_project fac
+on p.projectId = fac.id
+left join ds_mysql_prod_project ven
+on fac.parent = ven.id
+ 
+WHERE p.strategic_yn ='Yes'
+group by p.projectId, p.facility_name, p.year_timerange, p.country, director_region,  result, ven.name,p.female_workers, p.male_workers, p.female_supervisors, p.male_supervisors
