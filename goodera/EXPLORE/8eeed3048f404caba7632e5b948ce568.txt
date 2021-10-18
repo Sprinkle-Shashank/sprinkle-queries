@@ -1,102 +1,28 @@
-Select p.projectId,p.facility_name,p.sdis,p.year_timerange,p.country,p.director_region,p.facility_type,p.strategic_yn,profile_66923.recognized_union,profile_66923.workers_production_unit,profile_66923.male_female,profile_66923.female_representation,profile_66923.decision_making,profile_66923.decision_making_attendance,profile_66923.meeting_held,profile_66923.members_present_meetings,profile_66923.active_members_list,profile_66923.reps_elected,profile_66923.issues_addressed,profile_66923.follow_up,profile_66923.members_duty_released,profile_66923.peers_reachout,profile_66923.assessment_review,profile_66923.retaliation,profile_66923.alternative_trade_union,profile_66923.grievance_handling, ven.name AS Vendor,
-CASE WHEN (recognized_union=1409098) OR (recognized_union=1409096) THEN '1'
+
+
+Select  p.projectId, p.facility_name, p.strategic_yn, p.year_timerange, p.country,ven.name AS Vendor, p.female_workers, p.male_workers, p.female_managers, p.male_managers, p.female_reps_worker, p.male_reps_workers, p.female_reps_management, p.male_reps_management, p.female_supervisors, p.male_supervisors, 
+female_reps_management*100 AS a1,(female_reps_management + male_reps_management) AS b1,
+a1/b1 AS f1,
+
+female_managers*100 AS a2, (female_managers+male_managers) AS b2,
+a2/b2 AS f2,
+
+female_reps_worker*100 AS a3, (female_reps_worker + male_reps_workers) AS b3,
+a3/b3 AS f3,
+
+(female_workers+female_supervisors)*100 AS a4, (female_workers + female_supervisors+male_workers+male_supervisors) AS b4,
+a4/b4 AS f4,
+
+CASE WHEN(f1>f2 AND f3>f4) THEN 'YES'
 ELSE
-'0'
-END AS sdi17,
-CASE WHEN (profile_66923.workers_production_unit = 57472) THEN '1'
-ELSE 
-'0'
-END AS sdi1,
-CASE WHEN (profile_66923.decision_making = 57472) THEN '1'
-ELSE 
-'0'
-END AS sdi2,
-CASE WHEN (profile_66923.male_female = 57472) THEN '1'
-ELSE 
-'0'
-END AS sdi3,
-CASE WHEN (profile_66923.decision_making_attendance = 57472) THEN '1'
-ELSE 
-'0'
-END AS sdi4,
-CASE WHEN (profile_66923.meeting_held = 57472) THEN '1'
-ELSE 
-'0'
-END AS sdi5,
-CASE WHEN (profile_66923.female_representation= 57472) THEN '1'
-ELSE 
-'0'
-END AS sdi6,
-CASE WHEN (profile_66923.members_present_meetings = 57472) THEN '1'
-ELSE 
-'0'
-END AS sdi7,
-CASE WHEN (profile_66923.active_members_list = 57472) THEN '1'
-ELSE 
-'0'
-END AS sdi8,
-CASE WHEN (profile_66923.reps_elected = 57472) THEN '1'
-ELSE
-'0'
-END AS sdi9,
-CASE WHEN (profile_66923.issues_addressed = 57472) THEN '1'
-ELSE 
-'0'
-END AS sdi10,
-CASE WHEN (profile_66923.follow_up= 57472) THEN '1'
-ELSE 
-'0'
-END AS sdi11,
-CASE WHEN (profile_66923.assessment_review = 57472) THEN '1'
-ELSE 
-'0'
-END AS sdi12,
-CASE WHEN (profile_66923.peers_reachout = 57472) THEN '1'
-ELSE 
-'0'
-END AS sdi13,
-CASE WHEN (profile_66923.members_duty_released = 57472) THEN '1'
-ELSE 
-'0'
-END AS sdi14,
-CASE WHEN (profile_66923.retaliation = 57472) THEN '1'
-ELSE 
-'0'
-END AS sdi15,
-CASE WHEN (profile_66923.grievance_handling= 57472) THEN '1'
-ELSE 
-'0'
-END AS sdi16,
-CASE WHEN (profile_66923.alternative_trade_union = 1409098) or (alternative_trade_union = 1409096) THEN '1'
-ELSE 
-'0'
-END AS sdi18,
-
-
-
-
-
-
-
-sdi1+(sdi2+(sdi3+(sdi4+(sdi5+(sdi6+(sdi7+(sdi8+(sdi9+(sdi10+(sdi11+(sdi12+(sdi13+(sdi14+(sdi15+(sdi16+(sdi17+sdi18)))))))))))))))) AS num
-/*CASE WHEN (p.country=China) OR (p.country=Vietnam) THEN 
-CASE WHEN (num>13) AND (sdi17=1) AND (sdi18=1) THEN 'YES'
-ELSE 
 'NO'
-END
-ELSE
-CASE WHEN (num>13) AND (sdi17=1) AND (sdi18=1) AND (sdi19=1) THEN 'YES'
-ELSE 
-'No'
-END AS KPI2 Met*/
+END AS result
+
+
+
 
 
 from profile_76755 p
-
-
-left join profile_66923
-on p.sdis = profile_66923._id
-
 left join ds_mysql_prod_project fac
 on p.projectId = fac.id
 left join ds_mysql_prod_tagelement ven
@@ -105,3 +31,4 @@ on fac.parent = ven.id
 
 
 WHERE p.strategic_yn ='Yes'
+AND (f1>f2 AND f3>f4 ) AND country IN('Cambodia','vietnam');
