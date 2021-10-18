@@ -4,8 +4,9 @@ profile_65025.status as status, profile_65025.service_provider as service_provid
 nvl2(status_updated, status_updated, status_begin) as wep_status,
 nvl2(service_provider_updated, service_provider_updated, service_provider_begin) as service_provider,
 nvl2(survey_yn_updated, survey_yn_updated, survey_yn_begin) as survey_yn
---,regexp_substr(vendor, '\(', 1, 1, 'i') as vendor_name
-
+--,regexp_substr(vendor, '/ (', 1, 1, 'i') as vendor_name
+,SUBSTRING(vendor, 1, POSITION(' (' in vendor)) as vendor_name,
+nvl2(vendor_name, vendor_name, vendor) as vendor
 
 from profile_60670 p
 
@@ -47,31 +48,6 @@ on p.service_provider = spu.id
 left join ds_mysql_prod_tagelement syu
 on p.survey_yn = syu.id
 
---count *
---group by p.projectId, p.year_timerange, year, wep_status, profile_65025.service_provider, profile_65025.survey_yn, vendor, country
+where country != 13761 and wep_status = 'Active (launched)'
 
-/*
-select p.fy_timerange,l.Project_Manager,p.ProjectCode,p.Village,p.Focusarea,p.Month,p.Activity_Category,p.Activity_Sub_Category,sum(p.Planned) as Planned,sum(p.Actual) as Actual from lookup p left join Base1 l on p.CODE=l.CODE group by p.fy_timerange,l.Project_Manager,p.ProjectCode,p.Village,p.Focusarea,p.Month,p.Activity_Category,p.Activity_Sub_Category 
-
-
-left join profile_65025
-on p.projectId = profile_65025.projectId
-set p.status =  profile_65025.status,
-	p.service_provider = profile_65025.service_provider, 
-	p.survey_yn = profile_65025.survey_yn, 
-	p.features = profile_65025.features
-
-
-
-
-UPDATE table1,profile_65025
-SET table1.value=table2.value 
-WHERE profile_65025.id=table1.id
-
-
-group by projectId, year_timerange, year, wep_status, service_provider, survey_yn, vendor, country
-
-where (country != 13761) and (wep_status == 'Active')
-
-*/
-
+group by p.projectId, p.year_timerange, year, wep_status, profile_65025.service_provider, profile_65025.survey_yn,country,ven.name, p.other_status, sb.name, syb.name, spb.name, su.name, fu.name, spu.name, syu.name, profile_65025.status, profile_65025.features
