@@ -24,7 +24,8 @@ with test1 as(
 	  select 'Hypertension' as Disease from test2 
 	  union all
 	  select 'General_Check_Up' as Disease from test2 
-	)
+	),
+	test3 as(
   select p.projectid,p.patient_name,p.fy_timerange,p.govt,p.p_id,p.s_clinic_type,p.f_category,t.disease,
   case disease
   	when 'Oral_Hygiene' then p.Oral_Hygiene
@@ -36,6 +37,7 @@ with test1 as(
 	when 'Hypertension' then p.Hypertension
 	when 'General_Check_Up' then p.General_Check_Up
 	else null
-			end as final_sum,sum(final_sum)
+			end as final_sum
 			from test2 p cross join pivot t
-			group by p.projectid,p.patient_name,p.fy_timerange,p.govt,p.p_id,p.s_clinic_type,p.f_category,t.disease
+	  )
+	  select select p.projectid,p.patient_name,p.fy_timerange,p.govt,p.p_id,p.s_clinic_type,p.f_category,p.disease,sum(p.final_sum) from test3 p group by 1,2,3,4,5,6,7,8
