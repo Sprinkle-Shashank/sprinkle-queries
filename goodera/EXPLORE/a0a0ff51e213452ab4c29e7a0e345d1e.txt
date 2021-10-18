@@ -1,0 +1,54 @@
+select p.projectId, p.year_timerange, p.other_status, yr.name as start_year, ven.name as vendor, cou.name as country, yr.name as year, sb.name as status_begin, syb.name as survey_yn_begin, spb.name as service_provider_begin , 
+fu.name as feature_updated, syu.name as survey_yn_updated, 
+profile_65025.status as status, profile_65025.service_provider as service_provider, profile_65025.survey_yn as survey_yn, profile_65025.features as features,
+nvl2(su.name, su.name, status_begin) as wep_status,
+nvl2(spu.name, spu.name, service_provider_begin) as service_provider,
+nvl2(survey_yn_updated, survey_yn_updated, survey_yn_begin) as survey_yn
+--,regexp_substr(vendor, '/ (', 1, 1, 'i') as vendor_name
+,SUBSTRING(vendor, 1, POSITION(' (' in vendor)) as vendor_name,
+nvl2(vendor_name, vendor_name, vendor) as vendor
+
+from profile_60670 p
+
+left join ds_mysql_prod_project fac
+on p.projectid = fac.id
+left join ds_mysql_prod_project ven
+on fac.parent = ven.id
+left join ds_mysql_prod_project cou
+on ven.parent = cou.id
+
+
+
+left join ds_mysql_prod_tagelement yr
+on p.start_year = yr.id
+
+
+left join ds_mysql_prod_tagelement sb
+on p.status = sb.id
+
+left join ds_mysql_prod_tagelement syb
+on p.survey_yn = syb.id
+
+left join ds_mysql_prod_tagelement spb
+on p.service_provider = spb.id
+
+left join profile_65025
+on p.projectId = profile_65025.projectId 
+
+
+left join ds_mysql_prod_tagelement su
+on p.status = su.id
+
+left join ds_mysql_prod_tagelement fu
+on p.features = fu.id
+
+left join ds_mysql_prod_tagelement spu
+on p.service_provider = spu.id
+
+left join ds_mysql_prod_tagelement syu
+on p.survey_yn = syu.id
+
+where country != 13761 and wep_status = 'Active (launched)'
+
+group by p.projectId, p.year_timerange, year, wep_status, profile_65025.service_provider, profile_65025.survey_yn,country,ven.name, p.other_status, sb.name, syb.name, spb.name, su.name, fu.name, spu.name, syu.name, profile_65025.status, profile_65025.features
+
