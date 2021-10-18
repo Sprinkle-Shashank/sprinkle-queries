@@ -1,4 +1,4 @@
-select pro.name as projectId, schedule.name as schedule_vii, local.name as local_yn,impdir.name as imp_direct, project_start_date as fy_timerange1 , csr_reg_num, ong.name as ongoing, district.name as state_district, project_end_date, sum(p1.prescribed_csr) as allocated ,sum(p2.amount) as disbursed,sum(p3.amount) as utilized , state.name as state, p.fy_timerange as timerange ,
+select pro.name as projectId,ngo.name as ngo ,schedule.name as schedule_vii, local.name as local_yn,impdir.name as imp_direct, project_start_date as fy_timerange1 , csr_reg_num, ong.name as ongoing, district.name as state_district, project_end_date, sum(p1.prescribed_csr) as allocated ,sum(p2.amount) as disbursed,sum(p3.amount) as utilized , state.name as state, p.fy_timerange as timerange ,
 concat(
   
 	concat(concat(extract (day from fy_timerange1),'-'), 
@@ -41,8 +41,11 @@ on p.ongoing = ong.id
 left join ds_mysql_prod_project pro 
 on p.projectId = pro.id
 
+left join ds_mysql_prod_project ngo 
+on pro.parent = ngo.id
+
 
 where ongoing  is not null
-group by pro.name, schedule.name,local.name,impdir.name,ong.name, local_yn, imp_direct, project_start_date , csr_reg_num, ongoing, district.name , project_end_date, state.name 
+group by pro.name,ngo.name, schedule.name,local.name,impdir.name,ong.name, local_yn, imp_direct, project_start_date , csr_reg_num, ongoing, district.name , project_end_date, state.name 
 , p.fy_timerange
 order by timerange
