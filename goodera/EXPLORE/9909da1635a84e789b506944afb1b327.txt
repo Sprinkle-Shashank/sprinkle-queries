@@ -1,0 +1,52 @@
+Select  p.projectId, p.facility_name, p.strategic_yn, p.year_timerange, p.country,ven.name AS Vendor, p.female_workers, p.male_workers, p.female_managers, p.male_managers, p.female_reps_worker, p.male_reps_workers, p.female_reps_management, p.male_reps_management, p.female_supervisors, p.male_supervisors, 
+female_reps_management*100 AS a,(female_reps_management + male_reps_management) AS b,
+CAST (a AS FLOAT) as a1,
+CAST (b as FLOAT) as b1,
+a1/b1 AS f1,
+
+female_managers*100 AS c, (female_managers+male_managers) AS d,
+CAST (c AS FLOAT) as c1,
+CAST (d as FLOAT) as d1,
+Case when p.country IN ('Cambodia','Vietnam')
+THEN 
+c1/d1 
+
+END as f2,
+female_reps_worker*100 AS e, (female_reps_worker + male_reps_workers) AS g,
+CAST (e AS FLOAT) as e1,
+CAST (g as FLOAT) as g1,
+e1/g1 AS f3,
+
+(female_workers+female_supervisors)*100 AS h, (female_workers + female_supervisors+male_workers+male_supervisors) AS i,
+CAST (h AS FLOAT) as h1,
+CAST (i as FLOAT) as i1,
+Case when p.country IN ('Cambodia','Vietnam')
+THEN
+h1/i1
+
+end as f4,
+case 
+	when 1=1
+	then 1
+	else 0
+	end
+	as count,
+CASE WHEN(f1>f2 AND f3>f4) THEN 'YES'
+ELSE
+'NO'
+END AS result
+
+
+
+
+
+from profile_76755 p
+left join ds_mysql_prod_project fac
+on p.projectId = fac.id
+left join ds_mysql_prod_project ven
+on fac.parent = ven.id
+
+
+
+WHERE p.strategic_yn ='Yes' AND result = 'YES'
+Group by  p.projectId, p.facility_name, p.strategic_yn, p.year_timerange, p.country, p.director_region, f1, f3, f4, result, ven.name, f2,p.female_workers, p.male_workers,p.female_managers, p.male_managers, p.female_reps_worker, p.male_reps_workers, p.female_reps_management, p.male_reps_management, p.female_supervisors, p.male_supervisors
