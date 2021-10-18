@@ -1,6 +1,21 @@
 with test1 as(
-	select p.projectId, p.fy_timerange, p.tb_dbt_truckers as Trucker, p.tb_allied as Allied, decode(govt,null,'Yes','Yes') as govt from profile_63887 p
+	select p.projectId, p.fy_timerange.start as fy_timerange, p.tb_dbt_truckers as Trucker, p.tb_allied as Allied, decode(govt,null,'Yes','Yes') as govt from profile_63887 p
+	),
+	pivot as(
+	select 'Trucker' as f_category
+	  union all
+	select 'Allied' as f_category
+	),
+	test2 as(
+	select p.projectId, p.fy_timerange, p.govt, t.f_category,
+	  case f_category
+	  when 'Trucker' then p.Trucker
+	  when 'Allied' then p.Allied
+	  else null
+	  end as sum
+	  from test1 p cross join pivot t
 	)
-	select * from test1
+	select p.projectId, p.fy_timerange, p.govt, p.f_category, sum(p.sum) as final_sum from test2
+	group by 1,2,3,4
 	
 	
