@@ -1,18 +1,48 @@
-select p.projectId,p.facility_name,p.strategic_yn,p.year_timerange,p.country,p.director_region,ven.name as Vendor,profile_76770.male_managers_supervisors,profile_76770.female_managers_supervisors,
-sum(male_managers_supervisors) as sum
+Select  p.projectId, p.facility_name, p.strategic_yn,director_region, p.year_timerange, p.country,ven.name AS Vendor, p.female_workers, p.male_workers, p.female_managers, p.male_managers, p.female_reps_worker, p.male_reps_workers, p.female_reps_management, p.male_reps_management, p.female_supervisors, p.male_supervisors, 
+female_reps_management*100 AS a,(female_reps_management + male_reps_management) AS b,
+CAST (a AS FLOAT) as a1,
+CAST (b as FLOAT) as b1,
+a1/b1 AS f1,
+
+female_managers*100 AS c, (female_managers+male_managers) AS d,
+CAST (c AS FLOAT) as c1,
+CAST (d as FLOAT) as d1,
+Case when p.country IN ('Cambodia','Vietnam')
+THEN 
+c1/d1 
+
+END as f2,
+female_reps_worker*100 AS e, (female_reps_worker + male_reps_workers) AS g,
+CAST (e AS FLOAT) as e1,
+CAST (g as FLOAT) as g1,
+e1/g1 AS f3,
+
+(female_workers+female_supervisors)*100 AS h, (female_workers + female_supervisors+male_workers+male_supervisors) AS i,
+CAST (h AS FLOAT) as h1,
+CAST (i as FLOAT) as i1,
+Case when p.country IN ('Cambodia','Vietnam')
+THEN
+h1/i1
+
+end as f4,
+
+CASE WHEN(f1>f2 AND f3>f4) THEN 'YES'
+ELSE
+'NO'
+END AS KPI 1 Met
+
+
+
+
 
 from profile_76755 p
-
-
-
-
 left join ds_mysql_prod_project fac
 on p.projectId = fac.id
 left join ds_mysql_prod_project ven
 on fac.parent = ven.id
 
-left join profile_76770 
-on profile_76770.facility_name = p._id
+
 
 WHERE p.strategic_yn ='Yes'
-group by p.projectId, p.facility_name, p.year_timerange,p.strategic_yn, p.country,p.director_region,ven.name,profile_76770.male_managers_supervisors,profile_76770.female_managers_supervisors
+
+alter profile_76755 drop column f1, f2, f3, f4;
