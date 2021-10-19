@@ -11,11 +11,15 @@ select concat(p.f_reg_date,'T00:00:00.000Z') as fy_timerange, p.projectid, p.f_c
 ),
 
 test3 as(
-select p.fy_timerange, p.projectid, p.f_category, sum(total_sum) from test1 p group by 1,2,3
+select p.fy_timerange, p.projectid, p.f_category, sum(total_sum) as total_sum from test1 p group by 1,2,3
 
 union all
   
-select p.fy_timerange, p.projectid, p.f_category, sum(total_sum) from test2 p group by 1,2,3
+select p.fy_timerange, p.projectid, p.f_category, sum(total_sum) as total_sum from test2 p group by 1,2,3
 )  
 
-select * from test3
+select p.fy_timerange, t.name as projectid, f_category, sum(total_sum) as total_sum
+from test3 p
+left join ds_mysql_prod_project as t
+on t.id = p.projectid
+group by 1,2,3
