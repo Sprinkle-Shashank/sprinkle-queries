@@ -2,13 +2,28 @@ with s1 as (
   Select * from profile_77527
   )
 Select t.name as projectid, s1._id,
- s1.name,s1.fy_timerange,ss.school_name as school_name,ss1.batch_name as batch_name ,s1.roll_no ,s1.student_name ,s1.guardian_name ,s1.student_age ,s1.student_class ,s1.student_phone,s1.student_photo,s1.student_certificate,s1.student_score,count(*) as Count from s1
+ s1.name,s1.fy_timerange,ss.school_name as school_name,ss1.batch_name as batch_name ,s1.roll_no ,s1.student_name ,s1.guardian_name ,case 
+   when s1.student_age<10 then 'Below 10'
+   when s1.student_age >10 and s1.student_age <14 then '10-14'
+   when s1.student_age >15 and s1.student_age <18 then '15-18'
+   when s1.student_age >18 and s1.student_age <21 then '18-21'
+   when s1.student_age >21 then 'Above 21'
+   else null
+   end as student_age
+   ,t1.name as student_class,s1.student_phone,s1.student_photo,s1.student_certificate,s1.student_score,count(*) as Count
+ 
+   
+ 
+ from s1
 left join profile_77524 ss
   on s1.school_name=ss._id
   left join profile_77526 ss1
   on s1.batch_name=ss1._id
   left join ds_mysql_prod_project t
   on s1.projectid=t.id
+  left join ds_mysql_prod_project t1
+  on s1.student_class=t1.id
+  
 group by
 t.name, s1._id,
- s1.name,s1.fy_timerange,ss.school_name ,ss1.batch_name ,s1.roll_no ,s1.student_name ,s1.guardian_name ,s1.student_age ,s1.student_class ,s1.student_phone,s1.student_photo,s1.student_certificate,s1.student_score
+ s1.name,s1.fy_timerange,ss.school_name ,ss1.batch_name ,s1.roll_no ,s1.student_name ,s1.guardian_name ,s1.student_age ,t1.name ,s1.student_phone,s1.student_photo,s1.student_certificate,s1.student_score
