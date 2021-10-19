@@ -1,11 +1,35 @@
 with test1 as(
-select p.fy_timerange.start as fy_timerange, p.projectid, 'Allied' as f_category, (nv_allied + nv_partner) as "Referactive Error - Near Vision", (dv_allied + dv_partner) as "Referactive Error - Distance Vision", (cv_allied + cv_partner) as "Referactive Error - Complex Vision/Compound Vision", (cata_partner + cata_allied) as Cataract, (cata_surgery_allied + cata_surgery_partner) as "Cataract Surgery Done" from profile_63886 p
+select p.fy_timerange.start as fy_timerange, p.projectid, 'Allied' as f_category, (nv_allied + nv_partner) as         "Near Vision", (dv_allied + dv_partner) as "Distance Vision", (cv_allied + cv_partner) as "Complex Vision", (cata_partner + cata_allied) as Cataract, (cata_surgery_allied + cata_surgery_partner) as "Cataract Surgery" from profile_63886 p
 ),
 test2 as(
 select p.fy_timerange.start as fy_timerange, p.projectid, 'Trucker' as f_category, nv_truck as
-"Referactive Error - Near Vision", dv_truck as "Referactive Error - Distance Vision", cv_truck as "Referactive Error - Complex Vision/Compound ision", cata_truck as Cataract,
-cata_surgery_truck as "Cataract Surgery Done" from profile_63886 p
+"Near Vision", dv_truck as "Distance Vision", cv_truck as "Complex Vision", cata_truck as Cataract,
+cata_surgery_truck as "Cataract Surgery" from profile_63886 p
  union all
  select * from test1
+),
+pivot as(
+select 'Near Vision' as vision
+  union all
+select 'Distance Vision' as vision
+  union all
+select 'Complex Vision' as vision
+  union all
+select 'Cataract' as vision
+  union all
+select 'Cataract Surgery' as vision
+),
+test4 as(
+select p.fy_timerange, p.projectid, p.f_category, t.vision,
+  when 'Near Vision' then p."Near Vision"
+  when 'Distance Vision' then p."Distance Vision"
+  when 'Complex Vision' then p."Complex Vision"
+  when 'Cataract' then p."Cataract"
+  when 'Cataract Surgery' then p."Cataract Surgery"
+  else null
+  end as total_sum
+  from test2 p cross join pivot t
 )
- select * from test2
+
+
+ select * from test4
