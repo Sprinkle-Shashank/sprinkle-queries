@@ -1,0 +1,30 @@
+
+with temp as (
+  select 'beneficiary_reach' as C
+  Union all 
+  select 'philips_partcipants' as C
+  
+	)
+Select report.projectid, report.date as fy_timerange, act.activity ,cit.name as location ,
+Sum(Case C
+	When 'beneficiary_reach' then report.beneficiary_reach
+	When 'philips_partcipants' then report.philips_partcipants
+	Else Null
+END) as values , temp.C as dimensions
+from profile_78552 report
+cross join temp
+Left join profile_78551 act
+On report.task = act._id
+
+left join ds_mysql_prod_tagelement cit
+ on report.locate = cit.id
+
+GROUP BY report.projectid,report.date , act.activity ,cit.name,temp.C
+/*Select report.date, act.activity ,cit.name as location ,report.beneficiary_reach,report.philips_partcipants,report.details,report.photo,report.upload,report.pre_assessment,report.post_assessment
+from profile_78552 report
+Left join profile_78551 act
+On report.task = act._id
+
+left join ds_mysql_prod_tagelement cit
+ on report.locate = cit.id
+*/
