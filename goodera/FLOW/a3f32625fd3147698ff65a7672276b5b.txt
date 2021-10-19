@@ -1,0 +1,43 @@
+with test1 as(
+  select p.projectId, p.oral, p.diabetes, p.sti, tb1, p.hiv, p.vision, p.hypertension, p.general, p.patient_name, p.govt, p.p_id, p.s_clinic_type, p.f_category, p.f_reg_date from profile_59462 p cross join p.tb tb1
+  ),
+  	test2 as(
+	select p.projectId, p.p_id, p.f_category, p.patient_name, p.f_reg_date as fy_timerange, decode(p.oral,1012465,0,null,0,1) as Oral_Hygiene, decode(p.diabetes,1012463,0,null,0,1) as Diabetes, decode(p.sti,1012470,0,null,0,1) as Sexually_Transmitted_Diseases, decode(p.tb1,1012460,0,null,0,1) as Tuberculosis, decode(p.hiv,1012480,0,null,0,1) as HIV, decode(p.vision,1012444,0,null,0,1) Vision_Screening, decode(p.hypertension,1012468,0,null,0,1) as Hypertension, decode(p.general,1012465,0,null,0,1) as General_Check_Up, go.name as govt, s.name as s_clinic_type from test1 p 
+	  left join ds_mysql_prod_tagelement go
+	  on p.govt = go.id
+	  left join ds_mysql_prod_tagelement s
+	  on p.s_clinic_type = s.id
+	),
+	pivot as(
+	select 'Oral_Hygiene' as Disease from test2 
+	  union all
+	  select 'Diabetes' as Disease from test2 
+	  union all
+	  select 'Sexually_Transmitted_Diseases' as Disease from test2 
+	  union all
+	  select 'Tuberculosis' as Disease from test2 
+	  union all
+	  select 'HIV' as Disease from test2 
+	  union all
+	  select 'Vision_Screening' as Disease from test2 
+	  union all
+	  select 'Hypertension' as Disease from test2 
+	  union all
+	  select 'General_Check_Up' as Disease from test2 
+	),
+	test3 as(
+  select p.projectid,p.patient_name,p.fy_timerange,p.govt,p.p_id,p.s_clinic_type,p.f_category,t.disease,
+  case disease
+  	when 'Oral_Hygiene' then p.Oral_Hygiene
+	when 'Diabetes' then p.Diabetes
+	when 'Sexually_Transmitted_Diseases' then p.Sexually_Transmitted_Diseases
+	when 'Tuberculosis' then p.Tuberculosis
+	when 'HIV' then p.HIV
+	when 'Vision_Screening' then p.Vision_Screening
+	when 'Hypertension' then p.Hypertension
+	when 'General_Check_Up' then p.General_Check_Up
+	else null
+			end as final_sum
+			from test2 p cross join pivot t
+	  )
+	  select p.projectid,p.patient_name,p.fy_timerange,p.govt,p.p_id,p.s_clinic_type,p.f_category,p.disease,sum(p.final_sum) from test3 p group by 1,2,3,4,5,6,7,8
