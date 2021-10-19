@@ -8,6 +8,14 @@ select p.fy_timerange.start as fy_timerange, p.projectid, 'Trucker' as f_categor
 
 test2 as(
 select concat(p.f_reg_date,'T00:00:00.000Z') as fy_timerange, p.projectid, p.f_category, decode(p.vision,1012444,0,null,0,1) as total_sum from profile_59462 p
-)
+),
 
-select * from test2
+test3 as(
+select p.fy_timerange, p.projectid, p.f_category, sum(total_sum) from test1 p group by 1,2,3
+
+union all
+  
+select p.fy_timerange, p.projectid, p.f_category, sum(total_sum) from test2 p group by 1,2,3
+)  
+
+select * from test3
