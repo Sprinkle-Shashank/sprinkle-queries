@@ -1,0 +1,39 @@
+with temp as (
+Select 'School_Level' as col
+  union all
+ Select 'Location_Level' as col
+  union all
+ Select 'State_Level' as col
+  union all
+  select 'National_Level' as col
+  
+)
+
+, s1 as (
+  Select * from profile_77534
+  )
+  select t.name as projectid, s1._id,s1.name ,
+s1.fy_timerange,ss.school_name as school_name ,ss1.batch_name as batch_name ,s1.no_of_cent_trainings ,(s1.no_of_school_online_trainings
++s1.no_of_school_offline_trainings) as offline_online ,s1.no_of_school_onsite_support,s1.nos_participate_sch_level as School_Level,s1.nos_participate_loc_level as Location_Level,s1.nos_participate_st_it_level as State_Level,s1.nos_participate_nat_level as National_Level,temp.col as dimensions,
+
+sum(case col
+when 'School_Level' then s1.nos_participate_sch_level
+when 'Location_Level' then s1.nos_participate_loc_level
+when 'State_Level' then s1.nos_participate_st_it_level
+when 'National_Level' then s1.nos_participate_nat_level
+	
+else null end) as values
+
+
+
+from s1
+cross join temp
+  left join profile_77524 ss
+  on s1.school_name=ss._id
+  left join profile_77526 ss1
+  on s1.batch_name=ss1._id
+  left join ds_mysql_prod_project t
+  on s1.projectid=t.id
+  group by 
+  t.name, s1._id,s1.name ,
+s1.fy_timerange,ss.school_name,ss1.batch_name ,s1.no_of_cent_trainings ,s1.no_of_school_online_trainings,s1.no_of_school_offline_trainings ,s1.no_of_school_onsite_support,s1.nos_participate_sch_level,s1.nos_participate_loc_level,s1.nos_participate_st_it_level,s1.nos_participate_nat_level,dimensions
