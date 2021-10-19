@@ -1,0 +1,21 @@
+with lookup as (select split_part(split_part(prod.name,'|',1),'.',1) as ProjectCode,f.name as fy_timerange,concat(ProjectCode,fy_timerange) as CODE,split_part(prod.name,'|',3) as census from profile_54963 p
+left join ds_mysql_prod_project prod on
+prod.id=p.projectid
+left join ds_mysql_prod_tagelement f on
+p.fy=f.id)
+,Base1 as
+(select p.name as ProjectCode,f.name as fy_timerange,concat(ProjectCode,fy_timerange) as CODE,m.name  as Project_Manager from profile_27396 p
+left join ds_mysql_prod_tagelement m on
+p.project_manager=m.id
+left join ds_mysql_prod_tagelement f on
+p.fy=f.id
+union
+select l.name as ProjectCode,f.name as fy_timerange,concat(ProjectCode,fy_timerange) as CODE,m.name as Project_Manager
+from profile_27420 p
+left join profile_27396 l on
+p.project_code=l._id
+left join ds_mysql_prod_tagelement m on
+p.project_manager=m.id
+left join ds_mysql_prod_tagelement f on
+p.fy=f.id
+),Base2 as(select p.ProjectCode,p.fy_timerange,p.CODE,l.village as Village from lookup p left join profile_27489 l on p.census=l.name),Base3 as(select p.ProjectCode,p.fy_timerange,l.Project_Manager,p.Village from Base2 p left join Base1 l on p.CODE=l.CODE)
