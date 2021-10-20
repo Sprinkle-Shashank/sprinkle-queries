@@ -21,10 +21,10 @@ left join ds_mysql_prod_tagelement tra
 on p.trainer = tra.id
 ) 
 ,sub2 as(
-select s1.*,c from sub as s1, s1.trainer_organization c 
+select s1.*,c,d from sub as s1, s1.trainer_organization c,s1.trainer d 
 )
 select 
-s2.projectId, s2.name, date, other, local_foreign, no_local_foreign, s2.location, notes, survey_yn, excel_upload, tr_created, keyword_1, num_managers, hours, num_middle, num_other, participants, training_type, trainer_organization, trainer, country,vendor_name, vendor, 
+s2.projectId, s2.name, date, other, local_foreign, no_local_foreign, s2.location, notes, survey_yn, excel_upload, tr_created, keyword_1, num_managers, hours, num_middle, num_other, participants, training_type, triorg.name as trainer_organization, tra.name as trainer, country,vendor_name, vendor, 
 triorg.name as trainer_organization,
 case when extract(month from date)=1 then (extract(year from date)-1)
 else extract(year from date)
@@ -34,8 +34,11 @@ from sub2 as s2
 left join ds_mysql_prod_tagelement triorg 
 on s2.c = triorg.id
 
+left join ds_mysql_prod_tagelement tra 
+on s2.d = tra.id
+
+
 where country <> 'Test Country'
-/*
+
 group by 
-projectId, s2.name, date, other, local_foreign, no_local_foreign, location, notes, survey_yn, excel_upload, tr_created, keyword_1, num_managers, hours, num_middle, num_other, participants, training_type, trainer_organization, trainer, country, vendor_name, vendor, year
-*/
+projectId, s2.name, date, other, local_foreign, no_local_foreign, location, notes, survey_yn, excel_upload, tr_created, keyword_1, num_managers, hours, num_middle, num_other, participants, training_type, triorg.name, tra.name, country, vendor_name, vendor, year
