@@ -14,45 +14,46 @@ FROM
         mt.country as country,
 		mt.eoId AS eoId
     FROM
-        (SELECT 
-        	evo.startDate AS start_date,
-            CASE
-                WHEN evo.endDate IS NOT NULL THEN evo.endDate
-                ELSE evo.startDate
-            END AS end_date,
-            evp.duration AS duration,
-            evo.countryName as country,
-            eo.id AS eoId
-		FROM
-			ds_mysql_prod_empOpportunity eo
-		LEFT JOIN ds_mysql_prod_empVolunteeringOpportunity evo ON evo.empOpportunityId = eo.id
-		LEFT JOIN ds_mysql_prod_empVolunteeringApplication eva ON eva.empVolunteeringOpportunityId = evo.id
-		LEFT JOIN ds_mysql_prod_empVolunteeringParticipation evp ON evp.empVolunteeringApplicationId = eva.id
-		WHERE
-			eo.securityContextId = 1615
-				AND eo.opportunityType = 'VOL'
-				AND eva.active = 1
-				AND eo.active = 1 
+        (
+            SELECT 
+                evo.startDate AS start_date,
+                CASE
+                    WHEN evo.endDate IS NOT NULL THEN evo.endDate
+                    ELSE evo.startDate
+                END AS end_date,
+                evp.duration AS duration,
+                evo.countryName as country,
+                eo.id AS eoId
+            FROM
+                ds_mysql_prod_empOpportunity eo
+            LEFT JOIN ds_mysql_prod_empVolunteeringOpportunity evo ON evo.empOpportunityId = eo.id
+            LEFT JOIN ds_mysql_prod_empVolunteeringApplication eva ON eva.empVolunteeringOpportunityId = evo.id
+            LEFT JOIN ds_mysql_prod_empVolunteeringParticipation evp ON evp.empVolunteeringApplicationId = eva.id
+            WHERE
+                eo.securityContextId = 1615
+                    AND eo.opportunityType = 'VOL'
+                    AND eva.active = 1
+                    AND eo.active = 1 
 
-		UNION ALL 
+            UNION ALL 
 
-		SELECT 
-			emo.created AS start_date,
-			emo.created AS end_date,
-			(emo.timeTaken / 60) AS duration,
-			NULL as country,
-			eo.id AS eoId
-		FROM
-			ds_mysql_prod_empOpportunity eo
-		LEFT JOIN ds_mysql_prod_empMicroOpportunity emo ON eo.id = emo.empOpportunityId
-		LEFT JOIN ds_mysql_prod_empMicroContributor emc ON emo.id = emc.empMicroOpportunityId
-		WHERE
-			eo.securityContextId = 1615
-				AND eo.opportunityType = 'MIC'
-				AND emc.active = 1
-				AND eo.active = 1
-	) AS mt
-    GROUP BY mt.eoId, mt.start_date, mt.end_date, country,
+            SELECT 
+                emo.created AS start_date,
+                emo.created AS end_date,
+                (emo.timeTaken / 60) AS duration,
+                NULL as country,
+                eo.id AS eoId
+            FROM
+                ds_mysql_prod_empOpportunity eo
+            LEFT JOIN ds_mysql_prod_empMicroOpportunity emo ON eo.id = emo.empOpportunityId
+            LEFT JOIN ds_mysql_prod_empMicroContributor emc ON emo.id = emc.empMicroOpportunityId
+            WHERE
+                eo.securityContextId = 1615
+                    AND eo.opportunityType = 'MIC'
+                    AND emc.active = 1
+                    AND eo.active = 1
+	    ) AS mt
+        GROUP BY mt.eoId, mt.start_date, mt.end_date, country
 	) AS endTable
         LEFT JOIN
     ds_mysql_prod_empOpportunityFocusArea eofa ON eofa.empOpportunityId = endTable.eoId
