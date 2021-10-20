@@ -1,3 +1,25 @@
+select  
+    evo.startDate as start_date,
+    case 
+        when evo.endDate is not null then evo.endDate
+        else evo.startDate
+    end as end_date,
+    SUM(evp.duration) as vol_hours,
+    GROUP_CONCAT(distinct eofa.focusArea SEPARATOR ',') as focus_area,
+    eo.id as empId
 
 
-select * from ds_mongo_profileinstance limit 10
+from ds_mysql_prod_empOpportunity eo
+left join ds_mysql_prod_empVolunteeringOpportunity evo on evo.empOpportunityId = eo.id
+left join ds_mysql_prod_empVolunteeringApplication eva on eva.empVolunteeringOpportunityId = evo.id
+left join ds_mysql_prod_empVolunteeringParticipation evp on evp.empVolunteeringApplicationId = eva.id
+left join ds_mysql_prod_empOpportunityFocusArea eofa on eofa.empOpportunityId = eo.id
+
+
+where evo.securityContextId = 1615
+and eo.opportunityType = 'VOL'
+AND eva.active = 1
+
+Group BY empId;
+
+
