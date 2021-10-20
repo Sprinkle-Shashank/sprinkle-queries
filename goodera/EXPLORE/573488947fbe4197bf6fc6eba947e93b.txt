@@ -1,13 +1,13 @@
 with test1 as(
-select p.fy_timerange.start as fy_timerange, p.projectid, 'Allied' as f_category, (vision_allied + vision_partner) as total_sum from profile_63885 p
+select p.fy_timerange.start as fy_timerange, p.projectid, 'Allied' as f_category, (vision_allied + vision_partner) as vision_screening, (sti_allied + sti_partner) as sexually_transmitted_diseases, (gen_allied + gen_partner) as general_check_up, (hiv_allied + hiv_partner) as hiv, (tb_allied + tb_partner) as tuberculosis, (diabetes_allied + diabetes_partner) as diabetes from profile_63885 p
   
 union all
   
-select p.fy_timerange.start as fy_timerange, p.projectid, 'Trucker' as f_category, vision_truckers as total_sum from profile_63885 p
+select p.fy_timerange.start as fy_timerange, p.projectid, 'Trucker' as f_category, vision_truckers as vision_screening, sti_truckers as sexually_transmitted_diseases, gen_truckers as general_check_up, hiv_truckers as hiv, tb_truckers as tuberculosis, diabetes_truckers as diabetes from profile_63885 p
 ),
 
 test2 as(
-select concat(p.f_reg_date,'T00:00:00.000Z') as fy_timerange, p.projectid, p.f_category, decode(p.vision,1012444,0,null,0,1) as total_sum from profile_59462 p
+select concat(p.f_reg_date,'T00:00:00.000Z') as fy_timerange, p.projectid, p.p_id, p.f_category, decode(p.oral,1012465,0,null,0,1) as oral_hygiene, decode(p.diabetes,1012463,0,null,0,1) as diabetes, decode(p.sti,1012470,0,null,0,1) as sexually_transmitted_diseases, decode(p.tb1,1012460,0,null,0,1) as tuberculosis, decode(p.hiv,1012480,0,null,0,1) as hiv, decode(p.vision,1012444,0,null,0,1) vision_screening, decode(p.hypertension,1012468,0,null,0,1) as hypertension, decode(p.general,1012465,0,null,0,1) as general_check_up from profile_59462 p
 ),
 
 test3 as(
@@ -18,8 +18,10 @@ union all
 select p.fy_timerange, p.projectid, p.f_category, sum(total_sum) as total_sum from test2 p group by 1,2,3
 )  
 
-select p.fy_timerange, t.name as projectid, f_category, sum(total_sum) as total_sum
+/*select p.fy_timerange, t.name as projectid, f_category, sum(total_sum) as total_sum
 from test3 p
 left join ds_mysql_prod_project as t
 on t.id = p.projectid
-group by 1,2,3
+group by 1,2,3 */
+
+select concat(p.f_reg_date,'T00:00:00.000Z') as fy_timerange, p.projectid, p.p_id, p.f_category, decode(p.oral,1012465,0,null,0,1) as oral_hygiene, decode(p.diabetes,1012463,0,null,0,1) as diabetes, decode(p.sti,1012470,0,null,0,1) as sexually_transmitted_diseases, decode(p.tb1,1012460,0,null,0,1) as tuberculosis, decode(p.hiv,1012480,0,null,0,1) as hiv, decode(p.vision,1012444,0,null,0,1) vision_screening, decode(p.hypertension,1012468,0,null,0,1) as hypertension, decode(p.general,1012465,0,null,0,1) as general_check_up from profile_59462 p
