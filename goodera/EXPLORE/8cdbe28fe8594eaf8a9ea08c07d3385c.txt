@@ -1,25 +1,37 @@
-select  
-	cast(timestamp 'epoch' + CAST(evo.startDate AS BIGINT)/1000 * interval '1 second' as varchar) as start_date,
-    case 
-        when evo.endDate is not null then evo.endDate
-        else evo.startDate
-    end as end_date,
-    SUM(evp.duration) as vol_hours,
-    LISTAGG(distinct eofa.focusArea, ',') as focus_area,
-    eo.id as empId
+SELECT 
+                evo.startDate AS start_date,
+                CASE
+                    WHEN evo.endDate IS NOT NULL THEN evo.endDate
+                    ELSE evo.startDate
+                END AS end_date,
+                evp.duration AS duration,
+                evo.countryName as country,
+                eo.id AS eoId
+            FROM
+                ds_mysql_prod_empOpportunity eo
+            LEFT JOIN ds_mysql_prod_empVolunteeringOpportunity evo ON evo.empOpportunityId = eo.id
+            LEFT JOIN ds_mysql_prod_empVolunteeringApplication eva ON eva.empVolunteeringOpportunityId = evo.id
+            LEFT JOIN ds_mysql_prod_empVolunteeringParticipation evp ON evp.empVolunteeringApplicationId = eva.id
+            WHERE
+                eo.securityContextId = 1615
+                    AND eo.opportunityType = 'VOL'
+                    AND eva.active = 1
+                    AND eo.active = 1 
 
+            UNION ALL 
 
-from ds_mysql_prod_empOpportunity eo
-left join ds_mysql_prod_empVolunteeringOpportunity evo on evo.empOpportunityId = eo.id
-left join ds_mysql_prod_empVolunteeringApplication eva on eva.empVolunteeringOpportunityId = evo.id
-left join ds_mysql_prod_empVolunteeringParticipation evp on evp.empVolunteeringApplicationId = eva.id
-left join ds_mysql_prod_empOpportunityFocusArea eofa on eofa.empOpportunityId = eo.id
-
-
-where evo.securityContextId = 1615
-and eo.opportunityType = 'VOL'
-AND eva.active = 1
-
-Group BY empId, start_date, end_date;
-
-
+            SELECT 
+                emo.created AS start_date,
+                emo.created AS end_date,
+                (emo.timeTaken / 60) AS duration,
+                NULL as country,
+                eo.id AS eoId
+            FROM
+                ds_mysql_prod_empOpportunity eo
+            LEFT JOIN ds_mysql_prod_empMicroOpportunity emo ON eo.id = emo.empOpportunityId
+            LEFT JOIN ds_mysql_prod_empMicroContributor emc ON emo.id = emc.empMicroOpportunityId
+            WHERE
+                eo.securityContextId = 1615
+                    AND eo.opportunityType = 'MIC'
+                    AND emc.active = 1
+                    AND eo.active = 1
