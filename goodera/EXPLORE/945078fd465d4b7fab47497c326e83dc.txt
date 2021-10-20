@@ -1,10 +1,9 @@
 --sb.name as status_begin, syb.name as survey_yn_begin, spb.name as service_provider_begin , su.name as status_updated, fu.name as feature_updated, spu.name as service_provider_updated, syu.name as survey_yn_updated, profile_65025.status as status, profile_65025.service_provider as service_provider, profile_65025.survey_yn as survey_yn, profile_65025.features as features,
 
 
-select p.projectId, p.year_timerange, yr.name as year, ven.name as vendor, cou.name as country, yr.name as year, 
+select p.projectId, ven.name as vendor, cou.name as country, yr.name as year, 
 nvl2(su.name, su.name, sb.name) as wep_status,
-nvl2(spu.name, spu.name, spb.name) as service_provider,
-nvl2(syu.name, syu.name, syb.name) as survey_yn
+nvl2(spu.name, spu.name, spb.name) as service_provider
 
 from profile_60670 p
 
@@ -19,38 +18,23 @@ left join ds_mysql_prod_project cou
 on ven.parent = cou.id
 
 
-
-left join ds_mysql_prod_tagelement yr
-on p.start_year = yr.id
-
-
 left join ds_mysql_prod_tagelement sb
 on p.status = sb.id
 
-left join ds_mysql_prod_tagelement syb
-on p.survey_yn = syb.id
 
 left join ds_mysql_prod_tagelement spb
 on p.service_provider = spb.id
 
 
-
-
 left join ds_mysql_prod_tagelement su
 on p.status = su.id
-
-left join ds_mysql_prod_tagelement fu
-on p.features = fu.id
 
 left join ds_mysql_prod_tagelement spu
 on p.service_provider = spu.id
 
-left join ds_mysql_prod_tagelement syu
-on p.survey_yn = syu.id
-
 where country <> 'Test Country' and wep_status = 'Active (launched)'
 
-group by p.projectId, p.year_timerange, year, wep_status, profile_65025.service_provider, profile_65025.survey_yn,country,ven.name, spu.name, spb.name, syu.name, syb.name
+group by p.projectId, wep_status, profile_65025.service_provider, profile_65025.survey_yn,country,ven.name, spu.name, spb.name, syu.name, syb.name
 
 --, p.other_status, sb.name, syb.name, spb.name, su.name, fu.name, spu.name, syu.name, profile_65025.status, profile_65025.features
 
