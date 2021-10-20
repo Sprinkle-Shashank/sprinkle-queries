@@ -1,4 +1,13 @@
 SELECT 
+	cast(timestamp 'epoch' + CAST(endTable.start_date AS BIGINT)/1000 * interval '1 second' as varchar) as start_date,
+	cast(timestamp 'epoch' + CAST(endTable.end_date AS BIGINT)/1000 * interval '1 second' as varchar) as end_date,
+    endTable.vol_hours AS vol_hours,
+    endTable.eoId AS eoId,
+    LISTAGG(DISTINCT eofa.focusArea, ',') AS focus_area,
+    LISTAGG(DISTINCT COALESCE(endTable.country, eov.country), ',') as country
+                
+FROM
+    (SELECT 
         mt.start_date,
 		mt.end_date,
 		SUM(mt.duration) AS vol_hours,
@@ -45,3 +54,10 @@ SELECT
                     AND eo.active = 1
 	    ) AS mt
         GROUP BY mt.eoId, mt.start_date, mt.end_date, country
+	) AS endTable
+        LEFT JOIN
+    ds_mysql_prod_empOpportunityFocusArea eofa ON eofa.empOpportunityId = endTable.eoId
+        LEFT JOIN
+    ds_mysql_prod_empOpportunityVisibility eov ON eov.empOpportunityId = endTable.eoId
+    
+group by endTable.eoId, vol_hours, start_date, end_date;
