@@ -47,7 +47,18 @@ select p.f_reg_date as fy_timerange, p.projectid, p.p_id,
   	from profile_59462 p
   	where sti in ('1012473', '1012474', '1012471', '1012475', '1012476', '1012469', '1012472')
   	group by 1,2,3,4
+),
+
+final as(
+select p.projectId, p.fy_timerange, p.sti, sum(p.final_sum) as final_sum from final1 p group by 1,2,3
+  
+  union all
+  
+select t.projectId, t.fy_timerange, t.sti, sum(t.final_sum) as final_sum from test2 t group by 1,2,3
 )
 
-
-select * from test2
+select p.fy_timerange, t.name as projectid, p.sti, sum(p.final_sum) as final_sum
+from final p
+left join ds_mysql_prod_project as t
+on t.id = p.projectid
+group by 1,2,3
