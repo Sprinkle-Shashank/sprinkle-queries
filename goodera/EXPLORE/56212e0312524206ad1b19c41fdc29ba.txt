@@ -40,14 +40,8 @@ select p.fy_timerange, p.projectid, p.f_category, t.vision,
   from test2 p cross join pivot t
 ),
 
-
-final as(
-select p.fy_timerange, p.projectid, p.f_category, p.vision, sum(p.total_sum) as total_sum from test3 p
-group by 1,2,3,4
-  
-  union all
-  
-select concat(p.f_reg_date,'T00:00:00.000Z') as fy_timerange, p.projectid, p.f_category, 
+test4 as(
+select concat(p.f_reg_date,'T00:00:00.000Z') as fy_timerange, p.projectid, p.p_id, p.f_category, 
   	case
   		when vision = '1012445' then 'Distance Vision'
   		when vision = '1012446' then 'Cataract'
@@ -60,7 +54,17 @@ select concat(p.f_reg_date,'T00:00:00.000Z') as fy_timerange, p.projectid, p.f_c
   	count(*) as total_sum
   	from profile_59462 p
   	where vision in ('1012445', '1012446', '1012447', '1012448', '1012449', '1059858')
-  	group by 1,2,3,4
+  	group by 1,2,3,4,5
+),
+
+
+final as(
+select p.fy_timerange, p.projectid, p.f_category, p.vision, sum(p.total_sum) as total_sum from test3 p
+group by 1,2,3,4
+  
+  union all
+  
+select p.fy_timerange, p.projectid, p.f_category, p.vision, sum(p.total_sum) as total_sum from test4 p
 )
 
 
