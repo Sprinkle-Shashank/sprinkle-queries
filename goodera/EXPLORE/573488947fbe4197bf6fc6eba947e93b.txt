@@ -12,7 +12,15 @@ select concat(p.f_reg_date,'T00:00:00.000Z') as fy_timerange, p.projectid, p.p_i
 
 test2 as(
 select p.fy_timerange, p.projectid, p.p_id, p.f_category, decode(p.oral,1012465,0,null,0,1) as oral_hygiene, decode(p.diabetes,1012463,0,null,0,1) as diabetes, decode(p.sti,1012470,0,null,0,1) as sexually_transmitted_diseases, decode(p.tb1,1012460,0,null,0,1) as tuberculosis, decode(p.hiv,1012480,0,null,0,1) as hiv, decode(p.vision,1012444,0,null,0,1) vision_screening, decode(p.hypertension,1012468,0,null,0,1) as hypertension, decode(p.general,1012465,0,null,0,1) as general_check_up from test2a p
-)
+),
+
+test3 as(
+select p.fy_timerange.start as fy_timerange, p.projectid, 'Allied' as f_category, 'tuberculosis' as disease, (tb_pres_screen_s_allied + tb_pres_screen_x_allied + tb_pres_screen_both_allied) as final_sum from profile_63887 p
+  
+  union all
+  
+select p.fy_timerange.start as fy_timerange, p.projectid, 'Trucker' as f_category, 'tuberculosis' as disease, (tb_pres_screen_s_truckers + tb_pres_screen_x_truckers + tb_pres_screen_both_truckers) as final_sum from profile_63887 p
+),
 /*
 test3 as(
 select p.fy_timerange, p.projectid, p.f_category, sum(total_sum) as total_sum from test1 p group by 1,2,3
@@ -27,5 +35,4 @@ from test3 p
 left join ds_mysql_prod_project as t
 on t.id = p.projectid
 group by 1,2,3 */
-
-select p.fy_timerange, p.projectid, p.p_id, p.f_category, decode(p.oral,1012465,0,null,0,1) as oral_hygiene, decode(p.diabetes,1012463,0,null,0,1) as diabetes, decode(p.sti,1012470,0,null,0,1) as sexually_transmitted_diseases, decode(p.tb1,1012460,0,null,0,1) as tuberculosis, decode(p.hiv,1012480,0,null,0,1) as hiv, decode(p.vision,1012444,0,null,0,1) vision_screening, decode(p.hypertension,1012468,0,null,0,1) as hypertension, decode(p.general,1012465,0,null,0,1) as general_check_up from test2a p
+select * from test3
