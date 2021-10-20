@@ -1,0 +1,56 @@
+WITH TEMP AS (
+SELECT 'completion_status' AS col
+  UNION ALL
+  SELECT 'voucher' AS col
+  UNION ALL
+  SELECT 'placement_status' AS col
+  UNION ALL
+  SELECT 'employment_status' AS col
+)
+
+
+SELECT 
+COUNT (S.registration),
+--t1.name AS 
+S.discipline,
+S.date AS fy_timerange,
+S.completion_status,
+S.voucher,
+--t2.name AS 
+placement_status,
+--t3.name AS 
+employment_status,
+TEMP.col AS dimensions,
+
+COUNT (CASE col
+	WHEN 'completion_status'
+	THEN S.completion_status
+	
+	WHEN 'voucher'
+	THEN S.voucher
+	
+	WHEN 'placement_status'
+	THEN S.placement_status
+	
+	WHEN 'employment_status'
+	THEN S.employment_status
+	
+END) AS values
+
+FROM profile_77915_x AS S
+
+CROSS JOIN TEMP 
+
+--LEFT JOIN ds_mysql_prod_tagelement AS t1
+--ON S.discipline = t1.id
+
+--LEFT JOIN ds_mysql_prod_tagelement AS t2
+--ON S.placement_status = t1.id
+
+--LEFT JOIN ds_mysql_prod_tagelement AS t3
+--ON S.employment_status = t3.id
+
+GROUP BY S.discipline, S.date, S.completion_status, S.voucher, S.placement_status, S.employment_status,dimensions
+
+ORDER BY S.date DESC
+
