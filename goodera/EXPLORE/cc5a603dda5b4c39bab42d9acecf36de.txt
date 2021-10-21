@@ -3,13 +3,20 @@ with temp as (
   union all
   select 'Kits' as col
   union all
-  select 'laptops' as col
+  select 'Laptops' as col
 )
 
 
-select fy_timerange, projectid, (SUM(uniforms)+ SUM(kits)+ SUM(laptops)) as "Total Items"
-from profile_78771
-group by fy_timerange, projectid
+select tab.fy_timerange, tab.projectid, temp.col,
+sum(case col
+	when 'Uniforms' then tab.uniforms
+	when 'Kits' then tab.kits
+	when 'Laptops' then tab.laptops
+	else NULL
+	end) as value
+from profile_78771 tab
+left join temp
+group by tab.fy_timerange, tab.projectid, temp.col
 
 
 
