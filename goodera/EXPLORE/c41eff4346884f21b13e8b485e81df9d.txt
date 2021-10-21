@@ -1,11 +1,35 @@
 
-select p.projectId as projectIdFirst  from profile_61572 as p
+
+
+select p.projectId, ven.name as vendor, cou.name as country as projectId , nvl2(SUBSTRING(vendor, 1, POSITION(' (' in vendor)), SUBSTRING(vendor, 1, POSITION(' (' in vendor)), vendor) as vendor_name, case when vendor_name='' then vendor else vendor_name end as vendor,p.projectId as facility from profile_61572 as p 
+
+union
+
+select q.projectId, ven.name as vendor, cou.name as country as projectId , nvl2(SUBSTRING(vendor, 1, POSITION(' (' in vendor)), SUBSTRING(vendor, 1, POSITION(' (' in vendor)), vendor) as vendor_name, case when vendor_name='' then vendor else vendor_name end as vendor, q.projectId as facility from profile_64801 as q
+
+left join ds_mysql_prod_project fac 
+on p.projectId = fac.id
+
+ left join ds_mysql_prod_project ven 
+on fac.parent = ven.id
+
+ left join ds_mysql_prod_project cou 
+on ven.parent = cou.id
 
 
 /*
-with table1 as
-(
-select p.projectId as projectIdFirst  from profile_61572 as p union select q.projectId as projectIdSecond from profile_64801 as q
-)
+select p.projectId, ven.name as vendor,cou.name as country, nvl2(SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), ven.name) as vendor_name, case when vendor_name='' then vendor else vendor_name end as vendor, p.projectId as facility /*,  distinct vendor as vendor */
+
+from profile_61572 as p 
+
+left join ds_mysql_prod_project fac 
+on p.projectId = fac.id
+
+ left join ds_mysql_prod_project ven 
+on fac.parent = ven.id
+
+ left join ds_mysql_prod_project cou 
+on ven.parent = cou.id
+
 */
 
