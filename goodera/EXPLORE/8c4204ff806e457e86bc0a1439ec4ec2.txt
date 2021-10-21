@@ -1,13 +1,11 @@
-select p.projectId, p.start_year, cou.name as country,  yr.name as year,
-nvl2(su.name, su.name, sb.name) as wep_status,
-nvl2(spu.name, spu.name, spb.name) as service_provider,
-SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)) as vendor_name,
-nvl2(vendor_name, vendor_name, ven.name) as vendor
+select p.projectId, ven.name as vendor, cou.name as country,
+nvl2(su.name, su.name, s.name) as wep_status,
+nvl2(spu.name, spu.name, sp.name) as service_provider_new
+
 from profile_60670 p
 
-left join profile_65025 on
-p.projectId = profile_65025.projectId
-
+left join profile_65025
+on p.projectId = profile_65025.projectId 
 
 left join ds_mysql_prod_project fac
 on p.projectid = fac.id
@@ -16,21 +14,18 @@ on fac.parent = ven.id
 left join ds_mysql_prod_project cou
 on ven.parent = cou.id
 
+left join ds_mysql_prod_tagelement sp
+on p.service_provider = sp.id
 
 
-left join ds_mysql_prod_tagelement yr
-on p.start_year = yr.id
-
-left join ds_mysql_prod_tagelement sb
-on p.status = sb.id
-
-left join ds_mysql_prod_tagelement spb
-on p.service_provider = spb.id
-
-left join ds_mysql_prod_tagelement su
-on p.status = su.id
+left join ds_mysql_prod_tagelement s
+on p.status = s.id
 
 left join ds_mysql_prod_tagelement spu
-on p.service_provider = spu.id
+on profile_65025.service_provider = spu.id
 
-group by p.projectId, year, country, wep_status, p.service_provider, vendor_name, ven.name, p.start_year, spu.name, spb.name
+
+left join ds_mysql_prod_tagelement su
+on profile_65025.status = su.id
+
+group by p.projectId, wep_status, service_provider_new, cou.name, ven.name
