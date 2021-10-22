@@ -1,6 +1,35 @@
-select fy_timerange, projectid, SUM(gov_officials) as "Gov. Officials", SUM(orientations) as "Gov. Official Orientations" , SUM(hm_teachers) as "Headmasters" , SUM(orient_hm) as "Headmaster Orientations"
-from profile_78781
-group by fy_timerange, projectid
+with temp as (
+  select 'Goverment Officials' as col
+  union all
+  select 'Goverment Official Orientations' as col
+  union all
+  select 'Headmasters/Teachers' as col
+  union all
+  select 'Headmasters/Teacher Orientations' as col
+)
+
+
+select tab.fy_timerange, tab.projectid, temp.col,
+sum(case col
+	when 'Goverment Officials' then tab.gov_officials
+	when 'Goverment Official Orientations' then tab.orientations
+	when 'Headmasters/Teachers' then tab.hm_teachers
+	when 'Headmasters/Teacher Orientations' then tab.orient_hm
+	else NULL
+	end) as value
+from profile_78771 tab
+cross join temp
+group by tab.fy_timerange, tab.projectid, temp.col
+
+
+
+
+
+
+
+
+
+
 
 
 
