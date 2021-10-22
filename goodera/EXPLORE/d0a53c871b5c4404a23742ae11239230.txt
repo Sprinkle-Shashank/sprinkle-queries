@@ -2,24 +2,30 @@
 --,Base4 as(select 
 --select * from Base2
 -----------------------------------------------------------
-with lookup as (select split_part(split_part(prod.name,'|',1),'.',1) as ProjectCode,f.name as fy_timerange,concat(ProjectCode,fy_timerange) as CODE,split_part(prod.name,'|',3) as census,case when p._id is not NULL then 'Number of Activities to be done' end  as type  from profile_54963 p
+with lookup as (select split_part(split_part(prod.name,'|',1),'.',1) as ProjectCode,f.name as fy_timerange,m.name as Month,concat(ProjectCode,fy_timerange) as CODE,split_part(prod.name,'|',3) as census,case when p._id is not NULL then 'Number of Activities to be done' end  as type  from profile_54963 p
 left join ds_mysql_prod_project prod on
 prod.id=p.projectid
 left join ds_mysql_prod_tagelement f on
 p.fy=f.id
+left join ds_mysql_prod_tagelement m on
+p.month=m.id
 union
-select split_part(split_part(prod.name,'|',1),'.',1) as ProjectCode,f.name as fy_timerange,concat(ProjectCode,fy_timerange) as CODE,split_part(prod.name,'|',3) as census,case when p.subcat_output is not NULL then 'Number of Activities Approved' end  as type  from profile_54963 p
+select split_part(split_part(prod.name,'|',1),'.',1) as ProjectCode,f.name as fy_timerange,m.name as Month,concat(ProjectCode,fy_timerange) as CODE,split_part(prod.name,'|',3) as census,case when p.subcat_output is not NULL then 'Number of Activities Approved' end  as type  from profile_54963 p
 left join ds_mysql_prod_project prod on
 prod.id=p.projectid
 left join ds_mysql_prod_tagelement f on
 p.fy=f.id
+left join ds_mysql_prod_tagelement m on
+p.month=m.id
 union
-select split_part(split_part(prod.name,'|',1),'.',1) as ProjectCode,f.name as fy_timerange,concat(ProjectCode,fy_timerange) as CODE,split_part(prod.name,'|',3) as census,case when p.subcat_output is not NULL and p.flag_deviation_delay='1'
+select split_part(split_part(prod.name,'|',1),'.',1) as ProjectCode,f.name as fy_timerange,m.name as Month,concat(ProjectCode,fy_timerange) as CODE,split_part(prod.name,'|',3) as census,case when p.subcat_output is not NULL and p.flag_deviation_delay='1'
 then 'Number of Deviations Reported' end  as type  from profile_54963 p
 left join ds_mysql_prod_project prod on
 prod.id=p.projectid
 left join ds_mysql_prod_tagelement f on
-p.fy=f.id)
+p.fy=f.id
+left join ds_mysql_prod_tagelement m on
+p.month=m.id)
 ,Base1 as
 (select p.name as ProjectCode,f.name as fy_timerange,concat(ProjectCode,fy_timerange) as CODE,m.name  as Project_Manager from profile_27396 p
 left join ds_mysql_prod_tagelement m on
@@ -36,6 +42,6 @@ p.project_manager=m.id
 left join ds_mysql_prod_tagelement f on
 p.fy=f.id
 )
-,Base3 as(select p.ProjectCode,p.fy_timerange,p.CODE,upper(l.village) as Village,p.type from lookup p left join profile_27489 l on p.census=l.name),Base4 as(select p.ProjectCode,p.fy_timerange,p.Village,l.Project_Manager,p.type,count(*) as count from Base3 p left join Base1 l on p.CODE=l.CODE
-group by p.ProjectCode,p.fy_timerange,p.Village,l.Project_Manager,p.type)
+,Base3 as(select p.ProjectCode,p.fy_timerange,p.Month,p.CODE,upper(l.village) as Village,p.type from lookup p left join profile_27489 l on p.census=l.name),Base4 as(select p.ProjectCode,p.fy_timerange,p.Village,l.Project_Manager,p.type,count(*) as count from Base3 p left join Base1 l on p.CODE=l.CODE
+group by p.ProjectCode,p.fy_timerange,p.Month,p.Village,l.Project_Manager,p.type)
 select * from Base4
