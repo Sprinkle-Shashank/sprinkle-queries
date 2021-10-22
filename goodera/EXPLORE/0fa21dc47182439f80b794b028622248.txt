@@ -2,13 +2,16 @@ SELECT projectid, pI._id,
  CAST(data.name as VARCHAR),
  CAST(data.focus_area as SUPER),
  CAST(data.focus_area_2 as INT),
+ CAST(te.name as VARCHAR) as focus_area_2_name,
  COALESCE(data.one_day_date, data.long_team_start_date, eventDate, pI.created) as start_date,
  COALESCE(data.one_day_date, data.long_term_end_date, eventDate, pI.created) as end_date,
  CAST(COALESCE(data.geoAddress.country, country, officeCountry) as VARCHAR) as country,
  CAST(data.hours_contributed as INT) as vol_hours,
- rfa.name
+ rfa.name as focus_area_name
  
 	from ds_mongo_profileinstance pI
 		LEFT JOIN
 	ds_mysql_prod_refFocusArea rfa ON rfa.id = data.focus_area
+		LEFT JOIN
+	ds_mysql_prod_tagElement te ON te.id = data.focus_area_2
 where profileId='26729' and pI.active = 't';
