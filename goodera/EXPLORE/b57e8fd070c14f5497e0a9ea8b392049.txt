@@ -24,8 +24,23 @@ select fy_timerange, projectid, 'Allied' as f_category, 'Put on DOTs' as tb, tb_
 select fy_timerange, projectid, 'Allied' as f_category, 'Completed DOTs' as tb, tb_completed_dot_allied as final_sum from profile_63887
 ),
 
-final as(
+final as(/*
 select concat(cast(fy_timerange.start as varchar), concat('|', cast(fy_timerange.end as varchar))), projectid, f_category, tb, sum(final_sum) from test1 group by 1,2,3,4
+  union all */
+select concat(f_reg_date, concat('|', f_reg_date)) as fy_timerange, projectid, f_category, 
+  	case
+  		when tb1 = '1012452' then 'TB Screening Done (Sputum)'
+  		when tb1 = '1012454' then 'TB Screening Done (X-Rays)'
+  		when tb1 = '1059862' then 'TB Screening Done (Sputum and X-ray Both)'
+  		when tb1 = '1012458' then 'TB Confirmed'
+  		when tb1 = '1012459' then 'Put on DOTs'
+  		when tb1 = '1012456' then 'Completed DOTs'
+  		else null
+  	end as tb,
+  	count(*) as total_sum
+  	from profile_59462
+  where contains (tb, '1012452')OR contains(tb,'1012454') OR contains(tb, '1059862') OR contains (tb, '1012458') OR contains (tb,'1012459') OR contains (tb, '1012456')
+   group by 1,2,3,4
 )
 
 
