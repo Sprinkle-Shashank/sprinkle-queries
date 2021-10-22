@@ -1,0 +1,24 @@
+with temp as (
+  select 'Volunteers identified by funder/donor' as col
+  union all
+  select 'Volunteers helping  Youth' as col
+  union all
+  select 'Sessions conducted for helping young people' as col
+  union all
+  select 'Volunteers helping adolescents on sessions' as col
+  union all
+  select 'Sessions conducted for helping adolescents' as col
+)
+
+select tab.fy_timerange, tab.projectid, temp.col,
+sum(case col
+	when 'Volunteers identified by funder/donor' then tab.vol_fund
+	when 'Volunteers helping  Youth' then tab.help_youth
+	when 'Sessions conducted for helping young people' then tab.help_youth_2
+	when 'Volunteers helping adolescents on sessions' then tab.imp_ed_health
+	when 'Sessions conducted for helping adolescents' then tab.help_adolc
+	else Null
+	end) as Value
+from profile_78782 tab
+cross join temp
+group by tab.fy_timerange, tab.projectid,temp.col
