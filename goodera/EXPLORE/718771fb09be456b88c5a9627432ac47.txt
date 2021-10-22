@@ -1,12 +1,5 @@
-with lookup as (select split_part(split_part(prod.name,'|',1),'.',1) as ProjectCode,f.name as fy_timerange,concat(ProjectCode,fy_timerange) as CODE,split_part(prod.name,'|',3) as census from profile_54963 p
-left join ds_mysql_prod_project prod on
-prod.id=p.projectid
-left join ds_mysql_prod_tagelement f on
-p.fy=f.id)
-,Base1 as
-(select p.name as ProjectCode,f.name as fy_timerange,concat(ProjectCode,fy_timerange) as CODE,p.name_project as Project_Name,l.name as NGO,concat(p.start_date,concat('-',p.end_date)) as Start_End_Date,m.name  as Project_Manager,s.name as State,k.payment_amount from profile_27396 p
-left join profile_27398 k
-on p.name=k._id
+with Base1 as
+(select p.name as ProjectCode,f.name as fy_timerange,concat(ProjectCode,fy_timerange) as CODE,p.name_project as Project_Name,l.name as NGO,concat(p.start_date,concat('-',p.end_date)) as Start_End_Date,m.name  as Project_Manager,s.name as State from profile_27396 p
 left join profile_27395 l on
 p.ngo_partner=l._id
 left join ds_mysql_prod_tagelement m on
@@ -14,49 +7,58 @@ p.project_manager=m.id
 left join ds_mysql_prod_tagelement s on
 p.state=s.id
 left join ds_mysql_prod_tagelement f on
-p.fy=f.id
-union
-select l.name as ProjectCode,f.name as fy_timerange,concat(ProjectCode,fy_timerange) as CODE,l.name_project,p.ngo as NGO,concat(p.start_date,concat('-',p.end_date)),m.name as Project_Manager,s.name as state,k.payment_amount
+p.fy=f.id), Base2 as(select l.name as ProjectCode,f.name as fy_timerange,concat(ProjectCode,fy_timerange) as CODE,p.name_project Project_Name,p.ngo as NGO,concat(p.start_date,concat('-',p.end_date)) as Start_End_Date ,m.name as Project_Manager
 from profile_27420 p
 left join profile_27396 l on
 p.project_code=l._id
-left join ds_mysql_prod_tagelement s on
-l.state=s.id
-left join profile_27398 k
-on l.name=k._id
 left join ds_mysql_prod_tagelement m on
 p.project_manager=m.id
 left join ds_mysql_prod_tagelement f on
-p.fy=f.id
+p.fy=f.id),Base3 as(select p.ProjectCode,p.fy_timerange,p.CODE,p.Project_Name,p.NGO,p.Start_End_Date,p.Project_Manager,l.State from Base2 p left join Base1 l on p.ProjectCode=l.ProjectCode
+union
+Base1)
+ 
+--select l.name as ProjectCode,f.name as fy_timerange,concat(ProjectCode,fy_timerange) as CODE,l.name_project,p.ngo as NGO,concat(p.start_date,concat('-',p.end_date)),m.name as Project_Manager,s.name as state,k.payment_amount
+--from profile_27420 p
+--left join profile_27396 l on
+--p.project_code=l._id
+--left join ds_mysql_prod_tagelement s on
+--l.state=s.id
+--left join profile_27398 k
+--on l.name=k._id
+--left join ds_mysql_prod_tagelement m on
+--p.project_manager=m.id
+--left join ds_mysql_prod_tagelement f on
+--p.fy=f.id
 )
 --,Base2 as(select p.ProjectCode,p.fy_timerange,p.CODE,l.village from lookup p left join
 --profile_27489 l		  
 --on p.census=l.name)
-,Base2 as(select p.ProjectCode,p.fy_timerange,k.village,k.state as State,l.NGO,l.Start_End_Date,l.Project_Manager,l.Project_Name,p.CODE from lookup p left join Base1 l on p.CODE=l.CODE 
-left join profile_27489 k on
-p.census=k.name)
-,Base3 as(select m.name as ProjectCode,p.hdfc_cost_monthly as cost from profile_29974 p 
-left join profile_27396 m
-on p.prj_code=m._id
-union
-select m.name as ProjectCode,p.monthly_cost as cost from profile_30171 p
-left join 
-profile_27396 m
-on p.prj_code=m._id
-), Base4 as(select p.ProjectCode,p.fy_timerange,p.village,p.NGO,p.Project_Name,p.Start_End_Date,p.Project_Manager,p.State,l.cost as Cost,p.CODE from Base2 p left join Base3 l on p.ProjectCode=l.ProjectCode )
-,Base5 as (select l.name as ProjectCode ,f.name as fy_timerange ,p.payment_amount,p.amnt_nt_utlzd,concat(l.name,f.name) as CODE from profile_27398 p left join profile_27396 l on
-p.project_name=l._id
-left join ds_mysql_prod_tagelement f on
-p.fy=f.id
-union
-select k.name as ProjectCode,f.name as fy_timerange ,p.payment_amount,p.amnt_nt_utlzd,concat(k.name,f.name) as CODE from profile_27398 p left join profile_27420 l on
-p.project_renew=l.Project_code
-left join profile_27396 k on
-l.project_code=k._id
-left join ds_mysql_prod_tagelement f on
-p.fy=f.id),Base6 as(select p.ProjectCode,case when p.ProjectCode is not NULL then 'https://api.p3fy.com/api/containers/nextgen-objects/download/Bonzv9lH2AbONxEeI80eqxU7dXtcxfzEYq6ju4DqiwIy1IP4gF7L0ajpmBoEnxM6_logo.jpg' end as Picture,p.fy_timerange,p.Project_Manager,p.village,p.NGO,p.Project_Name,p.Start_End_Date,p.State,sum(p.Cost) as Budget_allocated,sum(l.payment_amount) as Amount_Disbursted,sum(l.amnt_nt_utlzd)  as Amount_utilized,count(*) as Number from Base4 p left join Base5 l on p.CODE=l.CODE
-group by 
-p.ProjectCode,p.fy_timerange,p.Project_Manager,p.village,p.NGO,p.Project_Name,p.Start_End_Date,p.State)
+--,Base2 as(select p.ProjectCode,p.fy_timerange,k.village,k.state as State,l.NGO,l.Start_End_Date,l.Project_Manager,l.Project_Name,p.CODE from lookup p left join Base1 l on p.CODE=l.CODE 
+--left join profile_27489 k on
+--p.census=k.name)
+--,Base3 as(select m.name as ProjectCode,p.hdfc_cost_monthly as cost from profile_29974 p 
+--left join profile_27396 m
+--on p.prj_code=m._id
+--union
+--select m.name as ProjectCode,p.monthly_cost as cost from profile_30171 p
+--left join 
+--profile_27396 m
+--on p.prj_code=m._id
+--), Base4 as(select p.ProjectCode,p.fy_timerange,p.village,p.NGO,p.Project_Name,p.Start_End_Date,p.Project_Manager,p.State,l.cost as Cost,p.CODE from Base2 p left join Base3 l on p.ProjectCode=l.ProjectCode )
+--,Base5 as (select l.name as ProjectCode ,f.name as fy_timerange ,p.payment_amount,p.amnt_nt_utlzd,concat(l.name,f.name) as CODE from profile_27398 p left join profile_27396 l on
+--p.project_name=l._id
+--left join ds_mysql_prod_tagelement f on
+--p.fy=f.id
+--union
+--select k.name as ProjectCode,f.name as fy_timerange ,p.payment_amount,p.amnt_nt_utlzd,concat(k.name,f.name) as CODE from profile_27398 p left join profile_27420 l on
+--p.project_renew=l.Project_code
+--left join profile_27396 k on
+--l.project_code=k._id
+--left join ds_mysql_prod_tagelement f on
+--p.fy=f.id)
+,Base4 as(select p.ProjectCode,case when p.ProjectCode is not NULL then 'https://api.p3fy.com/api/containers/nextgen-objects/download/Bonzv9lH2AbONxEeI80eqxU7dXtcxfzEYq6ju4DqiwIy1IP4gF7L0ajpmBoEnxM6_logo.jpg' end as Picture,p.fy_timerange,p.Project_Manager,p.NGO,p.Project_Name,p.Start_End_Date,p.State from Base4 p)
 																								   
 
-select *,count(*) as index from Base6 p group by p.ProjectCode,p.Picture,p.fy_timerange,p.Project_Manager,p.village,p.NGO,p.Project_Name,p.Start_End_Date,p.State,p.Budget_allocated,p.Amount_Disbursted,p.Amount_utilized,p.Number
+--select *,count(*) as index from Base6 p group by p.ProjectCode,p.Picture,p.fy_timerange,p.Project_Manager,p.village,p.NGO,p.Project_Name,p.Start_End_Date,p.State,p.Budget_allocated,p.Amount_Disbursted,p.Amount_utilized,p.Number
+select * from Base4
