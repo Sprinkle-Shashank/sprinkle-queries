@@ -3,7 +3,7 @@ SELECT
 	cast(timestamp 'epoch' + CAST(endTable.end_date AS BIGINT)/1000 * interval '1 second' as varchar) as end_date,
     endTable.vol_hours AS vol_hours,
     endTable.eoId AS eoId,
-    LISTAGG(DISTINCT eofa.focusArea, ',') AS focus_area,
+    LISTAGG(DISTINCT rfa.name, ',') AS focus_area,
     LISTAGG(DISTINCT COALESCE(endTable.country, eov.country), ',') as country
                 
 FROM
@@ -57,6 +57,8 @@ FROM
 	) AS endTable
         LEFT JOIN
     ds_mysql_prod_empOpportunityFocusArea eofa ON eofa.empOpportunityId = endTable.eoId
+        LEFT JOIN
+    ds_mysql_prod_refFocusArea rfa ON rfa.id = eofa.focusArea
         LEFT JOIN
     ds_mysql_prod_empOpportunityVisibility eov ON eov.empOpportunityId = endTable.eoId
     
