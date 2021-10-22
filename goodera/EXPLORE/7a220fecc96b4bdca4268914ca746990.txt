@@ -1,5 +1,19 @@
-SELECT *,
-date AS fy_timerange,
-'Download' AS download_label
+WITH sub1 AS (
+  
+  SELECT pro.name AS projectId,
+  p.date AS fy_timerange,
+  p.title, p.location, p.description, p.file,
+  'Download' AS download_label
+  
+  FROM profile_77919
+  
+  LEFT JOIN ds_mysql_prod_project AS pro
+  ON p.projectid = pro.id
+)
 
-FROM profile_77919
+SELECT s1.*,
+CAST (photos_unwind AS VARCHAR)
+
+FROM sub1 AS s1, s1.photo AS photos_unwind
+
+ORDER BY fy_timerange DESC
