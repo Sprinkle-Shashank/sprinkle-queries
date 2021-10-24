@@ -1,7 +1,20 @@
 
-select p.projectId, ven.name as vendor,cou.name as country, nvl2(SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), ven.name) as vendor_name, case when vendor_name='' then vendor else vendor_name end as vendor, p.projectId as facility /*,  distinct vendor as vendor */
+with table1 as 
+(
+select projectId, ven.name as vendor, cou.name as country,nvl2(SUBSTRING(vendor, 1, POSITION(' (' in vendor)), SUBSTRING(vendor, 1, POSITION(' (' in vendor)), vendor) as vendor_name, case when vendor_name='' then vendor else vendor_name end as vendor_first_update from profile_64801 as q
+  
+left join ds_mysql_prod_project fac 
+on q.projectId = fac.id
 
-from profile_61572 as p 
+ left join ds_mysql_prod_project ven 
+on fac.parent = ven.id
+
+ left join ds_mysql_prod_project cou 
+on ven.parent = cou.id
+)
+, table2 as 
+(
+select p.projectId, ven.name as vendor, cou.name as country, nvl2(SUBSTRING(vendor, 1, POSITION(' (' in vendor)), SUBSTRING(vendor, 1, POSITION(' (' in vendor)), vendor) as vendor_name, case when vendor_name='' then vendor else vendor_name end as vendor_first_update from profile_61572 as p
 
 left join ds_mysql_prod_project fac 
 on p.projectId = fac.id
@@ -11,3 +24,17 @@ on fac.parent = ven.id
 
  left join ds_mysql_prod_project cou 
 on ven.parent = cou.id
+)
+, table3 as
+(
+select * from table2 as tab2 union all select * from table1 as tab1 
+)
+select distinct projectId from table3
+/*
+select vendor_first_update as vendor, vendor_name, country, projectId as facility from table3 as tab3
+
+group by vendor, country, facility, 
+
+*/
+
+
