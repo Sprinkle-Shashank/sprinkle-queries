@@ -1,4 +1,39 @@
 
+
+with table1 as 
+(
+select q.projectId, ven.name as vendor, cou.name as country from profile_64801 as q
+  
+left join ds_mysql_prod_project fac 
+on q.projectId = fac.id
+
+ left join ds_mysql_prod_project ven 
+on fac.parent = ven.id
+
+ left join ds_mysql_prod_project cou 
+on ven.parent = cou.id
+)
+, table2 as 
+(
+select p.projectId, ven.name as vendor, cou.name as country from profile_61572 as p
+
+left join ds_mysql_prod_project fac 
+on p.projectId = fac.id
+
+ left join ds_mysql_prod_project ven 
+on fac.parent = ven.id
+
+ left join ds_mysql_prod_project cou 
+on ven.parent = cou.id
+)
+, table3 as
+(
+select * from table2 as tab2 union all select * from table1 as tab1
+)
+
+select * from table3 as tab3
+
+/*
 with table1 as 
 (
 select q.projectId, ven.name as vendor, cou.name as country , nvl2(SUBSTRING(vendor, 1, POSITION(' (' in vendor)), SUBSTRING(vendor, 1, POSITION(' (' in vendor)), vendor) as vendor_name, case when vendor_name='' then vendor else vendor_name end as vendor_first_update, q.projectId as facility from profile_64801 as q
@@ -37,3 +72,4 @@ group by vendor, vendor_name, country, table3.vendor_first_update, table3.facili
 
 order by vendor asc
 
+*/
