@@ -1,5 +1,9 @@
-
-select projectid, cou.name as country, ven.name as vendor, extract(year from date) as year from profile_64801 as p
+with table1 as
+(
+select projectid, cou.name as country, ven.name as vendor, extract(year from date) as year, nvl2(SUBSTRING(vendor, 1, POSITION(' (' in vendor)), SUBSTRING(vendor, 1, POSITION(' (' in vendor)), vendor) as vendor_name, case when vendor_name='' then vendor else vendor_name end as vendor_first_update,
+case when extract(month from new_date)=1 then (extract(year from date)-1)
+else extract(year from date) end as year_first_update
+from profile_64801 as p
 
 left join ds_mysql_prod_project fac 
 on p.projectId = fac.id
@@ -9,3 +13,10 @@ on fac.parent = ven.id
 
  left join ds_mysql_prod_project cou 
 on ven.parent = cou.id
+)
+select projectId, country, vendor_name, vendor_first_update as vendor, year_first_update as year from table1 as tab1
+
+where country <> 'Test Country'
+
+group by
+name, other, trainer_organization, notes, photo, file, trainer, historical, keyword_1, num_female, num_male, num_middle, hours, total_participants, num_other, country, projectId, vendor_name, vendor, year, date
