@@ -1,5 +1,5 @@
 with test1 as(
-select p.projectId,p._id, p.fy_timerange.start as fy_timerange, p.sti_gu as genital_ulcers, p.sti_ud as urethral_discharg, p.sti_vd as veginal_discharge, p.sti_lap as lower_abdomen_pain, p.sti_ss as scrotal_swelling, p.sti_is as inguinal_swelling, p.sti_others as other from profile_63885 p 
+select p.projectId, p.fy_timerange.start as fy_timerange, p.sti_gu as genital_ulcers, p.sti_ud as urethral_discharg, p.sti_vd as veginal_discharge, p.sti_lap as lower_abdomen_pain, p.sti_ss as scrotal_swelling, p.sti_is as inguinal_swelling, p.sti_others as other from profile_63885 p
 ),
 
 pivot1 as(
@@ -30,7 +30,7 @@ select p.projectId, p.fy_timerange, t.sti,
   when 'other' then p.other
   else null
   end as final_sum from test1 p cross join pivot1 t
-  
+  where sti in ('genital_ulcers','urethral_discharg','veginal_discharge','lower_abdomen_pain','scrotal_swelling','inguinal_swelling','other')
 ),
 test2 as(
 select p.f_reg_date as fy_timerange, p.projectid, p.p_id, 
@@ -58,5 +58,7 @@ select p.projectId, p.fy_timerange, p.sti, sum(p.final_sum) as final_sum from fi
 select t.projectId, t.fy_timerange, t.sti, sum(t.final_sum) as final_sum from test2 t group by 1,2,3
 )
 
-select * from final1
-
+select fy_timerange, project.name as projectid, sti,sum(final_sum) as final_sum
+from final, ds_mysql_prod_project as project
+where project.id = final.projectid 
+group by 1,2,3
