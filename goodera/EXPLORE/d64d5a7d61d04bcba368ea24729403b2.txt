@@ -1,8 +1,30 @@
 SELECT M.fy_timerange,
 i.name AS institution,
 t.name AS gender,
-COUNT (M.name)
+COUNT (M.name),
 
+CASE 
+	WHEN t4.name IS NOT NULL
+	THEN t3.name
+	
+	WHEN t4.name IS NULL AND t3.name IS NOT NULL
+	THEN t2.name
+	
+	WHEN t3.name IS NULL AND t2.name IS NOT NULL
+	THEN t1.name
+	
+	ELSE NULL
+END AS state,
+
+CASE 
+	WHEN t4.name IS NOT NULL
+	THEN t2.name
+	
+	WHEN t4.name IS NULL AND t3.name IS NOT NULL
+	THEN t1.name 
+	
+	ELSE NULL
+END AS district
 
 FROM profile_77913 AS M
 
@@ -11,5 +33,17 @@ ON M.gender = t.id
 
 LEFT JOIN profile_77911 AS i
 ON M.institution = i._id
+
+LEFT JOIN ds_mysql_prod_tagelement AS t1
+ON i.location = t1.id
+
+LEFT JOIN ds_mysql_prod_tagelement AS t2
+ON t1.parent = t2.id
+
+LEFT JOIN ds_mysql_prod_tagelement AS t3
+ON t2.parent = t3.id
+
+LEFT JOIN ds_mysql_prod_tagelement AS t4
+ON t3.parent = t4.id
 
 GROUP BY M.fy_timerange, t.name, i.name
