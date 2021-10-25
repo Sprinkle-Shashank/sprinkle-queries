@@ -2,7 +2,9 @@
 with sub as 
 (
 select 
- projectid, p.name, date, other, local_foreign, no_local_foreign, p.location, notes, survey_yn, keyword_1, num_managers, hours, num_middle, num_other, participants,tri.name as training_type, trainer_organization, ven.name as vendor, cou.name as country, nvl2(SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), ven.name) as vendor_name, tri.name as trainer  from profile_61572 as p
+ projectid, p.name, date, other, local_foreign, no_local_foreign, p.location, notes, survey_yn, keyword_1, num_managers, hours, num_middle, num_other, participants,tri.name as training_type, trainer_organization, ven.name as vendor, cou.name as country, nvl2(SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), ven.name) as vendor_name, 
+  case when vendor_name='' then vendor else vendor_name end as vendor_first_update,
+  tri.name as trainer  from profile_61572 as p
  
  left join ds_mysql_prod_project fac 
 on p.projectId = fac.id
@@ -22,7 +24,7 @@ select s1.*,c from sub as s1, s1.trainer_organization c
 
 
 select 
-pro.name as projectId, s2.name, date, other, local_foreign, no_local_foreign, location, notes, survey_yn, keyword_1, num_managers, hours, num_middle, num_other, participants, training_type, country, vendor,triorg.name as trainer_organization, vendor_name,
+pro.name as projectId, s2.name, date, other, local_foreign, no_local_foreign, location, notes, survey_yn, keyword_1, num_managers, hours, num_middle, num_other, participants, training_type, country, vendor_first_update as vendor,triorg.name as trainer_organization, vendor_name,
 case when extract(month from date)=1 then extract(year from date)-1 
 else extract(year from date) end as year, trainer 
 from sub2 as s2
