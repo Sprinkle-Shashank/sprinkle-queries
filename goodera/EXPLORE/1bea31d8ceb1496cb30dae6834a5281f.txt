@@ -1,12 +1,3 @@
-with log_hours_focusareas as(
-select (start_date||'|'||end_date) as fy_timerange, focus_area_name as focus_area
-from rb_loghours
-where focus_area is not null
-group by fy_timerange, focus_area
-),
-
-
-
 sub1 as(
   select p1.time_timerange as fy_timerange, t1.name as focus_area
 from profile_32441 p1
@@ -49,18 +40,67 @@ left join profile_63775 p8 on p8._id = p7.prog_name
 left join ds_mysql_prod_tagelement t4 on t4.id = p8.focus_area),
 
 --KPIs Data Input
-   
+
+sub6 as(
+  select r1.*, len(cast(r1.start_date as varchar)) as start_date_len,
+len(cast(r1.end_date as varchar)) as end_date_len,
+
+case
+	when (start_date_len = 13) then 
+		cast(timestamp 'epoch' + CAST(r1.start_date AS BIGINT)/1000 * interval '1 second' as varchar)
+	else r1.start_date
+end as start_date_new,
+
+case
+	when (end_date_len = 13) then 
+		cast(timestamp 'epoch' + CAST(r1.end_date AS BIGINT)/1000 * interval '1 second' as varchar)
+	else r1.end_date
+end as end_date_new,
+
+case
+	when r1.unwind_focus_area is not null 
+	then r1.focus_area_name
+	when r1.unwind_focus_area is null and r1.focus_area_array is not null and r1.focus_area_2_name is not null
+	then r1.focus_area_2_name
+  	when r1.unwind_focus_area is null and r1.focus_area_array is not null and r1.focus_area_2_name is null
+	then 'Others'
+	when r1.unwind_focus_area is null and r1.focus_area_array is null
+	then r1.focus_area_2_name
+	else null
+end as focus_area
+
+from rb_loghours r1),
+
 sub7 as(
+  select (s6.start_date_new||'|'||s6.end_date_new) as fy_timerange, t5.name as focus_area
+  from sub6 s6
+  left join profile_78929 p9 on p9.vol_focus_area_full = s6.focus_area
+  left join ds_mysql_prod_tagelement t5 on t5.id = p9.focus_area),
+  
+--- Log Hours (Above) -- 
+ 
+sub8 as(
+  select (r2.start_date||'|'||r2.end_date) as fy_timerange, t6.name as focus_area
+  from rb_volhours r2
+  left join profile_78929 p10 on p10.vol_focus_area_full = r2.focus_area
+  left join ds_mysql_prod_tagelement t6 on t6.id = p10.focus_area),
+
+-- Volunteering Hours (Above) --
+
+sub9 as(
   select fy_timerange, focus_area from sub1
 	union all
   select fy_timerange, focus_area from sub2
 	union all
   select fy_timerange, focus_area from sub3
 	union all
-  select fy_timerange, focus_area from sub6)
+  select fy_timerange, focus_area from sub6
+	union all
+  select fy_timerange, foucus_area from sub7
+	union all
+  select fy_timerange, foucus_area from sub8)
   
-select fy_timerange, focus_area from sub7 
+select fy_timerange, focus_area from sub9
 where focus_area is not null
-group by fy_timerange, focus_area
-union select * from log_hours_focusareas
+
 
