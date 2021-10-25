@@ -27,11 +27,64 @@ where t5.name is not null),
 --Brand Led (Above)
 
 sub4 as(
-  select fy_timerange, country, focus_area from sub1
-union all
-select fy_timerange, country, focus_area from sub2
-union all
-select fy_timerange, country, focus_area from sub3)
+    select r1.*, len(cast(r1.start_date as varchar)) as start_date_len,
+len(cast(r1.end_date as varchar)) as end_date_len,
 
-select fy_timerange, country, focus_area, 1 as count from sub4
+case
+	when (start_date_len = 13) then 
+		cast(timestamp 'epoch' + CAST(r1.start_date AS BIGINT)/1000 * interval '1 second' as varchar)
+	else r1.start_date
+end as start_date_new,
+
+case
+	when (end_date_len = 13) then 
+		cast(timestamp 'epoch' + CAST(r1.end_date AS BIGINT)/1000 * interval '1 second' as varchar)
+	else r1.end_date
+end as end_date_new,
+
+case
+	when r1.unwind_focus_area is not null 
+	then r1.focus_area_name
+	when r1.unwind_focus_area is null and r1.focus_area_array is not null and r1.focus_area_2_name is not null
+	then r1.focus_area_2_name
+  	when r1.unwind_focus_area is null and r1.focus_area_array is not null and r1.focus_area_2_name is null
+	then 'Others'
+	when r1.unwind_focus_area is null and r1.focus_area_array is null
+	then r1.focus_area_2_name
+	else null
+end as focus_area
+
+from rb_loghours r1),
+
+sub5 as(
+  select (s4.start_date_new||'|'||s4.end_date_new) as fy_timerange, t7.name as focus_area, p6.name as country
+  from sub4 s4
+  left join profile_78929 p5 on p5.vol_focus_area_full = s4.focus_area
+  left join ds_mysql_prod_tagelement t7 on t7.id = p5.focus_area
+  left join profile_78788 p6 on p6.vol_country = s4.country),
+
+--Log Hours (Above) -- 
+
+sub6 as(
+  select (r2.start_date||'|'||r2.end_date) as fy_timerange, t8.name as focus_area, p8.name as country
+  from rb_volhours r2
+  left join profile_78929 p7 on p7.vol_focus_area_full = r2.focus_area
+  left join ds_mysql_prod_tagelement t8 on t8.id = t8.focus_area
+  left join profile_78788 p8 on p8.vol_country = r2.country),
+  
+-- Volunteering Hours (Above) --  
+
+sub7 as(
+  	select fy_timerange, country, focus_area from sub1
+	union all
+	select fy_timerange, country, focus_area from sub2
+	union all
+	select fy_timerange, country, focus_area from sub3
+	union all
+	select fy_timerange, country, focus_area from sub5
+	union all
+	select fy_timerange, country, focus_area from sub6)
+
+select fy_timerange, country, focus_area, 1 as count from sub7
 group by fy_timerange, country, focus_area
+where country is not null
