@@ -1,0 +1,35 @@
+with unpivoted as (
+	select fy_timerange, projectid, 'Trucker' as f_category, diabetes_truckers as final_sum from profile_63885
+  		union all
+  	select fy_timerange, projectid, 'Allied' as f_category, (diabetes_allied + diabetes_partner) as final_sum from profile_63885
+),
+
+final as (
+select concat(substring(cast(fy_timerange.start as varchar),1,10), concat('|', substring(cast(fy_timerange.end as varchar),1,10)))  as fy_timerange, projectid, f_category, sum(final_sum) as final_sum from unpivoted group by 1,2,3
+),
+
+unpivoted_risk as (
+select fy_timerange, projectid, 'Trucker' as f_category, diabetes_truck as final_sum from profile_63886
+  		union all
+  	select fy_timerange, projectid, 'Allied' as f_category, (diabetes_allied + diabetes_partner) as final_sum from profile_63886
+),
+
+final_risk as (
+select concat(substring(cast(fy_timerange.start as varchar),1,10), concat('|', substring(cast(fy_timerange.end as varchar),1,10)))  as fy_timerange, projectid, f_category, sum(final_sum) as final_sum from unpivoted_risk group by 1,2,3
+),
+
+historical as (
+select final.fy_timerange, final.projectid, final.f_category, 'Not at Risk' as diabetes, sum((final.total_sum - coalesce(final_risk.total_sum, 0))) as final_sum from final
+  	left join final_risk on
+  	final.projectid = final_risk.projectid and final.f_category = final_risk.f_category and
+  	final.fy_timerange = final_risk.fy_timerange
+  group by 1,2,3
+  union all
+select final.fy_timerange, final.projectid, final.f_category, 'At Risk' as diabetes, sum(coalesce(final_risk.total_sum, 0)) as final_sum from final
+  	left join final_risk on
+  	final.projectid = final_risk.projectid and final.f_category = final_risk.f_category and
+  	final.fy_timerange = final_risk.fy_timerange
+  group by 1,2,3
+)
+
+select * from historical
