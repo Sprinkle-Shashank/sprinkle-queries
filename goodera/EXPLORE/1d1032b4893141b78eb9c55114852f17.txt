@@ -1,0 +1,155 @@
+with sub1 as(
+  select p1.*, is_array(p1.fund_details) as array_check,
+  	case
+		when(array_check = false) then array(p1.fund_details)
+		else p1.fund_details
+	end as funds
+  from profile_32441 p1),
+  
+sub2 as(
+  select s1.*, fund_new from sub1 s1, s1.funds fund_new),
+
+
+sub3 as(
+  select s2.time_timerange as fy_timerange, t1.name as country, t2.name as focus_area, t3.name as prod_brand, sum(p2.amount) as investment, cast('Global Programmes' as varchar) as x_axis, 
+extract(year from cast(fy_timerange.start as date)) as year_check, p4.map_code,
+  	case
+  		when(year_check = extract(year from current_date)) then 'Current year'
+  		when(year_check = extract(year from current_date)-1) then 'Previous year'
+  	else 'Not Applicable'
+  	end as year_status
+from sub2 s2
+	left join profile_54871 p2 on p2._id = s2.fund_new
+	left join profile_63775 p3 on p3._id = s2.program_name 
+	left join ds_mysql_prod_tagelement t1 on t1.id = s2.country_new
+	left join ds_mysql_prod_tagelement t2 on t2.id = p3.focus_area
+	left join ds_mysql_prod_tagelement t3 on t3.id = p3.product_brand
+  	left join profile_78788 p4 on p4.name = t1.name
+  	where p2.amount is not null
+group by s2.time_timerange, t1.name, t2.name, t3.name, p4.map_code, x_axis, year_check, year_status),
+
+-------------------------------------------------------------------------------------------------------------
+--Investment Details (Above)
+-------------------------------------------------------------------------------------------------------------
+
+sub4 as(
+  select p5.fy_timerange, t4.name as country, t5.name as focus_area, t7.name as prod_brand, sum(p5.direct_cash_donations*p6.conversion_factor) as investment, cast('Brand Programmes' as varchar) as x_axis, extract(year from cast(fy_timerange.start as date)) as year_check, (t6.name||'_'||year_check) as currency_new, p7.map_code,
+  	case
+  		when(year_check = extract(year from current_date)) then 'Current year'
+  		when(year_check = extract(year from current_date)-1) then 'Previous year'
+  	else 'Not Applicable'
+  	end as year_status
+from profile_78057 p5
+	left join ds_mysql_prod_tagelement t4 on t4.id = p5.country
+	left join ds_mysql_prod_tagelement t5 on t5.id = p5.focus_area
+	left join ds_mysql_prod_tagelement t6 on t6.id = p5.currency
+	left join ds_mysql_prod_tagelement t7 on t7.id = p5.product_brand
+	left join profile_78083 p6 on p6.name = (t6.name||'_'||extract(year from cast(fy_timerange.start as date)))
+  	left join profile_78788 p7 on p7.name = t4.name
+	where p5.direct_cash_donations is not null
+group by p5.fy_timerange, t4.name, t5.name, t6.name, t7.name, p7.map_code, x_axis, year_check, year_status),
+
+
+--------------------------------------------------------------------------------------------------------------
+--ONE OFF (Above)
+--------------------------------------------------------------------------------------------------------------
+
+
+sub5 as(
+  select p8.fy_timerange, t8.name as country, t9.name as focus_area, t11.name as prod_brand, sum((nvl(p8.direct_cash_donations,0.00)+nvl(p8.edu_spend,0.00))*p9.conversion_factor) as investment, 
+cast('Brand Programmes' as varchar) as x_axis, extract(year from cast(fy_timerange.start as date)) as year_check, (t10.name||'_'||year_check) as currency_new,
+p10.map_code,
+  	case
+  		when(year_check = extract(year from current_date)) then 'Current year'
+  		when(year_check = extract(year from current_date)-1) then 'Previous year'
+  	else 'Not Applicable'
+  	end as year_status
+from profile_78098 p8
+	left join ds_mysql_prod_tagelement t8 on t8.id = p8.country
+	left join ds_mysql_prod_tagelement t9 on t9.id = p8.focus_area
+	left join ds_mysql_prod_tagelement t10 on t10.id = p8.currency
+	left join ds_mysql_prod_tagelement t11 on t11.id = p8.product_brand
+	left join profile_78083 p9 on p9.name = (t10.name||'_'||extract(year from cast(fy_timerange.start as date)))
+  	left join profile_78788 p10 on p10.name = t8.name
+	where p8.direct_cash_donations is not null or p8.edu_spend is not null
+group by p8.fy_timerange, t8.name, t9.name, t10.name, t11.name, p10.map_code, x_axis, year_check, year_status),
+
+
+-------------------------------------------------------------------------------------------------------------
+--Brand Led (Above)
+-------------------------------------------------------------------------------------------------------------
+
+
+sub6 as(
+  select fy_timerange, country, map_code, focus_area, prod_brand, x_axis, year_check, year_status, investment
+from sub3
+union all
+select fy_timerange, country, map_code, focus_area, prod_brand, x_axis, year_check, year_status, investment
+from sub4
+union all
+select fy_timerange, country, map_code, focus_area, prod_brand, x_axis, year_check, year_status, investment 
+from sub5),
+
+
+--------------xxxxxxx-------------Our Programmes--------------------xxxxx--------------------------------------
+
+
+sub7 as(
+  select p11.fy_timerange, t12.name as country, t13.name as focus_area, t15.name as prod_brand, sum(p11.value_of_reckitt_products*p12.conversion_factor) as investment, cast('Product Donation' as varchar) as x_axis, extract(year from cast(fy_timerange.start as date)) as year_check, (t14.name||'_'||year_check) as currency_new, p13.map_code, ('FY'||' '||extract(year from cast(p11.fy_timerange.start as date))) as x_axis2,
+  	case
+  		when(year_check = extract(year from current_date)) then 'Current year'
+  		when(year_check = extract(year from current_date)-1) then 'Previous year'
+  	else 'Not Applicable'
+  	end as year_status
+from profile_78098 p11
+	left join ds_mysql_prod_tagelement t12 on t12.id = p11.country
+	left join ds_mysql_prod_tagelement t13 on t13.id = p11.focus_area
+	left join ds_mysql_prod_tagelement t14 on t14.id = p11.currency
+	left join ds_mysql_prod_tagelement t15 on t15.id = p11.product_brand
+	left join profile_78083 p12 on p12.name = (t14.name||'_'||extract(year from cast(fy_timerange.start as date)))
+	left join profile_78788 p13 on p13.name = t12.name
+	where p11.value_of_reckitt_products is not null
+group by p11.fy_timerange, t12.name, t13.name, t14.name, t15.name, p13.map_code, x_axis, year_check, year_status, x_axis2),
+
+
+-----------------------------------------------------------------------------------------------------------
+--Brand Led (Above)
+-----------------------------------------------------------------------------------------------------------
+
+
+sub8 as(
+  select p14.fy_timerange, t16.name as country, t17.name as focus_area, t19.name as prod_brand, sum(p14.value_of_reckitt_products*p15.conversion_factor) as investment, cast('Product Donation' as varchar) as x_axis, extract(year from cast(fy_timerange.start as date)) as year_check, (t18.name||'_'||year_check) as currency_new, p16.map_code, ('FY'||' '||extract(year from cast(p14.fy_timerange.start as date))) as x_axis2,
+  	case
+  		when(year_check = extract(year from current_date)) then 'Current year'
+  		when(year_check = extract(year from current_date)-1) then 'Previous year'
+  	else 'Not Applicable'
+  	end as year_status
+from profile_78057 p14
+	left join ds_mysql_prod_tagelement t16 on t16.id = p14.country
+	left join ds_mysql_prod_tagelement t17 on t17.id = p14.focus_area
+	left join ds_mysql_prod_tagelement t18 on t18.id = p14.currency
+	left join ds_mysql_prod_tagelement t19 on t19.id = p14.product_brand
+	left join profile_78083 p15 on p15.name = (t18.name||'_'||extract(year from cast(fy_timerange.start as date)))
+	left join profile_78788 p16 on p16.name = t16.name
+	where p14.value_of_reckitt_products is not null
+group by p14.fy_timerange, t16.name, t17.name, t18.name, t19.name, p16.map_code, x_axis, year_check, year_status, x_axis2),
+
+
+---------------------------------------------------------------------------------------------------------------
+--ONE OFF (Above)
+---------------------------------------------------------------------------------------------------------------
+
+sub9 as(
+  select fy_timerange, country, map_code, prod_brand, focus_area, year_check, year_status, x_axis, x_axis2, investment from sub7
+union all
+select fy_timerange, country, map_code, prod_brand, focus_area, year_check, year_status, x_axis, x_axis2, investment from sub8)
+
+
+----xxxxxxxx---------------------Product Donation----------------------------------------------xxxxxx----------
+
+
+select fy_timerange, country, map_code, prod_brand, focus_area, year_check, year_status, x_axis, investment from sub6
+where map_code is not null
+union all
+select fy_timerange, country, map_code, prod_brand, focus_area, year_check, year_status, x_axis, investment from sub9
+where map_code is not null
