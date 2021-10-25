@@ -1,5 +1,5 @@
 select r1.*, len(cast(r1.start_date as varchar)) as start_date_len,
-len(cast(r1.end_date as varchar)) as end_date_len, cast(r1.focus_area_array as varchar),
+len(cast(r1.end_date as varchar)) as end_date_len,
 
 case
 	when (start_date_len = 13) then 
@@ -14,8 +14,13 @@ case
 end as end_date,
 
 case
-	when r1.focus_area_array is null then r1.focus_area_2_name
-	else r1.focus_area_name
+	when r1.unwind_focus_area is not null 
+	then r1.focus_area_name
+	when r1.unwind_focus_area is null and r1.focus_area_array is not null
+	then cast(r1.focus_area_array as varchar)
+	when r1.unwind_focus_area is null and r1.focus_area_array is null
+	then r1.focus_area_2_name
+	else null
 end as focus_area
 
 from rb_loghours r1
