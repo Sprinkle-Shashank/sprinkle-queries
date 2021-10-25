@@ -2,14 +2,22 @@
 with sub as 
 (
 select 
- projectid, p.name, date, notes, keyword_1, hours, num_middle, trainer_organization, ven.name as vendor, cou.name as country, nvl2(SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), ven.name) as vendor_name,
+ pro.name as projectid, p.name, date, notes, keyword_1, hours, num_middle, trainer_organization, ven.name as vendor, cou.name as country, nvl2(SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), ven.name) as vendor_name,
    
-case when extract(month from date)=1 then extract(year from date)-1 
+case when extract(month from date)=1 then (extract(year from date)-1) 
 else extract(year from date) end as year,
-  extract(year from date) as year_first_update,
-   other, photo, file, historical,num_female, num_male, total_participants
+  case when vendor_name='' then vendor else vendor_name end as vendor_first_update,
+   other, photo, file, historical,num_female, num_male, num_other , total_participants, (extract(month from date) - (extract(month from date)-1)) as count
   from profile_64801 as p
+  
+  
+/*
+ name, other, notes, photo, file, trainer, historical, keyword_1, num_female, num_male, num_middle, hours, total_participants, num_other, country, projectId, vendor_name, vendor, trainer_organization, year, date
+*/
  
+ left join ds_mysql_prod_project pro 
+on p.projectId = pro.id
+  
  left join ds_mysql_prod_project fac 
 on p.projectId = fac.id
 
@@ -18,17 +26,14 @@ on fac.parent = ven.id
 
  left join ds_mysql_prod_project cou 
 on ven.parent = cou.id
-  
-where country <> 'Test Country'
-
-), sub2 as
+)
+, sub2 as
 (
 select s1.*,c from sub as s1, s1.trainer_organization c
 )
 
 select
-s2.projectId, s2.name, date, other, notes, keyword_1, hours, num_middle, country, vendor, trainer_organization,triorg.name as trainer_organization, total_participants,
-year_first_update as year 
+s2.projectId, s2.name, date, other, notes, photo, file, trainer, historical, num_female, num_male , keyword_1, num_other , vendor_name , hours, num_middle, country, vendor_first_update as vendor,triorg.name as trainer_organization, total_participants, year 
 from sub2 as s2
 
 left join ds_mysql_prod_tagelement triorg 
@@ -41,9 +46,7 @@ s2.projectId, s2.name, date, other, notes, photo, file, historical, keyword_1,nu
 
 
 /*
-CAST(expression AS datatype(length))
-*/
 
-/*
-Fields: name, other, notes, photo, file, trainer, historical, keyword_1, num_female, num_male, num_middle, hours, total_participants, num_other, country, projectId, vendor_name, vendor, trainer_organization, year, date
+where country <> 'Test Country'
+
 */
