@@ -1,14 +1,17 @@
 drop table if exists rb_volhours;
  create table rb_volhours as
- 
+
 SELECT 
 	cast(timestamp 'epoch' + CAST(endTable.start_date AS BIGINT)/1000 * interval '1 second' as varchar) as start_date,
 	cast(timestamp 'epoch' + CAST(endTable.end_date AS BIGINT)/1000 * interval '1 second' as varchar) as end_date,
     endTable.vol_hours AS vol_hours,
     endTable.eoId AS eoId,
-    LISTAGG(DISTINCT rfa.name, ',') AS focus_area,
+    /*LISTAGG(DISTINCT rfa.name, ',') AS focus_area,
 	LISTAGG(DISTINCT eofa.focusArea, ',') AS focus_area_codes,
-    initcap(LISTAGG(DISTINCT COALESCE(endTable.country, eov.country), ',') ) as country
+    initcap(LISTAGG(DISTINCT COALESCE(endTable.country, eov.country), ',') ) as country*/
+	rfa.name as focus_area,
+	eofa.focusArea as focus_area_codes, 
+	COALESCE(endTable.country, eov.country) as country
                 
 FROM
     (SELECT 
@@ -66,4 +69,4 @@ FROM
         LEFT JOIN
     ds_mysql_prod_empOpportunityVisibility eov ON eov.empOpportunityId = endTable.eoId
     
-group by endTable.eoId, vol_hours, start_date, end_date;
+--group by endTable.eoId, vol_hours, start_date, end_date;
