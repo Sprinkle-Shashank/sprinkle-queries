@@ -1,5 +1,5 @@
 select r1.*, len(cast(r1.start_date as varchar)) as start_date_len,
-len(cast(r1.end_date as varchar)) as end_date_len, isarray(r1.focus_area_array),
+len(cast(r1.end_date as varchar)) as end_date_len,
 
 case
 	when (start_date_len = 13) then 
@@ -11,6 +11,11 @@ case
 	when (end_date_len = 13) then 
 		cast(timestamp 'epoch' + CAST(r1.end_date AS BIGINT)/1000 * interval '1 second' as varchar)
 	else r1.end_date
-end as end_date
+end as end_date,
+
+case
+	when r1.focus_area_array is null then r1.focus_area_2_name
+	else r1.focus_area_name
+end as focus_area
 
 from rb_loghours r1
