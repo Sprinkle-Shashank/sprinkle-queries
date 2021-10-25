@@ -1,0 +1,48 @@
+SELECT S.name, S.placement_status,
+t.name AS gender,
+S.date AS fy_timerange,
+COUNT(S.registration),
+
+CASE 
+	WHEN t4.name IS NOT NULL
+	THEN t3.name
+	
+	WHEN t4.name IS NULL AND t3.name IS NOT NULL
+	THEN t2.name
+	
+	WHEN t3.name IS NULL AND t2.name IS NOT NULL
+	THEN t1.name
+	
+	ELSE NULL
+END AS state,
+
+CASE 
+	WHEN t4.name IS NOT NULL
+	THEN t2.name
+	
+	WHEN t4.name IS NULL AND t3.name IS NOT NULL
+	THEN t1.name 
+	
+	ELSE NULL
+END AS district
+
+FROM profile_77915 AS S
+
+LEFT JOIN ds_mysql_prod_tagelement AS t
+ON S.gender = t.id
+
+LEFT JOIN ds_mysql_prod_tagelement AS t1
+ON S.location = t1.id
+
+LEFT JOIN ds_mysql_prod_tagelement AS t2
+ON t1.parent = t2.id
+
+LEFT JOIN ds_mysql_prod_tagelement AS t3
+ON t2.parent = t3.id
+
+LEFT JOIN ds_mysql_prod_tagelement AS t4
+ON t3.parent = t4.id
+
+WHERE S.placement_status = 1547267
+
+GROUP BY S.registration, t.name, S.name, S.date, trained, certified, state, district 
