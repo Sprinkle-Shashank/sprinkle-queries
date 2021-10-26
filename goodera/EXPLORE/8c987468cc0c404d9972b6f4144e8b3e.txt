@@ -1,13 +1,13 @@
 --select p.name from profile_27395 p left join profile_27405 l on 
 with Base1 as(select c.name as IA,p.date_renewal as Date_of_Renewal from profile_27405 p
 left join profile_27395 c
-on p.ia=c._id),Base2 as( select p.name,l.IA,l.Date_of_Renewal,c.name as Core_Area,f.name as Empanelled_Since,floor((datediff(day,to_date(f.name,'YYYYMMDD'),current_date))/365.25) as yrs_of_Engagement,p.email as Email,p.mobile_number as Mobile_Number from profile_27395 p left join Base1 l on p.name=l.IA
+on p.ia=c._id),Base2 as( select p._id as Instance,p.name,l.IA,l.Date_of_Renewal,c.name as Core_Area,f.name as Empanelled_Since,floor((datediff(day,to_date(f.name,'YYYYMMDD'),current_date))/365.25) as yrs_of_Engagement,p.email as Email,p.mobile_number as Mobile_Number from profile_27395 p left join Base1 l on p.name=l.IA
 left join ds_mysql_prod_tagelement c on p.core_area=c.id
 left join ds_mysql_prod_tagelement f on
-p.fy=f.id),Base3 as(select p.name,p.IA, case when p.IA is not null then 'APPROVED' end as Empanelment_Status,p.Core_Area,p.Empanelled_Since,p.yrs_of_Engagement,p.Email ,p.Mobile_Number, case when p.Date_of_Renewal<=current_date then 'Pending Renewal' 
+p.fy=f.id),Base3 as(select p.Instance,p.name,p.IA, case when p.IA is not null then 'APPROVED' end as Empanelment_Status,p.Core_Area,p.Empanelled_Since,p.yrs_of_Engagement,p.Email ,p.Mobile_Number, case when p.Date_of_Renewal<=current_date then 'Pending Renewal' 
 when p.Date_of_Renewal>current_date and p.IA is not null then 'Renewed'
 when p.Date_of_Renewal>current_date and p.IA is null then 'New' end as 
 Empanelment_Type from Base2 p),Base4 as(select m._id, o, cast(o."approvalStatus" as varchar) as status,to_date(cast(o."timestamp" as varchar),'YYYY-MM-DD HH24:MI:SS') as Date_of from test_hdfc_sample1 m, m.approvallog o
 union
 select m._id, o, cast(o."approvalStatus" as varchar) as status,to_date(cast(o."timestamp" as varchar),'YYYY-MM-DD HH24:MI:SS') as date_of from test_hdfc_sample2 m, m.approvallog o),Base5 as(select p._id,p.status,max(p.Date_of) from Base4 p where p.status='APPROVED' group by p._id,p.status )
-select * from Base5
+select * from Base3
