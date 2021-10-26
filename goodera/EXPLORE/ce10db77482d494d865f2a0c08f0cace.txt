@@ -11,9 +11,8 @@ SELECT 'Students Trained' AS col
 SELECT
 S.completion_status, S.voucher, placement_status, employment_status, S.name, S.institute,
 COUNT (S.registration),
-S.date AS fy_timerange,
-t1.name AS course_opt,
-t2.name AS locations,
+CONCAT(CONCAT(CONCAT(SPLIT_PART(S.date, ' ', 1),'T'),SPLIT_PART(S.date, ' ', 2)),'.000Z') AS fy_timerange,
+t0.name AS course_opt,
 TEMP.col AS dimensions,
 
 COUNT (CASE col
@@ -29,7 +28,30 @@ COUNT (CASE col
 	WHEN 'Retention Rate After 6 Months'
 	THEN S.employment_status
 	
-END) AS values
+END) AS values,
+
+CASE 
+	WHEN t4.name IS NOT NULL
+	THEN t3.name
+	
+	WHEN t4.name IS NULL AND t3.name IS NOT NULL
+	THEN t2.name
+	
+	WHEN t3.name IS NULL AND t2.name IS NOT NULL
+	THEN t1.name
+	
+	ELSE NULL
+END AS state,
+
+CASE 
+	WHEN t4.name IS NOT NULL
+	THEN t2.name
+	
+	WHEN t4.name IS NULL AND t3.name IS NOT NULL
+	THEN t1.name 
+	
+	ELSE NULL
+END AS district
 
 FROM profile_77915_x AS S
 
@@ -38,10 +60,19 @@ CROSS JOIN TEMP
 LEFT JOIN profile_77911 AS I
 ON S.institute = I._id
 
+LEFT JOIN ds_mysql_prod_tagelement AS t0
+ON I.course_opt = t0.id
+
 LEFT JOIN ds_mysql_prod_tagelement AS t1
-ON I.course_opt = t1.id
+ON S.location = t1.id
 
 LEFT JOIN ds_mysql_prod_tagelement AS t2
-ON S.location = t2.id
+ON t1.parent = t2.id
 
-GROUP BY S.date, S.completion_status, S.voucher, S.placement_status, S.employment_status, t1.name, t2.name, S.institute, dimensions, S.name
+LEFT JOIN ds_mysql_prod_tagelement AS t3
+ON t2.parent = t3.id
+
+LEFT JOIN ds_mysql_prod_tagelement AS t4
+ON t3.parent = t4.id
+
+GROUP BY S.date, S.completion_status, S.voucher, S.placement_status, S.employment_status, t1.name, S.institute, dimensions, S.name, state, district
