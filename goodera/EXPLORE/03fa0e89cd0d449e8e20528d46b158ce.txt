@@ -1,32 +1,44 @@
-Select t.name as projectId, ss.name as milestone ,any_value(s.date) as fy_timerange,t1.name as status, any_value(s.comments) as comments ,any_value(ss.start_date) as start_date, ss.timerange_timerange, ss.completion_date,
-any_value(case
-  when s.status=1547279 then 'Completed'
-  when s.status=1547282 then 
-    case 
-       when s.date>s.completion_date then 'Delayed'
-       else 'Ongoing'
-    end
-  when s.status=1547280 then
-      case
-		  when s.date>s.start_date then 'Delayed'
-          else 'Yet_to_Initiate'
-      end
- else
- 'N/A'
- end )as Status_New
+SELECT
+t.name AS projectId,
+ss.name AS milestone,
+CONCAT(CONCAT(CONCAT(SPLIT_PART(S.date, ' ', 1),'T'),SPLIT_PART(S.date, ' ', 2)),'.000Z') AS fy_timerange,
+t1.name AS status,
+any_value(s.comments) AS comments, 
+any_value(ss.start_date) AS start_date,
+ss.timerange_timerange, ss.completion_date,
 
-from profile_77917 s
+any_value(CASE
+	WHEN s.status=1547279
+	THEN 'Completed'
+	
+	WHEN s.status=1547282
+	THEN 
+    	CASE
+		  WHEN s.date>s.completion_date
+		  THEN 'Delayed'
+		  ELSE 'Ongoing'
+END
+	WHEN s.status=1547280
+	THEN
+		CASE
+		  WHEN s.date>s.start_date
+		  THEN 'Delayed'
+          ELSE 'Yet_to_Initiate'
+END
+	ELSE 'N/A'
+END) AS Status_New
 
-left join profile_77916 ss
-on ss._id=s.milestone
-left join ds_mysql_prod_project t
-on t.id=s.projectId
-left join ds_mysql_prod_tagelement t1
-on t1.id=s.status
+FROM profile_77917 AS s
 
-group by  ss.name, ss.timerange_timerange,ss.completion_date,s.date,t.name,t1.name
-order by s.date,ss.timerange_timerange desc
+LEFT JOIN profile_77916 AS ss
+ON ss._id = s.milestone
 
+LEFT JOIN ds_mysql_prod_project AS t
+ON t.id = s.projectId
 
+LEFT JOIN ds_mysql_prod_tagelement AS t1
+ON t1.id = s.status
 
+GROUP BY  ss.name, ss.timerange_timerange,ss.completion_date,s.date,t.name,t1.name
 
+ORDER BY s.date,ss.timerange_timerange DESC
