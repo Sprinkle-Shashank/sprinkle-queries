@@ -19,11 +19,22 @@ select concat(substring(cast(fy_timerange.start as varchar),1,10), concat('|', s
 ),
 
 historical as (
-select final.fy_timerange, final.projectid, final.f_category, 'Not at Risk' as diabetes, sum((final.final_sum - coalesce(final_risk.final_sum, 0))) as final_sum from final
+select final.fy_timerange, final.projectid, final.f_category, 'Not at Risk' as diabetes, (final.final_sum - coalesce(final_risk.final_sum, 0)) as final_sum from final
   	left join final_risk on
   	final.projectid = final_risk.projectid and final.f_category = final_risk.f_category and
   	final.fy_timerange = final_risk.fy_timerange
-  group by 1,2,3,4
+  
+  union all
+select final.fy_timerange, final.projectid, final.f_category, 'At Risk' as diabetes, coalesce(final_risk.total_sum, 0) as final_sum from final
+  	left join final_risk on
+  	final.projectid = final_risk.projectid and final.f_category = final_risk.f_category and
+  	final.fy_timerange = final_risk.fy_timerange
+  
+),
+
+final_q as (
+  select fy_timerange, projectid, f_category, diabetes, sum(final_sum) as final_sum
+from historical group by 1,2,3,4
   union all
 select concat(f_reg_date, concat('|', f_reg_date)) as fy_timerange, projectid, f_category, 
   case when diabetes = '1012461' then 'At Risk' 
@@ -35,7 +46,7 @@ select concat(f_reg_date, concat('|', f_reg_date)) as fy_timerange, projectid, f
 )
 
 select fy_timerange, project.name as projectid, f_category, diabetes, sum(final_sum) as final_sum
-from historical q
+from final_q q
 left join ds_mysql_prod_project as project
 on project.id = q.projectid where final_sum is not null
 group by 1,2,3,4
