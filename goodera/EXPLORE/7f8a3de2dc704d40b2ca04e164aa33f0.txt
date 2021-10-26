@@ -1,0 +1,43 @@
+Select  p.projectId, p.facility_name, p.pace, p.strategic_yn, p.year_timerange, p.country, p.director_region,p.pace_goals,p.facility_type,p.female_workers, p.pace_enrolled,
+(pace_enrolled*100) AS p1, p1/female_workers AS PACE,ven.name as vendor,
+case 
+	when 1=1
+	then 1
+	else 0
+	end
+	as count,
+CASE WHEN(PACE >= 50) THEN 'Yes'
+ELSE
+'No'
+END AS result_kpi3,
+certified_mts*100 AS a1,
+a1/certified_trainers AS master,p1.certified_trainers , p1.certified_mts , p1.pace_introduced ,
+
+CASE WHEN (pace = 'Yes') AND (master>=30) AND (pace_introduced = 57472) THEN 'Yes'
+ELSE 
+'No'
+END AS result_kpi4,
+CASE WHEN (result_kpi3 = 'Yes') AND (result_kpi4 = 'Yes') THEN 
+'Yes'
+ELSE
+'No'
+END AS final_result
+
+from profile_76755 p
+
+left join profile_76895 p1
+on p.pace_goals = p1._id
+
+
+left join ds_mysql_prod_project fac
+on p.projectId = fac.id
+left join ds_mysql_prod_project ven
+on fac.parent = ven.id
+
+
+
+
+WHERE p.strategic_yn ='Yes' AND final_result = 'Yes'
+Group by  p.projectId, p.facility_name, p.strategic_yn, p.year_timerange, p.country,p.facility_type,p.female_workers, p.pace_enrolled,  result,ven.name,p1.certified_mts,p1.pace_introduced,p1.certified_trainers,p.pace,
+p.director_region,p.pace_goals
+
