@@ -58,18 +58,15 @@ select p.projectId, p.fy_timerange, p.sti, sum(p.final_sum) as final_sum from fi
 select t.projectId, t.fy_timerange, t.sti, sum(t.final_sum) as final_sum from test2 t group by 1,2,3
 )
 
-select p.f_reg_date as fy_timerange, p.projectid, p.p_id, 
-  	case p.sti
-  		when '1012473' then 'genital_ulcers'
-  		when '1012474' then 'urethral_discharg'
-  		when '1012471' then 'veginal_discharge'
-  		when '1012475' then 'lower_abdomen_pain'
-  		when '1012476' then 'scrotal_swelling'
-  		when '1012469' then 'inguinal_swelling'
-        when '1012472' then 'other'
-  		else ''
-  	end as sti,
-  	count(*) as final_sum
-  	from profile_59462 p
-  	where sti != ''
-  	group by 1,2,3,4
+select p.projectId, p.fy_timerange, t.sti,
+  case sti
+  when 'genital_ulcers' then p.genital_ulcers
+  when 'urethral_discharg' then p.urethral_discharg
+  when 'veginal_discharge' then p.veginal_discharge
+  when 'lower_abdomen_pain' then p.lower_abdomen_pain
+  when 'scrotal_swelling' then p.scrotal_swelling
+  when 'inguinal_swelling' then p.inguinal_swelling
+  when 'other' then p.other
+  else null
+  end as final_sum from test1 p cross join pivot1 t
+  where sti is not null
