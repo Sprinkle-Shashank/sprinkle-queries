@@ -1,1 +1,55 @@
-Select * from profile_78695;
+with temp as(
+  Select 'teachers trained' as col
+  union all
+  Select 'students indirectly beneficiated' as col
+  union all  
+  Select 'Percentage increased' as col
+  union all
+  Select 'Usage statistics' as col
+  union all
+  Select 'problem-solving and application capabilities' as col
+  union all
+  Select 'Increase access to Youtube channel' as col
+  union all
+  Select 'sessions conducted' as col
+  union all
+  Select '% increase of app usage' as col
+  union all
+  Select 'school reached' as col
+  union all
+  Select 'teachers and education department officials trained' as col
+  union all
+  Select 'education department officials engaged' as col
+  union all
+  Select 'classes monitored' as col
+  union all
+  Select 'self assessments conducted' as col
+  union all
+  Select '% alignment to NCERT' as col
+)
+
+Select temp.col as dimensions ,t.name as projectid,t1.name as school,s1.fy_timerange,
+sum( case col
+    when 'teachers trained' then s1.teacher_trained
+    when 'students indirectly beneficiated' then s1.indirect_students
+	when 'Percentage increased' then s1.percnt_inc
+	when 'Usage statistics' then s1.usage_stats
+	when 'problem-solving and application capabilities' then s1.prob_solving
+	when 'Increase access to Youtube channel' then s1.inc_youtube
+	when 'sessions conducted' then s1.sess_comm
+	when '% increase of app usage' then s1.inc_app_use
+	when 'school reached' then s1.school_reached
+	when 'teachers and education department officials trained' then s1.teachers
+	when 'education department officials engaged' then s1.engage_megh
+	when 'classes monitored' then s1.classes
+	when 'self assessments conducted' then s1.self_assess
+	when '% alignment to NCERT' then s1.allign_ncert
+	else NULL
+end) as Value
+from profile_78695
+ left join ds_mysql_prod_project t
+  on s1.projectid=t.id
+ left join ds_mysql_prod_tagelement t1
+  on s1.school =t1.id 
+  cross join temp
+  group by s1._id,t.name ,s1.name ,s1.fy_timerange,dimensions,t1.name
