@@ -25,11 +25,19 @@ select final.fy_timerange, final.projectid, final.f_category, 'Not at Risk' as d
   	final.fy_timerange = final_risk.fy_timerange
   group by 1,2,3,4
   union all
-select final.fy_timerange, final.projectid, final.f_category, 'At Risk' as diabetes, sum(coalesce(final_risk.final_sum, 0)) as final_sum from final
-  	left join final_risk on
-  	final.projectid = final_risk.projectid and final.f_category = final_risk.f_category and
-  	final.fy_timerange = final_risk.fy_timerange
-  group by 1,2,3,4
+select concat(f_reg_date, concat('|', f_reg_date)) as fy_timerange, projectid, f_category, 
+  case when diabetes = '1012461' then 'At Risk' 
+  		when diabetes = '1012462' then 'Not at Risk'
+  		else null end as diabetes, count(*) as total_sum
+  	from profile_59462
+  	where diabetes in ('1012461', '1012462')
+  	group by 1,2,3,4
 )
 
-select * from historical
+select concat(f_reg_date, concat('|', f_reg_date)) as fy_timerange, projectid, f_category, 
+  case when diabetes = '1012461' then 'At Risk' 
+  		when diabetes = '1012462' then 'Not at Risk'
+  		else null end as diabetes, count(*) as total_sum
+  	from profile_59462
+  	where diabetes in ('1012461', '1012462')
+  	group by 1,2,3,4
