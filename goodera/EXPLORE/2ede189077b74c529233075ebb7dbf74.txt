@@ -1,1 +1,21 @@
-Select * from profile_78698;
+with temp as(
+  Select 'Monitored Classes' as col
+  union all
+  Select 'self_assesments' as col
+  union all
+  Select '% alignment to NCERT' as col
+)
+select temp.col as dimensions ,t.name as projectid,t1.name as school,s1.fy_timerange,
+sum(case col
+	when 'Monitored Classes' then s1.classes
+	when 'self_assesments' then s1.self_assesments
+	when '% alignment to NCERT' then s1.allign_ncert
+	else NULL
+end) as Value
+from profile_78698 s1
+ left join ds_mysql_prod_project t
+  on s1.projectid=t.id
+ left join ds_mysql_prod_tagelement t1
+  on s1.school =t1.id 
+  cross join temp
+  group by s1._id,t.name ,s1.name ,s1.fy_timerange,dimensions,t1.name
