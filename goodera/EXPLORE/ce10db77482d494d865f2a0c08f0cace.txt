@@ -9,8 +9,12 @@ SELECT 'Students Trained' AS col
 )
 
 SELECT
-S.completion_status, S.voucher, placement_status, employment_status, S.name AS student_name, I.name AS institute,
+S.completion_status, S.voucher,
+t6.name AS employment_status,
+S.name AS student_name,
+I.name AS institute,
 COUNT (S.registration),
+t5.name AS placement_status,
 CONCAT(CONCAT(CONCAT(SPLIT_PART(S.date, ' ', 1),'T'),SPLIT_PART(S.date, ' ', 2)),'.000Z') AS fy_timerange,
 t0.name AS course_opt,
 TEMP.col AS dimensions,
@@ -74,6 +78,12 @@ ON t2.parent = t3.id
 
 LEFT JOIN ds_mysql_prod_tagelement AS t4
 ON t3.parent = t4.id
+
+LEFT JOIN ds_mysql_prod_tagelement AS t5
+ON S.placement_status = t5.id
+
+LEFT JOIN ds_mysql_prod_tagelement AS t6
+ON S.employment_status = t6.id
 
 GROUP BY S.date, S.completion_status, S.voucher, S.placement_status, S.employment_status, t0.name, I.name, dimensions, S.name, state, district
 
