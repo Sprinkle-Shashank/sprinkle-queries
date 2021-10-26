@@ -1,1 +1,22 @@
-Select * from profile_78710;
+with temp as(
+  Select '% alignment to NCERT' as col
+  union all
+  Select 'skilled up teachers' as col
+  union all
+  Select 'community stakeholders skilled' as col
+)
+
+Select temp.col as dimensions ,t.name as projectid,t1.name as school,s1.fy_timerange,
+sum(case col
+	when '% alignment to NCERT' then s1.allign_ncert
+	when 'skilled up teachers' then s1.skilled_teachrs
+	when 'community stakeholders skilled' then s1.comm_stakeholder
+	else NULL
+end) as Value
+from profile_78710 s1
+ left join ds_mysql_prod_project t
+  on s1.projectid=t.id
+ left join ds_mysql_prod_tagelement t1
+  on s1.school =t1.id 
+  cross join temp
+group by s1._id,t.name ,s1.name ,s1.fy_timerange,dimensions,t1.name
