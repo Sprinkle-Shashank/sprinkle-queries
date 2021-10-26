@@ -1,12 +1,12 @@
 with test1 as(
-select p.fy_timerange.start as fy_timerange, p.projectid, 'Allied' as f_category, (nv_allied + nv_partner) as         "Near Vision", (dv_allied + dv_partner) as "Distance Vision", (cv_allied + cv_partner) as "Complex Vision", (cata_partner + cata_allied) as Cataract, (cata_surgery_allied + cata_surgery_partner) as "Cataract Surgery" from profile_63886 p
+select p.fy_timerange.start as fy_timerange, p.projectid, 'Allied' as f_category, (nv_allied + nv_partner) as         near_vision, (dv_allied + dv_partner) as distance_vision, (cv_allied + cv_partner) as complex_vision, (cata_partner + cata_allied) as cataract, (cata_surgery_allied + cata_surgery_partner) as cataract_surgery from profile_63886 p
 ),
 
 
 test2 as(
 select p.fy_timerange.start as fy_timerange, p.projectid, 'Trucker' as f_category, nv_truck as
-"Near Vision", dv_truck as "Distance Vision", cv_truck as "Complex Vision", cata_truck as Cataract,
-cata_surgery_truck as "Cataract Surgery" from profile_63886 p
+near_vision, dv_truck as distance_vision, cv_truck as complex_vision, cata_truck as cataract,
+cata_surgery_truck as cataract_surgery from profile_63886 p
   
  union all
   
@@ -15,26 +15,26 @@ select * from test1
 
 
 pivot as(
-select 'Near Vision' as vision from test2
+select 'near_vision' as vision from test2
   union all
-select 'Distance Vision' as vision from test2
+select 'distance_vision' as vision from test2
   union all
-select 'Complex Vision' as vision from test2
+select 'complex_vision' as vision from test2
   union all
-select 'Cataract' as vision from test2
+select 'cataract' as vision from test2
   union all
-select 'Cataract Surgery' as vision from test2
+select 'cataract_surgery' as vision from test2
 ),
 
 
 test3 as(
 select p.fy_timerange, p.projectid, p.f_category, t.vision,
   case t.vision
-  when 'Near Vision' then p."Near Vision"
-  when 'Distance Vision' then p."Distance Vision"
-  when 'Complex Vision' then p."Complex Vision"
-  when 'Cataract' then p.Cataract
-  when 'Cataract Surgery' then p."Cataract Surgery"
+  when 'near_vision' then p.near_vision
+  when 'distance_vision' then p.distance_vision
+  when 'complex_vision' then p.complex_vision
+  when 'cataract' then p.cataract
+  when 'cataract_surgery' then p.cataract_surgery
   else null
   end as total_sum
   from test2 p cross join pivot t
@@ -43,12 +43,12 @@ select p.fy_timerange, p.projectid, p.f_category, t.vision,
 test4 as(
 select concat(p.f_reg_date,'T00:00:00.000Z') as fy_timerange, p.projectid, p.p_id, p.f_category, 
   	case
-  		when vision = '1012445' then 'Distance Vision'
-  		when vision = '1012446' then 'Cataract'
-  		when vision = '1012447' then 'Complex Vision'
-  		when vision = '1012448' then 'Near Vision'
-  		when vision = '1059858' then 'Cataract Surgery'
-  		when vision = '1012449' then 'Normal Vision'
+  		when vision = '1012445' then 'distance_vision'
+  		when vision = '1012446' then 'cataract'
+  		when vision = '1012447' then 'complex_vision'
+  		when vision = '1012448' then 'near_vision'
+  		when vision = '1059858' then 'cataract_surgery'
+  		when vision = '1012449' then 'normal_vision'
   		else null
   	end as vision,
   	count(*) as total_sum
