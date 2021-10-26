@@ -1,1 +1,28 @@
-Select * from profile_78709;
+with temp(
+  Select 'students identified' as col
+  union all
+  Select 'teachers identified' as col
+  union all  
+  Select 'Usage statistics' as col
+  union all
+  Select 'training sessions conducted' as col
+  union all
+  Select 'training sessions conducted' as col
+)
+
+Select temp.col as dimensions ,t.name as projectid,t1.name as school,s1.fy_timerange,
+sum(case col
+	when 'students identified' then s1.studnt_baseline
+	when 'teachers identified' then s1.teachr_baseline
+	when 'Usage statistics' then s1.usage
+	when 'training sessions conducted' then s1.train_teachr
+	when 'training sessions conducted' then s1.train_ed_dept
+	else NULL
+end) as Value
+from profile_78709 s1
+ left join ds_mysql_prod_project t
+  on s1.projectid=t.id
+ left join ds_mysql_prod_tagelement t1
+  on s1.school =t1.id 
+  cross join temp
+group by s1._id,t.name ,s1.name ,s1.fy_timerange,dimensions,t1.name
