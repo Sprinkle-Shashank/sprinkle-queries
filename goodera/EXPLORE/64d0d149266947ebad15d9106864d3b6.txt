@@ -1,0 +1,39 @@
+Select p.projectId,p.facility_name,p.year_timerange,p.gbv_goals,p.country,p.director_region,p.facility_type,p.female_workers,p.male_workers,p.female_managers,p.female_supervisors,p.male_supervisors, p.male_managers,ven.name AS vendor,p1.indepth_workers,p1.indepth_managers,p1.gbv_policy,p1.channels_more, p1.anonymous_channel, p1.third_party_channel, p1.response_provided, p1.issues_resolved,
+female_workers+(male_workers+(female_managers+(male_managers+(male_supervisors+female_supervisors)))) AS total_emp,
+indepth_workers+indepth_managers AS total_trained, total_trained*100 AS total,total/total_emp AS trained,
+CASE WHEN trained >= 100 THEN 'YES'
+ELSE 
+'NO'
+END AS result_kpi8,
+case 
+	when 1=1
+	then 1
+	else 0
+	end
+	as count,
+CASE WHEN (gbv_policy = 57472) and (anonymous_channel=57472) and (third_party_channel=57472) and (response_provided=57472) and (issues_resolved = 57472) and (channels_more=1538190) or (channels_more = 1538189) Then 'YES'
+ELSE 
+'NO'
+END AS result_kpi7,
+CASE WHEN (result_kpi7 ='YES') AND (result_kpi8 = 'YES')
+THEN 'YES'
+ELSE
+'NO'
+END AS final_result
+
+from profile_76755 p
+
+left join profile_76894 p1 on 
+p.gbv_goals = p1._id
+
+
+left join ds_mysql_prod_project fac
+on p.projectId = fac.id
+left join ds_mysql_prod_project ven
+on fac.parent = ven.id
+
+where final_result = 'YES'
+group by p.projectId,p.facility_name,p.year_timerange,p.country,p.director_region,ven.name,result,p1.indepth_workers,p1.indepth_managers,p.facility_type,p.gbv_goals,p.female_workers,p.male_workers,p.female_managers,p.female_supervisors,p.male_supervisors, p.male_managers,p1.gbv_policy,p1.channels_more, p1.anonymous_channel, p1.third_party_channel, p1.response_provided, p1.issues_resolved
+
+
+
