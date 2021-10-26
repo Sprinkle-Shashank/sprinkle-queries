@@ -1,5 +1,7 @@
 --select p.name from profile_27395 p left join profile_27405 l on 
 with Base1 as(select c.name as IA from profile_27405 p
 left join profile_27395 c
-on p.ia=c._id),Base2 as( select p.name,l.IA from profile_27395 p left join Base1 l on p.name=l.IA)
-select* from Base2
+on p.ia=c._id),Base2 as( select p.name,l.IA,c.name as Core_Area,f.name as Empanelled_Since,floor(datediff(day,f.name,current_date)/365.25) as yrs_of_Engagement from profile_27395 p left join Base1 l on p.name=l.IA
+left join ds_mysql_prod_tagelement c on p.core_area=c.id
+left join ds_mysql_prod_tagelement f on
+p.fy=f.id),Base3 as(select p.fy_timerange,p.name, case when p.ia is not null then "APPROVED" end as Empanelment_Status,p.Core_Area,p.Empanelled_Since,p.yrs_of_Engagement from Base2 p)
