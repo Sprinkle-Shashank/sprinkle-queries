@@ -1,5 +1,7 @@
-
-Select  p.projectId, p.facility_name, p.pace, p.strategic_yn, p.year_timerange, p.country, p.director_region,p.pace_goals, 
+with test0 as(Select p.* ,CAST(gbv_goals as VARCHAR)from profile_76755 p
+, p.gbv_goals_arr gbv_goals
+),
+ test1 as ( Select  p.projectId, p.facility_name, p.pace, p.strategic_yn, p.year_timerange, p.country, p.director_region,p.pace_goals, 
 ven.name AS Vendor,certified_mts*100 AS a1,
 a1/certified_trainers AS master,p1.certified_trainers , p1.certified_mts , p1.pace_introduced ,
 case 
@@ -12,7 +14,7 @@ CASE WHEN (pace = 'Yes') AND (master>=30) AND (pace_introduced = 57472) THEN 'Ye
 ELSE 
 'No'
 END AS result
-from profile_76755 p
+from test0 p
 
 left join profile_76895 p1
 on p.pace_goals = p1._id
@@ -24,8 +26,9 @@ left join ds_mysql_prod_project ven
 on fac.parent = ven.id
 
 
-
-
 WHERE p.strategic_yn ='Yes' AND result='Yes'
 Group by  p.projectId, p.facility_name, p.strategic_yn, p.year_timerange, p.country,  result,ven.name,p1.certified_mts,p1.pace_introduced,p1.certified_trainers,p.pace,
 p.director_region,p.pace_goals
+)
+Select p.* from test1 p
+		   
