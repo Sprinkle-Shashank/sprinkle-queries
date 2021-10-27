@@ -1,4 +1,22 @@
 with test0 as(Select p.* ,CAST(pace_goals as VARCHAR)from profile_76755 p
 , p.pace_goals_arr pace_goals
-)
-Select * from test0
+),
+ test1 as(Select  p.projectId, p.facility_name, p.pace, p.strategic_yn, p.year_timerange, p.country, p.director_region,p.pace_goals,p.facility_type,p.female_workers, p.pace_enrolled,
+(pace_enrolled*100) AS p2, cast(p2 as float)/cast(female_workers as float) AS PACE,ven.name as vendor,
+case 
+	when 1=1
+	then 1
+	else 0
+	end
+	as count,
+CASE WHEN(PACE >= 50) THEN 'YES'
+ELSE
+'NO'
+END AS result_kpi3
+from test0 p
+left join ds_mysql_prod_project fac
+on p.projectId = fac.id
+left join ds_mysql_prod_project ven
+on fac.parent = ven.id
+		  )
+Select * from test1
