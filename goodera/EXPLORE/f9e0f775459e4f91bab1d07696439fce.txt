@@ -29,7 +29,7 @@ end as focus_area
 from rb_loghours r1),
 
 sub2 as(
-  select s1._id as id, (cast(s1.start_date_new as date)||'|'||cast(s1.end_date_new as date)) as fy_timerange, sum(s1.vol_hours) as vol_hours, sum(s1.vol_hours*p2.vol_conversion_factor) as volunteering_cost, extract(year from cast(s1.start_date_new as date)) as year_check, ('FY'||' '||extract(year from cast(s1.start_date_new as date))) as x_axis2, cast('Volunteering' as varchar) as x_axis,
+  select s1._id as id, (cast(s1.start_date_new as date)||'|'||cast(s1.end_date_new as date)) as fy_timerange, s1.vol_hours, sum(s1.vol_hours*p2.vol_conversion_factor) as volunteering_cost, extract(year from cast(s1.start_date_new as date)) as year_check, ('FY'||' '||extract(year from cast(s1.start_date_new as date))) as x_axis2, cast('Volunteering' as varchar) as x_axis,
 	case
   		when(year_check = extract(year from current_date)) then 'Current year'
   		when(year_check = extract(year from current_date)-1) then 'Previous year'
@@ -57,12 +57,12 @@ left join profile_78929 p3 on p3.vol_focus_area_full = s1.focus_area
 left join ds_mysql_prod_tagelement t1 on t1.id = p3.focus_area
 left join profile_78788 p4 on p4.vol_country = s1.country
 where s1.vol_hours is not null and s1.vol_hours != 0 and year_check > 2017 and year_check < 2026
-group by s1._id, s1.start_date_new, s1.end_date_new, t1.name, p4.name, p4.map_code, x_axis, x_axis2, year_check, year_status),
+group by s1._id, s1.start_date_new, s1.end_date_new, t1.name, p4.name, p4.map_code, x_axis, x_axis2, year_check, year_status, s1.vol_hours),
 
 ----- Log Hours xxx-------
 
 sub3 as(
-  select cast(r2.eoid as varchar) as id, (cast(r2.start_date as date)||'|'||cast(r2.end_date as date)) as fy_timerange, sum(r2.vol_hours) as vol_hours, sum(r2.vol_hours*p7.vol_conversion_factor) as volunteering_cost, extract(year from cast(r2.start_date as date)) as year_check, ('FY'||' '||extract(year from cast(r2.start_date as date))) as x_axis2, cast('Volunteering' as varchar) as x_axis,
+  select cast(r2.eoid as varchar) as id, (cast(r2.start_date as date)||'|'||cast(r2.end_date as date)) as fy_timerange, r2.vol_hours, sum(r2.vol_hours*p7.vol_conversion_factor) as volunteering_cost, extract(year from cast(r2.start_date as date)) as year_check, ('FY'||' '||extract(year from cast(r2.start_date as date))) as x_axis2, cast('Volunteering' as varchar) as x_axis,
 	case
   		when(year_check = extract(year from current_date)) then 'Current year'
   		when(year_check = extract(year from current_date)-1) then 'Previous year'
@@ -90,7 +90,7 @@ left join ds_mysql_prod_tagelement t2 on t2.id = p5.focus_area
 left join profile_78788 p6 on p6.vol_country = r2.country
 left join profile_78933 p7 on p7.name = extract(year from cast(r2.start_date as date))
 where r2.vol_hours is not null and r2.vol_hours != 0 and year_check > 2017 and year_check < 2026
-group by r2.eoid, r2.start_date, r2.end_date, t2.name, p6.name, p6.map_code, year_check, year_status, x_axis, x_axis2)
+group by r2.eoid, r2.start_date, r2.end_date, t2.name, p6.name, p6.map_code, year_check, year_status, x_axis, x_axis2, r2.vol_hours)
 
 ------ Volunteering Hours xxx ----
 
