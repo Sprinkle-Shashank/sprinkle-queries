@@ -34,7 +34,18 @@ sub2 as(
   		when(year_check = extract(year from current_date)) then 'Current year'
   		when(year_check = extract(year from current_date)-1) then 'Previous year'
   	else 'Not Applicable'
-  	end as year_status
+  	end as year_status,
+  
+  	case
+  		when p4.name is null then 'Global'
+  		else p4.name
+  	end as country,
+  
+  	case 
+  		when p4.map_code is null then 'UK'
+  		else p4.map_code
+  	end as map_code,
+  
 from sub1 s1
 left join profile_78933 p2 on p2.name = extract(year from cast(s1.start_date_new as date))
 left join profile_78929 p3 on p3.vol_focus_area_full = s1.focus_area
@@ -50,7 +61,18 @@ sub3 as(
   		when(year_check = extract(year from current_date)) then 'Current year'
   		when(year_check = extract(year from current_date)-1) then 'Previous year'
   	else 'Not Applicable'
-  	end as year_status
+  	end as year_status,
+  
+  	case
+  		when p6.name is null then 'Global'
+  		else p6.name
+  	end as country,
+  
+  	case 
+  		when p6.map_code is null then 'UK'
+  		else p6.map_code
+  	end as map_code,
+  
 from rb_volhours r2
 left join profile_78929 p5 on p5.vol_focus_area_full = r2.focus_area
 left join ds_mysql_prod_tagelement t2 on t2.id = p5.focus_area
@@ -61,5 +83,7 @@ group by r2.eoid, r2.start_date, r2.end_date, t2.name, p6.name, p6.map_code, yea
 ------ Volunteering Hours xxx ----
 
 select id, fy_timerange, focus_area, country, map_code, year_check, year_status, x_axis, x_axis2, vol_hours, volunteering_cost from sub2
+where fy_timerange is not null
 union all
 select id, fy_timerange, focus_area, country, map_code, year_check, year_status, x_axis, x_axis2, vol_hours, volunteering_cost from sub3
+where fy_timerange is not null
