@@ -15,7 +15,22 @@ with temp as(
   union all
   select 'wash_students_3g' as col)
   
-select p1.fy_timerange, temp.col,
+select p1.fy_timerange, temp.col, extract(month from cast(p1.fy_timerange.start as date)) as mon,
+
+case
+	when (mon = 1) then 'Jan' 
+	when (mon = 2) then 'Feb' 
+	when (mon = 3) then 'Mar' 
+	when (mon = 4) then 'Apr' 
+	when (mon = 5) then 'May' 
+	when (mon = 6) then 'Jun' 
+	when (mon = 7) then 'Jul' 
+	when (mon = 8) then 'Aug' 
+	when (mon = 9) then 'Sep'
+	when (mon = 10) then 'Oct' 
+	when (mon = 11) then 'Nov'
+	else 'Dec'
+end as month_name,
 
 sum(case col 
 		when 'hygiene_sessions_3g' then p1.hygiene_sessions_3g
@@ -43,6 +58,6 @@ end as category
 
 from profile_78618 p1
 cross join temp 
-group by fy_timerange, temp.col, topic, category
+group by fy_timerange, temp.col, topic, category, month_name, mon
   
   
