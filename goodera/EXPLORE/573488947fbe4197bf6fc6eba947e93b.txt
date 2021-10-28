@@ -3,34 +3,23 @@ select concat(p.f_reg_date,concat('|',p.f_reg_date)) as fy_timerange, p.projecti
 ),
 
 test1 as(
-select p.fy_timerange.start as fy_timerange, p.projectid, 'Allied' as f_category, (vision_allied + vision_partner) as vision_screening, (sti_allied + sti_partner) as sexually_transmitted_diseases, (hiv_allied + hiv_partner) as hiv, (diabetes_allied + diabetes_partner) as diabetes from profile_63885 p
+select p.fy_timerange.start as fy_timerange, p.projectid, 'Allied' as f_category, cast('vision_screening' as text) as disease,  (vision_allied + vision_partner) as final_sum from profile_63885 p
+  union all
+select p.fy_timerange.start as fy_timerange, p.projectid, 'Allied' as f_category, cast('sexually_transmitted_diseases' as text) as disease,  (sti_allied + sti_partner) as final_sum from profile_63885 p
+  union all
+select p.fy_timerange.start as fy_timerange, p.projectid, 'Allied' as f_category, cast('hiv' as text) as disease,  (hiv_allied + hiv_partner) as final_sum from profile_63885 p
+  union all
+select p.fy_timerange.start as fy_timerange, p.projectid, 'Allied' as f_category, cast('diabetes' as text) as disease,  (diabetes_allied + diabetes_partner) as final_sum from profile_63885 p
   
 union all
   
-select p.fy_timerange.start as fy_timerange, p.projectid, 'Trucker' as f_category, vision_truckers as vision_screening, sti_truckers as sexually_transmitted_diseases, hiv_truckers as hiv, diabetes_truckers as diabetes from profile_63885 p
-),
-
-pivot1 as(
-select 'diabetes' as disease from test1 
-	  union all
-select 'sexually_transmitted_diseases' as Disease from test1 
-	  union all
-select 'hiv' as disease from test1
-	  union all
-select 'vision_screening' as disease from test1 
-),
-
-final1 as(
-select p.projectid, p.fy_timerange, p.f_category, t.disease,
-  case disease
-	when 'diabetes' then p.diabetes
-	when 'sexually_transmitted_diseases' then p.sexually_transmitted_diseases
-	when 'hiv' then p.hiv
-	when 'vision_screening' then p.vision_screening
-	else null
-	end as final_sum
-from test1 p cross join pivot1 t 
-
+select p.fy_timerange.start as fy_timerange, p.projectid, 'Trucker' as f_category, cast('vision_screening' as text) as disease,  vision_truckers as final_sum from profile_63885 p
+  union all
+select p.fy_timerange.start as fy_timerange, p.projectid, 'Trucker' as f_category, cast('sexually_transmitted_diseases' as text) as disease,  sti_truckers as final_sum from profile_63885 p
+  union all
+select p.fy_timerange.start as fy_timerange, p.projectid, 'Trucker' as f_category, cast('hiv' as text) as disease,  hiv_truckers as final_sum from profile_63885 p
+  union all
+select p.fy_timerange.start as fy_timerange, p.projectid, 'Trucker' as f_category, cast('diabetes' as text) as disease,  diabetes_truckers as final_sum from profile_63885 p
 )/*,
 
 test2 as(
