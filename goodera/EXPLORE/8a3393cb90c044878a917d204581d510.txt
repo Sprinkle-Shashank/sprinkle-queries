@@ -1,4 +1,24 @@
-Select projectId,facility_name,strategic_yn,year_timerange,country,director_region,female_workers,pace_enrolled,
+
+Select p.project_Id,p.facility_name,p.strategic_yn,p.year_timerange,p.country,p.director_region,p.facility_type, p.female_workers, p.pace_enrolled,ven.name as vendor,
+((pace_enrolled*100)/female_workers) as PACE,avg(PACE) as avg_value,
+case when (PACE>=50)
+then
+'yes'
+else
+'no'
+
+from profile_76755 p
+
+left join ds_mysql_prod_project fac
+on p.projectId = fac.id
+left join ds_mysql_prod_project ven
+on fac.parent = ven.id
+
+where p.strategic_yn = 'Yes'
+
+Group by p.projectId,p.facility_name,p.strategic_yn,p.year_timerange,p.country,p.director_region,p.facility_type, p.female_workers, p.pace_enrolled,ven.name
+
+/*Select projectId,facility_name,strategic_yn,year_timerange,country,director_region,female_workers,pace_enrolled,
 pace_enrolled*100 AS a1,
 a1/female_workers AS PACE,
 CASE WHEN PACE > 50 THEN 'YES'
@@ -13,3 +33,4 @@ on profile_76755.projectId = ven.id
 
 where profile_76755.strategic_yn = 'YES'
 Group by projectId, facility_name, year_timerange, country, director_region, vendor,strategic_yn,female_workers,pace_enrolled,pace
+*/
