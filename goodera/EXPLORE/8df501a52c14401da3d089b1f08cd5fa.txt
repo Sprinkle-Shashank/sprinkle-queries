@@ -63,8 +63,8 @@ left join ds_mysql_prod_tagelement f on
 c.fy=f.id
 left join ds_mysql_prod_tagelement m on
 c.project_manager=m.id),lookup24 as(select p.instance,p.fy_timerange,p.ProjectCode,p.Village,l.Project_Manager from lookup21 p left join lookup22 l on p.Code=l.CODE ),
-Base5 as(select m.profileinstanceid, o, cast(o."approvalStatus" as varchar) as status from test_hdfc_sample m, m.approvallog o ),Base6 as(select distinct(p.profileinstanceid) as profileinstanceid,p.status,case when p.profileinstanceid is not null then 'Approved by first Manager' end as type from Base5 p where p.status='APPROVED')
-,Base7 as(select p.profileinstanceid,count(p.status) as Approvers,case when p.profileinstanceid is not null then 'Approved by 2nd manager' end as type from Base5 p where p.status='APPROVED' group by p.profileinstanceid having count(p.status)>1),Base8 as(select  p.fy_timerange,p.ProjectCode,p.Village,p.Project_Manager,l.type from lookup24 p left join Base7 l on p.instance=l.profileinstanceid),Base9 as(
+Base5 as(select m.profileinstanceid, o, cast(o."approvalStatus" as varchar) as status from test_hdfc_sample m, m.approvallog o ),Base6 as(select distinct(p.profileinstanceid) as profileinstanceid,case when p.profileinstanceid is not null then 'Approved by first Manager' end as type from Base5 p where p.status='APPROVED')
+,Base7 as(select p.profileinstanceid,count(p.status) as Count,case when p.profileinstanceid is not null then 'Approved by 2nd manager' end as type from Base5 p where p.status='APPROVED' group by p.profileinstanceid having count(p.status)>1),Base8 as(select  p.fy_timerange,p.ProjectCode,p.Village,p.Project_Manager,l.type from lookup24 p left join Base7 l on p.instance=l.profileinstanceid),Base9 as(
 select split_part(split_part(prod.name,'|',1),'.',1) as ProjectCode,f.name as fy_timerange,m.name as Month,concat(ProjectCode,fy_timerange) as CODE,split_part(prod.name,'|',3) as census,case when p.subcat_output is not NULL and p.flag_deviation_delay='1'
 then 'Number of Deviations Reported' end  as type  from profile_54963 p
 left join ds_mysql_prod_project prod on
@@ -73,14 +73,23 @@ left join ds_mysql_prod_tagelement f on
 p.fy=f.id
 left join ds_mysql_prod_tagelement m on
 p.month=m.id),Base10 as(select p.fy_timerange,p.ProjectCode,l.Project_Manager,k.village as Village,count(*) as Count,p.type from Base9 p left join Base1 l on p.CODE=l.CODE
-left join profile_27489 k on p.census=k.name group by p.fy_timerange,p.ProjectCode,l.Project_Manager,k.village,p.type),Base11 as(select p.fy_timerange,p.ProjectCode,p.Project_Manager,p.Village,count(*) as Count,case when p.instance is not null then 'No. of Activities reported' end as type from lookup24 p left join test_hdfc_sample k on p.instance=k.profileinstanceid where k.status='PENDING_APPROVAL' or k.status='SUBMITTED' group by p.fy_timerange,p.ProjectCode,p.Project_Manager,p.Village,type),Base12 as(select p.fy_timerange,p.Project_Manager,p.ProjectCode,p.Village,count(*) as Count,l.type from p.instance=l.profileinstanceid)
+left join profile_27489 k on p.census=k.name group by p.fy_timerange,p.ProjectCode,l.Project_Manager,k.village,p.type),Base11 as(select p.fy_timerange,p.ProjectCode,p.Project_Manager,p.Village,count(*) as Count,case when p.instance is not null then 'No. of Activities reported' end as type from lookup24 p left join test_hdfc_sample k on p.instance=k.profileinstanceid where k.status='PENDING_APPROVAL' or k.status='SUBMITTED' group by p.fy_timerange,p.ProjectCode,p.Project_Manager,p.Village,type),Base12 as(select p.fy_timerange,p.Project_Manager,p.ProjectCode,p.Village,count(*) as Count,l.type from lookup24 p left join Base6 l on p.instance=l.profileinstanceid group by p.fy_timerange,p.Project_Manager,p.ProjectCode,p.Village,l.type),Base13 as(select p.fy_timerange,p.Project_Manager,p.ProjectCode,p.Village,count(*) as Count,l.type 
+from lookup24 p left join Base7 l on p.instance=l.profileinstanceid group by p.fy_timerange,p.Project_Manager,p.ProjectCode,p.Village,l.type)
 
 
 
+,Final as(Select p.fy_timerange,p.Project_Manager,p.ProjectCode,p.Village,p.Count,p.type from Base41 p 
+union all
+Select p.fy_timerange,p.Project_Manager,p.ProjectCode,p.Village,p.Count,p.type from Base11 p 
+union all 
+select p.fy_timerange,p.Project_Manager,p.ProjectCode,p.Village,p.Count,p.type from Base12 p
+union all
+select p.fy_timerange,p.Project_Manager,p.ProjectCode,p.Village,p.Count,p.type from Base13 p
+union all
+select p.fy_timerange,p.Project_Manager,p.ProjectCode,p.Village,p.Count,p.type from Base10 p
+)
 
-,Final as(Select p.fy_timerange,p.Project_Manager,p.ProjectCode,p.Village,p.Count,p.type from Base41 p)
-
-select * from Base12
+select * from Final
 
 
 
