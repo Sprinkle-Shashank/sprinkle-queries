@@ -20,11 +20,11 @@ select p.fy_timerange.start as fy_timerange, p.projectid, 'Trucker' as f_categor
 select p.fy_timerange.start as fy_timerange, p.projectid, 'Trucker' as f_category, cast('hiv' as text) as disease,  hiv_truckers as final_sum from profile_63885 p where final_sum !=0
   union all
 select p.fy_timerange.start as fy_timerange, p.projectid, 'Trucker' as f_category, cast('diabetes' as text) as disease,  diabetes_truckers as final_sum from profile_63885 p where final_sum !=0
-)/*,
+),
 
 test2 as(
-select concat(p.f_reg_date,concat('|',p.f_reg_date)) as fy_timerange, p.projectid, p.p_id, p.f_category, decode(p.oral,1012465,0,null,0,1) as oral_hygiene, decode(p.diabetes,1012463,0,null,0,1) as diabetes, decode(p.sti,1012470,0,null,0,1) as sexually_transmitted_diseases, decode(p.hiv,1012483,1,1012478,1,0) as hiv, decode(p.vision,1012444,0,null,0,1) as vision_screening, decode(p.hypertension,1012468,0,null,0,1) as hypertension from profile_59462 p
-),
+select concat(p.f_reg_date,concat('|',p.f_reg_date)) as fy_timerange, p.projectid, p.p_id, p.f_category, cast('oral_hygiene' as text) as disease, decode(p.oral,1012465,0,null,0,1) as final_sum from profile_59462 p where oral not in (1012465)
+)/*,
 
 test3 as(
 select p.fy_timerange.start as fy_timerange, p.projectid, 'Allied' as f_category, 'tuberculosis' as disease, (tb_pres_screen_s_allied + tb_pres_screen_x_allied + tb_pres_screen_both_allied) as final_sum from profile_63887 p
@@ -75,7 +75,7 @@ select p.projectid, p.fy_timerange, p.p_id, p.f_category, p.disease, sum(final_s
 ),
 
 test4 as(
-select p.projectid, p.fy_timerange, p.f_category, p.disease, sum(final_sum) as final_sum from final1 p group by 1,2,3,4
+select p.projectid, p.fy_timerange, p.f_category, p.disease, sum(final_sum) as final_sum from test1 p group by 1,2,3,4
 
 union all
   
@@ -95,4 +95,4 @@ from test4 p
 left join ds_mysql_prod_project as t
 on t.id = p.projectid
 group by 1,2,3,4 */
-select p.projectid, p.fy_timerange, p.f_category, p.disease, sum(final_sum) as final_sum from test1 p group by 1,2,3,4
+select * from test2
