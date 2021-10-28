@@ -24,5 +24,22 @@ select concat(p.f_reg_date,concat('|',p.f_reg_date)) as fy_timerange, p.projecti
 
 test3 as(
 select concat(p.f_reg_date,concat('|',p.f_reg_date)) as fy_timerange, p.projectid, p.p_id, p.govt, p.f_category, cast('tuberculosis' as text) as disease, decode(tb1,1012460,0,null,0,1) as final_sum from profile_59462 p cross join p.tb tb1 where tb1 not in (1012460)
-)
-select * from test3 where govt = '1020322'
+),
+
+test4 as(
+select p.projectid, p.fy_timerange, p.f_category, p.disease, sum(final_sum) as final_sum from test1 p group by 1,2,3,4
+
+union all
+  
+select p.projectid, p.fy_timerange, p.f_category, p.disease, sum(final_sum) as final_sum from test2 p where govt = '1020322' group by 1,2,3,4
+  
+  union all
+  
+select p.projectid, p.fy_timerange, p.f_category, p.disease, sum(final_sum) as final_sum from test3 p where govt = '1020322' group by 1,2,3,4
+)  
+
+select p.fy_timerange, t.name as projectid, p.f_category, p.disease, sum(final_sum) as final_sum
+from test4 p
+left join ds_mysql_prod_project as t
+on t.id = p.projectid
+group by 1,2,3,4 
