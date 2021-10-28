@@ -33,9 +33,13 @@ sub2 as(
 	case
   		when year_check <= extract(year from current_date) and end_year >= extract(year from current_date)
   		then 'Current year'
+  	else 'Not Applicable'
+  	end as year_status_1,
+  
+  	case
   		when year_check <= extract(year from current_date)-1 and end_year >= extract(year from current_date)-1		  then 'Previous year'
   	else 'Not Applicable'
-  	end as year_status,
+  	end as year_status_2,
   
   	case
   		when p4.name is null then 'Global'
@@ -50,8 +54,9 @@ sub2 as(
    	case
   		when t1.name is null then 'Other'
   		else t1.name
-  	end as focus_area
+  	end as focus_area,
   
+(year_status_1||'|'||year_status_2) as year_status  
 from sub1 s1
 left join profile_78933 p2 on p2.name = extract(year from cast(s1.start_date_new as date))
 left join profile_78929 p3 on p3.vol_focus_area_full = s1.focus_area
@@ -68,9 +73,13 @@ sub3 as(
 	case
   		when year_check <= extract(year from current_date) and end_year >= extract(year from current_date)
   		then 'Current year'
-  		when year_check <= extract(year from current_date)-1 and end_year >= extract(year from current_date)-1 		   then 'Previous year'
   	else 'Not Applicable'
-  	end as year_status,
+  	end as year_status_1,
+  
+  	case
+  		when year_check <= extract(year from current_date)-1 and end_year >= extract(year from current_date)-1		  then 'Previous year'
+  	else 'Not Applicable'
+  	end as year_status_2,
   
   	case
   		when p6.name is null then 'Global'
@@ -85,8 +94,9 @@ sub3 as(
   	case
   		when t2.name is null then 'Other'
   		else t2.name
-  	end as focus_area
+  	end as focus_area,
   
+(year_status_1||'|'||year_status_2) as year_status   
 from rb_volhours r2
 left join profile_78929 p5 on p5.vol_focus_area_full = r2.focus_area
 left join ds_mysql_prod_tagelement t2 on t2.id = p5.focus_area
