@@ -1,14 +1,49 @@
 with test0 as(Select p.* ,CAST(pace_goals as VARCHAR)from profile_76755 p
 , p.pace_goals_arr pace_goals
 ),
- test1 as(Select p.projectId, p.facility_name, p.pace, p.strategic_yn, p.year_timerange, p.country, p.director_region,p.pace_goals,p.facility_type,p.female_workers, p.pace_enrolled,
-(pace_enrolled*100) AS p2, (cast(p2 as decimal(10,2))/cast(female_workers as decimal(10,2))) AS PACE
+ test1 as(Select  p.projectId, p.facility_name, p.pace, p.strategic_yn, p.year_timerange, p.country, p.director_region,p.pace_goals,p.facility_type,p.female_workers, p.pace_enrolled,
+--(pace_enrolled*100) AS p2, cast(p2 as float)/cast(female_workers as float) AS PACE,
+((pace_enrolled*100)/female_workers) as PACE,
+ven.name as vendor,
+case 
+	when 1=1
+	then 1
+	else 0
+	end
+	as count,
+CASE WHEN(PACE >= 50) THEN 'YES'
+ELSE
+'NO'
+END AS result_kpi3,
+((certified_mts*100)/certified_trainers) as master,
+--(cast(a1 as float)/cast(p1.certified_trainers as float)) AS master,
+		 
+p1.certified_trainers , p1.certified_mts , p1.pace_introduced ,
+
+CASE WHEN (pace = 'YES') AND (master>=30) AND (pace_introduced = 57472) THEN 'YES'
+ELSE 
+'NO'
+END AS result_kpi4,
+CASE WHEN (result_kpi3 = 'YES') AND (result_kpi4 = 'YES') THEN 
+'YES'
+ELSE
+'NO'
+END AS final_result
+
 from test0 p
-		  left join profile_76895 p1
+
+left join profile_76895 p1
 on p.pace_goals = p1._id
+
+
 left join ds_mysql_prod_project fac
 on p.projectId = fac.id
 left join ds_mysql_prod_project ven
 on fac.parent = ven.id
-		  )
-Select * from test1
+
+
+WHERE p.strategic_yn = 'YES' AND  final_result = 'YES'
+Group by  p.projectId, p.facility_name, p.strategic_yn, p.year_timerange, p.country,p.facility_type,p.female_workers, p.pace_enrolled,  ven.name,p1.certified_mts,p1.pace_introduced,p1.certified_trainers,p.pace,
+p.director_region,p.pace_goals
+)
+Select p.* from test1 p
