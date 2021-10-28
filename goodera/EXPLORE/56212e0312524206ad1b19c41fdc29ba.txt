@@ -1,46 +1,28 @@
 with test1 as(
-select concat(cast(p.fy_timerange.start as varchar), concat('|', cast(p.fy_timerange.end as varchar))) as fy_timerange, p.projectid, 'Allied' as f_category, (nv_allied + nv_partner) as         near_vision, (dv_allied + dv_partner) as distance_vision, (cv_allied + cv_partner) as complex_vision, (cata_partner + cata_allied) as cataract, (cata_surgery_allied + cata_surgery_partner) as cataract_surgery from profile_63886 p
+select p.fy_timerange, p.projectid, 'Allied' as f_category, cast('near_vision' as text) as vision,  (nv_allied + nv_partner) as final_sum from profile_63886 p where final_sum is not null
+  union all
+select p.fy_timerange, p.projectid, 'Allied' as f_category, cast('distance_vision' as text) as vision,  (dv_allied + dv_partner) as final_sum from profile_63886 p where final_sum is not null
+  union all
+select p.fy_timerange, p.projectid, 'Allied' as f_category, cast('complex_vision' as text) as vision,  (cv_allied + cv_partner) as final_sum from profile_63886 p where final_sum is not null
+  union all
+select p.fy_timerange, p.projectid, 'Allied' as f_category, cast('cataract' as text) as vision,  (cata_partner + cata_allied) as final_sum from profile_63886 p where final_sum is not null
+  union all
+select p.fy_timerange, p.projectid, 'Allied' as f_category, cast('cataract_surgery' as text) as vision,  (cata_surgery_allied + cata_surgery_partner) as final_sum from profile_63886 p where final_sum is not null
+  
+union all
+  
+select p.fy_timerange, p.projectid, 'Trucker' as f_category, cast('near_vision' as text) as vision, nv_truck as final_sum from profile_63886 p where final_sum is not null
+  union all
+select p.fy_timerange, p.projectid, 'Trucker' as f_category, cast('distance_vision' as text) as vision, dv_truck as final_sum from profile_63886 p where final_sum is not null
+  union all
+select p.fy_timerange, p.projectid, 'Trucker' as f_category, cast('complex_vision' as text) as vision, cv_truck as final_sum from profile_63886 p where final_sum is not null
+  union all
+select p.fy_timerange, p.projectid, 'Trucker' as f_category, cast('cataract' as text) as vision, cata_truck as final_sum from profile_63886 p where final_sum is not null
+  union all
+select p.fy_timerange, p.projectid, 'Trucker' as f_category, cast('cataract_surgery' as text) as vision,  cataract_surgery as final_sum from profile_63886 p where final_sum is not null
 ),
-
 
 test2 as(
-select concat(cast(p.fy_timerange.start as varchar), concat('|', cast(p.fy_timerange.end as varchar))) as fy_timerange, p.projectid, 'Trucker' as f_category, nv_truck as
-near_vision, dv_truck as distance_vision, cv_truck as complex_vision, cata_truck as cataract,
-cata_surgery_truck as cataract_surgery from profile_63886 p
-  
- union all
-  
-select * from test1
-),
-
-
-pivot as(
-select 'near_vision' as vision from test2
-  union all
-select 'distance_vision' as vision from test2
-  union all
-select 'complex_vision' as vision from test2
-  union all
-select 'cataract' as vision from test2
-  union all
-select 'cataract_surgery' as vision from test2
-),
-
-
-test3 as(
-select p.fy_timerange, p.projectid, p.f_category, t.vision,
-  case t.vision
-  when 'near_vision' then p.near_vision
-  when 'distance_vision' then p.distance_vision
-  when 'complex_vision' then p.complex_vision
-  when 'cataract' then p.cataract
-  when 'cataract_surgery' then p.cataract_surgery
-  else null
-  end as total_sum
-  from test2 p cross join pivot t
-),
-
-test4 as(
 select concat(f_reg_date, concat('|', f_reg_date)) as fy_timerange, p.projectid, p.p_id, p.f_category, 
   	case
   		when vision = '1012445' then 'distance_vision'
@@ -48,27 +30,28 @@ select concat(f_reg_date, concat('|', f_reg_date)) as fy_timerange, p.projectid,
   		when vision = '1012447' then 'complex_vision'
   		when vision = '1012448' then 'near_vision'
   		when vision = '1059858' then 'cataract_surgery'
+  		when vision = '1012449' then 'normal_vision'
   		else null
   	end as vision,
-  	count(*) as total_sum
+  	count(*) as final_sum
   	from profile_59462 p
-  	where vision in ('1012445', '1012446', '1012447', '1012448', '1059858')
+  	where vision in ('1012445', '1012446', '1012447', '1012448', '1059858','1012449')
   	group by 1,2,3,4,5
 ),
 
 
 final as(
-select p.fy_timerange, p.projectid, p.f_category, p.vision, sum(p.total_sum) as total_sum from test3 p group by 1,2,3,4
+select concat(cast(fy_timerange.start as varchar), concat('|', cast(fy_timerange.end as varchar))) as p.fy_timerange, p.projectid, p.f_category, p.vision, sum(p.final_sum) as final_sum from test1 p group by 1,2,3,4
   
   union all
   
-select t.fy_timerange, t.projectid, t.f_category, t.vision, sum(t.total_sum) as total_sum from test4 t group by 1,2,3,4
+select t.fy_timerange, t.projectid, t.f_category, t.vision, sum(t.final_sum) as final_sum from test2 t group by 1,2,3,4
 )
 
 
-select fy_timerange, project.name as projectid, f_category, vision, sum(total_sum) as total_sum
+select fy_timerange, project.name as projectid, f_category, vision, sum(final_sum) as final_sum
 from final
 left join ds_mysql_prod_project as project
-on project.id = final.projectid  where total_sum is not null
+on project.id = final.projectid
 group by 1,2,3,4
  
