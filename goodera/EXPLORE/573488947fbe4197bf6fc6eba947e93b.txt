@@ -34,7 +34,7 @@ select concat(p.f_reg_date,concat('|',p.f_reg_date)) as fy_timerange, p.projecti
 select concat(p.f_reg_date,concat('|',p.f_reg_date)) as fy_timerange, p.projectid, p.p_id, p.f_category, cast('vision_screening' as text) as disease, decode(p.vision,1012444,0,null,0,1) as final_sum from profile_59462 p where vision not in (1012444)
   union all
 select concat(p.f_reg_date,concat('|',p.f_reg_date)) as fy_timerange, p.projectid, p.p_id, p.f_category, cast('hypertension' as text) as disease, decode(p.hypertension,1012468,0,null,0,1) as final_sum from profile_59462 p where hypertension not in (1012468)
-)/*,
+),
 
 test3 as(
 select p.fy_timerange.start as fy_timerange, p.projectid, 'Allied' as f_category, 'tuberculosis' as disease, (tb_pres_screen_s_allied + tb_pres_screen_x_allied + tb_pres_screen_both_allied) as final_sum from profile_63887 p
@@ -50,46 +50,14 @@ select p.fy_timerange.start as fy_timerange, p.projectid, 'Trucker' as f_categor
 select p.fy_timerange.start as fy_timerange, p.projectid, 'Trucker' as f_category, 'oral_hygiene' as disease, oral_truckers as final_sum from profile_63887 p
   union all
 select p.fy_timerange.start as fy_timerange, p.projectid, 'Trucker' as f_category, 'hypertension' as disease, hypertension_truckers as final_sum from profile_63887 p
-),
-
-pivot2 as(
-select 'oral_hygiene' as disease from test2 
-	  union all
-select 'diabetes' as disease from test2 
-	  union all
-select 'sexually_transmitted_diseases' as Disease from test2 
-	  union all
-select 'hiv' as disease from test2 
-	  union all
-select 'vision_screening' as disease from test2 
-	  union all
-select 'hypertension' as disease from test2 
-),
-
-final2a as(
-select p.projectid, p.fy_timerange, p.p_id, p.f_category, t.disease,
-  case disease
-  	when 'oral_hygiene' then p.oral_hygiene
-	when 'diabetes' then p.diabetes
-	when 'sexually_transmitted_diseases' then p.sexually_transmitted_diseases
-	when 'hiv' then p.hiv
-	when 'vision_screening' then p.vision_screening
-	when 'hypertension' then p.hypertension
-	else null
-	end as final_sum
-from test2 p cross join pivot2 t
-),
-
-final2 as(
-select p.projectid, p.fy_timerange, p.p_id, p.f_category, p.disease, sum(final_sum) as final_sum from final2a p where final_sum is not null group by 1,2,3,4,5
-),
+)/*,
 
 test4 as(
 select p.projectid, p.fy_timerange, p.f_category, p.disease, sum(final_sum) as final_sum from test1 p group by 1,2,3,4
 
 union all
   
-select p.projectid, p.fy_timerange, p.f_category, p.disease, sum(final_sum) as final_sum from final2 p group by 1,2,3,4
+select p.projectid, p.fy_timerange, p.f_category, p.disease, sum(final_sum) as final_sum from test2 p group by 1,2,3,4
   
   union all
   
@@ -105,4 +73,4 @@ from test4 p
 left join ds_mysql_prod_project as t
 on t.id = p.projectid
 group by 1,2,3,4 */
-select p.projectid, p.fy_timerange, p.f_category, p.disease, sum(final_sum) as final_sum from test2 p where final_sum is null group by 1,2,3,4
+select p.projectid, p.fy_timerange, p.f_category, p.disease, sum(final_sum) as final_sum from test3 p group by 1,2,3,4
