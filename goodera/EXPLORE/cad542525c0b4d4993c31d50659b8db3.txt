@@ -2,7 +2,7 @@
 with table1 as 
 (
   
-select _id,cou.name as country, ven.name as vendor, nvl2(SUBSTRING(vendor, 1, POSITION(' (' in vendor)), SUBSTRING(vendor, 1, POSITION(' (' in vendor)), vendor) as vendor_name, case when vendor_name='' then vendor else vendor_name end as vendor_first_update, gen.name as gender_base , work.name as working_base, ag.name as age_base , mart_stat.name as marital_status_base , 'Baseline' as baseline  from profile_65617 as p
+select _id,cou.name as country, ven.name as vendor, nvl2(SUBSTRING(vendor, 1, POSITION(' (' in vendor)), SUBSTRING(vendor, 1, POSITION(' (' in vendor)), vendor) as vendor_name, case when vendor_name='' then vendor else vendor_name end as vendor_first_update, gen.name , work.name as working_base, ag.name as age_base , mart_stat.name as marital_status_base , 'Baseline' as baseline  from profile_65617 as p
 
 left join ds_mysql_prod_project fac 
 on p.projectId = fac.id
@@ -33,11 +33,13 @@ table2 as
 , table3 as 
 (
 select country, vendor_first_update as vendor, table2.date as new_date, case when extract(month from new_date)=1 then (extract(year from new_date)-1)
-else extract(year from new_date) end as year_base, gender_base, working_base , age_base , marital_status_base, baseline as survey from table1 as tab1
+else extract(year from new_date) end as year_base, gender, gender.name as gender_base, working_base , age_base , marital_status_base, baseline as survey from table1 as tab1
 
 left join table2 on 
 tab1._id = table2.survey_questions
 )
+select * from table3 
+/*
 , table4 as
 (
   select work.name as working, gen.name as gender, ag.name as age, mart_stat.name as marital_status from profile_65617 as p 
@@ -70,5 +72,13 @@ on p1.age = ag.id
  left join ds_mysql_prod_tagelement mart_stat 
 on p1.marital_status = mart_stat.id
   )
-  select * from table4 union all select * from table5
+  , table6 as 
+ (
+	select working, age, gender, marital_status from table5
+  
+left join table2 on 
+tab1._id = table2.survey_questions
+)
+*/
+--  select * from table4 union all select * from table5
 
