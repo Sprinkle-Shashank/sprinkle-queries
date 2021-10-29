@@ -2,7 +2,7 @@
 with table1 as 
 (
   
-select _id,cou.name as country, ven.name as vendor, nvl2(SUBSTRING(vendor, 1, POSITION(' (' in vendor)), SUBSTRING(vendor, 1, POSITION(' (' in vendor)), vendor) as vendor_name, case when vendor_name='' then vendor else vendor_name end as vendor_first_update,gen.name as gender_base from profile_65617 as p
+select _id,cou.name as country, ven.name as vendor, nvl2(SUBSTRING(vendor, 1, POSITION(' (' in vendor)), SUBSTRING(vendor, 1, POSITION(' (' in vendor)), vendor) as vendor_name, case when vendor_name='' then vendor else vendor_name end as vendor_first_update, gen.name as gender_base , work.name as working_base, ag.id as age_base , mart_stat.name as marital_status_base  from profile_65617 as p
 
 left join ds_mysql_prod_project fac 
 on p.projectId = fac.id
@@ -16,6 +16,15 @@ on ven.parent = cou.id
 left join ds_mysql_prod_tagelement gen 
 on p.gender = gen.id
   
+ left join ds_mysql_prod_tagelement work 
+on p.working = work.id
+  
+ left join ds_mysql_prod_tagelement ag 
+on p.age = ag.id
+  
+ left join ds_mysql_prod_tagelement mart_stat 
+on p.martial_status = mart_stat.id
+  
 ),
 table2 as 
 (
@@ -23,7 +32,7 @@ table2 as
 )
 
 select country, vendor_name, vendor_first_update as vendor, table2.date as new_date, case when extract(month from new_date)=1 then (extract(year from new_date)-1)
-else extract(year from new_date) end as year,gender_base, 'Baseline' as baseline from table1 as tab1
+else extract(year from new_date) end as year, gender_base, working_base , age_base , marital_status_base, 'Baseline' as baseline from table1 as tab1
 
 left join table2 on 
 tab1._id = table2.survey_questions
