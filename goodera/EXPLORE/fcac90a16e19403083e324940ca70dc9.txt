@@ -3,15 +3,10 @@ Select 'Cubic Metres' as col
   union all
 Select 'Litres' as col
 )
+, s1 as (
 Select t.name as site,t1.name as sub_region,t2.name as region,fy_timerange,sum(datanum) as cubic_metres ,keyword,(cubic_metres*1000) as Litres ,EXTRACT(YEAR FROM(CAST(startdate AS DATETIME ))),
 
-		sum(case col
- when 'Cubic Metres' then cubic_metres
- when 'Litres' then Litres
- else null
- end )as total_water_usagee,temp.col as unit
 from sus_56999
-		cross join temp
 left join ds_mysql_prod_project t
 on xprojectid=t.id
 left join ds_mysql_prod_project t1
@@ -23,7 +18,16 @@ where keyword in ('water_usage_new_water_reclaimed', 'total_water_usage', 'water
 
 group by t.name,t1.name,t2.name,fy_timerange,keyword,datanum
 order by year desc
+)
 
+Select s1.* ,
+sum(case col
+ when 'Cubic Metres' then s1.cubic_metres
+ when 'Litres' then s1.Litres
+ else null
+ end )as total_water_usage,temp.col as unit
+ from s1
+ group by temp.col
 
 
 
