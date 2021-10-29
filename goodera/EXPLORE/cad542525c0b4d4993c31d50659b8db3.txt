@@ -1,6 +1,8 @@
 
-select cou.name as country, ven.name as vendor, nvl2(SUBSTRING(vendor, 1, POSITION(' (' in vendor)), SUBSTRING(vendor, 1, POSITION(' (' in vendor)), vendor) as vendor_name, case when vendor_name='' then vendor else vendor_name end as vendor_first_update,p1.date as new_date from profile_65617 as p
-
+with table1 as 
+(
+  
+select cou.name as country, ven.name as vendor, nvl2(SUBSTRING(vendor, 1, POSITION(' (' in vendor)), SUBSTRING(vendor, 1, POSITION(' (' in vendor)), vendor) as vendor_name, case when vendor_name='' then vendor else vendor_name end as vendor_first_update from profile_65617 as p
 
 left join ds_mysql_prod_project fac 
 on p.projectId = fac.id
@@ -10,7 +12,15 @@ on fac.parent = ven.id
 
  left join ds_mysql_prod_project cou 
 on ven.parent = cou.id
+  
+),
+table2 as 
+(
+  select p1.*, cast(survey_questions as varchar) from profile_67390 as p1, p1.survey_questions_arr survey_questions
+)
+  
+select country, vendor, vendor_name, vendor_first_update, table2.date as new_date, table2.training as new_training from table1 as tab1
 
-left join profile_67390 p1 on 
-p._id = p1.survey_questions
+left join table2 on 
+tab1._id = table2.survey_questions
 
