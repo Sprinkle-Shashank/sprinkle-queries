@@ -1,0 +1,24 @@
+with temp as (
+Select 'Unit1' as col
+ union all
+Select 'Unit2' as col
+)
+Select t.name as site, t1.name as sub_region,t2.name as region,EXTRACT(YEAR FROM(CAST(startdate AS DATETIME ))) as year,
+(datanum/100) as normalization_factor,
+fy_timerange,
+max(case col
+	when 'Unit1' then 'Cubic Metres'
+	when 'Unit2' then 'Litres'
+	else null
+	end ) as Unit,
+
+from sus_56999
+cross join temp
+left join ds_mysql_prod_project t
+on xprojectid=t.id
+left join ds_mysql_prod_project t1
+on t.parent=t1.id
+left join ds_mysql_prod_project t2
+on t2.parent=t2.id
+where keyword = 'total_campus_hours_worked' and site !=47608
+group by t.name,t1.name,t2.name,fy_timerange,year
