@@ -1,0 +1,34 @@
+with 
+test0 as(Select p.* ,(gbv_goals)from  profile_76755 p
+, p.gbv_goals_arr gbv_goals union all
+ select p.*,NULL as gbv_goals from profile_76755 p where gbv_goals_arr IS NULL
+),
+test1 as (Select p.projectId,p.facility_name,p.year_timerange,p.gbv_goals,p.country,p.female_workers,p.male_workers,p.female_managers,p.female_supervisors,p.male_supervisors, p.male_managers,ven.name AS vendor,p1.indepth_workers,p1.indepth_managers,
+female_workers+(male_workers+(female_managers+(male_managers+(male_supervisors+female_supervisors)))) AS total_emp,
+indepth_workers+indepth_managers AS total_trained, total_trained*100 AS total,total/total_emp AS trained,
+CASE WHEN trained >= 100 THEN 'YES'
+ELSE 
+'NO'
+END AS result,
+avg(trained) as avg_trained
+case 
+	when 1=1
+	then 1
+	else 0
+	end
+	as count
+
+from test0 p
+
+left join profile_76894 p1 on 
+p.gbv_goals = p1._id
+
+
+left join ds_mysql_prod_project fac
+on p.projectId = fac.id
+left join ds_mysql_prod_project ven
+on fac.parent = ven.id
+
+group by p.projectId,p.facility_name,p.year_timerange,p.country,ven.name,result,p1.indepth_workers,p1.indepth_managers,p.gbv_goals,p.female_workers,p.male_workers,p.female_managers,p.female_supervisors,p.male_supervisors, p.male_managers
+)
+Select p.* from test1 p
