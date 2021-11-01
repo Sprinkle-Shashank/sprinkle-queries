@@ -2,9 +2,9 @@ with temp as(
 Select 'Cubic Metres' as col
   union all
 Select 'Litres' as col
-)
-
-Select t.name as site,t1.name as financialperiod,t2.name as fin_q,t3.name as fin_h,t4.name as fin_y,tt1.name as sub_region,tt2.name as Region,tt3.name as Quarter,
+),
+s1 as (
+Select t.name as site,t1.name as financialperiod,t2.name as fin_q,t3.name as fin_h,t4.name as fin_y,tt1.name as sub_region,tt2.name as Region,
 EXTRACT(YEAR FROM(CAST(startdate AS datetime))) as year,
 datanum as cubic_metres,(cubic_metres*100) as Litres,
 sum(case col
@@ -28,13 +28,15 @@ left join ds_mysql_prod_project tt1
 on xprojectid=tt1.id
 left join ds_mysql_prod_project tt2
 on tt1.parent=tt2.id
-left join ds_mysql_prod_tagelement tt3
-on fin_q=tt3.id
 
 
 
 where keyword ='total_water_usage'  and xprojectid != '47608'
-group by t.name,t1.name,t2.name,t3.name,t4.name,tt1.name,tt2.name,tt3.name,datanum,temp.col,startdate
+group by t.name,t1.name,t2.name,t3.name,t4.name,tt1.name,tt2.name,datanum,temp.col,startdate
+}
+Select s1.*,tt3.name as Quarter from s1
+  left join ds_mysql_prod_tagelement tt3
+on s1.fin_q=tt3.id
 
 
 
