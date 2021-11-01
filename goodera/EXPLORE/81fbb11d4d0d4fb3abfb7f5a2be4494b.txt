@@ -1,0 +1,24 @@
+with temp as(
+Select 'Cubic Metres' as col
+  union all
+Select 'Litres' as col
+)
+Select t.name as timerange,t1.name as site, t2.name as sub_region,t3.name as region,datanum as cubic_metres,(datanum*1000) as Litres,temp.col as unit,
+	sum(case col
+ when 'Cubic Metres' then (datanum)
+ when 'Litres' then Litres
+ else null
+ end )as total_water_usage_c
+from sus_56999
+cross join temp
+
+left join ds_mysql_prod_tagelement t
+on financialPeriod=t.id
+left join ds_mysql_prod_project t1
+on xprojectid=t1.id
+left join ds_mysql_prod_project t2
+on t1.parent=t2.id
+left join ds_mysql_prod_project t3
+on t2.parent=t3.id
+where keyword in ('water_usage_onsite_recycled','total_water_usage')
+group by t.name,t1.name,t3.name,t2.name,datanum,temp.col
