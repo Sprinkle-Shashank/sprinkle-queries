@@ -1,0 +1,183 @@
+with 
+test0 as(Select p.* ,(sdis)from  profile_76755 p
+, p.sdis_arr sdis union all
+ select p.*,NULL as sdis from profile_76755 p where sdis_arr IS NULL
+),
+ test1 as(Select  p.projectId,director_region, p.facility_name, p.strategic_yn, p.year_timerange,p.facility_type, p.country,ven.name AS Vendor, p.female_workers, p.male_workers, p.female_managers, p.male_managers, p.female_reps_worker, p.male_reps_workers, p.female_reps_management, p.male_reps_management, p.female_supervisors, p.male_supervisors, p1.recognized_union, p1.workers_production_unit, p1.male_female, p1.female_representation, p1.decision_making, p1.decision_making_attendance, p1.meeting_held, p1.members_present_meetings, p1.active_members_list, p1.reps_elected, p1.issues_addressed, p1.follow_up, p1.members_duty_released, p1.peers_reachout, p1.assessment_review, p1.retaliation, p1.alternative_trade_union, p1.grievance_handling,
+female_reps_management*100 AS a,(female_reps_management + male_reps_management) AS b,
+CAST (a AS FLOAT) as a1,
+CAST (b as FLOAT) as b1,
+a1/b1 AS f1,
+
+female_managers*100 AS c, (female_managers+male_managers) AS d,
+CAST (c AS FLOAT) as c1,
+CAST (d as FLOAT) as d1,
+Case when p.country IN ('Cambodia','Vietnam')
+THEN 
+c1/d1 
+
+END as f2,
+female_reps_worker*100 AS e, (female_reps_worker + male_reps_workers) AS g,
+CAST (e AS FLOAT) as e1,
+CAST (g as FLOAT) as g1,
+e1/g1 AS f3,
+
+(female_workers+female_supervisors)*100 AS h, (female_workers + female_supervisors+male_workers+male_supervisors) AS i,
+CAST (h AS FLOAT) as h1,
+CAST (i as FLOAT) as i1,
+Case when p.country IN ('Cambodia','Vietnam')
+THEN
+h1/i1
+
+end as f4,
+case 
+	when 1=1
+	then 1
+	else 0
+	end
+	as count,
+CASE WHEN(f1>f2 AND f3>f4) THEN 'YES'
+ELSE
+'NO'
+END AS result_kpi1,
+
+Case when (p1.recognized_union = 1409098) or (p1.recognized_union = 1409096)
+THEN 1
+else 
+0
+end as sdi17,
+Case when (p1.workers_production_unit = 57472) 
+THEN 1
+else 
+0
+end as sdi1,
+Case when (p1.decision_making = 57472) 
+THEN 1
+else 
+0
+end as sdi2,
+Case when (p1.male_female = 57472) 
+THEN 1
+else 
+0
+end as sdi3,
+Case when (p1.decision_making_attendance = 57472) 
+THEN 1
+else 
+0
+end as sdi4,
+Case when (p1.meeting_held= 57472) 
+THEN 1
+else 
+0
+end as sdi5,
+Case when (p1.female_representation= 57472) 
+THEN 1
+else 
+0
+end as sdi6,
+Case when (p1.members_present_meetings= 57472) 
+THEN 1
+else 
+0
+end as sdi7,
+Case when (p1.active_members_list= 57472) 
+THEN 1
+else 
+0
+end as sdi8,
+Case when (p1.reps_elected= 57472) 
+THEN 1
+else 
+0
+end as sdi9,
+Case when (p1.issues_addressed= 57472) 
+THEN 1
+else 
+0
+end as sdi10,
+Case when (p1.follow_up= 57472) 
+THEN 1
+else 
+0
+end as sdi11,
+Case when (p1.assessment_review= 57472) 
+THEN 1
+else 
+0
+end as sdi12,
+Case when (p1.peers_reachout= 57472) 
+THEN 1
+else 
+0
+end as sdi13,
+Case when (p1.members_duty_released= 57472) 
+THEN 1
+else 
+0
+end as sdi14,
+Case when (p1.retaliation= 57472) 
+THEN 1
+else 
+0
+end as sdi15,
+Case when (p1.grievance_handling= 57472) 
+THEN 1
+else 
+0
+end as sdi16,
+Case when (p1.alternative_trade_union= 1409098) or (p1.alternative_trade_union=1409096) 
+THEN 1
+else 
+0
+end as sdi18,
+
+
+sdi1+(sdi2+(sdi3+(sdi4+(sdi5+(sdi6+(sdi7+(sdi8+(sdi9+(sdi10+(sdi11+(sdi12+(sdi13+(sdi14+(sdi15+(sdi16+(sdi17+sdi18)))))))))))))))) as num,
+
+CASE when p.country IN ('China','Vietnam') 
+then (
+Case when (num>=13) and (sdi17=1) and (sdi18=1) 
+ then 
+'YES' 
+else 
+'NO'
+  end
+  )
+else(		   
+CASE when (num>=13) and (sdi17=1) and (sdi18=1) and (sdi9=1)
+then 
+'Yes'
+else 
+'NO'
+  end
+  )
+end as result_kpi2,
+
+CASE WHEN (result_kpi7 ='YES') AND (result_kpi8 = 'YES')
+THEN 'YES'
+ELSE
+'NO'
+END AS final_result
+from test0 p
+
+left join profile_66923 p1 on 
+p.sdis = p1._id
+
+left join ds_mysql_prod_project fac
+on p.projectId = fac.id
+left join ds_mysql_prod_project ven
+on fac.parent = ven.id
+
+
+
+WHERE p.strategic_yn ='Yes' and final_result = 'YES'
+
+Group by  p.projectId, p.facility_name, p.strategic_yn, p.year_timerange, p.country, f1, f3, f4, result, ven.name, f2,p.female_workers, p.male_workers,p.female_managers, p.male_managers, p.female_reps_worker, p.male_reps_workers, p.female_reps_management, p.male_reps_management, p.female_supervisors, p.male_supervisors,p.director_region,p.sdis,p.facility_type, p1.recognized_union, p1.workers_production_unit, p1.male_female, p1.female_representation, p1.decision_making, p1.decision_making_attendance, p1.meeting_held, p1.members_present_meetings, p1.active_members_list, p1.reps_elected, p1.issues_addressed, p1.follow_up, p1.members_duty_released, p1.peers_reachout, p1.assessment_review, p1.retaliation, p1.alternative_trade_union, p1.grievance_handling
+)
+Select p.* from test1 p	
+
+
+
+
+
