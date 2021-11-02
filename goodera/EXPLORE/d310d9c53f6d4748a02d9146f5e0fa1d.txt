@@ -3,6 +3,18 @@ Select 'Cubic Metres' as col
   union all
 Select 'Litres' as col
 ),
+
+t2 as (
+Select 'watertype1' as col
+  union all
+  Select 'watertype2' as col
+  union all
+  Select 'watertype3' as col
+  union all
+  Select 'watertype4' as col
+  union all
+  Select 'watertype5' as col
+)
 s1 as (
 Select t.name as site, t1.name as sub_region,t2.name as region,
 sum(datanum/100) as normalization_factor,
@@ -24,5 +36,15 @@ where keyword = 'total_campus_hours_worked' and xprojectid != '47608'
 group by t.name,t1.name,t2.name,fy_timerange
 )
 
-Select s1.* from s1
-where s1.keyword in ('Ground_Water','Utility_Provided','Surface_Water','NewWater_Offsite_Recycled','Total_Water_Withdrawal')
+Select s1.* ,
+ max(case
+ 		when 'watertype1' then 'Ground Water'
+		when 'watertype2' then 'Utility Provided'
+		when 'watertype3' then 'Surface Water'
+		when 'watertype4' then 'NewWater Offsite_Recycled'
+		when 'watertype5' then 'Total Water Withdrawal'
+		else null
+		end) as Water Type,temp.col as Watertypes
+		
+from s1
+cross join t2
