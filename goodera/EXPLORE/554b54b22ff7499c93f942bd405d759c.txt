@@ -25,16 +25,18 @@ ELSE
 'NO'
 END as result,
 sum(case dim
-	when 'worker' then p.worker
-	when 'supervisor' then p.supervisor
-        when 'result' then p.result
+	when 'worker' then fw/tw
+	when 'supervisor' then fs/ts
+        when 'result' then (supervisor >= worker)
 	else Null
 	end )as Value
 
 
 
-from profile_76755 p
 cross join temp
+
+from profile_76755 p
+
 
 left join ds_mysql_prod_project fac
 on p.projectId = fac.id
@@ -45,5 +47,5 @@ on fac.parent = ven.id
 
 
 
-group by  p.projectId,p.facility_name,p.year_timerange,p.country,p.director_region,p.facility_type, p.female_workers, p.male_workers, p.female_supervisors, p.male_supervisors, temp.dim,ven.name as vendor,p.worker,p.supervisor,p.result
+group by  p.projectId,p.facility_name,p.year_timerange,p.country,p.director_region,p.facility_type, p.female_workers, p.male_workers, p.female_supervisors, p.male_supervisors,temp.dim,ven.name as vendor,p.worker,p.supervisor,p.result
 
