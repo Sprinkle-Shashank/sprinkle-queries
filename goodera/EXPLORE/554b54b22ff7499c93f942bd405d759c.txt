@@ -1,11 +1,5 @@
-with temp as (
-  select 'worker' as dim
-  union all
-  select 'supervisor' as dim
-  union all
-  select 'result' as dim
-)
-select p.projectId,p.facility_name,p.year_timerange,p.country,p.director_region,p.facility_type, p.female_workers, p.male_workers, p.female_supervisors, p.male_supervisors, temp.dim,ven.name as vendor,
+with test0 p as(
+select p.projectId,p.facility_name,p.year_timerange,p.country,p.director_region,p.facility_type, p.female_workers, p.male_workers, p.female_supervisors, p.male_supervisors, temp.dim,ven.name as vendor,result,worker,supervisor,
 
 female_workers*100 AS f,
 (female_workers+male_workers) AS t,
@@ -23,8 +17,8 @@ fs/ts AS supervisor,
 CASE WHEN (supervisor >= worker) THEN 'YES'
 ELSE
 'NO'
-END as result,
-sum(case dim
+END as result
+/*sum(case dim
 	when 'CAST(FLOAT as worker)' then fw/tw
 	when 'CAST(Float as supervisor)' then fs/ts
         when 'result' then
@@ -35,19 +29,32 @@ ELSE
 	else Null
 	end )as Value
 
---cross join temp
-
-from profile_76755 p
 cross join temp
+*/
+
 
 left join ds_mysql_prod_project fac
 on p.projectId = fac.id
 left join ds_mysql_prod_project ven
 on fac.parent = ven.id
 
+)
+with temp as (
+  select 'worker' as dim
+  union all
+  select 'supervisor' as dim
+  union all
+  select 'result' as dim
+)
+select temp.dim,result,worker,supervisor,
+	case dim
+	when 'worker' then worker
+	when 'supervisor' then supervisor
+	when 'result' then result
+	Else Null
+	End as value	
+from test0 p
+cross join temp
 
-
-
-
-group by  p.projectId,p.facility_name,p.year_timerange,p.country,p.director_region,p.facility_type, p.female_workers, p.male_workers, p.female_supervisors, p.male_supervisors,temp.dim,ven.name,p.worker,p.supervisor,p.result
+group by  p.projectId,p.facility_name,p.year_timerange,p.country,p.director_region,p.facility_type, p.female_workers, p.male_workers, p.female_supervisors, p.male_supervisors,temp.dim,ven.name,worker,supervisor,result
 
