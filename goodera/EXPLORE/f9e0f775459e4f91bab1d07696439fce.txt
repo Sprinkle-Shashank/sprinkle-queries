@@ -29,17 +29,12 @@ end as focus_area
 from rb_loghours r1),
 
 sub2 as(
-  select s1._id as id, (cast(s1.start_date_new as date)||'|'||cast(s1.end_date_new as date)) as fy_timerange, s1.vol_hours, (s1.vol_hours*p2.vol_conversion_factor) as volunteering_cost, extract(year from cast(s1.start_date_new as date)) as year_check, extract(year from cast(s1.end_date_new as date)) as end_year, ('FY'||' '||extract(year from cast(s1.start_date_new as date))) as x_axis2, cast('Volunteering' as varchar) as x_axis,
+  select s1._id as id, (cast(s1.start_date_new as date)||'|'||cast(s1.start_date_new as date)) as fy_timerange, s1.vol_hours, (s1.vol_hours*p2.vol_conversion_factor) as volunteering_cost, extract(year from cast(s1.start_date_new as date)) as year_check, extract(year from cast(s1.end_date_new as date)) as end_year, ('FY'||' '||extract(year from cast(s1.start_date_new as date))) as x_axis2, cast('Volunteering' as varchar) as x_axis,
 	case
-  		when year_check <= extract(year from current_date) and end_year >= extract(year from current_date)
-  		then 'Current year'
+  		when(year_check = extract(year from current_date)) then 'Current year'
+  		when(year_check = extract(year from current_date)-1) then 'Previous year'
   	else 'Not Applicable'
-  	end as year_status_1,
-  
-  	case
-  		when year_check <= extract(year from current_date)-1 and end_year >= extract(year from current_date)-1		  then 'Previous year'
-  	else 'Not Applicable'
-  	end as year_status_2,
+  	end as year_status
   
   	case
   		when p4.name is null then 'Global'
@@ -54,9 +49,7 @@ sub2 as(
    	case
   		when t1.name is null then 'Other'
   		else t1.name
-  	end as focus_area,
-  
-(year_status_1||'|'||year_status_2) as year_status  
+  	end as focus_area
 from sub1 s1
 left join profile_78933 p2 on p2.name = extract(year from cast(s1.start_date_new as date))
 left join profile_78929 p3 on p3.vol_focus_area_full = s1.focus_area
@@ -68,18 +61,13 @@ group by s1._id, s1.start_date_new, s1.end_date_new, t1.name, p4.name, p4.map_co
 ----- Log Hours xxx-------
 
 sub3 as(
-  select cast(r2.eoid as varchar) as id, (cast(r2.start_date as date)||'|'||cast(r2.end_date as date)) as fy_timerange, r2.vol_hours, (r2.vol_hours*p7.vol_conversion_factor) as volunteering_cost, extract(year from cast(r2.start_date as date)) as year_check, extract(year from cast(r2.end_date as date)) as end_year, 
+  select cast(r2.eoid as varchar) as id, (cast(r2.start_date as date)||'|'||cast(r2.start_date as date)) as fy_timerange, r2.vol_hours, (r2.vol_hours*p7.vol_conversion_factor) as volunteering_cost, extract(year from cast(r2.start_date as date)) as year_check, extract(year from cast(r2.end_date as date)) as end_year, 
 ('FY'||' '||extract(year from cast(r2.start_date as date))) as x_axis2, cast('Volunteering' as varchar) as x_axis,
 	case
-  		when year_check <= extract(year from current_date) and end_year >= extract(year from current_date)
-  		then 'Current year'
+  		when(year_check = extract(year from current_date)) then 'Current year'
+  		when(year_check = extract(year from current_date)-1) then 'Previous year'
   	else 'Not Applicable'
-  	end as year_status_1,
-  
-  	case
-  		when year_check <= extract(year from current_date)-1 and end_year >= extract(year from current_date)-1		  then 'Previous year'
-  	else 'Not Applicable'
-  	end as year_status_2,
+  	end as year_status
   
   	case
   		when p6.name is null then 'Global'
@@ -94,9 +82,7 @@ sub3 as(
   	case
   		when t2.name is null then 'Other'
   		else t2.name
-  	end as focus_area,
-  
-(year_status_1||'|'||year_status_2) as year_status   
+  	end as focus_area 
 from rb_volhours r2
 left join profile_78929 p5 on p5.vol_focus_area_full = r2.focus_area
 left join ds_mysql_prod_tagelement t2 on t2.id = p5.focus_area
