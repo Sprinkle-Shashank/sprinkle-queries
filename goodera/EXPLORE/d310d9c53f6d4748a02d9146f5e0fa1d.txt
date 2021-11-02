@@ -1,13 +1,23 @@
+with temp as(
+Select 'Cubic Metres' as col
+  union all
+Select 'Litres' as col
+)
 Select t.name as site, t1.name as sub_region,t2.name as region,
---sum(total_campus_hours_worked/100) as normalization_factor,
-fy_timerange
+sum(datanum/100) as normalization_factor,
+fy_timerange,sum(case col
+ when 'Cubic Metres' then 'Cubic Metres'
+ when 'Litres' then 'Litres'
+ else null
+ end )as unit
 
 from sus_56999
+cross join temp
 left join ds_mysql_prod_project t
 on xprojectid=t.id
 left join ds_mysql_prod_project t1
 on t.parent=t1.id
 left join ds_mysql_prod_project t2
 on t2.parent=t2.id
-where keyword = 'total_campus_hours_worked'
+where keyword = 'total_campus_hours_worked' and xprojectid != '47608'
 group by t.name,t1.name,t2.name,fy_timerange
