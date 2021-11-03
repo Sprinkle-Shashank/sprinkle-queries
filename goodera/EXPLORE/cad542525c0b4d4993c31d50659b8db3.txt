@@ -7,7 +7,14 @@ table2 as
 table1 as 
 (
   
-select p._id, cou.name as country, ven.name as vendor, nvl2(SUBSTRING(vendor, 1, POSITION(' (' in vendor)), SUBSTRING(vendor, 1, POSITION(' (' in vendor)), vendor) as vendor_name, case when vendor_name='' then vendor else vendor_name end as vendor_first_update, gen.name as gender, work.name as working_base, ag.name as age_base , mart_stat.name as marital_status_base , 'Baseline' as baseline ,t2.date as date,t2.training  from profile_65617 as p
+select p._id, cou.name as country, ven.name as vendor, nvl2(SUBSTRING(vendor, 1, POSITION(' (' in vendor)), SUBSTRING(vendor, 1, POSITION(' (' in vendor)), vendor) as vendor_name, case when vendor_name='' then vendor else vendor_name end as vendor_first_update, gen.name as gender, work.name as working_base, ag.name as age_base , mart_stat.name as marital_status_base , 'Baseline' as baseline ,t2.date as date,t2.training ,
+ case when extract(month from date)=1 then extract(year from date)-1
+      else extract(year from date)
+      end as year_base
+  
+  
+  
+  from profile_65617 as p
 
 left join ds_mysql_prod_project fac 
 on p.projectId = fac.id
@@ -32,6 +39,7 @@ on p.marital_status = mart_stat.id
   
  left join table2 t2 
   on p._id = t2.survey_questions 
+  order by year_base desc
   
 )
 
