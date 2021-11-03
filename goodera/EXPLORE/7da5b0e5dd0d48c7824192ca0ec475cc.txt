@@ -2,6 +2,7 @@ with Base1 as(select p.projectId, p.placed, p.fy_timerange, h.name as batch_id f
 			  			  
 left join profile_196 h on
 p.batch_id=h._id),
+
 Base2 as(select p.placed, p.fy_timerange,p.batch_id, l.start, l.end, l.donor, l.donor_commitment ,t2.name as project from Base1 p left join profile_196 l on
 p.batch_id=l.name
 						   
@@ -10,7 +11,9 @@ LEFT JOIN ds_mysql_prod_project t1 on t.parent=t1.id
 LEFT JOIN ds_mysql_prod_project t2 on t1.parent=t2.id
 						   
 where l.donor is not null)
-select * from Base2
+select *, count(*) as count from Base2
+
+group by m.donor, m.donor_commitment, p.fy_timerange, project, p.placed
 
 --left join profile_196 m on
 --h.name = m.name
