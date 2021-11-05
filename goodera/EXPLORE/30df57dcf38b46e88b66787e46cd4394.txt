@@ -1,0 +1,66 @@
+with temp as (
+Select 'GJ' as col
+ union all
+Select 'kwH' as col
+),
+s1 as (
+Select t.name as site,t1.name as sub_Region,t2.name as Region,t4.name as fin_q,t5.name as fin_hy,t6.name as fin_y,EXTRACT(YEAR FROM(CAST(startdate AS datetime))) as year,datanum as hours_per_100,
+case
+  	when 'GJ' then 1
+    when 'kwH' then 2
+  else null
+  end as remove_1,
+  temp.col as Unit
+
+from sus_56999
+  cross join temp
+  left join ds_mysql_prod_project t
+  on xprojectid=t.id
+  left join ds_mysql_prod_project t1
+  on t.parent=t1.id
+  left join ds_mysql_prod_project t2
+  on t1.parent=t2.id
+  left join ds_mysql_prod_tagelement t3
+  on financialperiod=t3.id
+  left join ds_mysql_prod_tagelement t4
+  on t3.parent=t4.id
+  left join ds_mysql_prod_tagelement t5
+  on t4.parent=t5.id
+  left join ds_mysql_prod_tagelement t6
+  on t5.parent=t6.id
+  where keyword ='total_campus_hours_worked' and site!=47608
+  
+)
+,
+temp2 as (
+  Select 'Diesel' as col
+  union all
+Select 'Electricity-Utility Provider and Solar' as col
+  union all
+Select 'GasolineExpression' as col
+union all
+ Select 'Natural GasExpression' as col
+union all
+Select  'PropaneExpression' as col
+ union all
+Select 'Total EnergyExpression' as col
+),
+s2 as (
+  Select (s1.hours_per_100/100) as hours_per_100,
+  from s1
+  cross join temp2
+temp2.col as Energy_type
+case 
+	when 'Diesel' then 1
+	when 'Electricity-Utility Provider and Solar' then 2
+	when 'GasolineExpression' then 3
+	when 'Natural GasExpression' then 4
+	when  'PropaneExpression' then 5
+	when 'Total EnergyExpression' then 6
+	ELSE NULL
+	END as remove_2, 
+  
+  case Energy_type
+   	when 'Electricity-Utility Provider and Solar' then  and 'Electricity-Utility Provider'
+ 	end as Energy_type
+)
