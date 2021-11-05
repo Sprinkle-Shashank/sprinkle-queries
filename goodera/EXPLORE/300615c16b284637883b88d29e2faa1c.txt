@@ -1,3 +1,22 @@
+select projectId, score, cou.name as country, ven.name as vendor, id,
+profile_60620_date, torg.name as trainer_organization,
+SUBSTRING(to_char(profile_64075.date_1, 'DD/MM-YYYY'), POSITION('-' in to_char(profile_64075.date_1, 'DD/MM-YYYY'))+1,4 ) as year,
+from profile_65254
 
 
+left join profile_60620
+on profile_65254.id = profile_60620.survey
+
+
+left join ds_mysql_prod_project fac
+on projectid = fac.id
+left join ds_mysql_prod_project ven
+on fac.parent = ven.id
+left join ds_mysql_prod_project cou
+on ven.parent = cou.id
+
+left join ds_mysql_prod_tagelement torg
+on profile_60620.trainer_organization = torg.id
+
+where trainer_organization <> '' and country <> 'Test Country'
 group by  projectId, score, country, vendor, trainer_organization, year, id
