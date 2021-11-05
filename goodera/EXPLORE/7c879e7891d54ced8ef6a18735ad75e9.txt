@@ -1,1 +1,21 @@
-Select * from sus_56999
+with s1 as(
+Select t.name as site,t1.name as sub_Region,t2.name as Region,(datanum*3.6) as Electricity_Usage_GJ
+from sus_56999
+  left join ds_mysql_prod_project t
+  on xprojectid=t.id
+  left join ds_mysql_prod_project t1
+  on t.parent=t1.id
+  left join ds_mysql_prod_project t2
+  on t1.parent=t2.id
+  where keyword='electricity_usage'
+)
+,
+s2 as(
+Select (datanum*25.59) as Propane_Usage_GJ,s1.Electricity_Usage_GJ,s1.site,s1.sub_region,s1.region
+from sus_56999
+  left join s1 on
+  _id=s1._id
+ where keyword='propane_usage'
+)
+
+Select s2.* from s2
