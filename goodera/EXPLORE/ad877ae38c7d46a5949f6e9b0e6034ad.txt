@@ -1,5 +1,14 @@
-Select t.name as site,t1.name as sub_Region,t2.name as Region,t4.name as fin_q,t5.name as fin_hy,t6.name as fin_y,EXTRACT(YEAR FROM(CAST(startdate AS datetime))) as year
-
+with temp as (
+Select 'GJ' as col
+ union all
+Select 'kwH' as col
+)
+Select t.name as site,t1.name as sub_Region,t2.name as Region,t4.name as fin_q,t5.name as fin_hy,t6.name as fin_y,EXTRACT(YEAR FROM(CAST(startdate AS datetime))) as year,(datanum*3.6) as GJ,(GJ*277.778) as kwH,
+sum(case
+  	when 'GJ' then GJ
+    when 'kwH' then kwH
+  else null
+  end) as Energy_Consumption,temp.col as Unit
 from sus_56999
   cross join temp
   left join ds_mysql_prod_project t
@@ -16,4 +25,5 @@ from sus_56999
   on t4.parent=t5.id
   left join ds_mysql_prod_tagelement t6
   on t5.parent=t6.id
-  where  site!=47608
+  where  keyword ='electricity_usage' and site!=47608
+  group by t.name,t1.name,t2.name,t3.name,t4.name,t5.name,t6.name,startdate,Unit
