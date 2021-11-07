@@ -1,5 +1,5 @@
 with tradelane as (
-select (origin_tradelane || dest_tradelane || carrier) as lookup_tradelane_carrier,projectid,origin_tradelane,dest_tradelane,carrier,co2_dry,co2_ref
+select (origin_tradelane || dest_tradelane || carrier) as lookup_tradelane_carrier,projectid,origin_tradelane,dest_tradelane,carrier,co2_dry,co2_ref, (co2_dry + co2_ref) as TotalEmissions
 from profile_79060
 ),
  port as (
@@ -8,7 +8,7 @@ start_country, start_port, start_tradelane, dest_country, dest_port, dest_tradel
 from profile_79053
 )
 
-select a.fy_timerange, a.projectid, a.origin_port, a.dest_port, a.carrier, a.units, b.nautical_miles, c.co2_dry, c.co2_ref, taga.name as origin_port_text, tagb.name as dest_port_text, tagc.name as carrier_text,
+select a.fy_timerange, a.projectid, a.origin_port, a.dest_port, a.carrier, a.units, b.nautical_miles, c.co2_dry, c.co2_ref, taga.name as origin_port_text, tagb.name as dest_port_text, tagc.name as carrier_text, (c.TotalEmissions/a.units) as no_of_units,
 (a.units*b.nautical_miles*co2_dry) as co2_dry_eff, (a.units*b.nautical_miles*co2_ref) as co2_ref_eff
 from profile_79048 a
 left join port b on b.lookup_port = (a.origin_port||a.dest_port)
