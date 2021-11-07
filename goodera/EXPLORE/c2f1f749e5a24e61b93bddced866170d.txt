@@ -1,8 +1,32 @@
-with s as (
+with temp as(
+  select 'Number of species selected for plantation' as col
+  union all
+  select 'Number of workshops/capacity building sessions conducted for volunteers' as col
+  union all
+  select 'Number of habitat zones created' as col
+  union all
+  select 'Percentage change of the temperature of the  forest' as col
+  union all
+  select 'Percentage increase of height of the saplings' as col
+  union all
+  select 'Percentage increase of green cover area from the DPR' as col
+  ),
+ 
+ s as (
   Select * from profile_78860
   )
   
- Select t.name as projectid, s._id, s.name, s.fy_timerange, s.habitat_zones, s.percentchange_temp_forest, s.inc_height_saplings, s.inc_greencover_dpr,s.species_plantation,s.buidling_session_volunteers ,count(*)
+ Select t.name as projectid, s._id, s.name, s.fy_timerange, s.habitat_zones, s.percentchange_temp_forest, s.inc_height_saplings, s.inc_greencover_dpr,s.species_plantation,s.buidling_session_volunteers ,count(*),
+  temp.col,
+  sum(case col
+	when 'Number of species selected for plantation' then s.species_plantation
+	when 'Number of workshops/capacity building sessions conducted for volunteers' then s.buidling_session_volunteers
+	when 'Number of habitat zones created' then s.habitat_zones
+	when 'Percentage change of the temperature of the  forest' then s.percentchange_temp_forest
+	when 'Percentage increase of height of the saplings' then s.inc_height_saplings
+    when 'Percentage increase of green cover area from the DPR' then s.inc_greencover_dpr
+	else null
+end) as Value 
  from s
    left join ds_mysql_prod_project t
   on t.id=s.projectId
