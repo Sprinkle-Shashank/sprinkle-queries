@@ -1,8 +1,21 @@
-with s as(
+with temp as(
+  select 'Number of sapling planted' as col
+  union all
+  select 'Number of hours invested by garden for care' as col
+
+  ),
+ 
+ s as(
 Select * from profile_78862
 )
-Select t.name as projectid, s._id, s.name, s.fy_timerange, s.mound_prepared, s.mulch_purchased, s.inc_height_saplings, s.resource_emp_engagement, s.volunteers, s.survival_rate_saplings
+Select t.name as projNumber of sapling plantedectid, s._id, s.name, s.fy_timerange, s.sapling_planted, s.hours_garden
+sum(case col
+	when 'Number of sapling planted' then s.sapling_planted
+	when 'Number of hours invested by garden for care' then s.hours_garden
+	else null
+end) as Value 
 from s
 left join ds_mysql_prod_project t
   on t.id=s.projectId
-  group by t.name , s._id, s.name, s.fy_timerange, s.mound_prepared, s.mulch_purchased, s.inc_height_saplings, s.resource_emp_engagement, s.volunteers, s.survival_rate_saplings
+  cross join temp
+  group by t.name , s._id, s.name, s.fy_timerange,s.sapling_planted, s.hours_garden,temp.col
