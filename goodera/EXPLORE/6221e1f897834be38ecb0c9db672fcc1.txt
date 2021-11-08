@@ -1,0 +1,16 @@
+with sub1 as(
+SELECT sq.category, sq.fy, sq.category_main, sq.facility_type_parent, SUM(total_emissions) as total_emissions_grouped, case when t.name IS NULL then 'Overall' end as brand, case when t1.name IS NULL then 'Overall' end as region, case
+  when brand="Calvin Klein" then 1
+  when brand="Heritage Brands" then 2
+  when brand="Tommy Hilfiger" then 3
+  else 4
+  end as Brand_Sortkey
+FROM profile_60925 sq
+left join ds_mysql_prod_tagelement t
+on sq.brand = t.id
+left join ds_mysql_prod_tagelement t1
+on sq.region = t1.id
+GROUP BY sq.brand, sq.category, sq.fy, sq.region, sq.category_main, sq.facility_type_parent
+ORDER BY fy ASC)
+SELECT category, fy, facility_type_parent, category_main, total_emissions_grouped, brand, region FROM sub1
+ORDER BY fy ASC, Brand_Sortkey ASC, region ASC
