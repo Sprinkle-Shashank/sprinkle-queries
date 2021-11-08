@@ -1,5 +1,21 @@
+select projectId, ven.name as vendor, cou.name as country,
+NVL2 ( (pe.name - pep.name) > 0, 1, 0 ) as count_increase
+from profile_65282 p
 
+left join profile_60669
+on p.employee_id = profile_60669.employee_id_pre
 
+left join ds_mysql_prod_project fac
+on p.projectid = fac.id
+left join ds_mysql_prod_project ven
+on fac.parent = ven.id
+left join ds_mysql_prod_project cou
+on ven.parent = cou.id
 
+left join ds_mysql_prod_tagelement pep
+on profile_60669.production_efficiency_pre = pep.id
 
-Group By projectId, country, vendor, count_increase
+left join ds_mysql_prod_tagelement pe
+on production_efficiency = pe.id
+
+group by projectId, country, vendor, count_increase
