@@ -1,5 +1,5 @@
 with s1 as(
-Select t.name as site,t1.name as sub_Region,t2.name as Region,(datanum*3.6) as Electricity_Usage_GJ
+Select xprojectid,t.name as site,t1.name as sub_Region,t2.name as Region,(datanum*3.6) as Electricity_Usage_GJ
 from sus_56999
   left join ds_mysql_prod_project t
   on xprojectid=t.id
@@ -11,7 +11,7 @@ from sus_56999
 )
 ,
 s2 as(
-Select (datanum*25.59) as Propane_Usage_GJ,s1.Electricity_Usage_GJ,s1.site,s1.sub_region,s1.region
+Select s2.xprojectid,(datanum*25.59) as Propane_Usage_GJ,s1.Electricity_Usage_GJ,s1.site,s1.sub_region,s1.region
 from sus_56999
   left join s1 on
   s1.xprojectid=s2.xprojectid
@@ -19,7 +19,7 @@ from sus_56999
 )
 ,
 s3 as(
-Select s2.* ,(datanum*38.29) as Diesel_Fuel_Usage_GJ
+Select s2.* ,s3.xprojectid,(datanum*38.29) as Diesel_Fuel_Usage_GJ
 from s2
   left join s2 on
   s2.xprojectid=s3.xprojectid
@@ -27,14 +27,14 @@ from s2
 )
 ,
 s4 as(
-Select s3.* ,(datanum*34.2) as Gasoline_Usage_GJ
+Select s3.* ,s4.xprojectid,(datanum*34.2) as Gasoline_Usage_GJ
 from s3
   left join s3 on
   s3.xprojectid=s4.xprojectid
  where keyword='gasoline_usage'
 ),
 s5 as(
-Select s4.* ,(datanum*1000) as Natural_Gas_Usage_GJ
+Select s4.* ,s5.xprojectid,(datanum*1000) as Natural_Gas_Usage_GJ
 from s4
   left join s4 on
   s4.xprojectid=s5.xprojectid
