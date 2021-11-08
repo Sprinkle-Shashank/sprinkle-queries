@@ -1,8 +1,25 @@
-with s as(
+with temp as(
+  select 'Percentage reduction in temperature' as col
+  union all
+  select 'Percentage increase in water table' as col
+  union all
+  select 'Number of community members interviewed for feedback' as col
+  union all
+  select 'Percentage reduction in noise' as col  
+  ),
+  s as(
   Select * from profile_78868
   )
-Select t.name as projectid, s._id, s.name, s.fy_timerange, s.temp_reduced, s.inc_water_table, s.comm_members_interviewed, s.noise_reduced
+Select t.name as projectid, s._id, s.name, s.fy_timerange, s.temp_reduced, s.inc_water_table, s.comm_members_interviewed, s.noise_reduced,temp.col,
+ sum(case col
+	when 'Percentage reduction in temperature' then s.temp_reduced
+	when 'Percentage increase in water table' then s.inc_water_table
+	when 'Number of community members interviewed for feedback' then s.comm_members_interviewed
+	when 'Percentage reduction in noise' then s.noise_reduced
+	else null
+end) as Value 
 from s
 left join ds_mysql_prod_project t
   on t.id=s.projectId
-group by t.name , s._id, s.name, s.fy_timerange, s.temp_reduced, s.inc_water_table, s.comm_members_interviewed, s.noise_reduced
+  cross join temp
+group by t.name , s._id, s.name, s.fy_timerange, s.temp_reduced, s.inc_water_table, s.comm_members_interviewed, s.noise_reduced,temp.col
