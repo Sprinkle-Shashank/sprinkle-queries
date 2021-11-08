@@ -1,19 +1,5 @@
-with s1 as (Select t.name as site,(datanum*3.6) as elc_usage,t1.name as sub_Region,t2.name as Region,xprojectid
-from sus_56999
-  left join ds_mysql_prod_project t
-  on xprojectid=t.id
-  left join ds_mysql_prod_project t1
-  on t.parent=t1.id
-  left join ds_mysql_prod_project t2
-  on t1.parent=t2.id
-	where keyword ='electricity_usage'
-		   ),
-s2 as(
-Select s1.elc_usage,(datanum*25.59) as Propane_Usage_GJ
-from sus_56999 a2
-  left join s1 on
-  s1.xprojectid=a2.xprojectid
- where keyword='propane_usage'
-  )
-
-Select * from s2
+Select Sum(CASE 
+             WHEN keyword = 'electricity_usage' THEN datanum 
+             ELSE 0 
+           END) AS Elec_usage
+		   from sus_56999
