@@ -1,8 +1,32 @@
-with s as (
+with temp as(
+  select 'Area of mound prepared' as col
+  union all
+  select 'Quantity of mulch purchase' as col
+  union all
+  select 'Increase in height of the saplings' as col
+  union all
+  select 'Number of resources or modules developed for employee engagement ' as col
+  union all
+  select 'Number of volunteers engaged' as col
+   union all
+  select 'Survival rate of saplings' as col
+  ),
+ 
+ s as (
 Select * from profile_78861
 )
-Select t.name as projectid, s._id,s.name ,s.fy_timerange,s.mound_prepared,s.mulch_purchased,s.inc_height_saplings,s.resource_emp_engagement ,s.volunteers,s.survival_rate_saplings,count(*)
+Select t.name as projectid, s._id,s.name ,s.fy_timerange,s.mound_prepared,s.mulch_purchased,s.inc_height_saplings,s.resource_emp_engagement ,s.volunteers,s.survival_rate_saplings,count(*),temp.col, 
+sum(case col
+	when 'Area of mound prepared' then s.mound_prepared
+	when 'Quantity of mulch purchase' then s.mulch_purchased
+	when 'Increase in height of the saplings' then s.inc_height_saplings
+	when 'Number of resources or modules developed for employee engagement' then s.resource_emp_engagement
+	when 'Number of volunteers engaged' then s.volunteers
+    when 'Survival rate of saplings' then s.survival_rate_saplings
+	else null
+end) as Value 
 from s
   left join ds_mysql_prod_project t
   on t.id=s.projectId
-group by t.name, s._id,s.name ,s.fy_timerange,s.mound_prepared,s.mulch_purchased,s.inc_height_saplings,s.resource_emp_engagement ,s.volunteers,s.survival_rate_saplings
+  cross join temp
+group by t.name, s._id,s.name ,s.fy_timerange,s.mound_prepared,s.mulch_purchased,s.inc_height_saplings,s.resource_emp_engagement ,s.volunteers,s.survival_rate_saplings, temp.col
