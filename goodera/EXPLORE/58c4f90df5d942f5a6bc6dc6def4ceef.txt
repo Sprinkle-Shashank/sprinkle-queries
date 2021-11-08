@@ -1,16 +1,26 @@
 with sub1 as (
-	SELECT sq.brand, sq.fy, sq.facility_type_parent, sq.region,sq.total_area
+	SELECT sq.brand, sq.fy, sq.facility_type_parent, sq.region,SUM(total_area) as total_area_grouped
 	FROM profile_56599 sq
+  GROUP BY sq.fy, sq.facility_type_parent, sq.brand,sq.region
 	),
 sub2 as(
-	SELECT s1.fy, s1.facility_type_parent, s1.total_area, brand11, region11 FROM sub1 s1, s1.brand brand11, s1.region region11
+	SELECT s1.fy, s1.facility_type_parent, brand11, region11 FROM sub1 s1, s1.brand brand11, s1.region region11
   ),
 sub3 as (
-	SELECT sq.fy, sq.facility_type_parent, t.name as brand_0, t1.name as region_0, SUM(sq.total_area) as total_area_grouped
+	SELECT sq.*, t.name as brand_0, t1.name as region_0
 	from sub2 sq
 	left join ds_mysql_prod_tagelement t
     on sq.brand11 = t.id
 	left join ds_mysql_prod_tagelement t1
-	on sq.region11 = t1.id
-GROUP BY sq.fy, sq.facility_type_parent, t.name,t1.name)
-SELECT sub3.* FROM sub3
+	on sq.region11 = t1.id),
+sub4 as (
+  SELECT sub3.*,case
+  when brand='Calvin Klein' then '1'
+  when brand='Heritage Brands' then '2'
+  when brand='Tommy Hilfiger' then '3'
+  else '4'
+  end as Brand_Sortkey FROM sub3
+  )
+SELECT fy, facility_type_parent, total_area_grouped, brand, region
+FROM sub4
+ORDER BY Brand_Sortkey ASC, region ASC
