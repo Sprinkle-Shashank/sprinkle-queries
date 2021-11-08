@@ -1,7 +1,7 @@
-Select fy_timerange,xprojectid,
+Select t.name as site,t1.name as sub_Region,t2.name as Region,
       
 	  Sum(CASE 
-             WHEN keyword = 'electricity_usage' THEN datanum 
+             WHEN keyword = 'electricity_usage' THEN datanum
              ELSE 0 
            END) AS Elec_usage,
 		   Sum(CASE 
@@ -11,7 +11,21 @@ Select fy_timerange,xprojectid,
 		   Sum(CASE 
              WHEN keyword = 'diesel_fuel_usage' THEN datanum 
              ELSE 0 
-           END) AS fuel_usage
+           END) AS fuel_usage,
+		   Sum(CASE 
+             WHEN keyword = 'gasoline_usage' THEN datanum 
+             ELSE 0 
+           END) AS gasoline_usage,
+		   Sum(CASE 
+             WHEN keyword = 'natural_gas_usage' THEN datanum 
+             ELSE 0 
+           END) AS 'natural_gas_usage'
 		   from sus_56999
-		   where keyword in ('electricity_usage','propane_usage','diesel_fuel_usage')
-group by fy_timerange,xprojectid
+		   left join ds_mysql_prod_project t
+  on xprojectid=t.id
+  left join ds_mysql_prod_project t1
+  on t.parent=t1.id
+  left join ds_mysql_prod_project t2
+  on t1.parent=t2.id
+		   where keyword in ('electricity_usage','propane_usage','diesel_fuel_usage','gasoline_usage','natural_gas_usage')
+group by t.name,t1.name,t2.name
