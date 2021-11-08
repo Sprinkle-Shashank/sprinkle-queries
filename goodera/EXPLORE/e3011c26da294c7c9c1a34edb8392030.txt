@@ -1,39 +1,74 @@
-with s1 as(
-Select t.name as site,t1.name as sub_Region,t2.name as Region,(datanum*3.6) as Electricity_Usage_GJ
-from sus_56999
-  left join ds_mysql_prod_project t
+with temp as (
+Select 'Electricity_Utility_Provider' as col
+ union all
+Select 'Propane' as col
+   union all
+Select 'Diesel' as col
+   union all
+Select 'Natural_Gas' as col
+   union all
+Select 'Gasoline' as col
+     union all
+Select 'Total_Energy' as col
+),
+s1 as (Select t.name as site,t1.name as sub_Region,t2.name as Region,fy_timerange,
+      
+	  Sum(CASE 
+             WHEN keyword = 'electricity_usage' THEN datanum
+             ELSE 0 
+           END) AS Elec_usage,
+		   Sum(CASE 
+             WHEN keyword = 'propane_usage' THEN datanum 
+             ELSE 0 
+           END) AS prop_usage,
+		   Sum(CASE 
+             WHEN keyword = 'diesel_fuel_usage' THEN datanum 
+             ELSE 0 
+           END) AS fuel_usage,
+		   Sum(CASE 
+             WHEN keyword = 'gasoline_usage' THEN datanum 
+             ELSE 0 
+           END) AS gasoline_usage,
+		   Sum(CASE 
+             WHEN keyword = 'natural_gas_usage' THEN datanum 
+             ELSE 0 
+           END) AS natural_gas_usage
+		   from sus_56999
+		   left join ds_mysql_prod_project t
   on xprojectid=t.id
   left join ds_mysql_prod_project t1
   on t.parent=t1.id
   left join ds_mysql_prod_project t2
   on t1.parent=t2.id
-  where keyword='electricity_usage'
-)
-,
-s2 as(
-Select (datanum*25.59) as Propane_Usage_GJ,s1.Electricity_Usage_GJ,s1.site,s1.sub_region,s1.region
-from sus_56999
-  left join s1 on
-  _id=s1._id
- where keyword='propane_usage'
-)
-,
-s3 as(
-Select s2.* ,(datanum*38.29) as Diesel_Fuel_Usage_GJ
-from s2
-  where keyword='diesel_fuel_usage'
-)
-,
-s4 as(
-Select s3.* ,(datanum*34.2) as Gasoline_Usage_GJ
-from s3
- where keyword='gasoline_usage'
+		   where keyword in ('electricity_usage','propane_usage','diesel_fuel_usage','gasoline_usage','natural_gas_usage')
+group by t.name,t1.name,t2.name,fy_timerange
+			
 ),
-s5 as(
-Select s4.* ,(datanum*1000) as Natural_Gas_Usage_GJ
-from s4
-where keyword='natural_gas_usage'
+
+s2 as (
+  Select  s1.site,s1.sub_Region,s1.Region,s1.fy_timerange,(s1.Elec_usage)*3.6 as Electricity_Utility_Provider,(s1.prop_usage)*25.59 as Propane,(s1.fuel_usage)*38.9 as Diesel,(s1.natural_gas_usage)*1000 as Natural_Gas,(s1.gasoline_usage)*34.2 as Gasoline
+  from s1),
+  
+s3 as (
+Select s2.site,s2.sub_Region,s2.Region,s2.fy_timerange,(s2.Electricity_Utility_Provider+s2.Propane+s2.Diesel+s2.Natural_Gas+s2.Gasoline) as Total_energy
+  from s2
+),
+s4 as (
+Select s3.site,s3.sub_Region,s3.Region,s3.fy_timerange,temp.col as Energy_type,
+  sum(case col
+  	when 'Electricity_Utility_Provider' then s2.Electricity_Utility_Provider
+ 	when 'Propane' then s2.propane
+    when 'Diesel' then s2.diesel
+    when 'Natural_Gas' then s2.Natural_Gas
+    when 'Gasoline' as s2.Gasoline
+	when 'Total_energy' as s3.Total_energy
+  else 0
+  end 
+)as GJ
+  from s3
+  cross join temp
+  group by s3.site,s3.sub_Region,s3.Region,s3.fy_timerange,temp.col
+
 )
 
-
-Select s5.* from s5
+select * from s4
