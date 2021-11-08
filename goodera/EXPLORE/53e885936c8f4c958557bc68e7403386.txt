@@ -27,7 +27,7 @@ select concat(substring(cast(fy_timerange.start as varchar),1,10), concat('|', s
 historical as (
 select final.fy_timerange, final.projectid, final.f_category, 'Not at Risk' as diabetes, (final.final_sum - decode(final_risk.final_sum,null, 0,final_risk.final_sum)) as final_sum from final
   	left join final_risk on
-  	final.projectid = final_risk.projectid and final.f_category = final_risk.f_category 
+  	final.projectid = final_risk.projectid and final.f_category = final_risk.f_category and final.fy_timerange = final_risk.fy_timerange
   
   union all
   
@@ -55,9 +55,8 @@ left join ds_mysql_prod_project as project
 on project.id = q.projectid
 group by 1,2,3,4
 */
-select final.fy_timerange, project.name as projectid, final.f_category, 'Not at Risk' as diabetes, final.final_sum as total, decode(final_risk.final_sum,null, 0,final_risk.final_sum) as risk, (final.final_sum - decode(final_risk.final_sum,null, 0,final_risk.final_sum)) as final_sum from final
-  	left join final_risk on
-  	final.projectid = final_risk.projectid and final.f_category = final_risk.f_category and final.fy_timerange = final_risk.fy_timerange
+select fy_timerange, project.name as projectid, f_category, diabetes, sum(final_sum) as final_sum
+from historical q
 left join ds_mysql_prod_project as project
-on project.id = final.projectid where risk>total
-
+on project.id = q.projectid where final_sum<0
+group by 1,2,3,4
