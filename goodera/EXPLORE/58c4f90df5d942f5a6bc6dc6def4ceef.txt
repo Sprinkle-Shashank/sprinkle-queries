@@ -1,7 +1,10 @@
-SELECT sq.fy, sq.facility_type_parent, SUM(total_area) as total_area_grouped, case when t.name IS NULL then 'Overall' else t.name end as brand, case when t1.name IS NULL then 'Overall' else t1.name end as region
+with sub1 as (
+SELECT sq.brand, sq.fy, sq.facility_type_parent, sq.region, SUM(total_area) as total_area_grouped, t.name as brand_0, t1.name as region_0
 FROM profile_56599 sq
 left join ds_mysql_prod_tagelement t
 on sq.brand = t.id
 left join ds_mysql_prod_tagelement t1
 on sq.region = t1.id
-GROUP BY t.name, sq.fy, sq.facility_type_parent, t1.name
+GROUP BY sq.brand, sq.fy, sq.facility_type_parent, sq.region)
+  SELECT fy, facility_type_parent, case when region_0 IS NULL then 'Overall' else region_0 end as region, case when brand_0 IS NULL then 'Overall' else brand_0 end as brand
+  FROM sub1
