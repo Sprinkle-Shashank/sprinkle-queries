@@ -37,10 +37,32 @@ table6 as(Select "Key Performance Indicators",Sum("Progress Till Date") AS "Prog
 
 Group BY "Key Performance Indicators"
 		  )
-Select t2."Key Performance Indicators",t2."Program Target" ,t2.target_21,t6."Progress Till Date"
+table7 as(Select Case when profile_58414.projectId is not null 
+		  then 'Estimated number of people empowered to improve their access to drinking water and sanitation'   else 
+'NA'
+		  end as "Key Performance Indicators" ,Sum(total_people) as "Progress Till Date"
+from profile_58414
+		  where fy = 399763
+),
+table8 as(Select Case when profile_26656.projectId is not null 
+		  then 'Estimated number of people empowered to improve their access to drinking water and sanitation'   else 
+'NA'
+		  end as "Key Performance Indicators" ,Sum(total_people) as "Progress Till Date"
+from profile_26656
+		  where year = 399763
+) 
+table9 as(Select * from table7
+		  Union All
+		  select * from table8
+		  ),
+table10 as(Select "Key Performance Indicators",Sum("Progress Till Date") AS Achievements from table9
+
+
+Select t2."Key Performance Indicators",t2."Program Target" ,t2.target_21,t6."Progress Till Date",t10.Achievements
 from table2 as t2
 left join table6 as t6 
 on t2."Key Performance Indicators" = t6."Key Performance Indicators"
-
+left join table10 as t10 
+on t2."Key Performance Indicators" = t10."Key Performance Indicators"
 
 
