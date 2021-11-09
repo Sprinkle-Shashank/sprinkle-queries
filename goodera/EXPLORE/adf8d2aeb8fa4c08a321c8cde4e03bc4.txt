@@ -1,10 +1,13 @@
-select p.projectId, p.placed, concat(cast(p.fy_timerange.start as varchar), concat('|', cast(p.fy_timerange.end as varchar))) as fy_timerange1, p.batch_id,h.start, h.end, z.name as donor, h.donor_commitment,t2.name as Project from profile_145 p
+select p.projectId, m.name as placed, concat(cast(p.fy_timerange.start as varchar), concat('|', cast(p.fy_timerange.end as varchar))) as fy_timerange1, p.batch_id,h.start, h.end, z.name as donor, h.donor_commitment,t2.name as Project from profile_145 p
 
 left join profile_196 h on
 p.batch_id=h._id
 
 left join ds_mysql_prod_tagelement z on
 h.donor=z.id
+
+left join ds_mysql_prod_tagelement m on
+p.placed=m.id
 	
 
 LEFT JOIN ds_mysql_prod_project t on p.projectId=t.id
@@ -12,4 +15,4 @@ LEFT JOIN ds_mysql_prod_project t1 on t.parent=t1.id
 LEFT JOIN ds_mysql_prod_project t2 on t1.parent=t2.id
 where h.donor is not null
 
-group by z.name, donor_commitment, fy_timerange1, project, placed,p.projectid,p.batch_id,h.start,h.end
+group by z.name, donor_commitment, fy_timerange1, project, m.name,p.projectid,p.batch_id,h.start,h.end
