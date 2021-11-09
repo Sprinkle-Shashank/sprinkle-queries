@@ -1,5 +1,5 @@
 with sub1 as(
-SELECT sq.category, t2.name as fy, sq.category_main, sq.facility_type_parent, SUM(total_emissions) as total_emissions_grouped, case when t.name IS NULL then 'Overall' else t.name end as brand, case when t1.name IS NULL then 'Overall' else t1.name end as region
+SELECT t3.name as category, t2.name as fy, sq.category_main, sq.facility_type_parent, SUM(total_emissions) as total_emissions_grouped, case when t.name IS NULL then 'Overall' else t.name end as brand, case when t1.name IS NULL then 'Overall' else t1.name end as region
 FROM profile_60925 sq
 left join ds_mysql_prod_tagelement t
 on sq.brand = t.id
@@ -7,7 +7,9 @@ left join ds_mysql_prod_tagelement t1
 on sq.region = t1.id
   left join ds_mysql_prod_tagelement t2
 on sq.fy = t2.id
-GROUP BY t.name, sq.category, t2.name, t1.name, sq.category_main, sq.facility_type_parent
+    left join ds_mysql_prod_tagelement t3
+on sq.category = t3.id
+GROUP BY t.name, t3.name, t2.name, t1.name, sq.category_main, sq.facility_type_parent
 ORDER BY fy ASC),
 sub2 as(
 SELECT category, fy, facility_type_parent, category_main, total_emissions_grouped, brand, region,case
