@@ -129,8 +129,8 @@ table18 as(Select Case when profile_58414.projectId is not null
 		  
 from profile_58414
 where fy = 467538
-group by "Key Performance Indicators")
-Select t15."Key Performance Indicators",t15."Program Target",t16."Progress Till Date",t15.target_21,t17.Achievements,t15.target_22,t18.Achievements
+group by "Key Performance Indicators"),
+row2 as (Select t15."Key Performance Indicators",t15."Program Target",t16."Progress Till Date",t15.target_21,t17.Achievements,t15.target_22,t18.Achievements
 from table15 as t15
 left join table16 as t16
 on t15."Key Performance Indicators" = t16."Key Performance Indicators"
@@ -138,5 +138,58 @@ left join table17 as t17
 on t15."Key Performance Indicators" = t17."Key Performance Indicators"
 left join table18 as t18
 on t15."Key Performance Indicators" = t18."Key Performance Indicators"
+),
+table18 as(
+Select case when table1.projectId is not null
+  then 'No. of Village action plan (VAP) prepared in collaboration with department'
+  else
+  'NA' 
+  end as "Key Performance Indicators",Sum(prog_target) as "Program Target" ,Sum(target21) as target_21,Sum(target22) as target_22
+
+				
+from table1
+  
+ where indicator = 1520808 
+  group by "Key Performance Indicators"
+),
+table19 as(Select Case when profile_58414.projectId is not null 
+		  then 'No. of Village action plan (VAP) prepared in collaboration with department'   else 
+'NA'
+		  end as "Key Performance Indicators",Sum(vap_prepared) as "Progress Till Date"
+		  
+from profile_58414
+group by "Key Performance Indicators"),
+table20 as(Select Case when profile_58414.projectId is not null 
+		  then 'No. of Village action plan (VAP) prepared in collaboration with department'   else 
+'NA'
+		  end as "Key Performance Indicators",Sum(vap_prepared) as achievements
+		  
+from profile_58414
+where fy = 399763
+group by "Key Performance Indicators"),
+table21 as(Select Case when profile_58414.projectId is not null 
+		  then 'No. of Village action plan (VAP) prepared in collaboration with department'   else 
+'NA'
+		  end as "Key Performance Indicators",Sum(para) as achievements
+		  
+from profile_58414
+where fy = 467538
+group by "Key Performance Indicators"),
+row3 as(Select t19."Key Performance Indicators",t19."Program Target",t20."Progress Till Date",t19.target_21,t21.Achievements,t19.target_22,t22.Achievements
+from table19 as t19
+left join table20 as t20
+on t19."Key Performance Indicators" = t20."Key Performance Indicators"
+left join table21 as t21
+on t19."Key Performance Indicators" = t21."Key Performance Indicators"
+left join table22 as t22
+on t19."Key Performance Indicators" = t22."Key Performance Indicators"
+		
+),
+Select * from row1
+ Union All
+select * from row2
+ Union All
+select * from row3
+	
 
 
