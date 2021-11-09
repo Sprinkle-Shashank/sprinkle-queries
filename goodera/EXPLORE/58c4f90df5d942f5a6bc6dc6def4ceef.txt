@@ -3,8 +3,14 @@ with sub1 as (
 	FROM profile_56599 sq
   GROUP BY sq.fy, sq.facility_type_parent, sq.brand,sq.region
 	),
+	sub11 as(
+	  SELECT sq.brand, sq.fy, sq.facility_type_parent, sq.region, total_area_grouped, IS_ARRAY(sq.brand) as brand_array_check, IS_ARRAY(sq.region) AS region_array_check, 
+CASE when brand_array_check IS False then array(sq.brand) else sq.brand end as brand2,
+CASE when region_array_check IS False then array(sq.region) else sq.region end as region2
+	FROM sub1 sq
+	  )
 sub2 as(
-	SELECT s1.fy, s1.facility_type_parent,s1.total_area_grouped, brand11, region11 FROM sub1 s1, s1.brand brand11, s1.region region11
+	SELECT s1.fy, s1.facility_type_parent,s1.total_area_grouped, brand11, region11 FROM sub11 s1, s1.brand2 brand11, s1.region2 region11
   ),
 sub3 as (
 	SELECT sq.*, case when t.name IS NULL then 'Overall' else t.name end as brand, case when t1.name IS NULL then 'Overall' else t1.name end as region
