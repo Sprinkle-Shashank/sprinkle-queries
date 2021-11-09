@@ -1,0 +1,94 @@
+with table1 as (Select * from profile_77047),
+table2 as(
+Select case when table1.projectId is not null
+  then 'Estimated number of people empowered to improve their access to drinking water and sanitation'
+  else
+  'NA' 
+  end as "Key Performance Indicators",Sum(prog_target) as "Program Target" ,Sum(target21) as target_21,Sum(target22) as target_22
+
+				
+from table1
+  
+ where indicator = 1520878 or indicator = 1520806
+  group by "Key Performance Indicators"
+),
+table4 as(Select Case when profile_58414.projectId is not null 
+		  then 'Estimated number of people empowered to improve their access to drinking water and sanitation'   else 
+'NA'
+		  end as "Key Performance Indicators",Sum(total_people) as "Progress Till Date"
+		  
+from profile_58414
+group by "Key Performance Indicators"
+),
+table3 as(Select CASE when profile_26656.projectId is not null
+		  then 'Estimated number of people empowered to improve their access to drinking water and sanitation'  else
+'NA'
+		  end as "Key Performance Indicators",Sum(total_people) as "Progress Till Date"
+		  
+from profile_26656
+group by "Key Performance Indicators"
+
+),
+table5 as(Select * from table3
+		  Union All
+		  select * from table4
+		  ),
+table6 as(Select "Key Performance Indicators",Sum("Progress Till Date") AS "Progress Till Date" from table5
+
+Group BY "Key Performance Indicators"
+		  ),
+table7 as(Select Case when profile_58414.projectId is not null 
+		  then 'Estimated number of people empowered to improve their access to drinking water and sanitation'   else 
+'NA'
+		  end as "Key Performance Indicators" ,Sum(total_people) as "Progress Till Date"
+from profile_58414
+		  where fy = 399763
+group by "Key Performance Indicators"
+),
+table8 as(Select Case when profile_26656.projectId is not null 
+		  then 'Estimated number of people empowered to improve their access to drinking water and sanitation'   else 
+'NA'
+		  end as "Key Performance Indicators" ,Sum(total_people) as "Progress Till Date"
+from profile_26656
+		  where year = 399763
+group by "Key Performance Indicators"
+),
+table9 as(Select * from table7
+		  Union All
+		  select * from table8
+		  ),
+table10 as(Select "Key Performance Indicators",Sum("Progress Till Date") AS Achievements from table9
+group by "Key Performance Indicators"
+),
+table11 as(Select Case when profile_58414.projectId is not null 
+		  then 'Estimated number of people empowered to improve their access to drinking water and sanitation'   else 
+'NA'
+		  end as "Key Performance Indicators" ,Sum(total_people) as "Progress Till Date"
+from profile_58414
+		  where fy = 467538
+group by "Key Performance Indicators"
+),
+table12 as(Select Case when profile_26656.projectId is not null 
+		  then 'Estimated number of people empowered to improve their access to drinking water and sanitation'   else 
+'NA'
+		  end as "Key Performance Indicators" ,Sum(total_people) as "Progress Till Date"
+from profile_26656
+		  where year = 467538
+group by "Key Performance Indicators"
+),
+table13 as(Select * from table11
+		  Union All
+		  select * from table12
+		  ),
+table14 as(Select "Key Performance Indicators", 
+		  decode(Sum("Progress Till Date"),null,0,Sum("Progress Till Date")) as Achievements from table13
+group by "Key Performance Indicators"
+)
+Select t2."Key Performance Indicators",t2."Program Target" ,t2.target_21,t6."Progress Till Date",t10.Achievements,t2.target_22,t14.Achievements
+from table2 as t2
+left join table6 as t6 
+on t2."Key Performance Indicators" = t6."Key Performance Indicators"
+left join table10 as t10 
+on t2."Key Performance Indicators" = t10."Key Performance Indicators"
+left join table14 as t14 
+on t2."Key Performance Indicators" = t14."Key Performance Indicators"
