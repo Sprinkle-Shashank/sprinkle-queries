@@ -1,1 +1,17 @@
-select projectid,fy_timerange,end_date,start_date,ref_grade_cost,atom_iot_cost,cost_details from profile_79105
+with temp as (
+  select 'ref_grade_cost' as C
+  UNION ALL
+  select 'atom_iot_cost' as C
+  UNION ALL
+  )
+
+
+select projectid,fy_timerange,end_date,start_date,cost_details,
+CASE C
+WHEN 'ref_grade_cost' then profile_79105.ref_grade_cost
+WHEN 'atom_iot_cost' then profile_79105.atom_iot_cost
+ELSE NULL
+END AS VALUES , temp.C as dimensions
+from profile_79105
+CROSS JOIN temp
+GROUP BY projectid , fy_timerange,end_date,start_date,cost_details,temp.C
