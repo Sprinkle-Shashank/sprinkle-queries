@@ -4,12 +4,16 @@ with table1 as
  )
  
 
-select p.projectId, cou.name as country, ven.name as vendor, total_score ,  table1.training_id, table1.trainer_org , case when extract(month from date)=1 then (extract(year from date)-1) else extract(year from date) end as year,
+select p.projectId, cou.name as country, ven.name as vendor, total_score , tra_i.name as training_id, table1.trainer_org , case when extract(month from date)=1 then (extract(year from date)-1) else extract(year from date) end as year,
 count(p.projectId) as post_worker_respondents_total 
 from profile_65221 p
 
 left join table1 on 
 p._id = table1.survey
+
+
+left join ds_mysql_prod_tagelement tra_i 
+on table1.training_id = tra_i.id
 
 left join ds_mysql_prod_project fac
 on p.projectid = fac.id
@@ -24,4 +28,4 @@ on ven.parent = cou.id
 
 -- group by p.projectId, worker_leave, timeline_miss, supervisor_loud, worker_late, supervisor_overall, conflict, wages, discussion, profile_63438.trainer_organization, total_score,  cou.name, ven.name, year
 
-group by   table1.trainer_org, total_score, country, vendor, year, p.projectId, table1.training_id
+group by   table1.trainer_org, total_score, country, vendor, year, p.projectId, training_id
