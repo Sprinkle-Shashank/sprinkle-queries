@@ -1,0 +1,19 @@
+select p.projectId, cou.name as country, ven.name as vendor,
+SUBSTRING(to_char(profile_63438.date, 'DD/MM-YYYY'), POSITION('-' in to_char(profile_63438.date, 'DD/MM-YYYY'))+1,4 ) as year, profile_63438.trainer_organization,
+count(p.projectId) as post_worker_respondents_total 
+from profile_65221 p
+
+left join profile_63438
+on p.projectId = profile_63438.survey
+
+
+left join ds_mysql_prod_project fac
+on p.projectid = fac.id
+left join ds_mysql_prod_project ven
+on fac.parent = ven.id
+left join ds_mysql_prod_project cou
+on ven.parent = cou.id
+
+group by p.projectId, worker_leave, timeline_miss, supervisor_loud, worker_late, supervisor_overall, conflict, wages, discussion, profile_63438.trainer_organization, total_score,  cou.name, ven.name, year
+
+--group by profile_63438.trainer_organization, total_score, country, vendor, year, p.projectId
