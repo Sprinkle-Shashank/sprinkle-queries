@@ -4,8 +4,9 @@ Select 'GJ' as col
 Select 'kwH' as col
 
 ),
-s1 as (Select t.name as site,t1.name as sub_Region,t2.name as Region,t3.name as Month,len(t3.name) as Month_Length,
-	   (Month_length-7) as month_length1,substring(Month,1,month_length1) as Monthly,substring(fy_timerange.start,6,2) as time_month,
+s1 as (Select t.name as site,t1.name as sub_Region,t2.name as Region,fy_timerange,t3.name as Month,len(t3.name) as Month_Length,
+	   (Month_length-7) as month_length1,substring(Month,1,month_length1) as Monthly,
+	   --substring(fy_timerange.start,6,2) as time_month,
       
 	  Sum(CASE 
              WHEN keyword = 'electricity_usage' THEN datanum
@@ -37,20 +38,20 @@ s1 as (Select t.name as site,t1.name as sub_Region,t2.name as Region,t3.name as 
 	   left join ds_mysql_prod_tagelement t3
   on financialperiod=t3.id
 		   where keyword in ('electricity_usage','propane_usage','diesel_fuel_usage','gasoline_usage','natural_gas_usage')
-group by t.name,t1.name,t2.name,t3.name
+group by t.name,t1.name,t2.name,fy_timerange,t3.name
 			
 ),
 
 s2 as (
-  Select  s1.site,s1.sub_Region,s1.Month,s1.Month_length,s1.Month_length1,s1.Monthly,s1.time_month,s1.Region,(s1.Elec_usage)*3.6 as Electricity_Usage_GJ,(s1.prop_usage)*25.59 as Propane_Usage_GJ,(s1.fuel_usage)*38.9 as Diesel_Fuel_Usage_GJ,(s1.natural_gas_usage)*1000 as Natural_Gas_Usage_GJ,(s1.gasoline_usage)*34.2 as Gasoline_Usage_GJ
+  Select  s1.site,s1.sub_Region,s1.Month,s1.Month_length,s1.Month_length1,s1.Monthly,s1.time_month,s1.Region,s1.fy_timerange,(s1.Elec_usage)*3.6 as Electricity_Usage_GJ,(s1.prop_usage)*25.59 as Propane_Usage_GJ,(s1.fuel_usage)*38.9 as Diesel_Fuel_Usage_GJ,(s1.natural_gas_usage)*1000 as Natural_Gas_Usage_GJ,(s1.gasoline_usage)*34.2 as Gasoline_Usage_GJ
   from s1),
   
 s3 as (
-Select s2.site,s2.sub_Region,s2.Region,s2.Month,s2.time_month,s2.Month_length,s2.Month_length1,s2.Monthly,(s2.Electricity_Usage_GJ+s2.Propane_Usage_GJ+s2.Diesel_Fuel_Usage_GJ+s2.Natural_Gas_Usage_GJ+s2.Gasoline_Usage_GJ) as GJ
+Select s2.site,s2.sub_Region,s2.Region,s2.fy_timerange,s2.Month,s2.time_month,s2.Month_length,s2.Month_length1,s2.Monthly,(s2.Electricity_Usage_GJ+s2.Propane_Usage_GJ+s2.Diesel_Fuel_Usage_GJ+s2.Natural_Gas_Usage_GJ+s2.Gasoline_Usage_GJ) as GJ
   from s2
 ),
 s4 as (
-Select s3.site,s3.sub_Region,s3.Region,temp.col as unit,s3.Month,s3.time_month,s3.Month_length,s3.Month_length1,s3.Monthly,
+Select s3.site,s3.sub_Region,s3.Region,s3.fy_timerange,temp.col as unit,s3.Month,s3.time_month,s3.Month_length,s3.Month_length1,s3.Monthly,
   sum(case col
   	when 'GJ' then s3.GJ
     when 'kwH' then s3.GJ*277.778
@@ -59,7 +60,7 @@ Select s3.site,s3.sub_Region,s3.Region,temp.col as unit,s3.Month,s3.time_month,s
 )as energy_consumption
   from s3
   cross join temp
-  group by s3.site,s3.sub_Region,s3.Region,temp.col,s3.Month,s3.Month_length,s3.Month_length1,s3.Monthly,s3.time_month
+  group by s3.site,s3.sub_Region,s3.Region,s3.fy_timerange,temp.col,s3.Month,s3.Month_length,s3.Month_length1,s3.Monthly
 
 )
 
