@@ -2,8 +2,29 @@ with temp as(
 Select 'Tons' as col
   union all
 Select 'Kilograms' as col
-)
-Select t.name as site,t1.name as sub_Region,t2.name as Region,t4.name as fin_q,t5.name as fin_hy,t6.name as fin_y,EXTRACT(YEAR FROM(CAST(startdate AS datetime))) as year,sum(datanum) as Hazardous_and_Regulated_Waste
+),
+s1 as (
+Select t.name as site,t1.name as sub_Region,t2.name as Region,t4.name as fin_q,t5.name as fin_hy,t6.name as fin_y,EXTRACT(YEAR FROM(CAST(startdate AS datetime))) as year,
+Sum(CASE 
+             WHEN keyword = 'total_hazwaste' THEN datanum
+             ELSE 0 
+           END) AS total_hazwaste,
+		   Sum(CASE 
+             WHEN keyword = 'nonhaz_reg_total' THEN datanum
+             ELSE 0 
+           END) AS nonhaz_reg_total,
+		   Sum(CASE 
+             WHEN keyword = 'biomedical_disposal' THEN datanum
+             ELSE 0 
+           END) AS biomedical_disposal,
+		   Sum(CASE 
+             WHEN keyword = 'total_nonhaz' THEN datanum
+             ELSE 0 
+           END) AS total_nonhaz,
+		   Sum(CASE 
+             WHEN keyword = 'total_nonhaz_recycled' THEN datanum
+             ELSE 0 
+           END) AS total_nonhaz_recycled,
 
 from sus_56999
   cross join temp
@@ -21,11 +42,21 @@ from sus_56999
   on t4.parent=t5.id
   left join ds_mysql_prod_tagelement t6
   on t5.parent=t6.id
-  where keyword in ('total_hazwaste','nonhaz_reg_total','biomedical_disposal')
-  
-  
-  Select sum(datanum) as Non_Hazardous_Waste,
+),
+s2 as (
+Select s1.site,s1.sub_Region,s1.Region,s1.fin_q,s1.fin_hy,s1.fin_y,s1.year,(s1.total_hazwaste+s1.nonhaz_reg_total+s1.biomedical_disposal)as Hazardous_and_Regulated_Waste,(s1.total_nonhaz+s1.total_nonhaz_recycled)  as Non_Hazardous_Waste
+  from s1
+)
+s3 as (
+  Select s2.site,s2.sub_Region,s2.Region,s2.fin_q,s2.fin_hy,s2.fin_y,s2.year,
+(s2.Hazardous_and_Regulated_Waste+s2.Non_Hazardous_Waste) as Tons,(Tons*1000)as kilograms
+  ,temp.col as unit,
   case col
-   when 
+    when 'Tons'  then s2.Hazardous_and_Regulated_Waste+s2.Non_Hazardous_Waste
+    when  'kilograms' then (s2.Hazardous_and_Regulated_Waste+s2.Non_Hazardous_Waste)*1000
+ else null
+  end as Total_Waste_Generated
+  from s2
+  group by  s2.site,s2.sub_Region,s2.Region,s2.fin_q,s2.fin_hy,s2.fin_y,s2.year,temp.col
   
-   where keyword in ('total_nonhaz','total_nonhaz_recycled')
+)
