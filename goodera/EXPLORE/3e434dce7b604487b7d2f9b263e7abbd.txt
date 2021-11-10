@@ -57,13 +57,13 @@ Select s1.site,s1.sub_Region,s1.Region,s1.fin_q,s1.fin_hy,s1.fin_y,s1.year,s1.fy
 ),
 s3 as (
   Select s2.site,s2.sub_Region,s2.Region,s2.fin_q,s2.fin_hy,s2.fin_y,s2.year,s2.fy_timerange,
-sum(s2.Hazardous_and_Regulated_Waste+s2.Non_Hazardous_Waste) as Total_Waste_Generated,(Tons*1000)as kilograms
+sum(s2.Hazardous_and_Regulated_Waste+s2.Non_Hazardous_Waste) as Total_Waste_Generated
   from s2
   group by  s2.site,s2.sub_Region,s2.Region,s2.fin_q,s2.fin_hy,s2.fin_y,s2.year,s2.Hazardous_and_Regulated_Waste,s2.Non_Hazardous_Waste,s2.fy_timerange
   
 ),
 s4 as (
-Select s3.site,s3.sub_Region,s3.Region,s3.fin_q,s3.fin_hy,s3.fin_y,s3.year,s3.fy_timerange,s3.kilograms,
+Select s3.site,s3.sub_Region,s3.Region,s3.fin_q,s3.fin_hy,s3.fin_y,s3.year,s3.fy_timerange,
   temp.col as Waste_Type,
   sum(case col
     when 'Hazardous_and_Regulated_Waste'  then s2.Hazardous_and_Regulated_Waste
@@ -73,22 +73,22 @@ Select s3.site,s3.sub_Region,s3.Region,s3.fin_q,s3.fin_hy,s3.fin_y,s3.year,s3.fy
   end )as tons
   from s3
     cross join temp
-  group by s3.site,s3.sub_Region,s3.Region,s3.fin_q,s3.fin_hy,s3.fin_y,s3.year,s3.fy_timerange,s3.kilograms,
+  group by s3.site,s3.sub_Region,s3.Region,s3.fin_q,s3.fin_hy,s3.fin_y,s3.year,s3.fy_timerange,
   temp.col
 )
 ,
 s5 as (
 
-Select s4.site,s4.sub_Region,s4.Region,s4.fin_q,s4.fin_hy,s4.fin_y,s4.year,s4.fy_timerange,s4.tons,s4.kilograms,
+Select s4.site,s4.sub_Region,s4.Region,s4.fin_q,s4.fin_hy,s4.fin_y,s4.year,s4.fy_timerange,s4.tons,
   temp2.col as Unit,
     sum(case col
     when 'Tons'  then s4.tons
-    when  'kilograms' then s4.kilograms
+    when  'kilograms' then s4.tons*1000
  else null
   end )as Waste
   from s4
   cross join temp2
-   group by s4.site,s4.sub_Region,s4.Region,s4.fin_q,s4.fin_hy,s4.fin_y,s4.year,s4.fy_timerange,s4.tons,s4.kilograms,
+   group by s4.site,s4.sub_Region,s4.Region,s4.fin_q,s4.fin_hy,s4.fin_y,s4.year,s4.fy_timerange,s4.tons,
   temp2.col
 )
 Select * from s5
