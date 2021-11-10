@@ -1,10 +1,15 @@
+with table1 as 
+(
+   select p1.*,cast(survey as varchar), trainer_organization as trainer_org from profile_63439 as p1, p1.survey_arr survey
+ )
 select p.projectId, worker_late, gender, fair_baised, to_do_list, worker_not_paid, marital_status, age, work_area, education, work_ex, assign_job, timeline_miss, worker_leave, belief, conflict_worker,score_total, cou.name as country, ven.name as vendor,
-SUBSTRING(to_char(profile_63439.date, 'DD/MM-YYYY'), POSITION('-' in to_char(profile_63439.date, 'DD/MM-YYYY'))+1,4 ) as year, profile_63439.trainer_organization,
+SUBSTRING(to_char(table1.date, 'DD/MM-YYYY'), POSITION('-' in to_char(table1.date, 'DD/MM-YYYY'))+1,4 ) as year, table1.trainer_org as trainer_organization,
 count(p.projectId) as post_supervisor_total_respondents
 from profile_65222 p
 
-left join profile_63439
-on p.projectId = profile_63439.survey
+
+left join table1 on 
+p._id = table1.survey
 
 
 left join ds_mysql_prod_project fac
@@ -14,4 +19,4 @@ on fac.parent = ven.id
 left join ds_mysql_prod_project cou
 on ven.parent = cou.id
 
-group by p.projectId, worker_late, gender, fair_baised, to_do_list, worker_not_paid, marital_status, age, work_area, education, work_ex, assign_job, timeline_miss, worker_leave, belief, conflict_worker, profile_63439.trainer_organization, score_total, cou.name, ven.name, year
+group by p.projectId, worker_late, gender, fair_baised, to_do_list, worker_not_paid, marital_status, age, work_area, education, work_ex, assign_job, timeline_miss, worker_leave, belief, conflict_worker,  table1.trainer_org, score_total, cou.name, ven.name, year
