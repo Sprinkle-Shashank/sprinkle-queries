@@ -1,4 +1,9 @@
-with temp as(
+with temp2 as(
+Select 'Tons' as col
+  union all
+Select 'Kilograms' as col
+),
+ temp as(
 Select 'Hazardous_and_Regulated_Waste' as col
   union all
 Select 'Non_Hazardous_Waste' as col
@@ -65,11 +70,21 @@ Select s3.site,s3.sub_Region,s3.Region,s3.fin_q,s3.fin_hy,s3.fin_y,s3.year,s3.fy
     when  'Non_Hazardous_Waste' then s2.Non_Hazardous_Waste
 	  when  'Total_Waste_Generated' then s2.Total_Waste_Generated
  else null
-  end )as aste
+  end )as tons
   from s3
     cross join temp
   group by s3.site,s3.sub_Region,s3.Region,s3.fin_q,s3.fin_hy,s3.fin_y,s3.year,s3.fy_timerange,s3.tons,s3.kilograms,
   temp.col
 )
+,
+s5 as (
 
+Select s4.site,s4.sub_Region,s4.Region,s4.fin_q,s4.fin_hy,s4.fin_y,s4.year,s4.fy_timerange,s4.tons,s4.kilograms,
+  temp2.col as Unit,
+    sum(case col
+    when 'Tons'  then s4.tons
+    when  'kilograms' then s4.kilograms
+ else null
+  end )as Waste
+)
 Select * from s4
