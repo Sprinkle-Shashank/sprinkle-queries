@@ -6,12 +6,14 @@ with temp as (
   )
 
 
-select projectid,fy_timerange,end_date,start_date,cost_details,
+select projectid,fy_timerange,end_date,start_date,cost_details,cit.name as city,
 SUM(CASE C
 WHEN 'ref_grade_cost' then profile_79105.ref_grade_cost
 WHEN 'atom_iot_cost' then profile_79105.atom_iot_cost
 ELSE NULL
 END) AS VALUES , temp.C as dimensions
-from profile_79105
+from profile_79105 p
 CROSS JOIN temp
+left join ds_mysql_prod_tagelement cit
+	on p.city= cit.id
 GROUP BY projectid , fy_timerange,end_date,start_date,cost_details,temp.C
