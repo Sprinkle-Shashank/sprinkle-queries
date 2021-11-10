@@ -33,8 +33,16 @@ on p.marital_status = mart_stat.id
  
           ) , 
 table5 as(
-          select p._id,work.name as working, gen.name as gender, ag.name as age, mart_stat.name as marital_status from profile_65903 p
-		  
+          select p._id,fac.name as projectid,p.name, cou.name as country, ven.name as vendor, nvl2(SUBSTRING(vendor, 1, POSITION(' (' in vendor)), SUBSTRING(vendor, 1, POSITION(' (' in vendor)), vendor) as vendor_name, case when vendor_name='' then vendor else vendor_name end as vendor_first_update,work.name as working, gen.name as gender, ag.name as age, mart_stat.name as marital_status from profile_65903 p
+
+left join ds_mysql_prod_project fac 
+on p.projectId = fac.id	
+left join ds_mysql_prod_project ven 
+on fac.parent = ven.id
+
+left join ds_mysql_prod_project cou 
+on ven.parent = cou.id		  
+
 left join ds_mysql_prod_tagelement gen 
 on p.gender = gen.id
   
@@ -148,7 +156,7 @@ on p.marital_status = mart_stat.id
   
   
 )
-select * from table3
+select * from table5
  /*select  t1.projectId, t1.name, t1.survey_end, t1.year_final, t1.gender_final, t1.age_final, t1.marital_status_final, t1.working_final, t1.vendor_first_update, t1.country
 --count(*) as total_responses
   
