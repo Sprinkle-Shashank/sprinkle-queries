@@ -6,7 +6,7 @@ test1 as(
 select fy_timerange, projectid, 'Trucker' as f_category, (decode(tb_pres_screen_s_truckers,null,0,tb_pres_screen_s_truckers) + decode(tb_pres_screen_x_truckers,null,0,tb_pres_screen_x_truckers) + decode(tb_pres_screen_both_truckers,null,0,tb_pres_screen_both_truckers)) as final_sum from profile_63887
   union all
 select fy_timerange, projectid, 'Allied' as f_category, (decode(tb_pres_screen_s_allied,null,0,tb_pres_screen_s_allied) + decode(tb_pres_screen_x_allied,null,0,tb_pres_screen_x_allied) + decode(tb_pres_screen_both_allied,null,0,tb_pres_screen_both_allied)) as final_sum from profile_63887
-)/*,
+),
 
 final as(
 select concat(cast(fy_timerange.start as varchar), concat('|', cast(fy_timerange.end as varchar))) as fy_timerange, projectid, f_category,  sum(final_sum) as final_sum from test1 where final_sum is not null group by 1,2,3
@@ -15,10 +15,10 @@ select fy_timerange, projectid, f_category, count(*) as final_sum
   	from test0
   	where tb1 in (1012452, 1012454, 1059862)
   	group by 1,2,3
-)*/
+)
 
 select fy_timerange, project.name as projectid, f_category, sum(final_sum) as final_sum
-from test1
+from final
 left join ds_mysql_prod_project as project
-on project.id = test1.projectid
+on project.id = final.projectid
 group by 1,2,3
