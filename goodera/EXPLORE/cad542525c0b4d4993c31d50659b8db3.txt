@@ -1,121 +1,12 @@
 
-with
-table2 as 
+with table2 as 
 (
   select p1.*, cast(survey_questions as varchar) from profile_67390 as p1, p1.survey_questions_arr survey_questions
 ),
-table3 as( select p._id,fac.name as projectid,p.name, cou.name as country, ven.name as vendor, nvl2(SUBSTRING(vendor, 1, POSITION(' (' in vendor)), SUBSTRING(vendor, 1, POSITION(' (' in vendor)), vendor) as vendor_name, case when vendor_name='' then vendor else vendor_name end as vendor_first_update ,work.name as working, gen.name as gender, ag.name as age, mart_stat.name as marital_status from profile_65902 p
-
-left join ds_mysql_prod_project fac 
-on p.projectId = fac.id	
-left join ds_mysql_prod_project ven 
-on fac.parent = ven.id
-
-left join ds_mysql_prod_project cou 
-on ven.parent = cou.id		  
-left join ds_mysql_prod_tagelement gen 
-on p.gender = gen.id
-  
-left join ds_mysql_prod_tagelement work 
-on p.working = work.id
-  
-left join ds_mysql_prod_tagelement ag 
-on p.age = ag.id
-  
-left join ds_mysql_prod_tagelement mart_stat 
-on p.marital_status = mart_stat.id
-  
-  
-   ),
- table4 as(
- select p1.*, cast(survey_questions as varchar) from profile_67391 as p1, p1.survey_questions_arr survey_questions     
- 
- 
-          ) , 
-table5 as(
-          select p._id,/*fac.name as projectid,p.name, cou.name as country, ven.name as vendor, nvl2(SUBSTRING(vendor, 1, POSITION(' (' in vendor)), SUBSTRING(vendor, 1, POSITION(' (' in vendor)), vendor) as vendor_name, case when vendor_name='' then vendor else vendor_name end as vendor_first_update,*/work.name as working, gen.name as gender, ag.name as age, mart_stat.name as marital_status from profile_65903 p
-
-left join ds_mysql_prod_project fac 
-on p.projectId = fac.id	
-left join ds_mysql_prod_project ven 
-on fac.parent = ven.id
-
-left join ds_mysql_prod_project cou 
-on ven.parent = cou.id		  
-
-left join ds_mysql_prod_tagelement gen 
-on p.gender = gen.id
-  
- left join ds_mysql_prod_tagelement work 
-on p.working = work.id
-  
- left join ds_mysql_prod_tagelement ag 
-on p.age = ag.id
-  
- left join ds_mysql_prod_tagelement mart_stat 
-on p.marital_status = mart_stat.id
-
-           ),
-table6 as( select p1.*, cast(survey_questions as varchar) from profile_67392 as p1, p1.survey_questions_arr survey_questions )	,	   
-   
-table1 as 
-(
-  
-select p._id,fac.name as projectid,p.name, cou.name as country, ven.name as vendor, nvl2(SUBSTRING(vendor, 1, POSITION(' (' in vendor)), SUBSTRING(vendor, 1, POSITION(' (' in vendor)), vendor) as vendor_name, case when vendor_name='' then vendor else vendor_name end as vendor_first_update, gen.name as gender_base, work.name as working_base, ag.name as age_base , mart_stat.name as marital_status_base , 'Baseline' as survey ,t2.date as date_base,t2.training ,
- case when extract(month from date_base)=1 then extract(year from date_base)-1
-      else extract(year from date_base)
-      end as year_base/* ,t3.working, t3.gender, t3.age, t3.marital_status,
- case when t3.working is null then working_base
-      else t3.working
-      end as working_new,
- case when t3.gender is null then gender_base
-      else t3.gender
-      end as gender_new,
- case when t3.age is null then age_base
-      else t3.age
-      end as age_new,
-  case when t3.marital_status is null then marital_status_base
-       else t3.marital_status
-       end as marital_status_new
-  t4.date as date_mid,
- case when extract(month from date_mid)=1 then extract(year from date_mid)-1
-      else extract(year from date_mid)
-      end as year_mid ,
- case when year_mid is null then year_base
-      else year_mid
-      end as year_new,
- case when survey is null then 'Midline'
-      else survey
-      end as survey_mid,
-  t5.working as working1, t5.gender as gender1, t5.age as age1, t5.marital_status as   		marital_status1,
-  t6.date as date_end,
-  case when extract(month from date_end)=1 then extract(year from date_end)-1
-      else extract(year from date_end)
-      end as year_end,
- case when survey_mid is null then 'Endline'
-      else survey_mid
-      end as survey_end,
- case when year_end is null then year_new
-      else year_end
-      end as year_final,
- case when gender1 is null then gender_new
-      else gender1
-      end as gender_final,
- case when age1 is null then age_new
-      else age1
-      end as age_final,
- case when working1 is null then working_new
-      else working1
-      end as working_final,
- case when marital_status1 is null then marital_status_new
-      else marital_status1
-      end as marital_status_final*/
-  
-  
-  
-  
-  
-  from profile_65617 as p
+table1 as(select p._id,fac.name as projectid,p.name, cou.name as country, ven.name as vendor, nvl2(SUBSTRING(vendor, 1, POSITION(' (' in vendor)), SUBSTRING(vendor, 1, POSITION(' (' in vendor)), vendor) as vendor_name, case when vendor_name='' then vendor else vendor_name end as vendor_first_update, gen.name as gender, work.name as working, ag.name as age , mart_stat.name as marital_status, 'Baseline' as survey ,t2.date as date,t2.training,
+		  case when extract(month from date)=1 then extract(year from date)-1
+          else extract(year from date)
+      end as year from profile_65617 p
 
 left join ds_mysql_prod_project fac 
 on p.projectId = fac.id
@@ -136,32 +27,88 @@ on p.working = work.id
 on p.age = ag.id
   
  left join ds_mysql_prod_tagelement mart_stat 
-on p.marital_status = mart_stat.id
-  
+on p.marital_status = mart_stat.id		  
  left join table2 t2 
-  on p._id = t2.survey_questions 
+  on p._id = t2.survey_questions ),
  
- /*full join table3 t3 
-  on p._id=t3._id
+ table4 as(
+ select p1.*, cast(survey_questions as varchar) from profile_67391 as p1, p1.survey_questions_arr survey_questions     
  
- left join table4 t4
+ 
+          ) ,
+		  
+		  
+ table3 as( select p._id,fac.name as projectid,p.name, cou.name as country, ven.name as vendor, nvl2(SUBSTRING(vendor, 1, POSITION(' (' in vendor)), SUBSTRING(vendor, 1, POSITION(' (' in vendor)), vendor) as vendor_name, case when vendor_name='' then vendor else vendor_name end as vendor_first_update ,work.name as working, gen.name as gender, ag.name as age, mart_stat.name as marital_status,'Midline' as survey,t4.date as date,t4.training,
+		   case when extract(month from date)=1 then extract(year from date)-1
+      else extract(year from date)
+      end as year
+		   from profile_65902 p
+
+left join ds_mysql_prod_project fac 
+on p.projectId = fac.id	
+left join ds_mysql_prod_project ven 
+on fac.parent = ven.id
+
+left join ds_mysql_prod_project cou 
+on ven.parent = cou.id		  
+left join ds_mysql_prod_tagelement gen 
+on p.gender = gen.id
+  
+left join ds_mysql_prod_tagelement work 
+on p.working = work.id
+  
+left join ds_mysql_prod_tagelement ag 
+on p.age = ag.id
+  
+left join ds_mysql_prod_tagelement mart_stat 
+on p.marital_status = mart_stat.id
+
+left join table4 t4
   on p._id= t4.survey_questions
   
- full join table5 t5
-  on p._id=t5._id
-  
- left join table6 t6
-  on p._id=t6.survey_questions*/ 
-  
-  
-  
-)
-select * from table1
- /*select  t1.projectId, t1.name, t1.survey_end, t1.year_final, t1.gender_final, t1.age_final, t1.marital_status_final, t1.working_final, t1.vendor_first_update, t1.country
---count(*) as total_responses
-  
-  from table1 t1
+   ),
+   
+ table6 as( select p1.*, cast(survey_questions as varchar) from profile_67392 as p1, p1.survey_questions_arr survey_questions )	,  
+ 
+table5 as(
+          select p._id,fac.name as projectid,p.name, cou.name as country, ven.name as vendor, nvl2(SUBSTRING(vendor, 1, POSITION(' (' in vendor)), SUBSTRING(vendor, 1, POSITION(' (' in vendor)), vendor) as vendor_name, case when vendor_name='' then vendor else vendor_name end as vendor_first_update,work.name as working, gen.name as gender, ag.name as age, mart_stat.name as marital_status,'Endline' as survey, t6.date as date,t6.training, 
+  case when extract(month from date)=1 then extract(year from date)-1
+      else extract(year from date)
+      end as year  from profile_65903 p
 
-group by _id, projectId, name, survey_end, year_final, gender_final, age_final, marital_status_final, working_final, vendor_first_update, country
-*/
+left join ds_mysql_prod_project fac 
+on p.projectId = fac.id	
+left join ds_mysql_prod_project ven 
+on fac.parent = ven.id
 
+left join ds_mysql_prod_project cou 
+on ven.parent = cou.id		  
+
+left join ds_mysql_prod_tagelement gen 
+on p.gender = gen.id
+  
+ left join ds_mysql_prod_tagelement work 
+on p.working = work.id
+  
+ left join ds_mysql_prod_tagelement ag 
+on p.age = ag.id
+  
+ left join ds_mysql_prod_tagelement mart_stat 
+on p.marital_status = mart_stat.id
+  left join table6 t6
+  on p._id= t6.survey_questions
+
+           ) ,
+table7 as(
+select* from table1
+Union all
+select * from table3
+Union all
+select* from table5)
+--select * from table7
+select  projectId, name, survey, year, gender, age, marital_status, working, vendor_first_update, country,
+count(*) as total_responses
+  
+  from table7
+where vendor_first_update <> 'Test Vendor'
+group by  projectId, name, survey, year, gender, age, marital_status, working, vendor_first_update, country
