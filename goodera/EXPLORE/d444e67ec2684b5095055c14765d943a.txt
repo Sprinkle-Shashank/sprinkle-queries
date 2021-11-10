@@ -1,1 +1,21 @@
-group by name, opinion_heard, listening, opinion_express, supervisor_responsibility, different_work, easy_content, fair_practice, listening_1, training_topics_relevant, important_supervisor, harassment, supervisor_management_1, supervisor_management, workers_rights, encourage_participation, workers_praise, score, country, training_id, trainer_organization, date, year, vendor_name, vendor, projectId
+select name, opinion_heard, listening, opinion_express, supervisor_responsibility, different_work, easy_content, fair_practice, listening_1, training_topics_relevant, important_supervisor, harassment, supervisor_management_1, supervisor_management, workers_rights, encourage_participation, workers_praise, score, cou.name as country, training_id, profile_60620.trainer_organization, profile_60620.date, profile_60620.year, ven.name as vendor, p.projectId
+
+count(p.projectId) as count_respondents
+
+from profile_65254 p
+
+left join profile_60620 on 
+p.projectId = profile_60620.projectId
+
+left join ds_mysql_prod_project fac
+on p.projectid = fac.id
+
+left join ds_mysql_prod_project ven
+on fac.parent = ven.id
+
+left join ds_mysql_prod_project cou
+on ven.parent = cou.id
+
+where p.projectId <> 31299
+
+group by name, opinion_heard, listening, opinion_express, supervisor_responsibility, different_work, easy_content, fair_practice, listening_1, training_topics_relevant, important_supervisor, harassment, supervisor_management_1, supervisor_management, workers_rights, encourage_participation, workers_praise, score, cou.name, training_id, trainer_organization, date, year, ven.name, p.projectId
