@@ -4,7 +4,7 @@ Select 'GJ' as col
 Select 'kwH' as col
 ),
 s1 as (
-Select t.name as site,t1.name as sub_Region,t2.name as Region,t4.name as fin_q,t5.name as fin_hy,t6.name as fin_y,EXTRACT(YEAR FROM(CAST(startdate AS datetime))) as year,(datanum/100) as hours_per_100,
+Select t.name as site,t1.name as sub_Region,t2.name as Region,t4.name as fin_q,t5.name as fin_hy,t6.name as fin_y,EXTRACT(YEAR FROM(CAST(startdate AS datetime))) as year,sum(datanum) as hours_per_100,
 case col
   	when 'GJ' then 1
     when 'kwH' then 2
@@ -29,7 +29,8 @@ from sus_56999
   left join ds_mysql_prod_tagelement t6
   on t5.parent=t6.id
   where keyword ='total_campus_hours_worked' and site!=47608
-  
+   group by site,sub_Region,Region,fin_q,fin_hy,fin_y,year,temp.col
+
 )
 ,
 temp2 as (
@@ -62,7 +63,6 @@ case col
  	end as Energy_type
   from s1
   cross join temp2 
- group by s1.site,s1.sub_Region,s1.Region,s1.fin_q,s1.fin_hy,s1.fin_y,s1.year,temp2.col ,s1.unit
   
  
 )
