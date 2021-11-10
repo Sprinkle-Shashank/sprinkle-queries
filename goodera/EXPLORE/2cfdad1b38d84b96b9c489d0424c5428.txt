@@ -1,4 +1,4 @@
-select  p.batch_id, p.placed, p.center_id, p.fy_timerange,h.start, h.end, q.name as donor, h.donor_commitment,k.partner_name,t2.name as Project, sum(case when h.end < current_date then 1 else 0 end) as count from profile_36901 p
+select  p.batch_id, l.name as placed, p.center_id, p.fy_timerange,h.start, h.end, q.name as donor, h.donor_commitment,k.partner_name,t2.name as Project, sum(case when h.end < current_date then 1 else 0 end) as count from profile_36901 p
 
 left join profile_36904 h on
 p.batch_id=h._id
@@ -9,6 +9,9 @@ p.center_id=k._id
 left join ds_mysql_prod_tagelement q on
 h.donor= q.id
 
+left join ds_mysql_prod_tagelement l on
+p.placed= l.id
+
 LEFT JOIN ds_mysql_prod_project t on p.projectId=t.id
 LEFT JOIN ds_mysql_prod_project t1 on t.parent=t1.id      
 LEFT JOIN ds_mysql_prod_project t2 on t1.parent=t2.id
@@ -16,4 +19,4 @@ LEFT JOIN ds_mysql_prod_project t2 on t1.parent=t2.id
 where h.donor is not null and p._id not in 
 (select _id from profile_145 k where k.placed=3608)
 
-group by p.batch_id, p.placed, p.center_id, q.name, h.donor_commitment, k.partner_name, p.fy_timerange, t2.name,h.start,h.end
+group by p.batch_id, l.name, p.center_id, q.name, h.donor_commitment, k.partner_name, p.fy_timerange, t2.name,h.start,h.end
