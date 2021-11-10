@@ -1,22 +1,22 @@
 with sub1 as(
-SELECT mr.region as region, mr.timeperiod_timerange,sq.pvh_id
+SELECT mr.region[0] as region, mr.timeperiod_timerange,sq.pvh_id
 FROM profile_62948 sq
 LEFT JOIN profile_60928 mr
 ON mr.factory_id=sq.pvh_id
  group by sq.pvh_id,mr.timeperiod_timerange,mr.region
 ORDER BY mr.timeperiod_timerange DESC
   ),
-  sub3 as(
-	SELECT region1,s1.* from sub1 s1,s1.region region1  
-	),
+--  sub3 as(
+--	SELECT region1,s1.* from sub1 s1,s1.region region1  
+	--),
   sub2 as(
 select t.name as region,timeperiod_timerange
-	from sub3
+	from sub1
 	left join ds_mysql_prod_tagelement t
-	on t.id=sub3.region1
+	on t.id=sub1.region
 	left join profile_62972 ad
-	on ad.cdms_id=sub3.pvh_id
-  where LENGTH(ad.program)=0
+	on ad.cdms_id=sub1.pvh_id
+--  where LENGTH(ad.program)=0
 	)
 	SELECT region,count(*) from sub2
 	group by region
