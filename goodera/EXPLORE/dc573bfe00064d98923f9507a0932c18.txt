@@ -8,11 +8,34 @@ CASE
 	THEN 100
 	
 	ELSE NULL
-END AS targets
+END AS targets,
+
+CASE 
+	WHEN t4.name IS NOT NULL
+	THEN t3.name
+	
+	WHEN t4.name IS NULL AND t3.name IS NOT NULL
+	THEN t2.name
+	
+	WHEN t3.name IS NULL AND t2.name IS NOT NULL
+	THEN t1.name
+	
+	ELSE NULL
+END AS state,
+
+CASE 
+	WHEN t4.name IS NOT NULL
+	THEN t2.name
+	
+	WHEN t4.name IS NULL AND t3.name IS NOT NULL
+	THEN t1.name 
+	
+	ELSE NULL
+END AS district
 
 FROM profile_77914 AS B
 
 LEFT JOIN profile_77911 AS I
 ON B.institution = I._id
 
-GROUP BY institutions, B.name, start_date, targets
+GROUP BY institutions, B.name, start_date, targets, state, district
