@@ -1,8 +1,19 @@
-SELECT  t.name as curr_cr_rating, timeperiod_timerange, region_parent as region,  t1.name as source_div, factory_id as Factory_IDs from 
-profile_60928 sq
-left join ds_mysql_prod_tagelement t
+with sub1 as(
+SELECT sq.name, factory_name, source_div, brands, cr_tier, facility_type, pre_cr_rating, t.name as curr_cr_rating, timeperiod_timerange, region_parent as region, factory_id
+from profile_60928 sq
+  left join ds_mysql_prod_tagelement t
 on t.id=sq.curr_cr_rating
-left join ds_mysql_prod_tagelement t1
-on t1.id=sq.source_div
-where cr_tier not in (957759, 957760) and t.name is not null and curr_cr_rating not in (1099355, 1099360)
-group by t.name, timeperiod_timerange, region_parent, t1.name, factory_id
+  where cr_tier not in (957759, 957760)
+),
+sub2 as(
+  select curr_cr_rating, timeperiod_timerange, region, factory_id,source from sub1, source_div source),
+  sub3 as(
+	select curr_cr_rating, timeperiod_timerange, region, factory_id, t.name as source_div
+	from sub2
+	left join ds_mysql_prod_tagelement t
+	on t.id=source)
+	
+	select curr_cr_rating, timeperiod_timerange, region, factory_id as Factory_IDs, source_div
+	from sub3
+	group by curr_cr_rating, timeperiod_timerange, region, source_div
+	where curr_cr_rating not in (1099355, 1099360)
