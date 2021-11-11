@@ -17,7 +17,7 @@ Select 'watertype1' as col
 ),
 s1 as (
 Select t.name as site, t1.name as sub_region,t2.name as region,
-sum(datanum/100) as normalization_factor,
+sum(datanum) /100 as normalization_factor,
 fy_timerange,max(case col
  when 'Cubic Metres' then 'Cubic Metres'
  when 'Litres' then 'Litres'
@@ -34,16 +34,18 @@ left join ds_mysql_prod_project t2
 on t2.parent=t2.id
 where keyword = 'total_campus_hours_worked' and xprojectid != '47608'
 group by t.name,t1.name,t2.name,fy_timerange
-)
-
-Select s1.* ,
- max(case
+),
+s2 as (Select s1.*,
+ (case
  		when 'watertype1' then 'Ground Water'
 		when 'watertype2' then 'Utility Provided'
 		when 'watertype3' then 'Surface Water'
 		when 'watertype4' then 'NewWater Offsite_Recycled'
 		when 'watertype5' then 'Total Water Withdrawal'
-		end) as Water_Type,temp.col as Watertypes
+		end) as Water_Type,t2.col as Watertypes
 		
 from s1
 cross join t2
+
+)
+Select * from s2
