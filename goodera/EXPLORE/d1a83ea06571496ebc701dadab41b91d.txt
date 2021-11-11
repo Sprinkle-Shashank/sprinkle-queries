@@ -52,7 +52,7 @@ group by t.name,t1.name,t2.name,t3.name,t4.name,t5.name,t6.name,year,fy_timerang
 s2 as (
 Select s1.site,s1.sub_Region,s1.Region,s1.fin_q,s1.fin_hy,s1.fin_y,s1.year,s1.fy_timerange,(s1.hazwaste_landfill+s1.nonhaz_reg_landfill)as Hazardous_and_Regulated_Waste,
   (s1.nonhaz_landfill) as Non_Hazardous_Waste,
-  (s1.hazwaste_landfill+s1.nonhaz_reg_landfill+s1.nonhaz_landfill) as Total_Waste_Generated
+  ,s1.hazwaste_landfill,s1.nonhaz_reg_landfill,s1.nonhaz_landfill
   
   from s1
 ),
@@ -61,9 +61,9 @@ s3 as (
   temp2.col as waste_type,
  
   sum(case col
-   when 'Hazardous_and_Regulated_Waste' then s1.hazwaste_landfill+s1.nonhaz_reg_landfill
-  when 'Non_Hazardous_Waste' then s1.nonhaz_landfill
-  when  'Total_Waste_Generated' then s1.hazwaste_landfill+s1.nonhaz_reg_landfill+s1.nonhaz_landfill
+   when 'Hazardous_and_Regulated_Waste' then s2.Hazardous_and_Regulated_Waste
+  when 'Non_Hazardous_Waste' then s2.Non_Hazardous_Waste
+  when  'Total_Waste_Generated' then s2.hazwaste_landfill+s2.nonhaz_reg_landfill+s2.nonhaz_landfill
   else null 
 end) AS tons
   
@@ -79,7 +79,7 @@ Select s3.site,s3.sub_Region,s3.Region,s3.fin_q,s3.fin_hy,s3.fin_y,s3.year,s3.fy
     when 'Tons'  then s3.tons
     when  'kilograms' then s3.tons*1000
  else null
-  end )as Waste_to_Landfill
+  end )as Wasteto_Landfill
   from s3
     cross join temp
   group by s3.site,s3.sub_Region,s3.Region,s3.fin_q,s3.fin_hy,s3.fin_y,s3.year,s3.fy_timerange,s3.tons,
