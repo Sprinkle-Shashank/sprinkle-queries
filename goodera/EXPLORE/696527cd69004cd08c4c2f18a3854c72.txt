@@ -1,0 +1,51 @@
+with temp as (
+Select 'GJ' as col
+ union all
+Select 'kwH' as col
+
+),
+s1 as (Select t.name as site,t1.name as sub_Region,t2.name as Region,fy_timerange,t3.name as Month,len(t3.name) as Month_Length,
+	   (Month_length-7) as month_length1,substring(Month,1,month_length1) as Monthly,
+	   --substring(fy_timerange.start,6,2) as time_month,
+	  Sum(CASE 
+             WHEN keyword = 'biomedical_disposal' THEN datanum
+             ELSE 0 
+           END) AS biomedical_disposal,
+		   Sum(CASE 
+             WHEN keyword = 'total_hazwaste' THEN datanum 
+             ELSE 0 
+           END) AS total_hazwaste,
+		   Sum(CASE 
+             WHEN keyword = 'total_nonhaz' THEN datanum 
+             ELSE 0 
+           END) AS total_nonhaz,
+		   Sum(CASE 
+             WHEN keyword = 'total_nonhaz_recycled' THEN datanum 
+             ELSE 0 
+           END) AS total_nonhaz_recycled,
+		   Sum(CASE 
+             WHEN keyword = 'nonhaz_reg_total' THEN datanum 
+             ELSE 0 
+           END) AS nonhaz_reg_total
+		   from sus_56999
+		   left join ds_mysql_prod_project t
+  on xprojectid=t.id
+  left join ds_mysql_prod_project t1
+  on t.parent=t1.id
+  left join ds_mysql_prod_project t2
+  on t1.parent=t2.id
+	   left join ds_mysql_prod_tagelement t3
+  on financialperiod=t3.id
+group by t.name,t1.name,t2.name,fy_timerange,t3.name
+			
+),
+
+s2 as (
+  Select  s1.site,s1.sub_Region,s1.Month,s1.Month_length,s1.Month_length1,s1.Monthly,s1.Region,s1.fy_timerange,
+  sum(s1.biomedical_disposal+s1.total_hazwaste+s1.total_nonhaz+s1.total_nonhaz_recycled+s1.nonhaz_reg_total) as Total Waste Generated
+  from s1
+group by  s1.site,s1.sub_Region,s1.Month,s1.Month_length,s1.Month_length1,s1.Monthly,s1.Region,s1.fy_timerange
+)
+
+Select * from s2
+  
