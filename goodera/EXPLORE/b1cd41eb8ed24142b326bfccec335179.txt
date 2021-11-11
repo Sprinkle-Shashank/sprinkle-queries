@@ -1,7 +1,15 @@
-with base1 as (select p.projectId, p.name, p.donor, p.donor_commitment, p.fy_timerange from profile_196 p
+with base1 as (select p.projectId, p.name as batch_id, p.donor, p.donor_commitment, p.fy_timerange from profile_196 p
 where p.donor_commitment is not null
 union
 select m.projectId, m.name, m.donor, m.donor_commitment, m.fy_timerange from profile_196 p
 where m.donor_commitment is not null
 )
-,base2 as ( select _id,name, start, end from profile_
+,base2 as ( select _id,name, start, end from profile_14715
+union
+select _id,name, start, end from profile_36980
+)
+,base3 as ( select p.projectid,p.batch_id,p.donor,p.fy_timerange,l.name as donor_commitment,l.start,l.end from base1 p 
+left join base2 l on p.donor_commitment = l._id 
+)
+select * from base3
+
