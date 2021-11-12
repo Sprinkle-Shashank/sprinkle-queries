@@ -76,10 +76,35 @@ where p.name is not null and p1.select = 1124752
 group by p1._id, p.name, p2.vendor, t1.name, p2.cycle, t2.name, temp.col),
 
 sub3 as(
-  select s2.*, cycle_new from sub2 s2, s2.cycle cycle_new)
+  select s2.*, cycle_new from sub2 s2, s2.cycle cycle_new),
   
-select s3.id, s3.projectId, s3.vendor, s3.country, s3.consultant, t3.name as cycle, s3.Dimensions, t4.name as values
+sub4 as(
+  select s3.id, s3.projectId, s3.vendor, s3.country, s3.consultant, t3.name as cycle, s3.Dimensions, t4.name as values
  from sub3 s3
  left join ds_mysql_prod_tagelement t3 on t3.id = s3.cycle_new
  left join ds_mysql_prod_tagelement t4 on t4.id = s3.values
- where s3.values is not null
+ where s3.values is not null)
+ 
+select s4.id, s4.projectId, s4.vendor, s4.country, s4.consultant, s4.cycle, s4.Dimensions, sum(s4.values),
+case
+	when (s4.Dimensions = 'overall_engagement') then 'I feel like going to work when starting my shift'
+	when (s4.Dimensions = 'overall_engagement_1') then 'I see myself continue to work here in the next 1 year'
+	when (s4.Dimensions = 'overall_engagement_2') then 'I would recommend this factory to friends and family as a good place to work'
+	when (s4.Dimensions = 'working_conditions_1') then 'I have not experienced discriminations at the factory'
+	when (s4.Dimensions = 'working_conditions_2') then 'In this factory, I am not concerned about sexual harassment.'
+	when (s4.Dimensions = 'working_conditions_3') then 'The working conditions at my factory is safe and comfortable.'
+	when (s4.Dimensions = 'working_conditions_4') then 'My efforts at work are well recognized.'
+	when (s4.Dimensions = 'working_conditions_5') then 'I am satisfied with the number of hours I typically work at this factory.'
+	when (s4.Dimensions = 'working_conditions_6') then 'In my opinion, the amount of work I am expected to do is reasonable.'
+	when (s4.Dimensions = 'working_conditions_7') then 'I feel that the wages I am paid are fair.'
+	when (s4.Dimensions = 'working_conditions_8') then 'Aside from my salary, the factory helps me with other basic needs'
+	when (s4.Dimensions = 'relationship_1') then 'My immediate supervisor gives me feedback on a regular basis.'
+	when (s4.Dimensions = 'relationship_2') then 'My immediate supervisor cares about me as a person.'
+	when (s4.Dimensions = 'relationship_3') then 'I have some good friends at work.'
+	when (s4.Dimensions = 'relationship_4') then 'Great effort is made to get the opinions of employees in this factory.'
+	when (s4.Dimensions = 'relationship_5') then
+	when (s4.Dimensions = 'learning_1') then
+	when (s4.Dimensions = 'learning_2') then
+	when (s4.Dimensions = 'learning_3') then
+	when (s4.Dimensions = 'value') then
+end as question_text
