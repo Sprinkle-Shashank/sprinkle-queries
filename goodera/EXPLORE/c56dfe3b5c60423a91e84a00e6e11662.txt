@@ -4,8 +4,8 @@ Select 'Cubic Metres' as col
 Select 'Litres' as col
 ),
 s1 as (
-Select t.name as site,t1.name as financialperiod,t2.name as fin_q,t3.name as fin_h,t4.name as fin_y,tt1.name as sub_region,tt2.name as Region,
-EXTRACT(YEAR FROM(CAST(startdate AS datetime))) as year,
+elect t.name as site,t1.name as sub_Region,t2.name as Region,fy_timerange,t3.name as Month,len(t3.name) as Month_Length,t4.name as fin_q,t5.name as fin_hy,t6.name as fin_y,EXTRACT(YEAR FROM(CAST(startdate AS datetime))) as year,
+	   (Month_length-7) as month_length1,substring(Month,1,month_length1) as Monthly,
 datanum as cubic_metres,(cubic_metres*100) as Litres,
 sum(case col
  when 'Cubic Metres' then cubic_metres
@@ -14,23 +14,23 @@ sum(case col
  end )as total_water_usage, temp.col as Unit
 from sus_56999
 cross join temp
-left join ds_mysql_prod_project t
-on xprojectid=t.id
-left join ds_mysql_prod_tagelement t1
-on financialPeriod=t1.id
-left join ds_mysql_prod_tagelement t2
-on t1.parent=t2.id
-left join ds_mysql_prod_tagelement t3
-on t2.parent=t3.id
-left join ds_mysql_prod_tagelement t4
-on t3.parent=t4.id
-left join ds_mysql_prod_project tt1
-on xprojectid=tt1.id
-left join ds_mysql_prod_project tt2
-on tt1.parent=tt2.id
+		   left join ds_mysql_prod_project t
+  on xprojectid=t.id
+  left join ds_mysql_prod_project t1
+  on t.parent=t1.id
+  left join ds_mysql_prod_project t2
+  on t1.parent=t2.id
+	   left join ds_mysql_prod_tagelement t3
+  on financialperiod=t3.id
+	   left join ds_mysql_prod_tagelement t4
+  on t3.parent=t4.id
+  left join ds_mysql_prod_tagelement t5
+  on t4.parent=t5.id
+  left join ds_mysql_prod_tagelement t6
+  on t5.parent=t6.id
 
 where keyword ='total_water_usage'  and year=2020
-group by t.name,t1.name,t2.name,t3.name,t4.name,tt1.name,tt2.name,datanum,temp.col,startdate
+group by t.name,t1.name,t2.name,fy_timerange,t3.name,t4.name,t5.name,t6.name,startdate,datanum,temp.col
 )
 Select s1.*from s1
 
