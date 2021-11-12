@@ -1,9 +1,6 @@
 with s1 as(
-  Select DISTINCT t5.name as location, c1.name as partner, sq.proj_start_date, sq.proj_end_date,sum(cg1.allocated) as budget,sum(cg3.target_benf) as target_benf,c4.name as impl_agency,
-EXTRACT(Year FROM(CAST(sq.proj_start_date AS datetime))) as start_year,
-EXTRACT(Year FROM(CAST(sq.proj_end_date AS datetime))) as end_year
-
-FROM profile_65552 sq
+  Select DISTINCT, sum(cg3.target_benf) as target_benf
+  FROM profile_65552 sq
   
 left join profile_65576 pd
 ON sq.impl_agency=pd.ia_sel_ngop
@@ -31,21 +28,24 @@ on cg2.location = t5.id
  left join ds_mysql_prod_tagelement c4
  ON sq.impl_agency = c4.id
  
-GROUP BY start_year, end_year, sq.proj_start_date,sq.proj_end_date,t5.name , cg2.location,c4.name
+GROUP BY start_year, end_year, sq.proj_start_date,sq.proj_end_date,t5.name ,c4.name
 ),
 s2 as(
-  SELECT distinct( s1.location), s1.partner, s1.proj_start_date, s1.proj_end_date,s1.budget,s1.target_benf,s1.impl_agency,s1.start_year,
-s1.end_year
+  SELECT distinct( s1.location), s1.partner, s1.proj_start_date,
+  s1.proj_end_date,s1.budget,s1.target_benf,s1.impl_agency,s1.start_year, s1.end_year
     from s1
 
   group by s1.partner, s1.proj_start_date, s1.proj_end_date,s1.budget,s1.target_benf,s1.impl_agency,s1.start_year,
 s1.end_year,s1.location
 ),
 s3 as(
-  Select 
+  Select sum(cg1.allocated) as budget, c1.name as partner,c4.name as impl_agency,t5.name as location,
+  EXTRACT(Year FROM(CAST(sq.proj_start_date AS datetime))) as start_year,
+  EXTRACT(Year FROM(CAST(sq.proj_end_date AS datetime))) as end_year
+  from s1
   left join profile_65575 cg3
   ON cg3.projectid=sq.projectId
-  GROUP BY c1.name as partner, proj_name, start_year, end_year, projectId, impl_agency, budget, location
+  GROUP BY c1.name as partner, start_year, end_year,s1.impl_agency, s1.budget, cg2.location
 )
 
 Select * from s2
