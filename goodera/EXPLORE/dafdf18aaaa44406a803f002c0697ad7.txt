@@ -39,10 +39,36 @@ with temp as(
   union all
   select 'value' as col)
   
-select p1._id, p.name as projectId, p2.vendor as vendor, t1.name as country, p2.cycle, t2.name as consultant
+select p1._id, p.name as projectId, p2.vendor as vendor, t1.name as country, p2.cycle, t2.name as consultant, temp.col,
+
+sum(case col
+	 	when 'overall_engagement' then p1.overall_engagement
+		when 'overall_engagement_1' then p1.overall_engagement_1
+		when 'overall_engagement_2' then p1.overall_engagement_2
+		when 'working_conditions_1' then p1.working_conditions_1
+		when 'working_conditions_2' then p1.working_conditions_2
+		when 'working_conditions_3' then p1.working_conditions_3
+		when 'working_conditions_4' then p1.working_conditions_4
+		when 'working_conditions_5' then p1.working_conditions_5
+		when 'working_conditions_6' then p1.working_conditions_6
+		when 'working_conditions_7' then p1.working_conditions_7
+		when 'working_conditions_8' then p1.working_conditions_8
+		when 'relationship_1' then p1.relationship_1
+		when 'relationship_2' then p1.relationship_2
+		when 'relationship_3' then p1.relationship_3
+		when 'relationship_4' then p1.relationship_4
+		when 'relationship_5' then p1.relationship_5
+		when 'learning_1' then p1.learning_1
+		when 'learning_2' then p1.learning_2
+		when 'learning_3' then p1.learning_3
+		when 'value' then p1.value
+	else null
+end) as values,
+	
 from profile_62700 p1
 left join profile_64362 p2 on p2.factory_id = p1.fac_id
 left join ds_mysql_prod_project p on p.id = p2.projectid
 left join ds_mysql_prod_tagelement t1 on t1.id = p1.country
 left join ds_mysql_prod_tagelement t2 on t2.id = p2.consultant_tag
 where p.name is not null and p1.select = 1124752
+group by p1._id, p.name, p2.vendor, t1.name, p2.cycle, t2.name, temp.col
