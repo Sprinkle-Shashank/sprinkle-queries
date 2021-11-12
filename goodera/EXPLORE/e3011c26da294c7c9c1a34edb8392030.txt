@@ -1,4 +1,10 @@
-with temp as (
+with temp2 as (
+Select 'GJ' as col
+  union all
+ Select 'kwh' as col
+
+),
+ temp as (
 Select 'Electricity_Utility_Provider' as col
  union all
 Select 'Propane' as col
@@ -55,7 +61,7 @@ Select s2.site,s2.sub_Region,s2.Region,s2.fy_timerange,(s2.Electricity_Utility_P
 ),
 s4 as (
 Select s3.site,s3.sub_Region,s3.Region,s3.fy_timerange,temp.col as Energy_type,
-  sum(case col
+  case col
   	when 'Electricity_Utility_Provider' then s2.Electricity_Utility_Provider
  	when 'Propane' then s2.propane
     when 'Diesel' then s2.diesel
@@ -64,11 +70,20 @@ Select s3.site,s3.sub_Region,s3.Region,s3.fy_timerange,temp.col as Energy_type,
 	when 'Total_energy' as s3.Total_energy
   else 0
   end 
-)as GJ
+as GJ
   from s3
   cross join temp
-  group by s3.site,s3.sub_Region,s3.Region,s3.fy_timerange,temp.col
 
 )
+, s5 as (
+Select s4.site,s4.sub_Region,s4.Region,s4.fy_timerange,s4.Energy_type,
+   sum(case col 
+  when 'GJ' then s4.GJ
+  when 'kwh' then s4.GJ*277.778
+	 else 0
+	  end ) as Energy_consumption
+  from s4
+  cross join temp2
+  group by s4.site,s4.sub_Region,s4.Region,s4.fy_timerange,s4.Energy_type
 
-select * from s4
+)
