@@ -1,4 +1,4 @@
-s1 as (
+with s1 as (
 Select t.name as site,t1.name as sub_Region,t2.name as Region,t4.name as fin_q,t5.name as fin_hy,t6.name as fin_y,EXTRACT(YEAR FROM(CAST(startdate AS datetime))) as year,
          Sum(CASE 
              WHEN keyword = 'electricity_usage' THEN datanum
@@ -51,9 +51,9 @@ Select s1.site,s1.region,s1.year,(s1.electricity_usage)*34.1296*29.3001 as elect
   from s1)
 ,
 s3 as (
-Select s2.site,s2.region,s2.year,s2.electricity_usage_kwh,s2.electricity_solar_kwh,s2.propane_usage_kwh,s2.diesel_fuel_usage_kwh,s2.gasoline_usage_kwh,s2.natural_gas_usage_kwh,sum(s2.electricity_usage_kwh+s2.electricity_solar_kwh+s2.propane_usage_kwh+s2.diesel_fuel_usage_kwh+s2.gasoline_usage_kwh+s2.natural_gas_usage_kwh) as Total_energy_cost
+Select s2.site,s2.region,s2.year,sum(s2.electricity_usage_kwh+s2.electricity_solar_kwh+s2.propane_usage_kwh+s2.diesel_fuel_usage_kwh+s2.gasoline_usage_kwh+s2.natural_gas_usage_kwh) as Total_energy_cost
   from s2
-group by s2.site,s2.region,s2.year
+group by s2.site,s2.region,s2.year,s2.electricity_usage_kwh,s2.electricity_solar_kwh,s2.propane_usage_kwh,s2.diesel_fuel_usage_kwh,s2.gasoline_usage_kwh,s2.natural_gas_usage_kwh
   )
   
   Select * from s3
