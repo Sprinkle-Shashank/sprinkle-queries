@@ -4,7 +4,7 @@ Select 'Tons' as col
 Select 'Kilograms' as col
 ),
 s1 as (
-Select t.name as site,t1.name as sub_Region,t2.name as Region,t4.name as fin_q,t5.name as fin_hy,t6.name as fin_y,EXTRACT(YEAR FROM(CAST(startdate AS datetime))) as year, Sum(CASE 
+Select t.name as site,t1.name as sub_Region,t2.name as Region,t4.name as fin_q,t5.name as fin_hy,t6.name as fin_y,EXTRACT(YEAR FROM(CAST(startdate AS datetime))) as year, fy_timerange,Sum(CASE 
              WHEN keyword = 'total_campus_hours_worked' THEN datanum
              ELSE 0 
            END) AS tons
@@ -24,12 +24,12 @@ from sus_56999
   on t4.parent=t5.id
   left join ds_mysql_prod_tagelement t6
   on t5.parent=t6.id
-  where  keyword ='total_campus_hours_worked' and site!=47608
-  group by t.name,t1.name,t2.name,fy_timerange,t3.name,t4.name,t5.name,t6.name,startdate
+  where  keyword ='total_campus_hours_worked' and site !=47608 
+  group by t.name,t1.name,t2.name,fy_timerange,t3.name,t4.name,t5.name,t6.name,startdate, fy_timerange
   )
   ,
   s2 as(
-  Select s1.site,s1.sub_Region,s1.Region,s1.fin_q,s1.fin_hy,s1.fin_y,s1.year,
+  Select s1.site,s1.sub_Region,s1.Region,s1.fin_q,s1.fin_hy,s1.fin_y,s1.year, s1.fy_timerange,
 case col
     when 'Tons'  then s1.tons
     when  'kilograms' then s1.tons*1000
@@ -38,4 +38,4 @@ case col
   from s1
   cross join temp
 )
- Select s2.site,s2.Region,s2.year,s2.Unit,s2.Hours/100 as Hours from s2
+ Select s2.site,s2.Region,s2.year,s2.Unit,s2.Hours/100 as Hours,s2.fy_timerange from s2
