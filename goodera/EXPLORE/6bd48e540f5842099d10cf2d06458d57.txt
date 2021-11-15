@@ -1,6 +1,12 @@
-with base1 as (select p.projectId, p.reg_no, p.trainee_name, p.batch_id , p.dob, p.gender, p.addr, p.district, p.state, p.edu_qual, p.marriage, p.fam_head, p.fam_occ, p.state_and_city, p.placed, p.date_of_placement, p.emp_name, p.role_after_placement, p.job_loc, p.type, p.city_of_job, p.dropout, p.type_of_dis, p.mobile_no, p.mobile_number_2, p.fam_size, p.fam_income, p.salary, p.lvl_of_dis from profile_36901 p
+with base1 as (select p.projectId, p.reg_no, p.trainee_name, p.batch_id , p.dob, p.gender, p.addr, p.district, p.state, p.edu_qual, p.marriage, p.fam_head, p.fam_occ, p.state_and_city, p.placed, p.date_of_placement, p.emp_name, p.role_after_placement, p.job_loc, p.type, p.city_of_job, p.dropout, p.type_of_dis, p.mobile_no, p.mobile_number_2, p.fam_size, p.fam_income, p.salary, p.lvl_of_dis,t2.name as project from profile_36901 p
+LEFT JOIN ds_mysql_prod_project t on p.projectId=t.id
+LEFT JOIN ds_mysql_prod_project t1 on t.parent=t1.id
+LEFT JOIN ds_mysql_prod_project t2 on t1.parent=t2.id
 union all
-select m.projectId,m.reg_no, m.trainee_name,m.batch_id,m.dob,m.gender,  m.addr,district,m.state, m.edu_qual, m.marriage, m.fam_head,m.fam_occ,m.state_and_city,m.placed, m.date_of_placement, m.emp_name, m.role_after_placement, m.job_loc, m.type, m.city_of_job,m.dropout, m.type_of_dis,m.mobile_no, m.mobile_number_2, m.fam_size,m.fam_income, m.salary,m.lvl_of_dis  from profile_145 m
+select m.projectId,m.reg_no, m.trainee_name,m.batch_id,m.dob,m.gender,  m.addr,district,m.state, m.edu_qual, m.marriage, m.fam_head,m.fam_occ,m.state_and_city,m.placed, m.date_of_placement, m.emp_name, m.role_after_placement, m.job_loc, m.type, m.city_of_job,m.dropout, m.type_of_dis,m.mobile_no, m.mobile_number_2, m.fam_size,m.fam_income, m.salary,m.lvl_of_dis ,t2.name as project from profile_145 m
+LEFT JOIN ds_mysql_prod_project t on m.projectId=t.id
+LEFT JOIN ds_mysql_prod_project t1 on t.parent=t1.id
+LEFT JOIN ds_mysql_prod_project t2 on t1.parent=t2.id
 ),
 --base2 as (select p.start as start_p, p.end as end_p, p.donor as donor_p, p.center_name as center_p, p.donor_commitment as donor_commitment_p, p.name as batch_p,p._id from profile_196 p
 --union
@@ -18,10 +24,11 @@ p.batch_id = l._id
 left join profile_36904 h on
 k.batch_id=h._id
 ),
-base4 as (Select  t.start_p ,t.end_p,t.center_p,t.batch_p,t.start,t.end,t.center_name,t.fy_timerange,t.dob,t.date_of_placement,case when t.donor_p is not null then t.donor_p else t.donor_t end as donor , case when t.donor_commitment_p is not null then t.donor_commitment_p else t.donor_commitment_t end as donor_commitment,   from base3 t)
-,base5 as 
-
-
+base4 as (Select  t.project,t.start_p ,t.end_p,t.center_p,t.batch_p,t.start,t.end,t.center_name,t.fy_timerange,t.dob,t.date_of_placement,case when t.donor_p is not null then t.donor_p else t.donor_t end as donor , case when t.donor_commitment_p is not null then t.donor_commitment_p else t.donor_commitment_t end as donor_commitment,   from base3 t)
+,base5 as ( select y.fy_timerange, y.project,y.date_of_placement, y.dob, case when y.start_p is not null then y.start_p else y.start end as start,case when y.end_p is not null then y.end_p else y.end end as end,case when y.center_p is not null then y.center_p else y.center_name end as center_name, case when y.batch_p is not null then y.batch_p else y.name end as batch_id from base4 y 
+where y.donor is not null 
+)
+select * from base5
 
 
 
