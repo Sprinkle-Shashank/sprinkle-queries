@@ -316,9 +316,10 @@ temp as(
   union all
   select 'learning_3_improvement' as col 
   union all
-  select 'value_improvement' as col)
+  select 'value_improvement' as col),
   
-select s5.projectid, s5.vendor, s5.consultant, s5.country, s5.cycle, temp.col as Dimensions,
+sub6 as(
+  select s5.projectid, s5.vendor, s5.consultant, s5.country, s5.cycle, temp.col as Dimensions,
 sum(case col
 	  when 'overall_engagement_improvement' then s5.overall_engagement_improvement
 	  when 'overall_engagement_1_improvement' then s5.overall_engagement_1_improvement
@@ -344,4 +345,8 @@ sum(case col
 	end) as values
 from sub5 s5
 cross join temp
-group by s5.projectid, s5.vendor, s5.consultant, s5.country, s5.cycle, temp.col
+group by s5.projectid, s5.vendor, s5.consultant, s5.country, s5.cycle, temp.col)
+
+select s6.projectid, s6.vendor, s6.consultant, s6.country, s6.cycle, s6.Dimensions, s6.values
+from sub6 s6 
+order by s6.values desc
