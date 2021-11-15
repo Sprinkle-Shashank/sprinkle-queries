@@ -2,9 +2,15 @@ with sub1 as(
 select t.name as CR_Rating_Text, sq.name, sq.factory_name, sq.source_div, sq.brands, sq.cr_tier, sq.facility_type, sq.pre_cr_rating, sq.curr_cr_rating, sq.timeperiod_timerange, sq.region_parent as region, sq.factory_id from profile_60928 sq
 left join ds_mysql_prod_tagelement t
 on t.id=sq.curr_cr_rating
-where COALESCE(sq.cr_tier, 0) not in (957760, 957759) and t.name is NOT NULL),
+where COALESCE(sq.cr_tier, 0) not in (957760,957759) and t.name is NOT NULL),
 sub2 as
 (
-  SELECT source, s1.* from sub1 s1, s1.source_div source)
+  SELECT source, s1.curr_cr_rating,  CR_Rating_text, s1.timeperiod_timerange, s1.region, s1.factory_id from sub1 s1, s1.source_div source),
+  sub3 as
+  (
+	select t.name as source_div, CR_Rating_text, timeperiod_timerange, region, factory_id, t.name as source_div
+	from sub2 s2
+	left join ds_mysql_prod_tagelement t
+	on t.id=source)
   
-  select * from sub1
+  select * from sub3
