@@ -50,9 +50,9 @@ from sus_56999
 group by t.name,t1.name,t2.name,t3.name,t4.name,t5.name,t6.name,year,fy_timerange
 ),
 s2 as (
-Select s1.site,s1.sub_Region,s1.Region,s1.fin_q,s1.fin_hy,s1.fin_y,s1.year,s1.fy_timerange,(s1.nonhaz_reg_landfill)as Hazardous_and_Regulated_Waste,
+Select s1.site,s1.sub_Region,s1.Region,s1.fin_q,s1.fin_hy,s1.fin_y,s1.year,s1.fy_timerange,(s1.hazwaste_landfill+s1.nonhaz_reg_landfill)as Hazardous_and_Regulated_Waste,
   (s1.nonhaz_landfill) as Non_Hazardous_Waste
-  ,s1.hazwaste_landfill,s1.nonhaz_reg_landfill,s1.nonhaz_landfill
+  ,s1.hazwaste_landfill as h,s1.nonhaz_reg_landfill as m,s1.nonhaz_landfill
   
   from s1
 ),
@@ -63,7 +63,7 @@ s3 as (
   sum(case col
    when 'Hazardous_and_Regulated_Waste' then s2.Hazardous_and_Regulated_Waste
   when 'Non_Hazardous_Waste' then s2.Non_Hazardous_Waste
-  when  'Total_Waste_Generated' then s2.hazwaste_landfill+s2.nonhaz_reg_landfill+s2.nonhaz_landfill
+  when  'Total_Waste_Generated' then s2.h+s2.m+s2.nonhaz_landfill
   else null 
 end) AS tons
   
@@ -73,7 +73,7 @@ end) AS tons
   
 ),
 s4 as (
-Select s3.site,s3.sub_Region,s3.Region,s3.fin_q,s3.fin_hy,s3.fin_y,s3.year,s3.fy_timerange,s3.tons,
+Select s3.site,s3.sub_Region,s3.Region,s3.year,s3.fy_timerange,s3.tons,
   temp.col as unit,
   sum(case col
     when 'Tons'  then s3.tons
