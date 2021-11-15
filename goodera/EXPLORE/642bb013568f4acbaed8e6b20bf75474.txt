@@ -1,14 +1,14 @@
 with sub1 as(
-select t.name as CR_Rating_Text, sq.name, sq.factory_name, sq.source_div, sq.brands, sq.cr_tier, sq.facility_type, sq.pre_cr_rating, sq.curr_cr_rating, sq.timeperiod_timerange, sq.region_parent as region, sq.factory_id from profile_60928 sq
+select t.name as CR_Rating_Text, sq.name, sq.factory_name, sq.source_div,
+  case when get_array_length(sq.source_div) = 0 then '[]'
+  else COALESCE(sq.source_div,0) end
+  , sq.brands, sq.cr_tier, sq.facility_type, sq.pre_cr_rating, sq.curr_cr_rating, sq.timeperiod_timerange, sq.region_parent as region, sq.factory_id from profile_60928 sq
 left join ds_mysql_prod_tagelement t
 on t.id=sq.curr_cr_rating
 where COALESCE(sq.cr_tier, 0) not in (957760,957759) and t.name is NOT NULL),
 sub2 as
 (
-  SELECT  s1.curr_cr_rating,  s1.CR_Rating_text, s1.timeperiod_timerange, s1.region, s1.factory_id, COALESCE(s1.source_div, 0) as source_div,
-  case when get_array_length(s1.source_div) = 0 then '[]'
-  else COALESCE(s1.source_div,0) end
-  from sub1 s1)
+  SELECT source, s1.curr_cr_rating,  s1.CR_Rating_text, s1.timeperiod_timerange, s1.region, s1.factory_id from sub1 s1, s1.source_div source)
   select * from sub2
   /*,
   sub3 as
