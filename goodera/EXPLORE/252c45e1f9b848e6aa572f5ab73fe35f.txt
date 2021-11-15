@@ -1,5 +1,5 @@
 with sub1 as(
-  select p1._id as id, p.name as 'projectId', p2.vendor as vendor, t1.name as country, p2.cycle, t2.name as consultant, t3.name as select_field,
+  select p1._id as id, p.name as projectId, p2.vendor as vendor, t1.name as country, p2.cycle, t2.name as consultant, t3.name as select_field,
 cast(d1.name as float) as overall_engagement, cast(d2.name as float) as overall_engagement_1, cast(d3.name as float) as overall_engagement_2, cast(d4.name as float) as working_conditions_1, cast(d5.name as float) as working_conditions_2, cast(d6.name as float) as working_conditions_3, cast(d7.name as float) as working_conditions_4, cast(d8.name as float) as working_conditions_5, cast(d9.name as float) as working_conditions_6, cast(d10.name as float) as working_conditions_7, cast(d11.name as float) as working_conditions_8, cast(d12.name as float) as relationship_1, cast(d13.name as float) as relationship_2, cast(d14.name as float) as relationship_3, cast(d15.name as float) as relationship_4, cast(d16.name as float) as relationship_5, cast(d17.name as float) as learning_1, cast(d18.name as float) as learning_2, cast(d19.name as float) as learning_3, cast(d20.name as float) as value
 
 from profile_62700 p1
@@ -378,9 +378,10 @@ temp as(
   union all
   select 'learning_3_improvement' as col 
   union all
-  select 'value_improvement' as col)
+  select 'value_improvement' as col),
   
-select s5.projectid, s5.vendor, s5.consultant, s5.country, s5.cycle, temp.col as Dimensions,
+sub6 as(
+  select s5.projectid, s5.vendor, s5.consultant, s5.country, s5.cycle, temp.col as Dimensions,
 sum(case col
 	  when 'overall_engagement_improvement' then s5.overall_engagement_improvement
 	  when 'overall_engagement_1_improvement' then s5.overall_engagement_1_improvement
@@ -406,4 +407,8 @@ sum(case col
 	end) as values  
 from sub5 s5
 cross join temp
-group by s5.projectid, s5.vendor, s5.consultant, s5.country, s5.cycle, temp.col
+group by s5.projectid, s5.vendor, s5.consultant, s5.country, s5.cycle, temp.col)
+
+select s6.projectid, s6.vendor, s6.consultant, s6.country, s6.cycle, s6.Dimensions, s6.values
+from sub6 s6
+where s6.values != 0
