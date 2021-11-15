@@ -203,9 +203,10 @@ sum(case
 
 from sub2 s2
 left join ds_mysql_prod_tagelement t4 on t4.id = s2.cycle_new
-group by s2.id, s2.projectId, s2.vendor, s2.country, s2.consultant, t4.name)
+group by s2.id, s2.projectId, s2.vendor, s2.country, s2.consultant, t4.name),
 
-select s3.projectid, s3.vendor, s3.consultant, s3.country, s3.cycle,
+sub4 as(
+  select s3.projectid, s3.vendor, s3.consultant, s3.country, s3.cycle,
 
 avg(baseline_overall_engagement) as baseline_overall_engagement_avg, 
 avg(baseline_overall_engagement_1) as baseline_overall_engagement_avg_1,
@@ -250,4 +251,11 @@ avg(Endline_learning_3) as Endline_learning_avg_3,
 avg(Endline_value) as Endline_value_avg
 
 from sub3 s3
-group by s3.projectid, s3.vendor, s3.consultant, s3.country, s3.cycle
+group by s3.projectid, s3.vendor, s3.consultant, s3.country, s3.cycle)
+
+select s4.projectid, s4.vendor, s4.consultant, s4.country, s4.cycle,
+
+case
+	when (Endline_overall_engagement_avg - baseline_overall_engagement_avg) > 0 then 1
+	else 0
+end as overall_engagement_improvement
