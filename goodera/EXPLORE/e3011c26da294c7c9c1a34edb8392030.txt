@@ -17,7 +17,7 @@ Select 'Gasoline' as col
      union all
 Select 'Total_Energy' as col
 ),
-s1 as (Select t.name as site,t1.name as sub_Region,t2.name as Region,fy_timerange,
+s1 as (Select t.name as site,t1.name as sub_Region,t2.name as Region,fy_timerange,EXTRACT(YEAR FROM(CAST(startdate AS datetime))) as year,
       
 	  Sum(CASE 
              WHEN keyword = 'electricity_usage' THEN datanum
@@ -52,21 +52,21 @@ group by t.name,t1.name,t2.name,fy_timerange
 ),
 
 s2 as (
-  Select  s1.site,s1.sub_Region,s1.Region,s1.fy_timerange,(s1.Elec_usage)*3.6 as Electricity_Utility_Provider,(s1.prop_usage)*25.59 as Propane,(s1.fuel_usage)*38.9 as Diesel,(s1.natural_gas_usage)*1000 as Natural_Gas,(s1.gasoline_usage)*34.2 as Gasoline
+  Select  s1.site,s1.sub_Region,s1.Region,s1.fy_timerange,(s1.Elec_usage)*3.6 as Electricity_Utility_Provider,(s1.prop_usage)*25.59 as Propane,(s1.fuel_usage)*38.9 as Diesel,(s1.natural_gas_usage)*1000 as Natural_Gas,(s1.gasoline_usage)*34.2 as Gasoline,s1.year
   from s1),
   
 s3 as (
-Select s2.site,s2.sub_Region,s2.Region,s2.fy_timerange,(s2.Electricity_Utility_Provider+s2.Propane+s2.Diesel+s2.Natural_Gas+s2.Gasoline) as Total_energy
+Select s2.site,s2.sub_Region,s2.Region,s2.fy_timerange,s2.Electricity_Utility_Provider,s2.Propane,s2.Diesel,s2.Natural_Gas,s2.Gasoline,(s2.Electricity_Utility_Provider+s2.Propane+s2.Diesel+s2.Natural_Gas+s2.Gasoline) as Total_energy,s2.year
   from s2
 ),
 s4 as (
-Select s3.site,s3.sub_Region,s3.Region,s3.fy_timerange,temp.col as Energy_type,
+Select s3.site,s3.sub_Region,s3.Region,s3.fy_timerange,temp.col as Energy_type,s3.year,
   case col
-  	when 'Electricity_Utility_Provider' then s2.Electricity_Utility_Provider
- 	when 'Propane' then s2.propane
-    when 'Diesel' then s2.diesel
-    when 'Natural_Gas' then s2.Natural_Gas
-    when 'Gasoline' then s2.Gasoline
+  	when 'Electricity_Utility_Provider' then s3.Electricity_Utility_Provider
+ 	when 'Propane' then s3.propane
+    when 'Diesel' then s3.diesel
+    when 'Natural_Gas' then s3.Natural_Gas
+    when 'Gasoline' then s3.Gasoline
 	when 'Total_energy' then s3.Total_energy
   else 0
   end 
@@ -76,7 +76,7 @@ as GJ
 
 )
 , s5 as (
-Select s4.site,s4.sub_Region,s4.Region,s4.fy_timerange,s4.Energy_type,
+Select s4.site,s4.sub_Region,s4.Region,s4.fy_timerange,s4.Energy_type,s4.year,
    sum(case col 
   when 'GJ' then s4.GJ
   when 'kwh' then s4.GJ*277.778
@@ -84,7 +84,7 @@ Select s4.site,s4.sub_Region,s4.Region,s4.fy_timerange,s4.Energy_type,
 	  end ) as Energy_consumption
   from s4
   cross join temp2
-  group by s4.site,s4.sub_Region,s4.Region,s4.fy_timerange,s4.Energy_type
+  group by s4.site,s4.sub_Region,s4.Region,s4.fy_timerange,s4.Energy_type,s4.year
 
 )
 
