@@ -52,7 +52,7 @@ s2 as (
 group by  s1.site,s1.sub_Region,s1.Month,s1.Month_length,s1.Month_length1,s1.Monthly,s1.Region,s1.fy_timerange,s1.fin_q,s1.fin_hy,s1.fin_y,s1.year
 ),
 s3 as (
-  Select s2.site,s2.Region,s2.year,s2.fy_timerange,
+  Select s2.site,s2.Region,s2.year,s2.fy_timerange,s2.Monthly
   temp.col as waste_type,
    sum(case col
     when 'Tons'  then s2.tons
@@ -62,16 +62,16 @@ s3 as (
   
   from s2
   cross join temp
-  group by s2.site,s2.Region,s2.year,s2.fy_timerange,temp.col
+  group by s2.site,s2.Region,s2.year,s2.fy_timerange,temp.col,s2.Monthly
 )
 
 ,
 s4 as (
-Select s3.site,s3.Region,s3.year,s3.fy_timerange,sum(s3.total_waste) as waste_m
+Select s3.site,s3.Region,s3.year,s3.fy_timerange,sum(s3.total_waste) as waste_m,s3.Monthly
   from s3
-  group by s3.site,s3.Region,s3.year,s3.fy_timerange
+  group by s3.site,s3.Region,s3.year,s3.fy_timerange,s3.Monthly
 )
   
-Select s4.site,s4.Region,s4.year,s4.fy_timerange, (s4.waste_m/12) waste_m
+Select s4.site,s4.Region,s4.year,s4.fy_timerange, (s4.waste_m/12) waste_m,s4.Monthly
 from s4 
   order by s4.fy_timerange desc
