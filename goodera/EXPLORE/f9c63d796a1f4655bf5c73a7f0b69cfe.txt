@@ -39,9 +39,10 @@ sub3 as(
   select s2.projectId, s2.vendor, s2.country, s2.consultant, t4.name as cycle, s2.select_field, avg(s2.score) as avg_score 
 from sub2 s2
 left join ds_mysql_prod_tagelement t4 on t4.id = s2.cycle_new
-group by s2.projectId, s2.vendor, s2.country, s2.consultant, t4.name, s2.select_field)
+group by s2.projectId, s2.vendor, s2.country, s2.consultant, t4.name, s2.select_field),
 
-select s3.projectId, s3.vendor, s3.country, s3.consultant, s3.cycle, 
+sub4 as(
+  select s3.projectId, s3.vendor, s3.country, s3.consultant, s3.cycle, 
 sum(case
 		when s3.select_field = 'Baseline' then s3.avg_score
 		else null 
@@ -51,4 +52,12 @@ sum(case
 		else null 
 	end) as endline_avg_score
 from sub3 s3
-group by s3.projectId, s3.vendor, s3.country, s3.consultant, s3.cycle
+group by s3.projectId, s3.vendor, s3.country, s3.consultant, s3.cycle)
+
+select s4.projectId, s4.vendor, s4.country, s4.consultant, s4.cycle, 
+case(
+  		when (s4.endline_avg_score - s4.baseline_avg_score) > 0 then 1
+  		else 0
+  	end) as factory_improved
+from sub4 s4
+group by s4.projectId, s4.vendor, s4.country, s4.consultant, s4.cycle
