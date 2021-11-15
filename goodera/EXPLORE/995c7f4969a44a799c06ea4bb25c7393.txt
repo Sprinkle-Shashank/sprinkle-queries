@@ -4,7 +4,7 @@ SELECT sq.name, sq.curr_cr_rating, factory_name, source_div, brands, cr_tier, fa
 from profile_60928 sq
   left join ds_mysql_prod_tagelement t
 on t.id=sq.curr_cr_rating
-  where (cr_tier not in (957759, 957760) or cr_tier is NULL) and t.name is NOT NULL
+  where COALESCE(sq.cr_tier, 0) not in (957760,957759) and t.name is NOT NULL
 )
 ,
 sub2 as(
@@ -14,7 +14,7 @@ sub2 as(
 	from sub2
 	left join ds_mysql_prod_tagelement t
 	on t.id=source
-	where curr_cr_rating in (957771, 957772, 957780, 957773, 957768) 
+	where COALESCE(s2.curr_cr_rating, 0) in (957771, 957772, 957780, 957773, 957768) 
   )
 	
 	select curr_cr_rating1 as curr_cr_rating, timeperiod_timerange, region, listagg(factory_id) as Factory_IDs, source_div
