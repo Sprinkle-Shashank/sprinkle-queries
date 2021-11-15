@@ -17,7 +17,7 @@ Select 'Gasoline' as col
      union all
 Select 'Total_Energy' as col
 ),
-s1 as (Select t.name as site,t1.name as sub_Region,t2.name as Region,fy_timerange,
+s1 as (Select t.name as site,t1.name as sub_Region,t2.name as Region,fy_timerange,EXTRACT(YEAR FROM(CAST(startdate AS datetime))) as year,
       
 	  Sum(CASE 
              WHEN keyword = 'electricity_cost' THEN datanum
@@ -48,16 +48,16 @@ s1 as (Select t.name as site,t1.name as sub_Region,t2.name as Region,fy_timerang
   left join ds_mysql_prod_project t2
   on t1.parent=t2.id
 		   where keyword in ('electricity_cost','propane_cost','diesel_fuel_cost','gasoline_cost','natural_gas_cost')
-group by t.name,t1.name,t2.name,fy_timerange
+group by t.name,t1.name,t2.name,fy_timerange,startdate
 			
 ),
 
 s2 as (
-  Select  s1.site,s1.sub_Region,s1.Region,s1.fy_timerange,s1.Electricity_Utility_Provider,s1.Propane,s1.Diesel,s1.Natural_Gas,s1.Gasoline,(s1.Electricity_Utility_Provider+s1.Propane+s1.Diesel+s1.Natural_Gas+s1.Gasoline) as Total_energy
+  Select  s1.site,s1.sub_Region,s1.year,s1.Region,s1.fy_timerange,s1.Electricity_Utility_Provider,s1.Propane,s1.Diesel,s1.Natural_Gas,s1.Gasoline,(s1.Electricity_Utility_Provider+s1.Propane+s1.Diesel+s1.Natural_Gas+s1.Gasoline) as Total_energy
   from s1
 ),
 s3 as (
-Select s2.site,s2.sub_Region,s2.Region,s2.fy_timerange,temp.col as Energy_type,
+Select s2.site,s2.sub_Region,s2.Region,s2.year,s2.fy_timerange,temp.col as Energy_type,
   case col
   	when 'Electricity_Utility_Provider' then s2.Electricity_Utility_Provider
  	when 'Propane' then s2.propane
@@ -73,15 +73,15 @@ as GJ
 
 )
 , s4 as (
-Select s3.site,s3.sub_Region,s3.Region,s3.fy_timerange,s3.Energy_type,
+Select s3.site,s3.Region,s3.fy_timerange,s3.year,temp2.col as unit,
    sum(case col 
   when 'GJ' then s3.GJ
   when 'kwh' then s3.GJ*277.778
 	 else 0
-	  end ) as Energy_cost
+	  end ) as Energy_cost,s3.Energy_type
   from s3
   cross join temp2
-  group by s3.site,s3.sub_Region,s3.Region,s3.fy_timerange,s3.Energy_type
+  group by s3.site,s3.Region,s3.fy_timerange,s3.Energy_type,temp2.col
 )
 
 
