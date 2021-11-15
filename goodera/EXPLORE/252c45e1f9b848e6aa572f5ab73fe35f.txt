@@ -251,9 +251,10 @@ avg(Endline_learning_3) as Endline_learning_avg_3,
 avg(Endline_value) as Endline_value_avg
 
 from sub3 s3
-group by s3.projectid, s3.vendor, s3.consultant, s3.country, s3.cycle)
+group by s3.projectid, s3.vendor, s3.consultant, s3.country, s3.cycle),
 
-select s4.projectid, s4.vendor, s4.consultant, s4.country, s4.cycle,
+sub5 as(
+  select s4.projectid, s4.vendor, s4.consultant, s4.country, s4.cycle,
 
 case
 	when (Endline_overall_engagement_avg - baseline_overall_engagement_avg) > 0 then 1
@@ -336,4 +337,73 @@ case
 	else 0
 end as value_improvement
 
-from sub4 s4
+from sub4 s4),
+
+temp as(
+  select overall_engagement_improvement as col 
+  union all
+  select overall_engagement_1_improvement as col 
+  union all
+  select overall_engagement_2_improvement as col 
+  union all
+  select working_conditions_1_improvement as col 
+  union all
+  select working_conditions_2_improvement as col 
+  union all
+  select working_conditions_3_improvement as col 
+  union all
+  select working_conditions_4_improvement as col 
+  union all
+  select working_conditions_5_improvement as col 
+  union all
+  select working_conditions_6_improvement as col 
+  union all
+  select working_conditions_7_improvement as col 
+  union all
+  select working_conditions_8_improvement as col 
+  union all
+  select relationship_1_improvement as col 
+  union all
+  select relationship_2_improvement as col 
+  union all
+  select relationship_3_improvement as col 
+  union all
+  select relationship_4_improvement as col 
+  union all
+  select relationship_5_improvement as col 
+  union all
+  select learning_1_improvement as col 
+  union all
+  select learning_2_improvement as col 
+  union all
+  select learning_3_improvement as col 
+  union all
+  select value_improvement as col)
+  
+select s5.projectid, s5.vendor, s5.consultant, s5.country, s5.cycle, temp.col as Dimensions,
+sum(case 'col'
+	  when 'overall_engagement_improvement' as s5.overall_engagement_improvement
+	  when 'overall_engagement_1_improvement' as s5.overall_engagement_1_improvement
+	  when 'overall_engagement_2_improvement' as s5.overall_engagement_2_improvement
+	  when 'working_conditions_1_improvement' as s5.working_conditions_1_improvement
+	  when 'working_conditions_2_improvement' as s5.working_conditions_2_improvement
+	  when 'working_conditions_3_improvement' as s5.working_conditions_3_improvement
+	  when 'working_conditions_4_improvement' as s5.working_conditions_4_improvement
+	  when 'working_conditions_5_improvement' as s5.working_conditions_5_improvement
+	  when 'working_conditions_6_improvement' as s5.working_conditions_6_improvement
+	  when 'working_conditions_7_improvement' as s5.working_conditions_7_improvement
+	  when 'working_conditions_8_improvement' as s5.working_conditions_8_improvement
+	  when 'relationship_1_improvement' as s5.relationship_1_improvement
+	  when 'relationship_2_improvement' as s5.relationship_2_improvement
+  	  when 'relationship_3_improvement' as s5.relationship_3_improvement
+	  when 'relationship_4_improvement' as s5.relationship_4_improvement
+	  when 'relationship_5_improvement' as s5.relationship_5_improvement
+	  when 'learning_1_improvement' as s5.learning_1_improvement
+	  when 'learning_2_improvement' as s5.learning_2_improvement
+	  when 'learning_3_improvement' as s5.learning_3_improvement
+	  when 'value_improvement' as s5.value_improvement
+	  else null
+	end) as values  
+from sub5 s5
+cross join temp
+group by s5.projectid, s5.vendor, s5.consultant, s5.country, s5.cycle, temp.col
