@@ -4,7 +4,7 @@ Select 'GJ' as col
 Select 'kwH' as col
 ),
 s1 as (
-Select t.name as site,t1.name as sub_Region,t2.name as Region,t4.name as fin_q,t5.name as fin_hy,t6.name as fin_y,EXTRACT(YEAR FROM(CAST(startdate AS datetime))) as year,sum(datanum) as hours_per_100,
+Select t.name as site,t1.name as sub_Region,t2.name as Region,t4.name as fin_q,t5.name as fin_hy,t6.name as fin_y,EXTRACT(YEAR FROM(CAST(startdate AS datetime))) as year,sum(datanum) as hours_per_100,fy_timerange,
 case col
   	when 'GJ' then 1
     when 'kwH' then 2
@@ -29,7 +29,7 @@ from sus_56999
   left join ds_mysql_prod_tagelement t6
   on t5.parent=t6.id
   where keyword ='total_campus_hours_worked' and site !=47608
-  group by  t.name,t1.name,t2.name,fy_timerange,t3.name,t4.name,t5.name,t6.name,startdate,datanum,temp.col
+  group by  t.name,t1.name,t2.name,fy_timerange,t3.name,t4.name,t5.name,t6.name,startdate,datanum,fy_timerange,temp.col
 )
 ,
 temp2 as (
@@ -50,7 +50,7 @@ Select 'Direct Energy Consumption' as col
 Select 'Indirect Energy Consumption' as col
 ),
 s2 as (
-  Select s1.site,s1.sub_Region,s1.Region,s1.year,(s1.hours_per_100/100) as hours_per_100,s1.unit,
+  Select s1.site,s1.sub_Region,s1.Region,s1.year,(s1.hours_per_100/100) as hours_per_100,s1.fy_timerange,s1.unit,
 case col
 	when 'Diesel' then 1
 	when 'Electricity-Utility Provider and Solar' then 2
@@ -68,10 +68,10 @@ case col
  	end as Energy_type
   from s1
   cross join temp2 
-     group by s1.site,s1.sub_Region,s1.Region,s1.year,s1.unit,temp2.col,s1.hours_per_100
+     group by s1.site,s1.sub_Region,s1.Region,s1.year,s1.unit,temp2.col,s1.hours_per_100,s1.fy_timerange
 
  
 )
 
-Select s2.site,s2.Region,s2.year,s2.hours_per_100,s2.unit,s2.energy_type
+Select s2.site,s2.Region,s2.fy_timerange,s2.year,s2.unit,s2.hours_per_100,s2.energy_type
   from s2
