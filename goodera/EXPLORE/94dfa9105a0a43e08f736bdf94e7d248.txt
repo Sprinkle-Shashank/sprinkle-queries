@@ -16,15 +16,7 @@ Sum(CASE
 		   Sum(CASE 
              WHEN keyword = 'biomedical_disposal' THEN datanum
              ELSE 0 
-           END) AS biomedical_disposal,
-   Sum(CASE 
-             WHEN keyword = 'total_nonhaz' THEN datanum
-             ELSE 0 
-           END) AS total_nonhaz,
-   Sum(CASE 
-             WHEN keyword = 'total_nonhaz_recycled' THEN datanum
-             ELSE 0 
-           END) AS total_nonhaz_recycled
+           END) AS biomedical_disposal
 from sus_56999
   left join ds_mysql_prod_project t
   on xprojectid=t.id
@@ -32,13 +24,12 @@ from sus_56999
   on t.parent=t1.id
   left join ds_mysql_prod_project t2
   on t1.parent=t2.id
-
+WHERE KEYWORd in ('total_hazwaste','nonhaz_reg_total','biomedical_disposal')
   
   group by t.name,t2.name,year,fy_timerange
 ),
 s2 as (
 Select s1.site,s1.Region,s1.year,s1.fy_timerange,(s1.total_hazwaste+s1.nonhaz_reg_total+s1.biomedical_disposal)as Hazardous_and_Regulated_Waste,
-  (s1.total_nonhaz +s1.total_nonhaz_recycled) as Non_Hazardous_Waste
   from s1
 ),
 s3 as (
