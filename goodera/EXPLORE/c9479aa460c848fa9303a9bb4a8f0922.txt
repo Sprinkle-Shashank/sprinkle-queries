@@ -17,7 +17,7 @@ Select 'Natural_Gas' as col
    union all
 Select 'Gasoline' as col
      ),
-s1 as (Select t.name as site,t1.name as sub_Region,t2.name as Region,fy_timerange,
+s1 as (Select t.name as site,t2.name as Region,fy_timerange,
       
 	  Sum(CASE 
              WHEN keyword = 'electricity_usage' THEN datanum
@@ -47,16 +47,16 @@ s1 as (Select t.name as site,t1.name as sub_Region,t2.name as Region,fy_timerang
   left join ds_mysql_prod_project t2
   on t1.parent=t2.id
 		   where keyword in ('electricity_usage','propane_usage','diesel_fuel_usage','gasoline_usage','natural_gas_usage')
-group by t.name,t1.name,t2.name,fy_timerange
+group by t.name,t2.name,fy_timerange
 			
 ),
 
 s2 as (
-  Select  s1.site,s1.sub_Region,s1.Region,s1.fy_timerange,(s1.Elec_usage)*3.6 as Electricity_Utility_Provider,(s1.prop_usage)*25.59 as Propane,(s1.fuel_usage)*38.9 as Diesel,(s1.natural_gas_usage)*1000 as Natural_Gas,(s1.gasoline_usage)*34.2 as Gasoline
+  Select  s1.site,s1.Region,s1.fy_timerange,(s1.Elec_usage)*3.6 as Electricity_Utility_Provider,(s1.prop_usage)*25.59 as Propane,(s1.fuel_usage)*38.9 as Diesel,(s1.natural_gas_usage)*1000 as Natural_Gas,(s1.gasoline_usage)*34.2 as Gasoline
   from s1),
   
 s3 as (
-Select s2.site,s2.sub_Region,s2.Region,s2.fy_timerange,temp.col as Energy_type,
+Select s2.site,s2.Region,s2.fy_timerange,temp.col as Energy_type,
   (case col
   	when 'Electricity_Utility_Provider' then s2.Electricity_Utility_Provider
  	when 'Propane' then s2.propane
