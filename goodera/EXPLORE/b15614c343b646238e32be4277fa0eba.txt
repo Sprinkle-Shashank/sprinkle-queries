@@ -4,11 +4,25 @@ Select 'Tons' as col
 Select 'Kilograms' as col
 ),
  temp2 as(
-Select 'Landfill' as col
+Select 'cardboard' as col
   union all
-Select 'Others' as col
+Select 'pallets' as col
    union all
-   Select 'Incinerated' as col
+   Select 'paper' as col
+   union all
+   Select 'incinerated_for_fuel' as col
+   union all
+   Select 'Organic_Waste_Landscape' as col
+   union all
+   Select 'plastic' as col
+   union all
+   Select 'electronics' as col
+   union all
+   Select 'metals' as col
+   union all
+   Select 'cafe_grease' as col
+   union all
+   Select 'others' as col
 ),
 s1 as (
 Select t.name as site,t1.name as sub_Region,t2.name as Region,t4.name as fin_q,t5.name as fin_hy,t6.name as fin_y,EXTRACT(YEAR FROM(CAST(startdate AS datetime))) as year,fy_timerange,
@@ -73,11 +87,18 @@ from sus_56999
   'cardoard', 'pallets', 'paper', 'cafe_grease', 'metals', 'incinerated_for_fuel', 'electronics', 'plastic', 'landscape_organic_waste' ,'recycled_other')  group by t.name,t1.name,t2.name,t3.name,t4.name,t5.name,t6.name,year,fy_timerange
 ),
 s3 as (
-Select s1.site,s1.sub_Region,s1.Region,s1.year,s1.fy_timerange,temp2.col as waste_type,
+Select s1.site,s1.sub_Region,s1.Region,s1.year,s1.fy_timerange,temp2.col as Recycle_type,
   sum(case col
-  when 'Landfill' then s1.landfill
-  when 'Others' then s1.others
-  when 'Incinerated' then s1.incinerated
+  when 'cardboard' then s1.cardboard
+  when 'pallets' then s1.pallets
+   when 'paper' then s1.paper
+   when 'incinerated_for_fuel' then s1.incinerated_for_fuel
+  when 'Organic_Waste_Landscape' then s1.Organic_Waste_Landscape
+   when 'plastic' then s1.plastic
+   when 'electronics' then s1.electronics
+   when 'metals' then s1.metals
+  when 'cafe_grease' then s1.cafe_grease
+   when'others' then s1.others
 	  else null
 	  end )as tons
   from s1
@@ -87,7 +108,7 @@ Select s1.site,s1.sub_Region,s1.Region,s1.year,s1.fy_timerange,temp2.col as wast
 ),
 s4 as (
 Select s3.site,s3.Region,s3.year,s3.fy_timerange,
-  temp.col as unit,s3.waste_type,
+  temp.col as unit,s3.Recycle_type,
   case col
     when 'Tons'  then s3.tons
     when  'kilograms' then s3.tons*1000
