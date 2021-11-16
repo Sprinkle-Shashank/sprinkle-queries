@@ -53,7 +53,7 @@ order by year desc
 
 s2 as(
   
-  Select  s1.site,s1.region,s1.fy_timerange,temp2.col as water_type,s1.year,
+  Select  s1.site,s1.fy_timerange,s1.region,temp2.col as water_type,s1.year,
 case col
   when 'Ground Water' then s1.water_usage_well_water
   when 'Utility Provided' then s1.water_usage_utility_provider
@@ -70,12 +70,12 @@ case col
 ,
 s3 as (
 
-Select s2.* ,
+Select s2.site,s2.fy_timerange,s2.region,temp2.col as water_type,temp.col as unit,s2.year,
 sum(case col
  when 'Cubic Metres' then s2.cubic_metres
  when 'Litres' then s2.cubic_metres*1000
  else null
- end )as total_water_usage,temp.col as unit
+ end )as total_water_usage
  from s2
  cross join temp
 group by s2.site,s2.region,s2.fy_timerange,s2.water_type,temp.col,s2.year,s2.cubic_metres
