@@ -1,5 +1,6 @@
 with sub1 as(
 Select projectId, fy_timerange, milestone, planned_start, planned_end,
+  Extract(Year FROM(CAST(actual_start AS datetime))) as actual_start1,
 EXTRACT(Month FROM(CAST(actual_start AS datetime))) as actual_start, actual_end,
 case 
 	when actual_end is NOT NULL then'Completed' 
@@ -10,10 +11,11 @@ case
 FROM profile_74808
 ),
 sub2 as(
-  Select case 
-          when actual_start=1 then 'January'
+  Select projectId, fy_timerange, milestone, planned_start, planned_end,actual_start1, actual_end,
+  case 
+  when actual_start=1 then 'January'
   when actual_start=2 then 'Febuary'
-  		  when actual_start=3 then 'March'
+  when actual_start=3 then 'March'
   when actual_start=4 then 'April'
   when actual_start=5 then 'May'
   when actual_start=6 then 'June'
@@ -25,8 +27,12 @@ sub2 as(
   when actual_start=12 then 'December'
   end
   as month from sub1
-
+),
+sub3 as(
+  Select projectId, fy_timerange, milestone, planned_start, planned_end, concat(actual_start,actual_start1), actual_end
+  from sub2
 )
-Select * from sub2
+
+Select * from sub3
 
 
