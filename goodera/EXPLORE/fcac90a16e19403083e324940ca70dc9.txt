@@ -2,9 +2,43 @@ with temp as(
 Select 'Cubic Metres' as col
   union all
 Select 'Litres' as col
+),
+
+temp2 as (
+Select 'Ground Water' as col
+  union all
+Select 'Utility Provided' as col
+  union all
+Select 'Surface Water' as col
+  union all
+Select 'NewWater Offsite Recycled' as col
+  union all
+Select 'Total Water Withdrawal' as col
 )
 , s1 as (
-Select t.name as site,t1.name as sub_region,t2.name as region,fy_timerange,sum(datanum) as cubic_metres ,keyword as water_type,(cubic_metres*1000) as Litres ,EXTRACT(YEAR FROM(CAST(startdate AS DATETIME ))) as year
+Select t.name as site,t2.name as region,fy_timerange,
+  Sum(CASE 
+             WHEN keyword = 'water_usage_new_water_reclaimed' THEN datanum
+             ELSE 0 
+           END) AS water_usage_new_water_reclaimed,
+  Sum(CASE 
+             WHEN keyword = 'total_water_usage' THEN datanum
+             ELSE 0 
+           END) AS total_water_usage,
+  Sum(CASE 
+             WHEN keyword = 'water_usage_reclaimed_storm' THEN datanum
+             ELSE 0 
+           END) AS water_usage_reclaimed_storm,
+  Sum(CASE 
+             WHEN keyword = 'water_usage_utility_provider' THEN datanum
+             ELSE 0 
+           END) AS water_usage_utility_provider,
+  Sum(CASE 
+             WHEN keyword = 'water_usage_well_water' THEN datanum
+             ELSE 0 
+           END) AS water_usage_well_water,
+  
+  EXTRACT(YEAR FROM(CAST(startdate AS DATETIME ))) as year
 from sus_56999
 left join ds_mysql_prod_project t
 on xprojectid=t.id
@@ -13,18 +47,40 @@ on t.parent=t1.id
 left join ds_mysql_prod_project t2
 on t2.parent=t2.id
 where keyword in ('water_usage_new_water_reclaimed', 'total_water_usage', 'water_usage_reclaimed_storm', 'water_usage_utility_provider', 'water_usage_well_water')  and xprojectid != '47608'
-  group by t.name,t1.name,t2.name,fy_timerange,keyword,datanum,startdate
+  group by t.name,t1.name,t2.name,fy_timerange,datanum,startdate
 order by year desc
+),
+
+s2 as(
+  
+  Select  s1.site,s1.region,s1.timerange,temp2.col as water_type,s1.year,
+case col
+  when 'Ground Water' then s1.water_usage_well_water
+  when 'Utility Provided' then s1.water_usage_utility_provider
+  when 'Surface Water' then s1.water_usage_reclaimed_storm
+  when 'NewWater Offsite Recycled' then s1.water_usage_new_water_reclaimed
+  when 'Total Water Withdrawal' then s1.total_water_usage
+  else null
+  end as Cubic_Metres
+  
+  
+  from s1
+  cross join temp2
 )
-Select s1.* ,
+,
+s3 as (
+
+
+Select s2.* ,
 sum(case col
  when 'Cubic Metres' then s1.cubic_metres
- when 'Litres' then s1.Litres
+ when 'Litres' then s1.cubic_metres*1000
  else null
  end )as total_water_usage,temp.col as unit
  from s1
  cross join temp
-group by s1.site,s1.sub_region,s1.region,s1.fy_timerange,s1.water_type,temp.col,s1.cubic_metres,s1.Litres,s1.year
+group by s2.site,s2.region,s2.fy_timerange,s2.water_type,temp.col,s1.year
 
-
+)
+Select * from s3
 
