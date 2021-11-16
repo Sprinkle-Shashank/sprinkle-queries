@@ -40,7 +40,7 @@ with temp as(
   select 'value' as col),
   
 sub2 as(
-  select p1._id as id, p.name as projectId, p2.vendor as vendor, t1.name as country, p2.cycle, t2.name as consultant, temp.col as Dimensions,
+  select p1._id as id, p.name as projectId, p2.vendor as vendor, t1.name as country, p2.cycle, t2.name as consultant, temp.col as new_Dimensions,
 
 sum(case col
 	 	when 'overall_engagement' then p1.overall_engagement
@@ -64,7 +64,7 @@ sum(case col
 		when 'learning_3' then p1.learning_3
 		when 'value' then p1.value
 	else null
-end) as values
+end) as new_values
 	
 from profile_62700 p1
 cross join temp
@@ -79,44 +79,44 @@ sub3 as(
   select s2.*, cycle_new from sub2 s2, s2.cycle cycle_new),
   
 sub4 as(
-  select s3.id, s3.projectId, s3.vendor, s3.country, s3.consultant, t3.name as cycle, s3.Dimensions, t4.name as values
+  select s3.id, s3.projectId, s3.vendor, s3.country, s3.consultant, t3.name as cycle, s3.new_Dimensions, t4.name as new_values
  from sub3 s3
  left join ds_mysql_prod_tagelement t3 on t3.id = s3.cycle_new
- left join ds_mysql_prod_tagelement t4 on t4.id = s3.values
- where s3.values is not null)
+ left join ds_mysql_prod_tagelement t4 on t4.id = s3.new_values
+ where s3.new_values is not null)
  
-select s4.id, s4.projectId, s4.vendor, s4.country, s4.consultant, s4.cycle, s4.Dimensions, sum(s4.values) as sum_val,
+select s4.id, s4.projectId, s4.vendor, s4.country, s4.consultant, s4.cycle, s4.new_Dimensions, sum(s4.new_values) as new_values,
 case
-	when (s4.Dimensions = 'overall_engagement') then 'I feel like going to work when starting my shift'
-	when (s4.Dimensions = 'overall_engagement_1') then 'I see myself continue to work here in the next 1 year'
-	when (s4.Dimensions = 'overall_engagement_2') then 'I would recommend this factory to friends and family as a good place to work'
-	when (s4.Dimensions = 'working_conditions_1') then 'I have not experienced discriminations at the factory'
-	when (s4.Dimensions = 'working_conditions_2') then 'In this factory, I am not concerned about sexual harassment.'
-	when (s4.Dimensions = 'working_conditions_3') then 'The working conditions at my factory is safe and comfortable.'
-	when (s4.Dimensions = 'working_conditions_4') then 'My efforts at work are well recognized.'
-	when (s4.Dimensions = 'working_conditions_5') then 'I am satisfied with the number of hours I typically work at this factory.'
-	when (s4.Dimensions = 'working_conditions_6') then 'In my opinion, the amount of work I am expected to do is reasonable.'
-	when (s4.Dimensions = 'working_conditions_7') then 'I feel that the wages I am paid are fair.'
-	when (s4.Dimensions = 'working_conditions_8') then 'Aside from my salary, the factory helps me with other basic needs'
-	when (s4.Dimensions = 'relationship_1') then 'My immediate supervisor gives me feedback on a regular basis.'
-	when (s4.Dimensions = 'relationship_2') then 'My immediate supervisor cares about me as a person.'
-	when (s4.Dimensions = 'relationship_3') then 'I have some good friends at work.'
-	when (s4.Dimensions = 'relationship_4') then 'Great effort is made to get the opinions of employees in this factory.'
-	when (s4.Dimensions = 'relationship_5') then 'I am comfortable making suggestions on improvements in the factory.'
-	when (s4.Dimensions = 'learning_1') then 'I have get the trainings & support that I need to do my job right.'
-	when (s4.Dimensions = 'learning_2') then 'I have learned skills in the past 12 months to continuously grow.'
-	when (s4.Dimensions = 'learning_3') then 'I see a clear career development path at my factory.'
-	when (s4.Dimensions = 'value') then 'My work contributes to the company goals and success.'
+	when (s4.new_Dimensions = 'overall_engagement') then 'I feel like going to work when starting my shift'
+	when (s4.new_Dimensions = 'overall_engagement_1') then 'I see myself continue to work here in the next 1 year'
+	when (s4.new_Dimensions = 'overall_engagement_2') then 'I would recommend this factory to friends and family as a good place to work'
+	when (s4.new_Dimensions = 'working_conditions_1') then 'I have not experienced discriminations at the factory'
+	when (s4.new_Dimensions = 'working_conditions_2') then 'In this factory, I am not concerned about sexual harassment.'
+	when (s4.new_Dimensions = 'working_conditions_3') then 'The working conditions at my factory is safe and comfortable.'
+	when (s4.new_Dimensions = 'working_conditions_4') then 'My efforts at work are well recognized.'
+	when (s4.new_Dimensions = 'working_conditions_5') then 'I am satisfied with the number of hours I typically work at this factory.'
+	when (s4.new_Dimensions = 'working_conditions_6') then 'In my opinion, the amount of work I am expected to do is reasonable.'
+	when (s4.new_Dimensions = 'working_conditions_7') then 'I feel that the wages I am paid are fair.'
+	when (s4.new_Dimensions = 'working_conditions_8') then 'Aside from my salary, the factory helps me with other basic needs'
+	when (s4.new_Dimensions = 'relationship_1') then 'My immediate supervisor gives me feedback on a regular basis.'
+	when (s4.new_Dimensions = 'relationship_2') then 'My immediate supervisor cares about me as a person.'
+	when (s4.new_Dimensions = 'relationship_3') then 'I have some good friends at work.'
+	when (s4.new_Dimensions = 'relationship_4') then 'Great effort is made to get the opinions of employees in this factory.'
+	when (s4.new_Dimensions = 'relationship_5') then 'I am comfortable making suggestions on improvements in the factory.'
+	when (s4.new_Dimensions = 'learning_1') then 'I have get the trainings & support that I need to do my job right.'
+	when (s4.new_Dimensions = 'learning_2') then 'I have learned skills in the past 12 months to continuously grow.'
+	when (s4.new_Dimensions = 'learning_3') then 'I see a clear career development path at my factory.'
+	when (s4.new_Dimensions = 'value') then 'My work contributes to the company goals and success.'
 end as question_text,
 
 case
-	when (s4.Dimensions = 'working_conditions_4' or s4.Dimensions = 'value') then 'Sense of Value'
-	when (s4.Dimensions = 'learning_1' or s4.Dimensions = 'learning_2' or s4.Dimensions = 'learning_3' )
+	when (s4.new_Dimensions = 'working_conditions_4' or s4.new_Dimensions = 'value') then 'Sense of Value'
+	when (s4.new_Dimensions = 'learning_1' or s4.new_Dimensions = 'learning_2' or s4.new_Dimensions = 'learning_3' )
 	then 'Learning & Career Development'
-	when (s4.Dimensions = 'relationship_1' or s4.Dimensions = 'relationship_2' or s4.Dimensions = 'relationship_3' or s4.Dimensions = 'relationship_4' or s4.Dimensions = 'relationship_5')
-	then 'Learning & Career Development'
+	when (s4.new_Dimensions = 'relationship_1' or s4.new_Dimensions = 'relationship_2' or s4.new_Dimensions = 'relationship_3' or s4.new_Dimensions = 'relationship_4' or s4.new_Dimensions = 'relationship_5')
+	then 'Supervisor & Colleague Relationships'
 	else 'Working Conditions & Well-being'
 end as engagement_drivers
 
 from sub4 s4
-group by s4.id, s4.projectId, s4.vendor, s4.country, s4.consultant, s4.cycle, s4.Dimensions, question_text, engagement_drivers
+group by s4.id, s4.projectId, s4.vendor, s4.country, s4.consultant, s4.cycle, s4.new_Dimensions, question_text, engagement_drivers
