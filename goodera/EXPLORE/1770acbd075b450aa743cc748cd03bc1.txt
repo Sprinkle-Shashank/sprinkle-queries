@@ -5,23 +5,25 @@ select fy_timerange, projectid, name as batch_id, donor, donor_commitment from p
 ),
 
 test2 as(
-select p.fy_timerange, p.projectid, p.batch_id, p.donor, donor_commitment, i.start as pstart, i.end as pend, i.name, j.start as qstart, j.end as qend, j.name as qname  from test1 p 
+select p.fy_timerange, p.projectid, p.batch_id, p.donor, donor_commitment, i.start as pstart, i.end as pend, i.name as pname, j.start as qstart, j.end as qend, j.name as qname  from test1 p 
 left join profile_14715 i on
 p.donor_commitment=i._id
 left join profile_36980 j on
 p.donor_commitment=j._id
-  where j.name is null
 
-
-)/*,
+),
 
 test3 as(
-select CHR(123) || '"start"'|| ':' || '"' || substring(p.start,1,10) || 'T00:00:00.000Z' || '"' || ',' || '"end"'|| ':' || '"' || substring(p.end,1,10) || 'T00:00:00.000Z' || '"' || Chr(125) as fy_timerange, t2.name as project, p.batch_id, p.donor, p.donor_commitment from test2 p 
+select p.fy_timerange, p.projectid, p.batch_id, p.donor, decode(pname,null,qname) as donor_commitment, decode(pstart,null,qstart) as start, decode(pend,null,pend) as "end" from test2
+),
+
+test4 as(
+select CHR(123) || '"start"'|| ':' || '"' || substring(p.start,1,10) || 'T00:00:00.000Z' || '"' || ',' || '"end"'|| ':' || '"' || substring(p.end,1,10) || 'T00:00:00.000Z' || '"' || Chr(125) as fy_timerange, t2.name as project, p.batch_id, p.donor, p.donor_commitment from test3 p 
   
 LEFT JOIN ds_mysql_prod_project t on p.projectId=t.id
 LEFT JOIN ds_mysql_prod_project t1 on t.parent=t1.id      
 LEFT JOIN ds_mysql_prod_project t2 on t1.parent=t2.id
-)*/
+)
 
 
-select * from test2
+select * from test3
