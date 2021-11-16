@@ -16,7 +16,7 @@ Select 'watertype1' as col
   Select 'watertype5' as col
 ),
 s1 as (
-Select t.name as site, t1.name as sub_region,t2.name as region,
+Select t.name as site, t1.name as sub_region,t2.name as region,  EXTRACT(YEAR FROM(CAST(startdate AS DATETIME ))) as year,
   case 
   when 1=1 then 'Ground Water' 
   end as watertype1,
@@ -49,9 +49,9 @@ on t.parent=t1.id
 left join ds_mysql_prod_project t2
 on t2.parent=t2.id
 where keyword = 'total_campus_hours_worked' and xprojectid != '47608'
-group by t.name,t1.name,t2.name,fy_timerange,temp.col
+group by t.name,t1.name,t2.name,fy_timerange,temp.col,startdate
 ),
-s2 as (Select s1.site, s1.region,(s1.normalization_factor)/10000 as normalization_factor,
+s2 as (Select s1.site,s1.fy_timerange, s1.region,s1.year,(s1.normalization_factor)/100 as normalization_factor,s1.unit,
 max( case col
  		when 'watertype1' then s1.watertype1
 		when 'watertype2' then s1.watertype2
@@ -63,6 +63,6 @@ max( case col
 		
 from s1
 cross join t2
-group by s1.site, s1.region,t2.col,s1.normalization_factor
+group by s1.site, s1.region,t2.col,s1.normalization_factor,s1.year,s1.unit
 )
 Select * from s2
