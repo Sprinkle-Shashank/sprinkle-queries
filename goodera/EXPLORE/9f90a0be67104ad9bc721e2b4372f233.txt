@@ -31,9 +31,29 @@ with temp as(
   union all
   select 'members_duty_released' as col)
 
-select p1._id as id, p.name as projectId, t1.name as training_type, t2.name as year, p2.vendor, t3.name as country, t4.name as consultant, p2.cycle, p2.product_category,
-cast(timestamp 'epoch' + p1.created/1000 * interval '1 second' as date) as create_date
+select p1._id as id, p.name as projectId, t1.name as training_type, t2.name as year, p2.vendor, t3.name as country, t4.name as consultant, p2.cycle, p2.product_category, temp.col as dimensions,
+cast(timestamp 'epoch' + p1.created/1000 * interval '1 second' as date) as create_date,
+sum(case col
+		when 'recognized_union' then p1.recognized_union
+		when 'male_female' then p1.male_female
+		when 'workers_production_units' then p1.workers_production_units
+		when 'female_representation' then p1.female_representation
+		when 'decision_making_attendance' then p1.decision_making_attendance
+		when 'decision_making' then p1.decision_making
+		when 'meetings_held' then p1.meetings_held
+		when 'members_present_meetings' then p1.members_present_meetings
+		when 'active_members_list' then p1.active_members_list
+		when 'peers_reachout' then p1.peers_reachout
+		when 'retaliation' then p1.retaliation
+		when 'alternative_tradeunion' then p1.alternative_tradeunion
+		when 'issues_addressed' then p1.issues_addressed
+		when 'follow_up' then p1.follow_up
+		when 'assessment_review' then p1.assessment_review
+		when 'members_duty_released' then p1.members_duty_released
+	else null
+end) as values	
 from profile_62306 p1
+cross join temp
 left join ds_mysql_prod_project p on p.id = p1.projectid
 left join profile_64362 p2 on p2.projectid = p1.projectid
 left join ds_mysql_prod_tagelement t1 on t1.id = p1.training_type
