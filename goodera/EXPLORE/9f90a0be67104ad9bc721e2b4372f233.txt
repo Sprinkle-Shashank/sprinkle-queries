@@ -67,10 +67,13 @@ sub2 as(
   select s1.*, cycle_new, product_category_new 
   from sub1 s1, s1.cycle cycle_new, s1.product_category product_category_new)
   
-select s2.projectid, s2.training_type, s2.year, s2.vendor, s2.country, s2.consultant, t5.name as cycle, t6.name as product_category, s2.dimensions, t7.name as values, 1 as count,
-row_number() over (partition by s2.projectid order by s2.create_date asc) as row
+select s2.projectid, s2.training_type, s2.year, s2.vendor, s2.country, s2.consultant, t5.name as cycle, t6.name as product_category, s2.dimensions, t7.name as values,
+case(
+  		when t7.name = 'Yes' then 1
+  		else 0
+end) as yes
 from sub2 s2
 left join ds_mysql_prod_tagelement t5 on t5.id = s2.cycle_new
 left join ds_mysql_prod_tagelement t6 on t6.id = s2.product_category_new
 left join ds_mysql_prod_tagelement t7 on t7.id = s2.values
-where t7.name = 'Yes'
+where t7.name is not null
