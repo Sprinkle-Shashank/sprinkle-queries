@@ -14,9 +14,18 @@ sub2 as(
   from sub1 s1, s1.source source1
   ),
   sub3 as(
-	Select s1.proj_location, s1.fy_timerange, s1.headline, s1.brief, source1, s1.date, s1.photo, s1.url,substring(date,1,10) ,Click, pd.impl_agency as imp_partner
+	Select s1.proj_location, s1.fy_timerange, s1.headline, s1.brief, source1, s1.date, s1.photo, s1.url,substring(date,1,10) ,Click, pd.impl_agency as imp_partner,qw.location
+	case
+		when s1.proj_location=53580 then 'Barola'
+		when s1.proj_location=53412 then 'Sardarpur'
+		when s1.proj_location=53528 then 'Thane'
+		when s1.proj_location=Thane then 'Navi Mumbai'
+	end as center
 	from sub2
 	left join profile_65552 pd
 	ON pd.impl_agency=sub2.projectId
+	left join profile_65603 qw
+	ON qw.projectId=sub2.proj_location
+	ORDER BY fy_timerange desc
   )
-  select * from sub1
+  select * from sub3
