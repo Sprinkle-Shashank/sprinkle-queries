@@ -1,10 +1,18 @@
 select profile_54646.name_vendor_filter, cp_id, 
-LISTAGG(DISTINCT country ) 
+LISTAGG(DISTINCT cou.name) 
 within group (order by profile_54646.name_vendor_filter) as Country1
 FROM profile_5997
  
 LEFT JOIN profile_54646 ON 
 profile_5997.projectId = profile_54646.projid_vendor
+
+left join ds_mysql_prod_project fac
+on projectid = fac.id
+left join ds_mysql_prod_project ven
+on fac.parent = ven.id
+left join ds_mysql_prod_project cou
+on ven.parent = cou.id
+
 where pace_status in (182398) and name_vendor_filter <> ''
 
 group by profile_54646.name_vendor_filter, cp_id
