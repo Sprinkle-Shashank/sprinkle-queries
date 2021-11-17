@@ -13,6 +13,7 @@ SELECT
 FROM
     (SELECT 
         mt.start_date,
+	 	mt.participation_date,
 		mt.end_date,
 		SUM(mt.duration) AS vol_hours,
         mt.country as country,
@@ -21,6 +22,7 @@ FROM
         (
             SELECT 
                 evo.startDate AS start_date,
+		  		evp.created AS participation_date,
                 CASE
                     WHEN evo.endDate IS NOT NULL THEN evo.endDate
                     ELSE evo.startDate
@@ -43,6 +45,7 @@ FROM
 
             SELECT 
                 emo.created AS start_date,
+		  		emc.created AS participation_date,
                 emo.created AS end_date,
                 (emo.timeTaken / 60) AS duration,
                 NULL as country,
@@ -57,7 +60,7 @@ FROM
                     AND emc.active = 1
                     AND eo.active = 1
 	    ) AS mt
-        GROUP BY mt.eoId, mt.start_date, mt.end_date, country
+        GROUP BY mt.eoId, mt.start_date, mt.end_date, country, mt.participation_date
 	) AS endTable
         LEFT JOIN
     ds_mysql_prod_empOpportunityFocusArea eofa ON eofa.empOpportunityId = endTable.eoId
