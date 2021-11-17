@@ -5,7 +5,7 @@ select m.projectid,m.reg_no, m.trainee_name,m.batch_id,m.dob,m.gender,  m.addr,d
 ),
 
 test2 as(
-select p.*, decode(i.donor,null,j.donor,i.donor) as donor, decode(i.donor_commitment,null,j.donor_commitment,i.donor_commitment) as donor_commitment,  decode(i.start,null,j.start,i.start) as start, decode(i.end,null,j.end,i.end) as "end", decode(i.center_name,null,j.center_name,i.center_name) as center_name, decode(i.name,null,j.name,i.name) as batch_id from test1 p
+select p.*, decode(i.donor,null,j.donor,i.donor) as donor, decode(i.donor_commitment,null,j.donor_commitment,i.donor_commitment) as donor_commitment,  decode(i.start,null,j.start,i.start) as start, decode(i.end,null,j.end,i.end) as "end", decode(i.center_name,null,j.center_name,i.center_name) as center_name, decode(i.name,null,j.name,i.name) as batch_id1 from test1 p
 left join profile_196 i on
 p.batch_id=i._id
 left join profile_36904 j on
@@ -13,7 +13,7 @@ p.batch_id=j._id
 ),
 
 test3 as(
-select CHR(123) || '"start"'|| ':' || '"' || substring(p.start,1,10) || 'T00:00:00.000Z' || '"' || ',' || '"end"'|| ':' || '"' || substring(p.end,1,10) || 'T00:00:00.000Z' || '"' || Chr(125) as fy_timerange, t.name as projectid1, substring(p.start,1,10) as start1, substring(p.end,1,10) as end1, substring(p.dob,1,10) as dob1, substring(p.date_of_placement,1,10) as date_of_placement1, p.* from test2 p 
+select CHR(123) || '"start"'|| ':' || '"' || substring(p.start,1,10) || 'T00:00:00.000Z' || '"' || ',' || '"end"'|| ':' || '"' || substring(p.end,1,10) || 'T00:00:00.000Z' || '"' || Chr(125) as fy_timerange1, t.name as projectid1, substring(p.start,1,10) as start1, substring(p.end,1,10) as end1, substring(p.dob,1,10) as dob1, substring(p.date_of_placement,1,10) as date_of_placement1, t2.name as project, p.* from test2 p 
   
 LEFT JOIN ds_mysql_prod_project t on p.projectid=t.id
 LEFT JOIN ds_mysql_prod_project t1 on t.parent=t1.id      
@@ -21,6 +21,7 @@ LEFT JOIN ds_mysql_prod_project t2 on t1.parent=t2.id
 where donor is not null
 )
 
+test4 as(
 select a.name as gender1, r.name as donor1, s.name as type_of_dis1, t.name as city_of_job1, u.name as type1, v.name as role_after_placement1, x.name as district1, y.name as state1, z.name as edu_qual1, b.name as marriage1, c.name as placed1, d.name as emp_name1, p.* from test3 p
 left join ds_mysql_prod_tagelement a on
 p.gender= a.id
@@ -46,7 +47,9 @@ left join ds_mysql_prod_tagelement c on
 p.placed= c.id
 left join ds_mysql_prod_tagelement d on
 p.emp_name= d.id
-
+  )
+  
+select fy_timerange1 as fy_timerange, project, projectid1 as projectid, trainee_name, batch_id1 as batch_id, reg_no, dob1 as dob, gender1 as gender, mobile_no, mobile_number_2, type_of_dis1 as type_of_dis, lvl_of_dis, addr, district1 as district, state1 as state, edu_qual1 as edu_qual, marriage1 as marriage, fam_head, fam_size, fam_occ, fam_income, start1 as start, end1 as "end", placed1 as placed, date_of_placement1 as date_of_placement, emp_name1 as emp_name, role_after_placement1 as role_after_placement, salary, job_loc, type1 as type, city_of_job1 as city_of_job, dropout from test4
 
 
 
