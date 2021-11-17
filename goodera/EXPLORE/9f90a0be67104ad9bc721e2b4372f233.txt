@@ -67,7 +67,7 @@ sub2 as(
   select s1.*, cycle_new from sub1 s1, s1.cycle cycle_new),
   
 sub3 as(
-  select s2.id, s2.projectid, s2.training_type, s2.year, s2.vendor, s2.country, s2.consultant, t5.name as cycle, s2.dimensions, t6.name as values, s2.create_date,
+  select s2.id, s2.projectid, s2.training_type, s2.year, s2.vendor, s2.country, s2.consultant, t5.name as cycle, s2.dimensions, t6.name as values, s2.create_date, 1 as total
 case
   		when t6.name = 'Yes' then 1
   		else 0
@@ -77,7 +77,7 @@ left join ds_mysql_prod_tagelement t5 on t5.id = s2.cycle_new
 left join ds_mysql_prod_tagelement t6 on t6.id = s2.values
 where t6.name is not null)
 
-select s3.projectid, s3.training_type, s3.year, s3.vendor, s3.country, s3.consultant, s3.cycle, sum(s3.yes),
+select s3.projectid, s3.training_type, s3.year, s3.vendor, s3.country, s3.consultant, s3.cycle, sum(s3.yes), sum(s3.total)
 row_number() over (partition by s3.projectid order by s3.create_date asc) as record,
 case
 	when record = 1 then 'Baseline'
