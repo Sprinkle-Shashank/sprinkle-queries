@@ -1,9 +1,7 @@
-drop table if exists rb_volhours;
- create table rb_volhours as
-
 SELECT 
 	cast(timestamp 'epoch' + CAST(endTable.start_date AS BIGINT)/1000 * interval '1 second' as varchar) as start_date,
 	cast(timestamp 'epoch' + CAST(endTable.end_date AS BIGINT)/1000 * interval '1 second' as varchar) as end_date,
+	cast(timestamp 'epoch' + CAST(endTable.participation_date AS BIGINT)/1000 * interval '1 second' as varchar) as participation_date,
     endTable.vol_hours AS vol_hours,
     endTable.eoId AS eoId,
     /*LISTAGG(DISTINCT rfa.name, ',') AS focus_area,
@@ -11,11 +9,12 @@ SELECT
     initcap(LISTAGG(DISTINCT COALESCE(endTable.country, eov.country), ',') ) as country*/
 	rfa.name as focus_area,
 	eofa.focusArea as focus_area_codes, 
-	INITCAP(COALESCE(endTable.country, eov.country)) as country
+	COALESCE(endTable.country, eov.country) as country
                 
 FROM
     (SELECT 
         mt.start_date,
+	 	mt.participation_date,
 		mt.end_date,
 		SUM(mt.duration) AS vol_hours,
         mt.country as country,
@@ -24,6 +23,7 @@ FROM
         (
             SELECT 
                 evo.startDate AS start_date,
+		  		evp.created AS participation_date,
                 CASE
                     WHEN evo.endDate IS NOT NULL THEN evo.endDate
                     ELSE evo.startDate
@@ -46,6 +46,7 @@ FROM
 
             SELECT 
                 emo.created AS start_date,
+		  		emc.created AS participation_date,
                 emo.created AS end_date,
                 (emo.timeTaken / 60) AS duration,
                 NULL as country,
@@ -60,7 +61,7 @@ FROM
                     AND emc.active = 1
                     AND eo.active = 1
 	    ) AS mt
-        GROUP BY mt.eoId, mt.start_date, mt.end_date, country
+        GROUP BY mt.eoId, mt.start_date, mt.end_date, country, mt.participation_date
 	) AS endTable
         LEFT JOIN
     ds_mysql_prod_empOpportunityFocusArea eofa ON eofa.empOpportunityId = endTable.eoId
