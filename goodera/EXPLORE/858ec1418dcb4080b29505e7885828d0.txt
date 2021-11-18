@@ -7,14 +7,15 @@ from profile_62491 p1
 	sub12 as
 	(select sub1.*, case when vendor_name='CARE Ethiopia' then (case when year=2020 then (case when month<8 then 'Apple' end) end) else 'Banana' end as mix from sub1),	
 sub2 as(
-  select id, project_id, project_name, end_date, fy_timerange, pvh_id, region,mix
+  select id, project_id, project_name, end_date, fy_timerange, pvh_id, region
   from sub12
-	group by project_id, fy_timerange, project_name, end_date, id, region, pvh_id,mix),
+  where mix='Banana'
+	group by project_id, fy_timerange, project_name, end_date, id, region, pvh_id),
 	
 sub3 as(
   select s2.*, country from sub2 s2, s2.region country)
   
-select s3.fy_timerange, s3.pvh_id, t1.name as region, count(*) as batches,mix
+select s3.fy_timerange, s3.pvh_id, t1.name as region, count(*) as batches
 	from sub3 s3
 	left join ds_mysql_prod_tagelement t1 on t1.id = s3.country
 	group by s3.fy_timerange, t1.name, s3.pvh_id,mix
