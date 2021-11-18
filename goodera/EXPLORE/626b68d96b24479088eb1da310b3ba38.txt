@@ -1,0 +1,122 @@
+with sub1 as(
+  select p1.time_timerange as fy_timerange, t1.name as country, t2.name as prod_brand
+from profile_32441 p1
+left join profile_63775 p2 on p2._id = p1.program_name
+left join ds_mysql_prod_tagelement t1 on t1.id = p1.country_new
+left join ds_mysql_prod_tagelement t2 on t2.id = p2.product_brand),
+
+--Investment Details (Above)
+
+sub2 as(
+  select p3.fy_timerange, t3.name as country, t4.name as prod_brand
+from profile_78057 p3
+left join ds_mysql_prod_tagelement t3 on t3.id = p3.country
+left join ds_mysql_prod_tagelement t4 on t4.id = p3.product_brand),
+
+--ONE OFF (Above)
+
+sub3 as(
+  select p4.fy_timerange, t5.name as country, t6.name as prod_brand
+from profile_78098 p4
+left join ds_mysql_prod_tagelement t5 on t5.id = p4.country
+left join ds_mysql_prod_tagelement t6 on t6.id = p4.product_brand),
+
+--Brand Led (Above)
+
+sub4 as(
+  select p5.*, is_array(p5.indicator) as indicator_array_check,
+  case 
+  	when (indicator_array_check = false) then array(p5.indicator)
+	else p5.indicator
+  end as indicator_new
+  from profile_55605 p5),
+  
+sub5 as(
+  select s4.*, indicator_605 from sub4 s4, s4.indicator_new indicator_605),
+  
+sub6 as(
+  select s5.time_timerange as fy_timerange, p8.country_new, t7.name as prod_brand
+from sub5 s5
+left join profile_55606 p6 on p6._id = s5.indicator_605
+left join profile_55604 p7 on p7._id = p6.indicator
+left join profile_63775 p8 on p8._id = p7.prog_name
+left join ds_mysql_prod_tagelement t7 on t7.id = p8.product_brand),
+
+sub7 as(
+  select s6.*, country from sub6 s6, s6.country_new country),
+  
+sub8 as(
+  select s7.fy_timerange, s7.prod_brand, t8.name as country
+from sub7 s7
+left join ds_mysql_prod_tagelement t8 on t8.id = s7.country),
+
+--KPIs Data Input
+
+sub9 as(
+  select r1.*, len(cast(r1.start_date as varchar)) as start_date_len,
+len(cast(r1.end_date as varchar)) as end_date_len,
+
+case
+	when (start_date_len = 13) then 
+		cast(timestamp 'epoch' + CAST(r1.start_date AS BIGINT)/1000 * interval '1 second' as varchar)
+	else r1.start_date
+end as start_date_new,
+
+case
+	when (end_date_len = 13) then 
+		cast(timestamp 'epoch' + CAST(r1.end_date AS BIGINT)/1000 * interval '1 second' as varchar)
+	else r1.end_date
+end as end_date_new
+
+from rb_loghours r1),
+
+sub10 as(
+  select (cast(s9.start_date_new as date)||'|'||cast(s9.start_date_new as date)) as fy_timerange,
+case
+  when p9.name is null then 'Global'
+  else p9.name
+end as country,
+cast('Reckitt Global' as varchar) as prod_brand
+from sub9 s9
+left join profile_78788 p9 on p9.vol_country = s9.country),
+
+--- Log Hours (Above) -- 
+
+sub11 as(
+  select r2.*,
+  case
+  		when extract(year from cast(r2.end_date as date)) > extract(year from cast(r2.start_date as date))
+		then r2.participation_date
+		else r2.start_date
+  end as start_date_new
+  from rb_volhours r2),
+ 
+sub12 as(
+  select (cast(s11.start_date_new as date)||'|'||cast(s11.start_date_new as date)) as fy_timerange,
+case
+  when p10.name is null then 'Global'
+  else p10.name
+end as country,
+cast('Reckitt Global' as varchar) as prod_brand
+from sub11 s11
+left join profile_78788 p10 on p10.vol_country = s11.country),
+
+-- Volunteering Hours (Above) --
+  
+sub13 as(
+  select fy_timerange, country, prod_brand from sub1
+	union all
+  select fy_timerange, country, prod_brand from sub2
+	union all
+  select fy_timerange, country, prod_brand from sub3
+	union all
+  select fy_timerange, country, prod_brand from sub8
+	union all
+  select fy_timerange, country, prod_brand from sub10
+	union all
+  select fy_timerange, country, prod_brand from sub12)
+  
+select fy_timerange, country, prod_brand
+from sub13
+where country is not null and prod_brand is not null
+order by prod_brand asc
