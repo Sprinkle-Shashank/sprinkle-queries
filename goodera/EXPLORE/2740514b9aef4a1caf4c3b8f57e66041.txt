@@ -48,6 +48,37 @@ sub7 as(
 sub8 as(
   select s7.fy_timerange, s7.prod_brand, t8.name as country
 from sub7 s7
-left join ds_mysql_prod_tagelement t8 on t8.id = s7.country)
+left join ds_mysql_prod_tagelement t8 on t8.id = s7.country),
 
-select * from sub8
+--KPIs Data Input
+
+sub9 as(
+  select r1.*, len(cast(r1.start_date as varchar)) as start_date_len,
+len(cast(r1.end_date as varchar)) as end_date_len,
+
+case
+	when (start_date_len = 13) then 
+		cast(timestamp 'epoch' + CAST(r1.start_date AS BIGINT)/1000 * interval '1 second' as varchar)
+	else r1.start_date
+end as start_date_new,
+
+case
+	when (end_date_len = 13) then 
+		cast(timestamp 'epoch' + CAST(r1.end_date AS BIGINT)/1000 * interval '1 second' as varchar)
+	else r1.end_date
+end as end_date_new
+
+from rb_loghours r1),
+
+sub10 as(
+  select (cast(s9.start_date_new as date)||'|'||cast(s9.start_date_new as date)) as fy_timerange,
+  case
+  	 when p9.name is null then 'Global'
+  	 else p9.name
+  end as country,
+  cast('Reckitt Global' as varchar) as prod_brand
+  from sub9 s9
+  left join profile_78788 p9 on p9.vol_country = s9.country)
+  
+
+select * from sub10
