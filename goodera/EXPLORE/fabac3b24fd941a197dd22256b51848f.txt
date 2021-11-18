@@ -1,4 +1,4 @@
-select t2.name as Project,t.name as ProjectId,p.fy_timerange,f.name as financial_year
+with Base1 as(select t2.name as Project,t.name as ProjectId,p.fy_timerange,f.name as financial_year
 ,(p.no_of_trainees*p.training_hrs) as training_hrs from profile_196 p
 LEFT JOIN ds_mysql_prod_project t on p.projectId=t.id
 LEFT JOIN ds_mysql_prod_project t1 on t.parent=t1.id
@@ -12,4 +12,5 @@ LEFT JOIN ds_mysql_prod_project t on p.projectId=t.id
 LEFT JOIN ds_mysql_prod_project t1 on t.parent=t1.id
 LEFT JOIN ds_mysql_prod_project t2 on t1.parent=t2.id 
 left join ds_mysql_prod_tagelement f on
-p.financial_year=f.id
+p.financial_year=f.id)
+select Project,ProjectId,fy_timerange,financial_year,sum(training_hrs) from Base1 group by Project,ProjectId,fy_timerange,financial_year
