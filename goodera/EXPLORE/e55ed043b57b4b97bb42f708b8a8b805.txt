@@ -1,13 +1,16 @@
-with Base1 as(select p.projectId,t.name as ProjectId1,t1.name as parent,p.fy_timerange,p.financial_year as year,p.name from profile_145 p
+with Base1 as(select p.projectId,t.name as ProjectId1,p.fy_timerange,p.financial_year as year,p.name from profile_145 p
 LEFT JOIN ds_mysql_prod_project t on p.projectId=t.id
 LEFT JOIN ds_mysql_prod_project t1 on t.parent=t1.id
  
 union all
-select p.projectId,t.name as ProjectId1,t1.name as parent,p.fy_timerange,p.financial_year as year,p.name from profile_36901 p
+select p.projectId,t.name as ProjectId1,p.fy_timerange,p.financial_year as year,p.name from profile_36901 p
 LEFT JOIN ds_mysql_prod_project t on p.projectId=t.id
-LEFT JOIN ds_mysql_prod_project t1 on t.parent=t1.id),Base2 as(select t2.name as Project,p.ProjectId1 as ProjectId,p.fy_timerange,p.year,p.name from Base1 p
+LEFT JOIN ds_mysql_prod_project t1 on t.parent=t1.id),Base2 as(select p.projectId,p.ProjectId1 ,p.fy_timerange,p.year,p.name,count(*) as enrolled from Base1 p
+group by p.ProjectId,p.ProjectId1,p.fy_timerange,p.year,p.name),Base3 as(select t1.name as parent,t2.name as Project,p.enrolled,p.ProjectId1 as ProjectId,p.fy_timerange,z.name as year
 LEFT JOIN ds_mysql_prod_project t on p.projectId=t.id
 LEFT JOIN ds_mysql_prod_project t1 on t.parent=t1.id
-LEFT JOIN ds_mysql_prod_project t2 on t1.parent=t2.id)
-select * from Base2
+LEFT JOIN ds_mysql_prod_project t2 on t1.parent=t2.id
+left join ds_mysql_prod_tagelement z on
+p.year=z.id)																		)
+select * from Base3
 
