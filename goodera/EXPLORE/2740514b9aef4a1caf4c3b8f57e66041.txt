@@ -72,13 +72,36 @@ from rb_loghours r1),
 
 sub10 as(
   select (cast(s9.start_date_new as date)||'|'||cast(s9.start_date_new as date)) as fy_timerange,
+case
+  when p9.name is null then 'Global'
+  else p9.name
+end as country,
+cast('Reckitt Global' as varchar) as prod_brand
+from sub9 s9
+left join profile_78788 p9 on p9.vol_country = s9.country),
+
+--- Log Hours (Above) -- 
+
+sub11 as(
+  select r2.*,
   case
-  	 when p9.name is null then 'Global'
-  	 else p9.name
-  end as country,
-  cast('Reckitt Global' as varchar) as prod_brand
-  from sub9 s9
-  left join profile_78788 p9 on p9.vol_country = s9.country)
+  		when extract(year from cast(r2.end_date as date)) > extract(year from cast(r2.start_date as date))
+		then r2.participation_date
+		else r2.start_date
+  end as start_date_new
+  from rb_volhours r2),
+ 
+sub12 as(
+  select (cast(s11.start_date_new as date)||'|'||cast(s11.start_date_new as date)) as fy_timerange,
+case
+  when p10.name is null then 'Global'
+  else p10.name
+end as country,
+cast('Reckitt Global' as varchar) as prod_brand
+from sub9 s9
+left join profile_78788 p10 on p10.vol_country = s10.country)
+
+-- Volunteering Hours (Above) --
   
 
-select * from sub10
+select * from sub12
