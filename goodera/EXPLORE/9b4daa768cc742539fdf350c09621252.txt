@@ -1,5 +1,5 @@
 with s1 as(
-  Select t.name as proj_location,ttt.name as projectId,tt.name as partner, np.timerange_timerange as fy_timerange, np.student_name, np.email, np.category, np.gender, np.college, np.state, np.city, np.city_tier, t1.name as course,tt1.name as discipline, np.semesetr, np.placed, np.contact, np.exam_fee, np.hard_copy, np.fee_waiver, np.total_fee, np.final_marks, po.impl_agency as imp_partner
+  Select t.name as proj_location,ttt.name as projectId,tt.name as partner, np.timerange_timerange as fy_timerange, np.student_name, np.email, np.category, np.gender, np.college, np.state, np.city, np.city_tier, t1.name as course,tt1.name as discipline, np.semesetr, np.placed, np.contact, np.exam_fee, np.hard_copy, np.fee_waiver, np.total_fee, np.final_marks, ,mc.name as state_code ,po.impl_agency as imp_partner
 from profile_63517 np
 left join ds_mysql_prod_project t
 on np.projectid=t.id
@@ -13,14 +13,15 @@ left join ds_mysql_prod_tagelement t1
 on np.discipline=t1.id
 left join ds_mysql_prod_tagelement tt1
 on t1.parent=tt1.id
+  left join profile_73573 mc
+   on np.state=mc.nptel_loc
   ),
   
  s2 as(
-   Select s1.proj_location, s1.fy_timerange, s1.gender, s1.state, s1.course, s1.placed, s1.partner, s1.projectId, s1.imp_partner,count(*) no_benf,listagg(distinct s1.college) no_colleges,listagg(distinct s1.course) no_courses, listagg(distinct s1.state) no_states, listagg(distinct s1.discipline) no_disciplines ,mc.name as state_code 
+   Select s1.proj_location, s1.fy_timerange, s1.gender, s1.state, s1.course, s1.placed, s1.partner, s1.projectId, s1.state_code,s1.imp_partner,count(*) no_benf,listagg(distinct s1.college) no_colleges,listagg(distinct s1.course) no_courses, listagg(distinct s1.state) no_states, listagg(distinct s1.discipline) no_disciplines 
    from s1
-   left join profile_73573 mc
-   on s1.state=mc.nptel_loc
-   group by s1.proj_location, s1.fy_timerange, s1.gender, s1.state, s1.course, s1.placed, s1.partner, s1.projectId,s1.imp_partner,mc.name
+   
+   group by s1.proj_location, s1.fy_timerange, s1.gender, s1.state, s1.course, s1.placed, s1.partner, s1.projectId,s1.imp_partner,s1.state_Code
  )
  
  Select * from s2
