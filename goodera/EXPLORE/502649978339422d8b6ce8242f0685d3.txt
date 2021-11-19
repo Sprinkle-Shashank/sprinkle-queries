@@ -1,7 +1,8 @@
-select t.name as ProjectId,t2.name as Project,p.name,p.fy_timerange,p.salary/12 as salary,f.name as year from profile_145 p
+with base1 as(select t.name as ProjectId,t2.name as Project,p.name,p.fy_timerange,p.salary/12 as salary,f.name as year from profile_145 p
 LEFT JOIN ds_mysql_prod_project t on p.projectId=t.id
 LEFT JOIN ds_mysql_prod_project t1 on t.parent=t1.id
 LEFT JOIN ds_mysql_prod_project t2 on t1.parent=t2.id
 left join ds_mysql_prod_tagelement f on
 p.financial_year=f.id
-where p.placed=3606 and p.salary is not null
+where p.placed=3606 and p.salary is not null)
+select ProjectId,Project,name,fy_timerange,avg(salary),year from base1 group by ProjectId,Project,name,fy_timerange,year 
