@@ -1,0 +1,24 @@
+with s1 as(Select 
+ t2.name as projectId,t.name as proj_location,t1.name as partner, st.start_date, st.end_date, st.course, st.num_modules, st.num_tests ,po.impl_agency as imp_partner,pl.location,case
+	when dab.end_date is null then '2030-05-02T00:00:00.000Z'
+    else dab.end_date 
+	end as end_date,
+		concat(concat(concat(concat('{"start":"', dab.start_date),'","end":"'),end_date),'"}') as fy_timerange
+ from profile_65049 st
+left join ds_mysql_prod_project t
+on nbd.projectid=t.id
+left join ds_mysql_prod_project t1
+on t.parent=t1.id
+left join ds_mysql_prod_project t2
+on t1.parent=t2.id
+left join profile_65552 po
+on po.projectid=t.parent
+left join profile_65603 pl
+on pl.projectid=st.projectid
+),
+s2 as(
+select s1.proj_location, s1.proj_location, s1.partner, s1.projectId, s1.location, s1.imp_partner, s1.fy_timerange, s1.course,
+  count(*) no_of_rows,sum(num_modules) no_modules
+  group by  s1.proj_location, s1.proj_location, s1.partner, s1.projectId, s1.location, s1.imp_partner, s1.fy_timerange, s1.course
+)
+Select * from s2		   
