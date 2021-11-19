@@ -1,0 +1,19 @@
+with s1 as(
+  Select t2.name as projectId,t.name as proj_location,t1.name as partner, ad.activity_type, ad.activity_date as fy_timerange, ad.remarks, ad.location, ad.beneficiaries_reach, ad.no_capgemini, ad.photo,po.impl_agency as imp_partner
+from profile_65225 ad
+left join ds_mysql_prod_project t
+on ad.projectid=t.id
+left join ds_mysql_prod_project t1
+on t.parent=t1.id
+left join ds_mysql_prod_project t2
+on t1.parent=t2.id
+left join profile_65552 po
+on po.projectid=t.parent
+),
+
+s2 as (
+Select s1.proj_location, s1.fy_timerange, s1.location, s1.partner, s1.projectId, s1.imp_partner,count(*) no_activities,sum(beneficiaries_reach) no_benef,sum(no_capgemini) no_capgemini
+  from s1
+  
+)
+Select * from s2
