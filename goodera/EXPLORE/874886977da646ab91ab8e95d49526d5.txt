@@ -1,2 +1,37 @@
-Select bd.projectId, bd.bene_disability, bd.edu_quali, bd.bd.disability_type, bd.family_income, bd.bene_batch, bd.name_bene, bd.disability_degree, bd.bene_gender, bd.bene_occu, bd.bd.date_enroll, bd.email_id, bd.disability_certi, bd.bene_photo, bd.photograph_of_id, bd.certified_yn, bd.certi_file, bd.date_completion, bd.reason_dropout, bd.dropout_others, bd.stage_dropout, bd.placed_yn, bd.bd.placement_sector, bd.placed_capgemini, bd.mobile_no, bd.dependants, bd.bene_age, bd.enroll_fee, bd.personal_income, bd.attend_percentage, bd.final_percentage, bd.placed_timerange
+Select t2.name as projectId, bd.bene_disability, bd.edu_quali, bd.bd.disability_type, bd.family_income, bd.bene_batch, bd.name_bene, bd.disability_degree, bd.bene_gender, bd.bene_occu, bd.bd.date_enroll, bd.email_id, bd.disability_certi, bd.bene_photo, bd.photograph_of_id, bd.certified_yn, bd.certi_file, bd.date_completion, bd.reason_dropout, bd.dropout_others, bd.stage_dropout, bd.placed_yn, bd.bd.placement_sector, bd.placed_capgemini, bd.mobile_no, bd.dependants, bd.bene_age, bd.enroll_fee, bd.personal_income, bd.attend_percentage, bd.final_percentage, bd.placed_timerange,da.end_date,da.course_name,da.centre_name,dac.center_college,
+  case 
+	when  bd.date_completion is null then da.end_date
+	else  bd.date_completion
+	end as date_c,
+case
+	when date_c is null then "2030-12-31T00:00:00.000Z"
+    else date_c
+	end as date_Completion
+	concat(concat(concat(concat('{"start":"', bd.bd.date_enroll),'","end":"'),date_Completion),'"}') as fy_timerange,cg.location,
+	po.impl_agency as imp_partner
+	
+	case
+	  when bd.bene_age <= 16 then "Less than 16"
+	  when bd.bene_age >= 17  and bd.bene_age <= 22 then "17 to 22"
+	  when bd.bene_age >= 23  and bd.bene_age <= 30 then "23 to 30"
+	  when bd.bene_age >= 31  then "More than 30"
+	  else 0
+	  end as age_bucket
+	
+	
+	
 from profile_56630 bd
+left join ds_mysql_prod_project t
+on bd.projectid=t.id
+left join ds_mysql_prod_project t1
+on t.parent=t1.id
+left join ds_mysql_prod_project t2
+on t1.parent=t2.id
+left join profile_56628  da
+on da._id=bd.bene_batch
+left join profile_65603 cg
+on t.name=cg.projectid
+left join profile_65552 po
+on t1.name=po.projectid
+left join profile_566287 dac
+on da.centre_name=dac.id
