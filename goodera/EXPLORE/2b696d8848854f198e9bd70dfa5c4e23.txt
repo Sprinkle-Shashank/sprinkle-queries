@@ -1,2 +1,25 @@
-SELECT group_name, groupid, surveyid, country, fy_timerange, sacid, verified_posted
-from profile_74133
+with sub1 as(
+SELECT sq.group_name, sq.groupid, sq.surveyid, sq.country, sq.fy_timerange, sq.sacid, sq.verified_posted, mr.timeperiod_timerange, mr.source_div, pd.cdms_id
+from profile_74133 sq
+left join profile_74334 pd
+on sq.sacid=pd.higg_id
+left join profile_60928 mr
+on pd.cdms_id=mr.factory_id
+where COALESCE(sq.verified_posted, 0)=1221644
+order by timperiod_timerange desc
+  ),
+  sub2 as(
+	select country, fy_timerange, verified_posted, cdms_id, source_div
+	from sub1
+	group by country, fy_timerange, verified_posted, cdms_id, source_div
+  ),
+  sub3 as(
+	select country, fy_timerange, verified_posted, cdms_id, source from sub2 s2, s2.source_div source
+  )
+  select t1.name as region, fy_timerange, verified_posted, cdms_id, source as source_div
+  from sub3
+  left join ds_mysql_prodtagelement t
+  on t.id=country
+  left join ds_mysql_prod_tagelement t1
+  on t.parent=t1.id
+  where cdms_id is not null
