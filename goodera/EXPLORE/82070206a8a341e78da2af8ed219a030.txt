@@ -1,18 +1,45 @@
-Select p.start_year as financial_year,p.start_quarter as quarter,profile_54646.name_country as country,profile_54646.name_vendor as Partner,profile_54646.name_vendor_filter as Partner_consolidated,p.select_modules,mod.name as modules,
-case when (p.end_date_2 != NULL) AND (p.select_modules = 64503)
+with table1 as(Select p.select_modules,p._id,hours from profile_4227 p
+),
+table2 as (select t1.*,p.*,CAST(select_modules as int) from table1 t1,t1.select_modules select_module
+
+),
+/*case when (p.end_date_2 != NULL) AND (p.select_modules = 64503)
 Then
 (p.num_females_graduated/p.num_females)*100
 else
 0
 end as avg_graduation_rate
  
+*/
+table3 as (
+select * from table2
 
-from profile_4227 p
 
-
-left join profile_54646 on 
-p.projectId = profile_54646.projectId
 left join ds_mysql_prod_tagelement mod 
 on p.select_modules = mod.id
+  
+WHERE select_module = 64503
+or select_module = 70912
+or select_module = 70941
+or select_module = 70900
+or select_module = 70910
+or select_module = 70913
+or select_module = 70909
+or select_module = 70903
+or select_module = 70901
+or select_module = 70902
+or select_module = 70911
+or select_module = 264682
+or select_module = 264684
+or select_module = 264683
+AND 
+p.end_date_2 != NULL 
+  
+ ) 
+select listagg(select_module, ', ') ,hours,count(*)
 
-Group BY p.start_year,p.start_quarter,p.hours,profile_54646.name_country,profile_54646.name_vendor,profile_54646.name_vendor_filter,p.select_modules,p.end_date_2,p.num_females_graduated,p.num_females,mod.name
+from table3
+
+
+
+Group BY p.start_year,p.start_quarter,p.hours,profile_54646.name_country,profile_54646.name_vendor,profile_54646.name_vendor_filter,p.select_modules,p.end_date_2,p.num_females_graduated,p.num_females,mod.name,p._id,hours
