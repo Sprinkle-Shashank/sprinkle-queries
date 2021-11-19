@@ -1,19 +1,22 @@
 with sub1 as(
-	select p1._id as id, p1.project_id, p1.fy_timerange, p2.pvh_id, p3.region, p1.end_date_2 as end_date, p1.num_females, p1.project_name, extract(year from cast(fy_timerange.start as date)) as year, p1.program_type_3
+	select p1._id as id, p1.project_id, p1.fy_timerange, p2.pvh_id, p3.region, p1.end_date_2 as end_date, p1.num_females, p1.project_name, extract(year from cast(fy_timerange.start as date)) as year, p1.program_type_3, extract(month from cast(fy_timerange.start as date)) as month,p3.vendor_name
 from profile_62491 p1
 	left join profile_62948 p2 on p2.project_id = p1.project_id
 	left join profile_60928 p3 on p2.pvh_id = p3.factory_id
-    where p2.pvh_id is not NULL),
-	
+    where p2.pvh_id is not NULL and COALESCE(lg_status,0)!=1105812 
+  and p2.offset_date<=p1.start_date),
+		sub12 as
+	(select sub1.*, case when vendor_name='CARE Ethiopia' then (case when year=2020 then (case when month<8 then 'Take' end) end) else 'Ignore' end as mix from sub1),	
 sub2 as(
-  select id, project_id, project_name, end_date, fy_timerange, pvh_id, region, sum(num_females) as females,  p1.program_type_3
+  select id, project_id, project_name, end_date, fy_timerange, pvh_id, region, sum(num_females) as females,  program_type_3
   from sub1 
-	group by project_id, fy_timerange, project_name, end_date, id, region, pvh_id,  p1.program_type_3),
+    where mix='Ignore'
+	group by project_id, fy_timerange, project_name, end_date, id, region, pvh_id,  program_type_3),
 	
 sub3 as(
   select s2.*, country from sub2 s2, s2.region country)
   
-select s3.fy_timerange, s3.pvh_id, t1.name as region, females,  p1.program_type_3
+select s3.fy_timerange, s3.pvh_id, t1.name as region, females,  program_type_3
 	from sub3 s3
 	left join ds_mysql_prod_tagelement t1 on t1.id = s3.country
-	group by s3.fy_timerange, t1.name, s3.pvh_id, females,  p1.program_type_3
+	group by s3.fy_timerange, t1.name, s3.pvh_id, females,  program_type_3
