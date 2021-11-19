@@ -13,18 +13,34 @@ select fy_timerange.start as fy_timerange, projectid,'Allied' as f_category, pee
 ),
 
 test2 as(
-select fy_timerange.start as fy_timerange, projectid,'Trucker' as f_category, truckers as final_sum from profile_59325
+select p.date as fy_timerange, projectid,'Trucker' as f_category, truckers as final_sum from profile_59325 p
   union all
-select fy_timerange.start as fy_timerange, projectid,'Allied' as f_category, allied as final_sum from profile_59325
+select p.date as fy_timerange, projectid,'Allied' as f_category, allied as final_sum from profile_59325 p
 ),
 
 test3 as(
-select fy_timerange.start as fy_timerange, projectid,'Trucker' as f_category, (decode(truckers_one_to_one_sessions,null,0,truckers_one_to_one_sessions) + decode(truckers_one_to_group_sessions ,null,0,truckers_one_to_group_sessions) + decode(tbone,null,0,tbone) + decode(tbgroup,null,0,tbgroup)) as final_sum from profile_59326
+select p.date as fy_timerange, projectid,'Trucker' as f_category, (decode(truckers_one_to_one_sessions,null,0,truckers_one_to_one_sessions) + decode(truckers_one_to_group_sessions ,null,0,truckers_one_to_group_sessions) + decode(tbone,null,0,tbone) + decode(tbgroup,null,0,tbgroup)) as final_sum from profile_59326 p
   union all
-select fy_timerange.start as fy_timerange, projectid,'Allied' as f_category, (decode(allied_one_to_one_sessions,null,0,allied_one_to_one_sessions) + decode(allied_one_to_group_sessions ,null,0,allied_one_to_group_sessions) + decode(abone,null,0,abone) + decode(abgroup,null,0,abgroup)) as final_sum from profile_59326
+select p.date as fy_timerange, projectid,'Allied' as f_category, (decode(allied_one_to_one_sessions,null,0,allied_one_to_one_sessions) + decode(allied_one_to_group_sessions ,null,0,allied_one_to_group_sessions) + decode(abone,null,0,abone) + decode(abgroup,null,0,abgroup)) as final_sum from profile_59326 p
+),
+
+test4 as(
+select p.date as fy_timerange, projectid,'Trucker' as f_category, (decode(truckers,null,0,truckers) + decode(truckerg ,null,0,truckerg) + decode(truckers_tb,null,0,truckers_tb) + decode(truckers_tb_group,null,0,truckers_tb_group)) as final_sum from profile_60456 p
+  union all
+select p.date as fy_timerange, projectid,'Allied' as f_category, (decode(allied,null,0,allied) + decode(alliedg ,null,0,alliedg) + decode(allied_tb,null,0,allied_tb) + decode(allied_tb_group,null,0,allied_tb_group)) as final_sum from profile_60456 p
+),
+
+test5 as(
+select fy_timerange, projectid, f_category, sum(final_sum) as final_sum from test1 where final_sum is not null
+  union all
+select fy_timerange, projectid, f_category, sum(final_sum) as final_sum from test2 where final_sum is not null
+  union all
+select fy_timerange, projectid, f_category, sum(final_sum) as final_sum from test3 where final_sum is not null
+  union all
+select fy_timerange, projectid, f_category, sum(final_sum) as final_sum from test4 where final_sum is not null
 )
 
-select fy_timerange, project.name as projectid, f_category,sum(final_sum) as final_sum
-from final left join ds_mysql_prod_project as project
-on project.id = final.projectid
+select p.fy_timerange, project.name as projectid, p.f_category, sum(p.final_sum) as final_sum
+from test5 p left join ds_mysql_prod_project as project
+on project.id = p.projectid
 group by 1,2,3
