@@ -1,9 +1,10 @@
-select t2.name as Project,p.fy_timerange,f.name as year,p.emp_name from profile_145 p
+with Base1 as(select t2.name as Project,p.fy_timerange,f.name as financial_year,p.emp_name from profile_145 p
 LEFT JOIN ds_mysql_prod_project t on p.projectId=t.id
 LEFT JOIN ds_mysql_prod_project t1 on t.parent=t1.id
 LEFT JOIN ds_mysql_prod_project t2 on t1.parent=t2.id
 left join ds_mysql_prod_tagelement f on
 p.financial_year=f.id
+where p.emp_name is not null
 
 union all
 select t2.name as Project,p.fy_timerange,f.name as year,p.emp_name from profile_36901 p
@@ -12,3 +13,6 @@ LEFT JOIN ds_mysql_prod_project t1 on t.parent=t1.id
 LEFT JOIN ds_mysql_prod_project t2 on t1.parent=t2.id
 left join ds_mysql_prod_tagelement f on
 p.financial_year=f.id
+where p.emp_name is not null),Base2 as(select Project,fy_timerange,financial_year,emp_name,count(*) from Base1 group by  Project,fy_timerange,financial_year,emp_name)
+select * from Base2
+--select Project,fy_timerange,financial_year,emp_name fro
