@@ -1,0 +1,26 @@
+with s1 as(
+  Select   t.name as proj_location,t1.name as partner,t2.name as projectId, sbd.enroll_date, sbd.gender, sbd.completion_date,pl.location,po.impl_agency as imp_partner,
+  case
+	when sbd.date_Completion is null then '2030-02-02T00:00:00.000Z'
+    else sbd.date_Completion
+	end as date_Completion,
+	concat(concat(concat(concat('{"start":"', sbd.enroll_date),'","end":"'),date_Completion),'"}') as fy_timerange
+from profile_74949 sbd
+eft join ds_mysql_prod_project t
+on sd.projectid=t.id
+left join ds_mysql_prod_project t1
+on t.parent=t1.id
+left join ds_mysql_prod_project t2
+on t1.parent=t2.id
+left join profile_65603 pl
+on pl.projectid=sbd.projectid
+left join profile_65552 po
+on po.projectid=t.parent
+),
+s2 as (
+Select s1.proj_location, s1.gender, s1.partner, s1.projectId, s1.fy_timerange, s1.location, s1.imp_partner,count(*)
+  group by s1.proj_location, s1.gender, s1.partner, s1.projectId, s1.fy_timerange, s1.location, s1.imp_partner
+
+)
+Select * from s2
+ 
