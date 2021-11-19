@@ -1,19 +1,19 @@
 with sub1 as(
-SELECT sq.country, sq.fy_timerange, pd.cdms_id, sq.verified_posted
+SELECT sq.country, sq.fy_timerange, pd.cdms_id, sq.verified_posted, source
 --  ANY_VALUE(source_div) as source_div
-from profile_74133 sq
+from profile_74133 sq, sq.source_div as source
 left join profile_74334 pd
 on sq.sacid=pd.higg_id
 left join profile_60928 mr
 on pd.cdms_id=mr.factory_id
 group by country, fy_timerange, verified_posted, cdms_id
   ),
-  sub2 as(
-	select source, s1.country, s1.fy_timerange, s1.cdms_id, s1.verified_posted from sub1 s1, s1.source_div source
-  ),
+--  sub2 as(
+--	select source, s1.country, s1.fy_timerange, s1.cdms_id, s1.verified_posted from sub1 s1, s1.source_div source
+--  ),
   sub3 as(
   select  t1.name as region,s1.source as source_div, s1.fy_timerange  
-  from sub2 s1 
+  from sub1 s1 
   left join ds_mysql_prod_tagelement t 
   on t.id=s1.country
   left join ds_mysql_prod_tagelement t1 
@@ -21,5 +21,5 @@ group by country, fy_timerange, verified_posted, cdms_id
     where cdms_id is NOT NULL
   group by fy_timerange, t1.name, s1.source
 	)
-	select * from sub1
+	select * from sub3
   
