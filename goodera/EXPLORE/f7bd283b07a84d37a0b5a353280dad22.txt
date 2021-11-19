@@ -1,7 +1,8 @@
 with sub1 as(
 Select t.name as proj_location, sq.fy_timerange, sq.headline, sq.brief, sq.source, sq.date, sq.photo, sq.url,t2.name as partner,t3.name as projectId,sq.projectId as p1, t.parent as h,
   case when get_array_length(sq.source) = 0 then array(0)
-  else COALESCE(sq.source,array(0)) end new_source
+  else COALESCE(sq.source,array(0)) end new_source,
+  sq.projectId as h1
   FROM profile_65561 sq
   left join ds_mysql_prod_project as t 
   on sq.projectId = t.id
@@ -13,12 +14,11 @@ Select t.name as proj_location, sq.fy_timerange, sq.headline, sq.brief, sq.sourc
   ),
   
 sub2 as(
-  Select s1.p1,s1.proj_location, s1.fy_timerange, s1.headline, s1.brief, source1, s1.date, s1.photo, s1.url,substring(date,1,10) ,'Click Here' as Click, s1.projectId,s1.partner,s1.h
+  Select s1.p1,s1.proj_location, s1.fy_timerange, s1.headline, s1.brief, source1, s1.date, s1.photo, s1.url,substring(date,1,10) ,'Click Here' as Click, s1.projectId,s1.partner,s1.h,s1.h1
   from sub1 s1, s1.new_source source1
   ),
   sub3 as(
-	Select sub2.proj_location, sub2.fy_timerange, sub2.headline, sub2.brief, source1, sub2.date, sub2.photo, sub2.url,substring(date,1,10) ,Click, pd.impl_agency as imp_partner, ----qw.location,
-	pd.focus_area,pd.project_type,sub2.partner,
+	Select sub2.proj_location, sub2.fy_timerange, sub2.headline, sub2.brief, source1, sub2.date, sub2.photo, sub2.url,substring(date,1,10) ,Click, pd.impl_agency as imp_partner, qw.location,pd.focus_area,pd.project_type,sub2.partner,
 	case
 		when sub2.p1=53580 then 'Barola'
 		when sub2.p1=53412 then 'Sardarpur'
@@ -29,9 +29,8 @@ sub2 as(
 	from sub2
 	left join profile_65552 pd
 	ON sub2.h=pd.projectid
----	left join profile_65603 qw
----	ON qw.projectid=sub2.proj_location
+	left join profile_65603 qw
+	ON qw.projectid=sub2.h1
 	ORDER BY fy_timerange desc
-	
 )
   select * from sub3
