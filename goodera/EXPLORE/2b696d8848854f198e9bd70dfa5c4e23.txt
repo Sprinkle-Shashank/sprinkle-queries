@@ -8,22 +8,19 @@ on pd.cdms_id=mr.factory_id
 order by timeperiod_timerange desc
   ),
   sub2 as(
-	select country, fy_timerange, verified_posted, cdms_id, source_div[1] as source_div
+	select country, fy_timerange, verified_posted, cdms_id, source_div
 	from sub1
-
+ where COALESCE(verified_posted, 0)=1221644
 	group by country, fy_timerange, verified_posted, cdms_id, source_div
   ),
   sub3 as(
 	select country, fy_timerange, verified_posted, cdms_id, source from sub2 s2, s2.source_div source
-		where COALESCE(verified_posted, 0)=1221644
   )
-  select * from sub3
-  /*
-  select t1.name as region, fy_timerange, verified_posted, cdms_id, source as source_div
+  select t1.name as region, fy_timerange, verified_posted, cdms_id as facs, 1 as count, source as source_div
   from sub3
   left join ds_mysql_prod_tagelement t
   on t.id=country
   left join ds_mysql_prod_tagelement t1
   on t.parent=t1.id
-  where cdms_id is not null*/
+  where cdms_id is not null
   
