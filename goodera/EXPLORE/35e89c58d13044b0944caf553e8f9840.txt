@@ -1,16 +1,19 @@
 
 with sub1 as(
-Select sq.select_modules, sq.end_date_2, sq.fy_timerange, sq.num_females_graduated, sq.num_males, sq.hours, sq.num_females, sq.num_females_dropout, sq.num_males_graduated, sq.num_males_dropout, p2.pvh_id, sq.name, p3.region, p3.timeperiod_timerange, extract(year from cast(fy_timerange.start as date)) as year
+Select sq.select_modules, sq.end_date_2, sq.fy_timerange, sq.num_females_graduated, sq.num_males, sq.hours, sq.num_females, sq.num_females_dropout, sq.num_males_graduated, sq.num_males_dropout, p2.pvh_id, sq.name, p3.region, p3.timeperiod_timerange, extract(year from cast(fy_timerange.start as date)) as year, extract(month from cast(fy_timerange.start as date)) as month,p3.vendor_name
 FROM profile_62491 sq
 LEFT JOIN profile_62948 p2 
 ON p2.project_id=sq.project_id
 LEFT JOIN profile_60928 p3
 ON p2.pvh_id=p3.factory_id
-where year >= 2020 and p2.pvh_id IS NOT NULL),
-
+where year >= 2020 and p2.pvh_id IS NOT NULL and COALESCE(lg_status,0)!=1105812 
+  and p2.offset_date<=p1.start_date ),
+	sub12 as
+	(select sub1.*, case when vendor_name='CARE Ethiopia' then (case when year=2020 then (case when month<8 then 'Take' end) end) else 'Ignore' end as mix from sub1),
 sub2 as(
   Select select_modules, end_date_2, fy_timerange, num_females_graduated, num_males, sum(hours) as hours, num_females, num_females_dropout, num_males_graduated, num_males_dropout, pvh_id, name, region
-  from sub1
+  from sub12
+    where mix='Ignore'
   group by select_modules, end_date_2, fy_timerange, num_females_graduated, hours, num_males, num_females, num_females_dropout, num_males_graduated, num_males_dropout, pvh_id, name, region),
   
 sub3 as(
