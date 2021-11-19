@@ -4,15 +4,17 @@ from profile_60928 sq
   order by month desc
 ),
 sub2 as(
-  select  region_parent as region, factory_id,fy_timerange, source_div
+  select  region_parent as region, factory_id,fy_timerange, 
+  case when get_array_length(source_div) = 0 then array(0)
+  else COALESCE(source_div,array(0)) end new_source
   from sub1
 left join profile_64189 pd
 on sub1.fy=pd.year_text
 left join profile_74269 mr
 on pd.year_num=mr.fy
-  group by region_parent, fy_timerange, factory_id, source_div
+  group by region_parent, fy_timerange, factory_id
   ),
   sub3 as(
-  select region, factory_id,fy_timerange, source from sub2 s2, s2.source_div source)
+  select region, factory_id,fy_timerange, source from sub2 s2, s2.new_source source)
   select fy_timerange, source as source_div, region, factory_id as facs, 1 as count from sub3
   group by fy_timerange, source, region, factory_id
