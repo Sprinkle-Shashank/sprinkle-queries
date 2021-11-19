@@ -1,5 +1,7 @@
 with sub1 as(
-Select t.name as proj_location, sq.fy_timerange, sq.headline, sq.brief, sq.source, sq.date, sq.photo, sq.url,t2.name as partner,t3.name as projectId,sq.projectId as p1, t.parent as h
+Select t.name as proj_location, sq.fy_timerange, sq.headline, sq.brief, sq.source, sq.date, sq.photo, sq.url,t2.name as partner,t3.name as projectId,sq.projectId as p1, t.parent as h,
+  case when get_array_length(sq.source) = 0 then array(0)
+  else COALESCE(sq.source,array(0)) end new_source
   FROM profile_65561 sq
   left join ds_mysql_prod_project as t 
   on sq.projectId = t.id
@@ -9,6 +11,7 @@ Select t.name as proj_location, sq.fy_timerange, sq.headline, sq.brief, sq.sourc
   on t2.parent=t3.id 
   
   ),
+  
 sub2 as(
   Select s1.p1,s1.proj_location, s1.fy_timerange, s1.headline, s1.brief, source1, s1.date, s1.photo, s1.url,substring(date,1,10) ,'Click Here' as Click, s1.projectId,s1.partner,s1.h
   from sub1 s1, s1.source source1
