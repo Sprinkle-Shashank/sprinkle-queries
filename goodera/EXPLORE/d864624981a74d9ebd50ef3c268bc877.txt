@@ -1,0 +1,41 @@
+with s1 as (
+  Select t2.name as projectId,t.name as proj_location,t1.name as partner, sd.college_university, sd.gender, sd.course_enrolled, sd.date_enroll, sd.date_completion, sd.age, sd.mock_interview_num, sd.salary,pl.location,po.impl_agency as imp_partner,cd.location city,tt.name as state,tt2.name as course_enrolled,
+  case 
+	when  bd.date_completion is null then da.end_date
+	else  bd.date_completion
+	end as date_Completion,
+	concat(concat(concat(concat('{"start":"', bd.date_enroll),'","end":"'),date_Completion),'"}') as fy_timerange,
+ from profile 65050 sd
+ left join ds_mysql_prod_project t
+on sd.projectid=t.id
+left join ds_mysql_prod_project t1
+on t.parent=t1.id
+left join ds_mysql_prod_project t2
+on t1.parent=t2.id
+left join profile_65603 pl
+on pl.projectid=sd.projectid
+left join profile_65552 po
+on po.projectid=t1.name
+left join profile_65048 cd
+on cd._id=sd.college_university
+left join ds_mysql_prod_tagelement tt
+on cd.location=tt.id
+left join ds_mysql_prod_tagelement tt1
+on tt.parent=tt1.id
+left join profile_65049 td
+on td._id=sd.course_enrolled
+left join ds_mysql_prod_tagelement tt2
+on td.course=tt2.id
+
+),
+s2 as (
+Select s1.proj_location, s1.gender, s1.partner, s1.projectId, s1.imp_partner, s1.fy_timerange, s1.course_enrolled course, s1.location,
+  count(*) no benef
+
+)
+
+Select s2.*,gg.name as state_code
+from s2
+left join profile_73573  gg
+on s1.location=gg.loc_select
+
