@@ -1,10 +1,62 @@
 with temp as(
-
-)
-,
+Select '' as col
+union all
+Select '' as col
+union all
+Select '' as col
+union all
+Select '' as col
+union all
+Select '' as col
+union all
+Select '' as col
+union all
+Select '' as col
+union all
+Select '' as col
+),
 s1 as (
-Select t2.name as projectId,t.name as proj_location,t1.name as partner, sd.baseline_yn, sd.midline_yn, sd.third_year_enroll, sd.date_enroll, sd.date_completion, sd.placed_yn, sd.capgemini_yn,sd.endline_yn sd.job_change_yn,pl.location,po.impl_agency as imp_partner,
-		concat(concat(concat(concat('{"start":"', sd.date_enroll),'","end":"'),sd.date_completion),'"}') as fy_timerange
+Select t2.name as projectId,t.name as proj_location,t1.name as partner, sd.baseline_yn, sd.midline_yn, sd.third_year_enroll, sd.date_enroll, sd.date_completion, sd.placed_yn, sd.capgemini_yn,tt.name as endline_yn ,sd.job_change_yn,pl.location,po.impl_agency as imp_partner,
+ case
+	when endline_yn is null then 0
+    else endline_yn 
+	end as endline_yn,
+		concat(concat(concat(concat('{"start":"', sd.date_enroll),'","end":"'),sd.date_completion),'"}') as fy_timerange,
+  case
+	when endline_yn='Yes' then 1 
+	else 0
+	end as Students_Graduated,
+case
+	when endline_yn=0 then 1 
+	else 0
+	end as Students_in_Training,
+case
+	when endline_yn='No' then 1 
+	else 0
+	end as Dropouts,
+case
+	when midline_yn=20779 then 1 
+	else 0
+	end as Students_Cleared_Mid_line_Exam,
+case
+	when third_year_enroll=20779 then 1 
+	else 0
+	end as Students_Enrolled_in_3rd_Year_Courses,
+case
+	when placed_yn='Yes' then 1 
+	else 0
+	end as Students_Placed,
+case
+	when capgemini_yn=20779 then 1 
+	else 0
+	end as Students_Hired_by_Capgemini,
+case
+	when job_change_yn=20780 then 1 
+	else 0
+	end as Students_in_Same_Job_After_6_Months,
+
+
+
 
 from profile_65050 sd
 left join ds_mysql_prod_project t
@@ -17,6 +69,8 @@ left join profile_65603 pl
 on pl.projectid=sd.projectid
 left join profile_65552 po
 on t.parent=po.projectid
+left join ds_mysql_prod_tagelement tt
+on tt.id=sd.endline_yn
 where sd.date_completion IS NOT NULL
 ),
 S2 as (
@@ -26,3 +80,4 @@ group by s1.proj_location, s1.partner, s1.projectId, s1.location, s1.imp_partner
 )
 
 Select * from s2
+
