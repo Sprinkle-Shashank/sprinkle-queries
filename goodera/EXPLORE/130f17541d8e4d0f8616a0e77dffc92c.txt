@@ -76,7 +76,7 @@ on tt.id=sd.endline_yn
 where sd.date_completion IS NOT NULL
 ),
 S2 as (
-Select s1.proj_location, s1.partner, s1.projectId, s1.location, s1.imp_partner, s1.fy_timerange,
+Select s1.proj_location, s1.partner, s1.projectId, s1.location, s1.imp_partner, s1.fy_timerange,temp.col as status
 sum(
 case 	
  	when 'Students_Graduated' then s1.Students_Graduated
@@ -91,8 +91,10 @@ case
   end
 ) as count
   from s1
-group by s1.proj_location, s1.partner, s1.projectId, s1.location, s1.imp_partner, s1.fy_timerange
+group by s1.proj_location, s1.partner, s1.projectId, s1.location, s1.imp_partner, s1.fy_timerange,temp.col
 )
 
-Select * from s2
+Select s2.proj_location, s2.partner, s2.projectId, s2.location, s2.imp_partner, s2.fy_timerange
+from s2
+where Coalesce (s2.status,0)='Students_Placed'
 
