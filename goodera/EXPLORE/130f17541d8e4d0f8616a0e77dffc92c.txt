@@ -7,7 +7,47 @@ Select t2.name as projectId,t.name as proj_location,t1.name as partner, sd.basel
     else endline_yn 
 	end as endline_yn,
 		concat(concat(concat(concat('{"start":"', sd.date_enroll),'","end":"'),sd.date_completion),'"}') as fy_timerange
-  /*case
+ 
+from profile_65050 sd
+left join ds_mysql_prod_project t
+on sd.projectid=t.id
+left join ds_mysql_prod_project t1
+on t.parent=t1.id
+left join ds_mysql_prod_project t2
+on t1.parent=t2.id
+left join profile_65603 pl
+on pl.projectid=sd.projectid
+left join profile_65552 po
+on t.parent=po.projectid
+left join ds_mysql_prod_tagelement tt
+on tt.id=sd.endline_yn
+left join ds_mysql_prod_tagelement tt1
+on tt1.id=sd.placed_yn
+)
+/*
+S2 as (
+Select s1.proj_location, s1.partner, s1.projectId, s1.location, s1.imp_partner, s1.fy_timerange,temp.col as status,
+sum(
+case 	
+ 	when 'Students_Graduated' then s1.Students_Graduated
+	when 'Students_in_Training' then s1.Students_in_Training
+	when 'Dropouts' then s1.Dropouts
+	when 'Students_Cleared_Mid_line_Exam' then s1.Students_Cleared_Mid_line_Exam
+	when 'Students_Enrolled_in_3rd_Year_Courses' then s1.Students_Enrolled_in_3rd_Year_Courses
+	when 'Students_Placed' then s1.Students_Placed
+	when 'Students_Hired_by_Capgemini' then s1.Students_Hired_by_Capgemini
+	when 'Students_in_Same_Job_After_6_Months' then s1.Students_in_Same_Job_After_6_Months
+  else null
+  end
+) as count
+  from s1
+ cross join temp
+group by s1.proj_location, s1.partner, s1.projectId, s1.location, s1.imp_partner, s1.fy_timerange,temp.col
+)
+*/
+
+/*
+ /*case
 	when endline_yn='Yes' then 1 
 	else 0
 	end as Students_Graduated,
@@ -58,43 +98,7 @@ Select 'Students_in_Same_Job_After_6_Months' as col
 ),
 */
 
-from profile_65050 sd
-left join ds_mysql_prod_project t
-on sd.projectid=t.id
-left join ds_mysql_prod_project t1
-on t.parent=t1.id
-left join ds_mysql_prod_project t2
-on t1.parent=t2.id
-left join profile_65603 pl
-on pl.projectid=sd.projectid
-left join profile_65552 po
-on t.parent=po.projectid
-left join ds_mysql_prod_tagelement tt
-on tt.id=sd.endline_yn
-left join ds_mysql_prod_tagelement tt1
-on tt1.id=sd.placed_yn
-),
-S2 as (
-Select s1.proj_location, s1.partner, s1.projectId, s1.location, s1.imp_partner, s1.fy_timerange,temp.col as status,
-sum(
-case 	
- 	when 'Students_Graduated' then s1.Students_Graduated
-	when 'Students_in_Training' then s1.Students_in_Training
-	when 'Dropouts' then s1.Dropouts
-	when 'Students_Cleared_Mid_line_Exam' then s1.Students_Cleared_Mid_line_Exam
-	when 'Students_Enrolled_in_3rd_Year_Courses' then s1.Students_Enrolled_in_3rd_Year_Courses
-	when 'Students_Placed' then s1.Students_Placed
-	when 'Students_Hired_by_Capgemini' then s1.Students_Hired_by_Capgemini
-	when 'Students_in_Same_Job_After_6_Months' then s1.Students_in_Same_Job_After_6_Months
-  else null
-  end
-) as count
-  from s1
- cross join temp
-group by s1.proj_location, s1.partner, s1.projectId, s1.location, s1.imp_partner, s1.fy_timerange,temp.col
-)
-
-/*Select s2.proj_location, s2.partner, s2.projectId, s2.location, s2.imp_partner, s2.fy_timerange
+Select s2.proj_location, s2.partner, s2.projectId, s2.location, s2.imp_partner, s2.fy_timerange
 from s2
 where Coalesce (s2.status,0)='Students_Placed'*/
 
