@@ -18,7 +18,7 @@ Select 'Students_in_Same_Job_After_6_Months' as col
 
 
 s1 as (
-Select t2.name as projectId,t.name as proj_location,t1.name as partner, sd.baseline_yn, sd.midline_yn, sd.third_year_enroll, sd.date_enroll, sd.date_completion, sd.placed_yn, sd.capgemini_yn,tt.name as endline_yn ,sd.job_change_yn,pl.location,po.impl_agency as imp_partner,
+Select t2.name as projectId,t.name as proj_location,t1.name as partner, sd.baseline_yn, sd.midline_yn, sd.third_year_enroll, sd.date_enroll, sd.date_completion, tt1.name as placed_yn, sd.capgemini_yn,tt.name as endline_yn ,sd.job_change_yn,pl.location,po.impl_agency as imp_partner,
  case
 	when endline_yn is null then 0
     else endline_yn 
@@ -45,7 +45,7 @@ case
 	else 0
 	end as Students_Enrolled_in_3rd_Year_Courses,
 case
-	when placed_yn=Yes then 1 
+	when tt1.name=Yes then 1 
 	else 0
 	end as Students_Placed,
 case
@@ -73,7 +73,8 @@ left join profile_65552 po
 on t.parent=po.projectid
 left join ds_mysql_prod_tagelement tt
 on tt.id=sd.endline_yn
-where sd.date_completion IS NOT NULL
+left join ds_mysql_prod_tagelement tt1
+on tt1.id=sd.placed_yn
 ),
 S2 as (
 Select s1.proj_location, s1.partner, s1.projectId, s1.location, s1.imp_partner, s1.fy_timerange,temp.col as status,
