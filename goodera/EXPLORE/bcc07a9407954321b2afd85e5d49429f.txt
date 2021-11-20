@@ -1,0 +1,24 @@
+with s1 as (
+Select t2.name as projectId,t.name as proj_location,t1.name as partner, sd.college_university, sd.gender, sd.course_enrolled, sd.date_enroll, sd.date_completion, sd.age, sd.mock_interview_num, sd.salary,pl.location,po.impl_agency as imp_partner,
+		concat(concat(concat(concat('{"start":"', sd.date_enroll),'","end":"'),sd.date_completion),'"}') as fy_timerange
+
+from profile_65050 sd
+left join ds_mysql_prod_project t
+on st.projectid=t.id
+left join ds_mysql_prod_project t1
+on t.parent=t1.id
+left join ds_mysql_prod_project t2
+on t1.parent=t2.id
+left join profile_65603 pl
+on pl.projectid=sd.projectid
+left join profile_65552 po
+on t.parent=po.projectid
+where sd.date_completion IS NOT NULL
+),
+S2 as (
+Select s1.proj_location, s1.partner, s1.projectId, s1.location, s1.imp_partner, s1.fy_timerange,count(*) no_trained
+  from s1
+group by s1.proj_location, s1.partner, s1.projectId, s1.location, s1.imp_partner, s1.fy_timerange
+)
+
+Select * from s2
