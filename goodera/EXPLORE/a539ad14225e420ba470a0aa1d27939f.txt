@@ -1,7 +1,13 @@
 with test1 as(
 select f_reg_date || '|' || f_reg_date as fy_timerange, projectid, search_status, decode(reg_type,1012301,20,1012302,200,0) as final_sum from profile_59462 where final_sum !=0
-
+  union all
+select concat(cast(fy_timerange.start as varchar), concat('|', cast(fy_timerange.end as varchar))) as fy_timerange, projectid, 'NEW' as search_status, decode(g_total_new,null,0,g_total_new) as final_sum from profile_63885
+  union all
+select concat(cast(fy_timerange.start as varchar), concat('|', cast(fy_timerange.end as varchar))) as fy_timerange, projectid, 'RENEW' as search_status, decode(g_total_renew,null,0,g_total_renew) as final_sum from profile_63885
 
 )
 
-select * from test1
+select p.fy_timerange, project.name as projectid, p.search_status, sum(p.final_sum) as final_sum
+from test1 p left join ds_mysql_prod_project as project
+on project.id = p.projectid
+group by 1,2,3
