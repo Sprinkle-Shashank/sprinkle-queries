@@ -1,2 +1,60 @@
-Select  id, projectId, enroll_date, gender, completion_date, beneficiary_placed, capgemini_hired, training_completion
-from profile_74949
+with temp as(
+Select 'Placed' as col
+union all
+Select 'Placed_Capgemini' as col
+union all
+Select 'Trained' as col
+union all
+Select 'Enrolled' as col
+),
+s1 as(
+Select  t2.name as projectId,t.name as proj_location,t1.name as partner,ss._id,ss.enroll_date, ss.gender, ss.completion_date, ss.beneficiary_placed, ss.capgemini_hired, ss.training_completion,cg.location,po.impl_agency imp_partner,
+case
+	when ss.completion_date is null then '2030-02-02T00:00:00.000Z'
+    else ss.completion_date
+	end as completion_date,
+	    case
+	when ss.beneficiary_placed=20779 then 'Yes'
+	else 'No'
+	end as Placed,
+case
+	when ss.capgemini_hired=20779 then 'Yes'
+	else 'No'
+	end as Placed_Capgemini,
+case 
+  when ss.training_completion=20779 then 'Yes'
+  else 'No'
+  end as Trained,
+case 
+  when 1=1 then 'Yes'
+  else 'No'
+  end as Enrolled
+	concat(concat(concat(concat('{"start":"',ss.enroll_date),'","end":"'),completion_date),'"}') as fy_timerange,
+	temp.col as dimensions,
+case col
+ 	when 'Placed' then Placed
+	when 'Placed_Capgemini' then Placed_Capgemini
+	when 'Trained' then Trained
+	when 'Enrolled' then Enrolled
+  else null
+  end as status
+from profile_74949 ss
+  cross join temp
+left join ds_mysql_prod_project t
+on ss.projectid=t.id
+left join ds_mysql_prod_project t1
+on t.parent=t1.id
+left join ds_mysql_prod_project t2
+on t1.parent=t2.id
+left join profile_65603 cg
+on ss.projectid=cg.projectid
+left join profile_65552 po
+on t.parent=po.projectid
+),
+s2 as (
+Select s1._id, s1.proj_location, s1.gender, s1.partner, s1.projectId, s1.fy_timerange, s1.location, s1.imp_partner, s1.Dimensions, s1.Status,count(*)
+  from s1
+  group by s1._id, s1.proj_location, s1.gender, s1.partner, s1.projectId, s1.fy_timerange, s1.location, s1.imp_partner, s1.Dimensions, s1.Status
+)
+Select s2.proj_location, s2.gender, s2.partner, s2.projectId, s2.fy_timerange, s2.location, s2.imp_partner, s2.Dimensions, s2.Status,s2.count
+from s2
