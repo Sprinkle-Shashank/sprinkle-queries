@@ -1,0 +1,60 @@
+with temp as(
+Select 'Placed' as col
+union all
+Select 'Placed_Capgemini' as col
+union all
+Select 'Dropout' as col
+union all
+Select 'Trained' as col
+union all
+Select 'Enrolled' as col
+),
+s1 as (Select  t.name as proj_location,t1.name as partner,t2.name as projectId, bd.timerange_timerange fy_timerange, bd.category, bd.gender, bd.college, bd.state,  bd.placed, bd.placed_capgemini,po.impl_agency as imp_partner,count(*) no_benfAggregate, listagg(distinct state,',') as no_statesAggregate
+
+from profile_63517 bd
+left join ds_mysql_prod_project t
+on bd.projectid=t.id
+left join ds_mysql_prod_project t1
+on t.parent=t1.id
+left join ds_mysql_prod_project t2
+on t1.parent=t2.id
+left join profile_65552 po
+on t.parent=po.projectid
+group by  proj_location, fy_timerange, bd.gender, bd.state, bd.placed, bd.placed_capgemini, partner, projectId simp_partner
+),
+
+s2 as (
+Select s1.proj_location, s1.fy_timerange, s1.gender, s1.state, s1.placed, s1.placed_capgemini, s1.partner, s1.projectId, s1.imp_partner,s1.no_benfAggregate, s1.no_statesAggregate,
+  case
+	when s2.placed_yn=20779 then 'Yes'
+	else 'No'
+	end as Placed,
+case
+	when s2.placed_capgemini=20779 then 'Yes'
+	else 'No'
+	end as Placed_Capgemini,
+case
+	when s2.stage_dropout=0 then 'Yes'
+	else 'No'
+	end as Dropout,
+case
+	when s2.trained_yn=1000624 then 'Yes'
+	else 'No'
+	end as Trained,
+case 
+  when 1=1 then 'Yes'
+  else 'No'
+  end as Enrolled,
+temp.col as dimensions,
+case col
+ 	when 'Placed' then Placed
+	when 'Placed_Capgemini' then Placed_Capgemini
+	when 'Dropout' then Dropout
+	when 'Trained' then Trained
+	when 'Enrolled' then Enrolled
+  else null
+  end as status
+  from s1 
+  cross join temp
+)
+Select * from s2
