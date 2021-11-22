@@ -47,7 +47,7 @@ group by  proj_location, fy_timerange, bd.gender, bd.state, bd.placed, bd.placed
 
 
 s2 as (
-Select s1.proj_location, s1.fy_timerange, s1.gender, s1.location, s1.placed, s1.placed_capgemini, s1.partner, s1.projectIdd as projectid, s1.imp_partner,s1.no_benef, s1.no_states,
+Select s1.proj_location, s1.fy_timerange, q.name as gender, q2.name as location, s1.placed, s1.placed_capgemini, s1.partner, s1.projectIdd as projectid, q1.name as imp_partner,s1.no_benef, q3.name as no_states,
 
 temp.col as dimensions,
 case col
@@ -60,5 +60,13 @@ case col
   end as status
   from s1 
   cross join temp
+  left join ds_mysql_prod_tagelement q
+  on s1.gender=q.id
+left join ds_mysql_prod_tagelement q1
+  on s1.imp_partner=q1.id
+left join ds_mysql_prod_tagelement q2
+  on s1.location=q2.id
+  left join ds_mysql_prod_tagelement q3
+  on s1.no_states=q3.id
 )
 Select * from s2
