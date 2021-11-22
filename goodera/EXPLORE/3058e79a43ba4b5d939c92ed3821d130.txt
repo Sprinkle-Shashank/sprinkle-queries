@@ -9,7 +9,28 @@ Select 'Trained' as col
 union all
 Select 'Enrolled' as col
 ),
-s1 as (Select  t.name as proj_location,t1.name as partner,t2.name as projectIdd, bd.timerange_timerange fy_timerange, bd.gender,  bd.state,  bd.placed, bd.placed_capgemini,po.impl_agency as imp_partner,count(*) no_benfAggregate, listagg(distinct state,',') as no_statesAggregate
+s1 as (
+ Select  t.name as proj_location,t1.name as partner,t2.name as projectIdd, bd.timerange_timerange fy_timerange, bd.gender,  bd.state as location,  bd.placed, bd.placed_capgemini,po.impl_agency as imp_partner,count(*) no benef,listagg(distinct state,',') no_states,
+    case
+	when bd.placed_yn=20779 then 'Yes'
+	else 'No'
+	end as Placedd,
+case
+	when bd.placed_capgemini=20779 then 'Yes'
+	else 'No'
+	end as Placed_Capgeminii,
+case 
+  when 1=1 then 'No'
+  else 'No'
+  end as Dropout,
+case 
+  when 1=1 then 'Yes'
+  else 'No'
+  end as Trained,
+case 
+  when 1=1 then 'Yes'
+  else 'No'
+  end as Enrolled,
 
 from profile_63517 bd
 left join ds_mysql_prod_project t
@@ -23,28 +44,11 @@ on t.parent=po.projectid
 group by  proj_location, fy_timerange, bd.gender, bd.state, bd.placed, bd.placed_capgemini, partner, projectIdd, imp_partner
 ),
 
+
+
 s2 as (
-Select s1.proj_location, s1.fy_timerange, s1.gender, s1.state, s1.placed, s1.placed_capgemini, s1.partner, s1.projectIdd as projectid, s1.imp_partner,s1.no_benfAggregate, s1.no_statesAggregate,
-  case
-	when s2.placed_yn=20779 then 'Yes'
-	else 'No'
-	end as Placed,
-case
-	when s2.placed_capgemini=20779 then 'Yes'
-	else 'No'
-	end as Placed_Capgemini,
-case
-	when s2.stage_dropout=0 then 'Yes'
-	else 'No'
-	end as Dropout,
-case
-	when s2.trained_yn=1000624 then 'Yes'
-	else 'No'
-	end as Trained,
-case 
-  when 1=1 then 'Yes'
-  else 'No'
-  end as Enrolled,
+Select s1.proj_location, s1.fy_timerange, s1.gender, s1.state, s1.placed, s1.placed_capgemini, s1.partner, s1.projectIdd as projectid, s1.imp_partner,s1.no_benf, s1.no_states,s1.location,
+
 temp.col as dimensions,
 case col
  	when 'Placed' then Placed
