@@ -1,0 +1,71 @@
+with temp as(
+Select 'Placed' as col
+union all
+Select 'Placed_Capgemini' as col
+union all
+Select 'Dropout' as col
+union all
+Select 'Trained' as col
+union all
+Select 'Enrolled' as col
+),
+s1 as(
+Select  t.name as proj_location,t1.name as partner,t2.name as projectId,ss.gender, ss.placed_yn, ss.course_enrolled, ss.date_enroll, ss.capgemini_yn, ss.date_completion,cg.location,po.impl_agency,
+case
+	when ss.date_completion is null then '2030-02-02T00:00:00.000Z'
+    else ss.date_completion
+	end as date_Completion,
+	concat(concat(concat(concat('{"start":"',ss.date_enroll),'","end":"'),date_Completion),'"}') as fy_timerange,
+    case
+	when ss.placed_yn=20779 then 'Yes'
+	else 'No'
+	end as Placed,
+case
+	when ss.capgemini_yn=20779 then 'Yes'
+	else 'No'
+	end as Placed_Capgemini,
+case 
+  when 1=1 then 'No'
+  else 'Yes'
+  end as Dropout,
+case 
+  when 1=1 then 'No'
+  else 'No'
+  end as Trained,
+case 
+  when 1=1 then 'Yes'
+  else 'No'
+  end as Enrolled
+from profile_65050 ss
+left join ds_mysql_prod_project t
+on ss.projectid=t.id
+left join ds_mysql_prod_project t1
+on t.parent=t1.id
+left join ds_mysql_prod_project t2
+on t1.parent=t2.id
+left join profile_65603 cg
+on ss.projectid=cg.projectid
+left join profile_65552 po
+on t.parent=po.projectid
+),
+
+s2 as(
+Select s1.gender, s1.location, s1.impl_agency, s1.Placed, s1.Trained, s1.Enrolled,s1.Placed_Capgemini, s1.Dropout, s1.fy_timerange, s1.projectid,count(*) no_benef
+  from s1
+group by  s1.gender, s1.location, s1.impl_agency, s1.Placed, s1.Trained, s1.Enrolled,s1.Placed_Capgemini, s1.Dropout, s1.fy_timerange, s1.projectid
+)
+
+Select s2.gender, s2.location, s2.impl_agency,s2.projectid,s2.fy_timerange,mc.name as state_code,
+temp.col as dimensions,
+case col
+ 	when 'Placed' then s1.Placedd
+	when 'Placed_Capgemini' then s1.Placed_Capgeminii
+	when 'Dropout' then s1.Dropout
+	when 'Trained' then s1.Trained
+	when 'Enrolled' then s1.Enrolled
+  else null
+  end as status
+from s2
+cross join temp
+left join profile_73573 mc
+on mc.loc_select=s2.location
