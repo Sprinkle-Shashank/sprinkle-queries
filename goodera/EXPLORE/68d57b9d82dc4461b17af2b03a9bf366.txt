@@ -1,2 +1,23 @@
-select p.projectId, p.name, t.name as gender, substring(p.doj,1,10)||'T00:00:00.000Z' || '|' || decode(p.dod,null,substring(sysdate,1,10)||'T'||substring(sysdate,12,12)||'Z',substring(p.dod,1,10)||'T00:00:00.000Z') as fy_timerange, count(p.name) as final_sum from profile_59265 p
-left join ds_mysql_prod_tagelement t on p.gender = t.id where p.dropped is null or p.dropped = 1020323 group by 1,2,3,4
+with test1 as (
+	select fy_timerange, projectid, 'Trucker' as f_category, total_truckers as final_sum from profile_63885 
+  		union all
+  	select fy_timerange, projectid, 'Allied' as f_category, total_allied as final_sum from profile_63885
+),
+final as (
+  	select concat(cast(fy_timerange.start as varchar), concat('|', cast(fy_timerange.end as varchar))) as fy_timerange, projectid, f_category,
+	sum(final_sum) as final_sum
+  	from test1 where final_sum is not null
+  	group by 1,2,3
+  
+  	union all
+  
+  	select concat(p.f_reg_date,concat('|',p.f_reg_date)) as fy_timerange, projectid, f_category, count(*) as final_sum
+  	from profile_59462 p where search_status in ('NEW','RENEW','REVISIT')
+  	group by 1,2,3
+)
+
+select fy_timerange, project.name as projectid, f_category,sum(final_sum) as final_sum
+from final left join ds_mysql_prod_project as project
+on project.id = final.projectid where f_category is null
+group by 1,2,3
+
