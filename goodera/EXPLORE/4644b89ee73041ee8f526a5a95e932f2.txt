@@ -1,24 +1,25 @@
 with test1 as (
-	select fy_timerange, projectid, 'Trucker' as f_category, vision_truckers as final_sum from profile_63885 
+	select fy_timerange, projectid, 'Trucker' as f_category, 'Checked' as vision, vision_truckers as final_sum from profile_63885 
   		union all
-  	select fy_timerange, projectid, 'Allied' as f_category, (decode(vision_allied,null,0,vision_allied) + decode(vision_partner,null,0,vision_partner)) as final_sum from profile_63885
+  	select fy_timerange, projectid, 'Allied' as f_category, 'Checked' as vision, (decode(vision_allied,null,0,vision_allied) + decode(vision_partner,null,0,vision_partner)) as final_sum from profile_63885
 ),
 final as (
-  	select concat(cast(fy_timerange.start as varchar), concat('|', cast(fy_timerange.end as varchar))) as fy_timerange, projectid, f_category,
+  	select concat(cast(fy_timerange.start as varchar), concat('|', cast(fy_timerange.end as varchar))) as fy_timerange, projectid, f_category, vision, 
 	sum(final_sum) as final_sum
   	from test1 where final_sum is not null
-  	group by 1,2,3
+  	group by 1,2,3,4
   
   	union all
   
-  	select concat(f_reg_date, concat('|', f_reg_date)) as fy_timerange, projectid, f_category, count(*) as final_sum
+  	select concat(p.f_reg_date, concat('|', p.f_reg_date)) as fy_timerange, p.projectid, p.f_category, t.name as vision, count(*) as final_sum
   	from profile_59462
   	where vision in ('1012445', '1012446', '1012447', '1012448', '1012449')
-  	group by 1,2,3
+    left join ds_mysql_prod_tagelement t on p.vision = t.id
+  	group by 1,2,3,4
 )
 
-select fy_timerange, project.name as projectid, f_category,sum(final_sum) as final_sum
+select fy_timerange, project.name as projectid, f_category, vision, sum(final_sum) as final_sum
 from final left join ds_mysql_prod_project as project
 on project.id = final.projectid
-group by 1,2,3
+group by 1,2,3,4
 
