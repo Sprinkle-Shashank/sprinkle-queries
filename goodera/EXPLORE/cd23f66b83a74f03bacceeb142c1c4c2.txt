@@ -1,0 +1,73 @@
+with temp as (
+Select 'pwd_enrolled' as col
+union all
+Select 'pwd_trained' as col
+union all
+Select 'pwd_placed' as col
+union all
+Select 'pwd_placed_cap' as col
+
+)
+
+s1 as(
+  select  t2.name as projectId,t.name as proj_location,t1.name as partner, ss.bene_disability, ss.disability_type, ss.disability_degree, ss.placed_yn, ss.trained_yn, ss.placed_capgemini, ss.date_enroll, ss.date_completion,pl.location,po.impl_agency ,
+  case
+	when ss.date_Completion is null then '2030-12-31T00:00:00.000Z'
+    else ss.date_Completion
+	end as date_Completion,
+	concat(concat(concat(concat('{"start":"', ss.date_enroll),'","end":"'),date_Completion),'"}') as fy_timerange,
+  case
+	when ss.bene_disability= 20779 then 'Yes'
+	else 'No'
+	end as pwd_enrolled,
+case
+	when ss.trained_yn= 1000624 then 'Yes'
+	else 'No'
+	end as pwd_trained,
+case
+	when ss.placed_yn= 20779 then 'Yes'
+	else 'No'
+	end as pwd_placed,
+case
+	when ss.placed_capgemini= 20779 then 'Yes'
+	else 'No'
+	end as pwd_placed_cap
+  
+  
+  from profile_56630 ss
+left join ds_mysql_prod_project t
+on ss.projectid=t.id
+left join ds_mysql_prod_project t1
+on t.parent=t1.id
+left join ds_mysql_prod_project t2
+on t1.parent=t2.id
+  left join profile_65603 pl
+on pl.projectid=ss.projectid
+left join profile_65552 po
+on t.parent=po.projectid
+)
+,
+s2 as(
+Select s1.projectId, s1.fy_timerange, s1.location, s1.impl_agency, s1.pwd_enrolled, s1.pwd_trained, s1.pwd_placed, s1.pwd_placed_cap,count(*) 
+  from s1
+ group by s1.projectId, s1.fy_timerange, s1.location, s1.impl_agency, s1.pwd_enrolled, s1.pwd_trained, s1.pwd_placed, s1.pwd_placed_cap
+)
+
+s3 as (
+Select s2.projectId, s2.fy_timerange, s2.location, s2.impl_agency,temp.col as Dimensions,
+  
+  
+case col
+  when 'pwd_enrolled' then s2.pwd_enrolled
+  when 'pwd_trained' then s2.pwd_trained
+  when 'pwd_placed' then s2.pwd_placed
+  when 'pwd_placed_cap'then s2.pwd_placed_cap
+ else null
+  end as status 
+from s2
+  cross join temp
+
+
+)
+Select * from s3
+
