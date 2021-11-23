@@ -1,8 +1,4 @@
-with temp as(
-Select 'Dropout' as col
- 
-
-),
+with
 s1 as(
 SELECT  t2.name as projectId,t.name as proj_location,t1.name as partner, ss.bene_disability, ss.bene_photo, ss.photograph_of_id, ss.edu_quali, ss.disability_type, ss.family_income, ss.certified_yn, ss.bene_batch, ss.name_bene, ss.disability_degree, ss.bene_gender, ss.bene_occu, ss.certi_file, ss.placed_yn, ss.placement_sector, ss.placed_capgemini, ss.date_enroll, ss.email_id, ss.disability_certi, ss.date_completion, ss.reason_dropout, ss.dropout_others, ss.stage_dropout, ss.placed_timerange, ss.mobile_no, ss.dependants, ss.bene_age, ss.enroll_fee, ss.personal_income, ss.attend_percentage, ss.final_percentage, ss.trained_yn,st.end_date,pl.location,po.impl_agency as imp_partner,st.course_name, st.centre_name,su.center_college,
  case 
@@ -43,23 +39,20 @@ on st.centre_name=su._id
 
 s2 as (
 Select s1.proj_location, s1.family_income, s1.placed_yn, s1.trained_yn, s1.placed_capgemini, s1.stage_dropout, s1.partner, s1.projectId, 
-  --s1.fy_timerange,
+  s1.fy_timerange,
   s1.location, s1.imp_partner, s1.age_bucket, s1.course_name, s1.center_college, s1.bene_gender,count(*) no_benef
 from s1
 group by  s1.proj_location, s1.family_income, s1.placed_yn, s1.trained_yn, s1.placed_capgemini, s1.stage_dropout, s1.partner, s1.projectId, 
-  --s1.fy_timerange,
+  s1.fy_timerange,
   s1.location, s1.imp_partner, s1.age_bucket, s1.course_name, s1.center_college, s1.bene_gender
 
 )
 ,
 s3 as (
   Select  s2.partner, s2.projectId, 
-  --s2.fy_timerange, 
+  s2.fy_timerange, 
   s2.location, s2.imp_partner, s2.bene_gender gender,s2.no_benef,sw.name as state_code,
-case
-	when 1=1 then 'Yes'
-	else 'No'
-	end as Dropout
+
 
   
   
@@ -69,14 +62,11 @@ on s2.location=sw.loc_select
 ),
 s4 as (
 Select  s3.partner, s3.projectId, 
-  --s3.fy_timerange,
-  q2.name as location, q1.name as imp_partner, q.name as gender,s3.no_benef,s3.state_code,temp.col as dimensions,
-case col
-
-	when 'Dropout' then s3.Dropout
-
-  else null
-  end as status
+  s3.fy_timerange,
+  q2.name as location, q1.name as imp_partner, q.name as gender,s3.no_benef,s3.state_code,
+ 'Dropout'
+	as  dimensions,
+'Yes' as status
   from s3
   cross join temp
   left join ds_mysql_prod_tagelement q
