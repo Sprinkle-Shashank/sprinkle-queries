@@ -30,32 +30,32 @@ from profile_74133 sq
 cross join temp
   ),
   sub2 as(
-  select group_name, groupid, surveyid, country, position(1 in level) as level1, position(2 in level) as level2, position(3 in level) as level3, module, upper(substring(module,1,position('_' in module)-1)) as modules, sacid, fy_timerange
-	from sub1
+  select group_name, groupid, surveyid, country, position(1 in level) as level1, position(2 in level) as level2, position(3 in level) as level3, module, upper(substring(module,1,position('_' in module)-1)) as modules, sacid, s1.fy_timerange
+	from sub1 s1
   where level is not null
-  group by group_name, groupid, surveyid, country,module, level, sacid, fy_timerange),
+  group by group_name, groupid, surveyid, country,module, level, sacid, s1.fy_timerange),
   sub3 as(
-  select country, fy_timerange, level1, cdms_id, modules, source_div
-	from sub2 s1
+  select country,s2.fy_timerange, level1, cdms_id, modules, source_div
+	from sub2 s2
   left join profile_74334 pd
   on pd.higg_id=s1.sacid
   left join profile_60928 mr
   on mr.factory_id=pd.cdms_id
-	group by country, fy_timerange, level1, cdms_id, modules, source_div
+	group by country, s2.fy_timerange, level1, cdms_id, modules, source_div
   ),
   sub4 as
   (
   select s3.country, s3.fy_timerange, s3.level1, s3.cdms_id, s3.modules, source from sub3 s3, s3.source_div source),
   sub5 as
   (
-  select t1.name as region, fy_timerange, cdms_id, listagg(modules,',') as modules, source as source_div
+  select t1.name as region, s4.fy_timerange, cdms_id, listagg(modules,',') as modules, source as source_div
   from sub4 s4
   left join ds_mysql_prod_tagelement t
 	on t.id=s4.country
 	left join ds_mysql_prod_tagelement t1
 	on t.parent=t1.id
 	  where cdms_id is not null and level1!=0
-	group by fy_timerange, source, t1.name, cdms_id
+	group by s4.fy_timerange, source, t1.name, cdms_id
 	), 
 	
 	sub6 as
