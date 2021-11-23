@@ -1,22 +1,30 @@
 with sub1 as(
-	select p1._id as id, p1.project_id, p1.fy_timerange, p2.pvh_id, p3.region, p1.end_date_2 as end_date, p1.num_females, p1.project_name, extract(year from cast(fy_timerange.start as date)) as year, p1.program_type_3, extract(month from cast(fy_timerange.start as date)) as month,p3.vendor_name
+  select p1._id as id, p1.project_name, p1.program_type, p1.fy_timerange, cast(p1.start_date as date) as start_date, cast(p2.offset_date as date) as offset_date, p3.region, p4.projcode_factory, p1.end_date_2 as end_date, p1.num_females,
+
+case
+	when p4.projcode_factory like 'C%' or p4.projcode_factory like '%PVH' then 1 
+	else 0
+end as filter, 
+
+case
+	when end_date_2 is null then 'Ongoing'
+	else 'Completed'
+end as batch_status
+
 from profile_62491 p1
-	left join profile_62948 p2 on p2.project_id = p1.project_id
-	left join profile_60928 p3 on p2.pvh_id = p3.factory_id
-    where year >= 2020 and p2.pvh_id is not NULL and COALESCE(lg_status,0)!=1105812 
-  and p2.offset_date<=p1.start_date),
-		sub12 as
-	(select sub1.*, case when vendor_name='CARE Ethiopia' then (case when year=2020 then (case when month<8 then 'Take' end) end) else 'Ignore' end as mix from sub1),	
+left join profile_62948 p2 on p2.project_id = p1.project_id
+left join profile_60928 p3 on p2.pvh_id = p3.factory_id
+left join profile_62482 p4 on p4.project_id = p1.project_id
+
+where extract(year from start_date) >= 2020 and start_date >= nvl(offset_date,'2020-01-01') and filter = 1
+and nvl(p1.lg_status,0) != 1105812 and p2.pvh_id is not NULL
+
+group by p1._id, p1.project_name, p1.program_type, p1.fy_timerange, p1.start_date, p2.offset_date, p3.region, p4.projcode_factory, p1.end_date_2, filter, batch_status),
+
 sub2 as(
-  select id, project_id, project_name, end_date, fy_timerange, pvh_id, region, sum(num_females) as females,  program_type_3
-  from sub12 
-    where mix='Ignore'
-	group by project_id, fy_timerange, project_name, end_date, id, region, pvh_id,  program_type_3),
-	
-sub3 as(
-  select s2.*, country from sub2 s2, s2.region country)
+  select s1.*, country from sub1 s1, s1.region country)
   
-select s3.fy_timerange, s3.pvh_id, t1.name as region, females,  program_type_3
-	from sub3 s3
-	left join ds_mysql_prod_tagelement t1 on t1.id = s3.country
-	group by s3.fy_timerange, t1.name, s3.pvh_id, females,  program_type_3
+select s2.project_name, s2.program_type, s2.fy_timerange, t1.name as region, s2.batch_status, sum(p1.num_females)
+from sub2 s2
+left join ds_mysql_prod_tagelement t1 on t1.id = s2.country
+group by s2.project_name, s2.program_type, s2.fy_timerange, t1.name, s2.batch_status
