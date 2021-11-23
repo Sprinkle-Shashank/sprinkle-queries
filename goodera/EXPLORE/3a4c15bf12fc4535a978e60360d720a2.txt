@@ -1,0 +1,97 @@
+with temp as(
+Select 'Students_Graduated' as col
+union all
+Select 'Students_in_Training' as col
+union all
+Select 'Dropouts' as col
+union all
+Select 'Students_Cleared_Mid_line_Exam' as col
+union all
+Select 'Students_Enrolled_in_3rd_Year_Courses' as col
+union all
+Select 'Students_Placed' as col
+union all
+Select 'Students_Hired_by_Capgemini' as col
+union all
+Select 'Students_in_Same_Job_After_6_Months' as col
+),
+s1 as(
+Select t.name as proj_location,t1.name as partner,t2.name as projectId, ss.baseline_yn, ss.date_enroll, ss.midline_yn, ss.third_year_enroll, tt.name as endline_yn, ss.date_completion, ss.placed_yn, ss.capgemini_yn, ss.job_change_yn , cg.location,po.impl_agency imp_partner,
+case
+	when ss.date_Completion is null then '2030-12-31T00:00:00.000Z'
+    else ss.date_Completion
+	end as date_Completion,
+	concat(concat(concat(concat('{"start":"', ss.date_enroll),'","end":"'),date_Completion),'"}') as fy_timerange,
+	 case
+	when endline_yn is null then 0
+    else endline_yn 
+	end as endline_yn,
+		concat(concat(concat(concat('{"start":"', sd.date_enroll),'","end":"'),sd.date_completion),'"}') as fy_timerange,
+  case
+	when endline_yn='Yes' then 1 
+	else 0
+	end as Students_Graduated,
+case
+	when endline_yn=0 then 1 
+	else 0
+	end as Students_in_Training,
+case
+	when endline_yn='No' then 1 
+	else 0
+	end as Dropouts,
+case
+	when midline_yn=20779 then 1 
+	else 0
+	end as Students_Cleared_Mid_line_Exam,
+case
+	when third_year_enroll=20779 then 1 
+	else 0
+	end as Students_Enrolled_in_3rd_Year_Courses,
+case
+	when tt1.name='Yes' then 1 
+	else 0
+	end as Students_Placed,
+case
+	when capgemini_yn=20779 then 1 
+	else 0
+	end as Students_Hired_by_Capgemini,
+case
+	when job_change_yn=20780 then 1 
+	else 0
+	end as Students_in_Same_Job_After_6_Months 
+from profile_65050 ss
+left join ds_mysql_prod_project t
+on ss.projectid=t.id
+left join ds_mysql_prod_project t1
+on t.parent=t1.id
+left join ds_mysql_prod_project t2
+on t1.parent=t2.id
+left join profile_65603 cg
+on ss.projectid=cg.projectid
+left join profile_65552 po
+on t.parent=po.projectid
+left join ds_mysql_prod_tagelement tt
+on tt.id=ss.endline_yn
+  )
+  ,S2 as (
+Select s1.proj_location, s1.partner, s1.projectId, s1.location, s1.imp_partner, s1.fy_timerange,temp.col as status,
+sum(
+case col
+ 	when 'Students_Graduated' then s1.Students_Graduated
+	when 'Students_in_Training' then s1.Students_in_Training
+	when 'Dropouts' then s1.Dropouts
+	when 'Students_Cleared_Mid_line_Exam' then s1.Students_Cleared_Mid_line_Exam
+	when 'Students_Enrolled_in_3rd_Year_Courses' then s1.Students_Enrolled_in_3rd_Year_Courses
+	when 'Students_Placed' then s1.Students_Placed
+	when 'Students_Hired_by_Capgemini' then s1.Students_Hired_by_Capgemini
+	when 'Students_in_Same_Job_After_6_Months' then s1.Students_in_Same_Job_After_6_Months
+  else null
+  end
+) as count
+  from s1
+ cross join temp
+group by s1.proj_location, s1.partner, s1.projectId, s1.location, s1.imp_partner, s1.fy_timerange,temp.col
+)
+Select s2.proj_location, s2.partner, s2.projectId, s2.location, s2.imp_partner, s2.fy_timerange
+from s2
+where Coalesce (s2.status,0)=Students_in_Training
