@@ -49,7 +49,7 @@ cross join temp
   sub5 as
   (
   select t1.name as region, s4.fy_timerange, cdms_id, 
-	listagg(distinct modules,',') as modules, 
+	array(listagg(distinct modules,',')) as modules, 
 	source as source_div
   from sub4 s4
   left join ds_mysql_prod_tagelement t
@@ -64,7 +64,7 @@ cross join temp
 	(
 	select fy_timerange, source_div, region, cdms_id as facs, count(*) as count
 from sub5
-	  where length(modules)=7
+	  where get_array_length(modules)=7
 	group by fy_timerange, source_div, region, cdms_id)
 	
-select * from sub5
+select * from sub6
