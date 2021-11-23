@@ -1,5 +1,5 @@
 with s1 as (
-Select t2.name as projectId,t.name as proj_location,t1.name as partner, ss.activity_date as fy_timerange, ss.centre_ref, ss.activity_pic, ss.activity_type, ss.activity_title, ss.others, ss.no_of_students, ss.sess_duration, ss.no_of_vol, ss.remarks,pl.location,po.impl_agency as imp_partner,st.center_college
+Select t2.name as projectId,t.name as proj_location,t1.name as partner, ss.activity_date as fy_timerange, ss.centre_ref, ss.activity_pic, q3.name as activity_type, ss.activity_title, ss.others, ss.no_of_students, ss.sess_duration, ss.no_of_vol, ss.remarks,q2.name as location,q1.name as as imp_partner,q.name as center_college
 from profile_56653 ss
 left join ds_mysql_prod_project t
 on ss.projectid=t.id
@@ -13,6 +13,14 @@ left join profile_65552 po
 on t.parent=po.projectid
 left join profile_56627 st
 on st._id=ss.centre_ref
+   left join ds_mysql_prod_tagelement q
+  on st.center_college=q.id
+left join ds_mysql_prod_tagelement q1
+  on po.impl_agency =q1.id
+left join ds_mysql_prod_tagelement q2
+  on pl.location=q2.id
+  left join ds_mysql_prod_tagelement q3
+  on ss.activity_type=q3.id
  ),
  s2 as(
  Select s1.proj_location, s1.fy_timerange, s1.centre_ref, s1.activity_pic, s1.activity_type, s1.activity_title, s1.others, s1.remarks, s1.partner, s1.imp_partner, s1.location, s1.center_college, s1.projectId,count(*) no_sessions,sum(s1.no_of_vol)no_volunteers,sum(s1.no_of_students) no_benef,sum(s1.sess_duration) tot_duration
