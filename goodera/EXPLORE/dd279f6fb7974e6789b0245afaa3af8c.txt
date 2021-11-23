@@ -22,6 +22,8 @@ and nvl(p1.lg_status,0) != 1105812 and p2.pvh_id is not NULL),
 sub2 as(
   select s1.*, country, cast(source_divison as int) as source_divison_new from sub1 s1, s1.region country, s1.source_div source_divison)
   
-select s2.id, s2.project_name, s2.program_type, s2.fy_timerange, s2.country, s2.num_females, batch_status, source_divison_new
+select s2.id, s2.project_name, s2.program_type, s2.fy_timerange, t1.name as country, s2.num_females, batch_status, t2.name as source_divison
 from sub2 s2
-group by s2.id, s2.project_name, s2.program_type, s2.fy_timerange, s2.country, s2.num_females, batch_status, source_divison_new
+left join ds_mysql_prod_tagelement t1 on t1.id = s2.country
+left join ds_mysql_prod_tagelement t2 on t2.id = s2.source_divison_new
+group by s2.id, s2.project_name, s2.program_type, s2.fy_timerange, t1.name, s2.num_females, batch_status, t2.name
