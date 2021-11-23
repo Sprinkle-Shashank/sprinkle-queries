@@ -48,12 +48,18 @@ cross join temp
   select country, fy_timerange, level1, cdms_id, modules, source from sub3 s3, s3.source_div source),
   sub5 as
   (
-  select t1.name as region, fy_timerange, level1, cdms_id, modules, source
+  select t1.name as region, fy_timerange, cdms_id, listagg(modules,',') as mdoules, source
   from sub4 s4
   left join ds_mysql_prod_tagelement t
 	on t.id=s4.country
 	left join ds_mysql_prod_tagelement t1
 	on t.parent=t1.id
-	  where cdms_id is not null 
-	)
-select * from sub4
+	  where cdms_id is not null and level1!=0
+	group by fy_timerange, source_div, t1.name, cdms_id
+	), 
+	sub6 as
+	(
+	select fy_timerange, source_div, region
+	where count(modules)=7
+	group by fy_timerange, source_div, region)
+select * from sub5
