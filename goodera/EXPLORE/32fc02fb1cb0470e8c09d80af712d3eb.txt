@@ -24,7 +24,11 @@ group by p1._id, p1.project_name, p1.program_type, p1.select_modules, p1.fy_time
 sub2 as(
   select s1.*, country, module_name from sub1 s1, s1.region country, s1.select_modules module_name)
   
-select s2.id, s2.project_name, s2.program_type, t2.name as module_name, s2.fy_timerange, t1.name as region, s2.batch_status, count(*)
+select s2.id, s2.project_name, s2.program_type, s2.fy_timerange, t1.name as region, s2.batch_status, count(*),
+case
+	when t2.name like '%.%' then substring(t2.name, 3, LEN(t2.name)-2)
+	else t2.name
+end as module_name
 from sub2 s2
 left join ds_mysql_prod_tagelement t1 on t1.id = s2.country
 left join ds_mysql_prod_tagelement t2 on t2.id = s2.module_name
