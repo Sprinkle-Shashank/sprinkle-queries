@@ -1,10 +1,17 @@
-select p1._id, p1.start_date, p2.offset_date, p1.project_name, p1.program_type, p1.end_date_2, p1.hours, p3.projcode_factory,
-case
-	when p3.projcode_factory like 'C%' or p3.projcode_factory like '%PVH' then 1
-	else 0
-end as filter
+with sub1 as(
+	select p1._id as id, p1.project_id, p1.fy_timerange, p2.pvh_id, p3.region, p1.end_date_2 as end_date,  p1.project_name, extract(year from cast(fy_timerange.start as date)) as year, extract(month from cast(fy_timerange.start as date)) as month,p3.vendor_name
 from profile_62491 p1
-left join profile_62948 p2 on p2.project_id = p1.project_id
-left join profile_62482 p3 on p3.project_id = p1.project_id
-where extract(year from cast(start_date as date))>=2020 and
-cast(start_date as date)>=nvl(cast(p2.offset_date as date),1-09-2020) and filter = 1
+	left join profile_62948 p2 on p2.project_id = p1.project_id
+	left join profile_60928 p3 on p2.pvh_id = p3.factory_id
+    where year >= 2020 and p1.end_date_2 is not NULL and p2.pvh_id is not NULL and COALESCE(lg_status,0)!=1105812 and nvl(p2.offset_date,)<=p1.start_date),
+
+sub2 as(
+  select id, project_id, project_name, end_date, fy_timerange, pvh_id, region
+  from sub12
+  where mix='Ignore'
+	group by project_id, fy_timerange, project_name, end_date, id, region, pvh_id),
+	
+sub3 as(
+  select s2.*, country from sub2 s2, s2.region country)
+  
+select * from sub2
