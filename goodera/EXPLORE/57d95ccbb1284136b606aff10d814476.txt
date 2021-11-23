@@ -1,0 +1,43 @@
+with s1 as(
+Select t.name as proj_location,t1.name as partner,t2.name as projectId, ss._Id, ss.enroll_date, ss.training_completion, ss.completion_date, q.name as gender, q2.name as location,q1.name as  as imp_partner,
+case
+	when ss.completion_date is null then '2030-02-02T00:00:00.000Z'
+    else ss.completion_date
+	end as completion_date,
+concat(concat(concat(concat('{"start":"',ss.enroll_date),'","end":"'),completion_date),'"}') as fy_timerange,
+case
+	  when ss.training_completion is null then 0
+	  else ss.training_completion
+	  end as t,
+case when t=0 then 1 
+	else 0
+	end as Students_in_Training
+
+from profile_74949 ss
+left join ds_mysql_prod_project t
+on sd.projectid=t.id
+left join ds_mysql_prod_project t1
+on t.parent=t1.id
+left join ds_mysql_prod_project t2
+on t1.parent=t2.id
+left join profile_65603 pl
+on pl.projectid=sd.projectid
+left join profile_65552 po
+on t.parent=po.projectid
+where coalesce(t,0)=1
+left join ds_mysql_prod_tagelement q
+  on ss.gender=q.id
+left join ds_mysql_prod_tagelement q1
+  on ss.imp_partner=q1.id
+  left join ds_mysql_prod_tagelement q2
+  on pl.location=q2.id
+),
+s2 as (
+Select  s1._id, s1.proj_location, s1.gender, s1.training_completion, s1.partner, s1.projectId, s1.fy_timerange, s1.location, s1.imp_partner,sum(Students_in_Training) Students_in_Training
+  from s1
+  
+   s1._id, s1.proj_location, s1.gender, s1.training_completion, s1.partner, s1.projectId, s1.fy_timerange, s1.location, s1.imp_partner
+
+)
+  Select s2.proj_location, s2.gender, s2.partner, s2.projectId, s2.fy_timerange, s2.location, s2.imp_partner,s2.Students_in_Training
+from s2 
