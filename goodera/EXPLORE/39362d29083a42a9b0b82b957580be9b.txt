@@ -9,13 +9,13 @@ on p.projectid = pro.id				   ),
  table2 as (select projectid,fy_timerange,row,mwra_using_old, 
  case when mwra_using_old = 0 and row = 1 then 0
           else 386 end as r , 0 as temp,mwra_using_new,
-		  sum(mwra_using_new+temp) over(order by fy_timerange rows between unbounded               PRECEDING and current row) AS s ,r+s as fin_value,mwra_eligible_new,
+		  sum(mwra_using_new+temp) over(order by fy_timerange rows between unbounded               PRECEDING and current row) AS s ,r+s as numrator ,mwra_eligible_new,
  case when mwra_eligible_old=0 and row = 1 then 0
 	  when mwra_eligible_old=0 and row = 2 then 0
 		else 1677 end as t,	
-			sum(mwra_eligible_new+temp) over(order by fy_timerange rows between                        unbounded PRECEDING and current row) AS u, t+u as perc
+			sum(mwra_eligible_new+temp) over(order by fy_timerange rows between                        unbounded PRECEDING and current row) AS u, t+u as denom
 		
          from table1)
-select projectid, fy_timerange,fin_value,mwra_eligible_new,t,u,perc from table2		 
+select projectid, fy_timerange,numrator,mwra_eligible_new,t,u,denom from table2		 
 
 --order by fy_timerange asc
