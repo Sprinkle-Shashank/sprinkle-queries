@@ -1,5 +1,10 @@
 select projectid,fy_timerange,visits_preg,followup_visits_preg,row_number() over 
 (--partition by sellerid
- order by fy_timerange asc) as row from profile_59876
+ order by fy_timerange asc) as row,
+ case when visits_preg = 0 and row = 1 then 0
+      else 85 end as visits,0 as temp,
+	  sum(followup_visits_preg+temp) over(order by fy_timerange rows between unbounded               PRECEDING and current row) AS followup ,visits+followup as final_value
+ 
+ from profile_59876
 
 order by fy_timerange asc
