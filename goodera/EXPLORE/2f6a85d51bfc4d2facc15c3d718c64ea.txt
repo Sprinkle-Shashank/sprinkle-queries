@@ -1,198 +1,22 @@
+/*
 select num_females from profile_4227
 where num_females_graduated =0
+*/
 
-/*
-select num_females,
-num_females_graduated,
-num_females_dropout, lg_status, start_year,start_quarter , end_date_2,
-
-sum(nvl2(type(num_females_graduated)='int',num_females,0)) as total_females_graduation_rate,
+--select num_females, num_females_graduated,num_females_dropout, lg_status, start_year,start_quarter , end_date_2, profile_54646.name_vendor, profile_54646.name_vendor_filter
+sum(nvl2(num_females_graduated = 0,num_females,0)) as total_females_graduation_rate,
 first_value(num_females) as total_females,
-sum(nvl2(type(num_females_graduated)='int',num_females,0)) as total_females_graduation_rate,
-
-
-
-
-
-
-
-
-
-
-
-
-
-          "total_females_dropout": {
-            "$sum": {
-              "$cond": {
-                "if": {
-                  "$eq": [
-                    {
-                      "$type": "$end_date_2"
-                    },
-                    "date"
-                  ]
-                },
-                "then": "$num_females_dropout",
-                "else": 0
-              }
-            }
-          },
-          "total_females_graduated": {
-            "$sum": {
-              "$cond": {
-                "if": {
-                  "$eq": [
-                    {
-                      "$type": "$end_date_2"
-                    },
-                    "date"
-                  ]
-                },
-                "then": "$num_females_graduated",
-                "else": 0
-              }
-            }
-          },
-          "total_females_completed": {
-            "$sum": {
-              "$cond": {
-                "if": {
-                  "$eq": [
-                    {
-                      "$type": "$end_date_2"
-                    },
-                    "date"
-                  ]
-                },
-                "then": "$num_females",
-                "else": 0
-              }
-            }
-          },
-          "total_females_ongoing": {
-            "$sum": {
-              "$cond": {
-                "if": {
-                  "$or": [
-                    {
-                      "$in": [
-                        "$end_date_2",
-                        [
-                          "",
-                          null
-                        ]
-                      ]
-                    },
-                    {
-                      "$eq": [
-                        {
-                          "$type": "$end_date_2"
-                        },
-                        "missing"
-                      ]
-                    }
-                  ]
-                },
-                "then": "$num_females",
-                "else": 0
-              }
-            }
-          },
-          "total_batches_ongoing": {
-            "$sum": {
-              "$cond": {
-                "if": {
-                  "$or": [
-                    {
-                      "$in": [
-                        "$end_date_2",
-                        [
-                          "",
-                          null
-                        ]
-                      ]
-                    },
-                    {
-                      "$eq": [
-                        {
-                          "$type": "$end_date_2"
-                        },
-                        "missing"
-                      ]
-                    }
-                  ]
-                },
-                "then": 1,
-                "else": 0
-              }
-            }
-          },
-          "total_batches_completed": {
-            "$sum": {
-              "$cond": {
-                "if": {
-                  "$eq": [
-                    {
-                      "$type": "$end_date_2"
-                    },
-                    "date"
-                  ]
-                },
-                "then": 1,
-                "else": 0
-              }
-            }
-          },
-          "average_hours": {
-            "$avg": "$hours"
-          },
-          "total_hours": {
-            "$sum": "$hours"
-          },
-          "total_males": {
-            "$sum": "$num_males"
-          },
-          "total_males_ongoing": {
-            "$sum": {
-              "$cond": {
-                "if": {
-                  "$or": [
-                    {
-                      "$in": [
-                        "$end_date_2",
-                        [
-                          "",
-                          null
-                        ]
-                      ]
-                    },
-                    {
-                      "$eq": [
-                        {
-                          "$type": "$end_date_2"
-                        },
-                        "missing"
-                      ]
-                    }
-                  ]
-                },
-                "then": "$num_males",
-                "else": 0
-              }
-            }
-          },
-
-
-
-
-
-
-
-
-
-
- sum(num_males_graduated) as total_males_graduated,
+sum(nvl2(end_date_2!=0,num_females_dropout,0)) as total_females_dropout,
+sum(nvl2(end_date_2!=0,num_females_graduated,0)) as total_females_graduated,
+sum(nvl2(end_date_2!=0,num_females,0)) as total_females_completed,
+sum(nvl2(end_date_2=0,num_females,0)) as total_females_ongoing,
+sum(nvl2(end_date_2=0,1,0)) as total_batches_ongoing,
+sum(nvl2(end_date_2!=0,1,0)) as total_batches_completed,
+average(hours) as average_hours,
+sum(hours) as total_hours,
+sum(num_males) as total_males,
+sum(nvl2(end_date_2=0,num_males,0)) as total_males_ongoing,
+sum(num_males_graduated) as total_males_graduated,
  sum(num_males_dropout) as total_males_dropout,
  sum(reason_pregnancy) as dropout_pregnancy,
  sum(reason_left) as dropout_left,
@@ -200,26 +24,11 @@ sum(nvl2(type(num_females_graduated)='int',num_females,0)) as total_females_grad
  sum(reason_pressure) as dropout_pressure,
  sum(reason_other) as dropout_other
  
- 
- 
- 
- 
- 
- 
-      
-profile_54646.name_vendor, profile_54646.name_vendor_filter
 FROM profile_4227 
 
 LEFT JOIN profile_54646 ON
 profile_4227.projectId = profile_54646.projectId
 
-where lg_status != 848008 and end_date_2 != 0
+where lg_status != 848008
 
-group by num_females,
-num_females_graduated,
-num_females_dropout, lg_status, start_year,start_quarter , end_date_2,
-profile_54646.name_vendor, profile_54646.name_vendor_filter
---group by location_name, cp_id, ngo_name
-
-
-*/
+--group by num_females,num_females_graduated,num_females_dropout, lg_status, start_year,start_quarter , end_date_2,profile_54646.name_vendor, profile_54646.name_vendor_filter
