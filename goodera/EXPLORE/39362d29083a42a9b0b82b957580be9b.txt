@@ -1,13 +1,14 @@
 with table1 as (select projectid,fy_timerange,fy,mwra_using_old,mwra_using_new,
 row_number() over 
 (--partition by sellerid
- order by fy_timerange asc) as row from profile_59872)
+ order by fy_timerange asc) as row from profile_59872),
  
- select fy_timerange,row,mwra_using_old, 
+ table2 as (select fy_timerange,row,mwra_using_old, 
  case when mwra_using_old = 0 and row = 1 then 0
           else 386 end as r , 0 as temp,mwra_using_new,
 		  sum(mwra_using_new+temp) over(order by fy_timerange rows between unbounded               PRECEDING and current row) AS s ,r+s as final
 		
-         from table1
+         from table1)
+select fy_timerange,final from table2		 
 
 --order by fy_timerange asc
