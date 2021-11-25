@@ -1,10 +1,15 @@
 with sub1 as(
-  select p1._id as p3id, p1.creatorid, t1.submissionlog, p1.product_brand, p1.product_description, p1.reckitt_kits, p1.sold_destroyed, p1.estimate_cost
-from profile_78062 p1
-left join ds_mongo_taskResponse t1 on t1.creatorid = p1.creatorid),
+  select p1.creatorid, t1.submissionlog, p1.other_brand, is_array(p1.other_brand) as array_check,
+case
+  when array_check = false then array(p1.other_brand)
+  else p1.other_brand
+end as other_brand_new
+from profile_78057 p1
+left join ds_mongo_taskResponse t1 on t1.creatorid = p1.creatorid
+where p1.other_brand is not null),
 
 sub2 as(
-  select s1.*, log from sub1 s1, s1.submissionlog log)
+  select s1.*, log, other_brand from sub1 s1, s1.submissionlog log, s1.other_brand_new, other_brand)
   
-select s2.p3id, s2.product_brand, s2.log.email from sub2 s2
-group by s2.p3id, s2.product_brand, s2.log.email
+select s2.other_brand, s2.log.email from sub2 s2
+group by s2.other_brand, s2.log.email
