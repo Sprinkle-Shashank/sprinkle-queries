@@ -22,38 +22,7 @@ Select t2.name as projectId,t.name as proj_location,t1.name as partner, sd.basel
     else endline_yn 
 	end as endline_yn,
 		concat(concat(concat(concat('{"start":"', sd.date_enroll),'","end":"'),sd.date_completion),'"}') as fy_timerange,
-  case
-	when endline_yn='Yes' then 1 
-	else 0
-	end as Students_Graduated,
-case
-	when endline_yn=0 then 1 
-	else 0
-	end as Students_in_Training,
-case
-	when endline_yn='No' then 1 
-	else 0
-	end as Dropouts,
-case
-	when midline_yn=20779 then 1 
-	else 0
-	end as Students_Cleared_Mid_line_Exam,
-case
-	when third_year_enroll=20779 then 1 
-	else 0
-	end as Students_Enrolled_in_3rd_Year_Courses,
-case
-	when tt1.name='Yes' then 1 
-	else 0
-	end as Students_Placed,
-case
-	when capgemini_yn=20779 then 1 
-	else 0
-	end as Students_Hired_by_Capgemini,
-case
-	when job_change_yn=20780 then 1 
-	else 0
-	end as Students_in_Same_Job_After_6_Months 
+
   
 
 
@@ -73,26 +42,70 @@ on tt.id=sd.endline_yn
 left join ds_mysql_prod_tagelement tt1
 on tt1.id=sd.placed_yn
 ),
-S2 as (
+s2 as (
 Select s1.proj_location, s1.partner, s1.projectId, s1.location, s1.imp_partner, s1.fy_timerange,temp.col as status,
+
+  case
+	when s1.endline_yn='Yes' then 1 
+	else 0
+	end as Students_Graduated,
+case
+	when s1.endline_yn=0 then 1 
+	else 0
+	end as Students_in_Training,
+case
+	when s1.endline_yn='No' then 1 
+	else 0
+	end as Dropouts,
+case
+	when s1.midline_yn=20779 then 1 
+	else 0
+	end as Students_Cleared_Mid_line_Exam,
+case
+	when s1.third_year_enroll=20779 then 1 
+	else 0
+	end as Students_Enrolled_in_3rd_Year_Courses,
+case
+	when s1.placed_yn='Yes' then 1 
+	else 0
+	end as Students_Placed,
+case
+	when s1.capgemini_yn=20779 then 1 
+	else 0
+	end as Students_Hired_by_Capgemini,
+case
+	when s1.job_change_yn=20780 then 1 
+	else 0
+	end as Students_in_Same_Job_After_6_Months 
+from s1
+)
+,
+
+
+S2 as (
+Select s2.proj_location, s2.partner, s2.projectId, s2.location, s2.imp_partner, s2.fy_timerange,temp.col as status,
 sum(
 case col
- 	when 'Students_Graduated' then s1.Students_Graduated
-	when 'Students_in_Training' then s1.Students_in_Training
-	when 'Dropouts' then s1.Dropouts
-	when 'Students_Cleared_Mid_line_Exam' then s1.Students_Cleared_Mid_line_Exam
-	when 'Students_Enrolled_in_3rd_Year_Courses' then s1.Students_Enrolled_in_3rd_Year_Courses
-	when 'Students_Placed' then s1.Students_Placed
-	when 'Students_Hired_by_Capgemini' then s1.Students_Hired_by_Capgemini
-	when 'Students_in_Same_Job_After_6_Months' then s1.Students_in_Same_Job_After_6_Months
+ 	when 'Students_Graduated' then s2.Students_Graduated
+	when 'Students_in_Training' then s2.Students_in_Training
+	when 'Dropouts' then s2.Dropouts
+	when 'Students_Cleared_Mid_line_Exam' then s2.Students_Cleared_Mid_line_Exam
+	when 'Students_Enrolled_in_3rd_Year_Courses' then s2.Students_Enrolled_in_3rd_Year_Courses
+	when 'Students_Placed' then s2.Students_Placed
+	when 'Students_Hired_by_Capgemini' then s2.Students_Hired_by_Capgemini
+	when 'Students_in_Same_Job_After_6_Months' then s2.Students_in_Same_Job_After_6_Months
   else null
   end
 ) as count
-  from s1
+  from s2
  cross join temp
-group by s1.proj_location, s1.partner, s1.projectId, s1.location, s1.imp_partner, s1.fy_timerange,temp.col
+group by s2.proj_location, s2.partner, s2.projectId, s2.location, s2.imp_partner, s2.fy_timerange,temp.col 
 )
 
-Select s2.proj_location, s2.partner, s2.projectId, s2.location, s2.imp_partner, s2.fy_timerange
+
+
+
+
+Select s3.proj_location, s3.partner, s3.projectId, s3.location, s3.imp_partner, s3.fy_timerange
 from s2
-where Coalesce (s2.status,0)=Students_Placed
+where Coalesce (s3.status,0)=Students_Placed
