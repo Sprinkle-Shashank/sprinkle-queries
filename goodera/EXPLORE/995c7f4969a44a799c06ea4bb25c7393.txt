@@ -16,9 +16,12 @@ sub2 as
 	left join ds_mysql_prod_tagelement t
 	on t.id=s2.source
   where nvl(s2.curr_cr_rating, 0) in (957771, 957772, 957780, 957773, 957768) 
-  )
+  ),
 
-select curr_cr_rating, timeperiod_timerange, region, factory_id as Factory_IDs, source_div, 1 as count
+ sub4 as (select curr_cr_rating, timeperiod_timerange, region, listagg(factory_id, ',') as factory_ids, source_div, 1 as count
 	from sub3
-	group by curr_cr_rating, timeperiod_timerange, region, source_div, factory_id
-	order by timeperiod_timerange asc
+	group by curr_cr_rating, timeperiod_timerange, region, source_div
+	order by timeperiod_timerange asc)
+	
+
+select (concat(concat('[', (trim('"' from factory_ids))),']')) as factory_ids,curr_cr_rating, timeperiod_timerange, region, source_div, count   from sub4
