@@ -1,4 +1,4 @@
-with table1 as(Select profile_54646.name_country as country,profile_54646.name_vendor as partner,f_y.name as fy,p._id,mth.name as month,p.pace_status_1,pro.name as factory,p.sourcing_yn,profile_54267.facility_rating,profile_54267.fac_vpid,profile_54646.name_vendor_filter as partner_consolidated,count(*),row_number() over 
+with table1 as(Select profile_54646.name_country as country,p._id,profile_54646.name_vendor as partner,pro.name as factory,f_y.name as fy,mth.name as month,p.pace_status_1,profile_54267.fac_vpid,p.sourcing_yn,profile_54646.name_vendor_filter as partner_consolidated,count(*),row_number() over 
 (partition by factory
  order by p._id desc) as row
 
@@ -6,28 +6,24 @@ from profile_52713 p
 
 left join profile_54267 on
 p.projectId = profile_54267.projectId
-left join ds_mysql_prod_project pro
-on p.projectId = pro.id
+
+
 
 left join profile_54646 on
 p.projectId = profile_54646.projectId
-
+left join ds_mysql_prod_project pro
+on p.projectId = pro.id
 --left join ds_mysql_prod_tagelement pc_2
---on profile_52713.pace_status_1 = pc_2.id
+--on profile_52713.pace_status_2 = pc_2.id
 left join ds_mysql_prod_tagelement f_y
 on profile_54267.fy = f_y.id
 left join ds_mysql_prod_tagelement mth
 on profile_54267.month = mth.id
 
-left join ds_mysql_prod_tagelement rating
-on profile_54267.facility_rating = rating.id
 
+where profile_52713.pace_status_1= 'Currently implementing P.A.C.E.' and profile_52713.sourcing_yn = 57472 
 
-where p.pace_status_1= 'Currently implementing P.A.C.E.' and p.sourcing_yn = 57472
-and profile_54267.facility_rating = 845095
-
-
-group by profile_54646.name_country,profile_54646.name_vendor,profile_54646.name_vendor_filter,profile_54267.fy,profile_54267.month,p.pace_status_1,p.sourcing_yn,f_y.name,mth.name,profile_54267.facility_rating,pro.name,p._id,profile_54267.fac_vpid,pro.name,p._id
+group by  profile_54646.name_country,profile_54646.name_vendor,profile_54267.fy,profile_54267.month,p.pace_status_1,p.sourcing_yn,f_y.name,mth.name,profile_54267.fac_vpid,pro.name,p._id,profile_54646.name_vendor_filter
 
 )
 select Distinct factory,fy,month,row from table1
