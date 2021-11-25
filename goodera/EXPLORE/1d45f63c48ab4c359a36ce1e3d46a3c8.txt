@@ -4,7 +4,7 @@ from profile_66535 ss
 left join ds_mysql_prod_tagelement t
 on ss.course_name=t.id)
 union all
-(Select  st.projectId, t1.name as discipline , st.timerange_timerange
+(Select  st.projectId, st.timerange_timerange , t1.name as discipline 
 from profile_63517 st
 left join ds_mysql_prod_tagelement t1
 on st.discipline=t1.id)
@@ -14,5 +14,26 @@ from profile_65049 su
 left join ds_mysql_prod_tagelement t2
 on su.course=t2.id)
 )
+,
+s2 as(
+Select t2.name as projectId,t.name as proj_location,t1.name as partner,s1.course_name,s1.fy_timerange,po.impl_agency as imp_partner
+  
+from s1
+left join ds_mysql_prod_project t
+on s1.projectid=t.id
+left join ds_mysql_prod_project t1
+on t.parent=t1.id
+left join ds_mysql_prod_project t2
+on t1.parent=t2.id
+  left join profile_65552 po
+on t.parent=s1.projectid
 
-Select * from s1
+),
+
+s3 as(
+Select s2.fy_timerange, s2.projectId, s2.impl_agency ,listagg(distinct s1.course_name ,',')
+from s2
+ group by s2.fy_timerange, s2.projectId, s2.impl_agency
+
+)
+Select * from s3
