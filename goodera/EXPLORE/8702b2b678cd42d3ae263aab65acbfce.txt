@@ -48,7 +48,7 @@ cross join temp
   sub5 as
   (
   select t1.name as region, s4.fy_timerange, cdms_id, level1,
-	array(listagg(distinct modules,', ')) as modules, case when 1=1 then array(listagg('OVERALL',',')) else 0 end as ovr,
+	listagg(distinct modules,', ') as modules, case when 1=1 then listagg('OVERALL',',') else 0 end as ovr,
 	source as source_div
   from sub4 s4
   left join ds_mysql_prod_tagelement t
@@ -60,7 +60,10 @@ cross join temp
 	),
 	sub6 as 
 	(
-	select fy_timerange,level1, source_div, region, array_concat(modules,ovr) as modules, cdms_id
+	select fy_timerange,level1, source_div, region
+	  --, (concat(concat('[', (trim('"' from factory_ids))),']'))
+	  --array_concat(modules,ovr) as modules
+	  , cdms_id
 	from sub5),
 	/*
 	sub7 as 
@@ -75,4 +78,4 @@ cross join temp
 	  --regexp_count(modules_new,',')+1 as mod, cdms_id, 1 as count
 	from sub71
 	group by fy_timerange, source_div, region, modules, level1, cdms_id)
-	select * from sub6
+	select * from sub5
