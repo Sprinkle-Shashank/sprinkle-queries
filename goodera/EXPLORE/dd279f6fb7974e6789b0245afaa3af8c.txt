@@ -6,12 +6,21 @@ left join ds_mongo_taskResponse t1 on t1.creatorid = p1.creatorid),
 sub2 as(
   select s1.*, log from sub1 s1, s1.submissionlog log)
   
-select s2.p3id, s2.sequence, cast(s2.log.email as varchar) as user_email, t1.name as country, t2.name as product_brand, s2.other_brands_involved as other_brand, s2.activity, s2.activity_description, s2.partner, t3.name as business_units, t4.name as focus_area, s2.focus_area_other, t5.name as currency, p2.conversion_factor, t6.name as direct_cash, s2.direct_cash_donations, 
-(s2.direct_cash_donations * p2.conversion_factor) as direct_cash_donations_GBP,
-extract(month from cast(s2.fy_timerange.start as date)) as start_month, 
-extract(year from cast(s2.fy_timerange.start as date)) as start_year, 
-extract(month from cast(s2.fy_timerange.end as date)) as end_month, 
-extract(year from cast(s2.fy_timerange.end as date)) as end_year
+select s2.p3id, s2.sequence, cast(s2.log.email as varchar) as user_email, s2.fy_timerange, t1.name as country, t2.name as product_brand, s2.other_brands_involved, s2.activity, s2.activity_description, s2.partner, t3.name as business_units, t4.name as focus_area, s2.focus_area_other, t5.name as currency, p2.conversion_factor, t6.name as direct_cash, s2.direct_cash_donations, 
+(s2.direct_cash_donations * p2.conversion_factor) as direct_cash_donations_GBP, t7.name as product_donation, s2.value_of_reckitt_products,
+(s2.value_of_reckitt_products * p2.conversion_factor) as value_reckitt_products_gbp, t8.name as brand_of_prods_donated, s2.product_description, s2.no_of_reckitt_prods_donated, t9.name as sold_destroyed, s2.estimate_cost, (s2.estimate_cost * p2.conversion_factor) as estimate_cost_gbp, t10.name as emp_volunteering,
+s2.total_amount_donated_payroll, 
+(s2.total_amount_donated_payroll * p2.conversion_factor) as total_amount_donated_payroll_gbp, s2.supplier_contribution, (s2.supplier_contribution * p2.conversion_factor) as supplier_contribution_gbp, s2.no_of_individuals_directly_engaged, s2.people_engaged_explanation, t11.name as measure_outcome, s2.no_of_individuals_better_knowledge, s2.no_of_individuals_behaviour_changed, s2.no_of_individuals_reporting_improvement, s2.charity_measured_outcome, s2.outcome_evidence, s2.photos_reports,
+
+case
+	when s2.outcome_evidence is null then '-'
+	else 'Evidence Download'
+end as outcome_evidence_download,
+
+case
+	when s2.photos_reports is null then '-'
+	else 'Reports Download'
+end as photos_reports_download,
 
 from sub2 s2
 left join ds_mysql_prod_tagelement t1 on t1.id = s2.country
@@ -20,6 +29,12 @@ left join ds_mysql_prod_tagelement t3 on t3.id = s2.business_units
 left join ds_mysql_prod_tagelement t4 on t4.id = s2.focus_area
 left join ds_mysql_prod_tagelement t5 on t5.id = s2.currency
 left join ds_mysql_prod_tagelement t6 on t6.id = s2.direct_cash
+left join ds_mysql_prod_tagelement t7 on t7.id = s2.product_donation
+left join ds_mysql_prod_tagelement t8 on t8.id = s2.brand_of_prods_donated
+left join ds_mysql_prod_tagelement t9 on t9.id = s2.sold_destroyed
+left join ds_mysql_prod_tagelement t10 on t10.id = s2.emp_volunteering
+left join ds_mysql_prod_tagelement t11 on t11.id = s2.measure_outcome
 left join profile_78083 p2 on p2.name = (t5.name||'_'||extract(year from cast(fy_timerange.start as date)))
 
-group by s2.p3id, s2.sequence, s2.log.email, t1.name, t2.name, s2.other_brands_involved, s2.activity, s2.activity_description, s2.partner, t3.name, t4.name, s2.focus_area_other, t5.name, t6.name, s2.direct_cash_donations,p2.conversion_factor, s2.fy_timerange
+group by s2.p3id, s2.sequence, s2.log.email, s2.fy_timerange, t1.name, t2.name, s2.other_brands_involved, s2.activity, s2.activity_description, s2.partner, t3.name, t4.name, s2.focus_area_other, t5.name, p2.conversion_factor, t6.name, s2.direct_cash_donations, t7.name, s2.value_of_reckitt_products, t8.name, s2.product_description, s2.no_of_reckitt_prods_donated, t9.name, s2.estimate_cost, t10.name,
+s2.total_amount_donated_payroll, s2.supplier_contribution, s2.no_of_individuals_directly_engaged, s2.people_engaged_explanation, t11.name, s2.no_of_individuals_better_knowledge, s2.no_of_individuals_behaviour_changed, s2.no_of_individuals_reporting_improvement, s2.charity_measured_outcome, s2.outcome_evidence, s2.photos_reports
