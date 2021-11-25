@@ -1,5 +1,5 @@
 with sub1 as(
-  select p1.creatorid, t1.submissionlog, p1.other_brand, is_array(p1.other_brand) as array_check,
+  select p1.creatorid, t1.submissionlog, p1.sequence, p1.other_brand, is_array(p1.other_brand) as array_check, p1.currency, p1.fy_timerange,
 case
   when array_check = false then array(p1.other_brand)
   else p1.other_brand
@@ -11,5 +11,16 @@ where p1.other_brand is not null),
 sub2 as(
   select s1.*, log, other_brand_2 from sub1 s1, s1.submissionlog log, s1.other_brand_new other_brand_2)
   
-select s2.other_brand_2, s2.log.email from sub2 s2
-group by s2.other_brand_2, s2.log.email
+select p2._id as p3id, s2.sequence as parent_sequence, s2.fy_timerange, 
+cast(s2.log.email as varchar) as user_email, t1.name as currency, p3.conversion_factor, 
+t2.name as product_brand, p2.product_description, p2.reckitt_kits, t3.name as sold_destroyed, p2.estimate_cost,
+(p2.estimate_cost * p3.conversion_factor) as estimate_cost_gbp
+from sub2 s2
+left join profile_78062 p2 on p2._id = s2.other_brand_2
+left join ds_mysql_prod_tagelement t1 on t1.id = s2.currency
+left join ds_mysql_prod_tagelement t2 on t2.id = s2.product_brand
+left join ds_mysql_prod_tagelement t3 on t3.id = s2.sold_destroyed
+left join profile_78083 p3 on p3.name = (t1.name||'_'||extract(year from cast(s2.fy_timerange.start as date)))
+
+group by p2._id, s2.sequence, s2.fy_timerange, s2.log.email, t1.name, p3.conversion_factor, 
+t2.name, p2.product_description, p2.reckitt_kits, t3.name, p2.estimate_cost
