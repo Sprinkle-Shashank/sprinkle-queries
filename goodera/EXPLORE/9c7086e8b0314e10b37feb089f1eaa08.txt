@@ -4,7 +4,9 @@ Select 'Male' as col
 Select 'Female' as col
 ),
 s1 as(
-Select t2.name as projectIdd,t.name as proj_location,t1.name as partner,pl.location,po.impl_agency as imp_partner,concat(concat(concat(concat('{"start":"', ss.start_date),'","end":"'),ss.end_date),'"}') as fy_timerange,ss.school_name,ss.class,sum(ss.no_girls) Female,sum(ss.no_boys) Male,ss.age
+Select t2.name as projectIdd,t.name as proj_location,t1.name as partner,pl.location,po.impl_agency as imp_partner,
+  --concat(concat(concat(concat('{"start":"', ss.start_date),'","end":"'),ss.end_date),'"}') as fy_timerange,
+  ss.school_name,ss.class,sum(ss.no_girls) Female,sum(ss.no_boys) Male,ss.age
 from profile_67673 ss
 left join ds_mysql_prod_project t
 on ss.projectid=t.id
@@ -20,7 +22,9 @@ on t.parent=po.projectid
 
 ),
 s2 as (
-Select s1.proj_location, s1.class, s1.fy_timerange, s1.partner, s1.projectIdd as projectid, tt2.name as location, tt3.name as imp_partner, s1.school_name,
+Select s1.proj_location, s1.class, 
+  --s1.fy_timerange,
+  s1.partner, s1.projectIdd as projectid, tt2.name as location, tt3.name as imp_partner, s1.school_name,
 'School' as center_school,
   case col 
   	when 'Male' then s1.male
@@ -47,9 +51,13 @@ left join ds_mysql_prod_tagelement tt3
   ),
   
   s3 as (
-  Select  s2.proj_location, s2.fy_timerange, s2.partner, s2.projectId, s2.location, s2.age_bucket, s2.state_code, s2.center_school, s2.gender,sum(s2.benef) no_benef
+  Select  s2.proj_location, 
+	--s2.fy_timerange, 
+	s2.partner, s2.projectId, s2.location, s2.age_bucket, s2.state_code, s2.center_school, s2.gender,sum(s2.benef) no_benef
 	from s2
-	group by s2.proj_location, s2.fy_timerange, s2.partner, s2.projectId, s2.location, s2.age_bucket, s2.state_code, s2.center_school, s2.gender
+	group by s2.proj_location
+	--, s2.fy_timerange
+	, s2.partner, s2.projectId, s2.location, s2.age_bucket, s2.state_code, s2.center_school, s2.gender
   )
   
   Select * from s3
