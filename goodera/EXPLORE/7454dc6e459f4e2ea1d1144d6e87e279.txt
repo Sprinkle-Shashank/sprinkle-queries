@@ -30,7 +30,7 @@ from profile_74133 sq
 cross join temp
   )
 ,sub2 as(
-select s1.*, pd.cdms_id,mr.source_div, mr.cr_tier, json_serialize(mr.facility_type) as facility_type_new, mr.wet_process, mr.timeperiod_timerange, position(1 in level) as level1, position(2 in level) as level2, position(3 in level) as level3, module, upper(substring(module,1,position('_' in module)-1)) as modules
+select s1.*, pd.cdms_id,json_serialize(mr.source_div) as source_div_new, mr.cr_tier, json_serialize(mr.facility_type) as facility_type_new, mr.wet_process, mr.timeperiod_timerange, position(1 in level) as level1, position(2 in level) as level2, position(3 in level) as level3, module, upper(substring(module,1,position('_' in module)-1)) as modules
   from sub1 s1
 left join profile_74334 pd
 on pd.higg_id=s1.sacid
@@ -40,7 +40,7 @@ where level!=' '
 ),
 sub3 as
 (
-select country, fy_timerange, modules, cdms_id, level1,source_div, first_value(cr_tier)
+select country, fy_timerange, modules, cdms_id, level1, first_value(cr_tier)
 over(partition by country, fy_timerange, modules, cdms_id, level1
 order by cast(timeperiod_timerange.start as date) desc
 rows between unbounded preceding and unbounded following) as cr_tier, first_value(facility_type_new)
@@ -50,15 +50,12 @@ rows between unbounded preceding and unbounded following) as facility_type
   , first_value(wet_process)
 over(partition by country, fy_timerange, modules, cdms_id, level1
 order by cast(timeperiod_timerange.start as date) desc
-rows between unbounded preceding and unbounded following) as wet_process
+rows between unbounded preceding and unbounded following) as wet_process,
+  first_value(source_div_new)
+over(partition by country, fy_timerange, modules, cdms_id, level1
+order by cast(timeperiod_timerange.start as date) desc
+rows between unbounded preceding and unbounded following) as source_div
 from sub2
-), 
-
-  sub5 as
-  (select cr_tier, country, fy_timerange, wet_process, modules, cdms_id, level1, facility_type, source
-  from sub3 s3, s3.source_div source),
-sub4 as(
-select cr_tier, country, fy_timerange, wet_process, modules, cdms_id, level1, facility_type, source from sub5
-group by cr_tier, country, fy_timerange, modules, wet_process, cdms_id, level1, facility_type, source
-  )
-  select * from sub4
+)
+select cr_tier, country, fy_timerange, wet_process, modules, cdms_id, level1, facility_type, source_div from sub3
+group by cr_tier, country, fy_timerange, modules, wet_process, cdms_id, level1, facility_type, source_div
