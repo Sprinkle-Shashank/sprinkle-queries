@@ -63,5 +63,37 @@ group by cr_tier, country, fy_timerange, modules, wet_process, cdms_id, level1, 
 , sub5 as (
 select cr_tier, country, fy_timerange, wet_process, modules, cdms_id, level1, facility_type, source_div_new
   --,cast(source_div_new as int) as source_div 
-  from sub4 s4, s4.source source_div_new)
-select * from sub5
+  from sub4 s4, s4.source source_div_new),
+  sub51 as
+  (
+  select t1.name as region, s4.fy_timerange, cdms_id, level1,
+	listagg(distinct modules,', ') as modules, cr_tier, facility_type,
+	source as source_div
+  from sub5 s4
+  left join ds_mysql_prod_tagelement t
+	on t.id=s4.country
+	left join ds_mysql_prod_tagelement t1
+	on t.parent=t1.id
+	  where cdms_id is not null 
+	group by s4.fy_timerange, source, t1.name, cdms_id, level1, cr_tier, facility_type
+	),
+	sub6 as(
+	select fy_timerange, source_div, facility_type_new, region, cdms_id, regexp_count(modules,',')+1 as mod, level1, cr_tier, 
+	case 
+	when position('957761' in facility_type_new)>0 and cr_tier=957758 then 'Level 1 Tier 1'
+	when position('957761' in facility_type_new)>0 and cr_tier=957757 then 'Level 1 Tier 2'
+ when position('957761' in facility_type_new)=0 and position('957762' in facility_type_new)>0 then 'Level 2 Mills' when position('957761' in facility_type_new)=0 and position('957762' in facility_type_new)=0 and position('957763' in facility_type_new)>0 then 'Level 2 Trim' else 'No' end as fac_type
+	from sub5), 
+	sub7 as
+	(
+	select fy_timerange, source_div, facility_type_new, cdms_id, cr_tier, region, case when mod=7 and level1=1 then 7 else level1 end as level_1, fac_type
+	from sub6
+	group by fy_timerange, source_div, facility_type_new, cr_tier, region, mod, level1, cdms_id, fac_type),
+	sub8 as (
+	select fy_timerange, source_div, facility_type_new as facility_type, s6.region, cdms_id as facs,1 as count, cr_tier, fac_type, mr.brand, level_1
+	  from sub7 s6
+	  left join profile_70187 mr
+	  on s6.source_div=mr.business_div
+	  where COALESCE(fac_type,'')!='No'
+	)
+	select fy_timerange, source_div, region, brand,level_1, fac_type, facs, count from sub8
