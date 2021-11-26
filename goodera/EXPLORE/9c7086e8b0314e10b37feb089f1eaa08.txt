@@ -1,11 +1,27 @@
-With temp as (
+with temp as (
 Select 'Male' as col
   union all
-Select 'Female' as col
-),
-s1 as(
-Select t2.name as projectId,t.name as proj_location,t1.name as partner,pl.location,po.impl_agency as imp_partner,
-fy_timerange,ss.school_name,ss.class,sum(ss.no_girls) Female,sum(ss.no_boys) Male,
+Select 'Female' as col),
+sub1 as(
+select projectId as proj_location, t1.name as partner, t2.name as projectId, no_girls, no_boys, school_name, class, fy_timerange
+from profile_67673 ss
+left join ds_mysql_prod_project t
+on ss.projectid=t.id
+left join ds_mysql_prod_project t1
+on t.parent=t1.id
+left join ds_mysql_prod_project t2
+on t1.parent=t2.id),
+sub2 as
+(
+select pd.location, s1.proj_location, s1.partner, s1.projectId, mr.impl_agency as imp_partner, sum(no_girls) as Female, sum(no_boys) as Male, school_name, class, fy_timerange
+from sub1 s1
+left join profile_65603 pd
+on s1.proj_location=pd.projectId
+left join profile_65552 mr
+on mr.projectId=s1.partner
+group by proj_location, class, fy_timerange, partner, s1.projectId, location, impl_agency, school_name),
+sub3 as(
+select s2.*, 
   case when class=836474 then 6
   when class=836475 then 7
   when class=836476 then 8
@@ -18,29 +34,10 @@ fy_timerange,ss.school_name,ss.class,sum(ss.no_girls) Female,sum(ss.no_boys) Mal
   when class=836483 then 15
   when class=836484 then 16
   else 17 end as age
-from profile_67673 ss
-left join ds_mysql_prod_project t
-on ss.projectid=t.id
-left join ds_mysql_prod_project t1
-on t.parent=t1.id
-left join ds_mysql_prod_project t2
-on t1.parent=t2.id
-left join profile_65603 pl
-on pl.projectid=t.name
-left join profile_65552 po
-on t.parent=po.projectid
- group by proj_location, ss.class, fy_timerange, partner, projectIdd, pl.location, imp_partner, ss.school_name
-
-),
-s2 as (
-Select s1.proj_location, s1.class, s1.fy_timerange, s1.partner, s1.projectId as projectid, tt2.name as location, tt3.name as imp_partner, s1.school_name,
-'School' as center_school,
-  case col 
-  	when 'Male' then s1.male
-   when 'Female' then s1.female
-  else null
-  end as benef,temp.col as gender,
-case 
+  from sub2 s2), 
+  sub4 as(
+  select s1.*,
+	case 
 		when s1.age<=6 then 'Less than 6'
 		when s1.age>=6 and s1.age<=10 then '6 to 10'
 		when s1.age>=10 and s1.age<=15 then '10 to 15'
@@ -48,21 +45,27 @@ case
 		when s1.age>=18 and s1.age<=35 then '18 to 35'
 		when s1.age>=35 and s1.age<=60 then '35 to 60'
 		else 'Greater than 60'
-		end as age_bucket,st.name as state_code
-from s1
-  cross join temp
-  left join profile_73573 st
-on st.loc_select=s1.location
-left join ds_mysql_prod_tagelement tt2
- on s1.location=tt2.id
-left join ds_mysql_prod_tagelement tt3
- on s1.imp_partner=tt3.id
-  ),
-  
-  s3 as (
-  Select  s2.proj_location, s2.fy_timerange, s2.partner, s2.projectId, s2.location, s2.age_bucket, s2.state_code, s2.center_school, s2.gender,sum(s2.benef) no_benef
-	from s2
-	group by s2.proj_location, s2.fy_timerange, s2.partner, s2.projectId, s2.location, s2.age_bucket, s2.state_code, s2.center_school, s2.gender
-  )
-  
-  Select * from s3
+		end as age_bucket
+	from sub3 s1), 
+	sub5 as(
+	select s4.*,  st.name as state_code, 'School' as center_school
+	from sub4 s4
+	  left join profile_73573 st
+	on st.loc_select=s4.location),
+	sub6 as (
+	select s5.*,  case col 
+  	when 'Male' then s5.male
+   when 'Female' then s5.female
+  else null
+  end as benf,temp.col as gender
+	  from sub5 s5
+	  cross join temp 
+	)
+	  /*, 
+	  sub7 as(
+	  select proj_location, fy_timerange, partner, projectId, location, age_bucket, state_code, center_school, gender from sub6, sum(benf) as no_benef from sub6
+	group by proj_location, fy_timerange, partner, projectId, location, age_bucket, state_code, center_school, gender
+	  )*/
+	  select * from sub6
+	  
+	  --sub7 causing issue, i.e., group by stage
