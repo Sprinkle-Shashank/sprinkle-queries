@@ -1,43 +1,59 @@
-with 
-table3 as( select _id,projectid,fy,month, facility_rating,fac_vpid,row_number() over 
-(partition by projectid
- order by p._id desc) as row from profile_54267 p
-		  
-		  
-		  /*left join ds_mysql_prod_project pro
-on p.projectId = pro.id 
-left join ds_mysql_prod_tagelement f_y
-on p.fy = f_y.id
-left join ds_mysql_prod_tagelement mth
-on p.month = mth.id		*/  ),
-table2 as(select projectid,fy,month, facility_rating,fac_vpid, row from table3	
-where  row = 1),
-table1 as(Select p.projectid,/*profile_54646.name_country as country,profile_54646.name_vendor as partner,*/f_y.name as fy,mth.name as month,p._id,p.pace_status_1,pro.name as factory,p.sourcing_yn,t2.facility_rating,t2.fac_vpid,profile_54646.name_vendor_filter as partner_consolidated,row_number() over 
-(partition by factory
- order by p._id desc) as row
+with table1 as(Select select_modules,_id,hours from profile_4227 
+),
+table2 as (select t1.*,CAST(select_module as int) from table1 t1,t1.select_modules select_module
 
-from profile_52713 p 
+),
 
+ 
 
-
-left join table2 t2 on
-p.projectId = t2.projectId
-left join ds_mysql_prod_project pro
-on p.projectId = pro.id
-	left join ds_mysql_prod_tagelement f_y
-on t2.fy = f_y.id
-left join ds_mysql_prod_tagelement mth
-on t2.month = mth.id
-
+table3 as (
+select *,profile_54646.name_vendor_filter as partner_consolidated,profile_54646.name_vendor as partner,profile_54646.name_country as country
+  
+  
+from table2 p
+  
+left join ds_mysql_prod_tagelement as t1
+ on p.select_module=t1.id
+left join ds_mysql_prod_tagelement as t2
+  on t1.parent=t2.id
 left join profile_54646 on
-p.projectId = profile_54646.projectId
+profile_4227.projectId = profile_54646.projectId 
+WHERE  select_module IN 
+('64503','70912','70941','70900','70910','70913','70909','70903','70901','70902','70911','264682','264684','264683')
 
-where p.pace_status_1= 'Currently implementing P.A.C.E.' and p.sourcing_yn = 57472
-and t2.facility_rating = 845094 /*and t2.facility_rating is not null*/ )
 
-/*		
-select projectid,fy,month, facility_rating,fac_vpid, row from table2	
-where  row = 1*/
-		
-select Distinct factory,fy,month,row,facility_rating,sourcing_yn,pace_status_1 from table1
-where row = 1
+
+  
+) 
+select DISTINCT(_id),select_module, hours
+
+from table3
+/*with table1 as(Select  select_modules,_id,hours,start_year as financial_year,start_quarter as quarter from profile_4227 
+),
+table2 as (select t1.*,CAST(select_module as int) from table1 t1,t1.select_modules select_module
+
+),
+
+ 
+
+table3 as (
+select *
+  
+  
+from table2 p
+
+left join ds_mysql_prod_tagelement as t1
+ on p.select_module=t1.id
+left join ds_mysql_prod_tagelement as t2
+  on t1.parent=t2.id
+WHERE  select_module IN ('64503','70912','70941','70900','70910','70913','70909','70903','70901','70902','70911','264682','264684','264683')
+
+
+
+  
+) 
+
+select DISTINCT(_id),select_module, hours,financial_year,quarter
+
+from table3
+*/
