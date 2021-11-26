@@ -1,0 +1,37 @@
+with table1 as 
+(
+  select projectId,start_quarter, start_year,  num_females as ongoing,num_females_graduated as graduated,num_females_dropout as dropout, lg_status, select_modules 
+FROM profile_4227 
+
+
+  )
+  , table2 as 
+  (
+	select tab1.*,sm from table1 as tab1, tab1.select_modules sm
+),
+temp as (
+  
+  select 'ongoing' as C
+  Union all 
+  select 'graduated' as C
+  Union all
+  select 'dropout' as C
+  )
+select start_quarter, start_year, lg_status, profile_54646.name_vendor, profile_54646.name_country, profile_54646.name_vendor_filter,select_modules,
+  Sum(Case C
+	When 'ongoing' then t2.ongoing 
+	when 'graduated' then t2.graduated 
+	When 'dropout' then t2.dropout 
+	Else Null
+END) as values , temp.C as dimensions 
+from table2 t2
+
+CROSS JOIN temp 
+  
+	LEFT JOIN profile_54646 ON
+t2.projectId = profile_54646.projectId
+	
+where (lg_status = 848007 or lg_status is null) and tab2.c in (64507,70937,70944,70930,70931,70950,70929,70921,70932,70934,70948,70938,459396,459398,459399)
+
+group by  start_quarter, start_year, lg_status, temp.C, profile_54646.name_vendor, profile_54646.name_country, profile_54646.name_vendor_filter, select_modules
+
