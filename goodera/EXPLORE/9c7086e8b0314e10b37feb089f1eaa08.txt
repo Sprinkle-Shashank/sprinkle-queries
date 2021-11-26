@@ -4,7 +4,7 @@ Select 'Male' as col
 Select 'Female' as col
 ),
 s1 as(
-Select t2.name as projectIdd,t.name as proj_location,t1.name as partner,pl.location,po.impl_agency as imp_partner,concat(concat(concat(concat('{"start":"', ss.start_date),'","end":"'),ss.end_date),'"}') as fy_timerange,ss.school_name,ss.class,sum(ss.no_girls) Female,sum(ss.no_boys) Male
+Select t2.name as projectIdd,t.name as proj_location,t1.name as partner,pl.location,po.impl_agency as imp_partner,concat(concat(concat(concat('{"start":"', ss.start_date),'","end":"'),ss.end_date),'"}') as fy_timerange,ss.school_name,ss.class,sum(ss.no_girls) Female,sum(ss.no_boys) Male,ss.age
 from profile_67673
 left join ds_mysql_prod_project t
 on ss.projectid=t.id
@@ -16,7 +16,7 @@ left join profile_65603 pl
 on pl.projectid=ss.projectid
 left join profile_65552 po
 on t.parent=po.projectid
- group by proj_location, ss.class, fy_timerange, partner, projectIdd, pl.location, imp_partner, ss.school_name
+ group by proj_location, ss.class, fy_timerange, partner, projectIdd, pl.location, imp_partner, ss.school_name,ss.age
 
 ),
 s2 as (
@@ -26,14 +26,14 @@ Select s1.proj_location, s1.class, s1.fy_timerange, s1.partner, s1.projectId, tt
   	when 'Male' then s1.male
    when 'Female' then s1.female
   else null
-  end as benef,temp.col as gender
+  end as benef,temp.col as gender,
 case 
-		when ss.age<=6 then 'Less than 6'
-		when ss.age>=6 and ss.age<=10 then '6 to 10'
-		when ss.age>=10 and ss.age<=15 then '10 to 15'
-		when ss.age>=15 and ss.age<=18 then '15 to 18'
-		when ss.age>=18 and ss.age<=35 then '18 to 35'
-		when ss.age>=35 and ss.age<=60 then '35 to 60'
+		when s1.age<=6 then 'Less than 6'
+		when s1.age>=6 and s1.age<=10 then '6 to 10'
+		when s1.age>=10 and s1.age<=15 then '10 to 15'
+		when s1.age>=15 and s1.age<=18 then '15 to 18'
+		when s1.age>=18 and s1.age<=35 then '18 to 35'
+		when s1.age>=35 and s1.age<=60 then '35 to 60'
 		else 'Greater than 60'
 		end as age_bucket,st.name as state_code
 from s1
