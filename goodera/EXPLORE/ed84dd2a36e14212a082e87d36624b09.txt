@@ -1,4 +1,8 @@
-with sub1 as(
+with temp as (
+Select 'Male' as col
+  union all
+Select 'Female' as col),
+sub1 as(
 select projectId as proj_location, t1.name as partner, t2.name as projectId, no_girls, no_boys, school_name, class, fy_timerange
 from profile_67673 ss
 left join ds_mysql_prod_project t
@@ -47,5 +51,14 @@ select s2.*,
 	select s4.*,  st.name as state_code, 'School' as center_school
 	from sub4 s4
 	  left join profile_73573 st
-	on st.loc_select=s4.location)
-	select * from sub5
+	on st.loc_select=s4.location),
+	sub6 as (
+	select s5.*,  case col 
+  	when 'Male' then s1.male
+   when 'Female' then s1.female
+  else null
+  end as benef,temp.col as gender
+	  from sub5 s5
+	  cross join temp )
+	  select proj_location, fy_timerange, partner, projectId, location, age_bucket, state_code, center_school, gender, sum(no_benef) as benef from sub6
+	  group by proj_location, fy_timerange, partner, projectId, location, age_bucket, state_code, center_school, gender
