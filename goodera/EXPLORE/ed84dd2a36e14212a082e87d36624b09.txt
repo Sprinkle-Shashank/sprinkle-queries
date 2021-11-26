@@ -1,5 +1,5 @@
 with sub1 as(
-select projectId as proj_location, t1.name as partner, t2.name as projectId 
+select projectId as proj_location, t1.name as partner, t2.name as projectId, no_girls, no_boys, school_name, class, fy_timerange
 from profile_67673 ss
 left join ds_mysql_prod_project t
 on ss.projectid=t.id
@@ -9,10 +9,11 @@ left join ds_mysql_prod_project t2
 on t1.parent=t2.id),
 sub2 as
 (
-select pd.location, s1.proj_location, s1.partner, s1.projectId, mr.impl_agency
+select pd.location, s1.proj_location, s1.partner, s1.projectId, mr.impl_agency as impl_partner, sum(no_girls) as Females, sum(no_boys) as Males, school_name, class, fy_timerange
 from sub1 s1
 left join profile_65603 pd
 on s1.proj_location=pd.projectId
 left join profile_65552 mr
-on mr.projectId=s1.partner)
+on mr.projectId=s1.partner
+group by proj_location, class, fy_timerange, partner, projectId, location, imp_partner, school_name)
 select * from sub2
