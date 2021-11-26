@@ -40,7 +40,7 @@ where level!=' '
 ),
 sub3 as
 (
-select country, fy_timerange, modules, cdms_id, level1, first_value(cr_tier)
+select country, fy_timerange, modules, cdms_id, level1,source_div first_value(cr_tier)
 over(partition by country, fy_timerange, modules, cdms_id, level1
 order by cast(timeperiod_timerange.start as date) desc
 rows between unbounded preceding and unbounded following) as cr_tier, first_value(facility_type_new)
@@ -52,6 +52,13 @@ over(partition by country, fy_timerange, modules, cdms_id, level1
 order by cast(timeperiod_timerange.start as date) desc
 rows between unbounded preceding and unbounded following) as wet_process
 from sub2
-)
-select cr_tier, country, fy_timerange, wet_process, modules, cdms_id, level1, facility_type from sub3
-group by cr_tier, country, fy_timerange, modules, wet_process, cdms_id, level1, facility_type
+), 
+,
+  sub5 as
+  (select cr_tier, country, fy_timerange, wet_process, modules, cdms_id, level1, facility_type, source
+  from sub3, source_div source),
+sub4 as(
+select cr_tier, country, fy_timerange, wet_process, modules, cdms_id, level1, facility_type, source from sub5
+group by cr_tier, country, fy_timerange, modules, wet_process, cdms_id, level1, facility_type, source
+  )
+  select * from sub4
