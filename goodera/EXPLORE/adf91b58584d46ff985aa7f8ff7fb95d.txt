@@ -14,12 +14,16 @@ p.projectId = profile_54646.projectId
 
 where p.pace_status_1= 'Currently implementing P.A.C.E.' and p.sourcing_yn = 57472
 and profile_54267.facility_rating = 845095 and profile_54267.facility_rating is not null )
-,table2 as( select _id,pro.name as projectid,fy,month, facility_rating,fac_vpid,row_number() over 
+,table2 as( select _id,pro.name as projectid,f_y.name as fy,mth.name as month, facility_rating,fac_vpid,row_number() over 
 (partition by projectid
  order by p._id desc) as row from profile_54267 p
 		  
 		  left join ds_mysql_prod_project pro
-on p.projectId = pro.id )
+on p.projectId = pro.id 
+left join ds_mysql_prod_tagelement f_y
+on p.fy = f_y.id
+left join ds_mysql_prod_tagelement mth
+on p.fy = mth.id		  )
 		
 select projectid,fy,month, facility_rating,fac_vpid, row from table2	
 where row = 1 and projectid= 'Factory: EAM MALIBAN TEXTILES JORDAN PVT LTD'
