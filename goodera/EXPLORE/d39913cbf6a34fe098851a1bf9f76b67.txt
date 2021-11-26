@@ -1,0 +1,36 @@
+Select t2.name as projectId,t.name as proj_location,t1.name as partner,ss._Id, ss.gender, ss.caste, ss.annual_family_income, ss.city, ss.stream, ss.hh_location, ss.disablity, ss.start_date, ss.end_date,pl.location,po.impl_agency as imp_partner,
+	concat(concat(concat(concat('{"start":"', ss.start_date),'","end":"'),ss.end_date),'"}') as fy_timerange,ss.age,
+	case 
+		when ss.age<=6 then 'Less than 6'
+		when ss.age>=6 and ss.age<=10 then '6 to 10'
+		when ss.age>=10 and ss.age<=15 then '10 to 15'
+		when ss.age>=15 and ss.age<=18 then '15 to 18'
+		when ss.age>=18 and ss.age<=35 then '18 to 35'
+		when ss.age>=35 and ss.age<=60 then '35 to 60'
+		else 'Greater than 60'
+		end as age_bucket,st.name as state_code
+
+from profile_1580 ss
+left join ds_mysql_prod_project t
+on bd.projectid=t.id
+left join ds_mysql_prod_project t1
+on t.parent=t1.id
+left join ds_mysql_prod_project t2
+on t1.parent=t2.id
+left join profile_65603 pl
+on pl.projectid=ss.projectid
+left join profile_65552 po
+on t.parent=po.projectid
+left join profile_73573 st
+on st.loc_select=pl.location
+),
+s2 as (
+Select s1.proj_location, tt1.name as gender, s1.partner, s1.projectId, s1.location, s1.imp_partner, s1.fy_timerange, s1.age_bucket, s1.state_code,count (*) no_benef
+from s1
+left join ds_mysql_prod_tagelement tt1
+ on s1.gender=tt1.id
+group by s1.proj_location, tt1.name, s1.partner, s1.projectId, s1.location, s1.imp_partner, s1.fy_timerange, s1.age_bucket, s1.state_code
+)
+
+Select * from s2
+
