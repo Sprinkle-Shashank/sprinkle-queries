@@ -13,36 +13,36 @@ select fy_timerange, projectid, 'Allied' as f_category, 'Affordable' as type, sp
 ),
 
 test2 as(
-select p.date, projectid, 'Condom' as f_category, 'Free' as type, condom as final_sum from profile_60476 p where final_sum is not null
+select p.date, projectid, 'Free Condom' as type, condom as final_sum from profile_60476 p where final_sum is not null
 union all
-select p.date, projectid, 'Condom' as f_category, 'Social' as type, social as final_sum from profile_60476 p where final_sum is not null
+select p.date, projectid, 'Social Condom' as type, social as final_sum from profile_60476 p where final_sum is not null
 ),
 
 test3 as(
-select p.date, projectid, 'Trucker' as f_category, 'Free Spec' as type, ftruckers as final_sum from profile_60483 p where final_sum is not null
+select p.date, projectid, 'Free Spec Trucker' as type, ftruckers as final_sum from profile_60483 p where final_sum is not null
 union all
-select p.date, projectid, 'Trucker' as f_category, 'Affordable' as type, atruckers as final_sum from profile_60483 p where final_sum is not null
+select p.date, projectid, 'Affordable Trucker' as type, atruckers as final_sum from profile_60483 p where final_sum is not null
 union all
-select p.date, projectid, 'Allied' as f_category, 'Free Spec' as type, fallied as final_sum from profile_60483 p where final_sum is not null
+select p.date, projectid, 'Free Spec Allied' as type, fallied as final_sum from profile_60483 p where final_sum is not null
 union all
-select p.date, projectid, 'Allied' as f_category, 'Affordable' as type, aallied as final_sum from profile_60483 p where final_sum is not null
+select p.date, projectid, 'Affordable Allied' as type, aallied as final_sum from profile_60483 p where final_sum is not null
 ),
 
 test4 as(
-select p.projectid, concat(cast(fy_timerange.start as varchar), concat('|', cast(fy_timerange.start as varchar))) as fy_timerange, p.f_category, p.type, sum(final_sum) as final_sum from test1 p group by 1,2,3,4
+select p.projectid, concat(cast(fy_timerange.start as varchar), concat('|', cast(fy_timerange.start as varchar))) as fy_timerange, p.type, sum(final_sum) as final_sum from test1 p group by 1,2,3
 
 union all
   
-select p.projectid, concat(p.date,concat('|',p.date)) as fy_timerange, p.f_category, p.type, sum(final_sum) as final_sum from test2 p group by 1,2,3,4
+select p.projectid, concat(p.date,concat('|',p.date)) as fy_timerange, p.type, sum(final_sum) as final_sum from test2 p group by 1,2,3
   
   union all
   
-select p.projectid, concat(p.date,concat('|',p.date)) as fy_timerange, p.f_category, p.type, sum(final_sum) as final_sum from test3 p where final_sum is not null group by 1,2,3,4
+select p.projectid, concat(p.date,concat('|',p.date)) as fy_timerange, p.type, sum(final_sum) as final_sum from test3 p where final_sum is not null group by 1,2,3
 )
 
 
-select p.fy_timerange, t.name as projectid, p.f_category, p.type, sum(final_sum) as final_sum
+select p.fy_timerange, t.name as projectid, p.type, sum(final_sum) as final_sum
 from test4 p
 left join ds_mysql_prod_project as t
 on t.id = p.projectid
-group by 1,2,3,4 
+group by 1,2,3
