@@ -6,9 +6,9 @@ select fy_timerange, projectid, 'Uptake' as type, outreach_reported as final_sum
 ),
 
 test2 as(
-select p.date, projectid, 'Referred' as type, (decode(referred_truckers,null,0,referred_truckers) + decode(referred_allied,null,0,referred_allied)) as final_sum from profile_59325 p 
+select p.date, projectid, 'Referred' as type, (decode(referred_trucker,null,0,referred_trucker) + decode(referred_allied,null,0,referred_allied)) as final_sum from profile_59326 p 
   union all
-select p.date, projectid, 'Uptake' as type, (decode(uptake_truckers,null,0,uptake_truckers) + decode(uptake_allied,null,0,uptake_allied)) as final_sum from profile_59325 p
+select p.date, projectid, 'Uptake' as type, (decode(uptake_trucker,null,0,uptake_trucker) + decode(uptake_allied,null,0,uptake_allied)) as final_sum from profile_59326 p
 ),
 
 test3 as(
@@ -16,7 +16,7 @@ select p.projectid, concat(cast(fy_timerange.start as varchar), concat('|', cast
 
 union all
   
-select p.projectid, concat(substring(p.date,1,10)||'T00:00:00.000Z',concat('|',substring(p.date,1,10)||'T00:00:00.000Z')) as fy_timerange, p.type, sum(final_sum) as final_sum from test2 p group by 1,2,3
+select p.projectid, concat(p.date,concat('|',p.date)) as fy_timerange, p.type, sum(final_sum) as final_sum from test2 p group by 1,2,3
 )
 
 select p.fy_timerange, t.name as projectid, p.type, sum(final_sum) as final_sum
