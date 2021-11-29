@@ -1,0 +1,28 @@
+with s1 as(
+Select projectId as proj_location, t1.name as partner, t2.name as projectId, ss.gender, ss.student_age, ss.fy_timerange,,pl.location,po.impl_agency as imp_partner,st.name as state_code,
+case 
+		when ss.student_age<=6 then 'Less than 6'
+		when ss.student_age>=6 and ss.student_age<=10 then '6 to 10'
+		when ss.student_age>=10 and ss.student_age<=15 then '10 to 15'
+		when ss.student_age>=15 and ss.student_age<=18 then '15 to 18'
+		when ss.student_age>=18 and ss.student_age<=35 then '18 to 35'
+		when ss.student_age>=35 and ss.student_age<=60 then '35 to 60'
+		else 'Greater than 60'
+		end as age_bucket
+from profile_74884 ss
+left join ds_mysql_prod_project t
+on ss.projectid=t.id
+left join ds_mysql_prod_project t1
+on t.parent=t1.id
+left join ds_mysql_prod_project t2
+on t1.parent=t2.id
+left join profile_65603 pl
+on pl.projectid=ss.projectid
+left join profile_65552 po
+on t.parent=po.projectid
+left join profile_73573 st
+on st.loc_select=s1.location
+),
+
+Select s1._id, s1.proj_location, s1.fy_timerange, s1.gender, s1.partner, s1.projectId, s1.location, s1.imp_partner, s1.age_bucket, s1.state_code,count(*) no_benef
+group by  s1._id, s1.proj_location, s1.fy_timerange, s1.gender, s1.partner, s1.projectId, s1.location, s1.imp_partner, s1.age_bucket, s1.state_code
