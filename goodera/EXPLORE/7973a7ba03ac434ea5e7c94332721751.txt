@@ -1,12 +1,20 @@
 SELECT profile_54646.name_vendor_filter as VENDOR, vpid_1 as VPID, LISTAGG(DISTINCT cou.name, ',') 
-within group (order by profile_54646.name_vendor_filter) as COUNTRY
+within group (order by profile_54646.name_vendor_filter) as COUNTRY,
+cast(concat('FY ' ,p.start_year) as varchar) as start_year, case when p.start_quarter=2 or p.start_quarter=3 or p.start_quarter=4 then '1st (Feb-Apr)'
+ when p.start_quarter=5 or p.start_quarter=6 or p.start_quarter=7 then '2nd (May-Jul)'
+  when p.start_quarter=8 or p.start_quarter=9 or p.start_quarter=10 then '3rd (Aug-Oct)'
+   when p.start_quarter=11 or p.start_quarter=12 or p.start_quarter=1 then '4th (Nov-Jan)'
+   else null end as start_quarter,profile_54646.name_vendor,profile_54646.name_country, profile_54646.name_vendor_filter
 FROM profile_52162
 
 LEFT JOIN profile_54646 ON
 profile_52162.projectId = profile_54646.projid_vendor
 
+LEFT JOIN profile_4227 p ON
+profile_54646.projectId = profile_4227.projectId
+
 left join ds_mysql_prod_tagelement cou on country_2 = cou.id
 
 WHERE pace_status = 845114
 
-group by profile_54646.name_vendor_filter, vpid_1
+group by profile_54646.name_vendor_filter, vpid_1, start_quarter,profile_54646.name_vendor,profile_54646.name_country, profile_54646.name_vendor_filter,start_year
