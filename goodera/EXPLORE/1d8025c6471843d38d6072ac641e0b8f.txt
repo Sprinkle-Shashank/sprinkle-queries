@@ -1,4 +1,5 @@
-Select t2.name as projectId,t.name as proj_location,t1.name as partner
+with s1 as (
+Select t2.name as projectId,t.name as proj_location,t1.name as partner,pl.location,po.impl_agency as imp_partner,st.start_date, st.end_date,concat(CURRENT_DATE,'T00:00:00.000Z') as current_date,ss.ben_age age,ss.ben_gender gender
 from profile_1483 ss
 left join ds_mysql_prod_project t
 on ss.projectid=t.id
@@ -6,3 +7,33 @@ left join ds_mysql_prod_project t1
 on t.parent=t1.id
 left join ds_mysql_prod_project t2
 on t1.parent=t2.id
+left join profile_65603 pl
+on pl.projectid=ss.projectid
+left join profile_65552 po
+on t.parent=po.projectid
+left join profile_1485 st
+on st._id=ss.batch_ref
+),
+s2 as (
+ Select s1.proj_location, s1.partner, s1.projectId, s1.location,s1.imp_partner,s1.start_date,s1.gender,
+case when s1.end_date is null then s1.current_date,st.name as state_code,'Center' as center_school
+  else s1.end_date
+  end as end_date,
+  concat(concat(concat(concat('{"start":"', s1.start_date),'","end":"'),end_date),'"}') as fy_timerange,
+  	case 
+		when s1.age<=6 then 'Less than 6'
+		when s1.age>=6 and s1.age<=10 then '6 to 10'
+		when s1.age>=10 and s1.age<=15 then '10 to 15'
+		when s1.age>=15 and s1.age<=18 then '15 to 18'
+		when s1.age>=18 and s1.age<=35 then '18 to 35'
+		when s1.age>=35 and s1.age<=60 then '35 to 60'
+		else 'Greater than 60'
+		end as age_bucket
+ from s1
+  left join profile_73573 st
+on st.loc_select=s1.location
+)
+
+Select  s2.proj_location, s2.state_code, s2.gender, s2.partner, s2.projectId, s2.imp_partner, s2.location, s2.fy_timerange, s2.age_bucket, s2.center_school,count(*) no_benef
+from s2
+group by s2.proj_location, s2.state_code, s2.gender, s2.partner, s2.projectId, s2.imp_partner, s2.location, s2.fy_timerange, s2.age_bucket, s2.center_school
