@@ -1,0 +1,30 @@
+with test1 as(
+select p.date, projectid, 'New' as type, 'STI/HIV' as isssue, stihiv as final_sum from profile_60484 p
+  union all
+select p.date, projectid, 'New' as type, 'Vision Screening' as isssue, vision as final_sum from profile_60484 p
+  union all
+select p.date, projectid, 'New' as type, 'Tuberclosis' as isssue, tb as final_sum from profile_60484 p
+  union all
+select p.date, projectid, 'New' as type, 'NCD' as isssue, ncd as final_sum from profile_60484 p
+  union all
+select p.date, projectid, 'New' as type, 'Substance Abuse' as isssue, substance as final_sum from profile_60484 p
+  union all
+select p.date, projectid, 'New' as type, 'General Health' as isssue, gen as final_sum from profile_60484 p
+  union all
+select p.date, projectid, 'New' as type, 'Other Health Issues' as isssue, other as final_sum from profile_60484 p
+  union all
+select p.date, projectid, 'Follow up' as type, 'STI/HIV' as isssue, fstihiv as final_sum from profile_60484 p
+  union all
+select p.date, projectid, 'Follow up' as type, 'NCD' as isssue, fncd as final_sum from profile_60484 p
+  union all
+select p.date, projectid, 'Follow up' as type, 'Tuberclosis' as isssue, ftb as final_sum from profile_60484 p
+  union all
+select p.date, projectid, 'Follow up' as type, 'Substance Abuse' as isssue, fabuse as final_sum from profile_60484 p
+)
+
+select p.date||'|'||p.date as fy_timerange, t.name as projectid, p.type, p.issue, sum(final_sum) as final_sum
+from test1 p
+left join ds_mysql_prod_project as t
+on t.id = p.projectid where final_sum is not null
+group by 1,2,3,4
+
