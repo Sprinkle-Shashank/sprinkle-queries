@@ -15,54 +15,6 @@ with temp as
   select 'water_levels_achieved_verified' as col
   ),
 sub1 as(
-select group_name, groupid, surveyid, country, energy_levelsachieved_verified, wastewater_levelsachieved_verified, ems_levelsachieved_verified, chemicals_levelsachieved_verified, sq.fy_timerange, waste_levelsachieved_verified, air_levelsachieved_verified, water_levels_achieved_verified, sacid,
-case col
-	when 'energy_levelsachieved_verified' then sq.energy_levelsachieved_verified
-	when 'wastewater_levelsachieved_verified' then sq.wastewater_levelsachieved_verified
-	when 'ems_levelsachieved_verified' then sq.ems_levelsachieved_verified
-	when 'chemicals_levelsachieved_verified' then sq.chemicals_levelsachieved_verified
-	when 'waste_levelsachieved_verified' then sq.waste_levelsachieved_verified
-	when 'air_levelsachieved_verified' then sq.air_levelsachieved_verified
-	when 'water_levels_achieved_verified' then sq.water_levels_achieved_verified
-  else Null
-	end as level, temp.col as module
-from profile_74133 sq
-cross join temp
-  ),
-  sub2 as(
-  select group_name, groupid, surveyid, country,  position(1 in level) as level1, position(2 in level) as level2, position(3 in level) as level3, module, upper(substring(module,1,position('_' in module)-1)) as modules, sacid, s1.fy_timerange
-	from sub1 s1
-		 where level!=' '
-  group by group_name, groupid, surveyid, country,module, level, sacid, s1.fy_timerange),
-  sub3 as(
-  select country,s2.fy_timerange, level1, cdms_id, modules, source_div, facility_type, cr_tier
-	from sub2 s2
-  left join profile_74334 pd
-  on pd.higg_id=s2.sacid
-  left join profile_60928 mr
-  on mr.factory_id=pd.cdms_id
-	group by country, s2.fy_timerange, level1, cdms_id, modules, source_div, mr.facility_type, cr_tier
-  ),
-    sub4 as
-  (
-  select s3.country, s3.fy_timerange, s3.level1, s3.cdms_id, s3.modules, source, cr_tier, s3.facility_type from sub3 s3, s3.source_div source),
-    with temp as
-(
-  select 'energy_levelsachieved_verified' as col
-  union all
-  select 'wastewater_levelsachieved_verified' as col
-  union all
-  select 'ems_levelsachieved_verified' as col
-  union all
-  select 'chemicals_levelsachieved_verified' as col
-  union all
-  select 'waste_levelsachieved_verified' as col
-  union all
-  select 'air_levelsachieved_verified' as col
-  union all
-  select 'water_levels_achieved_verified' as col
-  ),
-sub1 as(
 select _id,group_name, groupid, surveyid, country, energy_levelsachieved_verified, wastewater_levelsachieved_verified, ems_levelsachieved_verified, chemicals_levelsachieved_verified, sq.fy_timerange, waste_levelsachieved_verified, air_levelsachieved_verified, water_levels_achieved_verified, sacid,
 case col
 	when 'energy_levelsachieved_verified' then sq.energy_levelsachieved_verified
