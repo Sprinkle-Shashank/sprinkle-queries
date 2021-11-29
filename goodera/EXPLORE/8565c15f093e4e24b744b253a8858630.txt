@@ -1,16 +1,31 @@
 with test1 as(
-select fy_timerange, projectid, 'Events' as type, media_events as final_sum from profile_63887 where final_sum is not null
-  
+select fy_timerange, projectid, 'Events' as type, media_events as final_sum from profile_63887
+  union all
+select fy_timerange, projectid, 'Participants Truckers' as type, media_truckers as final_sum from profile_63887
+  union all
+select fy_timerange, projectid, 'Participants Allied' as type, media_allied as final_sum from profile_63887
 ),
 
 test2 as(
-select p.date, projectid, 'Events' as type, count(*) as final_sum
+select p.date, projectid, 'Events' as type, count(*) as final_sum from profile_59325 p
+  union all
+select fy_timerange, projectid, 'Participants Truckers' as type, truckers as final_sum from profile_59325
+  union all
+select fy_timerange, projectid, 'Participants Allied' as type, allied as final_sum from profile_59325
 ),
 
 test3 as(
+select p.projectid, concat(cast(fy_timerange.start as varchar), concat('|', cast(fy_timerange.end as varchar))) as fy_timerange, p.type, sum(final_sum) as final_sum from test1 p group by 1,2,3
 
+union all
+  
+select p.projectid, concat(substring(p.date,1,10)||'T00:00:00.000Z',concat('|',substring(p.date,1,10)||'T00:00:00.000Z')) as fy_timerange, p.type, sum(final_sum) as final_sum from test2 p group by 1,2,3
 )
 
-
+select p.fy_timerange, t.name as projectid, p.type, sum(final_sum) as final_sum
+from test3 p
+left join ds_mysql_prod_project as t
+on t.id = p.projectid
+group by 1,2,3
 
 
