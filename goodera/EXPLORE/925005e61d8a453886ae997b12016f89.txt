@@ -9,10 +9,19 @@ left join ds_mysql_prod_project t2
 on t1.parent=t2.id),
 sub2 as
 (
-select s1._id, proj_location, gender, student_age, fy_timerange, partner, s1.projectId, pl.location, po.impl_agency as imp_partner
-from sub1 s1
+select ss._id, proj_location, gender, student_age, fy_timerange, partner, ss.projectId, pl.location, po.impl_agency as imp_partner, 
+  case 
+		when ss.student_age<=6 then 'Less than 6'
+		when ss.student_age>=6 and ss.student_age<=10 then '6 to 10'
+		when ss.student_age>=10 and ss.student_age<=15 then '10 to 15'
+		when ss.student_age>=15 and ss.student_age<=18 then '15 to 18'
+		when ss.student_age>=18 and ss.student_age<=35 then '18 to 35'
+		when ss.student_age>=35 and ss.student_age<=60 then '35 to 60'
+		else 'Greater than 60'
+		end as age_bucket
+from sub1 ss
 left join profile_65603 pl
-on pl.projectid=s1.projectid
+on pl.projectid=ss.projectid
 left join profile_65552 po
 on partner=po.projectid)
 select * from sub2
