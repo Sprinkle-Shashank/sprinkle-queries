@@ -15,7 +15,7 @@ left join profile_1485 st
 on st._id=ss.batch_ref
 ),
 s2 as (
- Select s1.proj_location, s1.partner, s1.projectId, s1.location,s1.imp_partner,s1.start_date,s1.gender,
+ Select s1.proj_location, s1.partner, s1.projectId,t1.name as location,t2.name as imp_partner,s1.start_date,t.name as gender,
 case 
   when s1.end_date is null then s1.current_date
   else s1.end_date
@@ -34,8 +34,17 @@ case
  from s1
   left join profile_73573 st
 on st.loc_select=s1.location
+  left join ds_mysql_prod_tagelement t
+  on t.id=s1.gender
+    left join ds_mysql_prod_tagelement t1
+  on t1.id=s1.location
+    left join ds_mysql_prod_tagelement t2
+  on t2.id=s1.imp_partner
+  
+
 )
 
 Select  s2.proj_location, s2.state_code, s2.gender, s2.partner, s2.projectId, s2.imp_partner, s2.location, s2.fy_timerange, s2.age_bucket, s2.center_school,count(*) no_benef
 from s2
 group by s2.proj_location, s2.state_code, s2.gender, s2.partner, s2.projectId, s2.imp_partner, s2.location, s2.fy_timerange, s2.age_bucket, s2.center_school
+
