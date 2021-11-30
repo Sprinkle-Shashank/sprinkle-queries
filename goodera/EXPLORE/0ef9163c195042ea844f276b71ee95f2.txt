@@ -1,4 +1,17 @@
-select p.start_date,p.start_year as financial_year,pre_yn.name as pre_post_yn,mdl_parent.name as module_2nd,md_nme.name as module,p.start_quarter as quarter,profile_54646.name_country as country,profile_4228.score,profile_4228.score2,profile_54646.name_vendor as partner,profile_54646.name_vendor_filter as partner_consolidated,avg(score) as avg1,avg(score2) as avg2 from profile_4227 p
+with 
+    temp as( select 'avg1' as C
+  Union all 
+  select 'avg2' as C )
+select p.start_date,p.start_year as financial_year,pre_yn.name as pre_post_yn,mdl_parent.name as module_2nd,md_nme.name as module,p.start_quarter as quarter,profile_54646.name_country as country,profile_4228.score,profile_4228.score2,profile_54646.name_vendor as partner,profile_54646.name_vendor_filter as partner_consolidated,avg(score) as avg1,avg(score2) as avg2,
+sum(case C
+WHEN 'avg1' then p.avg1
+WHEN 'avg2' then p.avg2
+W
+ELSE NULL
+END) AS value , temp.C as dimension
+
+from profile_4227 p
+Cross join temp
 
 left join profile_54646 on 
 p.projectId= profile_54646.projectId
@@ -19,4 +32,4 @@ on md_nme.parent = mdl_parent.id
 
 where pre_post_yn = 57472 and module_2nd= 'Workplace Program'
 
-group by p.start_date,p.start_year,pre_yn.name,md_nme.name,mdl_parent.name ,profile_4228.score,profile_4228.score2,profile_54646.name_country,profile_54646.name_vendor, profile_54646.name_vendor_filter,p.start_quarter
+group by p.start_date,p.start_year,pre_yn.name,md_nme.name,mdl_parent.name ,profile_4228.score,profile_4228.score2,profile_54646.name_country,profile_54646.name_vendor, profile_54646.name_vendor_filter,p.start_quarter,temp.c
