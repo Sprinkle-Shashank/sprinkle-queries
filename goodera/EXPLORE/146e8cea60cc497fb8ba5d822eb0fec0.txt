@@ -1,30 +1,28 @@
 with Base1 as(
-  select p.fy,p.hdfc_cost_monthly,split_part(split_part(prod.name,'|',1),'.',1)  as ProjectCode from profile_29974 p
+  select p._id,p.fy,p.hdfc_cost_monthly,split_part(split_part(prod.name,'|',1),'.',1)  as ProjectCode from profile_29974 p
 left join ds_mysql_prod_project prod on
 prod.id=p.projectid)
-,Base2 as(select p.fy,p.hdfc_cost_monthly from Base1 p where p.ProjectCode in
+,Base2 as(select p._id,p.fy,p.hdfc_cost_monthly from Base1 p where p.ProjectCode in
 (select k.name from profile_27396 k 
 left join  profile_28235 l on 
-k.intervention_type=l._id  where l.name='Direct') ),Base3 as( select p.fy,p.monthly_cost,cast(split_part(split_part(prod.name,'|',1),'.',1) as varchar)  as ProjectCode from profile_30171 p
+k.intervention_type=l._id  where l.name='Direct') ),Base3 as( select p._id,p.fy,p.monthly_cost,cast(split_part(split_part(prod.name,'|',1),'.',1) as varchar)  as ProjectCode from profile_30171 p
 left join ds_mysql_prod_project prod on
-prod.id=p.projectid),Base4 as(select p.fy,p.monthly_cost from Base3 p where p.ProjectCode in (select k.name from profile_27396 k 
+prod.id=p.projectid),Base4 as(select p._id,p.fy,p.monthly_cost from Base3 p where p.ProjectCode in (select k.name from profile_27396 k 
 left join  profile_28235 l on 
-k.intervention_type=l._id  where l.name='Direct') )
-select * from Base4
-
-
-
-
-
-
---select p.fy,p.curr_yr_budget from profile_27396 p 
---left join profile_28235 l on
---p.intervention_type=l._id
---where l.name='Direct'
---union all
---select p.fy,p.curr_yr_budget from profile_27420 p
---left join profile_27396 l on
---p.project_code=l._id 
---left join profile_28235 k on
---l.intervention_type=k._id
---where k.name='Direct'
+k.intervention_type=l._id  where l.name='Direct') ),Base5 as(
+select p._id,p.fy,p.curr_yr_budget from profile_27396 p 
+left join profile_28235 l on
+p.intervention_type=l._id
+where l.name='Direct'
+union all
+select p._id,p.fy,p.curr_yr_budget from profile_27420 p
+left join profile_27396 l on
+p.project_code=l._id 
+left join profile_28235 k on
+l.intervention_type=k._id
+where k.name='Direct'),Base6 as(select p.fy,p.hdfc_cost_monthly,case when p._id is not null then 'Allocated Amount' from Base2 p 
+union all
+select p.fy,p.monthly_cost,case when p._id is not null then 'Allocated Amount' from Base4 p 
+union all
+select p.fy,p.curr_yr_budget,case when p._id is not null then 'Allocated Amount' from Base5 p )
+select * from Base6
