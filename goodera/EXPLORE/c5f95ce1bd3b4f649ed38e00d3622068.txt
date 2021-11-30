@@ -1,31 +1,16 @@
-with table1 as(Select  select_modules,_id,hours,start_year as financial_year,end_date_2,start_quarter as quarter from profile_4227 
-),
+with table1 as(select select_modules,_id,hours,start_year as financial_year,end_date_2,start_quarter as quarter from profile_4227 ),
+
 table2 as (select t1.*,CAST(select_module as int) from table1 t1,t1.select_modules select_module
 
 ),
 
- 
+table3 as( select _id,select_module,financial_year,end_date_2,quarter from table2
 
-table3 as (
-select *
-  
-  
-from table2 p
-  
+where select_module in ('64503','70912','70941','70900','70910','70913','70909','70903','70901','70902','70911','264682','264684','264683') and end_date_2 is not null	   
+ )
+ ,
+ table4 as(select _id,listagg(select_module,','), financial_year,end_date_2,quarter  from table3
 
+group by _id,financial_year,end_date_2,quarter)
+select  _id,1 as count, financial_year,quarter from table4
 
-left join ds_mysql_prod_tagelement as t1
- on p.select_module=t1.id
-left join ds_mysql_prod_tagelement as t2
-  on t1.parent=t2.id
-WHERE  select_module IN ('64503','70912','70941','70900','70910','70913','70909','70903','70901','70902','70911','264682','264684','264683')
-
-AND end_date_2 IS NOT NULL
-
-  
-) 
-
-select DISTINCT(_id),select_module, hours,financial_year,quarter,count(*)
-
-from table3
-group by 1,2,3,4,5
