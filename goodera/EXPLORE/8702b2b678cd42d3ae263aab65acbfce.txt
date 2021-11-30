@@ -34,17 +34,22 @@ cross join temp
 	from sub1 s1
   group by group_name, groupid, surveyid, country,module, level, sacid, s1.fy_timerange),
   sub3 as(
-  select country,s2.fy_timerange, level1, cdms_id, modules, source_div
+  select country,s2.fy_timerange, level1, cdms_id, modules, first_value(json_serialize(source_div))
+over(partition by country, fy_timerange, modules, cdms_id, level1
+order by cast(timeperiod_timerange.start as date) desc
+rows between unbounded preceding and unbounded following) as source_div_new
 	from sub2 s2
   left join profile_74334 pd
   on pd.higg_id=s2.sacid
   left join profile_60928 mr
   on mr.factory_id=pd.cdms_id
-	group by country, s2.fy_timerange, level1, cdms_id, modules, source_div
-  ),
+	group by country, s2.fy_timerange, level1, cdms_id, modules
+  )
+  /*,
+  
   sub4 as
   (
-  select s3.country, s3.fy_timerange, s3.level1, s3.cdms_id, s3.modules, source from sub3 s3, s3.source_div source),
+  select s3.country, s3.fy_timerange, s3.level1, s3.cdms_id, s3.modules, source from sub3 s3, s3.source_div_new source),
   sub5 as
   (
   select t1.name as region, s4.fy_timerange, cdms_id, level1,
@@ -77,5 +82,5 @@ select fy_timerange,level1, source_div, region, trim('"' from modules_new) as mo
 	(
 	select fy_timerange, source_div, region, modules_new as modules, level1, cdms_id as facs, 1 as count
 	from sub7
-	group by fy_timerange, source_div, region, modules_new, level1, cdms_id)
-	select * from sub8
+	group by fy_timerange, source_div, region, modules_new, level1, cdms_id)*/
+	select * from sub3
