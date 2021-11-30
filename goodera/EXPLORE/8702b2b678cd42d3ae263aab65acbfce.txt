@@ -33,7 +33,7 @@ cross join temp
   select group_name, groupid, surveyid, country, position(1 in level) as level1, position(2 in level) as level2, position(3 in level) as level3, module, upper(substring(module,1,position('_' in module)-1)) as modules, sacid, s1.fy_timerange, level
 	from sub1 s1),
   sub3 as(
-  select country,s2.fy_timerange, level1, cdms_id, modules, level, first_value(json_serialize(source_div))
+  select country,s2.fy_timerange, level1, cdms_id, modules, level, first_value(array_join(source_div,' , '))
 over(partition by country, s2.fy_timerange, modules, cdms_id, level1
 order by cast(timeperiod_timerange.start as date) desc
 rows between unbounded preceding and unbounded following) as source_div_new
@@ -42,7 +42,7 @@ rows between unbounded preceding and unbounded following) as source_div_new
   on pd.higg_id=s2.sacid
   left join profile_60928 mr
   on mr.factory_id=pd.cdms_id
-	where len(level)>=0
+
 	--group by country, s2.fy_timerange, level1, cdms_id, modules, source_div
   ), 
   sub31 as
