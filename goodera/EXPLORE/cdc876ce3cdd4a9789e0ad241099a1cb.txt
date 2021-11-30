@@ -1,0 +1,27 @@
+with test1 as(
+select fy_timerange, projectid,'Historical Trucker' as f_category, peer_truckers as final_sum from profile_63887
+  union all
+select fy_timerange, projectid,'Historical Allied' as f_category, peer_allied as final_sum from profile_63887
+),
+
+test2 as(
+select p.date as fy_timerange, projectid,'Trucker 121' as f_category, (decode(truckers,null,0,truckers) + decode(truckers_tb,null,0,truckers_tb)) as final_sum from profile_60456 p
+  union all
+select p.date as fy_timerange, projectid,'Allied 121' as f_category, (decode(allied,null,0,allied) + decode(allied_tb,null,0,allied_tb)) as final_sum from profile_60456 p
+  union all
+select p.date as fy_timerange, projectid,'Trucker 12g' as f_category, (decode(truckerg ,null,0,truckerg) + decode(truckers_tb_group,null,0,truckers_tb_group)) as final_sum from profile_60456 p
+  union all
+select p.date as fy_timerange, projectid,'Allied 12g' as f_category, (decode(alliedg ,null,0,alliedg) + decode(allied_tb_group,null,0,allied_tb_group)) as final_sum from profile_60456 p
+),
+
+
+test3 as(
+select concat(cast(fy_timerange.start as varchar), concat('|', cast(fy_timerange.end as varchar))) as fy_timerange, projectid, f_category, final_sum from test1 where final_sum is not null 
+  union all
+select concat(cast(fy_timerange as varchar), concat('|', cast(fy_timerange as varchar))) as fy_timerange, projectid, f_category, final_sum from test2 where final_sum is not null
+)
+
+select p.fy_timerange, project.name as projectid, p.f_category, sum(p.final_sum) as final_sum
+from test3 p left join ds_mysql_prod_project as project
+on project.id = p.projectid
+group by 1,2,3
