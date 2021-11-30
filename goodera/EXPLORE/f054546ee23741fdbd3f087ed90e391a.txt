@@ -16,10 +16,16 @@ on p.projectId = pro.id
 	   projectid <> 44674 and
 	   projectid <>44743),
 table2 as(
-select t1.projectid,fy_timerange,sdg, state from table1 t1 , t1.state_district state,t1.sdgs sdg)
-select projectid,fy_timerange,stat.name as state,sd.name as sdg,count(*) from table2 t2
-  left join ds_mysql_prod_tagelement stat
-on t2.state = stat.id
+select t1.projectid,fy_timerange,sdg, district from table1 t1 , t1.state_district district,t1.sdgs sdg)
+select projectid,fy_timerange,
+case when sta.name is null then dist.name
+     else sta.name end
+as state,
+sd.name as sdg,count(*) from table2 t2
+  left join ds_mysql_prod_tagelement dist
+on t2.district = dist.id
+left join ds_mysql_prod_tagelement sta
+on dist.parent = sta.id
 
 left join ds_mysql_prod_tagelement sd
 on t2.sdg = sd.id
