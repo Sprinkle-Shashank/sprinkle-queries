@@ -1,0 +1,31 @@
+with test1 as(
+select fy_timerange, projectid,'Trucker 121' as f_category, outreach_one_to_one_truckers as final_sum from profile_63887
+  union all
+select fy_timerange, projectid,'Allied 121' as f_category, outreach_one_to_one_allied as final_sum from profile_63887
+  union all
+select fy_timerange, projectid,'Trucker 12g' as f_category, outreach_one_to_group_truckers as final_sum from profile_63887
+  union all
+select fy_timerange, projectid,'Allied 12g' as f_category, outreach_one_to_group_allied as final_sum from profile_63887
+),
+
+test2 as(
+select p.date as fy_timerange, projectid,'Trucker 121' as f_category, (decode(truckers_one_to_one_sessions,null,0,truckers_one_to_one_sessions) + decode(tbone,null,0,tbone)) as final_sum from profile_59326 p
+  union all
+select p.date as fy_timerange, projectid,'Allied 121' as f_category, (decode(allied_one_to_one_sessions,null,0,allied_one_to_one_sessions) + decode(abone,null,0,abone)) as final_sum from profile_59326 p
+  union all
+select p.date as fy_timerange, projectid,'Trucker 12g' as f_category, (decode(truckers_one_to_group_sessions ,null,0,truckers_one_to_group_sessions) + decode(tbgroup,null,0,tbgroup)) as final_sum from profile_59326 p
+  union all
+select p.date as fy_timerange, projectid,'Allied 12g' as f_category, (decode(allied_one_to_group_sessions ,null,0,allied_one_to_group_sessions) + decode(abgroup,null,0,abgroup)) as final_sum from profile_59326 p
+),
+
+
+test3 as(
+select concat(cast(fy_timerange.start as varchar), concat('|', cast(fy_timerange.end as varchar))) as fy_timerange, projectid, f_category, final_sum from test1 where final_sum is not null 
+  union all
+select concat(cast(fy_timerange as varchar), concat('|', cast(fy_timerange as varchar))) as fy_timerange, projectid, f_category, final_sum from test2 where final_sum is not null
+)
+
+select p.fy_timerange, project.name as projectid, p.f_category, sum(p.final_sum) as final_sum
+from test3 p left join ds_mysql_prod_project as project
+on project.id = p.projectid
+group by 1,2,3
