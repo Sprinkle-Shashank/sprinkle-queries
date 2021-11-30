@@ -30,10 +30,10 @@ from profile_74133 sq
 cross join temp
   ),
   sub2 as(
-  select group_name, groupid, surveyid, country, position(1 in level) as level1, position(2 in level) as level2, position(3 in level) as level3, module, upper(substring(module,1,position('_' in module)-1)) as modules, sacid, s1.fy_timerange
+  select group_name, groupid, surveyid, country, position(1 in level) as level1, position(2 in level) as level2, position(3 in level) as level3, module, upper(substring(module,1,position('_' in module)-1)) as modules, sacid, s1.fy_timerange, level
 	from sub1 s1),
   sub3 as(
-  select country,s2.fy_timerange, level1, cdms_id, modules, first_value(json_serialize(source_div))
+  select country,s2.fy_timerange, level1, cdms_id, modules, level, first_value(json_serialize(source_div))
 over(partition by country, s2.fy_timerange, modules, cdms_id, level1
 order by cast(timeperiod_timerange.start as date) desc
 rows between unbounded preceding and unbounded following) as source_div_new
@@ -88,4 +88,4 @@ select fy_timerange,level1, source_div, region, trim('"' from modules_new) as mo
 	select fy_timerange, source_div, region, modules_new as modules, level1, cdms_id as facs, 1 as count
 	from sub7
 	group by fy_timerange, source_div, region, modules_new, level1, cdms_id)*/
-	select * from sub1
+	select * from sub3
