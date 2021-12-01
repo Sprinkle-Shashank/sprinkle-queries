@@ -1,0 +1,36 @@
+ with s1 as (
+ Select t.name as proj_location, t1.name as partner, t2.name as projectId,pl.location,po.impl_agency as imp_partner,
+ case 
+		when ss.age<=6 then 'Less than 6'
+		when ss.age>=6 and ss.age<=10 then '6 to 10'
+		when ss.age>=10 and ss.age<=15 then '10 to 15'
+		when ss.age>=15 and ss.age<=18 then '15 to 18'
+		when ss.age>=18 and ss.age<=35 then '18 to 35'
+		when ss.age>=35 and ss.age<=60 then '35 to 60'
+		else 'Greater than 60'
+		end as age_bucket,
+		case 
+  when ss.fy_timerange is null then ss.submitted
+  else ss.fy_timerange
+  end as fy_timerange,
+  case 
+  	when ss.gender=19804 then 'Male'
+	when ss.gender=19805 then 'Female'
+	when ss.gender=19806 then 'other'
+	else 'Female'
+	end as gender,st.name as state_code
+ 
+from profile_29169 ss
+left join ds_mysql_prod_project t
+on ss.projectid=t.id
+left join ds_mysql_prod_project t1
+on t.parent=t1.id
+left join ds_mysql_prod_project t2
+on t1.parent=t2.id
+left join profile_65603 pl
+on pl.projectid=ss.projectid
+left join profile_65552 po
+on t.parent=po.projectid
+)
+Select s1.proj_location, s1.state_code, s1.location, s1.partner, s1.imp_partner, s1.fy_timerange, s1.age_bucket, s1.gender, s1.projectId,count(*) no_benef
+group by s1.proj_location, s1.state_code, s1.location, s1.partner, s1.imp_partner, s1.fy_timerange, s1.age_bucket, s1.gender, s1.projectId
