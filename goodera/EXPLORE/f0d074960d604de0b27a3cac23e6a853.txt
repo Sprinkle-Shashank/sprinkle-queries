@@ -1,8 +1,13 @@
-select projectid,fy_timerange,month,visits_child,followup_visits_child ,
+select pro.name as projectid,fy_timerange,mth.name as month,visits_child,followup_visits_child ,
 0 as temp,380 as visits,
 sum(followup_visits_child+temp) over(order by fy_timerange rows between unbounded               PRECEDING and current row) AS followup, visits+ followup as final_child_covered
 
-from profile_59877
+from profile_59877 p
+
+left join ds_mysql_prod_project as pro
+               on p.projectid = pro.id
+left join ds_mysql_prod_tagelement as mth
+               on p.month = mth.id			   
 
 where month is not null
 --order by fy_timerange asc
