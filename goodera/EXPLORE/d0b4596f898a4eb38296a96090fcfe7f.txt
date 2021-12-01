@@ -1,3 +1,4 @@
+with sub1 as(
 select sq.*,pd.pvh_id, mr.partner_type, mr.name_vendor, mr.name_vendor_filter, ab.source_div, ab.region, ab.region_parent, ab.timeperiod_timerange
 from profile_62491 sq
 left join profile_62948 pd
@@ -8,3 +9,16 @@ left join profile_60928 ab
 on ab.factory_id=pd.pvh_id
 where coalesce(lg_status,0)!=1105812 and pd.pvh_id is not null
 order by ab.timeperiod_timerange desc
+  ),
+  sub2 as (
+	select name, fy_timerange, num_females, project_id, pvh_id, partner_type, name_vendor, name_vendor_filter,
+   first_value(array_join(source_div,', '))
+over(partition by country, s2.fy_timerange, modules, cdms_id, level1
+order by cast(timeperiod_timerange.start as date) desc
+rows between unbounded preceding and unbounded following) as source_div_new, 
+	first_value(array_join(region,', '))
+over(partition by country, s2.fy_timerange, modules, cdms_id, level1
+order by cast(timeperiod_timerange.start as date) desc
+rows between unbounded preceding and unbounded following) as region_new
+	from sub1)
+	select * from sub2
