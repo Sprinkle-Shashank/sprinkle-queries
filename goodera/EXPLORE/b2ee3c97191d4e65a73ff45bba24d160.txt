@@ -37,16 +37,19 @@ sub2 as(
   select t1.name as region, s1.fy_timerange, s1.level1, s1.modules, s1.cdms_id, s1.source_div,
 row_number() over(partition by s1.country, s1.fy_timerange, s1.level1, s1.modules, s1.cdms_id order by cast(s1.timeperiod_timerange.start as date) desc) as line
 from sub1 s1
-left join ds_mysql_prod_tagelement t1 on t1.id = s1.country),
+left join ds_mysql_prod_tagelement t1 on t1.id = s1.country
+where t1.name is not null),
 
 sub3 as(
   select s2.*, source_div_new from sub2 s2, s2.source_div source_div_new
-	where s2.line = 1)
+	where s2.line = 1),
   
-select s3.region, s3.fy_timerange, s3.level1, s3.cdms_id, t2.name as source_div, 
+sub4 as(
+  select s3.region, s3.fy_timerange, s3.level1, s3.cdms_id, t2.name as source_div, 
 SPLIT_TO_ARRAY(listagg(distinct s3.modules, ', '), ', ') as modules_array,
-GET_ARRAY_LENGTH(modules_array) as size, ARRAY_CONCAT(modules_array, array('Overall')) as new
+GET_ARRAY_LENGTH(modules_array) as size, ARRAY_CONCAT(modules_array, array('Overall')) as new_modules
 from sub3 s3
 left join ds_mysql_prod_tagelement t2 on t2.id = s3.source_div_new
-group by s3.region, s3.fy_timerange, s3.level1, s3.cdms_id, t2.name
+group by s3.region, s3.fy_timerange, s3.level1, s3.cdms_id, t2.name)
 
+select * from sub4
