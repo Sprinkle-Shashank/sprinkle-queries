@@ -1,51 +1,34 @@
-with s1 as(
-  Select sum(cg3.target_benf) as target_benf
-  FROM profile_65552 sq
-  
+with sub1 as(
+SELECT sq.projectId as partner, sq.proj_name, 
+	EXTRACT(Year FROM(CAST(sq.proj_start_date AS datetime))) as start_year,
+  	EXTRACT(Year FROM(CAST(sq.proj_end_date AS datetime))) as end_year,t1.name as projectId, pd.ia_sel_ngop as impl_agency, sq._id as id1, SUM(mr.allocated) as budget from profile_65552 sq
+left join ds_mysql_prod_project t
+on t.id=sq.projectId
+left join ds_mysql_prod_project t1
+on t.parent=t1.id
 left join profile_65576 pd
-ON sq.impl_agency=pd.ia_sel_ngop
+on sq.impl_agency=pd.ia_sel_ngop
+left join profile_65557 mr
+on mr.project_name=sq._id
+group by sq.proj_name, start_year, end_year, t1.name, pd.ia_sel_ngop, sq._id, sq.projectId),
+sub2 as
+(
+  SELECT s1.proj_name, start_year, end_year, s1.projectId, impl_agency, partner, budget, listagg( distinct p.name) as location
+  from sub1 s1
+  left join profile_65603 na
+  on na.proj_name=id1
+  left join ds_mysql_prod_tagelement p
+  on na.location=p.id
+  group by partner, s1.proj_name, start_year, end_year, s1.projectId, impl_agency, budget
+  ), 
+  sub3 as(
+	select t.name as partner, s2.proj_name, start_year, end_year, s2.projectId, impl_agency, budget, SUM(qe.target_benf) as target_benf, s2.location
+	from sub2 s2
+	left join profile_65575 qe
+	on qe.projectId=s2.partner
+	left join ds_mysql_prod_tagelement t
+	ON t.id=s2.partner
+	group by partner, s2.proj_name, start_year, end_year, s2.projectId, impl_agency, budget, s2.location,t.name
+	)
+  select * from sub3
   
-left join profile_65557 cg1
-ON cg1.project_name=sq._id
-  
-left join profile_65603 cg2
-ON sq._id = cg2.proj_name
-  
-left join ds_mysql_prod_project as t
-  on sq.projectId = t.id
-  
-left join ds_mysql_prod_project as t1 
-ON t.name=t1.parent
-  
-left join ds_mysql_prod_tagelement t5
-on cg2.location = t5.id
-  
-
-  
- left join ds_mysql_prod_tagelement c1
- ON sq.projectId=c1.id
- 
- left join ds_mysql_prod_tagelement c4
- ON sq.impl_agency = c4.id
- 
-GROUP BY start_year, end_year, sq.proj_start_date,sq.proj_end_date,t5.name ,c4.name
-),
-s2 as(
-  SELECT distinct( s1.location), s1.partner, s1.proj_start_date,
-  s1.proj_end_date,s1.budget,s1.target_benf,s1.impl_agency,s1.start_year, s1.end_year
-    from s1
-
-  group by s1.partner, s1.proj_start_date, s1.proj_end_date,s1.budget,s1.target_benf,s1.impl_agency,s1.start_year,
-s1.end_year,s1.location
-),
-s3 as(
-  Select sum(cg1.allocated) as budget, c1.name as partner, c4.name as impl_agency, t5.name as location,
-  EXTRACT(Year FROM(CAST(sq.proj_start_date AS datetime))) as start_year,
-  EXTRACT(Year FROM(CAST(sq.proj_end_date AS datetime))) as end_year
-  from s1
-  left join profile_65575 cg3
-  ON cg3.projectid=sq.projectId
-  GROUP BY c1.name, start_year, end_year,s1.impl_agency, s1.budget, cg2.location
-)
-
-Select * from s3
