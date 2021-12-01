@@ -16,12 +16,14 @@ on t1.parent=tt1.id
 ),
   
  s2 as(
-   Select s1.proj_location, s1.fy_timerange, q.name as gender, q1.name as state,s1.course, s1.placed, s1.partner, s1.projectId, s1.imp_partner,count(*) no_benf,listagg(distinct college) no_colleges,listagg(distinct course) no_courses,listagg(distinct q1.name ) no_states,listagg(distinct discipline) no_disciplines
+   Select s1.proj_location, s1.fy_timerange, q.name as gender, q1.name as state,s1.course, s1.placed, s1.partner, s1.projectId, s1.imp_partner,count(*) no_benf,listagg(distinct q2.name) no_colleges,listagg(distinct course) no_courses,listagg(distinct q1.name ) no_states,listagg(distinct discipline) no_disciplines
    from s1
    left join ds_mysql_prod_tagelement q
    on q.id=s1.gender
     left join ds_mysql_prod_tagelement q1
    on q1.id=s1.state
+left join ds_mysql_prod_tagelement q2
+   on q2.id=s1.college
    group by s1.proj_location, s1.fy_timerange, q.name,  q1.name, s1.course, s1.placed, s1.partner, s1.projectId,s1.imp_partner
  )
  Select s2.* ,mc.name as state_code
