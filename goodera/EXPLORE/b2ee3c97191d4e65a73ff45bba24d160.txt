@@ -51,12 +51,15 @@ from sub3 s3
 left join ds_mysql_prod_tagelement t2 on t2.id = s3.source_div_new
 group by s3.region, s3.fy_timerange, s3.level1, s3.cdms_id, t2.name)
 
-
+sub5 as(
   select s4.*, cast(module_1 as varchar) as modules,
-  case
-  		when modules = 'Overall' and s4.size = 7 then 1
-		when modules = 'Overall' and s4.size != 7 then 0
-		else s4.level1
-  end as level_new
-  from sub4 s4, s4.new_modules module_1
-  
+case
+  	when modules = 'Overall' and s4.size = 7 then 1
+	when modules = 'Overall' and s4.size != 7 then 0
+	else s4.level1
+end as level_new
+from sub4 s4, s4.new_modules module_1)
+
+select s5.region, s5.fy_timerange, s5.source_div, s5.modules, s5.level_new, s5.cdms_id
+from sub5 s5
+group by s5.region, s5.fy_timerange, s5.source_div, s5.modules, s5.level_new, s5.cdms_id 
