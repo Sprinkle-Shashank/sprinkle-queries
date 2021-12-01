@@ -34,10 +34,11 @@ left join profile_60928 p3 on p3.factory_id = p2.cdms_id
 where p2.cdms_id is not null),
 
 sub2 as(
-  select t1.name as region, s1.fy_timerange, s1.level1, s1.modules, s1.cdms_id, s1.source_div,
+  select t2.name as region, s1.fy_timerange, s1.level1, s1.modules, s1.cdms_id, s1.source_div,
 row_number() over(partition by s1.country, s1.fy_timerange, s1.level1, s1.modules, s1.cdms_id order by cast(s1.timeperiod_timerange.start as date) desc) as line
 from sub1 s1
-left join ds_mysql_prod_tagelement t1 on t1.id = s1.country),
+left join ds_mysql_prod_tagelement t1 on t1.id = s1.country
+left join ds_mysql_prod_tagelement t2 on t1.parent = t2.id),
 
 sub3 as(
   select s2.*, source_div_new from sub2 s2, s2.source_div source_div_new
