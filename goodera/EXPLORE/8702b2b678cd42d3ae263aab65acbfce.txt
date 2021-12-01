@@ -1,92 +1,65 @@
-with temp as
-(
-  select 'energy_levelsachieved_verified' as col
+with temp as(
+  select 'energy_levelsachieved_verified' as col 
   union all
-  select 'wastewater_levelsachieved_verified' as col
+  select 'wastewater_levelsachieved_verified' as col 
   union all
-  select 'ems_levelsachieved_verified' as col
+  select 'ems_levelsachieved_verified' as col 
   union all
-  select 'chemicals_levelsachieved_verified' as col
+  select 'chemicals_levelsachieved_verified' as col 
   union all
-  select 'waste_levelsachieved_verified' as col
+  select 'waste_levelsachieved_verified' as col 
   union all
-  select 'air_levelsachieved_verified' as col
+  select 'air_levelsachieved_verified' as col 
   union all
-  select 'water_levels_achieved_verified' as col
-  ),
-sub1 as(
-select group_name, groupid, surveyid, country, energy_levelsachieved_verified, wastewater_levelsachieved_verified, ems_levelsachieved_verified, chemicals_levelsachieved_verified, sq.fy_timerange, waste_levelsachieved_verified, air_levelsachieved_verified, water_levels_achieved_verified, sacid,
-case col
-	when 'energy_levelsachieved_verified' then sq.energy_levelsachieved_verified
-	when 'wastewater_levelsachieved_verified' then sq.wastewater_levelsachieved_verified
-	when 'ems_levelsachieved_verified' then sq.ems_levelsachieved_verified
-	when 'chemicals_levelsachieved_verified' then sq.chemicals_levelsachieved_verified
-	when 'waste_levelsachieved_verified' then sq.waste_levelsachieved_verified
-	when 'air_levelsachieved_verified' then sq.air_levelsachieved_verified
-	when 'water_levels_achieved_verified' then sq.water_levels_achieved_verified
-  else Null
-	end as level, temp.col as module
-from profile_74133 sq
-cross join temp
-  ),
-  sub2 as(
-  select group_name, groupid, surveyid, country, position(1 in level) as level1, position(2 in level) as level2, position(3 in level) as level3, module, upper(substring(module,1,position('_' in module)-1)) as modules, sacid, s1.fy_timerange, level
-	from sub1 s1),
-  sub3 as(
-  select country,s2.fy_timerange, level1, cdms_id, modules, level, first_value(array_join(source_div,' , '))
-over(partition by country, s2.fy_timerange, modules, cdms_id, level1
-order by cast(timeperiod_timerange.start as date) desc
-rows between unbounded preceding and unbounded following) as source_div_new
-	from sub2 s2
-  left join profile_74334 pd
-  on pd.higg_id=s2.sacid
-  left join profile_60928 mr
-  on mr.factory_id=pd.cdms_id
+  select 'water_levels_achieved_verified' as col 
+),
 
-	--group by country, s2.fy_timerange, level1, cdms_id, modules, source_div
-  ), 
-  sub31 as
-  (
-  select country, fy_timerange, level1, cdms_id, modules, source_div_new
-	--SPLIT_TO_ARRAY(source_div_new,',') as source 
-	from sub3 group by country, fy_timerange, level1, cdms_id, modules, source_div_new
-  )
-  /*,
+sub1 as(
+  select p1._id as id, p1.sacid, p1.country, p1.fy_timerange, p2.cdms_id, temp.col as module, p3.timeperiod_timerange, p3.source_div,
+case col
+		when 'energy_levelsachieved_verified' then p1.energy_levelsachieved_verified
+		when 'wastewater_levelsachieved_verified' then p1.wastewater_levelsachieved_verified
+		when 'ems_levelsachieved_verified' then p1.ems_levelsachieved_verified
+		when 'chemicals_levelsachieved_verified' then p1.chemicals_levelsachieved_verified
+		when 'waste_levelsachieved_verified' then p1.waste_levelsachieved_verified
+		when 'air_levelsachieved_verified' then p1.air_levelsachieved_verified
+		when 'water_levels_achieved_verified' then p1.water_levels_achieved_verified
+  		else Null
+end as level,
+position(1 in level) as level1, upper(substring(temp.col,1,position('_' in temp.col)-1)) as modules
+from profile_74133 p1
+cross join temp
+left join profile_74334 p2 on p2.higg_id = p1.sacid
+left join profile_60928 p3 on p3.factory_id = p2.cdms_id
+where p2.cdms_id is not null),
+
+sub2 as(
+  select t1.name as region, s1.fy_timerange, s1.level1, s1.modules, s1.cdms_id, s1.source_div,
+row_number() over(partition by s1.country, s1.fy_timerange, s1.level1, s1.modules, s1.cdms_id order by cast(s1.timeperiod_timerange.start as date) desc) as line
+from sub1 s1
+left join ds_mysql_prod_tagelement t1 on t1.id = s1.country),
+
+sub3 as(
+  select s2.*, source_div_new from sub2 s2, s2.source_div source_div_new
+	where s2.line = 1),
   
-  sub4 as
-  (
-  select s3.country, s3.fy_timerange, s3.level1, s3.cdms_id, s3.modules, source from sub3 s3, s3.source_div_new source),
-  sub5 as
-  (
-  select t1.name as region, s4.fy_timerange, cdms_id, level1,
-	array(listagg(distinct modules,', ')) as modules, case when 1=1 then array(listagg('OVERALL',',')) else 0 end as ovr,
-	source as source_div
-  from sub4 s4
-  left join ds_mysql_prod_tagelement t
-	on t.id=s4.country
-	left join ds_mysql_prod_tagelement t1
-	on t.parent=t1.id
-	  where cdms_id is not null 
-	group by s4.fy_timerange, source, t1.name, cdms_id, level1
-	),
-	sub6 as 
-	(
-	select fy_timerange,level1, source_div, region,
-	  array_concat(modules,ovr) as modules
-	  , cdms_id
-	from sub5),
-	
-	sub7 as 
-	(select fy_timerange,level1, source_div, region,   modules_new, cdms_id from sub6 s5
-	 , s5.modules modules_new )
-	/*, 
-	sub71 as
-	(
-select fy_timerange,level1, source_div, region, trim('"' from modules_new) as modules_new, cdms_id from sub7  )
-*/,
-	sub8 as 
-	(
-	select fy_timerange, source_div, region, modules_new as modules, level1, cdms_id as facs, 1 as count
-	from sub7
-	group by fy_timerange, source_div, region, modules_new, level1, cdms_id)*/
-	select * from sub31
+sub4 as(
+  select s3.region, s3.fy_timerange, s3.level1, s3.cdms_id, t2.name as source_div, 
+SPLIT_TO_ARRAY(listagg(distinct s3.modules, ', '), ', ') as modules_array,
+GET_ARRAY_LENGTH(modules_array) as size, ARRAY_CONCAT(modules_array, array('Overall')) as new_modules
+from sub3 s3
+left join ds_mysql_prod_tagelement t2 on t2.id = s3.source_div_new
+group by s3.region, s3.fy_timerange, s3.level1, s3.cdms_id, t2.name),
+
+sub5 as(
+  select s4.*, cast(module_1 as varchar) as modules,
+case
+  	when modules = 'Overall' and s4.size = 7 then 1
+	when modules = 'Overall' and s4.size != 7 then 0
+	else s4.level1
+end as level_new
+from sub4 s4, s4.new_modules module_1)
+
+select s5.region, s5.fy_timerange, s5.source_div, s5.modules, s5.level_new, s5.cdms_id, 1 as count
+from sub5 s5
+group by s5.region, s5.fy_timerange, s5.source_div, s5.modules, s5.level_new, s5.cdms_id 
