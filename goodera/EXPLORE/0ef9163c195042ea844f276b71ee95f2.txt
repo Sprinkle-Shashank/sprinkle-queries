@@ -2,7 +2,15 @@ with
     temp as( select 'score' as C
   Union all 
   select 'score2' as C )
-select p.start_date,p.start_year as financial_year,pre_yn.name as pre_post_yn,mdl_parent.name as module_2nd,md_nme.name as module,p.start_quarter as quarter,profile_54646.name_country as country,profile_4228.score,profile_4228.score2,profile_54646.name_vendor as vendor,profile_54646.name_vendor_filter as partner_consolidated/*,avg(score) as avg1,avg(score2) as avg2*/,
+select p.start_date,cast(concat('FY ' ,start_year) as varchar) as start_year, start_quarter as start_quarter_new ,case when start_quarter=1 then '1st (Feb-Apr)'
+ when start_quarter=2 then '2nd (May-Jul)'
+  when start_quarter=3 then '3rd (Aug-Oct)'
+   when start_quarter=4 then '4th (Nov-Jan)'
+   else null end as start_quarter
+   ,
+  pr_46.name_country as country ,
+  pr_46.name_vendor as vendor
+			   ,pre_yn.name as pre_post_yn,mdl_parent.name as module_2nd,md_nme.name as module,profile_4228.score,profile_4228.score2/*,avg(score) as avg1,avg(score2) as avg2*/,
 avg(case C
 WHEN 'score' then profile_4228.score
 WHEN 'score2' then profile_4228.score2
@@ -13,8 +21,8 @@ END) AS value , temp.C as dimension
 from profile_4227 p
 Cross join temp
 
-left join profile_54646 on 
-p.projectId= profile_54646.projectId
+left join pr_46 on 
+p.projectId= pr_46.projectId
 
 
 left join profile_4228 on 
@@ -32,4 +40,4 @@ on md_nme.parent = mdl_parent.id
 
 where pre_post_yn = 57472 and module_2nd= 'Workplace Program'
 
-group by p.start_date,p.start_year,pre_yn.name,md_nme.name,mdl_parent.name ,profile_4228.score,profile_4228.score2,profile_54646.name_country,profile_54646.name_vendor, profile_54646.name_vendor_filter,p.start_quarter,temp.c
+group by p.start_date,p.start_year,pre_yn.name,md_nme.name,mdl_parent.name ,profile_4228.score,profile_4228.score2,country,vendor,start_quarter,start_quarter,temp.c
