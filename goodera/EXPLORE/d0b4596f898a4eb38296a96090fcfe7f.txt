@@ -1,5 +1,9 @@
 with sub1 as(
-select sq.*,pd.pvh_id, mr.partner_type, mr.name_vendor, mr.name_vendor_filter, json_serialize(ab.source_div) as source_div, rtrim(ltrim(json_serialize(ab.region),'['),']') as region, ab.region_parent, ab.timeperiod_timerange
+select sq.*,pd.pvh_id, mr.partner_type, mr.name_vendor, mr.name_vendor_filter, json_serialize(ab.source_div) as source_div, rtrim(ltrim(json_serialize(ab.region),'['),']') as region, ab.region_parent, ab.timeperiod_timerange, 
+  case
+	when p4.projcode_factory like 'C%' or p4.projcode_factory like '%PVH' then 1 
+	else 0
+end as filter
 from profile_62491 sq
 left join profile_62948 pd
 on sq.project_id=pd.project_id
@@ -7,7 +11,7 @@ left join profile_62482 mr
 on mr.project_id=sq.project_id
 left join profile_60928 ab
 on ab.factory_id=pd.pvh_id
-where coalesce(lg_status,0)!=1105812 and pd.pvh_id is not null
+where coalesce(lg_status,0)!=1105812 and pd.pvh_id is not null and start_date >= nvl(offset_date,'2020-01-01') and filter = 1
 order by ab.timeperiod_timerange desc
   ),
   sub2 as (
