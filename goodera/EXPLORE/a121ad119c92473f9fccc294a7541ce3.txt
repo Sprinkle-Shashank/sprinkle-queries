@@ -1,8 +1,24 @@
-Select t.name as proj_location, t1.name as partner, t2.name as projectId
-from profile_76387 ss
+with s1 as (
+  Select t.name as proj_location, t1.name as partner, t2.name as projectId,pl.location,po.impl_agency as imp_partner,to_timestamp(CURRENT_DATE, 'YYYY-MM-DD HH24:MI:SS') as today,
+case 
+  when s1.end_date is null then today
+  else s1.end_date
+  end as end_date,
+    concat(concat(concat(concat('{"start":"', ss.start_date),'","end":"'),end_date),'"}') as fy_timerange,
+
+from profile_1616 ss
 left join ds_mysql_prod_project t
 on ss.projectid=t.id
 left join ds_mysql_prod_project t1
 on t.parent=t1.id
 left join ds_mysql_prod_project t2
 on t1.parent=t2.id
+left join profile_65603 pl
+on pl.projectid=s1.projectid
+left join profile_65552 po
+on t.parent=po.projectid
+)
+
+Select s1.proj_location, s1.location, s1.partner, s1.imp_partner, s1.fy_timerange, s1.projectId,count(*) no_centres
+from s1
+group by s1.proj_location, s1.location, s1.partner, s1.imp_partner, s1.fy_timerange, s1.projectId
