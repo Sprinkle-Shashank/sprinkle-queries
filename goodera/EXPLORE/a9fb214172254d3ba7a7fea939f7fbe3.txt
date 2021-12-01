@@ -1,11 +1,19 @@
 with s1 as (
-Select concat(concat(concat(concat('{"start":"', ss.proj_start_date),'","end":"'),proj_start_date),'"}') as fy_timerange,ss.impl_agency imp_partner,t.name as partner,t1.name as projectId,ss.no_govt,ss.focus_area,ss.project_type
+Select concat(concat(concat(concat('{"start":"', ss.proj_start_date),'","end":"'),proj_start_date),'"}') as fy_timerange,t2.name as imp_partner,t.name as partner,t1.name as projectId,ss.no_govt,t4.name as focus_area,t3.name as project_type
 from profile_65552 ss
 left join ds_mysql_prod_project t
 on ss.projectid=t.id
 left join ds_mysql_prod_project t1
 on t.parent=t1.id
+left join ds_mysql_prod_tagelement t2
+  on t2.id=ss.impl_agency 
+  left join ds_mysql_prod_project t3
+on ss.project_type=t3.id
+    left join ds_mysql_prod_project t4
+on ss.focus_area=t4.id
+
 )
 Select  s1.partner, s1.focus_area, s1.project_type, s1.imp_partner, s1.projectId, s1.fy_timerange,sum(s1.no_govt) municipalitiies
 from s1
+
 group by s1.partner, s1.focus_area, s1.project_type, s1.imp_partner, s1.projectId, s1.fy_timerange
