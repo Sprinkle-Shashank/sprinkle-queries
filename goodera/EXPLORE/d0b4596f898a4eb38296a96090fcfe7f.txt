@@ -24,8 +24,10 @@ rows between unbounded preceding and unbounded following) as region_new
   ), sub3 as(
 	select name, fy_timerange, num_females, project_id, pvh_id, partner_type, name_vendor, name_vendor_filter,SPLIT_TO_ARRAY(source_div_new,',') as source, SPLIT_TO_ARRAY(region_new,',') as region from sub2
 	group by name, fy_timerange, num_females, project_id, pvh_id, partner_type, name_vendor, name_vendor_filter, source_div_new, region_new),
+	sub31 as(
+	  select fy_timerange, pvh_id, region_new, num_females from sub2 s2, s2.region region_new),
 	sub4 as
 	(
-	select fy_timerange, pvh_id, region, sum(num_females) as num_females from sub3 where source is not null and region is not null
+	select fy_timerange, pvh_id, region_new, sum(num_females) as num_females from sub31 where source is not null and region_new is not null
 	group by fy_timerange, pvh_id, region)
 	select * from sub4
