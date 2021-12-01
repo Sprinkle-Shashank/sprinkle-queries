@@ -1,12 +1,16 @@
-Select p.fac_vpid,f_y.name as fy,mth.name as month,rating.name as facility_rating,
-profile_52713.factory_vpid_1,profile_4227.num_females,status.name as pace_status,src.name as sourcing_yn,pr_c.name as primary_category,profile_54646.name_country as country,profile_54646.name_vendor as partner,profile_54646.name_vendor_filter as partner_consolidated,profile_4227.start_year as financial_year,profile_4227.start_quarter as quarter,count(*) from profile_54267 p
+Select profile_54267.fac_vpid,f_y.name as fy,mth.name as month,rating.name as facility_rating,
+profile_52713.factory_vpid_1,p.num_females,status.name as pace_status,src.name as sourcing_yn,pr_c.name as primary_category,profile_54646.name_country as country,profile_54646.name_vendor as vendor,cast(concat('FY ' ,start_year) as varchar) as start_year, start_quarter as start_quarter_new ,case when start_quarter=1 then '1st (Feb-Apr)'
+ when start_quarter=2 then '2nd (May-Jul)'
+ when start_quarter=3 then '3rd (Aug-Oct)'
+ when start_quarter=4 then '4th (Nov-Jan)'
+ else null end as start_quarter,count(*) from profile_4227 p
 
 
 
 left join profile_52713 on 
 p.projectId= profile_52713.projectId
-left join profile_4227 on 
-p.projectId= profile_4227.projectId
+left join profile_54267 on 
+p.projectId= profile_54267.projectId
 left join profile_54646 on 
 p.projectId= profile_54646.projectId
 left join ds_mysql_prod_tagelement f_y
@@ -25,5 +29,5 @@ on p.primary_category = pr_c.id
 where pace_status = 845114 and sourcing_yn = 57472
 
 
-group by p.fac_vpid,f_y.name ,mth.name ,rating.name,
-profile_52713.factory_vpid_1,status.name ,src.name,profile_4227.num_females,pr_c.name,profile_54646.name_country,profile_54646.name_vendor,profile_54646.name_vendor_filter,profile_4227.start_year,profile_4227.start_quarter
+group by profile_54267.fac_vpid,f_y.name ,mth.name ,rating.name,
+profile_52713.factory_vpid_1,status.name ,src.name,p.num_females,pr_c.name,country,vendor,,start_year,start_quarter
