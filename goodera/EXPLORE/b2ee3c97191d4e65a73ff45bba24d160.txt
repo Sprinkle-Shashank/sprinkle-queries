@@ -43,12 +43,10 @@ sub3 as(
   select s2.*, source_div_new from sub2 s2, s2.source_div source_div_new
 	where s2.line = 1),
   
-sub4 as(
+
   select s3.region, s3.fy_timerange, s3.level1, s3.cdms_id, t2.name as source_div, 
-SPLIT_TO_ARRAY(listagg(distinct s3.modules, ', '), ', ') as modules
+SPLIT_TO_ARRAY(listagg(distinct s3.modules, ', '), ', ') as modules_array, GET_ARRAY_LENGTH(modules_array) 
 from sub3 s3
 left join ds_mysql_prod_tagelement t2 on t2.id = s3.source_div_new
-group by s3.region, s3.fy_timerange, s3.level1, s3.cdms_id, t2.name)
+group by s3.region, s3.fy_timerange, s3.level1, s3.cdms_id, t2.name
 
-select s4.region, s4.fy_timerange, s4.level1, s4.cdms_id, s4.source_div, GET_ARRAY_LENGTH(modules) 
-from sub4 s4
