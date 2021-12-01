@@ -1,4 +1,16 @@
-with table1 as(Select select_modules,_id,hours from profile_4227 
+with table1 as(Select select_modules,pr_27._id,hours,cast(concat('FY ' ,start_year) as varchar) as start_year, start_quarter as start_quarter_new ,case when start_quarter=1 then '1st (Feb-Apr)'
+ when start_quarter=2 then '2nd (May-Jul)'
+  when start_quarter=3 then '3rd (Aug-Oct)'
+   when start_quarter=4 then '4th (Nov-Jan)'
+   else null end as start_quarter
+   ,
+  pr_46.name_country as country ,
+  pr_46.name_vendor as vendor
+			   
+			    from profile_4227 as pr_27
+			   
+ left join profile_54646 pr_46 
+on pr_27.projectid = pr_46.projectid
 ),
 table2 as (select t1.*,CAST(select_module as int) from table1 t1,t1.select_modules select_module
 
@@ -7,10 +19,10 @@ table2 as (select t1.*,CAST(select_module as int) from table1 t1,t1.select_modul
  
 
 table3 as (
-select _id,hours, select_module
+select _id,hours, select_module,start_year,start_quarter,country,vendor
   
   
-from table2 p
+from table2 
   
   
 /*left join ds_mysql_prod_tagelement as t1
@@ -24,12 +36,12 @@ WHERE  select_module IN
 
   
 ) 
-select DISTINCT _id,listagg(select_module,','), hours
+table4 as(select DISTINCT _id,listagg(select_module,','), hours,start_year,start_quarter,country,vendor 
 
 from table3
 
-
-group by _id, hours
+where hours is not null
+group by _id, hours,start_year,start_quarter,country,vendor 
 
 /*with table1 as(Select  select_modules,_id,hours,start_year as financial_year,start_quarter as quarter from profile_4227 
 ),
