@@ -1,0 +1,46 @@
+With temp as (
+Select 'Less_than_6' as col
+  union all
+  Select '6_to_10' as col
+  union all
+Select '11_to_15' as col
+  union all
+  Select '16_to_18' as col
+  union all
+  Select '19_to_35' as col
+  union all
+  Select '30_to_60' as col
+  union all
+  Select 'Greater_than_60' as col
+)
+,
+s1 as(
+Select t.name as proj_location, t1.name as partner, t2.name as projectId,ss.school_name, ss.state_district, ss.fy_timerange, ss.totalstudents_5thgrade, ss.male_5thgrade, ss.female_5thgrade, ss.totalstudents_6thgrade, ss.male_6thgrade, ss.female_6thgrade, ss.totalstudents_7thgrade, ss.male_7thgrade, ss.female_7thgrade, ss.totalstudents_8thgrade, ss.male_8thgrade, ss.female_8thgrade, ss.totalstudents_9thgrade, ss.male_9thgrade, ss.female_9thgrade, ss.totalstudents_10thgrade, ss.male_10thgrade, ss.female_10thgrade, ss.age_below6 as Less_than_6, ss.age_6to10 as 6_to_10, ss.age_11to15 as 11_to_15, ss.age_16to18 as 16_to_18, ss.age_19to35 as 19_to_35, ss.age_36to60 as 30_to_60, ss.age_above60 as Greater_than_60,pl.location,po.impl_agency as imp_partner,st.name as state_code,
+case col
+  when 'Less_than_6' then ss.age_below6
+  when '6_to_10' then ss.age_6to10
+ when '11_to_15' then ss.age_11to15
+  when '16_to_18' then ss.age_16to18
+  when '19_to_35' then ss.age_19to35
+  when '30_to_60' then ss.age_36to60 
+  when 'Greater_than_60' then ss.age_above60
+  else null
+  end as no_benef,temp.col as age_bucket
+from profile_76387 ss
+cross join temp
+left join ds_mysql_prod_project t
+on ss.projectid=t.id
+left join ds_mysql_prod_project t1
+on t.parent=t1.id
+left join ds_mysql_prod_project t2
+on t1.parent=t2.id
+left join profile_65603 pl
+on pl.projectid=ss.projectid
+left join profile_65552 po
+on t.parent=po.projectid
+left join profile_73573 st
+on st.loc_select=pl.location
+)
+Select s1.proj_location, s1.fy_timerange, s1.partner, s1.projectId, s1.location, s1.imp_partner, s1.state_code, s1.age_bucket,sum(s1.no_benef)
+from s1
+group by s1.proj_location, s1.fy_timerange, s1.partner, s1.projectId, s1.location, s1.imp_partner, s1.state_code, s1.age_bucket
