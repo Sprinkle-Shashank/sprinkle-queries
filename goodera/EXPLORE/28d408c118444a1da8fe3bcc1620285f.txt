@@ -1,0 +1,22 @@
+with s1 as (Select ss._id,t.name as proj_location, t1.name as partner, t2.name as projectId, ss.fy_timerange, ss.students_registered,pl.location,po.impl_agency as imp_partner,st.name as state_code
+from profile_75008 ss
+left join ds_mysql_prod_project t
+on ss.projectid=t.id
+left join ds_mysql_prod_project t1
+on t.parent=t1.id
+left join ds_mysql_prod_project t2
+on t1.parent=t2.id
+left join profile_65603 pl
+on pl.projectid=ss.projectid
+left join profile_65552 po
+on t.parent=po.projectid
+left join profile_73573 st
+on st.loc_select=pl.location
+),
+s2 as (
+Select s1._id, s1.proj_location, s1.fy_timerange, s1.partner, s1.projectId, s1.location, s1.imp_partner, s1.state_code,sum(students_registered) no_benef
+from s1
+group by s1._id, s1.proj_location, s1.fy_timerange, s1.partner, s1.projectId, s1.location, s1.imp_partner, s1.state_code
+)
+Select s2.proj_location, s2.fy_timerange, s2.partner, s2.projectId, s2.location, s2.imp_partner, s2.state_code,s2.no_benef
+from s2
