@@ -44,15 +44,11 @@ rtrim(ltrim(json_serialize(mr.source_div),'['),']') as source_div1, mr.timeperio
   ),
  sub31 as
   (
-  select country, fy_timerange, level1, cdms_id, modules,
-first_value(source_div1) over(partition by country, fy_timerange, modules, cdms_id, level1
-order by cast(timeperiod_timerange.start as date) desc
-rows between unbounded preceding and unbounded following) as source_div_new
+  select country, fy_timerange, level1, cdms_id, modules, source_div1
+row_number() over  (partition by country, fy_timerange, level1, cdms_id, modules, source_div1 order by cast(timeperiod_timerange.start as date) asc) as row
 	from sub3 
   ),
-sub4(select country, fy_timerange, level1, cdms_id, modules, SPLIT_TO_ARRAY(source_div_new, ',') as source_div2
+sub4 as (select country, fy_timerange, level1, cdms_id, modules, SPLIT_TO_ARRAY(source_div_new, ',') as source_div2
 from sub31)
 
-select country, fy_timerange, level1, cdms_id, modules, source_div2
-from sub4
-group by country, fy_timerange, level1, cdms_id, modules, source_div2
+select * from sub3
