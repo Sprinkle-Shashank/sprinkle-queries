@@ -1,6 +1,20 @@
-
-with table1 as(Select p._id, p.fac_vpid,f_y.name as fy,mth.name as month,rating.name as facility_rating,profile_54646.name_country as country,profile_54646.name_vendor as partner,profile_54646.name_vendor_filter as partner_consolidated,
-profile_52713.factory_vpid_1,status.name as pace_status,src.name as sourcing_yn,count(*) from profile_54267 p
+with table1 as(Select p._id, p.fac_vpid,f_y.name as fy,mth.name as month,rating.name as facility_rating,profile_54646.name_country as country,profile_54646.name_vendor as partner,profile_54646.name_vendor_filter as partner_consolidated,concat(f_y.name,mth.name) as temp,
+profile_52713.factory_vpid_1,status.name as pace_status,src.name as sourcing_yn,count(*) as cou,case when mth.name = 'January' then 1
+when mth.name = 'February' then 2
+when mth.name = 'March' then 3
+when mth.name = 'April' then 4
+when mth.name = 'May' then 5
+when mth.name = 'June' then 6
+when mth.name = 'July' then 7
+when mth.name = 'August' then 8
+when mth.name = 'September' then 9
+when mth.name = 'October' then 10
+when mth.name = 'November' then 11
+when mth.name = 'December' then 12
+else
+null
+			   end as xe
+from profile_54267 p
 
 
 
@@ -24,6 +38,11 @@ where pace_status = 845114 and sourcing_yn = 57472
 
 
 group by p.fac_vpid,f_y.name ,mth.name ,rating.name,
-profile_52713.factory_vpid_1,status.name ,src.name,profile_54646.name_country,profile_54646.name_vendor,profile_54646.name_vendor_filter,p._id
- )
- Select _id,fy,month,count from table1
+profile_52713.factory_vpid_1,status.name ,src.name,profile_54646.name_country,profile_54646.name_vendor,profile_54646.name_vendor_filter,p._id,p.fy,p.month
+ ),
+ 
+table2 as  (Select sum(cou) as cou1 ,temp,facility_rating,fy,xe,partner,country from table1
+where fy = (select max(fy) from table1)
+group by temp,facility_rating,fy,xe,partner,country
+			)
+			Select * from table2 
