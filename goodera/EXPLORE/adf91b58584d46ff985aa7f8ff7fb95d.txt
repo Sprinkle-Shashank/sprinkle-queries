@@ -1,23 +1,34 @@
-with table1 as(select select_modules,_id,hours,start_year as financial_year,end_date_2,start_quarter as quarter from profile_4227 ),
+with table3 as ( select _id,projectid,fy,month, facility_rating,fac_vpid,row_number() over 
+(partition by projectid
+ order by p._id desc) as row from profile_54267 p ),
+ 
+  table2 as(select projectid,fy,month, facility_rating,fac_vpid, row from table3	
+where  row = 1),
 
-table2 as (select t1.*,CAST(select_module as int) from table1 t1,t1.select_modules select_module
+table1 as(Select p.projectid,f_y.name as fy,mth.name as month,p._id,p.pace_status_1,pro.name as factory,p.sourcing_yn,t2.facility_rating,t2.fac_vpid,profile_54646.name_vendor_filter as partner_consolidated,profile_54646.name_vendor as vendor,profile_54646.name_country as country,  row_number() over 
+(partition by factory
+ order by p._id desc) as row
 
-),
+from profile_52713 p 
 
-table3 as( select _id,select_module,financial_year,end_date_2,quarter from table2
 
-where select_module in ('64503','70912','70941','70900','70910','70913','70909','70903','70901','70902','70911','264682','264684','264683') and end_date_2 is not null	   
- )
- ,
- table4 as(select _id,listagg(select_module,','), financial_year,end_date_2,quarter  from table3
 
-group by _id,financial_year,end_date_2,quarter)
-select  _id,1 as count, financial_year,quarter from table4
+left join table2 t2 on
+p.projectId = t2.projectId
+left join ds_mysql_prod_project pro
+on p.projectId = pro.id
+left join ds_mysql_prod_tagelement f_y
+on t2.fy = f_y.id
+left join ds_mysql_prod_tagelement mth
+on t2.month = mth.id
 
-/*select ARRAY(SELECT x
-        FROM UNNEST(select_modules) AS x
-        WHERE x in ('64503','70912','70941','70900','70910','70913','70909','70903','70901','70902','70911','264682','264684','264683')) AS moudule,_id,hours,financial_year,end_date_2, quarter from table1*/
+left join profile_54646 on
+p.projectId = profile_54646.projectId
 
---where  module IN 
+where p.pace_status_1= 'Currently implementing P.A.C.E.' and p.sourcing_yn = 57472
+--and t2.facility_rating = 84509
+		 )
 
---group by _id, start_year,end_date_2, start_quarter
+
+select Distinct factory,fy,month,row,facility_rating,sourcing_yn,pace_status_1,country,vendor from table1
+where row = 1
