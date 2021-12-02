@@ -1,0 +1,21 @@
+with test1 as(
+select p._id,p.projectId, p.reg_date, p.patient_name, p.gender, p.p_id, p.search_status, p.f_contact, p.f_marital_status, p.f_education, p.f_p_address, p.f_l_address, p.f_category, p.f_age, p.f_route, p.f_vehicle, p.oral, p.diabetes, p.sti, tb1, p.hiv, p.vision, p.hypertension, p.general, p.past_diag, p.details_check, p.govt, p.fees from profile_59462 p, p.tb tb1
+),
+
+test2 as(
+select substring(p.reg_date,1,10)||'T00:00:00.000Z' ||'|'|| substring(p.reg_date,1,10)||'T00:00:00.000Z' as fy_timerange, substring(p.reg_date,9,2)||'-'||substring(p.reg_date,6,2)||'-'||substring(p.reg_date,1,4) as date1,projectId as projectCode, project.name as projectid, p.patient_name, p.gender, p.p_id, p.search_status, p.f_contact, p.f_marital_status, p.f_education, p.f_p_address, p.f_l_address, p.f_category, p.f_age, p.f_route, p.f_vehicle, p.oral, p.diabetes, p.sti, p.tb1, p.hiv, p.vision, p.hypertension, p.general, q.name as past_diag1, p.details_check, p.govt, p.fees from test1 p
+left join profile_59462 q on p.past_diag = q._id
+left join ds_mysql_prod_project project on p.projectid = project.id where p.reg_date is not null
+)
+
+select p.fy_timerange, p.projectid, p.projectCode, p.date1, p.patient_name, q.name as gender, p.p_id, p.search_status, p.f_contact, p.f_marital_status, p.f_education, p.f_p_address, p.f_l_address, p.f_category, p.f_age, p.f_route, p.f_vehicle, r.name as oral, s.name as diabetes, t.name as sti, u.name as tb, v.name as hiv, w.name as vision, x.name as hypertension, y.name as general, p.past_diag1 as past_diag, p.details_check, z.name as govt, p.fees from test2 p
+left join ds_mysql_prod_tagelement q on p.gender = q.id 
+left join ds_mysql_prod_tagelement r on p.oral = r.id
+left join ds_mysql_prod_tagelement s on p.diabetes = s.id
+left join ds_mysql_prod_tagelement t on p.sti = t.id
+left join ds_mysql_prod_tagelement u on p.tb1 = u.id
+left join ds_mysql_prod_tagelement v on p.hiv = v.id
+left join ds_mysql_prod_tagelement w on p.vision = w.id
+left join ds_mysql_prod_tagelement x on p.hypertension = x.id
+left join ds_mysql_prod_tagelement y on p.general = y.id
+left join ds_mysql_prod_tagelement z on p.govt = z.id
