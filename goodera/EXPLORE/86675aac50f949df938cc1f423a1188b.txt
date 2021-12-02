@@ -21,11 +21,13 @@ sub3 as(
 	UNION ALL
   select event_id, start_date, participation_date, end_date, country, duration from sub2)
 
-SELECT s3.event_id, p9.name as focus_area, nvl(s3.country, p10.country) as country,
+SELECT s3.event_id, nvl(p9.name, 'Others') as focus_area, nvl(s3.country, p10.country, 'Global') as country,
 cast(timestamp 'epoch' + CAST(s3.start_date AS BIGINT)/1000 * interval '1 second' as date) as start_date,
 cast(timestamp 'epoch' + CAST(s3.end_date AS BIGINT)/1000 * interval '1 second' as date) as end_date,
-cast(timestamp 'epoch' + CAST(s3.participation_date AS BIGINT)/1000 * interval '1 second' as date) as participation_date, s3.duration
+cast(timestamp 'epoch' + CAST(s3.participation_date AS BIGINT)/1000 * interval '1 second' as date) as participation_date, sum(s3.duration) as vol_hours
 from sub3 s3
 LEFT JOIN ds_mysql_prod_empOpportunityFocusArea p8 ON p8.empOpportunityId = s3.event_id
 LEFT JOIN ds_mysql_prod_refFocusArea p9 ON p9.id = p8.focusArea
 LEFT JOIN ds_mysql_prod_empOpportunityVisibility p10 ON p10.empOpportunityId = s3.event_id
+
+group by s3.event_id, p9.name, s3.country, p10.country, s3.start_date, s3.end_date, s3.participation_date
