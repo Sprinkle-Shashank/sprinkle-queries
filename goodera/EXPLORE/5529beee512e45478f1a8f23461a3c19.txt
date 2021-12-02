@@ -20,25 +20,26 @@ over(partition by name, fy_timerange, num_females, project_id, pvh_id, partner_t
 order by cast(timeperiod_timerange.start as date) desc
 rows between unbounded preceding and unbounded following) as region_new
 from sub1 ), 
-/*
 sub3 as(
 	select projectId, name, fy_timerange, num_females, pvh_id, partner_type, name_vendor, name_vendor_filter,SPLIT_TO_ARRAY(source_div_new,',') as source, SPLIT_TO_ARRAY(region_new,',') as region from sub2
-	group byprojectId, name, fy_timerange, num_females, pvh_id, partner_type, name_vendor, name_vendor_filter, source_div_new, region_new),
-	
+	group by projectId, name, fy_timerange, num_females, pvh_id, partner_type, name_vendor, name_vendor_filter, source_div_new, region_new),
 	sub31 as(
-	  select fy_timerange, pvh_id, cast(region_new as varchar), num_females, source from sub3 s2, s2.region region_new),
+	  select fy_timerange, pvh_id, cast(region_new as varchar), num_females, source_div from sub3 s2, s2.source source_div, s2.region region_new),
 	sub4 as
 	(
-	select fy_timerange, pvh_id, t.name as region, sum(num_females) as num_females from sub31
+	select fy_timerange, pvh_id, t.name as region, t1.name as source_div, sum(num_females) as num_females from sub31
 	  left join ds_mysql_prod_tagelement t
 	  on t.id=region_new
+	  left join ds_mysql_prod_tagelement t1
+		on t1.id=source_div2
 	  where source is not null and region_new is not null
-	group by fy_timerange, pvh_id, t.name), 
-*/
+	group by fy_timerange, pvh_id, t.name,t1.name)
+	select * from sub4
 
 
 
 
+/*
 sub3 as (
 select projectId, name, fy_timerange, num_females, pvh_id, partner_type, name_vendor, name_vendor_filter, SPLIT_TO_ARRAY(source_div_new,',') as source_div, SPLIT_TO_ARRAY(region_new,',') as region from sub2
   where source_div_new is not null and region_new is not null
@@ -56,4 +57,4 @@ left join ds_mysql_prod_tagelement t1
 on t1.id=source_div2
 left join ds_mysql_prod_tagelement t2
 on t2.id=region2)
-select * from sub6
+select * from sub6*/
