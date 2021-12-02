@@ -19,15 +19,19 @@ and p6.timetaken is not null and p6.timetaken != 0),
 sub3 as(
   select event_id, start_date, participation_date, end_date, country, duration from sub1
 	UNION ALL
-  select event_id, start_date, participation_date, end_date, country, duration from sub2)
+  select event_id, start_date, participation_date, end_date, country, duration from sub2),
 
-SELECT s3.event_id, nvl(p9.name, 'Others') as focus_area, nvl(s3.country, p10.country, 'Global') as country,
+sub4 as(
+  select s3.event_id, nvl(p9.name, 'Others') as focus_area, 
+nvl(s3.country, INITCAP(p10.country), 'Global') as country,
 cast(timestamp 'epoch' + CAST(s3.start_date AS BIGINT)/1000 * interval '1 second' as date) as start_date,
 cast(timestamp 'epoch' + CAST(s3.end_date AS BIGINT)/1000 * interval '1 second' as date) as end_date,
-cast(timestamp 'epoch' + CAST(s3.participation_date AS BIGINT)/1000 * interval '1 second' as date) as participation_date, sum(s3.duration) as vol_hours
+cast(timestamp 'epoch' + CAST(s3.participation_date AS BIGINT)/1000 * interval '1 second' as date) as participation_date, s3.duration
 from sub3 s3
 LEFT JOIN ds_mysql_prod_empOpportunityFocusArea p8 ON p8.empOpportunityId = s3.event_id
 LEFT JOIN ds_mysql_prod_refFocusArea p9 ON p9.id = p8.focusArea
-LEFT JOIN ds_mysql_prod_empOpportunityVisibility p10 ON p10.empOpportunityId = s3.event_id
+LEFT JOIN ds_mysql_prod_empOpportunityVisibility p10 ON p10.empOpportunityId = s3.event_id)
 
-group by s3.event_id, p9.name, s3.country, p10.country, s3.start_date, s3.end_date, s3.participation_date
+select s4.event_id, s4.start_date, s4.participation_date, s4.end_date, sum(s4.duration)
+from subs4
+group by s4.event_id, s4.start_date, s4.participation_date, s4.end_date
