@@ -14,8 +14,18 @@ from ds_mysql_prod_empOpportunity p5
 LEFT JOIN ds_mysql_prod_empMicroOpportunity p6 ON p6.empOpportunityId = p5.id
 LEFT JOIN ds_mysql_prod_empMicroContributor p7 ON p7.empMicroOpportunityId = p6.id 
 where UPPER(p5.opportunityType) = 'MIC' and p5.securityContextId = 1615 and p5.active = 1 and p7.active = 1 
-and p6.timetaken is not null and p6.timetaken != 0)
+and p6.timetaken is not null and p6.timetaken != 0),
 
-select event_id, start_date, participation_date, end_date, country, duration from sub1
-UNION ALL
-select event_id, start_date, participation_date, end_date, country, duration from sub2
+sub3 as(
+  select event_id, start_date, participation_date, end_date, country, duration from sub1
+	UNION ALL
+  select event_id, start_date, participation_date, end_date, country, duration from sub2)
+
+SELECT s3.event_id, p9.name as focus_area, nvl(s3.country, p10.country) as country
+cast(timestamp 'epoch' + CAST(s3.start_date AS BIGINT)/1000 * interval '1 second' as date) as start_date,
+cast(timestamp 'epoch' + CAST(s3.end_date AS BIGINT)/1000 * interval '1 second' as date) as end_date,
+cast(timestamp 'epoch' + CAST(s3.participation_date AS BIGINT)/1000 * interval '1 second' as date) as participation_date, s3.duration
+from sub3 s3
+LEFT JOIN ds_mysql_prod_empOpportunityFocusArea p8 ON p8.empOpportunityId = s3.event_id
+LEFT JOIN ds_mysql_prod_refFocusArea p9 ON p9.id = p8.focusArea
+LEFT JOIN ds_mysql_prod_empOpportunityVisibility p10 ON p10.empOpportunityId = s3.event_id
