@@ -1,45 +1,58 @@
-with table1 as(Select select_modules,pr_27._id,hours,lg_status,cast(concat('FY ' ,start_year) as varchar) as start_year, start_quarter as start_quarter_new ,case when start_quarter=1 then '1st (Feb-Apr)'
- when start_quarter=2 then '2nd (May-Jul)'
-  when start_quarter=3 then '3rd (Aug-Oct)'
-   when start_quarter=4 then '4th (Nov-Jan)'
-   else null end as start_quarter
-   ,
-  pr_46.name_country as country ,
-  pr_46.name_vendor as vendor
+with table1 as(Select _id,pro.name as factory,p.fac_vpid,f_y.name as fy,mth.name as month,p.facility_score,profile_54646.name_country as country,profile_54646.name_vendor as vendor,profile_54646.name_vendor_filter as partner_consolidated,
+profile_52713.factory_vpid_1,status.name as pace_status,src.name as sourcing_yn,row_number() over 
+(partition by factory
+ order by p._id desc),case when mth.name = 'January' then 1
+when mth.name = 'February' then 2
+when mth.name = 'March' then 3
+when mth.name = 'April' then 4
+when mth.name = 'May' then 5
+when mth.name = 'June' then 6
+when mth.name = 'July' then 7
+when mth.name = 'August' then 8
+when mth.name = 'September' then 9
+when mth.name = 'October' then 10
+when mth.name = 'November' then 11
+when mth.name = 'December' then 12
+else
+null
+			   end as xe
 			   
-			    from profile_4227 as pr_27
-			   
- left join profile_54646 pr_46 
-on pr_27.projectid = pr_46.projectid
-	where vendor is not null and country is not null and lg_status = 848007 or
-                        lg_status is null
-),
-table2 as (select t1.*,CAST(select_module as int) from table1 t1,t1.select_modules select_module
+			   from profile_54267 p
 
-),
 
+
+left join profile_52713 on 
+p.projectId= profile_52713.projectId
+left join ds_mysql_prod_project pro
+on p.projectid = pro.id
+left join profile_54646 on 
+p.projectId= profile_54646.projectId
+left join ds_mysql_prod_tagelement f_y
+on p.fy = f_y.id
+left join ds_mysql_prod_tagelement mth
+on p.month = mth.id
+left join ds_mysql_prod_tagelement status
+on p.pace_status = status.id
+left join ds_mysql_prod_tagelement src
+on profile_52713.sourcing_yn = src.id
+
+where pace_status = 845114 and sourcing_yn = 57472 and
+      fy = (select max(fy) from profile_54267)/*and xe = (select max(xe) from profile_54267)*/ and profile_52713.factory_vpid_1 is not null and vendor is not null
  
 
-table3 as (
-select _id,hours,lg_status, select_module,start_year,start_quarter,country,vendor
-  
-  
-from table2 
-  
-  
-
-
-WHERE  select_module IN 
-('64503','70912','70941','70900','70910','70913','70909','70903','70901','70902','70911','264682','264684','264683') and hours is not null    
-
-  
-)
-select DISTINCT _id,listagg(select_module,','), hours,start_year,start_quarter,country,vendor 
-
-from table3
-
-
-group by _id, hours,start_year,start_quarter,country,vendor 
-
-
-
+group by factory,p.fac_vpid,f_y.name ,mth.name ,
+profile_52713.factory_vpid_1,status.name ,src.name,p.facility_score,profile_54646.name_country,profile_54646.name_vendor,profile_54646.name_vendor_filter,xe),
+table2 as(
+select distinct factory,fy,month,facility_score,case when 0<= facility_score and facility_score <=10 then 10
+     when 10< facility_score and facility_score <=20 then 20
+	 when 20< facility_score and facility_score <=30 then 30
+	 when 30< facility_score and facility_score <=40 then 40
+	 when 40< facility_score and facility_score <=50 then 50
+	 when 50< facility_score and facility_score<=60 then 60
+	 when 60< facility_score and facility_score <=70 then 70
+	 when 70< facility_score and facility_score <=80 then 80
+	 when 80< facility_score and facility_score <= 90 then 90
+	 when 90< facility_score and facility_score <=100 then 100
+	 else null
+	 end as new_rating,country,vendor, 1 as count, xe,row from table1 )
+select * from table2	 
