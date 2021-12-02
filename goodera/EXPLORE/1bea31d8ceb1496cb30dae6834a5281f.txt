@@ -41,44 +41,10 @@ left join ds_mysql_prod_tagelement t4 on t4.id = p8.focus_area),
 
 --KPIs Data Input
 
-sub7 as(
-  select r1.*, len(cast(r1.start_date as varchar)) as start_date_len,
-len(cast(r1.end_date as varchar)) as end_date_len,
-
-case
-	when (start_date_len = 13) then 
-		cast(timestamp 'epoch' + CAST(r1.start_date AS BIGINT)/1000 * interval '1 second' as varchar)
-	else r1.start_date
-end as start_date_new,
-
-case
-	when (end_date_len = 13) then 
-		cast(timestamp 'epoch' + CAST(r1.end_date AS BIGINT)/1000 * interval '1 second' as varchar)
-	else r1.end_date
-end as end_date_new,
-
-case
-	when r1.unwind_focus_area is not null 
-	then r1.focus_area_name
-	when r1.unwind_focus_area is null and r1.focus_area_array is not null and r1.focus_area_2_name is not null
-	then r1.focus_area_2_name
-  	when r1.unwind_focus_area is null and r1.focus_area_array is not null and r1.focus_area_2_name is null
-	then 'Others'
-	when r1.unwind_focus_area is null and r1.focus_area_array is null
-	then r1.focus_area_2_name
-	else null
-end as focus_area
-
-from rb_loghours r1),
-
 sub8 as(
-  select (cast(s7.start_date_new as date)||'|'||cast(s7.start_date_new as date)) as fy_timerange,
-  case
-  	when t5.name is null then 'Other'
-  	else t5.name
-  end as focus_area
-  from sub7 s7
-  left join profile_78929 p9 on p9.vol_focus_area_full = s7.focus_area
+  select (cast(s7.start_date_new as date)||'|'||cast(s7.start_date_new as date)) as fy_timerange, t5.name as focus_area
+  from rb_loghours r1
+  left join profile_78929 p9 on UPPER(p9.vol_focus_area_full) = UPPER(r1.focus_area)
   left join ds_mysql_prod_tagelement t5 on t5.id = p9.focus_area),
   
 --- Log Hours (Above) -- 
@@ -93,11 +59,7 @@ sub9 as(
   from rb_volhours r2),
  
 sub10 as(
-  select (cast(s9.start_date_new as date)||'|'||cast(s9.start_date_new as date)) as fy_timerange,
-  case
-  	when t6.name is null then 'Other'
-  	else t6.name
-  end as focus_area
+  select (cast(s9.start_date_new as date)||'|'||cast(s9.start_date_new as date)) as fy_timerange, t6.name as focus_area
   from sub9 s9
   left join profile_78929 p10 on p10.vol_focus_area_full = s9.focus_area
   left join ds_mysql_prod_tagelement t6 on t6.id = p10.focus_area),
