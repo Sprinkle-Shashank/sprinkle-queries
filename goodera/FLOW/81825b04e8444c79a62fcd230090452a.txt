@@ -1,76 +1,37 @@
-drop table if exists rb_volhours;
- create table rb_volhours as
+with sub1 as(
+  select p1.id as event_id, p2.startdate as start_date, nvl(p2.enddate, p2.startdate) as end_date, INITCAP(p2.countryname) as country, p4.created as participation_date, cast(p4.duration as float) as duration
+from ds_mysql_prod_empOpportunity p1
+LEFT JOIN ds_mysql_prod_empVolunteeringOpportunity p2 ON p2.empOpportunityId = p1.id
+LEFT JOIN ds_mysql_prod_empVolunteeringApplication p3 ON p3.empVolunteeringOpportunityId = p2.id
+LEFT JOIN ds_mysql_prod_empVolunteeringParticipation p4 ON p4.empVolunteeringApplicationId = p3.id
+where UPPER(p1.opportunityType) = 'VOL' and p1.securityContextId = 1615 and p4.active = 1 and p1.active = 1
+and p4.duration != 0 and p4.duration is not null),
 
-SELECT 
-	cast(timestamp 'epoch' + CAST(endTable.start_date AS BIGINT)/1000 * interval '1 second' as varchar) as start_date,
-	cast(timestamp 'epoch' + CAST(endTable.end_date AS BIGINT)/1000 * interval '1 second' as varchar) as end_date,
-	cast(timestamp 'epoch' + CAST(endTable.participation_date AS BIGINT)/1000 * interval '1 second' as varchar) as participation_date,
-    cast(endTable.vol_hours as FLOAT) AS vol_hours,
-    endTable.eoId AS eoId,
-    /*LISTAGG(DISTINCT rfa.name, ',') AS focus_area,
-	LISTAGG(DISTINCT eofa.focusArea, ',') AS focus_area_codes,
-    initcap(LISTAGG(DISTINCT COALESCE(endTable.country, eov.country), ',') ) as country*/
-	rfa.name as focus_area,
-	eofa.focusArea as focus_area_codes, 
-	COALESCE(endTable.country, eov.country) as country
-                
-FROM
-    (SELECT 
-        mt.start_date,
-	 	mt.participation_date,
-		mt.end_date,
-		SUM(mt.duration) AS vol_hours,
-        mt.country as country,
-		mt.eoId AS eoId
-    FROM
-        (
-            SELECT 
-                evo.startDate AS start_date,
-		  		evp.created AS participation_date,
-                CASE
-                    WHEN evo.endDate IS NOT NULL THEN evo.endDate
-                    ELSE evo.startDate
-                END AS end_date,
-                evp.duration AS duration,
-                evo.countryName as country,
-                eo.id AS eoId
-            FROM
-                ds_mysql_prod_empOpportunity eo
-            LEFT JOIN ds_mysql_prod_empVolunteeringOpportunity evo ON evo.empOpportunityId = eo.id
-            LEFT JOIN ds_mysql_prod_empVolunteeringApplication eva ON eva.empVolunteeringOpportunityId = evo.id
-            LEFT JOIN ds_mysql_prod_empVolunteeringParticipation evp ON evp.empVolunteeringApplicationId = eva.id
-            WHERE
-                eo.securityContextId = 1615
-                    AND eo.opportunityType = 'VOL'
-                    AND eva.active = 1
-                    AND eo.active = 1 
+sub2 as(
+  select p5.id as event_id, p6.created as start_date, p6.created as end_date, 
+(cast(p6.timetaken as float)/60) as duration, NULL as country, p7.created as participation_date
+from ds_mysql_prod_empOpportunity p5
+LEFT JOIN ds_mysql_prod_empMicroOpportunity p6 ON p6.empOpportunityId = p5.id
+LEFT JOIN ds_mysql_prod_empMicroContributor p7 ON p7.empMicroOpportunityId = p6.id 
+where UPPER(p5.opportunityType) = 'MIC' and p5.securityContextId = 1615 and p5.active = 1 and p7.active = 1 
+and p6.timetaken is not null and p6.timetaken != 0),
 
-            UNION ALL 
+sub3 as(
+  select event_id, start_date, participation_date, end_date, country, duration from sub1
+	UNION ALL
+  select event_id, start_date, participation_date, end_date, country, duration from sub2),
 
-            SELECT 
-                emo.created AS start_date,
-		  		emc.created AS participation_date,
-                emo.created AS end_date,
-                (emo.timeTaken / 60) AS duration,
-                NULL as country,
-                eo.id AS eoId
-            FROM
-                ds_mysql_prod_empOpportunity eo
-            LEFT JOIN ds_mysql_prod_empMicroOpportunity emo ON eo.id = emo.empOpportunityId
-            LEFT JOIN ds_mysql_prod_empMicroContributor emc ON emo.id = emc.empMicroOpportunityId
-            WHERE
-                eo.securityContextId = 1615
-                    AND eo.opportunityType = 'MIC'
-                    AND emc.active = 1
-                    AND eo.active = 1
-	    ) AS mt
-        GROUP BY mt.eoId, mt.start_date, mt.end_date, country, mt.participation_date
-	) AS endTable
-        LEFT JOIN
-    ds_mysql_prod_empOpportunityFocusArea eofa ON eofa.empOpportunityId = endTable.eoId
-        LEFT JOIN
-    ds_mysql_prod_refFocusArea rfa ON rfa.id = eofa.focusArea
-        LEFT JOIN
-    ds_mysql_prod_empOpportunityVisibility eov ON eov.empOpportunityId = endTable.eoId
-    
---group by endTable.eoId, vol_hours, start_date, end_date;
+sub4 as(
+  select s3.event_id, nvl(p9.name, 'Others') as focus_area, 
+nvl(s3.country, INITCAP(p10.country), 'Global') as country,
+cast(timestamp 'epoch' + CAST(s3.start_date AS BIGINT)/1000 * interval '1 second' as date) as start_date,
+cast(timestamp 'epoch' + CAST(s3.end_date AS BIGINT)/1000 * interval '1 second' as date) as end_date,
+cast(timestamp 'epoch' + CAST(s3.participation_date AS BIGINT)/1000 * interval '1 second' as date) as participation_date, s3.duration
+from sub3 s3
+LEFT JOIN ds_mysql_prod_empOpportunityFocusArea p8 ON p8.empOpportunityId = s3.event_id
+LEFT JOIN ds_mysql_prod_refFocusArea p9 ON p9.id = p8.focusArea
+LEFT JOIN ds_mysql_prod_empOpportunityVisibility p10 ON p10.empOpportunityId = s3.event_id)
+
+select s4.event_id, s4.start_date, s4.participation_date, s4.end_date, s4.country, s4.focus_area, sum(s4.duration)
+from sub4 s4
+group by s4.event_id, s4.start_date, s4.participation_date, s4.end_date, s4.country, s4.focus_area
