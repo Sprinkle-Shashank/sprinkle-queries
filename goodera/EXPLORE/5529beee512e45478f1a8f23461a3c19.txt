@@ -7,7 +7,8 @@ left join profile_62482 mr
 on mr.projectId=sq.projectId
 left join profile_60928 ab
 on ab.factory_id=pd.pvh_id
-where coalesce(lg_status,0)!=1105812 and pd.pvh_id is not null and start_date >= nvl(offset_date,'2020-01-01')
+where coalesce(lg_status,0)!=1105812 and pd.pvh_id is not null 
+  --and start_date >= nvl(offset_date,'2020-01-01')
 order by ab.timeperiod_timerange desc),
 sub2 as (
   select projectId, name, fy_timerange, num_females, pvh_id, partner_type, name_vendor, name_vendor_filter, first_value(source_div)
@@ -21,6 +22,7 @@ rows between unbounded preceding and unbounded following) as region_new
 from sub1 ), 
 sub3 as (
 select projectId, name, fy_timerange, num_females, pvh_id, partner_type, name_vendor, name_vendor_filter, source_div_new, region_new from sub2
+  where source_div_new is not null and region_new is not null
 group by projectId, name, fy_timerange, num_females, pvh_id, partner_type, name_vendor, name_vendor_filter, source_div_new, region_new)
 select * from sub3
 
