@@ -1,4 +1,40 @@
-with table1 as(Select  distinct(p.projectid), fac_vpid , month , fy ,fac_rat.name as facility_rating_t , facility_rating,pace_status ,primary_category,parent_vendor_name as vendor , country_name as country , p2.factory_vpid_1,p2.sourcing_yn from profile_54267 p
+with table3 as ( select _id,projectid,fy,month, facility_rating,fac_vpid,row_number() over 
+(partition by projectid
+ order by p._id desc) as row from profile_54267 p ),
+ 
+  table2 as(select projectid,fy,month, facility_rating,fac_vpid, row from table3	
+where  row = 1),
+
+table1 as(Select p.projectid,f_y.name as fy,mth.name as month,p._id,p.pace_status_1,pro.name as factory,p.sourcing_yn,t2.facility_rating,t2.fac_vpid,profile_54646.name_vendor_filter as partner_consolidated,profile_54646.name_vendor as vendor,profile_54646.name_country as country,  row_number() over 
+(partition by factory
+ order by p._id desc) as row
+
+from profile_52713 p 
+
+
+
+left join table2 t2 on
+p.projectId = t2.projectId
+left join ds_mysql_prod_project pro
+on p.projectId = pro.id
+left join ds_mysql_prod_tagelement f_y
+on t2.fy = f_y.id
+left join ds_mysql_prod_tagelement mth
+on t2.month = mth.id
+
+left join profile_54646 on
+p.projectId = profile_54646.projectId
+
+where p.pace_status_1= 'Currently implementing P.A.C.E.' and p.sourcing_yn = 57472
+--and t2.facility_rating = 84509
+		 )
+
+
+select Distinct factory,fy,month,row,facility_rating,sourcing_yn,pace_status_1,country,vendor from table1
+where row = 1 and vendor is not null
+
+
+/*with table1 as(Select  distinct(p.projectid), fac_vpid , month , fy ,fac_rat.name as facility_rating_t , facility_rating,pace_status ,primary_category,parent_vendor_name as vendor , country_name as country , p2.factory_vpid_1,p2.sourcing_yn from profile_54267 p
 
 left join profile_52713 p2 on 
 p.projectId= p2.projectId
@@ -17,4 +53,4 @@ table3 as (select *,pr_c.name as prim_cat from table2
 		  )
 
 select * from table3
-
+*/
