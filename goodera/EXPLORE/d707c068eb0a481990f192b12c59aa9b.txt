@@ -1,10 +1,12 @@
 with test1 as(
-select concat(cast(fy_timerange.start as varchar), concat('|', cast(fy_timerange.end as varchar))) as fy_timerange, projectid, sum(outreach_workers) as final_sum from profile_63888 group by 1,2
+select concat(cast(fy_timerange.start as varchar), concat('|', cast(fy_timerange.end as varchar))) as fy_timerange, projectid,'Historical' as type, sum(outreach_workers) as final_sum from profile_63888 group by 1,2,3
   union all
-select substring(p.date,1,10)||'T00:00:00.000Z' ||'|'|| decode(p.relieving,null,substring(sysdate,1,10)||'T'||substring(sysdate,12,12)||'Z',substring(p.relieving,1,10)||'T00:00:00.000Z') as fy_timerange, projectid, count(*) as final_sum from profile_59432 p where p.designation=1032454 group by 1,2
+select substring(p.date,1,10)||'T00:00:00.000Z' ||'|'|| decode(p.relieving,null,substring(sysdate,1,10)||'T'||substring(sysdate,12,12)||'Z',substring(p.relieving,1,10)||'T00:00:00.000Z') as fy_timerange, projectid, q.name as type, count(*) as final_sum from profile_59432 p
+  left join ds_mysql_prod_tagelement q on p.gender = q.id
+  where p.designation=1032454 group by 1,2,3
 )
 
 
-select project.name as projectid, fy_timerange, sum(final_sum) as final_sum from test1 p
+select project.name as projectid, fy_timerange, type, sum(final_sum) as final_sum from test1 p
 left join ds_mysql_prod_project project on p.projectid = project.id
-group by 1,2
+group by 1,2,3
