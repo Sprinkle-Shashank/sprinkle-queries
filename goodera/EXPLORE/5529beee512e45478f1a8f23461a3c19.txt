@@ -24,17 +24,22 @@ sub3 as(
 	select projectId, name, fy_timerange, num_females, pvh_id, partner_type, name_vendor, name_vendor_filter,SPLIT_TO_ARRAY(source_div_new,',') as source, SPLIT_TO_ARRAY(region_new,',') as region1 from sub2
   	  where source is not null and region1 is not null
 	group by projectId, name, fy_timerange, num_females, pvh_id, partner_type, name_vendor, name_vendor_filter, source_div_new, region_new),
-	sub31 as(
+	sub4 as(
 	  select fy_timerange, cast(region as varchar), num_females, cast(source_div as varchar) from sub3 s2, s2.region1 region, s2.source source_div),
-	sub4 as
+	  sub5 as(
+		select source_div, region, fy_timerange, sum(num_females) as num_females
+		from sub4 
+		group by source_div, region, fy_timerange)
+		/*,
+	sub6 as
 	(
 	select fy_timerange, t.name as region, t1.name as source_div, sum(num_females) as num_females from sub31
 	  left join ds_mysql_prod_tagelement t
 	  on t.id=region
 	  left join ds_mysql_prod_tagelement t1
 		on t1.id=source_div
-	group by fy_timerange, t.name,t1.name)
-	select * from sub4
+	group by fy_timerange, t.name,t1.name)*/
+	select * from sub5
 
 
 
