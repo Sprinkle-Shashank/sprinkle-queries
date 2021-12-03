@@ -58,9 +58,12 @@ sub3 as(
 	   when 'value' then s8.value end as region from sub8 s8
 	   cross join temp t),
 	   sub10 as(
-	   select fy_timerange from sub9
+	   select fy_timerange, region from sub9
 		 where region is not null),
 		 sub11 as(
 		 select fy_timerange, listagg(distinct region,',') as region from sub10
-		   group by fy_timerange)
-		   select * from sub11
+		   group by fy_timerange),
+		   sub12 as(
+		   select fy_timerange, region, ,case when extract(year from cast(fy_timerange.start as date))<2020 then (case when position('Ethiopia' in region)!=0 then regexp_count(vendor,',')+1 else 0 end) else regexp_count(vendor,',')+1 end as count from sub11)
+		   select * from sub12
+		   where count!=0
