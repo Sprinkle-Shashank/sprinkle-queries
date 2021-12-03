@@ -16,24 +16,15 @@ sub2 as
 	left join ds_mysql_prod_tagelement t
 	on t.id=s2.source
   where nvl(s2.curr_cr_rating, 0) in (957771, 957772, 957780, 957773, 957768) 
-  ),
-  sub41 as
-  (select curr_cr_rating, timeperiod_timerange, region, factory_id, source_div
+  )
+
+select curr_cr_rating, timeperiod_timerange, region, factory_id as Factory_IDs, source_div, 1 as count
 	from sub3
-  order by factory_id asc),
-
- sub4 as (select t.name as curr_cr_rating, timeperiod_timerange, region, listagg(factory_id, ',') as factory_ids, source_div
-	from sub41
-		  left join ds_mysql_prod_tagelement t
-		  on t.id=curr_cr_rating
-	group by t.name, timeperiod_timerange, region, source_div
-	order by timeperiod_timerange asc)
+	group by curr_cr_rating, timeperiod_timerange, region, source_div, factory_id
+	order by timeperiod_timerange asc
 	
+	/*
 
-select (concat(concat('[', (trim('"' from factory_ids))),']')) as factory_ids,curr_cr_rating, timeperiod_timerange, region, source_div   from sub4
-
-
-/*
 with sub1 as(
 select t.name as CR_Rating_Text, sq.name, sq.factory_name, sq.source_div,
 case when get_array_length(sq.source_div) = 0 then array(0)
@@ -52,10 +43,19 @@ sub2 as
 	left join ds_mysql_prod_tagelement t
 	on t.id=s2.source
   where nvl(s2.curr_cr_rating, 0) in (957771, 957772, 957780, 957773, 957768) 
-  )
-
-select curr_cr_rating, timeperiod_timerange, region, factory_id as Factory_IDs, source_div, 1 as count
+  ),
+  sub41 as
+  (select curr_cr_rating, timeperiod_timerange, region, factory_id, source_div
 	from sub3
-	group by curr_cr_rating, timeperiod_timerange, region, source_div, factory_id
-	order by timeperiod_timerange asc
-	*/
+  order by factory_id asc),
+
+ sub4 as (select t.name as curr_cr_rating, timeperiod_timerange, region, listagg(factory_id, ',') as factory_ids, source_div
+	from sub41
+		  left join ds_mysql_prod_tagelement t
+		  on t.id=curr_cr_rating
+	group by t.name, timeperiod_timerange, region, source_div
+	order by timeperiod_timerange asc)
+	
+
+select (concat(concat('[', (trim('"' from factory_ids))),']')) as factory_ids,curr_cr_rating, timeperiod_timerange, region, source_div   from sub4
+*/
