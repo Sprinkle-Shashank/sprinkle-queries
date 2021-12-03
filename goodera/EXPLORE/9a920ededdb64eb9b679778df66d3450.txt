@@ -1,17 +1,17 @@
-with table1 as 
+with table2 as 
 (
-  select projectId,cast(concat('FY ' ,start_year) as varchar) as start_year ,case when start_quarter=1 then '1st (Feb-Apr)'
+ select profile_4227.projectId,
+ cast(concat('FY ' ,start_year) as varchar) as start_year ,
+ case when start_quarter=1 then '1st (Feb-Apr)'
  when start_quarter=2 then '2nd (May-Jul)'
   when start_quarter=3 then '3rd (Aug-Oct)'
    when start_quarter=4 then '4th (Nov-Jan)'
-   else null end as start_quarter,  num_females as ongoing,num_females_graduated as graduated,num_females_dropout as dropout, lg_status, select_modules 
+   else null end as start_quarter, nvl2(end_date_2,num_females,0) as ongoing,num_females_graduated as graduated,num_females_dropout as dropout, profile_54646.name_vendor, profile_54646.name_vendor_filter ,profile_54646.name_country,lg_status,type_program,select_modules
 FROM profile_4227 
+  
+LEFT JOIN profile_54646 ON
+profile_4227.projectId = profile_54646.projectId
 
-
-  )
-  , table2 as 
-  (
-	select tab1.*,sm from table1 as tab1, tab1.select_modules sm
 ),
 temp as (
   
@@ -21,7 +21,7 @@ temp as (
   Union all
   select 'dropout' as C
   )
-select start_quarter, start_year, lg_status, profile_54646.name_vendor, profile_54646.name_country, profile_54646.name_vendor_filter,select_modules,
+select t2.projectId, start_quarter, start_year, lg_status,name_vendor, name_country, name_vendor_filter,select_modules,
   Sum(Case C
 	When 'ongoing' then t2.ongoing 
 	when 'graduated' then t2.graduated 
@@ -31,12 +31,9 @@ END) as values , temp.C as dimensions
 from table2 t2
 
 CROSS JOIN temp 
-  
-	LEFT JOIN profile_54646 ON
-t2.projectId = profile_54646.projectId
-	
-where (lg_status = 848007 or lg_status is null) and t2.sm in (64506,70928,70920,70898,70908,70907,70942,70936,70904,70918,70924,70923,459392,459393,459397)
+
+where type_program = 'Academic' and coalesce(lg_status, 0) <> 848008 and name_vendor is not null
 
 
-group by  start_quarter, start_year, lg_status, temp.C, profile_54646.name_vendor, profile_54646.name_country, profile_54646.name_vendor_filter, select_modules
+group by  t2.projectId, start_quarter, start_year, lg_status,name_vendor, name_country, name_vendor_filter,select_modules,temp.C
 
