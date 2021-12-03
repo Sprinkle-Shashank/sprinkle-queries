@@ -24,5 +24,14 @@ sub5 as(
   from sub4),
   sub6 as(
   select region, count(*) from sub5
-	group by region)
-	select * from sub6
+	group by region), 
+	sub7 as(
+	(select region, count from sub6
+	where region is not null)
+	  union all
+	  (select p.name as country, count(*)
+	   from profile_62972 ab
+	   left join ds_mysql_prod_tagelement p
+	   on p.id=ab.country
+	  group by p.name))
+	   select * from sub7
