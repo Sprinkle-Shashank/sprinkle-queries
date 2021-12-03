@@ -1,9 +1,10 @@
 with sub1 as(
-select rtrim(ltrim(json_serialize(source_div),'["'),'"]') as source from profile_60928 
-  --sq,sq.source_div source
-),
+  select case when get_array_length(sq.source_div) = 0 then array(0)
+  else COALESCE(sq.source_div,array(0)) end new_source from profile_60928 sq),
 sub2 as(
+select source from sub1 sq,sq.source_div source),
+sub3 as(
   select source, count(*)
-  from sub1
+  from sub2
   group by source)
   select * from sub2
