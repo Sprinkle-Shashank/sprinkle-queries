@@ -1,0 +1,43 @@
+with 
+    temp as( select 'score' as C
+  Union all 
+  select 'score2' as C )
+select profile_4227.start_date,cast(concat('FY ' ,start_year) as varchar) as start_year, start_quarter as start_quarter_new ,case when start_quarter=1 then '1st (Feb-Apr)'
+ when start_quarter=2 then '2nd (May-Jul)'
+  when start_quarter=3 then '3rd (Aug-Oct)'
+   when start_quarter=4 then '4th (Nov-Jan)'
+   else null end as start_quarter
+   ,program_type_2 as modules,
+  profile_54646.name_country as country ,
+  profile_54646.name_vendor as vendor
+			   ,pre_yn.name as pre_post_yn,mdl_parent.name as module_2nd,md_nme.name as module,p.score,p.score2,
+avg(case C
+WHEN 'score' then p.score
+WHEN 'score2' then p.score2
+
+ELSE NULL
+END) AS value , temp.C as dimension
+
+from profile_4228 p
+Cross join temp
+
+left join profile_54646 on 
+p.projectId= profile_54646.projectId
+
+
+left join profile_4227 on 
+p.projectId= profile_4227.projectId
+
+left join ds_mysql_prod_tagelement pre_yn
+on p.pre_post_yn = pre_yn.id
+
+left join ds_mysql_prod_tagelement md_nme
+on p.module_name = md_nme.id
+
+left join ds_mysql_prod_tagelement mdl_parent
+on md_nme.parent = mdl_parent.id
+
+
+where pre_post_yn = 57472 --and module_2nd= 'Workplace Program'
+
+group by p.start_date,pre_yn.name,md_nme.name,mdl_parent.name ,p.score,p.score2,country,vendor,start_quarter,start_year,temp.c,modules
