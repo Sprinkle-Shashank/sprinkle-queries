@@ -38,7 +38,7 @@ table4 as(
 select Distinct projectidd,fy,month,row,facility_rating,sourcing_yn,pace_status,country,primary_category,vendor from table1
 where row = 1 and vendor is not null)
 select * from table4
-/*
+
 ,
 
 table5 as (select tab4.*,cast(c as int) from table4 as tab4, tab4.primary_category c),
@@ -50,24 +50,23 @@ table6 as (select table5.*,pr_c.name as prim_cat,fac_rat.name as fac_rating from
 		  
 		  ),
 		  	  
-table7 as(select factory,fy,month,row,facility_rating,sourcing_yn,pace_status,country,primary_category,vendor,c,prim_cat,fac_rating from table6
+table7 as(select projectidd,fy,month,row,facility_rating,sourcing_yn,pace_status,country,primary_category,vendor,c,prim_cat,fac_rating,sum(p10.num_females) as num_females from table6
 		LEFT JOIN profile_4227 p10 on
-		  table6.factory = p10.factory
+		  projectidd = p10.projectid
 		  
+		  group by projectidd,fy,month,row,facility_rating,sourcing_yn,pace_status,country,primary_category,vendor,c,prim_cat,fac_rating
 		 
 		 ),
 
-table8 as(select pro.name as factory, sum(num_females) from profile_4227
-		 
-		left join ds_mysql_prod_project pro
-on table8.projectId = pro.id
-		--  left join table7 t7 on
---profile.factory = t7.factory
-		  group by pro.name
-		 
-		 )
-		 Select * from table8
-
+table8 as( select fy,month,row,facility_rating,sourcing_yn,pace_status,country,primary_category,vendor,c,prim_cat,fac_rating,num_females,pro.name as factory from table7
+  
+  left join ds_mysql_prod_project pro
+ on table6.projectidd = pro.id
+  )
+  select * from table8
+  
+ 
+/*
 
 with table1 as(Select  distinct(p.projectid), fac_vpid , month , fy ,fac_rat.name as facility_rating_t , facility_rating,pace_status ,primary_category,parent_vendor_name as vendor , country_name as country , p2.factory_vpid_1,p2.sourcing_yn from profile_54267 p
 
