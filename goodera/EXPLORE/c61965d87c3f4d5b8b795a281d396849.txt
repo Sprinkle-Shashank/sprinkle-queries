@@ -1,3 +1,27 @@
+select p.projectId, cast(concat('FY ' ,start_year) as varchar) as start_year ,case when start_quarter=1 then '1st (Feb-Apr)'
+ when start_quarter=2 then '2nd (May-Jul)'
+  when start_quarter=3 then '3rd (Aug-Oct)'
+   when start_quarter=4 then '4th (Nov-Jan)'
+   else null end as start_quarter,  num_females,num_females_graduated, lg_status, select_modules,
+   profile_54646.name_vendor,profile_54646.name_country, profile_54646.name_vendor_filter,
+   case when sy.name = 'Yes' then 'Sourcing factories'
+	when sy.name = 'No' then 'Non-sourcing factories'
+	else 'Community program'
+	end as sourcing_yn
+FROM profile_4227 p
+
+LEFT JOIN profile_54646 ON
+p.projectId = profile_54646.projectId
+
+LEFT JOIN profile_52713 ON
+p.projectId = profile_52713.projectId
+  
+left join ds_mysql_prod_tagelement sy
+on profile_52713.sourcing_yn = sy.id
+
+
+/*
+
 with table1 as 
 (
   select projectId, cast(concat('FY ' ,start_year) as varchar) as start_year ,case when start_quarter=1 then '1st (Feb-Apr)'
@@ -33,7 +57,7 @@ on profile_52713.sourcing_yn = sy.id
 
 group by  sourcing_yn,sy.name,start_quarter, start_year,  num_females,num_females_graduated, lg_status, profile_54646.name_vendor,profile_54646.name_country, profile_54646.name_vendor_filter,select_modules
 
-/*
+
 with table1 as 
 (
   select projectId, cast(concat('FY ' ,start_year) as varchar) as start_year, case when start_quarter=2 or start_quarter=3 or start_quarter=4 then '1st (Feb-Apr)'
