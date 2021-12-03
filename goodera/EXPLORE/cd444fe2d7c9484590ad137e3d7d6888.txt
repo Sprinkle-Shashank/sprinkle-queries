@@ -1,13 +1,18 @@
 with sub1 as(
-(SELECT sq.fy_timerange, sq.project_id as program, pd.name_vendor_filter as vendor, pd.name_country as region, pd.partner_type 
+(SELECT sq.fy_timerange, sq.project_id as program, pd.name_vendor_filter as vendor, pd.name_country as region2, pd.partner_type 
  from profile_62491 sq
 left join profile_62482 pd
 on sq.project_id=pd.project_id)
   union all
-  (select fy_timerange, program, vendor, t.name as region, t1.name as partner_type 
+  (select fy_timerange, program, vendor, t.name as region2, t1.name as partner_type 
    from profile_62972
   left join ds_mysql_prod_tagelement t
   on t.id=country
   left join ds_mysql_prod_tagelement t1
-  on t1.id=partner_type))
-  select * from sub1
+  on t1.id=partner_type)), 
+  sub2 as(
+  select case when program=1140839 then concat('Vendor:', s1.vendor) else s1.vendor end as vendor2,
+	case when program=1140839 then 'Vendor' else partner_type end as partner,
+	case when region2 is null then region2 else NUll end as region, fy_timerange
+  from sub1 s1)
+  select * from sub2
