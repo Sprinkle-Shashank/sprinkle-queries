@@ -1,5 +1,6 @@
-Select profile_54267.fac_vpid,f_y.name as fy,mth.name as month,rating.name as facility_rating,
-profile_52713.factory_vpid_1,p.num_females,sum(num_females) as total,status.name as pace_status,src.name as sourcing_yn,pr_c.name as primary_category,profile_54646.name_country as country,profile_54646.name_vendor as vendor,cast(concat('FY ' ,start_year) as varchar) as start_year, start_quarter as start_quarter_new ,case when start_quarter=1 then '1st (Feb-Apr)'
+with 
+table1 as(Select profile_54267.fac_vpid,f_y.name as fy,mth.name as month,rating.name as facility_rating,
+profile_52713.factory_vpid_1,p.num_females,sum(num_females) as total,status.name as pace_status,src.name as sourcing_yn,profile_54646.name_country as country,profile_54646.name_vendor as vendor,cast(concat('FY ' ,start_year) as varchar) as start_year, start_quarter as start_quarter_new ,case when start_quarter=1 then '1st (Feb-Apr)'
  when start_quarter=2 then '2nd (May-Jul)'
  when start_quarter=3 then '3rd (Aug-Oct)'
  when start_quarter=4 then '4th (Nov-Jan)'
@@ -29,8 +30,10 @@ left join ds_mysql_prod_tagelement pr_c
 on profile_54267.primary_category = pr_c.id
 
 where pace_status = 845114 and sourcing_yn = 57472
+),
+table0 as( select t1.*,CAST(primary_category as VARCHAR) from table1 t1,t1.primary_category pr_c)
+Select * from table 0
 
 
-
-group by fac_vpid,f_y.name ,mth.name ,rating.name,
-factory_vpid_1,status.name ,src.name,num_females,country,vendor,start_year,start_quarter,status.name ,src.name,pr_c.name
+/*group by fac_vpid,f_y.name ,mth.name ,rating.name,
+factory_vpid_1,status.name ,src.name,num_females,country,vendor,start_year,start_quarter,status.name ,src.name,pr_c.name*/
