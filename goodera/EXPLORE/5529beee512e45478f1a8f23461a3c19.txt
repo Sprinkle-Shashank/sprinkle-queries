@@ -1,4 +1,8 @@
-with sub1 as(
+with temp as(
+  select 'country' as col
+  union all
+  select 'value' as col),
+sub1 as(
 select sq.*, pd.pvh_id, pd.offset_date, mr.partner_type, mr.name_vendor, mr.name_vendor_filter, rtrim(ltrim(json_serialize(ab.source_div),'['),']') as source_div, rtrim(ltrim(json_serialize(ab.region),'['),']') as region, ab.region_parent, ab.timeperiod_timerange, cast(sq.start_date as date) as start_date, cast(pd.offset_date as date) as offset_date
 from profile_62491 sq
 left join profile_62948 pd
@@ -47,5 +51,10 @@ sub3 as(
 	 left join profile_62972 pd
 	 on s7.fy_timerange=pd.fy_timerange
 	 left join ds_mysql_prod_tagelement t
-	 on t.id=pd.country)
-	 select * from sub8
+	 on t.id=pd.country),
+	 sub9 as(
+	 select fy_timerange, temp.col as t1, 
+	   case when 'country' then s8.country
+	   when 'value' then s8.value from sub8 s8
+	   cross join temp t)
+	   select *from sub9
