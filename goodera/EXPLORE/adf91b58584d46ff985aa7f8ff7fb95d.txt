@@ -1,7 +1,73 @@
-with table1 as(Select p._id,pro.name as factory,p.fac_vpid,f_y.name as fy,mth.name as month,p.facility_score,profile_54646.name_country as country,profile_54646.name_vendor as vendor,profile_54646.name_vendor_filter as partner_consolidated,
+with table3 as ( select _id,projectid,fy,month,fac_vpid,pace_status,facility_score,row_number() over 
+(partition by projectid
+ order by p._id desc) as row from profile_54267 p ),
+ 
+  table2 as(select projectid,fy,month,pace_status,facility_score,fac_vpid, row from table3	
+where  row = 1),
+
+table1 as(Select p.projectid,f_y.name as fy,mth.name as month,p._id,t2.pace_status,pro.name as factory,p.sourcing_yn,t2.fac_vpid,t2.facility_score,profile_54646.name_vendor_filter as partner_consolidated,p.factory_vpid_1,profile_54646.name_vendor as vendor,profile_54646.name_country as country,  row_number() over 
+(partition by factory
+ order by p._id desc) as row
+
+from profile_52713 p 
+
+
+
+left join table2 t2 on
+p.projectId = t2.projectId
+left join ds_mysql_prod_project pro
+on p.projectId = pro.id
+left join ds_mysql_prod_tagelement f_y
+on t2.fy = f_y.id
+left join ds_mysql_prod_tagelement mth
+on t2.month = mth.id
+
+left join profile_54646 on
+p.projectId = profile_54646.projectId
+		  
+where t2.pace_status = 845114 and 
+	p.sourcing_yn = 57472
+		  and
+
+      fy = (select max(fy) from profile_54267)--and xe = (select max(xe) from profile_54267)
+		  and 
+		  factory_vpid_1 is not null and vendor is not null 
+--where p.pace_status_1= 'Currently implementing P.A.C.E.' and p.sourcing_yn = 57472
+--and t2.facility_rating = 84509
+		 ),
+		
+table4 as(
+select distinct _id,factory,fy,month,facility_score,sourcing_yn,pace_status,case when 0<= facility_score and facility_score <=10 then 10
+     when 10< facility_score and facility_score <=20 then 20
+	 when 20< facility_score and facility_score <=30 then 30
+	 when 30< facility_score and facility_score <=40 then 40
+	 when 40< facility_score and facility_score <=50 then 50
+	 when 50< facility_score and facility_score<=60 then 60
+	 when 60< facility_score and facility_score <=70 then 70
+	 when 70< facility_score and facility_score <=80 then 80
+	 when 80< facility_score and facility_score <= 90 then 90
+	 when 90< facility_score and facility_score <=100 then 100
+	 else null
+	 end as new_rating,country,vendor, 1 as count, row from table1 
+)
+select Distinct(factory),fy,month,row,facility_score,sourcing_yn,pace_status, count,country,vendor from table4
+where row = 1 and vendor is not null
+
+
+
+
+
+/*with table3 as ( select _id,projectid,fy,month, facility_rating,fac_vpid,row_number() over 
+(partition by projectid
+ order by p._id desc) as row from profile_54267 p ),
+ 
+  table2 as(select projectid,fy,month, facility_rating,fac_vpid, row from table3	
+where  row = 1),
+
+ table1 as(Select p._id,pro.name as factory,p.fac_vpid,f_y.name as fy,mth.name as month,p.facility_score,profile_54646.name_country as country,profile_54646.name_vendor as vendor,profile_54646.name_vendor_filter as partner_consolidated,
 profile_52713.factory_vpid_1,status.name as pace_status,src.name as sourcing_yn,row_number() over 
 (partition by factory
- order by p._id desc) as row/*case when mth.name = 'January' then 1
+ order by p._id desc) as row case when mth.name = 'January' then 1
 when mth.name = 'February' then 2
 when mth.name = 'March' then 3
 when mth.name = 'April' then 4
@@ -15,7 +81,7 @@ when mth.name = 'November' then 11
 when mth.name = 'December' then 12
 else
 null
-			   end as xe*/
+			   end as xe
 			   
 			   
 			   from profile_54267 p
@@ -36,14 +102,16 @@ left join ds_mysql_prod_tagelement status
 on p.pace_status = status.id
 left join ds_mysql_prod_tagelement src
 on profile_52713.sourcing_yn = src.id
-
+left join table2 t2 on
+p.projectId = t2.projectId
+			   
 where pace_status = 845114 and sourcing_yn = 57472 and
-      fy = (select max(fy) from profile_54267)/*and xe = (select max(xe) from profile_54267)*/ and profile_52713.factory_vpid_1 is not null and vendor is not null 
- 
+      fy = (select max(fy) from profile_54267)and xe = (select max(xe) from profile_54267) and profile_52713.factory_vpid_1 is not null and vendor is not null 
+ ),
 
-/*group by p._id,factory,p.fac_vpid,f_y.name ,mth.name ,
-profile_52713.factory_vpid_1,status.name ,src.name,p.facility_score,profile_54646.name_country,profile_54646.name_vendor,profile_54646.name_vendor_filter,xe,row*/),
-table2 as(
+group by p._id,factory,p.fac_vpid,f_y.name ,mth.name ,
+profile_52713.factory_vpid_1,status.name ,src.name,p.facility_score,profile_54646.name_country,profile_54646.name_vendor,profile_54646.name_vendor_filter,xe,row
+table4 as(
 select distinct _id,factory,fy,month,facility_score,case when 0<= facility_score and facility_score <=10 then 10
      when 10< facility_score and facility_score <=20 then 20
 	 when 20< facility_score and facility_score <=30 then 30
@@ -60,5 +128,6 @@ where --xe =  (select max(xe) from table1) and
  row = 1
 
 group by _id,factory,fy,month,facility_score,new_rating,country,vendor,count,row)
-select * from table2 
+select * from table4 
 where row = 1 and vendor is not null
+*/
