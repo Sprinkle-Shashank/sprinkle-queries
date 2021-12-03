@@ -1,26 +1,13 @@
-with table1 as 
-(
-  select projectId,cast(concat('FY ' ,start_year) as varchar) as start_year ,case when start_quarter=1 then '1st (Feb-Apr)'
+select profile_4227.projectId,
+ cast(concat('FY ' ,start_year) as varchar) as start_year ,
+ case when start_quarter=1 then '1st (Feb-Apr)'
  when start_quarter=2 then '2nd (May-Jul)'
   when start_quarter=3 then '3rd (Aug-Oct)'
    when start_quarter=4 then '4th (Nov-Jan)'
-   else null end as start_quarter,  num_females,num_females_graduated, lg_status, select_modules 
+   else null end as start_quarter,  num_females,num_females_graduated, profile_54646.name_vendor, profile_54646.name_vendor_filter ,profile_54646.name_country,lg_status, select_modules
 FROM profile_4227 
-
-
-  )
-  , table2 as 
-  (
-	select tab1.*,c from table1 as tab1, tab1.select_modules c
-)
-select tab2.projectId,start_quarter, start_year,  num_females, num_females_graduated, lg_status, profile_54646.name_vendor,profile_54646.name_country, 
---LISTAGG(Distinct tab2.c, ',')within group (order by projectId) as select_modules,
-profile_54646.name_vendor_filter,select_modules from table2 as tab2
-
-LEFT JOIN profile_54646 ON
-tab2.projectId = profile_54646.projectId
   
-  --(lg_status = 848007 or lg_status is null) and 
-where (lg_status = 848007 or lg_status is null) and  tab2.c in (64503,70912,70941,70900,70910,70913,70909,70903,70901,70902,70911,264682,264684,264683) and name_vendor is not null
+LEFT JOIN profile_54646 ON
+profile_4227.projectId = profile_54646.projectId
 
-group by  tab2.projectId,start_quarter, start_year,  num_females,num_females_graduated, lg_status, profile_54646.name_vendor,profile_54646.name_country, profile_54646.name_vendor_filter,select_modules
+where type_program = 'Workplace Program' and coalesce(lg_status, 0) <> 848008 and name_vendor is not null 
