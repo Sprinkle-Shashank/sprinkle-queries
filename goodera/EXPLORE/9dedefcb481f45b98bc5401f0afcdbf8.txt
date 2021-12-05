@@ -1,0 +1,53 @@
+
+
+
+
+
+
+
+
+with table1 as(select select_modules,pr_27._id,hours,cast(concat('FY ' ,start_year) as varchar) as start_year, start_quarter as start_quarter_new ,case when start_quarter=1 then '1st (Feb-Apr)'
+ when start_quarter=2 then '2nd (May-Jul)'
+  when start_quarter=3 then '3rd (Aug-Oct)'
+   when start_quarter=4 then '4th (Nov-Jan)'
+   else null end as start_quarter
+   ,
+  pr_46.name_country as country ,
+  pr_46.name_vendor as vendor,
+pr_46.name_rp as regional_partner ,
+  pr_46.name_factory as locations,end_date_2,lg_status
+			   
+			   
+ from profile_4227 as pr_27
+			  
+			  
+ left join profile_54646 pr_46 
+on pr_27.projectid = pr_46.projectid
+			  
+	where vendor is not null and projcode_vendor = 'N00654'  and regional_partner is not null  ),
+
+table2 as (select t1.*,CAST(select_module as int) from table1 t1,t1.select_modules select_module
+
+),
+
+table3 as( select _id,select_module,start_year,end_date_2,start_quarter,country,vendor,regional_partner,locations,lg_status from table2
+
+where select_module in ('64504','70914','70905','70906','70916','70946','70915','70917','70933','70949','70899','70947','70899','459391','459394','459395')
+or select_module in ('64506','70928','70920','70898','70908','70907','70942','70936','70904','70918','70924','70923','459392','459393','459397')
+or select_module in 
+('64508')
+or select_module in 
+('60507','70937','70944','70930','70931','70950','70929','70921','70932','70934','70948','70938','459396','459398','459399')
+or select_module in 
+('64509','70925','70927','70943','70939','70940'
+)
+or select_module in 
+('70317','70919','70922','70926','70935','70945'
+
+) and end_date_2 is null and lg_status<>848008  
+ )
+ ,
+ table4 as(select _id,listagg(select_module,','), start_year,end_date_2,lg_status,locations,regional_partnner,start_quarter,country,vendor  from table3
+
+group by _id,start_year,end_date_2,lg_status,regional_partner,locations,start_quarter,country,vendor)
+select  _id,1 as count, start_year,start_quarter,country,vendor,regional_partner,locations,lg_status from table4
