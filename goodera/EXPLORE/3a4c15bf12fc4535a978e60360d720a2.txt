@@ -25,40 +25,8 @@ case
 	 case
 	when ss.endline_yn then 0
     else ss.endline_yn
-	end as endline_yn,
-  case
-	when endline_ynn='Yes' then 1 
-	else 0
-	end as Students_Graduated,
-case
-	when endline_yn=0 then 1 
-	else 0
-	end as Students_in_Training,
-case
-	when endline_ynn='No' then 1 
-	else 0
-	end as Dropouts,
-case
-	when midline_yn=20779 then 1 
-	else 0
-	end as Students_Cleared_Mid_line_Exam,
-case
-	when third_year_enroll=20779 then 1 
-	else 0
-	end as Students_Enrolled_in_3rd_Year_Courses,
-case
-	when endline_ynn='Yes' then 1 
-	else 0
-	end as Students_Placed,
-case
-	when capgemini_yn=20779 then 1 
-	else 0
-	end as Students_Hired_by_Capgemini,
-case
-	when job_change_yn=20780 then 1 
-	else 0
-	end as Students_in_Same_Job_After_6_Months 
-from profile_65050 ss
+	end as endline_yn
+  from profile_65050 ss
 left join ds_mysql_prod_project t
 on ss.projectid=t.id
 left join ds_mysql_prod_project t1
@@ -71,11 +39,43 @@ left join profile_65552 po
 on t.parent=po.projectid
 
   )
-  
+  ,
   sub11 as(
   Select s1.proj_location, s1.partner, s1.projectId, s1.location, s1.imp_partner, s1.fy_timerange,s1.endline_ynn,s1.endline_yn
+	 case
+	when s1.endline_ynn='Yes' then 1 
+	else 0
+	end as Students_Graduated,
+case
+	when s1.endline_yn=0 then 1 
+	else 0
+	end as Students_in_Training,
+case
+	when s1.endline_ynn='No' then 1 
+	else 0
+	end as Dropouts,
+case
+	when s1.midline_yn=20779 then 1 
+	else 0
+	end as Students_Cleared_Mid_line_Exam,
+case
+	when s1.third_year_enroll=20779 then 1 
+	else 0
+	end as Students_Enrolled_in_3rd_Year_Courses,
+case
+	when s1.endline_ynn='Yes' then 1 
+	else 0
+	end as Students_Placed,
+case
+	when s1.capgemini_yn=20779 then 1 
+	else 0
+	end as Students_Hired_by_Capgemini,
+case
+	when s1.job_change_yn=20780 then 1 
+	else 0
 	from s1
-
+	end as Students_in_Same_Job_After_6_Months 
+from s1
   
   )
   
@@ -94,7 +94,7 @@ case col
   else null
   end
 ) as count
-  from s1
+  from sub11 s1
  cross join temp
 group by s1.proj_location, s1.partner, s1.projectId, s1.location, s1.imp_partner, s1.fy_timerange,temp.col
 )
