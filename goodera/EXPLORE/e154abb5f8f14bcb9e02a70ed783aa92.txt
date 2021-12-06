@@ -1,4 +1,27 @@
-select num_females , type_program from profile_4227 where end_date_2 is not null and type_program = 'Workplace Program'
+select p.projectId, cast(concat('FY ' ,start_year) as varchar) as start_year ,case when start_quarter=1 then '1st (Feb-Apr)'
+ when start_quarter=2 then '2nd (May-Jul)'
+  when start_quarter=3 then '3rd (Aug-Oct)'
+   when start_quarter=4 then '4th (Nov-Jan)'
+   else null end as start_quarter,  num_females,num_females_graduated, lg_status, select_modules,
+   profile_54646.name_vendor,profile_54646.name_country, profile_54646.name_vendor_filter,
+   case when sy.name = 'Yes' then 'Sourcing factories'
+	when sy.name = 'No' then 'Non-sourcing factories'
+	--else 'Community program'
+	when type_program <> 'Workplace Program' then'Community program'
+	else null
+	end as sourcing_yn
+FROM profile_4227 p
+
+LEFT JOIN profile_54646 ON
+p.projectId = profile_54646.projectId
+
+LEFT JOIN profile_52713 ON
+p.projectId = profile_52713.projectId
+  
+left join ds_mysql_prod_tagelement sy
+on profile_52713.sourcing_yn = sy.id
+
+where coalesce(lg_status, 0) <> 848008 --and type_program = 'Community'
 /*with 
 table1 as(Select profile_54267.fac_vpid,f_y.name as fy,mth.name as month,rating.name as facility_rating,
 profile_52713.factory_vpid_1,p.num_females,sum(num_females) as total,status.name as pace_status,src.name as sourcing_yn,profile_54646.name_country as country,profile_54646.name_vendor as vendor,cast(concat('FY ' ,start_year) as varchar) as start_year, start_quarter as start_quarter_new ,case when start_quarter=1 then '1st (Feb-Apr)'
