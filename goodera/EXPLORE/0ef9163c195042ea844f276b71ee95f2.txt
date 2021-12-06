@@ -1,43 +1,37 @@
-with 
-    temp as( select 'score' as C
-  Union all 
-  select 'score2' as C )
-select p.start_date,cast(concat('FY ' ,start_year) as varchar) as start_year, start_quarter as start_quarter_new ,case when start_quarter=1 then '1st (Feb-Apr)'
- when start_quarter=2 then '2nd (May-Jul)'
-  when start_quarter=3 then '3rd (Aug-Oct)'
-   when start_quarter=4 then '4th (Nov-Jan)'
-   else null end as start_quarter
-   ,program_type_2 as modules,
-  profile_54646.name_country as country ,
-  profile_54646.name_vendor as vendor
-			   ,pre_yn.name as pre_post_yn,mdl_parent.name as module_2nd,md_nme.name as module,profile_4228.score,profile_4228.score2,
-avg(case C
-WHEN 'score' then profile_4228.score
-WHEN 'score2' then profile_4228.score2
+with table1 as(Select score,score2,pre_post_yn,p.projectId,mdl_parent.name as module,md_nme.name as module1,profile_54646.name_vendor as vendor,profile_54646.name_country as country from profile_4228 p
 
-ELSE NULL
-END) AS value , temp.C as dimension
 
-from profile_4227 p
-Cross join temp
 
-left join profile_54646 on 
+left join profile_54646  on 
 p.projectId= profile_54646.projectId
 
-
-left join profile_4228 on 
-p.projectId= profile_42278.projectId
-
-left join ds_mysql_prod_tagelement pre_yn
-on profile_4228.pre_post_yn = pre_yn.id
-
 left join ds_mysql_prod_tagelement md_nme
-on profile_4228.module_name = md_nme.id
+on p.module_name = md_nme.id
 
 left join ds_mysql_prod_tagelement mdl_parent
 on md_nme.parent = mdl_parent.id
 
 
-where pre_post_yn = 57472 --and module_2nd= 'Workplace Program'
+left join ds_mysql_prod_tagelement pre_yn
+on p.pre_post_yn = pre_yn.id
 
-group by p.start_date,pre_yn.name,md_nme.name,mdl_parent.name ,profile_4228.score,profile_4228.score2,country,vendor,start_quarter,start_year,temp.c,modules
+
+where score is not null and score2 is not null and pre_post_yn = 57472 and vendor is not null 
+group by score,score2,pre_post_yn,p.projectid,mdl_parent.name ,md_nme.name ,profile_54646.name_vendor ,profile_54646.name_country
+),
+table2 as(Select cast(concat('FY ' ,start_year) as varchar) as start_year, start_quarter as start_quarter_new ,case when start_quarter=1 then '1st (Feb-Apr)'
+ when start_quarter=2 then '2nd (May-Jul)'
+  when start_quarter=3 then '3rd (Aug-Oct)'
+   when start_quarter=4 then '4th (Nov-Jan)'
+   else null end as start_quarter,p2.projectId
+   from profile_4227 p2
+)
+Select  avg(t1.score),avg(t1.score2),module,module1,vendor,country,t2.start_year,t2.start_quarter from table1 t1
+
+left join table2 t2 on 
+t1.projectId= t2.projectId
+
+left join ds_mysql_prod_project projectId
+on t1.projectId = projectId.id
+
+group by vendor,country,module,module1,start_year,start_quarter
