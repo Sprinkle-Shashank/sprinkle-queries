@@ -13,7 +13,7 @@ with temp as(
     union all
   Select 'age_above60' as col
 )
-select school_name, state_district as district, fy_timerange,t1.name as state,temp.col as dimension,
+select school_name, t2.name as district, fy_timerange,t1.name as state,temp.col as dimension,
 case 
 	when dimension='age_below6' then '0-5'
 	when dimension='age_6to10' then '6-10'
@@ -40,5 +40,6 @@ LEFT JOIN ds_mysql_prod_tagelement t
 ON t.id=sq.state_district
 left join ds_mysql_prod_tagelement t1
 ON t1.id=t.parent
-
-GROUP BY school_name, district, fy_timerange,t1.name, dimension, age_bucket
+left join ds_mysql_prod_tagelement t2
+ON t2.id=sq.state_district
+GROUP BY school_name, t2.name, fy_timerange,t1.name, dimension, age_bucket
