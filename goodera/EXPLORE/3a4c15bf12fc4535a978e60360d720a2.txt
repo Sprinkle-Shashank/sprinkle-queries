@@ -16,18 +16,18 @@ union all
 Select 'Students_in_Same_Job_After_6_Months' as col
 ),
 s1 as(
-Select t.name as proj_location,t1.name as partner,t2.name as projectId, ss.baseline_yn, ss.date_enroll, ss.midline_yn, ss.third_year_enroll, tt.name as endline_yn, ss.date_completion, ss.placed_yn, ss.capgemini_yn, ss.job_change_yn , cg.location,po.impl_agency imp_partner,
+Select t.name as proj_location,t1.name as partner,t2.name as projectId, ss.baseline_yn, ss.date_enroll, ss.midline_yn, ss.third_year_enroll, tt.name as endline_ynn, ss.date_completion, ss.placed_yn, ss.capgemini_yn, ss.job_change_yn , cg.location,po.impl_agency imp_partner,
 case
 	when ss.date_Completion is null then '2030-12-31T00:00:00.000Z'
     else ss.date_Completion
 	end as date_Completion,
 	concat(concat(concat(concat('{"start":"', ss.date_enroll),'","end":"'),date_Completion),'"}') as fy_timerange,
 	 case
-	when tt.name is null then 0
-    else tt.name 
+	when ss.endline_yn then 0
+    else ss.endline_yn
 	end as endline_yn,
   case
-	when endline_yn='Yes' then 1 
+	when endline_ynn='Yes' then 1 
 	else 0
 	end as Students_Graduated,
 case
@@ -35,7 +35,7 @@ case
 	else 0
 	end as Students_in_Training,
 case
-	when endline_yn='No' then 1 
+	when endline_ynn='No' then 1 
 	else 0
 	end as Dropouts,
 case
@@ -47,7 +47,7 @@ case
 	else 0
 	end as Students_Enrolled_in_3rd_Year_Courses,
 case
-	when tt1.name='Yes' then 1 
+	when endline_ynn='Yes' then 1 
 	else 0
 	end as Students_Placed,
 case
@@ -69,9 +69,16 @@ left join profile_65603 cg
 on ss.projectid=cg.projectid
 left join profile_65552 po
 on t.parent=po.projectid
-left join ds_mysql_prod_tagelement tt
-on tt.id=ss.endline_yn
+
   )
+  
+  sub11 as(
+  Select s1.proj_location, s1.partner, s1.projectId, s1.location, s1.imp_partner, s1.fy_timerange,s1.endline_ynn,s1.endline_yn
+	from s1
+
+  
+  )
+  
   ,S2 as (
 Select s1.proj_location, s1.partner, s1.projectId, s1.location, s1.imp_partner, s1.fy_timerange,temp.col as status,
 sum(
