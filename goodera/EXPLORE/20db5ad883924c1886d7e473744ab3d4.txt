@@ -1,0 +1,80 @@
+with temo as(
+  Select 'male_5thgrade' as col
+  union all
+  Select 'female_5thgrade' as col
+    union all
+  Select 'male_6thgrade' as col
+    union all
+  Select 'female_6thgrade' as col
+    union all
+  Select 'male_7thgrade' as col
+    union all
+  Select 'female_7thgrade' as col
+    union all
+  Select 'male_8thgrade' as col
+    union all
+  Select 'female_8thgrade' as col
+    union all
+  Select 'male_9thgrade' as col
+    union all
+  Select 'female_9thgrade' as col
+    union all
+  Select 'male_10thgrade' as col
+    union all
+  Select 'female_10thgrade' as col
+)
+Select school_name, t2.name as district, fy_timerange,t1.name as state,temp.col as dimension
+case 
+	when dimension='male_5thgrade' then 'Male'
+	when dimension='male_6thgrade' then 'Male'
+	when dimension='male_7thgrade' then 'Male'
+	when dimension='male_8thgrade' then 'Male'
+	when dimension='male_9thgrade' then 'Male'
+	when dimension='male_10thgrade' then 'Male'
+	else 'Female'
+end as gender,
+case 
+	when dimension='male_5thgrade' then '5th'
+	when dimension='female_5thgrade' then '5th'
+	when dimension='male_6thgrade' then '6th'
+	when dimension='female_6thgrade' then '6th'
+	when dimension='male_7thgrade' then '7th'
+	when dimension='female_7thgrade' then '7th'
+	when dimension='male_8thgrade' then '8th'
+	when dimension='female_8thgrade' then '8th'
+	when dimension='male_9thgrade' then '9th'
+	when dimension='female_9thgrade' then '9th'
+	else '10th'
+	end as grade,
+case 
+	when grade='5th' then '1'
+	when grade='6th' then '2'
+	when grade='7th' then '3'
+	when grade='8th' then '4'
+	when grade='9th' then '5'
+	else '6'
+end as sort,
+sum(case col
+	when 'male_5thgrade' then sq.male_5thgrade
+	when 'female_5thgrade' then sq.female_5thgrade
+	when 'male_6thgrade' then sq.male_6thgrade
+	when 'female_6thgrade' then sq.female_6thgrade
+	when 'male_7thgrade' then sq.male_7thgrade
+	when 'female_7thgrade' then sq.female_7thgrade
+	when 'male_8thgrade' then sq.male_8thgrade
+	when 'female_8thgrade' then sq.female_8thgrade
+	when 'male_9thgrade' then sq.male_9thgrade
+	when 'female_9thgrade' then sq.female_9thgrade
+	when 'male_10thgrade' then sq.male_10thgrade
+	when 'female_10thgrade' then sq.female_10thgrade
+	else NULL
+end) as Values
+FROM profile_76387 sq
+cross join temp
+LEFT JOIN ds_mysql_prod_tagelement t
+ON t.id=sq.state_district
+left join ds_mysql_prod_tagelement t1
+ON t1.id=t.parent
+left join ds_mysql_prod_tagelement t2
+ON t2.id=sq.state_district
+GROUP BY school_name, t2.name, fy_timerange, t1.name, dimensions, gender, grade, sort
