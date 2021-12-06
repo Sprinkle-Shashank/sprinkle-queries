@@ -15,13 +15,15 @@ on mr.project_name=sq._id
 group by sq.proj_name, start_year, end_year, t1.name, pd.ia_sel_ngop, sq._id, sq.projectId),
 sub2 as
 (
-  SELECT s1.proj_name, start_year, end_year, s1.projectId, impl_agency, partner, budget, listagg( distinct p.name) as location
+  SELECT t2.name as proj_name, start_year, end_year, s1.projectId, impl_agency, partner, budget, listagg( distinct p.name) as location
   from sub1 s1
   left join profile_65603 na
   on na.proj_name=id1
+  left join ds_mysql_prod_tagelement t2
+  ON t2.id=s1.proj_name
   left join ds_mysql_prod_tagelement p
   on na.location=p.id
-  group by partner, s1.proj_name, start_year, end_year, s1.projectId, impl_agency, budget
+  group by partner, t2.name, start_year, end_year, s1.projectId, impl_agency, budget
   ), 
   sub3 as(
 	select t.name as partner, s2.proj_name, start_year, end_year, s2.projectId,t1.name as impl_agency, budget, SUM(qe.target_benf) as target_benf, s2.location
