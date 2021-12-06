@@ -16,13 +16,12 @@ union all
 Select 'Students_in_Same_Job_After_6_Months' as col
 ),
 s1 as (
-Select t2.name as projectId,t.name as proj_location,t1.name as partner, sd.baseline_yn, sd.midline_yn, sd.third_year_enroll, sd.date_enroll, sd.date_completion, tt1.name as placed_yn, sd.capgemini_yn,tt.name as endline_yn1 ,sd.job_change_yn,pl.location,po.impl_agency as imp_partner,
+Select t2.name as projectId,t.name as proj_location,t1.name as partner, sd.baseline_yn, sd.midline_yn, sd.third_year_enroll, sd.date_enroll, sd.date_completion, tt1.name as placed_yn, sd.capgemini_yn,sd.job_change_yn,pl.location,po.impl_agency as imp_partner,
  case
 	when endline_yn is null then 0
     else endline_yn 
 	end as endline_ynn,
 		concat(concat(concat(concat('{"start":"', sd.date_enroll),'","end":"'),sd.date_completion),'"}') as fy_timerange
-
 
 from profile_65050 sd
 left join ds_mysql_prod_project t
@@ -35,11 +34,18 @@ left join profile_65603 pl
 on pl.projectid=sd.projectid
 left join profile_65552 po
 on t.parent=po.projectid
-left join ds_mysql_prod_tagelement tt
-on tt.id=endline_ynn
+
 left join ds_mysql_prod_tagelement tt1
 on tt1.id=sd.placed_yn
 ),
+sub11 as (
+  
+Select s1.proj_location, s1.partner, s1.projectId, s1.baseline_yn, s1.midline_yn, s1.third_year_enroll, s1.date_enroll, s1.date_completion, s1.placed_yn, s1.capgemini_yn,tt.name as endline_yn1,s1.endline_ynn ,s1.job_change_yn,s1.location,s1.imp_partner
+  from s1
+  left join ds_mysql_prod_tagelement tt
+on tt.id=s1.endline_ynn
+)
+,
 s2 as (
 Select s1.proj_location, s1.partner, s1.projectId, s1.location, s1.imp_partner, s1.fy_timerange,
 
@@ -75,7 +81,7 @@ case
 	when s1.job_change_yn=20780 then 1 
 	else 0
 	end as Students_in_Same_Job_After_6_Months 
-from s1
+from sub11 s1
 )
 ,
 
@@ -99,9 +105,6 @@ case col
  cross join temp
 group by s2.proj_location, s2.partner, s2.projectId, s2.location, s2.imp_partner, s2.fy_timerange,temp.col 
 )
-
-
-
 
 
 Select s3.proj_location, s3.partner, s3.projectId, s3.location, s3.imp_partner, s3.fy_timerange
