@@ -1,0 +1,26 @@
+with sub1 as(
+select brand, fy, facility_type_parent, region, sum(led_area) as led_area_grouped from profile_56599
+group by brand, fy, facility_type_parent, region),
+sub2 as(
+  select brand, fy, facility_type_parent, region, led_area_grouped, t.name as brand_0, p.name as region_0 from sub1 
+  left join ds_mysql_prod_tagelement t
+  on t.id=brand
+left join ds_mysql_prod_tagelement p
+  on p.id=region),
+  sub3 as(
+  select brand, fy, facility_type_parent, region, led_area_grouped, brand_0, region_0,
+	case when brand_0 is null then 'Overall' else brand_0 end as brand_1,
+	case when region_0 is null then 'Overall' else region_0 end as region_1 
+	from sub2),
+	sub4 as(
+	select fy, facility_type_parent, region_1 as region, led_area_grouped, brand_1 as brand from sub3), 
+	sub5 as (
+	select brand, fy, facility_type_parent, region, led_area_grouped, brand,
+	  case when brand='Calvin Klein' then 1
+	  when brand='Heritage Brands' then 2
+	  when brand='Tommy Hilfiger' then 3
+	  else 4 end as Brand_Sortkey
+	  from sub4)
+	  select brand, fy, facility_type_parent, region, led_area_grouped from sub5
+	  where coalesce(fy,0) not in (956785, 956786, 956098)
+	  order by Brand_Sortkey asc, region asc
