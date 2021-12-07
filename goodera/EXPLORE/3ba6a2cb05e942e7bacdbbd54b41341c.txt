@@ -1,27 +1,27 @@
 with s1 as (
-Select t.name as site,t1.name as sub_Region,t2.name as Region,t4.name as fin_q,t5.name as fin_hy,t6.name as fin_y,EXTRACT(YEAR FROM(CAST(startdate AS datetime))) as year,
+Select t.name as site,t1.name as sub_Region,t2.name as Region,
          Sum(CASE 
-             WHEN keyword = 'electricity_usage' THEN datanum
+             WHEN keyword = 'electricity_usage' THEN datanum*conversionfactor
              ELSE 0 
            END)  as electricity_usage,
 		     Sum(CASE 
-             WHEN keyword = 'electricity_solar' THEN datanum
+             WHEN keyword = 'electricity_solar' THEN datanum*conversionfactor
              ELSE 0 
            END)  as electricity_solar,
 		     Sum(CASE 
-             WHEN keyword = 'propane_usage' THEN datanum
+             WHEN keyword = 'propane_usage' THEN datanum*conversionfactor
              ELSE 0 
            END)  as propane_usage,
 		     Sum(CASE 
-             WHEN keyword = 'diesel_fuel_usage' THEN datanum
+             WHEN keyword = 'diesel_fuel_usage' THEN datanum*conversionfactor
              ELSE 0 
            END)  as diesel_fuel_usage,
 		     Sum(CASE 
-             WHEN keyword = 'gasoline_usage' THEN datanum
+             WHEN keyword = 'gasoline_usage' THEN datanum*conversionfactor
              ELSE 0 
            END)  as gasoline_usage,
 		     Sum(CASE 
-             WHEN keyword = 'natural_gas_usage' THEN datanum
+             WHEN keyword = 'natural_gas_usage' THEN datanum*conversionfactor
              ELSE 0 
            END)  as natural_gas_usage,
 		   fy_timerange
@@ -34,26 +34,19 @@ from sus_56999
   on t.parent=t1.id
   left join ds_mysql_prod_project t2
   on t1.parent=t2.id
-  left join ds_mysql_prod_tagelement t3
-  on financialperiod=t3.id
-  left join ds_mysql_prod_tagelement t4
-  on t3.parent=t4.id
-  left join ds_mysql_prod_tagelement t5
-  on t4.parent=t5.id
-  left join ds_mysql_prod_tagelement t6
-  on t5.parent=t6.id
+
   where keyword in ('electricity_usage','electricity_solar','propane_usage','diesel_fuel_usage','gasoline_usage','natural_gas_usage')
-  group by t.name,t1.name,t2.name,t4.name,t5.name,t6.name ,year,fy_timerange
+  group by t.name,t1.name,t2.name,fy_timerange
 ),
 s2 as (
-Select s1.site,s1.region,s1.year,(s1.electricity_usage)*34.1296*29.3001 as electricity_usage_kwh, s1.electricity_solar*34.1296*29.3001 as electricity_solar_kwh,s1.propane_usage*330*29.3001 as propane_usage_kwh,s1.diesel_fuel_usage*367.5*29.3001 as diesel_fuel_usage_kwh,s1.gasoline_usage*252*29.3001 as gasoline_usage_kwh,s1.natural_gas_usage*9523.8095*29.3001 as natural_gas_usage_kwh,s1.fy_timerange
+Select s1.site,s1.region,(s1.electricity_usage)*34.1296*29.3001 as electricity_usage_kwh, s1.electricity_solar*34.1296*29.3001 as electricity_solar_kwh,s1.propane_usage*330*29.3001 as propane_usage_kwh,s1.diesel_fuel_usage*367.5*29.3001 as diesel_fuel_usage_kwh,s1.gasoline_usage*252*29.3001 as gasoline_usage_kwh,s1.natural_gas_usage*9523.8095*29.3001 as natural_gas_usage_kwh,s1.fy_timerange
   
   from s1)
 ,
 s3 as (
-Select s2.site,s2.fy_timerange,s2.region,s2.year,sum(s2.electricity_usage_kwh+s2.electricity_solar_kwh+s2.propane_usage_kwh+s2.diesel_fuel_usage_kwh+s2.gasoline_usage_kwh+s2.natural_gas_usage_kwh) as Total_energy_cost
+Select s2.site,s2.fy_timerange,s2.region,sum(s2.electricity_usage_kwh+s2.electricity_solar_kwh+s2.propane_usage_kwh+s2.diesel_fuel_usage_kwh+s2.gasoline_usage_kwh+s2.natural_gas_usage_kwh) as Total_energy_cost
   from s2
-group by s2.site,s2.fy_timerange,s2.region,s2.year,s2.electricity_usage_kwh,s2.electricity_solar_kwh,s2.propane_usage_kwh,s2.diesel_fuel_usage_kwh,s2.gasoline_usage_kwh,s2.natural_gas_usage_kwh
+group by s2.site,s2.fy_timerange,s2.region,s2.electricity_usage_kwh,s2.electricity_solar_kwh,s2.propane_usage_kwh,s2.diesel_fuel_usage_kwh,s2.gasoline_usage_kwh,s2.natural_gas_usage_kwh
   )
   
   Select * from s3
