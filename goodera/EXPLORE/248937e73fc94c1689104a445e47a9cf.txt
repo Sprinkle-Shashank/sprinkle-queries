@@ -1,0 +1,17 @@
+with sub1 as(
+  select p1.*, is_array(p1.fund_details) as array_check,
+  	case
+		when(array_check = false) then array(p1.fund_details)
+		else p1.fund_details
+	end as funds
+  from profile_32441 p1),
+  
+sub2 as(
+  select s1.*, fund_new from sub1 s1, s1.funds fund_new),
+
+select p2.name as projectid, p3.program_name, s2.time_timerange as fy_timerange, p4.brand, p4.amount
+from sub2
+left join ds_mysql_prod_project p2 on p2.id = s2.projectid
+left join profile_63775 p3 on p3._id = s2.program_name
+left join profile_54871 p4 on p4._id = s3.fund_details
+where p4.amount is not null
