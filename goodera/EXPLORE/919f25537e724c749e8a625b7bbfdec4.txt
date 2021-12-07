@@ -1,13 +1,16 @@
 with sub1 as(
-select id, projectId as proj_location, fy_timerange, age_between_15to18, age_between_18to35, age_between_10to15
+select _id, projectId as proj_location, fy_timerange, age_between_15to18, age_between_18to35, age_between_10to15
   from profile_75008),
   sub2 as(
-	select id,proj_location, fy_timerange, age_between_15to18, age_between_18to35, age_between_10to15, t1.name as partner, t2.name as projectId
+	select _id,t.name as proj_location, fy_timerange, age_between_15to18, age_between_18to35, age_between_10to15, t1.name as partner, t2.name as projectId
 	from sub1 ss
 	left join ds_mysql_prod_project t
 on ss.proj_location=t.id
 left join ds_mysql_prod_project t1
 on t.parent=t1.id
 left join ds_mysql_prod_project t2
-on t1.parent=t2.id)
-select * from sub2
+on t1.parent=t2.id),
+sub3 as(
+select  _id,proj_location, fy_timerange, age_between_15to18, age_between_18to35, age_between_10to15, partner, projectId
+  from sub2)
+  select * from sub3
