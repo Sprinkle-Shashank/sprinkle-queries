@@ -1,4 +1,10 @@
-with sub1 as(
+with temp as(
+  select '10 to 15' as col
+  union all
+  select '15 to 18' as col
+  union all
+  select '18 to 35' as col),
+sub1 as(
 select _id, projectId as proj_location, fy_timerange, age_between_15to18, age_between_18to35, age_between_10to15
   from profile_75008),
   sub2 as(
@@ -11,11 +17,19 @@ on t.parent=t1.id
 left join ds_mysql_prod_project t2
 on t1.parent=t2.id),
 sub3 as(
-select  s2._id,proj_location, fy_timerange, age_between_15to18 , age_between_18to35 as 18_to_35, age_between_10to15 as 10_to_15, partner, s2.projectId, pl.location, po.impl_agency as imp_partner
+select  s2._id,proj_location, fy_timerange, age_between_15to18 , age_between_18to35 , age_between_10to15, partner, s2.projectId, pl.location, po.impl_agency as imp_partner
   from sub2 s2
 left join profile_65603 pl
 on pl.projectid=s2.proj_location
 left join profile_65552 po
-on s2.partner=po.projectid)
-  select * from sub3
+on s2.partner=po.projectid),
+sub4 as(
+  select s3._id,proj_location, fy_timerange, age_between_15to18 , age_between_18to35 , age_between_10to15, partner, s3.projectId, pl.location, imp_partner,
+  case when '10 to 15' then s3.age_between_10to15
+  when '15 to 18' then s3.age_between_15to18
+  when '18 to 35' then s3.age_between_18to35
+  end as age_bucket, temp.col as no_benf
+  from sub3 s3
+cross join temp)
+  select * from sub4
  -- group by id, proj_location, fy_timerange, partner, projectId, location, imp_partner, age_bucket
