@@ -1,18 +1,8 @@
-with Base1 as(select split_part(prod.name,'|',1) as ProjectCode,p.fy,p.select_quarter,case when p.file_upload is null then 'No' else 'Yes'end as Report_submission_status from profile_60787 p 
+with Base1 as(select split_part(prod.name,'|',1) as ProjectCode,split_part(prod.name,'|',2) as Region,p.fy,p.select_quarter,case when p.file_upload is null then 'No' else 'Yes'end as Report_submission_status from profile_60787 p 
 left join ds_mysql_prod_project prod on
-prod.id=p.projectid),Base2 as(select p.ProjectCode,p.fy,p.select_quarter,p.Report_submission_status,m.project_manager,m.focus_area from Base1 p
-left join profile_27396 m 
-on p.ProjectCode=m.name
-left join profile_28235 k on
-m.intervention_type=k._id
-where k.name='Indirect - Others'
-)
-select f.name as fy_timerange,m.name as Project_Manager,q.name as Quarter,fc.name as Focus_area,ProjectCode,Report_submission_status from Base2
+prod.id=p.projectid)
+select f.name as fy_timerange,q.name as Quarter,ProjectCode,Region,Report_submission_status from Base2
 left join ds_mysql_prod_tagelement f on
 fy=f.id
-left join ds_mysql_prod_tagelement m on
-project_manager=m.id
-left join ds_mysql_prod_tagelement fc on
-focus_area=fc.id
 left join ds_mysql_prod_tagelement q on
 select_quarter=q.id
