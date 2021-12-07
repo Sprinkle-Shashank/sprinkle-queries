@@ -1,10 +1,33 @@
-SELECT name, description,
-P.name AS projectIdefg
+WITH S1 AS
+(
+  SELECT projectId, name, description, focus_area, logo, partner, start_date, completion_date, funding_entity, sdg, sdg_photo
 
-FROM profile_79279 AS PD,
+FROM profile_79279 AS PD
+  ),
 
-PD.focus_area AS focus_area_unwind,
-PD.sdg AS sdg_unwind
+S2 AS
+(
+  SELECT projectId, name, FA, logo, partner, start_date, completion_date, funding_entity,
+  CAST(sdg_photo AS VARCHAR), description, SDGG
+  
+  FROM S1 AS S, S.focus_area AS FA, S.sdg AS SDGG
+  )
 
-LEFT JOIN ds_mysql_prod_project AS P
-ON P.id = PD.projectId
+SELECT p.name AS projectId, S2.name, S2.description, S2.logo, S2.partner, S2.start_date, S2.completion_date, S2.funding_entity,
+S2.SDGP AS sdg_photo,
+t1.name AS focus_area,
+t2.name AS sdg
+
+FROM S2
+
+LEFT JOIN ds_mysql_prod_tagelement AS t1
+ON S2.FA = t1.id
+
+LEFT JOIN ds_mysql_prod_tagelement AS t2
+ON S2.SDGG = t2.id
+
+LEFT JOIN ds_mysql_prod_project AS p
+ON p.id = S2.projectId
+
+GROUP BY p.name, S2.name, S2.description, S2.logo, S2.partner, S2.start_date, S2.completion_date, S2.funding_entity,
+S2.SDGP, t1.name, t2.name
