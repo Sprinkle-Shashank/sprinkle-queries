@@ -1,2 +1,11 @@
-select concat(concat(concat(concat('{"start":"', proj_start_date),'","end":"'),proj_end_date),'"}') as fy_timerange
-from profile_65552
+with sub1 as(
+select concat(concat(concat(concat('{"start":"', proj_start_date),'","end":"'),proj_end_date),'"}') as fy_timerange, impl_agency as imp_partner, projectId as partner
+from profile_65552),
+sub2 as(
+  select fy_timerange, t1.name as projectId, t.name as partner, imp_partner
+  from sub1
+  left join ds_mysql_prod_project t
+on partner=t.id
+left join ds_mysql_prod_project t1
+on t.parent=t1.id)
+select * from sub2
