@@ -1,0 +1,35 @@
+with temp as (
+Select 'Male' as col
+  union all
+Select 'Female' as col),
+
+s1 as(
+Select ss._id,ss.male_registrations male, ss.female_registrations female, ss.fy_timerange,t2.name as projectId,t.name as proj_location,t1.name as partner,po.impl_agency as imp_partner,
+case col 
+  	when 'Male' then ss.male_registrations
+   when 'Female' then ss.female_registrations
+  else null
+  end as no_benf,temp.col as gender
+from profile_75008
+cross join temp
+left join ds_mysql_prod_project t
+on ss.projectid=t.id
+left join ds_mysql_prod_project t1
+on t.parent=t1.id
+left join ds_mysql_prod_project t2
+on t1.parent=t2.id
+left join profile_65603 pl
+on pl.projectid=ss.projectid
+left join profile_65552 po
+on t.parent=po.projectid
+),
+s2 as(
+
+Select s1._id, s1.proj_location, s1.fy_timerange, s1.partner, s1.projectId, s1.location, s1.imp_partner,s1.gender, sum(s1.no_benf)
+from s1
+group by s1._id, s1.proj_location, s1.fy_timerange, s1.partner, s1.projectId, s1.location, s1.imp_partner,s1.gender
+)
+
+
+Select s2.proj_location, s2.fy_timerange, s2.partner, s2.projectId, s2.location, s2.imp_partner,s2.gender, s2.no_benf
+from s2
