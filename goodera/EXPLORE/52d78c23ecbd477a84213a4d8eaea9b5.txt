@@ -1,3 +1,30 @@
+with sub1 as(
+select metric, fy, brand, region, tier, source_div, energy_type, type, flag, sum(attainment) as attainment
+from profile_62632
+group by metric, fy, brand, region, tier, source_div, energy_type, type, flag),
+sub2 as(
+  select metric, t.name as fy2, brand, region, tier, source_div, energy_type, type, flag, attainment
+  from sub1 
+  left join ds_mysql_prod_tagelement t
+	on fy = t.id),
+	sub3 as(
+	  select metric, fy2, brand, region, tier, source_div, energy_type, type, flag, attainment, mr.year_num
+	  left join profile_64189 mr
+		ON fy2=mr.year_text),
+		sub4 as(
+		  select metric, brand, region, tier, source_div, energy_type, type, attainment, 
+		  case when flag=1 then year_num+1 else year_num end as fy from sub3)
+		  
+		  select metric, brand, m.name as region, p.name as tier, o.name as source_div, energy_type, type, attainment, fy
+		  from sub4
+		  left join ds_mysql_prod_tagelement p
+		on sq.tier = p.id
+		left join ds_mysql_prod_tagelement m
+		on sq.region = m.id
+		left join ds_mysql_prod_tagelement o
+		on sq.source_div = o.id
+		  
+/*
 SELECT sq.metric, m.name as region, p.name as tier, o.name as source_div, sq.energy_type, sq.type, SUM(attainment) as attainment, case when sq.flag=1 then mr.year_num+1 else mr.year_num end as fy
 FROM profile_62632 sq
 left join ds_mysql_prod_tagelement t
@@ -10,4 +37,4 @@ left join ds_mysql_prod_tagelement o
 on sq.source_div = o.id
 left join profile_64189 mr
 ON t.name=mr.year_text
-GROUP BY sq.metric, sq.fy, m.name, p.name, o.name, sq.energy_type, sq.type, sq.flag, mr.year_num
+GROUP BY sq.metric, sq.fy, m.name, p.name, o.name, sq.energy_type, sq.type, sq.flag, mr.year_num*/
