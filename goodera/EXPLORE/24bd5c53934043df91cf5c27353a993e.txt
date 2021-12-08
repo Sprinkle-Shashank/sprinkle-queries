@@ -1,1 +1,21 @@
-select * from profile_79293
+With table1 as (
+  select 'Patients Target' as C
+  union all
+  select 'Oxygen Target' as C
+  
+)
+select distinct p1.name as hospital, p.fy_timerange,
+sum(case C
+when 'Patients Target' then p.patients_target
+when 'Oxygen Target' then p.o2_target
+else null
+end) as value, table1.c as dim
+
+from profile_79293 p
+
+cross join table1
+
+left join profile_79292 p1 on
+p.hospital = p1._id
+
+group by p1.name,p.fy_timerange,table1.C
