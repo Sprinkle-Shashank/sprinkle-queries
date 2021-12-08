@@ -4,7 +4,7 @@ With table1 as (
   select 'Oxygen Target' as C
   
 )
-select distinct p1.name as hospital, p.fy_timerange, p1.state as s1, sta.name as state,dist.name as district,
+select distinct p1.name as hospital, p.fy_timerange,  sta.name as state,dist.name as district,
 sum(case C
 when 'Patients Target' then p.patients_target
 when 'Oxygen Target' then p.o2_target
@@ -14,11 +14,13 @@ end) as value, table1.c as dim
 from profile_79293 p
 
 cross join table1
-left join ds_mysql_prod_tagelement dist
-on p.s1 = dist.id
-left join ds_mysql_prod_tagelement sta
-on dist.parent = sta.id 
+
 left join profile_79292 p1 on
 p.hospital = p1._id
+left join ds_mysql_prod_tagelement dist
+on p1.state = dist.id
+left join ds_mysql_prod_tagelement sta
+on dist.parent = sta.id 
+
 
 group by p1.name,p.fy_timerange,table1.C,sta.name,dist.name
