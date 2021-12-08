@@ -33,7 +33,8 @@ cross join temp
   select group_name, groupid, surveyid, country, position(1 in level) as level1, position(2 in level) as level2, position(3 in level) as level3, module, upper(substring(module,1,position('_' in module)-1)) as modules, sacid, s1.fy_timerange
 	from sub1 s1),
   sub3 as(
-  select country,s2.fy_timerange, level2, cdms_id, modules, json_serialize(source_div) as source_div1, timeperiod_timerange
+  select country,s2.fy_timerange, level2, cdms_id, modules, case when get_array_length(source_div) = 0 then array(0)
+  else COALESCE(source_div,array(0)) end new_source, rtrim(ltrim(json_serialize(new_source),'['),']') as source_div1, timeperiod_timerange
 	from sub2 s2
   left join profile_74334 pd
   on pd.higg_id=s2.sacid
