@@ -41,15 +41,15 @@ cross join temp
   on mr.factory_id=pd.cdms_id
   ),
    sub31 as(
-   select country, s2.fy_timerange, level2, cdms_id, modules, 
+   select country, fy_timerange, level2, cdms_id, modules, 
 	 first_value(source_div1)
 over(partition by country, fy_timerange, level1, cdms_id, modules
 order by cast(timeperiod_timerange.start as date) desc
 rows between unbounded preceding and unbounded following) as source_div from sub3),
   sub32 as(
-	select country, s2.fy_timerange, level2, cdms_id, modules, source_div
+	select country, fy_timerange, level2, cdms_id, modules, source_div
 		   from sub31
-		   group by country, s2.fy_timerange, level2, cdms_id, modules, source_div),
+		   group by country, fy_timerange, level2, cdms_id, modules, source_div),
   sub4 as
   (
   select s3.country, s3.fy_timerange, s3.level2, s3.cdms_id, s3.modules, source from sub32 s3, s3.source_div source),
@@ -82,4 +82,4 @@ rows between unbounded preceding and unbounded following) as source_div from sub
 	select fy_timerange, source_div, region, mods, cdms_id as facs, 1 as count
 from sub6
 	group by fy_timerange, source_div, region, mods, cdms_id)
-	select * from sub6
+	select * from sub7
