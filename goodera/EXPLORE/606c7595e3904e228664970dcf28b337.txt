@@ -7,10 +7,12 @@ p.project_manager=m.id
 left join ds_mysql_prod_tagelement f on
 p.fy=f.id),Base1 as(select b.ProjectCode,b.fy_timerange,b.Project_Name,b.NGO,b.start_End_Date,b.Project_Manager ,State1 from lookup b ,b.State State1
 )
-select ProjectCode,fy_timerange,Project_Name,NGO,start_End_Date,Project_Manager,LISTAGG(cast(State1 as varchar),',') within group (order by State1) as state
-from Base1  where ProjectCode='P0417' group by ProjectCode,fy_timerange,Project_Name,NGO,start_End_Date,Project_Manager
---,count(*)
---left join ds_mysql_prod_tagelement s on
---State1=s.id
+select ProjectCode,fy_timerange,Project_Name,NGO,start_End_Date,Project_Manager,s.name as state,count(*)
+from Base1 
+left join ds_mysql_prod_tagelement s on
+State1=s.id
+group by ProjectCode,fy_timerange,Project_Name,NGO,start_End_Date,Project_Manager,s.name
 --group by ProjectCode,fy_timerange,Project_Name,NGO,start_End_Date,Project_Manager,State1
 --LISTAGG(DISTINCT CAST(Base1.State1 AS VARCHAR),',') 
+
+--LISTAGG(cast(State1 as varchar),',') within group (order by State1) as state
