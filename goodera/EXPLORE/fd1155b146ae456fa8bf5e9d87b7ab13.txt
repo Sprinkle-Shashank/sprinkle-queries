@@ -1,8 +1,30 @@
-select *, p1.name from profile_79291 p /*select fy_timerange, sta.name as state,dist.name as district from profile_79291 p
+With table1 as (
+  select 'Patients_1st' as C
+  union all
+  select 'Patients_2nd' as C
+  union all
+  select 'beds' as C
+  union all
+  select 'oxygen' as C
+)
+select distinct p1.name as hospital, fy_timerange, sta.name as state,dist.name as district,
+sum(case C
+when 'Patients_1st' then p.patients_1st
+when 'Patients_2nd' then p.patients_2nd
+when 'beds' then p.beds
+when 'oxygen' then p.oxygen
+else null
+end) as value, table1.c as dim
+
+from profile_79291 p
+
+cross join table1
 
 left join ds_mysql_prod_tagelement dist
 on p.state = dist.id
 left join ds_mysql_prod_tagelement sta
-on dist.parent = sta.id */
+on dist.parent = sta.id 
 left join profile_79292 p1 on
 p.hospital = p1._id
+
+group by p1.name,fy_timerange,sta.name,dist.name,table1.C
