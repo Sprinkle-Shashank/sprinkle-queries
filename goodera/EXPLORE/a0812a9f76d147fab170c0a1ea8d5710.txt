@@ -52,7 +52,7 @@ rows between unbounded preceding and unbounded following) as source_div_new from
 		   group by country, fy_timerange, level2, cdms_id, modules, source_div),
   sub4 as
   (
-  select s3.country, s3.fy_timerange, s3.level2, s3.cdms_id, s3.modules, source from sub32 s3, s3.source_div source),
+  select s3.country, s3.fy_timerange, s3.level2, s3.cdms_id, s3.modules, json_serialize(source) from sub32 s3, s3.source_div source),
   sub41 as(
   select s3.country, s3.fy_timerange, s3.level2, s3.cdms_id, s3.modules, source from sub4 s3
   where modules in ('ENERGY', 'WASTEWATER', 'CHEMICALS')),
@@ -60,7 +60,7 @@ rows between unbounded preceding and unbounded following) as source_div_new from
   (
   select t1.name as region, s4.fy_timerange, cdms_id, 
 	listagg(distinct modules,', ') as modules, level2,
-	source as source_div
+	ltrim(source,'"') as source_div
   from sub41 s4
   left join ds_mysql_prod_tagelement t
 	on t.id=s4.country
