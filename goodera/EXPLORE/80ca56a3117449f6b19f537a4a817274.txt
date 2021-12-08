@@ -1,0 +1,45 @@
+with table1 as(Select class,attendance as x,p.projectId,mdl_parent.name as module,md_nme.name as module1,profile_54646.name_vendor as vendor,profile_54646.name_country as country,profile_54646.name_rp as regional_partner,profile_54646.name_factory as locations,profile_54646.projcode_factory as codes from profile_4228 p
+
+
+
+left join profile_54646  on 
+p.projectId= profile_54646.projectId
+
+left join ds_mysql_prod_tagelement md_nme
+on p.module_name = md_nme.id
+
+left join ds_mysql_prod_tagelement mdl_parent
+on md_nme.parent = mdl_parent.id
+
+
+left join ds_mysql_prod_tagelement pre_yn
+on p.pre_post_yn = pre_yn.id
+
+
+where  vendor is not null and  codes like 'CP%'
+group by class,p.projectid,mdl_parent.name ,md_nme.name ,profile_54646.name_vendor ,profile_54646.name_country,profile_54646.name_factory,profile_54646.name_rp,profile_54646.projcode_factory,x
+),
+
+table2 as(Select _id,cast(concat('FY ' ,start_year) as varchar) as start_year, start_quarter as start_quarter_new ,case when start_quarter=1 then '1st (Feb-Apr)'
+ when start_quarter=2 then '2nd (May-Jul)'
+  when start_quarter=3 then '3rd (Aug-Oct)'
+   when start_quarter=4 then '4th (Nov-Jan)'
+   else null end as start_quarter,p2.projectId
+   from profile_4227 p2
+)
+Select module,module1,vendor,country,locations,regional_partner,codes,x,t2.start_year,t2.start_quarter from table1 t1
+
+
+
+
+left join table2 t2 on 
+t1.class= t2._id
+
+left join ds_mysql_prod_project projectId
+on t1.projectId = projectId.id
+where start_quarter is not null and start_year is not null
+ --and module1 not ilike'%Essential%' 
+and module in ('Academic','Community','Leadership','Vocational School','Younger Girls','Older Girls')
+group by vendor,country,module,module1,start_year,start_quarter,locations,regional_partner,codes,x
+
+
