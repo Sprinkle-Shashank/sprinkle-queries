@@ -1,3 +1,4 @@
+with term1 as (
 select a.projectid,a.beneficiaries_enrolled, a.region, b.date,b.location,d.name as state,
 case 
   when (extract(month from b.date) <=3) then ('FY' || (extract(year from b.date)-1999))
@@ -7,3 +8,19 @@ from profile_75683 a
 left join profile_78503 b on a.school_reference = b._id
 left join ds_mysql_prod_tagelement c on c.id = b.location
 left join ds_mysql_prod_tagelement d on d.id = c.parent
+  ),
+  term2 as (
+select a.projectid,a.beneficiaries_enrolled, a.region, b.date,b.location,d.name as state,
+case 
+  when (extract(month from b.date) <=3) then ('FY' || (extract(year from b.date)-1999))
+  when (extract(month from b.date) >3) then ('FY'|| (extract(year from b.date)+1998))
+end as FY
+from profile_77814 a
+left join profile_78503 b on a.school_reference = b._id
+left join ds_mysql_prod_tagelement c on c.id = b.location
+left join ds_mysql_prod_tagelement d on d.id = c.parent
+	)
+	
+select * from term1
+union
+select * from term2
