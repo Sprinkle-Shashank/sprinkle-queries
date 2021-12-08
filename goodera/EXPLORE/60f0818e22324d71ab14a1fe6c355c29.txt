@@ -1,35 +1,24 @@
-
 with sub1 as(
-  select p1.*,
-cast(timestamp 'epoch' + CAST(p1.eventdate AS BIGINT)/1000 * interval '1 second' as date) as event_date,
-cast(timestamp 'epoch' + CAST(p1.created AS BIGINT)/1000 * interval '1 second' as date) as create_date,
-is_array(p1.focus_area) as array_check,
+  select p2.name as projectid, p1.desc, p1.display_pic, p1.proj_term, p1.location, p1.name_partner, p1.manager, p1.program_name, t1.name as country, t2.name as product_brand, t3.name as focus_area, 
+is_array(p1.sdg_picture) as sdg_pic_array_check, is_array(p1.sdg) as sdg_array_check,
+  
 case
-	when array_check = false then array(p1.focus_area)
-	else p1.focus_area
-end as focus_area_new
-from profile_26729 p1),
+	when (sdg_pic_array_check = false or GET_ARRAY_LENGTH(p1.sdg_picture) = 0) then array(p1.sdg_picture)
+  	else p1.sdg_picture
+end as sdg_pic_new,
+case
+	when (sdg_array_check = false or GET_ARRAY_LENGTH(p1.sdg) = 0) then array(p1.sdg)
+  	else p1.sdg
+end as sdg_new
+  
+from profile_63775 p1
+left join ds_mysql_prod_project p2 on p2.id = p1.projectid
+left join ds_mysql_prod_tagelement t1 on t1.id = p1.country_new
+left join ds_mysql_prod_tagelement t2 on t2.id = p1.product_brand
+left join ds_mysql_prod_tagelement t3 on t3.id = p1.focus_area),
 
 sub2 as(
-  select s1.*, focus_area_1 from sub1 s1, s1.focus_area_new focus_area_1)
+  select s1.*, cast(sdgs_pic as varchar), cast(sdgs as int) 
+  from sub1 s1, s1.sdg_pic_new sdgs_pic, s1.sdg_new sdgs)
   
-select s2._id as id, nvl(s2.one_day_date, s2.long_team_start_date, s2.event_date, s2.create_date) as start_date,
-nvl(s2.one_day_date, s2.long_term_end_date, s2.event_date, s2.create_date) as end_date,
-
-case
-	when t1.name is not null then t1.name
-	when t1.name is null and t2.name is not null then t2.name
-	else 'Others'
-end as focus_area,
-
-case
-	when s2.country is not null or s2.officecountry is not null 
-	then nvl(INITCAP(s2.officecountry), INITCAP(s2.country))
-	else 'Global'
-end as country,
-
-(s2.hours_contributed) as hours
-from sub2 s2
-left join ds_mysql_prod_refFocusArea t1 on t1.id = s2.focus_area_1
-left join ds_mysql_prod_tagElement t2 on t2.id = s2.focus_area_2
-where s2.hours_contributed is not null and s2.hours_contributed != 0
+select sdg_new, sdgs from sub2
