@@ -74,48 +74,9 @@ case
 end as level_new
 from sub7 s4, s4.new_modules module_1)
 ,
-sub8 as(
+sub9 as(
 select s5.region, s5.fy_timerange, s5.source_div, s5.modules, s5.level_new as level1, s5.cdms_id as facs, 1 as count
-from sub7 s5
+from sub8 s5
 group by s5.region, s5.fy_timerange, s5.source_div, s5.modules, s5.level_new, s5.cdms_id 
 )
-select * from sub8
-
-
-/*
-sub2 as(
-  select t2.name as region, s1.fy_timerange, s1.level1, s1.modules, s1.cdms_id, s1.source_div,
-row_number() over(partition by s1.country, s1.fy_timerange, s1.level1, s1.modules, s1.cdms_id order by cast(s1.timeperiod_timerange.start as date) desc) as line
-from sub1 s1
-left join ds_mysql_prod_tagelement t1 on t1.id = s1.country
-left join ds_mysql_prod_tagelement t2 on t1.parent = t2.id),
-
-sub3 as(
-  select s2.*, source_div_new from sub2 s2, s2.source_div source_div_new
-	where s2.line = 1),
-  
-sub4 as(
-  select s3.region, s3.fy_timerange, s3.level1, s3.cdms_id, t2.name as source_div, 
-SPLIT_TO_ARRAY(listagg(distinct s3.modules, ', '), ', ') as modules_array,
-GET_ARRAY_LENGTH(modules_array) as size, ARRAY_CONCAT(modules_array, array('Overall')) as new_modules
-from sub3 s3
-left join ds_mysql_prod_tagelement t2 on t2.id = s3.source_div_new
-group by s3.region, s3.fy_timerange, s3.level1, s3.cdms_id, t2.name),
-
-sub5 as(
-  select s4.*, cast(module_1 as varchar) as modules,
-case
-  	when modules = 'Overall' and s4.size = 7 then 1
-	when modules = 'Overall' and s4.size != 7 then 0
-	else s4.level1
-end as level_new
-from sub4 s4, s4.new_modules module_1)
-
-,
-
-sub6 as(
-select s5.region, s5.fy_timerange, s5.source_div, s5.modules, s5.level_new as level1, s5.cdms_id as facs, 1 as count
-from sub5 s5
-group by s5.region, s5.fy_timerange, s5.source_div, s5.modules, s5.level_new, s5.cdms_id 
-)
-select * from sub1*/
+select * from sub9
