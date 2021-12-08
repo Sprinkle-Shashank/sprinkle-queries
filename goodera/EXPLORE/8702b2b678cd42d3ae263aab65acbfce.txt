@@ -15,9 +15,7 @@ with temp as(
 ),
 
 sub1 as(
-  select p1._id as id, p1.sacid, p1.country, p1.fy_timerange, p2.cdms_id, temp.col as module, p3.timeperiod_timerange, 
-  --json_serialize(p3.source_div) as 
-  source_div,
+  select p1._id as id, p1.sacid, p1.country, p1.fy_timerange, p2.cdms_id, temp.col as module, p3.timeperiod_timerange, json_serialize(p3.source_div) as source_div,
 case col
 		when 'energy_levelsachieved_verified' then p1.energy_levelsachieved_verified
 		when 'wastewater_levelsachieved_verified' then p1.wastewater_levelsachieved_verified
@@ -35,7 +33,6 @@ left join profile_74334 p2 on p2.higg_id = p1.sacid
 left join profile_60928 p3 on p3.factory_id = p2.cdms_id
 --where p2.cdms_id is not null
 ),
-/*
 sub2 as(
   select country, fy_timerange, level1, cdms_id, modules, 
   first_value(source_div)
@@ -49,9 +46,9 @@ rows between unbounded preceding and unbounded following) as source_div_new
   sub4 as(
 	select country, fy_timerange, level1, cdms_id, modules, source_div from sub3 s3, s3.source source_div)
 	select * from sub4
-*/
 
 
+/*
 sub2 as(
   select t2.name as region, s1.fy_timerange, s1.level1, s1.modules, s1.cdms_id, s1.source_div,
 row_number() over(partition by s1.country, s1.fy_timerange, s1.level1, s1.modules, s1.cdms_id order by cast(s1.timeperiod_timerange.start as date) desc) as line
@@ -69,8 +66,8 @@ SPLIT_TO_ARRAY(listagg(distinct s3.modules, ', '), ', ') as modules_array,
 GET_ARRAY_LENGTH(modules_array) as size, ARRAY_CONCAT(modules_array, array('Overall')) as new_modules
 from sub3 s3
 left join ds_mysql_prod_tagelement t2 on t2.id = s3.source_div_new
-group by s3.region, s3.fy_timerange, s3.level1, s3.cdms_id, t2.name)
-/*
+group by s3.region, s3.fy_timerange, s3.level1, s3.cdms_id, t2.name),
+
 sub5 as(
   select s4.*, cast(module_1 as varchar) as modules,
 case
@@ -79,11 +76,12 @@ case
 	else s4.level1
 end as level_new
 from sub4 s4, s4.new_modules module_1)
+
 ,
 
 sub6 as(
 select s5.region, s5.fy_timerange, s5.source_div, s5.modules, s5.level_new as level1, s5.cdms_id as facs, 1 as count
 from sub5 s5
 group by s5.region, s5.fy_timerange, s5.source_div, s5.modules, s5.level_new, s5.cdms_id 
-)*/
-select * from sub4
+)
+select * from sub1*/
