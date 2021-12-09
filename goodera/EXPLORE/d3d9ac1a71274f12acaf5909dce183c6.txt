@@ -60,14 +60,27 @@ sub3 as(
 	   sub10 as(
 	   select fy_timerange, region from sub9
 		 where region is not null),
-		 sub11 as(
-		 select fy_timerange, listagg(distinct region,',') as region from sub10
-		   group by fy_timerange),
-		   sub12 as(
-		   select fy_timerange, region, case when extract(year from cast(fy_timerange.start as date))<2020 then (case when position('Ethiopia' in region)!=0 then 1 else 0 end) else regexp_count(region,',')+1 end as count from sub11),
-		   sub13 as(
-		   select * from sub12
-		   where count!=0
-)
-select region, count(distinct region),fy_timerange from sub10
-group by region, fy_timerange
+		sub11 as(
+	select p1.fy_timerange, p1.country as region, p1.source_div, p1.num_females
+from profile_62972 p1),
+	
+sub12 as(
+  select fy_timerange, region, source_div, sum(num_females) as num_females, case
+when 1=1 then 1
+else 0
+end as count
+  from sub11
+	group by region, fy_timerange, source_div),
+	
+sub13 as(
+  select s2.* from sub12 s2),
+  sub14 as(
+
+(select t1.name as region,  s3.count, s3.fy_timerange
+	from sub13 s3
+	left join ds_mysql_prod_tagelement t1 on t1.id = s3.region
+	group by s3.fy_timerange, s3.count, t1.name)
+	union all
+(select region, count(distinct region),fy_timerange from sub10
+group by region, fy_timerange))
+select * from sub14
