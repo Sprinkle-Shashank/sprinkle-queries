@@ -1,2 +1,24 @@
-select projectid,fy_timerange,title,video, link from profile_78677
+with table1 as (select pro.name as projectid,fy_timerange,title,video, link from profile_78677 p
+
+left join ds_mysql_prod_project as pro
+  on p.projectid = pro.id ),
+  
+  temp as (
+  select 'Video' as C
+  Union all
+  select 'Link' as C )
+  
+  select projectid,fy_timerange,title, 
+  Sum(Case C
+	When 'Video' then t1.video
+	when 'Link' then t1.link  end) as values, temp.C as dimensions
+	
+	from table1 t1
+	
+	cross join temp 
+	
+	
+group by  projectid, fy_timerange,title,temp.c
+  
+  
 
