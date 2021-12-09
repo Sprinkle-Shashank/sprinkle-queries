@@ -1,4 +1,3 @@
-
 with sub1 as(
 (SELECT sq.fy_timerange, sq.project_id as program, pd.name_vendor_filter as vendor, pd.name_country as region2, pd.partner_type 
  from profile_62491 sq
@@ -12,7 +11,7 @@ on sq.project_id=pd.project_id)
   left join ds_mysql_prod_tagelement t1
   on t1.id=partner_type)), 
   sub2 as(
-  select vendor, 
+  select case when program=1140839 then concat('Vendor:', s1.vendor) else s1.vendor end as vendor2,
 	--case when program=1140839 then 'Vendor' else partner_type end as partner,
 	case when region2 is null then Null else region2 end as region, fy_timerange
   from sub1 s1)
@@ -37,9 +36,19 @@ FROM profile_62972 data
 on t.id=data.country
 GROUP BY t.name, data.fy_timerange, data.vendor),
 sub8 as(
-  (select vendor, region, fy_timerange from sub2)
+  (select vendor2 as vendor, region, fy_timerange from sub2)
   union all
   (select vendor, region, fy_timerange from sub7))
-  select * from sub2
+  select * from sub8
+  /*
+  sub3 as(
+  select fy_timerange, partner, vendor2, listagg(distinct region, ',  ') as region from sub2
+  group by fy_timerange, partner,vendor2),
+  sub4 as(
+  select fy_timerange, partner, vendor2, region from sub3
+	--where 
+	--extract(year from cast(fy_timerange.start as date))<=2020 and position('Ethiopia' in region)!=0
+  )
+	select * from sub4*/
   
   
