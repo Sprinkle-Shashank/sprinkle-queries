@@ -14,7 +14,7 @@ on sq.project_id=pd.project_id)
   select vendor,
 	--case when program=1140839 then concat('Vendor:', s1.vendor) else s1.vendor end as vendor2,
 	--case when program=1140839 then 'Vendor' else partner_type end as partner,
-	case when region2 is null then Null else region2 end as region, fy_timerange
+	case when region2 is null then Null else region2 end as region, fy_timerange, 1 as count
   from sub1 s1)
   /*, 
   sub3 as(
@@ -31,15 +31,15 @@ on sq.project_id=pd.project_id)
   */
   ,
   sub7 as(
-	SELECT data.vendor, data.fy_timerange, t.name AS region
+	SELECT data.vendor, data.fy_timerange, t.name AS region, 1 as count
 FROM profile_62972 data
 	left join ds_mysql_prod_tagelement t
 on t.id=data.country
 GROUP BY t.name, data.fy_timerange, data.vendor),
 sub8 as(
-  (select vendor, region, fy_timerange from sub2)
+  (select vendor, region, fy_timerange, count from sub2)
   union all
-  (select vendor, region, fy_timerange from sub7))
+  (select vendor, region, fy_timerange, count from sub7))
   select * from sub8
   /*
   sub3 as(
