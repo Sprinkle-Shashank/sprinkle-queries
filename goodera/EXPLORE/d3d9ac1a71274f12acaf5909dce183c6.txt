@@ -1,0 +1,72 @@
+with temp as(
+  select 'country' as col
+  union all
+  select 'value' as col),
+sub1 as(
+select sq.*, pd.pvh_id, pd.offset_date, mr.partner_type, mr.name_vendor, mr.name_vendor_filter, rtrim(ltrim(json_serialize(ab.source_div),'['),']') as source_div, rtrim(ltrim(json_serialize(ab.region),'['),']') as region, ab.region_parent, ab.timeperiod_timerange, cast(sq.start_date as date) as start_date, cast(pd.offset_date as date) as offset_date
+from profile_62491 sq
+left join profile_62948 pd
+on sq.project_id=pd.project_id
+left join profile_62482 mr
+on mr.projectId=sq.projectId
+left join profile_60928 ab
+on ab.factory_id=pd.pvh_id
+where coalesce(lg_status,0)!=1105812 and pd.pvh_id is not null 
+  --and start_date >= nvl(offset_date,'2020-01-01')
+order by ab.timeperiod_timerange desc),
+sub2 as (
+  select projectId, name, fy_timerange, num_females, pvh_id, partner_type, name_vendor, name_vendor_filter, first_value(source_div)
+over(partition by projectId, name, fy_timerange, num_females, pvh_id, partner_type, name_vendor, name_vendor_filter
+order by cast(timeperiod_timerange.start as date) desc
+rows between unbounded preceding and unbounded following) as source_div_new, 
+	first_value(region)
+over(partition by projectId, name, fy_timerange, num_females, pvh_id, partner_type, name_vendor, name_vendor_filter
+order by cast(timeperiod_timerange.start as date) desc
+rows between unbounded preceding and unbounded following) as region_new
+from sub1 ), 
+sub3 as(
+	select projectId, name, fy_timerange, num_females, pvh_id, partner_type, name_vendor, name_vendor_filter,SPLIT_TO_ARRAY(source_div_new,',') as source_div, SPLIT_TO_ARRAY(region_new,',') as region from sub2
+  	  where source_div is not null and region is not null
+	group by projectId, name, fy_timerange, num_females, pvh_id, partner_type, name_vendor, name_vendor_filter, source_div_new, region_new),
+	  sub4 as(
+		select source_div, region, fy_timerange, sum(num_females) as num_females
+		from sub3
+		group by source_div, region, fy_timerange),
+			sub5 as(
+	  select fy_timerange, rtrim(ltrim(json_serialize(region),'["'),'"]') as region1, num_females, rtrim(ltrim(json_serialize(source_div),'["'),'"]') as source  from sub4 s2),
+	sub6 as
+	(
+	select fy_timerange, t.name as region, t1.name as source_div, num_females 
+	  from sub5
+	  left join ds_mysql_prod_tagelement t
+	  on t.id=region1
+	  left join ds_mysql_prod_tagelement t1
+		on t1.id=source), 
+		sub7 as (
+	select fy_timerange, region as value from sub6
+	group by fy_timerange, region),
+	sub8 as
+	(select s7.fy_timerange, s7.value, t.name as country
+	 from sub7 s7
+	 left join profile_62972 pd
+	 on s7.fy_timerange=pd.fy_timerange
+	 left join ds_mysql_prod_tagelement t
+	 on t.id=pd.country),
+	 sub9 as(
+	 select fy_timerange, t.col as t1, 
+	   case col when 'country' then s8.country
+	   when 'value' then s8.value end as region from sub8 s8
+	   cross join temp t),
+	   sub10 as(
+	   select fy_timerange, region from sub9
+		 where region is not null),
+		 sub11 as(
+		 select fy_timerange, listagg(distinct region,',') as region from sub10
+		   group by fy_timerange),
+		   sub12 as(
+		   select fy_timerange, region, case when extract(year from cast(fy_timerange.start as date))<2020 then (case when position('Ethiopia' in region)!=0 then 1 else 0 end) else regexp_count(region,',')+1 end as count from sub11),
+		   sub13 as(
+		   select * from sub12
+		   where count!=0
+)
+select * from sub8
