@@ -1,9 +1,13 @@
-with Base1 as(select f.name as fy_timerange,split_part(split_part(prod.name,'|',1),'.',1) as ProjectCode from profile_60787
-left join  ds_mysql_prod_project prod  on
-prod.id=projectid
-left join ds_mysql_prod_tagelement f 
-on fy=f.id),Base2 as(select fy_timerange,ProjectCode,f.name as Core_area from Base1 left join profile_27396 on
-ProjectCode=name
-left join ds_mysql_prod_tagelement f on 
-focus_area=f.id)
-select * from Base2 
+With Base1 as(select f.name as fy_timerange,case when p.renewal=430820 then split_part(m.name,'[',1) 
+when p.renewal=430822 then l.name
+end as ProjectCode,p.payment_amount as Total_Amount_Disbursted,p.amnt_utlzd as Amount_utilized,case when p.renewal=430820 then m.project_manager when p.renewal=430822 then l.project_manager end as ProjectManager
+from profile_27398 p
+left join profile_27420 m on
+p.project_renew=m._id
+left join profile_27396 l on
+p.project_name=l._id
+left join ds_mysql_prod_tagelement f on
+p.fy=f.id)
+select p.fy_timerange,p.ProjectCode,p.ProjectManager,sum(Total_Amount_Disbursted) as Total_Amount_Disbursted,sum(Amount_utilized) as Amount_utilized from Base1 p 
+--where --p.ProjectCode='P0320'
+group by p.ProjectCode,p.fy_timerange,p.ProjectManager
