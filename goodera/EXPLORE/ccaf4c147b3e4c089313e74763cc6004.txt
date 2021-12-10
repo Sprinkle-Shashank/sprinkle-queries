@@ -1,10 +1,15 @@
 with sub1 as(
-select fy_timerange, turnover, p1.project_id, turnover_1, p2.pvh_id, p3.timeperiod_timerange, rtrim(ltrim(json_serialize(p3.region),'['),']') as region
+select fy_timerange, turnover, p1.project_id, turnover_1, p2.pvh_id, p3.timeperiod_timerange, rtrim(ltrim(json_serialize(p3.region),'['),']') as region, 
+  case
+	when p4.projcode_factory like 'C%' or p4.projcode_factory like '%PVH' then 1 
+	else 0
+end as filter
 from profile_62491 p1
 left join profile_62948 p2
 on p1.project_id=p2.project_id
 left join profile_60928 p3
-on p2.pvh_id=p3.factory_id),
+on p2.pvh_id=p3.factory_id
+where filter=1 and start_date >= nvl(offset_date,'2020-01-01')),
 sub2 as(
   select fy_timerange, turnover, turnover_1, pvh_id,
   first_value(region)
