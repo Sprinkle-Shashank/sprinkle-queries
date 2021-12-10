@@ -15,9 +15,13 @@ sub3 as(
 select name, fy_timerange, absenteeism, absenteeism_1, efficiency, efficiency_1, turnover, turnover_1, promotions, promotions_1, pvh_id, region, timeperiod_timerange from sub2
  group by name, fy_timerange, absenteeism, absenteeism_1, efficiency, efficiency_1, turnover, turnover_1, promotions, promotions_1, pvh_id, region, timeperiod_timerange),
  sub4 as(
- select fy_timerange, pvh_id, t.name as region, efficiency
+ select fy_timerange, pvh_id, t.name as region, efficiency, extract(year from cast(timeperiod_timerange.start as date)) as year
    from sub3 
    left join ds_mysql_prod_tagelement t
    on t.id=region
- where pvh_id is not null and  efficiency is not null)
-   select * from sub4
+ where pvh_id is not null and  efficiency is not null),
+ sub5 as(
+   select fy_timerange, pvh_id, region, efficiency, year, p4.year_num from sub4
+   left join profile_64189 p4
+   on p4.year_text=year)
+   select fy_timerange, pvh_id, region, efficiency, year, year_num from sub5 where year_num>=2020
