@@ -1,28 +1,55 @@
-with term1 as (
-select a.projectid,a.age_13_to_14_years, a.age_15_to_16_years,a.age_17_to_18_years,a.age_above_18_years,a.age_unreported,a.region, b.date,b.location,d.name as state,e.code as mapcode, 
+with temp as (
+  select '13 to 14 years' as col
+  union all
+  select '15 to 16 years' as col
+  union all
+  select '17 to 18 years' as col
+  union all
+  select 'Above 18 years' as col
+  union all
+  select 'Age unreported' as col
+),
+	term1 as (
+select a.projectid,a.region, b.date,b.location,d.name as state,e.code as mapcode, 
 case 
   when (extract(month from b.date) <=3) then ('FY' || (extract(year from b.date)-1999))
   when (extract(month from b.date) >3) then ('FY'|| (extract(year from b.date)-1998))
-end as FY
+end as FY,temp.col as age_bucket
+case col
+when '13 to 14 years' then a.age_13_to_14_years
+when '15 to 16 years' then a.age_15_to_16_years
+when '17 to 18 years' then a.age_17_to_18_years
+when 'Above 18 years' then a.age_above_18_years
+when 'Age unreported' then a.age_unreported
+else Null end as beneficiaries
 from profile_75683 a
 left join profile_78503 b on a.school_reference = b._id
 left join ds_mysql_prod_tagelement c on c.id = b.location
 left join ds_mysql_prod_tagelement d on d.id = c.parent
 left join ds_mongo_reftagelementmetadata e
 on d.reftagelementmetadataid = e._id
+cross join temp
   ),
   term2 as (
-select a.projectid,a.age_13_to_14_years,a.age_15_to_16_years,a.age_17_to_18_years,a.age_above_18_years,a.age_unreported,a.region, b.date,b.location,d.name as state,e.code as mapcode,
+select a.projectid,a.region, b.date,b.location,d.name as state,e.code as mapcode,
 case 
   when (extract(month from b.date) <=3) then ('FY' || (extract(year from b.date)-1999))
   when (extract(month from b.date) >3) then ('FY'|| (extract(year from b.date)-1998))
-end as FY
+end as FY,temp.col as age_bucket
+case col
+when '13 to 14 years' then a.age_13_to_14_years
+when '15 to 16 years' then a.age_15_to_16_years
+when '17 to 18 years' then a.age_17_to_18_years
+when 'Above 18 years' then a.age_above_18_years
+when 'Age unreported' then a.age_unreported
+else Null end as beneficiaries
 from profile_77814 a
 left join profile_78503 b on a.school_reference = b._id
 left join ds_mysql_prod_tagelement c on c.id = b.location
 left join ds_mysql_prod_tagelement d on d.id = c.parent
 left join ds_mongo_reftagelementmetadata e
 on d.reftagelementmetadataid = e._id
+cross join temp
 	)
 	
 select * from term1
