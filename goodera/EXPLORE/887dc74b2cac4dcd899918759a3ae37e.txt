@@ -1,16 +1,16 @@
-select fac.name as factory,ven.name as Vendor, pr_46.name_country , to_char(start_date , 'YYYY') as year ,  to_char(start_date , 'Month') as month , sum(num_females) as num_females  from profile_4227 as pr_27 
+select name_country, cast(concat('FY ' ,start_year) as varchar) as start_year ,case when start_quarter=1 then '1st (Feb-Apr)'
+ when start_quarter=2 then '2nd (May-Jul)'
+  when start_quarter=3 then '3rd (Aug-Oct)'
+   when start_quarter=4 then '4th (Nov-Jan)'
+   else null end as start_quarter, num_females, lg_status, profile_54646.name_vendor, profile_54646.name_vendor_filter,
+CASE when profile_4227.projectid is not null
+then 1000000
+else 0
+end as target_count
 
-left join profile_54646 pr_46 
-on pr_27.projectid = pr_46.projectid
+from profile_4227
 
-left join ds_mysql_prod_project fac
-on pr_27.projectid = fac.id
+left join profile_54646 on 
+profile_4227.projectId = profile_54646.projectId
 
-left join ds_mysql_prod_project ven
-on fac.parent = ven.id
-
-
-where pr_46.name_country is not null and pr_27.type_program = 'Workplace Program' and fac.name ilike 'Factory%'
-
-
-group by pr_46.name_country , year , month , num_females , fac.name, ven.name
+where lg_status =848007 or lg_status is null and name_vendor is not NULL --and type_program is 'Workplace Program' 
