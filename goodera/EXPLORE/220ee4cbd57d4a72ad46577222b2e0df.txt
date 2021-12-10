@@ -13,5 +13,10 @@ order by cast(timeperiod_timerange.start as date) desc
 rows between unbounded preceding and unbounded following) as region from sub1),
 sub3 as(
   select fy_timerange, promotions, promotions_1, pvh_id, region from sub2
-  group by fy_timerange, promotions, promotions_1, pvh_id, region)
-  select * from sub3
+  group by fy_timerange, promotions, promotions_1, pvh_id, region),
+  sub4 as(
+  select fy_timerange, promotions, t.name as region, pvh_id from sub3
+	left join ds_mysql_prod_tagelement t
+   on t.id=region
+ where pvh_id is not null and  efficiency is not null)
+ select * from sub4
