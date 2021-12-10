@@ -1,67 +1,44 @@
-with temp as(
-Select 'Cubic Metres' as col
-  union all
-Select 'Litres' as col
+with temp as (
+Select 'Unit1' as col
+ union all
+Select 'Unit2' as col
 ),
 
-t2 as (
+temp2 as (
 Select 'watertype1' as col
-  union all
-  Select 'watertype2' as col
+ union all
+Select 'watertype2' as col
   union all
   Select 'watertype3' as col
-  union all
+ union all
   Select 'watertype4' as col
-  union all
-  Select 'watertype5' as col
-),
-s1 as (
-Select t.name as site, t1.name as sub_region,t2.name as region,  EXTRACT(YEAR FROM(CAST(startdate AS DATETIME ))) as year,
-  case 
-  when 1=1 then 'Ground Water' 
-  end as watertype1,
-  case 
-  when 1=1 then 'Utility Provided' end as watertype2,
-   case 
-  when 1=1 then  'Surface Water' end as watertype3,
-   case 
-  when 1=1 then  'NewWater Offsiten Recycled' end as watertype4,
-   case 
-  when 1=1 then  'Total Water Withdrawal' end as watertype5,
-	
-  
-  Sum(CASE 
-             WHEN keyword = 'total_campus_hours_worked' THEN cast(datanum as decimal(20,10))/(1/cast(conversionfactor as decimal(20,10)))
-             ELSE 0 
-           END) AS normalization_factor ,
-fy_timerange,case col
- when 'Cubic Metres' then 'Cubic Metres'
- when 'Litres' then 'Litres'
- else null
- end as unit
-
-from sus_56999
-cross join temp
-left join ds_mysql_prod_project t
-on xprojectid=t.id
-left join ds_mysql_prod_project t1
-on t.parent=t1.id
-left join ds_mysql_prod_project t2
-on t2.parent=t2.id
-where keyword = 'total_campus_hours_worked' and xprojectid != '47608'
-group by t.name,t1.name,t2.name,fy_timerange,temp.col,startdate
-),
-s2 as (Select s1.site,s1.fy_timerange, s1.region,s1.year,(s1.normalization_factor)/100 as normalization_factor,s1.unit,
-max( case col
- 		when 'watertype1' then s1.watertype1
-		when 'watertype2' then s1.watertype2
-		when 'watertype3' then s1.watertype3
-		when 'watertype4' then s1.watertype4
-		when 'watertype5' then s1.watertype5
-		end )as Water_Type
-		
-from s1
-cross join t2
-group by s1.site, s1.region,t2.col,s1.normalization_factor,s1.year,s1.unit,s1.fy_timerange
+ union all
+Select 'watertype5' as col
 )
-Select * from s2
+
+,
+s1 as (Select t.name as site,t2.name as Region,fy_timerange,
+sum(datanumBAse/100)normalization_factor,EXTRACT(YEAR FROM(CAST(startdate AS DATETIME ))) as year,
+		   from sus_56999
+		   left join ds_mysql_prod_project t
+  on xprojectid=t.id
+  left join ds_mysql_prod_project t1
+  on t.parent=t1.id
+  left join ds_mysql_prod_project t2
+  on t1.parent=t2.id
+		   where keyword ='total_campus_hours_worked' and site !=47608
+group by t.name,t2.name,fy_timerange
+			
+)
+  Select  s1.site,s1.Region,s1.fy_timerange,
+  case col
+	when 'watertype1' then 'Ground Water'
+	when 'watertype2' then 'Utility Provided'
+  when 'watertype3' then 'Surface Water'
+  when 'watertype4' then 'NewWater_Offsite Recycled'
+  when 'watertype5' then 'Total Water Withdrawal'
+	else null
+	end  as water_type
+  from s1
+cross join temp2
+  
