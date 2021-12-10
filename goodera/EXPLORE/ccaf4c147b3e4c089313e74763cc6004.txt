@@ -1,0 +1,26 @@
+with sub1 as(
+select fy_timerange, turnover, p1.project_id, turnover_1, p2.pvh_id, p3.timeperiod_timerange, rtrim(ltrim(json_serialize(p3.region),'['),']') as region
+from profile_62491 p1
+left join profile_62948 p2
+on p1.project_id=p2.project_id
+left join profile_60928 p3
+on p2.pvh_id=p3.factory_id),
+sub2 as(
+  select fy_timerange, turnover, turnover_1, pvh_id,
+  first_value(region)
+over(partition by fy_timerange, turnover, turnover_1, pvh_id
+order by cast(timeperiod_timerange.start as date) desc
+rows between unbounded preceding and unbounded following) as region from sub1),
+sub3 as(
+  select fy_timerange, turnover, turnover_1, pvh_id, region from sub2
+  group by fy_timerange, turnover, turnover_1, pvh_id, region),
+  sub4 as(
+  select fy_timerange, turnover, t.name as region, pvh_id, extract(year from cast(fy_timerange.start as date)) as year from sub3
+	left join ds_mysql_prod_tagelement t
+   on t.id=region
+ where pvh_id is not null and  turnover is not null),
+  sub5 as(
+   select fy_timerange, pvh_id, region, turnover, year, p4.year_num from sub4
+   left join profile_64189 p4
+   on p4.year_text=year)
+   select fy_timerange, pvh_id, region, turnover from sub5 where year_num>=2020
