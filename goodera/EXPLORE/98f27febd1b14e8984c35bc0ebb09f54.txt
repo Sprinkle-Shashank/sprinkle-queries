@@ -1,0 +1,13 @@
+with sub1 as(
+select p1.*,p2.pvh_id, p3.factory_id from profile_62491
+left join profile_62948 p2
+on p1.project_id=p2.project_id
+left join profile_60928 p3
+on p2.pvh_id=p3.factory_id),
+  sub2 as(
+	select name, fy_timerange, absenteeism, absenteeism_1, efficiency, efficiency_1, turnover, turnover_1, promotions, promotions_1, pvh_id, region, 
+	first_value(timperiod_timerange)
+over(partition by name, fy_timerange, absenteeism, absenteeism_1, efficiency, efficiency_1, turnover, turnover_1, promotions, promotions_1, pvh_id, region
+order by cast(timeperiod_timerange.start as date) desc
+rows between unbounded preceding and unbounded following) as timeperiod_timerange from sub1)
+select * from sub2
