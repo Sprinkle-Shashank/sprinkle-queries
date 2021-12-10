@@ -6,14 +6,14 @@ on p1.project_id=p2.project_id
 left join profile_60928 p3
 on p2.pvh_id=p3.factory_id),
 sub2 as(
-  select fy_timerange, turnover, turnover_1, pvh_id,
+  select fy_timerange, turnover, turnover_1, pvh_id, timeperiod_timerange,
   first_value(region)
 over(partition by fy_timerange, turnover, turnover_1, pvh_id
 order by cast(timeperiod_timerange.start as date) desc
 rows between unbounded preceding and unbounded following) as region from sub1),
 sub3 as(
-  select fy_timerange, turnover, turnover_1, pvh_id, region from sub2
-  group by fy_timerange, turnover, turnover_1, pvh_id, region),
+  select fy_timerange, turnover, turnover_1, pvh_id, region, timeperiod_timerange from sub2
+  group by fy_timerange, turnover, turnover_1, pvh_id, region, timeperiod_timerange),
   sub4 as(
   select fy_timerange, turnover, t.name as region, pvh_id, extract(year from cast(fy_timerange.start as date)) as year from sub3
 	left join ds_mysql_prod_tagelement t
