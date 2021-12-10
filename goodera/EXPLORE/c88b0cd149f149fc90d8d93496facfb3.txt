@@ -1,5 +1,27 @@
-select p.f_reg_date ||'|'|| p.f_reg_date as fy_timerange, project.name as projectid, p.f_category, p.search_status, t.name as clinic_type , count(p.s_clinic_type) as final_sum from profile_59462 p
-left join ds_mysql_prod_tagelement t on p.s_clinic_type = t.id
-left join ds_mysql_prod_project project on p.projectid = project.id
+with test1 as(
+select p.f_reg_date ||'|'|| p.f_reg_date as fy_timerange, p.projectid, p.f_category, p.search_status, p.s_clinic_type as clinic_type , count(p.s_clinic_type) as final_sum from profile_59462 p
 where p.f_category != '' and p.f_category is not null
 group by 1,2,3,4,5
+  
+  union all
+  
+select concat(cast(fy_timerange.start as varchar), concat('|', cast(fy_timerange.end as varchar))) as fy_timerange, p.projectid, 'Allied' as f_category, 'NEW' as search_status, p.clinic_type, sum(new_truckers) as final_sum from profile_63885 p group by 1,2,3,4,5 
+union all
+select concat(cast(fy_timerange.start as varchar), concat('|', cast(fy_timerange.end as varchar))) as fy_timerange, p.projectid, 'Allied' as f_category, 'REVISIT' as search_status, p.clinic_type, sum(old_truckers) as final_sum from profile_63885 p group by 1,2,3,4,5
+  
+  union all
+  
+select concat(cast(fy_timerange.start as varchar), concat('|', cast(fy_timerange.end as varchar))) as fy_timerange, p.projectid, 'Trucker' as f_category, 'NEW' as search_status, p.clinic_type, sum(new_allied) as final_sum from profile_63885 p group by 1,2,3,4,5 
+union all
+select concat(cast(fy_timerange.start as varchar), concat('|', cast(fy_timerange.end as varchar))) as fy_timerange, p.projectid, 'Trucker' as f_category, 'REVISIT' as search_status, p.clinic_type, sum(old_allied) as final_sum from profile_63885 p group by 1,2,3,4,5
+)
+
+
+select p.fy_timerange, t.name as projectid, p.f_category, p.search_status, c.name as clinic_type, sum(final_sum) as final_sum
+from test1 p
+left join ds_mysql_prod_project as t on t.id = p.projectid
+left join ds_mysql_prod_tagelement c on p.clinic_type = c.id
+group by 1,2,3,4,5 
+
+
+
