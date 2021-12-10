@@ -6,7 +6,7 @@ Select 'Litres' as col
 s1 as (
 Select t.name as site,t1.name as sub_Region,t2.name as Region,fy_timerange,t3.name as Month,len(t3.name) as Month_Length,t4.name as fin_q,t5.name as fin_hy,t6.name as fin_y,EXTRACT(YEAR FROM(CAST(startdate AS datetime))) as year,
 	   (Month_length-7) as month_length1,substring(Month,1,month_length1) as Monthly,
-cast(datanum as decimal(20,10))/(1/cast(conversionfactor as decimal(20,10))) as cubic_metres,(cubic_metres*1000) as Litres,
+datanumBase as cubic_metres,(cubic_metres*1000) as Litres,
 sum(case col
  when 'Cubic Metres' then cubic_metres
  when 'Litres' then Litres
@@ -30,10 +30,10 @@ cross join temp
   on t5.parent=t6.id
 
 where keyword ='total_water_usage'  and year=2019
-group by t.name,t1.name,t2.name,fy_timerange,t3.name,t4.name,t5.name,t6.name,startdate,datanum,conversionfactor,temp.col
+group by t.name,t1.name,t2.name,fy_timerange,t3.name,t4.name,t5.name,t6.name,startdate,datanumBase,temp.col
 ),
 s2 as (
- Select  s1.site,s1.sub_Region,s1.Month,s1.Month_length,s1.Month_length1,s1.Monthly,s1.fin_q,s1.fin_hy,s1.fin_y,s1.Region,s1.year,s1.fy_timerange,(s1.water_m/12) as water_m
+ Select  s1.site,s1.sub_Region,s1.Month,s1.Month_length,s1.Month_length1,s1.Monthly,s1.fin_q,s1.fin_hy,s1.fin_y,s1.Region,s1.year,s1.fy_timerange,s1.water_m
   from s1
 
 )
