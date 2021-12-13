@@ -1,4 +1,8 @@
-with table1 as (select pro.name as projectId, p.target_2014, p.target_2015, p.target_2016, p.target_2017, p.target_2018, p.target_2019, p.target_2020, p.target_2021, p.target_2022, num_females,lg_status,type_program as select_modules,profile_54646.name_vendor,profile_54646.name_country, profile_54646.name_vendor_filter,cast(concat('FY ' ,start_year) as varchar) as start_year ,case when start_quarter=1 then '1st (Feb-Apr)'
+with table1 as (select pro.name as projectId, p.target_2014, p.target_2015, p.target_2016, p.target_2017, p.target_2018, p.target_2019, p.target_2020, p.target_2021, p.target_2022,
+nvl2(p.partner_type = 64733, p.vendor_name,nvl2(p.partner_type = 64734,p.community_partner,null)) as org_name,
+nvl2(p.partner_type = 64733, p.vendor_id,p.community_partner_id) as org_id, num_females,lg_status,type_program,
+--,t1.start_quarter, t1.start_year,  t1., t1.num_females_graduated, t1.lg_status, ,t1.select_modules,
+profile_54646.name_vendor,profile_54646.name_country, profile_54646.name_vendor_filter,cast(concat('FY ' ,start_year) as varchar) as start_year ,case when start_quarter=1 then '1st (Feb-Apr)'
  when start_quarter=2 then '2nd (May-Jul)'
   when start_quarter=3 then '3rd (Aug-Oct)'
    when start_quarter=4 then '4th (Nov-Jan)'
@@ -15,61 +19,40 @@ pro.name = profile_54646.name_vendor
 LEFT JOIN profile_4227 ON 
 profile_54646.projectId = profile_4227.projectId ), 
 temp as (
-  select 'FY 2007' as C
+  select 'target_2014' as C
   Union all 
-  select 'FY 2008' as C
-  Union all 
-  select 'FY 2009'as C
-  Union all 
-  select 'FY 2010'as C
-  Union all 
-  select 'FY 2011'as C
-  Union all 
-  select 'FY 2012'as C
-  Union all 
-  select 'FY 2013' as C
-  Union all 
-  select 'FY 2014' as C
-  Union all 
-  select 'FY 2015' as C
+  select 'target_2015' as C
   Union all
-  select 'FY 2016' as C
+  select 'target_2016' as C
    Union all
-  select 'FY 2017' as C
+  select 'target_2017' as C
    Union all
-  select 'FY 2018' as C
+  select 'target_2018' as C
    Union all
-  select 'FY 2019' as C
+  select 'target_2019' as C
    Union all
-  select 'FY 2020' as C
+  select 'target_2020' as C
    Union all
-  select 'FY 2021' as C
+  select 'target_2021' as C
    Union all
-  select 'FY 2021' as C
+  select 'target_2022' as C
   )
-select projectId, num_females,lg_status, select_modules, name_vendor, name_country, name_vendor_filter, start_year , start_quarter, Sum(Case C
-	When 'FY 2007' then 0
-	When 'FY 2008' then 0
-	When 'FY 2009' then 0
-	When 'FY 2010' then 0
-	When 'FY 2011' then 0
-	When 'FY 2012' then 0
-	When 'FY 2013' then 0
-	When 'FY 2014' then t2.target_2014
-	When 'FY 2015' then t2.target_2015
-	When 'FY 2016' then t2.target_2016
-	When 'FY 2017' then t2.target_2017
-	When 'FY 2018' then t2.target_2018
-	When 'FY 2019' then t2.target_2019
-	When 'FY 2020' then t2.target_2020
-	When 'FY 2021' then t2.target_2021
-	When 'FY 2022' then t2.target_2022
+select projectId, org_name, org_id, num_females,lg_status,type_program, name_vendor, name_country, name_vendor_filter, start_year , start_quarter, Sum(Case C
+	When 'target_2014' then t2.target_2014
+	When 'target_2015' then t2.target_2015
+	When 'target_2016' then t2.target_2016
+	When 'target_2017' then t2.target_2017
+	When 'target_2018' then t2.target_2018
+	When 'target_2019' then t2.target_2019
+	When 'target_2020' then t2.target_2020
+	When 'target_2021' then t2.target_2021
+	When 'target_2022' then t2.target_2022	
 	Else Null
 END) as values , temp.C as dimensions 
 from table1 t2
 
 CROSS JOIN temp 
 
-where coalesce(lg_status, 0) <> 848008 and name_vendor is not null
+where coalesce(lg_status, 0) <> 848008 and org_name is not null
 
-group by projectId, num_females,lg_status, select_modules, name_vendor, name_country, name_vendor_filter, start_year , start_quarter, temp.C
+group by projectId, org_name, org_id, num_females,lg_status,type_program, name_vendor, name_country, name_vendor_filter, start_year , start_quarter, temp.C
