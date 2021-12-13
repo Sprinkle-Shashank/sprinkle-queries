@@ -57,7 +57,11 @@ s2 as (
   from s1
 ),
 s3 as (
-Select s2.site,s2.sub_Region,s2.Region,s2.year,s2.fy_timerange,temp.col as Energy_type,
+Select s2.site,s2.sub_Region,s2.Region,s2.year,s2.fy_timerange,
+   case temp.col
+   	when 'Electricity-Utility Provider and Solar' then  'Electricity-Utility Provider'
+  else temp.col
+ 	end as Energy_type,
   case col
   	when 'Electricity_Utility_Provider' then s2.Electricity_Utility_Provider
  	when 'Propane' then s2.propane
@@ -78,7 +82,8 @@ Select s3.site,s3.Region,s3.fy_timerange,s3.year,temp2.col as unit,
   when 'GJ' then s3.kwh
   when 'kwh' then s3.kwh
 	 else 0
-	  end ) as Energy_cost,s3.Energy_type
+	  end ) as Energy_cost,
+  s3.Energy_type
   from s3
   cross join temp2
   group by s3.site,s3.Region,s3.fy_timerange,s3.Energy_type,temp2.col,s3.year
