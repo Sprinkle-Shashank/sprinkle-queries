@@ -7,16 +7,17 @@ with temp as(
   Select 'training_conducted' as col
 )
 Select p1.name as projectId, fy_timerange, fellow_name, gender, topics_covered, fellow_age, training_conducted,
-total_hours,p1.name as location_filter,
+total_hours,p1.name as location_filter,temp.col as  Dimensions
 sum(case col
 	when 'topics_covered' then sq.topics_covered
 	when 'total_hours' then sq.total_hours
 	when 'training_conducted' then sq.training_conducted
 end) as Values
 FROM profile_75007 sq
+  cross join temp
 left join ds_mysql_prod_project p1
 ON sq.projectId=p1.id
 )
 Select p1.name as projectId, fy_timerange, fellow_name, gender, topics_covered, fellow_age, training_conducted,
-total_hours,split_part(location_filter ,'-',3) as location_filter
+total_hours,split_part(location_filter ,'-',3) as location_filter,Dimensions
 from s1
