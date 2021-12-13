@@ -1,9 +1,12 @@
-with table1 as(Select class,cast (attendance as float) as x,num_enrolled_class as y,(x/y)*100 as percentage, p.projectId,mdl_parent.name as module,md_nme.name as module1,profile_54646.name_vendor as vendor,profile_54646.name_country as country,profile_54646.name_rp as regional_partner,profile_54646.name_factory as locations,profile_54646.projcode_factory as codes from profile_4228 p
+with table1 as(Select class,cast (attendance as float) as x,num_enrolled_class as y,(x/y)*100 as percentage, p.projectId,mdl_parent.name as module,md_nme.name as module1
+			   --profile_54646.name_vendor as vendor,profile_54646.name_country as country,
+			   --profile_54646.name_rp as regional_partner,profile_54646.name_factory as locations,profile_54646.projcode_factory as codes
+			   from profile_4228 p
 
 
 
-left join profile_54646  on 
-p.projectId= profile_54646.projectId
+--left join profile_54646  on 
+--p.projectId= profile_54646.projectId
 
 left join ds_mysql_prod_tagelement md_nme
 on p.module_name = md_nme.id
@@ -17,7 +20,9 @@ on p.pre_post_yn = pre_yn.id
 
 
 where  vendor is not null and  codes like 'CP%' and mdl_parent.name in ('Academic','Community','Leadership','Vocational School','Younger Girls','Older Girls')
-group by class,p.projectid,mdl_parent.name ,md_nme.name ,profile_54646.name_vendor ,profile_54646.name_country,profile_54646.name_factory,profile_54646.name_rp,profile_54646.projcode_factory,x,y,percentage
+group by class,p.projectid,mdl_parent.name ,md_nme.name, 
+			   --profile_54646.name_vendor ,profile_54646.name_country,profile_54646.name_factory,profile_54646.name_rp,profile_54646.projcode_factory,
+			   x,y,percentage
 ),
 
 table2 as(Select _id,cast(concat('FY ' ,start_year) as varchar) as start_year, start_quarter as start_quarter_new ,case when start_quarter=1 then '1st (Feb-Apr)'
@@ -27,7 +32,9 @@ table2 as(Select _id,cast(concat('FY ' ,start_year) as varchar) as start_year, s
    else null end as start_quarter,p2.projectId
    from profile_4227 p2
 )
-Select module,module1,vendor,country,locations,regional_partner,codes,x,y,percentage,t2.start_year,t2.start_quarter from table1 t1
+Select module,module1,
+--vendor,country,locations,regional_partner,codes,
+x,y,percentage,t2.start_year,t2.start_quarter from table1 t1
 
 
 
@@ -39,6 +46,9 @@ t1.class= t2._id
 where start_quarter is not null and start_year is not null 
 -- and module1 not ilike'%Essential%' 
 --and module in ('Academic','Community','Leadership','Vocational School','Younger Girls','Older Girls')
-group by vendor,country,module,module1,start_year,start_quarter,locations,regional_partner,codes,x,y,percentage
+group by --vendor,country,
+module,module1,start_year,start_quarter,
+--locations,regional_partner,codes,
+x,y,percentage
 
 
