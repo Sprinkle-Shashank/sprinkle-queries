@@ -1,0 +1,53 @@
+with table1 as(Select select_modules,count(select_modules) as modules,p._id,cast(concat('FY ' ,start_year) as varchar) as start_year, start_quarter as start_quarter_new ,case when start_quarter_new=1 then '1st (Feb-Apr)'
+ when start_quarter_new=2 then '2nd (May-Jul)'
+  when start_quarter_new=3 then '3rd (Aug-Oct)'
+   when start_quarter_new=4 then '4th (Nov-Jan)'
+   else null end as start_quarter,start_date,profile_54646.name_vendor as vendor,profile_54646.name_country as country,profile_54646.name_rp as regional_partner,profile_54646.name_factory as locations,profile_54646.projcode_factory as code,lg_status,num_females,num_females_graduated,num_females_dropout,
+
+CASE WHEN end_date_2 
+is not 
+null 
+then 'Completed' 
+else 'Ongoing' 
+end as Batch_status,
+CASE WHEN end_date_2 
+is not null
+then end_date_2
+else 
+end_date 
+end as End_Date
+
+ from profile_4227 p
+
+LEFT JOIN profile_54646 ON
+p.projectId = profile_54646.projectId
+
+
+where vendor is not null and code ILIKE '%CP%' 
+and (lg_status is null or lg_status = 848007),
+table2 as (select t1.*,CAST(select_module as int) from table1 t1,t1.select_modules select_module,count(select_module) as modules
+
+),
+table3 as(Select _id,select_module,start_year,end_date_2,start_quarter,country,vendor,regional_partner,locations,code,lg_status,end_date,num_females,num_females_graduated,num_females_dropout,modules,start_date,Batch_status,End_Date from table2
+
+where select_module in
+('64504','70914','70905','70906','70916','70946','70915','70917','70933','70949','70947','70899','459391','459394','459395') or
+select_module in ('64506','70928','70920','70898','70908','70907','70942','70936','70904','70918','70924','70923','459392','459393','459397')	or
+select_module in 
+('64507','70937','70944','70930','70931','70950','70929','70921','70932','70934','70948','70938','459396','459398','459399') or
+select_module in 
+('64508')
+or
+select_module in 
+('64509','70925','70927','70943','70939','70940')
+or 
+select_module in
+('70317','70919','70922','70926','70935','70945') 
+ )
+ ,
+ table4 as(select _id,listagg(select_module,','),start_date,start_year,end_date_2,start_quarter,country,vendor,regional_partner,locations,code,lg_status,end_date,num_females,num_females_graduated,num_females_dropout,modules,start_date,Batch_status,End_Date from table3
+
+group by _id,start_year,end_date_2,end_date,start_quarter,country,regional_partner,locations,code,lg_status,end_date,num_females,num_females_graduated,num_females_dropout,modules,start_date,vendor,Batch_status,End_Date)
+select  _id, start_year,start_quarter,country,vendor,end_date_2,end_date,regional_partner,locations,code,lg_status,end_date,num_females,num_females_graduated,num_females_dropout,modules,start_date,vendor,Batch_status,End_Date from table4
+
+
