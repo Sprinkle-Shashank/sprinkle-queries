@@ -1,27 +1,39 @@
-with table1 as 
-(
-  select projectId,cast(concat('FY ' ,start_year) as varchar) as start_year ,case when start_quarter=1 then '1st (Feb-Apr)'
+--with table1 as (
+ select start_quarter, start_year,  num_females, num_females_graduated, lg_status, profile_54646.name_vendor,profile_54646.name_country, profile_54646.name_vendor_filter,select_modules , select_modules, p.target_2014, p.target_2015, p.target_2016, p.target_2017, p.target_2018, p.target_2019, p.target_2020, p.target_2021, p.target_2022, cast(concat('FY ' ,start_year) as varchar) as start_year ,case when start_quarter=1 then '1st (Feb-Apr)'
  when start_quarter=2 then '2nd (May-Jul)'
   when start_quarter=3 then '3rd (Aug-Oct)'
    when start_quarter=4 then '4th (Nov-Jan)'
-   else null end as start_quarter,  num_females,num_females_graduated, lg_status, select_modules 
+   else null end as start_quarter, num_females, lg_status, type_program as select_modules
 FROM profile_4227 
+  
+LEFT JOIN profile_54646 ON
+profile_4227.projectId = profile_54646.projectId
+  
+left join ds_mysql_prod_project pro
+on profile_4579.projectid = pro.id
 
-
+LEFT JOIN profile_4579 ON
+profile_54646.name_vendor = pro.name
+/* ), temp as (
+  
+  select 'ongoing' as C
+  Union all 
+  select 'graduated' as C
+  Union all
+  select 'dropout' as C
   )
-  , table2 as 
-  (
-	select tab1.*,c from table1 as tab1, tab1.select_modules c
-)
-select start_quarter, start_year,  num_females, num_females_graduated, lg_status, profile_54646.name_vendor,profile_54646.name_country, profile_54646.name_vendor_filter,select_modules ,
-CASE when tab2.c in (64503,70912,70941,70900,70910,70913,70909,70903,70901,70902,70911,264682,264684,264683) then 'Workplace Program'
- when tab2.c in (64504,70914,70905,70906,70916,70946,70915,70917,70933,70949,70899,70949,459391,459394,459395) then 'Community'
- when tab2.c in (64506,70928,70920,70898,70908,70907,70942,70936,70904,70918,70924,70923,459392,459393,459397) then 'Academic'
- when tab2.c in (64507,70937,70944,70930,70931,70950,70929,70921,70932,70934,70948,70938,459396,459398,459399) then 'Vocational School'
- when tab2.c in (64508) then 'Leadership'
-else 'Girls Program'
-end as select_modules_1,
-p.target_2014, p.target_2015, p.target_2016, p.target_2017, p.target_2018, p.target_2019, p.target_2020, p.target_2021, p.target_2022
+
+select t2.projectId, start_quarter, start_year, lg_status,name_vendor, name_country, name_vendor_filter,select_modules,
+  Sum(Case C
+	When 'ongoing' then t2.ongoing 
+	when 'graduated' then t2.graduated 
+	When 'dropout' then t2.dropout 
+	Else Null
+END) as values , temp.C as dimensions 
+from table2 t2
+
+CROSS JOIN temp 
+select start_quarter, start_year,  num_females, num_females_graduated, lg_status, profile_54646.name_vendor,profile_54646.name_country, profile_54646.name_vendor_filter,select_modules , select_modules, p.target_2014, p.target_2015, p.target_2016, p.target_2017, p.target_2018, p.target_2019, p.target_2020, p.target_2021, p.target_2022
 from table2 as tab2
 
 LEFT JOIN profile_54646 ON
@@ -31,4 +43,4 @@ LEFT JOIN profile_4579 p ON
 tab2.projectId = p.projectId
   
 
-group by  start_quarter, start_year,  num_females,num_females_graduated, lg_status, p.target_2014 ,p.target_2015,p.target_2016 ,p.target_2017, p.target_2018,p.target_2019 , p.target_2020 , p.target_2021 , p.target_2022,profile_54646.name_vendor,profile_54646.name_country, profile_54646.name_vendor_filter,select_modules,select_modules_1
+group by  start_quarter, start_year,  num_females,num_females_graduated, lg_status, p.target_2014 ,p.target_2015,p.target_2016 ,p.target_2017, p.target_2018,p.target_2019 , p.target_2020 , p.target_2021 , p.target_2022,profile_54646.name_vendor,profile_54646.name_country, profile_54646.name_vendor_filter,select_modules,select_modules_1 */
