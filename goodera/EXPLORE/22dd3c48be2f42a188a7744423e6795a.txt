@@ -3,6 +3,13 @@ Select 'Tons' as col
   union all
 Select 'Kilograms' as col
 ),
+temp2 as(
+Select 'Hazardous and Regulated Waste' as col
+  union all
+Select 'Non-Hazardous Waste' as col
+    union all
+Select 'Total Waste Generated' as col
+),
 s1 as (
 Select t.name as site,t1.name as sub_Region,t2.name as Region,t4.name as fin_q,t5.name as fin_hy,t6.name as fin_y,EXTRACT(YEAR FROM(CAST(startdate AS datetime))) as year, fy_timerange,Sum(CASE 
              WHEN keyword = 'total_campus_hours_worked' THEN datanumBase
@@ -38,4 +45,18 @@ case col
   from s1
   cross join temp
 )
- Select s2.site,s2.Region,s2.year,s2.Unit,s2.Hours/100 as Hours,s2.fy_timerange from s2
+,
+s3 as (
+ Select s2.site,s2.Region,s2.year,s2.Unit,s2.fy_timerange ,temp2.col as waste_type
+  case col
+  when 'Hazardous and Regulated Waste' then s2.Hours
+  when 'Non-Hazardous Waste' then s2.Hours
+  when 'Total Waste Generated' then s2.Hours
+  end as hours_worked
+  
+  from s2
+  cross join temp
+  )
+  
+  Select s3.site,s3.Region,s3.year,s3.Unit,s3.fy_timerange ,s3.waste_type,(s3.hours_worked/100) hours_worked
+  from s3
