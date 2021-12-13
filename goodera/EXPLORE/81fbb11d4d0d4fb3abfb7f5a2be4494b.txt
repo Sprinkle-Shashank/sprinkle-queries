@@ -4,7 +4,7 @@ Select 'Cubic Metres' as col
 Select 'Litres' as col
 ),
 s1 as (
-Select t.name as timerange,fy_tieerange,t1.name as site, t2.name as sub_region,t3.name as region,
+Select t.name as timerange,fy_timerange,t1.name as site, t2.name as sub_region,t3.name as region,
 CASE 
              WHEN keyword = 'water_usage_onsite_recycled' THEN datanumBase
              ELSE 0 
@@ -25,11 +25,11 @@ on t1.parent=t2.id
 left join ds_mysql_prod_project t3
 on t2.parent=t3.id
 where keyword in ('water_usage_onsite_recycled','total_water_usage')
-group by t.name,t1.name,t3.name,t2.name,datanumBase,keyword
+group by t.name,t1.name,t3.name,t2.name,datanumBase,keyword,fy_timerange
 )
 
 
-Select s1.site, s1.Region, s1.timerange,temp.col as unit,
+Select s1.site, s1.Region, s1.timerange,temp.col as unit,s1.fy_timerange,
 sum(case col
  when 'Cubic Metres' then (s1.water_usage_onsite_recycled+s1.total_water_usage)
  when 'Litres' then (s1.water_usage_onsite_recycled+s1.total_water_usage)*1000
@@ -37,5 +37,5 @@ sum(case col
  end )as total_water_usage_c
  from s1
  cross join temp
- group by  s1.site, s1.Region,  s1.timerange,temp.col,fy_tieerange
+ group by  s1.site, s1.Region,  s1.timerange,temp.col,s1.fy_timerange
  --s1.water_usage_onsite_recycled,s1.total_water_usage
