@@ -1,4 +1,4 @@
-select pro.name as projectId, p.target_2014, p.target_2015, p.target_2016, p.target_2017, p.target_2018, p.target_2019, p.target_2020, p.target_2021, p.target_2022,
+with table1 as (select pro.name as projectId, p.target_2014, p.target_2015, p.target_2016, p.target_2017, p.target_2018, p.target_2019, p.target_2020, p.target_2021, p.target_2022,
 nvl2(p.partner_type = 64733, p.vendor_name,nvl2(p.partner_type = 64734,p.community_partner,null)) as org_name,
 nvl2(p.partner_type = 64733, p.vendor_id,p.community_partner_id) as org_id, num_females,
 --,t1.start_quarter, t1.start_year,  t1., t1.num_females_graduated, t1.lg_status, ,t1.select_modules,
@@ -17,4 +17,40 @@ LEFT JOIN profile_54646 ON
 pro.name = profile_54646.name_vendor
 
 LEFT JOIN profile_4227 ON 
-profile_54646.projectId = profile_4227.projectId
+profile_54646.projectId = profile_4227.projectId ), 
+temp as (
+  select 'target_2014' as C
+  Union all 
+  select 'target_2015' as C
+  Union all
+  select 'target_2016' as C
+   Union all
+  select 'target_2017' as C
+   Union all
+  select 'target_2018' as C
+   Union all
+  select 'target_2019' as C
+   Union all
+  select 'target_2020' as C
+   Union all
+  select 'target_2021' as C
+   Union all
+  select 'target_2022' as C
+  )
+select projectId, org_name, org_id, num_females, name_vendor, name_country, name_vendor_filter, start_year , start_quarter, Sum(Case C
+	When 'target_2014' then t2.target_2014
+	When 'target_2015' then t2.target_2015
+	When 'target_2016' then t2.target_2016
+	When 'target_2017' then t2.target_2017
+	When 'target_2018' then t2.target_2018
+	When 'target_2019' then t2.target_2019
+	When 'target_2020' then t2.target_2020
+	When 'target_2021' then t2.target_2021
+	When 'target_2022' then t2.target_2022	
+	Else Null
+END) as values , temp.C as dimensions 
+from table1 t2
+
+CROSS JOIN temp 
+
+where coalesce(lg_status, 0) <> 848008 and name_vendor is not null
