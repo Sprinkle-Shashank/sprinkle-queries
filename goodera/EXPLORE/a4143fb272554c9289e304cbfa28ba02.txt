@@ -1,16 +1,22 @@
-With Base1 as(select f.name as fy_timerange,case when p.renewal=430820 then split_part(m.name,'[',1) 
-when p.renewal=430822 then l.name
-end as ProjectCode,p.payment_amount as Total_Amount_Disbursted,p.amnt_utlzd as Amount_utilized,case when p.renewal=430820 then m.project_manager when p.renewal=430822 then l.project_manager end as ProjectManager,case when p.renewal=430820 then m.focus_area when p.renewal=430822 then fc.name end as Core
-from profile_27398 p
-left join profile_27420 m on
-p.project_renew=m._id
-left join profile_27396 l on
-p.project_name=l._id
+with Base1 as(select p.brief,p.vision_and_mission,o.name as Org_type,p.reg_number as Org_reg_num,p.registration_date,p.pan,t.name as Tax_Exemption,a.name as agenda,p.name as IA,case when p._id is not null then 'New Project' end as Type_of_Project,f.name as fy_timerange from profile_27395 p
 left join ds_mysql_prod_tagelement f on
 p.fy=f.id
-			left join ds_mysql_prod_tagelement fc on
-l.focus_area=fc.id
-			 )
-select p.fy_timerange,p.ProjectCode,p.Core,p.ProjectManager,sum(Total_Amount_Disbursted) as Total_Amount_Disbursted,sum(Amount_utilized) as Amount_utilized from Base1 p 
---where --p.ProjectCode='P0320'
-group by p.ProjectCode,p.fy_timerange,p.ProjectManager,p.Core
+left join ds_mysql_prod_tagelement o on
+p.org_type=o.id
+left join ds_mysql_prod_tagelement t on
+p.tax_exemption_2=t.id
+left join ds_mysql_prod_tagelement a on
+p.spriritual_agenda=a.id
+union all
+select l.brief,l.vision_and_mission,o.name as Org_type,p.reg_number as Org_reg_num,l.registration_date,p.pan,t.name as Tax_Exemption,a.name as agenda,l.name as IA,case when p._id is not null then 'Renewal Project' end as Type_of_Project,f.name as fy_timerange from profile_27405 p
+left join profile_27395 l 
+on p.ia=l._id
+left join ds_mysql_prod_tagelement f on
+p.fy=f.id
+left join ds_mysql_prod_tagelement o on
+l.org_type=o.id
+left join ds_mysql_prod_tagelement t on
+p.tax_exemption_2=t.id
+left join ds_mysql_prod_tagelement a on
+p.spriritual_agenda=a.id)
+select * from base1 where ia='WOTR' and fy_timerange='2020-2021'
