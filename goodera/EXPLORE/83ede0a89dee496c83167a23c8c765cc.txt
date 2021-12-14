@@ -5,12 +5,17 @@ left join ds_mysql_prod_tagelement t
   on impl_agency=t.id
 ),
 sub2 as(
-  select sub1.*, fy_timerange, t1.name as projectId1, imp_partner
+  select sub1.*, fy_timerange,tt.name as schedule_vii_,tt1.name as target_benf_grp, t1.name as projectId1, imp_partner
   from sub1
   left join ds_mysql_prod_project t
 on partner=t.id
 left join ds_mysql_prod_project t1
-on t.parent=t1.id)
+on t.parent=t1.id
+left join ds_mysql_prod_tagelement tt
+  on sub1.schedule_vii=tt.id
+left join ds_mysql_prod_tagelement tt1
+  on sub1.target_benf_group=tt1.id
+)
 select sub2.*, substring(proj_start_date,1,10) as start_date, substring(proj_end_date,1,10) as end_date  
 from sub2
 where projectId1!='Other Projects - Financial Reporting'
