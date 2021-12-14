@@ -6,19 +6,26 @@ s2 as(
   Select s1.projectId, s1.fy_timerange, s1.other_topic, s1.fellow_name,tc
   FROM sub1 s1 ,s1.topics_covered tc
 ),
-s3 as(
-  with temp as(
+s4 as(
+  Select s2.projectId, s2.fy_timerange, s2.other_topic, s2.fellow_name,tc
+  from s2
+  left join ds_mysql_prod_tagelement t1
+  on t1.id=s2.tc
+),
+temp as(
 	Select 'other_topic' as col
 	union all
 	Select 'topics_covered' as col
-  )
+  ),
+  s3 as(
+  
   Select p2.name as projectId, s2.fy_timerange, s2.other_topic, s2.fellow_name,s2.tc,temp.col as d,p1.name as location_filter,
 sum(case col
 	  when 'other_topic' then s2.other_topic
 	  when 'topics_covered' then s2.tc
 	  else NULL
 end)as topics
-  FROM s2
+  FROM s4 s2
   cross join temp
   left join ds_mysql_prod_tagelement t
   ON t.id=s2.tc
