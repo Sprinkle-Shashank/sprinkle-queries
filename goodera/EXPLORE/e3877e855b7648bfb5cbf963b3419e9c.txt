@@ -47,16 +47,16 @@ cross join temp
   (
   select s3.country, s3.fy_timerange, s3.level2, s3.cdms_id, s3.modules, source, json_serialize(facility_type) as facility_type_new  , cr_tier from sub3 s3, s3.source_div source),
   sub5 as
-  (select fy_timerange, cr_tier, source as source_div,  facility_type_new, t1.name as region, level2, listagg(cdms_id,',') as facs
+  (select fy_timerange, cr_tier, source as source_div,  facility_type_new, t1.name as region, level2, cdms_id as facs, 1 as count
   from sub4 s4
      left join ds_mysql_prod_tagelement t
 	on t.id=s4.country
 	left join ds_mysql_prod_tagelement t1
 	on t.parent=t1.id
   where modules in ('CHEMICALS', 'WASTEWATER', 'ENERGY') and cdms_id is not null
-  group by fy_timerange, source, facility_type_new , t1.name , level2, cdms_id, cr_tier),
+  group by fy_timerange, source, facility_type_new , t1.name , level2, cdms_id, cr_tier, cdms_id),
   sub6 as(
-  select fy_timerange, source_div, facility_type_new, region, level2, cr_tier, facs
+  select fy_timerange, source_div, facility_type_new, region, level2, cr_tier, facs, count
 	,
 	case 
 	when position(957761 in facility_type_new)>=0 and cr_tier=957758 then 'Level 1 Tier 1'
@@ -66,11 +66,11 @@ cross join temp
 				( case when position(957761 in facility_type_new)<0 and position(957762 in facility_type_new)<0 and position(957763 in facility_type_new)>=0 then 'Level 2 Trim' else 'No' end) end) end) end as fac_type
 	from sub5), 
 	sub7 as (
-	select fy_timerange, source_div, facility_type_new as facility_type, s6.region, facs, 
+	select fy_timerange, source_div, facility_type_new as facility_type, s6.region, facs, count,
 	  case when level2=0 then '0' else '1' end as level_2, cr_tier, fac_type, mr.brand
 	  from sub6 s6
 	  left join profile_70187 mr
 	  on s6.source_div=mr.business_div
 	  where fac_type!='No'
 	)
-	select fy_timerange, source_div, region, level_2, brand, fac_type, facs from sub7
+	select fy_timerange, source_div, region, level_2, brand, fac_type, facs, count from sub7
