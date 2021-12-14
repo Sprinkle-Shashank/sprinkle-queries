@@ -109,20 +109,20 @@ sub7 as(
 	sub9 as(
 	select fy_timerange, source_div, facility_type, region, cdms_id, regexp_count(modules,',')+1 as mod, level1, cr_tier from sub8),
 	sub10 as(
-	  select fy_timerange, source_div, facility_type, cr_tier, region, case when mod=7 and level1=1 then 7 else level1 end as level_1, listagg(cdms_id,', ') as facs
+	  select fy_timerange, source_div, facility_type, cr_tier, region, case when mod=7 and level1=1 then 7 else level1 end as level_1, cdms_id as facs, 1 as count
 	from sub9
 	group by fy_timerange, source_div, facility_type, cr_tier, region, level_1), 
 	sub11 as(
-	  select fy_timerange, source_div, facility_type, cr_tier, region, level_1, facs,
+	  select fy_timerange, source_div, facility_type, cr_tier, region, level_1, facs, count,
 	  case 
 	when position('957761' in facility_type)>0 and cr_tier=957758 then 'Level 1 Tier 1'
 	when position('957761' in facility_type)>0 and cr_tier=957757 then 'Level 1 Tier 2'
  when position('957761' in facility_type)=0 and position('957762' in facility_type)>0 then 'Level 2 Mills' when position('957761' in facility_type)=0 and position('957762' in facility_type)=0 and position('957763' in facility_type)>0 then 'Level 2 Trim' else 'No' end as fac_type from sub10),
  sub12 as (
-	select fy_timerange, source_div, facility_type, cr_tier, s6.region, level_1, fac_type, mr.brand, facs
+	select fy_timerange, source_div, facility_type, cr_tier, s6.region, level_1, fac_type, mr.brand, facs, count
 	  from sub11 s6
 	  left join profile_70187 mr
 	  on s6.source_div=mr.business_div
 	  where COALESCE(fac_type,'')!='No'  
 	)
-	select fy_timerange, source_div, region, level_1, fac_type, brand, facs from sub12
+	select fy_timerange, source_div, region, level_1, fac_type, brand, facs, count from sub12
