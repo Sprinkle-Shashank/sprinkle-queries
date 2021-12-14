@@ -101,7 +101,12 @@ sub7 as(
 	group by s4.fy_timerange, source_div, t1.name, cdms_id, level1, cr_tier, facility_type
 	),
 	sub9 as(
-	select fy_timerange, source_div, facility_type_new, region, cdms_id, regexp_count(modules,',')+1 as mod, level1, cr_tier, 
+	select fy_timerange, source_div, facility_type_new as facility_type, region, cdms_id, regexp_count(modules,',')+1 as mod, level1, cr_tier, case when mod=7 and level1=1 then 7 else level1 end as level_1 from sub8),
+	sub10 as(
+	  select fy_timerange, source_div, facility_type, cr_tier, region, level 1, case when mod=7 and level1=1 then 7 else level1 end as level_1
+	from sub9
+	group by fy_timerange, source_div, facility_type, cr_tier, region, level_1)
+	/*
 	case 
 	when position('957761' in facility_type_new)>0 and cr_tier=957758 then 'Level 1 Tier 1'
 	when position('957761' in facility_type_new)>0 and cr_tier=957757 then 'Level 1 Tier 2'
@@ -119,6 +124,9 @@ sub7 as(
 	  on s6.source_div=mr.business_div
 	  where COALESCE(fac_type,'')!='No'
 	  group by fy_timerange, source_div, facility_type, cr_tier, s6.region, level_1
-	), sub12 as (
-	select fy_timerange, source_div, region, brand,level_1, fac_type, facs from sub11)
-	select * from sub12
+	), 
+	sub111 as(
+	  select fy_timerange, source_div, facility_type_new as facility_type, s6.region, facs
+	sub12 as (
+	select fy_timerange, source_div, region, brand,level_1, fac_type, facs from sub11)*/
+	select * from sub10
