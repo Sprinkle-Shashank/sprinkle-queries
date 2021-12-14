@@ -1,0 +1,20 @@
+with sub1 as(
+with temp as(
+  Select 'update_sent' as col
+  union all
+  Select 'listened_broadcast' as col
+)
+Select projectId, fy_timerange,temp.col as Dimensions,p1.name as location_filter,
+sum(case col
+	when 'update_sent' then sq.update_sent
+	when 'listened_broadcast' then sq.
+	else NULL
+end)as Values
+from profile_76033 sq
+cross join temp
+left join ds_mysql_prod_project p1
+ON sq.projectid=p1.id 
+group by projectId, fy_timerange, Dimensions,p1.name
+)
+Select projectId, fy_timerange, Dimensions, Values, split_part(location_filter ,'-',3) as location_filter
+from sub1
