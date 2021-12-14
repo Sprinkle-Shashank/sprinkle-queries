@@ -24,8 +24,9 @@ table2 as(Select _id,cast(concat('FY ' ,start_year) as varchar) as start_year, s
  when start_quarter=2 then '2nd (May-Jul)'
   when start_quarter=3 then '3rd (Aug-Oct)'
    when start_quarter=4 then '4th (Nov-Jan)'
-   else null end as start_quarter,p2.projectId, num_females
+   else null end as start_quarter,p2.projectId, num_females, lg_status
    from profile_4227 p2
+	where coalesce(lg_status, 0) <> 848008
 )
 Select module,module1,vendor,country,locations,regional_partner,codes,t2.start_year,t2.start_quarter,t2.num_females from table1 t1
 
@@ -37,7 +38,7 @@ t1.class= t2._id
 
 left join ds_mysql_prod_project projectId
 on t1.projectId = projectId.id
-where coalesce(lg_status, 0) <> 848008 and start_quarter is not null and start_year is not null
+where  start_quarter is not null and start_year is not null
  and module1 not ilike'%Essential%'
  and module in ('Academic','Community','Leadership','Vocational School','Younger Girls','Older Girls')
 group by vendor,country,module,module1,start_year,start_quarter,locations,regional_partner,codes, num_females
