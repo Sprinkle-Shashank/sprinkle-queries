@@ -105,7 +105,20 @@ sub7 as(
 	sub10 as(
 	  select fy_timerange, source_div, facility_type, cr_tier, region, case when mod=7 and level1=1 then 7 else level1 end as level_1, listagg(cdms_id,', ') as facs
 	from sub9
-	group by fy_timerange, source_div, facility_type, cr_tier, region, level_1)
+	group by fy_timerange, source_div, facility_type, cr_tier, region, level_1), 
+	sub11 as(
+	  select fy_timerange, source_div, facility_type, cr_tier, region, level_1,
+	  case 
+	when position('957761' in facility_type_new)>0 and cr_tier=957758 then 'Level 1 Tier 1'
+	when position('957761' in facility_type_new)>0 and cr_tier=957757 then 'Level 1 Tier 2'
+ when position('957761' in facility_type_new)=0 and position('957762' in facility_type_new)>0 then 'Level 2 Mills' when position('957761' in facility_type_new)=0 and position('957762' in facility_type_new)=0 and position('957763' in facility_type_new)>0 then 'Level 2 Trim' else 'No' end as fac_type from sub10),
+ sub11 as (
+	select fy_timerange, source_div, facility_type, cr_tier, region, level_1, fac_type, mr.brand
+	  from sub10 s6
+	  left join profile_70187 mr
+	  on s6.source_div=mr.business_div
+	  where COALESCE(fac_type,'')!='No'  
+	)
 	/*
 	case 
 	when position('957761' in facility_type_new)>0 and cr_tier=957758 then 'Level 1 Tier 1'
@@ -118,7 +131,7 @@ sub7 as(
 	from sub9
 	group by fy_timerange, source_div, facility_type_new, cr_tier, region, mod, level1, cdms_id, fac_type),
 	sub11 as (
-	select fy_timerange, source_div, facility_type_new as facility_type, s6.region, listagg(cdms_id,',') as facs, cr_tier, fac_type, mr.brand, level_1
+	select fy_timerange, source_div, facility_type_new as facility_type, s6.region, facs, cr_tier, fac_type, mr.brand, level_1
 	  from sub10 s6
 	  left join profile_70187 mr
 	  on s6.source_div=mr.business_div
@@ -129,4 +142,4 @@ sub7 as(
 	  select fy_timerange, source_div, facility_type_new as facility_type, s6.region, facs
 	sub12 as (
 	select fy_timerange, source_div, region, brand,level_1, fac_type, facs from sub11)*/
-	select * from sub10
+	select * from sub11
