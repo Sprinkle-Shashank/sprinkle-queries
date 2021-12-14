@@ -1,13 +1,17 @@
-select t.name as tar_benef,p.name as IA,case when p._id is not null then 'New Project' end as Type_of_Project,f.name as fy_timerange from profile_27395 p
+with Base1 as(select p.target_beneficiary,p.name as IA,case when p._id is not null then 'New Project' end as Type_of_Project,f.name as fy_timerange from profile_27395 p
 left join ds_mysql_prod_tagelement f on
 p.fy=f.id
 left join ds_mysql_prod_tagelement t on
 p.target_beneficiary=t.id
 union all
-select t.name,l.name as IA,case when p._id is not null then 'Renewal Project' end as Type_of_Project,f.name as fy_timerange from profile_27405 p
+select l.target_beneficiary,l.name as IA,case when p._id is not null then 'Renewal Project' end as Type_of_Project,f.name as fy_timerange from profile_27405 p
 left join profile_27395 l 
 on p.ia=l._id
 left join ds_mysql_prod_tagelement f on
-p.fy=f.id
+p.fy=f.id),Base2 as(select IA,Type_of_Project,fy_timerange,target_benef from Base1 ,Base1.target_beneficiary target_benef)
+
+select t.name as target_benef,IA,fy_timerange,Type_of_Project
+
+from Base2
 left join ds_mysql_prod_tagelement t on
-l.target_beneficiary=t.id
+target_benef=t.id
