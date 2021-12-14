@@ -57,5 +57,12 @@ over(partition by country, fy_timerange, modules, cdms_id, level1
 order by cast(timeperiod_timerange.start as date) desc
 rows between unbounded preceding and unbounded following) as source_div
 from sub2
-)
-  select * from sub3
+),
+sub4 as(
+select cr_tier, country, fy_timerange, wet_process, modules, cdms_id, level1, facility_type, SPLIT_TO_ARRAY(source_div,',') as source from sub3
+group by cr_tier, country, fy_timerange, modules, wet_process, cdms_id, level1, facility_type, source)
+, sub5 as (
+select cr_tier, country, fy_timerange, wet_process, modules, cdms_id, level1, facility_type,
+  cast(source_div_new as int) as source_div 
+  from sub4 s4, s4.source source_div_new)
+  select * from sub5
