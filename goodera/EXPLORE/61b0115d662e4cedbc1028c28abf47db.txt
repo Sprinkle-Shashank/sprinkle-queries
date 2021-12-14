@@ -36,7 +36,7 @@ left join profile_74334 pd
 on pd.higg_id=s1.sacid
 left join profile_60928 mr
 on pd.cdms_id=mr.factory_id
-where level!=' ' 
+where level!=' ' and level is not null
 ),
 sub3 as
 (
@@ -59,9 +59,14 @@ rows between unbounded preceding and unbounded following) as source_div
 from sub2
 ),
 sub4 as(
-select cr_tier, country, fy_timerange, wet_process, modules, cdms_id, level1, facility_type, SPLIT_TO_ARRAY(source_div,',') as source_div from sub3
+select cr_tier, country, fy_timerange, wet_process, modules, cdms_id, level1, facility_type, SPLIT_TO_ARRAY(source_div,',') as source from sub3
 group by cr_tier, country, fy_timerange, modules, wet_process, cdms_id, level1, facility_type, source_div)
 , 
+sub5 as (
+select cr_tier, country, fy_timerange, wet_process, modules, cdms_id, level1, facility_type,
+  cast(source_div_new as int) as source_div 
+  from sub4 s4, s4.source source_div_new)
+  /*
 sub5 as (
 select cr_tier, country, fy_timerange, wet_process, modules, cdms_id, level1, facility_type,
   --rtrim(ltrim(json_serialize(source),'['),']') as source_div,
@@ -85,8 +90,9 @@ sub6 as(
   RTRIM(LTRIM(SPLIT_PART(new_source1, ',', NS.n),'"'),'"') AS source_div
 from NS
 inner join sub5 B ON NS.n <= REGEXP_COUNT(B.new_source1, ',') + 1),
+*/
 sub7 as(
-  select * from sub6
+  select * from sub5
   where cdms_id is not null),
   sub8 as
   (
