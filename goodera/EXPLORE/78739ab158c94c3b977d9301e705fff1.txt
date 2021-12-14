@@ -1,8 +1,10 @@
 with sub1 as(
-SELECT sq.projectId as partner, sq.proj_name, 
+SELECT sq.projectId as partner, q1.proj_name, 
 	EXTRACT(Year FROM(CAST(sq.proj_start_date AS datetime))) as start_year,
   	EXTRACT(Year FROM(CAST(sq.proj_end_date AS datetime))) as end_year,t1.name as projectId, pd.ia_sel_ngop as impl_agency, sq._id as id1,SUM(mr.allocated) as budget 
   from profile_65552 sq
+left join profile_65602 q1
+  q1._id=sq.proj_name
 left join ds_mysql_prod_project t
 on t.id=sq.projectId
 left join ds_mysql_prod_project t1
@@ -11,7 +13,7 @@ left join profile_65576 pd
 on sq.impl_agency=pd.ia_sel_ngop
 left join profile_65557 mr
 on mr.project_name=sq._id
-  group by sq.proj_name, start_year, end_year, t1.name, pd.ia_sel_ngop, sq._id, sq.projectId
+  group by q1.proj_name, start_year, end_year, t1.name, pd.ia_sel_ngop, sq._id, sq.projectId
 ),
 sub2 as
 (
@@ -35,5 +37,5 @@ sub2 as
 	)
   select partner, s2.proj_name, start_year, end_year, s2.projectId, budget, target_benf, t1.name as impl_agency, s2.location from sub3 s2
   
-LEFT JOIN ds_mysql_prod_project t1
+LEFT JOIN ds_mysql_prod_tagelement t1
 ON t1.id=impl_agency
