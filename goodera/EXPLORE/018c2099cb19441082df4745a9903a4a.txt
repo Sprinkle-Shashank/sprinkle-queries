@@ -1,0 +1,30 @@
+with table1 as 
+(
+  select projectId,stry_title, impact_story, photo
+FROM profile_4580
+
+
+  )
+  , table2 as 
+  (
+	select tab1.*,cast (c as varchar) from table1 as tab1, tab1.photo c
+)
+
+select fac.name as projectId, stry_title, impact_story, tab2.c as photo,cast(concat('FY ' ,start_year) as varchar) as start_year ,case when start_quarter=1 then '1st (Feb-Apr)'
+ when start_quarter=2 then '2nd (May-Jul)'
+  when start_quarter=3 then '3rd (Aug-Oct)'
+   when start_quarter=4 then '4th (Nov-Jan)'
+   else null end as start_quarter,  num_females,num_females_graduated, lg_status, select_modules,
+   profile_54646.name_vendor,profile_54646.name_country, profile_54646.name_vendor_filter,profile_54646.name_rp as regional_partner, profile_54646.projcode_factory as codes, profile_54646.name_factory as locations
+FROM table2 as tab2
+
+LEFT JOIN profile_4227 ON
+tab2.projectId = profile_4227.projectId
+
+LEFT JOIN profile_54646 ON
+profile_4227.projectId = profile_54646.projectId
+
+left join ds_mysql_prod_project fac
+on tab2.projectid = fac.id
+
+--group by stry_title, impact_story, tab2.c
