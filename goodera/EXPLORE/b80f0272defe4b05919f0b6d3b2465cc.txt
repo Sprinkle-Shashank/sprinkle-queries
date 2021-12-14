@@ -4,15 +4,15 @@ with temp as(
   union all
   Select 'attendance_female' as col
 )
-Select projectId, fy_timerange, school_2, session_topic,temp.col as Gender,p1.name as location_filter
+Select projectId, fy_timerange, school_2, session_topic,temp.col as Gender,p1.name as location_filter,
 average(case col
 	when 'attendance_male' then sq.male
 	when 'attendance_female' then sq.female
 end)as Attendance
 FROM profile_75010 sq
 cross join temp
-  left join ds_mysql_prod_project p1
-  ON sq.projectId=p1.id
+left join ds_mysql_prod_project p1
+ON sq.projectId=p1.id
 GROUP BY projectId, fy_timerange, school_2, session_topic, Gender
   )
   Select projectId, fy_timerange, school_2, session_topic, Gender, split_part(location_filter ,'-',3) as location_filter,Attendance
