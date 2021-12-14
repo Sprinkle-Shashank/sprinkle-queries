@@ -1,0 +1,23 @@
+with sub1 as(
+ with temp as(
+   Select 'Share out event' as col
+   union all
+   Select 'E-PTM' as col
+ )
+Select profileId, fy_timerange, t1.name as Share out event,t2.name as E-PTM,count(*),temp.col as event,p1.name as location_filter,
+sum(case col
+	when 'Share out event' then sq.teacher_helped
+	when 'E-PTM' then sq.hm_help
+	else NULL
+end) as helped
+FROM profile_75009 sq
+cross join temp
+left join ds_mysql_prod_tagelement t1
+ON sq.teacher_helped=t._id
+left join ds_mysql_prod_tagelement t2
+ON sq.hm_help=t._id
+left join ds_mysql_prod_project p1
+ON sq.projectId=p1.id  
+)
+Select profileId, fy_timerange,event,helped,count(*),split_part(location_filter ,'-',3) as location_filter
+FROM sub1
