@@ -61,7 +61,12 @@ from sub2
 sub4 as(
 select cr_tier, country, fy_timerange, wet_process, modules, cdms_id, level1, facility_type, SPLIT_TO_ARRAY(source_div,',') as source from sub3
 group by cr_tier, country, fy_timerange, modules, wet_process, cdms_id, level1, facility_type, source)
-, sub5 as (
+, 
+sub5 as (
+select cr_tier, country, fy_timerange, wet_process, modules, cdms_id, level1, facility_type,
+  cast(source_div_new as int) as source_div 
+  from sub4 s4, s4.source source_div_new)
+/*sub5 as (
 select cr_tier, country, fy_timerange, wet_process, modules, cdms_id, level1, facility_type,
   rtrim(ltrim(json_serialize(source),'['),']') as source_div 
   from sub4 s4),
@@ -79,7 +84,7 @@ select cr_tier, country, fy_timerange, wet_process, modules, cdms_id, level1, fa
 ),
 sub6 as(
   select
-  TRIM(SPLIT_PART(source_div, ',', NS.n)) AS tag
+  TRIM(SPLIT_PART(source_div, ',', NS.n)) AS tag1
 from NS
-inner join sub5 B ON NS.n <= REGEXP_COUNT(B.source_div, ',') + 1)
-  select * from sub6
+inner join sub5 B ON NS.n <= REGEXP_COUNT(B.source_div, ',') + 1)*/
+  select * from sub5
