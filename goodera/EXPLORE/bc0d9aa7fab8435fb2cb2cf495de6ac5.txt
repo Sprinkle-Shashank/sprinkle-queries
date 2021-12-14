@@ -1,0 +1,23 @@
+with temp as(
+  Select 'topics_covered' as col
+  union all
+  Select 'trainings' as col
+  union all
+  Select 'participated' as col
+),
+s1 as(
+Select projectId, fy_timerange,temp.col as Dimensions,p1.name as location_filter,
+sum(case col
+	when 'topics_covered' then sq.topics_covered
+	when 'trainings' then sq.trainings
+	when 'participated' then sq.participated
+	else NULL
+end)as Values
+FROM profile_76035 sq
+cross join temp
+  left join ds_mysql_prod_project p1
+ON sq.projectId=p1.id  
+GROUP BY projectId, fy_timerange, Dimensions, p1.name
+)
+Select projectId, fy_timerange,temp.col as Dimensions,Values, split_part(location_filter ,'-',3) as location_filter
+FROM s1
