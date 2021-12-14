@@ -6,7 +6,7 @@ with temp as(
   Select 'participated' as col
 ),
 s1 as(
-Select projectId, fy_timerange,temp.col as Dimensions,p1.name as location_filter,
+Select t1.name as projectId, fy_timerange,temp.col as Dimensions,p1.name as location_filter,
 sum(case col
 	when 'topics_covered' then sq.topics_covered
 	when 'trainings' then sq.trainings
@@ -17,7 +17,9 @@ FROM profile_76035 sq
 cross join temp
   left join ds_mysql_prod_project p1
 ON sq.projectId=p1.id  
-GROUP BY projectId, fy_timerange, Dimensions, p1.name
+  left join ds_mysql_prod_tagelement t1
+ON t1.id=sq.projectId
+GROUP BY t1.name, fy_timerange, Dimensions, p1.name
 )
 Select projectId, fy_timerange,Dimensions,Values, split_part(location_filter ,'-',3) as location_filter
 FROM s1
