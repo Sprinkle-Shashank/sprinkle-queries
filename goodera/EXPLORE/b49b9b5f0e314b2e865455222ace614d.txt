@@ -16,7 +16,7 @@ with temp as(
     union all
   Select 'attend_meeting' as col
 )
-Select projectId, fy_timerange, school, teacher_helped, hm_help,p1.name as location_filter,
+Select projectId, fy_timerange, school, teacher_helped, hm_help,p1.name as location_filter,temp.col as Dimensions,
 sum(case col
 	when 'topics_covered' then sq.topics_covered
 	when 'events_number' then sq.events_number
@@ -32,6 +32,7 @@ from profile_75009 sq
 cross join temp
 left join ds_mysql_prod_project p1
 ON sq.projectId=p1.id
+  GROUP BY projectId, fy_timerange, school, teacher_helped, hm_help, Dimensions
 )
-Select projectId, fy_timerange, school, teacher_helped, hm_help,split_part(location_filter ,'-',3) as location_filter
+Select projectId, fy_timerange, school, teacher_helped, hm_help,split_part(location_filter ,'-',3) as location_filter, Dimensions
 from sub1
