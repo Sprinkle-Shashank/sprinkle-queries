@@ -1,0 +1,34 @@
+with sub1 as(
+  Select projectId, fy_timerange, topics_covered, other_topic, fellow_name
+  FROM profile_75007
+),
+s2 as(
+  Select s1.projectId, s1.fy_timerange, s1.other_topic, s1.fellow_name,tc
+  FROM sub1 s1 ,s1.topics_covered tc
+),
+s3 as(
+  with temp as(
+	Select 'other_topic' as col
+	union all
+	Select 'topics_covered' as col
+  )
+  Select s2.projectId, s2.fy_timerange, s2.other_topic, s2.fellow_name,s2.tc,temp.col as d,p1.name as location_filter
+sum(case col
+	  when 'other_topic' then s2.other_topic
+	  when 'topics_covered' then s2.tc
+	  else NULL
+end)as topics
+  FROM s2
+  cross join temp
+  left join ds_mysql_prod_tagelement t
+  ON t.id=s2.tc
+  left join ds_mysql_prod_project p1
+  ON sq.projectId=p1.id
+  Where topics IS NOT NULL
+  GROUP BY  projectId, fy_timerange, fellow_name 
+
+),
+Select projectId, fy_timerange,fellow_name, topics,split_part(location_filter ,'-',3) as location_filter
+FROM sub1
+
+---------topics IS NOT NULL
