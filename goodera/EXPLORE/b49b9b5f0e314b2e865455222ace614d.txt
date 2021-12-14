@@ -1,0 +1,36 @@
+with sub1 as(
+with temp as(
+  Select 'topics_covered' as col
+  union all
+  Select 'events_number' as col
+    union all
+  Select 'students_participated' as col
+    union all
+  Select 'parents_shareout' as col
+    union all
+  Select 'edu_officials' as col
+    union all
+  Select 'projects_number' as col
+    union all
+  Select 'eptm_held' as col
+    union all
+  Select 'attend_meeting' as col
+)
+Select projectId, fy_timerange, school, teacher_helped, hm_help,p1.name as location_filter,
+sum(case col
+	when 'topics_covered' then sq.topics_covered
+	when 'events_number' then sq.events_number
+	when 'students_participated' then sq.students_participated
+	when 'parents_shareout' then sq.parents_shareout
+	when 'edu_officials' then sq.edu_officials
+	when 'projects_number' then sq.projects_number
+	when 'eptm_held' then sq.eptm_held
+	when 'attend_meeting' then sq.attend_meeting
+	else NULL
+end) as Values
+from profile_75009
+cross join temp
+left join ds_mysql_prod_project p1
+ON sq.projectId=p1.id
+)
+Select projectId, fy_timerange, school, teacher_helped, hm_help,split_part(location_filter ,'-',3) as location_filter
