@@ -1,0 +1,30 @@
+with table3 as (Select projectId,cast(concat('FY ' ,start_year) as varchar) as start_year, start_quarter as start_quarter_new ,case when start_quarter=1 then '1st (Feb-Apr)'
+ when start_quarter=2 then '2nd (May-Jul)'
+  when start_quarter=3 then '3rd (Aug-Oct)'
+   when start_quarter=4 then '4th (Nov-Jan)'
+   else null end as start_quarter from profile_4227 p 
+ 
+
+),
+table1 as(Select p.projectid,p._id,p.pace_status_2,p.sourcing_yn,t3.start_year,t3.start_quarter,profile_54646.name_vendor_filter as vendor,profile_54646.name_country as country,profile_54267.pace_status as pace_stat,fac.name as Factory  
+from profile_52713 p 
+
+
+
+left join table3 t3 on
+p.projectId = t3.projectId
+left join ds_mysql_prod_project fac
+on p.projectId = fac.id
+left join profile_54646 on
+p.projectId = profile_54646.projectId
+left join profile_54267 on
+p.projectId = profile_54267.projectId
+
+where (pace_stat= 845114 )  and sourcing_yn = 57472
+
+		 )
+
+Select distinct Factory,start_year,start_quarter,vendor,country,pace_stat,sourcing_yn
+ from table1 t1
+
+where Factory ilike 'Factory:%' and vendor is not null and start_year is not null
