@@ -1,0 +1,23 @@
+with temp as(
+  Select 'male' as col
+  union all
+  Select 'female' as col
+),
+sub1 as(
+Select t3.name as projectId, fy_timerange,school_2, t4.name as course,temp.col as Gender,p1.name as location_filter,
+avg(case col
+	when 'male' then sq.attendance_male
+	when 'female' then sq.attendance_female
+end)as Attendance
+FROM  profile_79267 sq
+cross join temp
+left join ds_mysql_prod_project p1
+ON sq.projectId=p1.id  
+left join ds_mysql_prod_tagelement t3
+ON  t3.id=sq.projectId
+left join ds_mysql_prod_tagelement t4
+  ON t4.id=sq.bene_specialization
+GROUP BY fy_timerange, t3.name, t4.name, Gender,p1.name
+ )
+  Select projectId, fy_timerange,course, Gender, split_part(location_filter ,'-',3) as location_filter,attend_percentage
+  FROM sub1
