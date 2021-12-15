@@ -1,5 +1,5 @@
 with sub1 as(
-select ss.projectId as proj_location, p1.name as projectId, household_reach, activity_date as fy_timerange, photo, household_no, ss.name, p2.name as partner, ab.impl_agency as imp_partner
+select ss.projectId as proj_location, p1.name as projectId, household_reach, activity_date as fy_timerange, photo, household_no, ss.name, p2.name as partner, ab.impl_agency as imp_partner,mr.location
 from profile_1486 ss
 left join ds_mysql_prod_project p
 on ss.projectId=p.id
@@ -8,11 +8,13 @@ on p.parent=p1.id
 left join ds_mysql_prod_project p2
 on p1.parent=p2.id
   left join profile_65552 ab
-  on p.parent=ab.projectId),
-sub2 as(
-  select proj_location, s1.projectId, household_reach,fy_timerange, photo, household_no,s1.name,  partner, mr.location, imp_partner
-  from sub1 s1
+  on p.parent=ab.projectId
 left join profile_65603 mr
-on mr.projectId=s1.proj_location)
+on mr.projectId=ss.projectId),
+sub2 as(
+  select proj_location, s1.projectId, household_reach,fy_timerange, photo, household_no,s1.name,  partner, t.name as imp_partner
+  from sub1 s1
+left join ds_mysql_prod_tagelement t
+on t.id=imp_partner)
   select proj_location, projectId, household_reach,fy_timerange, ph as photo, household_no,name,  partner, imp_partner, location from sub2 s2, s2.photo ph
   --select * from sub1
