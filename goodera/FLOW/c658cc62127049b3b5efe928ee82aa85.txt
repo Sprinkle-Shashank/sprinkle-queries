@@ -1,38 +1,6 @@
-drop table if exists test_ehs;
- create table test_ehs as
-				select st.xprojectid, p.name, st.financialperiod, t.name as finPeriod,
-				concat(concat(substring(cast(timestamp 'epoch' + CAST(t.start AS BIGINT)/1000 * interval '1 second' as varchar), 1, 10),'T'), concat(split_part(cast(timestamp 'epoch' + CAST(t.start AS BIGINT)/1000 * interval '1 second' as varchar), ' ',2),'.000Z')) as startdate,
-				concat(concat(substring(cast(timestamp 'epoch' + CAST(t.end AS BIGINT)/1000 * interval '1 second' as varchar), 1, 10),'T'), concat(split_part(cast(timestamp 'epoch' + CAST(t.end AS BIGINT)/1000 * interval '1 second' as varchar), ' ',2),'.000Z')) as enddate,
-				concat(concat(startdate,'|'),enddate) as fy_timerange,
-				-- concat(concat(t.start,'|'),t.end) as fy_timerange,
-				st.xquestionid,
-				q.questiontype,
-				q.keyword,
-				q.questiontext,
-				cast(st.datanum as float),
-				cast(st.dataNumBase as float),
-				st.datatext,
-				st.datatagref as dataselect,
-				st.datatable,
-				st.measureunit
-				from ds_mongo_sustainabilityTask st
-				left join ds_mysql_prod_question q on st.xquestionid = q.id
-				left join ds_mysql_prod_project p on st.xprojectid = p.id
-				left join ds_mysql_prod_tagelement t on st.financialperiod = t.id
-				where xprofileId='56999' and status = 'APPROVED'
-				and keyword in ('water_cost')
-				
-/*select * from test_ehs where $PROJECT_FILTER
-select * from test_ehs where xprojectid in (select xprojectid from test_ehs)
-select * from test_ehs where projectid is not null
-set PROJECT_ID = (select xprojectid from test_ehs)*/
 
-
-/*DROP TABLE IF EXISTS prep1;
+DROP TABLE IF EXISTS prep1;
 CREATE TABLE prep1 (c1 int, c2 char(20));
 PREPARE prep_insert_plan (int, char)
-AS insert into prep1 values ($1, $2);*/
---EXECUTE prep_insert_plan (1, 'one');
---EXECUTE prep_insert_plan (2, 'two');
---EXECUTE prep_insert_plan (3, 'three');
---DEALLOCATE prep_insert_plan;
+AS insert into prep1 values ($1, $2);
+
