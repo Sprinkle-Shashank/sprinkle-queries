@@ -1,27 +1,4 @@
-with lookup as (select split_part(split_part(prod.name,'|',1),'.',1) as ProjectCode,f.name as fy_timerange,m.name as Month,concat(ProjectCode,fy_timerange) as CODE,split_part(prod.name,'|',3) as census, data_54963.fy as fy ,case when data_54963._id is not NULL then 'Total no. of activities' end  as type  from ds_mongo_prod_taskresponse p
+with lookup as (select split_part(split_part(prod.name,'|',1),'.',1) as ProjectCode,concat(ProjectCode,fy_timerange) as CODE,split_part(prod.name,'|',3) as census, data_54963.fy as fy, case when data_54963._id is not NULL then 'Total no. of activities' end  as type  from ds_mongo_prod_taskresponse p
 left join profile_54963 data_54963 on
 data_54963._id=p.profileinstanceid
-left join ds_mysql_prod_project prod on
-prod.id=data_54963.projectid
-left join ds_mysql_prod_tagelement f on
-data_54963.fy=f.id
-left join ds_mysql_prod_tagelement m on
-data_54963.month=m.id
-union
-select split_part(split_part(prod.name,'|',1),'.',1) as ProjectCode,f.name as fy_timerange,m.name as Month,concat(ProjectCode,fy_timerange) as CODE,split_part(prod.name,'|',3) as census,case when data_54963.subcat_output is not NULL then 'Total no. of activities' end  as type  from ds_mongo_prod_taskresponse p
-left join ds_mysql_prod_project prod on
-prod.id=data_54963.projectid
-left join ds_mysql_prod_tagelement f on
-data_54963.fy=f.id
-left join ds_mysql_prod_tagelement m on
-data_54963.month=m.id
-union
-select split_part(split_part(prod.name,'|',1),'.',1) as ProjectCode,f.name as fy_timerange,m.name as Month,concat(ProjectCode,fy_timerange) as CODE,split_part(prod.name,'|',3) as census,case when p.subcat_output is not NULL and data_54963.flag_deviation_delay='1'
-then 'Total no. of activities' end  as type  from ds_mongo_prod_taskresponse p
-left join ds_mysql_prod_project prod on
-prod.id=data_54963.projectid
-left join ds_mysql_prod_tagelement f on
-data_54963.fy=f.id
-left join ds_mysql_prod_tagelement m on
-data_54963.month=m.id)
 select p.ProjectCode,p.fy_timerange,p.Month,p.CODE,p.type from lookup p
