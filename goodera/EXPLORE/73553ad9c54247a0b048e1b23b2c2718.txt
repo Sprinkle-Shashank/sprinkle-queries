@@ -4,20 +4,23 @@ Select 'batch_photo' as col
 Select 'pic' as col
 )
 ,
-s1 as(
-Select  ss._id, ss.projectId, batch_phot, ss.centre_name, ss.uid, ss.start_date, ss.end_date , st.location, pc, st.center_college, st.center_name,
+sub1 as(
+Select  ss._id, ss.projectId, ss.batch_photo, ss.centre_name, ss.uid, ss.start_date, ss.end_date , st.location, ss.pic, st.center_college, st.center_name,
 case
 	when ss.end_date is null then '2030-12-31T00:00:00.000Z'
     else ss.end_date 
 	end as end_datee,
 		concat(concat(concat(concat('{"start":"', ss.start_date),'","end":"'),end_datee),'"}') as fy_timerange
-from profile_56628 ss,
-  ss.batch_photo batch_phot,st.pic pc
+from profile_56628 ss
 left join profile_56627 st
-on ss.centre_name=st._id,
-
+on ss.centre_name=st._id
 ),
+ sub2 as (
+Select  s1._id, s1.projectId, , s1.centre_name, s1.uid, s1.start_date, s1.end_date , s1.location, s1.center_college, s1.center_name,batch_phot,pc
+ from sub1 s1,
+   s1.batch_photo batch_phot,s1.pic pc
 
+ ),
 s2 as (
 Select tt2.name as projectId,tt.name as proj_location,tt1.name as partner,s1._id,s1.centre_name,s1.uid, t1.name as location,t.name as center_college, s1.center_name center,po.impl_agency as imp_partner,
   s1.fy_timerange,
@@ -30,7 +33,7 @@ Select tt2.name as projectId,tt.name as proj_location,tt1.name as partner,s1._id
    when temp.col='pic' then s1.center_name || '-' || t.name || '-' || t1.name
    else s1.uid || '-' || s1.center_name
   end as desc
-  from s1
+  from sub2 s1
   cross join temp
   left join ds_mysql_prod_tagelement t
   on s1.center_college=t.id
