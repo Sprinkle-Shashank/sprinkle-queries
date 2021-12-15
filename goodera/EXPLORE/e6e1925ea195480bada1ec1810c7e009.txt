@@ -1,27 +1,47 @@
 with temp as(
-  Select 'Given by students' as col
+  Select 'The objectives of the training were clearly defined' as col
   	union all
-  Select 'Given by parents' as col
+  Select 'Participation and interaction were encouraged' as col
   	union all
-  Select 'Given by teachers' as col
+  Select 'The topics covered were relevant to me' as col
+  	union all
+  Select 'The content was organized and easy to follow' as col
+  	union all
+  Select 'This training experience will be useful in my work' as col
+  	union all
+  Select 'The trainer was knowledgeable about the training topics' as col
+  	union all
+  Select 'The trainer was well prepared' as col
+  	union all
+  Select 'The training objectives were met' as col
+  	union all
+  Select 'The time allotted for the training was sufficient' as col
+  	union all
+  Select 'Feedback of the training by the student' as col
 ),
 s1 as(
-Select t1.name as projectId, fy_timerange, t2.name as evaluation_type, school_3, temp.col as Beneficiary, p1.name as location_filter,
+Select t1.name as projectId,date_completion, temp.col as Beneficiary, p1.name as location_filter,
 avg(case col
-	when 'Given by students' then sq.students_avg_score
-	when 'Given by parents' then sq.parents_avg_score
-	when 'Given by teachers' then sq.teachers_avg_score
+	when 'The objectives of the training were clearly defined' then sq.
+	when 'Participation and interaction were encouraged' then sq.
+	when 'The topics covered were relevant to me' then sq.
+	when 'The content was organized and easy to follow' then sq.
+	when 'This training experience will be useful in my work' then sq.
+	when 'The trainer was knowledgeable about the training topics' then sq.
+	when 'The trainer was well prepared' then sq.
+	when 'The training objectives were met' then sq.
+	when 'The time allotted for the training was sufficient' then sq.
+	when 'Feedback of the training by the student' then sq.
 		else NULL
 end)as score
-  FROM profile_75011 sq
+  FROM  profile_79267 sq
   cross join temp
 left join ds_mysql_prod_project p1
 ON sq.projectId=p1.id 
 left join ds_mysql_prod_project t1
 ON  t1.id=sq.projectId
-left join ds_mysql_prod_tagelement t2
-  ON t2.id=evaluation_type
-GROUP BY t1.name, fy_timerange, evaluation_type, school_3, Beneficiary,p1.name,t2.name
+
+GROUP BY t1.name,date_completion, Beneficiary,p1.name,
 )
-Select projectId, fy_timerange, evaluation_type, school_3, Beneficiary, split_part(location_filter ,'-',3) as location_filter,score
+Select projectId, date_completion, Beneficiary
 FROM s1
