@@ -1,22 +1,22 @@
 with test1 as(
-select q.projectid as pro, t.name as projectid, q.center_id, p.name as center/*, t2.name as project*/ from profile_145 q left join profile_141 p on p._id = q.center_id
-LEFT JOIN ds_mysql_prod_project t on p.projectid=t.id
---LEFT JOIN ds_mysql_prod_project t1 on t.parent=t1.id
---LEFT JOIN ds_mysql_prod_project t2 on t1.parent=t2.id
+select q.projectid as pro, t.name as projectid, q.center_id, p.name as center, t2.name as project from profile_145 q left join profile_141 p on p._id = q.center_id
+LEFT JOIN ds_mysql_prod_project t on q.projectid=t.id
+LEFT JOIN ds_mysql_prod_project t1 on t.parent=t1.id
+LEFT JOIN ds_mysql_prod_project t2 on t1.parent=t2.id
 union all
-select q.projectid as pro, t.name as projectid, q.center_id, p.name as center/*, t2.name as project*/ from profile_36901 q left join profile_36872 p on p._id =q.center_id
-LEFT JOIN ds_mysql_prod_project t on p.projectid=t.id
---LEFT JOIN ds_mysql_prod_project t1 on t.parent=t1.id
---LEFT JOIN ds_mysql_prod_project t2 on t1.parent=t2.id
+select q.projectid as pro, t.name as projectid, q.center_id, p.name as center, t2.name as project from profile_36901 q left join profile_36872 p on p._id =q.center_id
+LEFT JOIN ds_mysql_prod_project t on q.projectid=t.id
+LEFT JOIN ds_mysql_prod_project t1 on t.parent=t1.id
+LEFT JOIN ds_mysql_prod_project t2 on t1.parent=t2.id
 ),
 
 test2 as(
-select q.pro, q.projectid, q.center, decode(p.name,null,r.name,p.name) as center_id, decode(p.zone,null,r.zone,p.zone) as zone, decode(p.partner_name,null,r.partner_name,p.partner_name) as partner_name/*, q.project*/ from test1 q
+select q.pro, q.projectid, q.center, decode(p.name,null,r.name,p.name) as center_id, decode(p.zone,null,r.zone,p.zone) as zone, decode(p.partner_name,null,r.partner_name,p.partner_name) as partner_name, q.project from test1 q
 left join profile_141 p on p._id = q.center_id
 left join profile_36872 r on r._id = q.center_id
 )
 
-select p.pro, p.projectid, p.center/*, p.project*/, p.center_id, r.name as zone, s.name as partner_name from test2 p
+select q.pro, p.projectid, p.center, p.project, p.center_id, r.name as zone, s.name as partner_name from test2 p
 LEFT JOIN ds_mysql_prod_tagelement r on p.zone=r.id
 LEFT JOIN ds_mysql_prod_tagelement s on p.partner_name=s.id
 group by 1,2,3,4,5,6 order by p.center_id
