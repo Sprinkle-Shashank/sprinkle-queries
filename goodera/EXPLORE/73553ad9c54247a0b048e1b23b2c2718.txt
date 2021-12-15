@@ -1,7 +1,8 @@
-with temp as(
+with temp as (
 Select 'batch_photo' as col
-  union all
+union all
 Select 'pic' as col
+
 )
 ,
 sub1 as(
@@ -16,7 +17,7 @@ left join profile_56627 st
 on ss.centre_name=st._id
 ),
  sub2 as (
-Select  s1._id, s1.projectId,  s1.centre_name, s1.uid, s1.location, s1.center_college, s1.center_name,s1.fy_timerange,batch_phot,pc
+Select  s1._id, s1.projectId,  s1.centre_name, s1.uid, s1.location, s1.center_college, s1.center_name,s1.fy_timerange,cast(batch_phot as varchar) batch_phot,cast (pc as varchar) pc
  from sub1 s1,
    s1.batch_photo batch_phot,s1.pic pc
 
@@ -51,19 +52,18 @@ on po.projectid=tt.parent
 sub3 as (
 
 Select  s2.proj_location, s2.fy_timerange, s2.center_college, s2.location, s2.desc, s2.partner, s2.projectId, s2.imp_partner,
-listagg(distinct json_serialize(s2.picture)  ,',') pic
+listagg(distinct s2.picture  ,',') pic
 from s2
 group by s2.proj_location, s2.fy_timerange, s2.center_college, s2.location, s2.desc, s2.partner, s2.projectId, s2.imp_partner
   )
   ,
   sub4 as (
-  Select  s3.proj_location, s3.fy_timerange, s3.center_college,s3.location, s3.desc, s3.partner, s3.projectId, s3.imp_partner,split_to_array(s3.pic) as pic
+  Select  s3.proj_location, s3.fy_timerange, s3.center_college,s3.location, s3.desc, s3.partner, s3.projectId, s3.imp_partner,(s3.pic) as pic
 from sub3 s3
   
   )
 Select  s3.proj_location, s3.fy_timerange, s3.center_college,
---cast(pc as varchar) pc
-trim('"\"' json_serialize (pc)) as pc
+s3.pic,
 ,s3.location, s3.desc, s3.partner, s3.projectId, s3.imp_partner
-from sub4 s3 , s3.pic pc
+from sub4 s3 
  
