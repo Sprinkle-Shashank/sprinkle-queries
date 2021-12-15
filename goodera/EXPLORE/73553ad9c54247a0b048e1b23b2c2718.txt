@@ -1,63 +1,46 @@
-with temp as (
-Select 'batch_photo' as col
-union all
-Select 'pic' as col
-
-)
-,
-sub1 as(
-Select  ss._id, ss.projectId, ss.batch_photo, ss.centre_name, ss.uid, ss.start_date, ss.end_date , st.location, st.pic, st.center_college, st.center_name,
+with sub1 as(
+ Select   ss.projectId, cast(batch_phot as varchar) batch_phot, ss.centre_name, ss.uid, ss.start_date, ss.end_date , st.location, st.pic
 case
 	when ss.end_date is null then '2030-12-31T00:00:00.000Z'
     else ss.end_date 
 	end as end_datee,
 		concat(concat(concat(concat('{"start":"', ss.start_date),'","end":"'),end_datee),'"}') as fy_timerange
-from profile_56628 ss
-left join profile_56627 st
-on ss.centre_name=st._id
+from profile_56628 ss,
+ss.batch_photo batch_phot
 ),
- sub2 as (
-Select  s1._id, s1.projectId,  s1.centre_name, s1.uid, s1.location, s1.center_college, s1.center_name,s1.fy_timerange,cast(batch_phot as varchar) batch_phot,cast (pc as varchar) pcc
- from sub1 s1,
-   s1.batch_photo batch_phot,s1.pic pc
-
- ),
-s2 as (
-Select tt2.name as projectId,tt.name as proj_location,tt1.name as partner,s1._id,s1.centre_name,s1.uid, t1.name as location,t.name as center_college, s1.center_name center,po.impl_agency as imp_partner,
-  s1.fy_timerange,
-  case col
-  when 'batch_photo' then s1.batch_phot
-  when 'pic' then s1.pcc
-  else null
-  end as  picture,temp.col as text,
-  case 
-   when temp.col='pic' then s1.center_name || '-' || t.name || '-' || t1.name
-   else s1.uid || '-' || s1.center_name
-  end as desc
-  from sub2 s1
-  cross join temp
-  left join ds_mysql_prod_tagelement t
-  on s1.center_college=t.id
-  left join ds_mysql_prod_tagelement t1
-  on s1.location=t1.id
+s2 as(
+Select  tt2.name as projectId,tt.name as proj_location,tt1.name as partner,  s1.centre_name, s1.uid, s1.location, s1.center_college, s1.center_name,s1.fy_timerange,s1.batch_phot
+ from s1
   left join ds_mysql_prod_project tt
 on s1.projectid=tt.id
 left join ds_mysql_prod_project tt1
 on tt.parent=tt1.id
 left join ds_mysql_prod_project tt2
 on tt1.parent=tt2.id
-  left join profile_65552 po
-on po.projectid=tt.parent
-),
-sub3 as (
-
-Select  s2.proj_location, s2.fy_timerange, s2.center_college, s2.location, s2.desc, s2.partner, s2.projectId, s2.imp_partner,
-listagg(distinct json_Serialize(s2.picture)  ,',') as  pic
-from s2
-group by s2.proj_location, s2.fy_timerange, s2.center_college, s2.location, s2.desc, s2.partner, s2.projectId, s2.imp_partner
+  group by tt2.name,tt.name,tt1.name,s1.centre_name, s1.uid, s1.location, s1.center_college, s1.center_name,s1.fy_timerange,s1.batch_phot
   )
+ ,
+ sub3 as(
+Select  s2.projectId,s2.proj_location,s2.partner, s2.centre_name,s2.uid,s2.location,s2.center_college,s2.center_name,s2.fy_timerange,st.pic
+ from s2
+left join profile_56627 st
+on s1.centre_name=st._id
+  ),
+  s4 as(
+  Select  s3.projectId,s3.proj_location,s3.partner, s3.centre_name,s3.uid,s3.location,s3.center_college,s3.center_name,s3.fy_timerange,cast (pc as varchar) picc
+ from sub3 s3 , s3.pic pc)
+ ,
+ s4 as(
+  Select  s4.projectId,s4.proj_location,s4.partner, s4.centre_name,s4.uid,s4.location,s4.center_college,s4.center_name,s4.fy_timerange,s4.picc
+ from s4
+ group by s4.projectId,s4.proj_location,s4.partner, s4.centre_name,s4.uid,s4.location,s4.center_college,s4.center_name,s4.fy_timerange,s4.picc
+ )
   
-Select  s3.proj_location, s3.fy_timerange, s3.center_college,
-pc,s3.location, s3.desc, s3.partner, s3.projectId, s3.imp_partner
-from sub3 s3 ,s3.pic pc
+  
+  Select s2* from  s2
+  union all
+  Select s4* from s4
+ 
+ 
+	
  
