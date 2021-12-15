@@ -1,0 +1,25 @@
+with table1 as (
+  select 'boys_test' as s
+  union all 
+  select'girls_test' as s
+  union all 
+  select'kannada_score' as s
+  union all 
+  select'maths_score' as s
+)
+select p._id, p.name, p.test_date fy_timerange, t.name test_type, t2.name standard , table1.s,
+case table1.s 
+when 'kannada_score' then average(p.kannada_score)
+when 'maths_score' then average(p.maths_score)
+when 'boys_test' then sum(p.boys_test)
+when 'girls_test' then sum(p.girls_test)
+else null
+end as count
+from profile_77006 p
+left join ds_mysql_prod_tagelement t
+on p.test_type = t.id
+left join ds_mysql_prod_tagelement t2
+on p.standard = t2.id
+cross join table1
+group by 1,2,3,4,5,6;
+
