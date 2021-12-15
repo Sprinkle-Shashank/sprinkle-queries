@@ -1,0 +1,37 @@
+with sub1 as(
+  Select projectId, fy_timerange
+  FROM profile_76035
+),
+s2 as(
+  Select s1.projectId, s1.fy_timerange, s1.fellow_name,tc
+  FROM sub1 s1 ,s1.topics_covered tc
+),
+s4 as(
+  Select s2.projectId, s2.fy_timerange, s2.other_topic, s2.fellow_name,t1.name as tc
+  from s2
+  left join ds_mysql_prod_tagelement t1
+  on t1.id=s2.tc
+),
+temp as(
+	Select 'other_topic' as col
+	union all
+	Select 'topics_covered' as col
+  ),
+s3 as(
+  
+  Select p2.name as projectId, s2.fy_timerange, s2.tc,temp.col as dimensions,p1.name as location_filter,
+case col
+	  when 'other_topic' then s2.other_topic
+	  when 'topics_covered' then s2.tc
+	  else NULL
+end as topics
+  FROM s4 s2
+  cross join temp
+  left join ds_mysql_prod_tagelement t
+  ON t.id=s2.tc
+  left join ds_mysql_prod_project p1
+  ON s2.projectId=p1.id
+  left join ds_mysql_prod_project p2
+  ON s2.projectId=p2.id
+  GROUP BY  projectId, fy_timerange, s2.tc,p1.name
+)
