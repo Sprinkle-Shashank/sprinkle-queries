@@ -16,7 +16,7 @@ with temp as(
   Select 'The training objectives were met' as col
   	union all
   Select 'The time allotted for the training was sufficient' as col
-  	
+  	union all
 
 ),
 s1 as(
@@ -33,7 +33,7 @@ Select t1.name as projectId,date_completion, temp.col as Beneficiary, p1.name as
 	when 'The time allotted for the training was sufficient' then p.time
 	
 		else NULL
-end)as ratings
+end)as score
   FROM  profile_79267 p
   cross join temp
 left join ds_mysql_prod_project p1
@@ -43,8 +43,8 @@ ON  t1.id=p.projectId
 
 
 )
-Select projectId, date_completion, Beneficiary,t2.name as rating,count(*)
+Select projectId, date_completion, Beneficiary,t2.name as score,count(*)
 FROM s1
-left join ds_mysql_prod_tagelement t2 on t2.id=s1.ratings
+left join ds_mysql_prod_tagelement t2 on t2.id=s1.score
 
 Group by projectId, date_completion, Beneficiary,t2.name 
