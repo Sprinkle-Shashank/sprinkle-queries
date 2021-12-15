@@ -1,0 +1,73 @@
+with table1 as (select profile_4227.projectId, cast(concat('FY ' ,start_year) as varchar) as start_year ,case when start_quarter=1 then '1st (Feb-Apr)'
+ when start_quarter=2 then '2nd (May-Jul)'
+  when start_quarter=3 then '3rd (Aug-Oct)'
+   when start_quarter=4 then '4th (Nov-Jan)'
+   else null end as start_quarter,  num_females,num_females_graduated, lg_status, profile_54646.name_vendor,profile_54646.name_country, profile_54646.name_vendor_filter,
+  type_program as select_modules,  profile_54646.name_rp as regional_partner, profile_54646.projcode_factory as codes, profile_54646.name_factory as locations, 
+
+FROM profile_4227 
+
+LEFT JOIN profile_54646 ON
+profile_4227.projectId = profile_54646.projectId
+
+where coalesce(lg_status, 0) <> 848008 and name_vendor is not null
+), 
+temp as (
+  select 'FY 2007' as C
+  Union all 
+  select 'FY 2008' as C
+  Union all 
+  select 'FY 2009'as C
+  Union all 
+  select 'FY 2010'as C
+  Union all 
+  select 'FY 2011'as C
+  Union all 
+  select 'FY 2012'as C
+  Union all 
+  select 'FY 2013' as C
+  Union all 
+  select 'FY 2014' as C
+  Union all 
+  select 'FY 2015' as C
+  Union all
+  select 'FY 2016' as C
+   Union all
+  select 'FY 2017' as C
+   Union all
+  select 'FY 2018' as C
+   Union all
+  select 'FY 2019' as C
+   Union all
+  select 'FY 2020' as C
+   Union all
+  select 'FY 2021' as C
+   Union all
+  select 'FY 2021' as C
+  )
+select projectId, num_females,lg_status, select_modules, name_vendor, name_country, name_vendor_filter, start_year , start_quarter, Sum(Case C
+	When 'FY 2007' then 0
+	When 'FY 2008' then 0
+	When 'FY 2009' then 0
+	When 'FY 2010' then 0
+	When 'FY 2011' then 0
+	When 'FY 2012' then 0
+	When 'FY 2013' then 0
+	When 'FY 2014' then t2.target_2014
+	When 'FY 2015' then t2.target_2015
+	When 'FY 2016' then t2.target_2016
+	When 'FY 2017' then t2.target_2017
+	When 'FY 2018' then t2.target_2018
+	When 'FY 2019' then t2.target_2019
+	When 'FY 2020' then t2.target_2020
+	When 'FY 2021' then t2.target_2021
+	When 'FY 2022' then t2.target_2022
+	Else Null
+END) as values , temp.C as dimensions 
+from table1 t2
+
+CROSS JOIN temp 
+
+
+where coalesce(lg_status, 0) <> 848008 and name_vendor is not null and projcode_factory like 'CP%' or  projcode_rp LIKE 'N%' and pace_status = 182398 or profile_4948.pace_status is null and type_program in ('Academic','Community','Leadership','Vocational School','Girls') and partner_type = 64734
+
