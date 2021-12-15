@@ -51,19 +51,19 @@ on po.projectid=tt.parent
 sub3 as (
 
 Select  s2.proj_location, s2.fy_timerange, s2.center_college, s2.location, s2.desc, s2.partner, s2.projectId, s2.imp_partner,
-listagg(distinct cast(json_serialize(s2.picture) as varchar) ,',') pic
+listagg(distinct json_serialize(s2.picture)  ,',') pic
 from s2
 group by s2.proj_location, s2.fy_timerange, s2.center_college, s2.location, s2.desc, s2.partner, s2.projectId, s2.imp_partner
   )
   ,
   sub4 as (
-  Select  s3.proj_location, s3.fy_timerange, s3.center_college,s3.location, s3.desc, s3.partner, s3.projectId, s3.imp_partner,(s3.pic) as pic
+  Select  s3.proj_location, s3.fy_timerange, s3.center_college,s3.location, s3.desc, s3.partner, s3.projectId, s3.imp_partner,split_to_array(s3.pic) as pic
 from sub3 s3
   
   )
-Select  s3.proj_location, s3.fy_timerange, s3.center_college,pc
+Select  s3.proj_location, s3.fy_timerange, s3.center_college,
 --cast(pc as varchar) pc
---trim('"\"' from pc) as pc
+trim('"\"' json_serialize (pc)) as pc
 ,s3.location, s3.desc, s3.partner, s3.projectId, s3.imp_partner
 from sub4 s3 , s3.pic pc
  
