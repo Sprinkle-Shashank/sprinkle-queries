@@ -1,0 +1,32 @@
+with temp as(
+  Select 'school_case' as col
+  union all
+  Select 'students_case' as col
+union all
+  Select 'stakeholders_number' as col
+  union all
+  Select 'channel_number' as col
+  union all
+  Select 'review_meetings' as col
+  union all
+  Select 'program_update' as col
+)
+sub1 as(
+Select projectId, fy_timerange,temp.col as Dimensions,p1.name as location_filter,
+  sum(case col
+	  when 'school_case' then sq.school_case
+	  when 'students_case' then sq.students_case
+	  when 'stakeholders_number' then sq.stakeholders_number
+	  when 'channel_number' then sq.channel_number
+	  when 'review_meetings' then sq.review_meetings
+	  when 'program_update' then sq.program_update
+	  else NULL
+end)as Values
+from profile_75013
+cross join temp
+left join ds_mysql_prod_project p1
+ON sq.projectId=p1.id 
+GROUP BY projectId, fy_timerange, Dimensions
+  )
+  Select projectId, fy_timerange, Dimensions, Values, split_part(location_filter ,'-',3) as location_filter
+ from sub1
