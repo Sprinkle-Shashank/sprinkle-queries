@@ -21,7 +21,7 @@ temp as (
   Union all
   select 'FY 2022' as C )
   
- select projectid, vendor, 
+ select pro.name as projectid, vendor, 
  sum( Case C
 	When 'FY 2014' then p.target_2014
 	When 'FY 2015' then p.target_2015
@@ -35,8 +35,12 @@ temp as (
 	 
 	 else null end) as value, temp.c as dimension from table1 p
 cross join temp 	 
-	 
-group by projectid,vendor, temp.c	 
+left join ds_mysql_prod_project as pro
+  on p.projectid = pro.id
+
+group by projectid,vendor, temp.c
+
+
 /*left join profile_52162 q
 on p.vendor_name = q._id
 
