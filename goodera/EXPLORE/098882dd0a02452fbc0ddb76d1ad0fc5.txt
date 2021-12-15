@@ -1,4 +1,4 @@
-with sub1 as (Select  tt2.name as projectId,tt.name as proj_location,tt1.name as partner,ss.fy_timerange, ss.headline, ss.brief, ss.source, ss.date, ss.photo, ss.url,po.impl_agency as imp_partner,pl.location,po.focus_area, po.project_type,
+with sub1 as (Select  tt2.name as projectId,tt.name as proj_location,tt1.name as partner,ss.fy_timerange, ss.headline, ss.brief, ss.source, ss.date, ss.photo, ss.url,t.name as imp_partner,t1.name as location,t2.name as focus_area, t3.name as project_type,
 		 case 
 		  when ss.projectId=53580 then 'Barola'
 		 when ss.projectId=53412 then 'Sardarpur'
@@ -17,7 +17,15 @@ on tt1.parent=tt2.id
 	left join profile_65603 pl
 		 on ss.projectid=pl.projectid 
   left join profile_65552 po
-on po.projectid=tt.parent		 
+on po.projectid=tt.parent	
+			  left join ds_mysql_prod_tagelement t
+			  on po.imp_agency =t.id
+			  left join ds_mysql_prod_tagelement t1
+			  on pl.location =t1.id
+			    left join ds_mysql_prod_project t2
+			  on po.focus_area =t2.id
+			    left join ds_mysql_prod_project t3
+			  on po.project_type =t3.id
 ),
 s2 as(
 Select s1.projectId,s1.proj_location,s1.partner,s1.fy_timerange, s1.headline, s1.brief, src,substring(s1.date,1,10) as date,s1.photo, s1.url, cast ('Click Here' as text) as Click,s1.imp_partner,s1.location,s1.center,s1.focus_area, s1.project_type
