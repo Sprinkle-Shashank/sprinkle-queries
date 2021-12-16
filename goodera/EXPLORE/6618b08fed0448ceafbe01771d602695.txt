@@ -1,16 +1,14 @@
-with sub1 as(
-select ss.projectId as proj_location, p1.name as projectId,activity_title,fy_timerange, activity_pic,activity_type, ss.name, p2.name as partner
-from profile_79270 ss
-left join ds_mysql_prod_project p
-on ss.projectId=p.id
-left join ds_mysql_prod_project p1
-on p.parent=p1.id
-left join ds_mysql_prod_project p2
-on p1.parent=p2.id)
-,
-sub2 as(
-  select proj_location, s1.projectId, activity_title,fy_timerange, activity_pic,activity_type, ss.name, p2.name as partner, location
-  from sub1 s1 )
-
-  select proj_location, s1.projectId, activity_title,fy_timerange,activity_type, ss.name, p2.name as partner, location, cast(ph as varchar)activity_pic from sub2 s2, s2.activity_pic ph
-  --select * from sub1
+WITH sub1 AS (
+  
+  SELECT pro.name AS projectId,
+  p.fy_timerange,
+  p.center_name, p.center_photo
+  
+  FROM profile_79270 p
+  
+  LEFT JOIN ds_mysql_prod_project AS pro
+  ON p.projectid = pro.id
+)
+SELECT projectId,fy_timerange,center_name,CAST(center_photo AS VARCHAR)
+FROM sub1
+ORDER BY fy_timerange DESC
