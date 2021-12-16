@@ -1,4 +1,4 @@
-with table1 as(Select profile_54646.name_vendor as vendor ,profile_54646.name_country as country,profile_54646.name_rp as regional_partner,profile_54646.name_factory as locations,profile_54646.projcode_factory as codes,class,attendance as x,num_enrolled_class as y,
+with table1 as(Select profile_54646.name_vendor_filter as vendor ,profile_54646.name_country as country,profile_54646.name_rp as regional_partner,profile_54646.name_factory as locations,profile_54646.projcode_factory as codes,class,attendance as x,num_enrolled_class as y,
 /*CASE WHEN y is not null and x is not null then (x*100.0)/y else null end as percentage1,*/
 (x*100.0)/y as percentage1,			   
 			   CAST(percentage1 as FLOAT) as percentage,p.projectId,mdl_parent.name as module,md_nme.name as module1 from profile_4228 p
@@ -22,7 +22,7 @@ and y<>0
 and percentage is not null and percentage >=0
 
 group by class,p.projectid,mdl_parent.name ,md_nme.name, 
-profile_54646.name_vendor ,profile_54646.name_country,profile_54646.name_factory,profile_54646.name_rp,profile_54646.projcode_factory,x,y,percentage1,percentage
+profile_54646.name_vendor_filter ,profile_54646.name_country,profile_54646.name_factory,profile_54646.name_rp,profile_54646.projcode_factory,x,y,percentage1,percentage
 
 ),
 table2 as(Select _id,cast(concat('FY ' ,start_year) as varchar) as start_year, start_quarter as start_quarter_new ,case when start_quarter=1 then '1st (Feb-Apr)'
@@ -35,7 +35,7 @@ table2 as(Select _id,cast(concat('FY ' ,start_year) as varchar) as start_year, s
 group by start_year,start_quarter,projectId,_id
 )
 Select  module,module1,
-vendor,country,locations,regional_partner,codes,
+vendor,country,locations,codes,
 x,y,percentage,t2.start_year,decode(regional_partner,null,'NA',regional_partner) from table1 t1
 
 left join table2 t2 on
