@@ -1,19 +1,7 @@
-with sub1 as(
-  select name, factory_name, source_div, brands, cr_tier, facility_type, pre_cr_rating, curr_cr_rating, timeperiod_timerange, region_parent, factory_id,
-  case when get_array_length(sq.source_div) = 0 then array(0)
-  else COALESCE(sq.source_div,array(0)) end new_source
-  from profile_60928 sq
-  where curr_cr_rating is not null and coalesce(cr_tier, 0) not in (957759, 957760)),
-  sub2 as(
-  select name, factory_name, brands, cr_tier, facility_type, pre_cr_rating, curr_cr_rating, timeperiod_timerange, region_parent, factory_id, source_div2 from sub1 s1, s1.new_source source_div2),
-  sub3 as(
-	select s2.name, factory_name, brands, cr_tier, facility_type, pre_cr_rating, curr_cr_rating, timeperiod_timerange, region_parent as region, factory_id,t.name as source_div2
-	from sub2 s2
-	left join ds_mysql_prod_tagelement t
-	on t.id=source_div2),
-	sub4 as(
-	select * from sub3
-	where curr_cr_rating in (957771, 957772, 957780, 957773, 957768))
-	select curr_cr_rating, region, source_div2 as source_div, timeperiod_timerange, factory_id
-	from sub4 group by
-	curr_cr_rating, region, source_div2, timeperiod_timerange, factory_id
+select p1.regoin_parent as region, p1.curr_cr_rating, p1.timeperiod_timerange, p1.factory_id, is_array(p1.source_div) as source_div_array_check,
+case
+	when source_div_array_check is false or GET_ARRAY_LENGTH(p1.source_div) = 0 then array(p1.source_div)
+	else p1.sourcea_div
+end as source_div_new
+from profile_60928 p1
+where p1.curr_cr_rating = 957780 and nvl(cr_tier, 0) not in (957759, 957760)
