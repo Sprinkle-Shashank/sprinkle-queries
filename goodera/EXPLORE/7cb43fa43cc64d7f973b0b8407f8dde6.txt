@@ -1,0 +1,48 @@
+with table1 as (select partner_name, p.projectid,target_2014,target_2015,target_2016,target_2017,target_2018,target_2019,target_2020,target_2021,target_2022,pace_mapping.name_vendor_filter
+from profile_4579  p
+			   
+	left join profile_54646 pace_mapping on
+p.partner_name = pace_mapping.name_vendor	
+	group by partner_name,p.projectid,target_2014,target_2015,target_2016,target_2017,target_2018,target_2019,target_2020,target_2021,target_2022,pace_mapping.name_vendor_filter 		   ),
+
+temp as (
+  select 'FY 2014' as C
+  Union all
+  select 'FY 2015' as C
+  Union all
+  select 'FY 2016' as C
+  Union all
+  select 'FY 2017' as C
+  Union all 
+  select 'FY 2018' as C
+  Union all
+  select 'FY 2019' as C
+  Union all
+  select 'FY 2020' as C
+  Union all
+  select 'FY 2021' as C
+  Union all
+  select 'FY 2022' as C )
+  
+ select pro.name as projectid, partner_name, 
+ sum( Case C
+	When 'FY 2014' then p.target_2014
+	When 'FY 2015' then p.target_2015
+	 When 'FY 2016' then p.target_2016
+	 When 'FY 2017' then p.target_2017
+     When 'FY 2018' then p.target_2018
+	 When 'FY 2019' then p.target_2019
+	 When 'FY 2020' then p.target_2020
+	 When 'FY 2021' then p.target_2021
+	 When 'FY 2022' then p.target_2022
+	 
+	 else null end) as value, temp.c as start_year,name_vendor_filter from table1 p
+cross join temp 	 
+left join ds_mysql_prod_project as pro
+  on p.projectid = pro.id
+
+
+group by pro.name,name_vendor_filter, temp.c,partner_name 
+
+--select * from table1
+
