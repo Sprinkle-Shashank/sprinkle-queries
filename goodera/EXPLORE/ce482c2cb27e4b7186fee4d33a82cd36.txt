@@ -1,22 +1,30 @@
+with table1 as 
+(
+  select projectId,stry_title, impact_story, photo
+FROM profile_4580
 
-with table1 as (Select projectId,stry_title, impact_story, photo
-from profile_4580
-), 
-table2 as(Select t1.*,cast (c as VARCHAR) from table1 t1, t1.photo c
+
+  )
+  , table2 as 
+  (
+	select tab1.*,cast (c as varchar) from table1 as tab1, tab1.photo c
 )
-Select  stry_title, impact_story, t2.c as photo,cast(concat('FY ' ,start_year) as varchar) as start_year ,case when start_quarter=1 then '1st (Feb-Apr)'
+
+select fac.name as factory, stry_title, impact_story, tab2.c as photo,cast(concat('FY ' ,start_year) as varchar) as start_year ,case when start_quarter=1 then '1st (Feb-Apr)'
  when start_quarter=2 then '2nd (May-Jul)'
   when start_quarter=3 then '3rd (Aug-Oct)'
    when start_quarter=4 then '4th (Nov-Jan)'
    else null end as start_quarter,  
-   profile_54646.name_vendor as vendor,profile_54646.name_country as country, profile_54646.name_vendor_filter,fac.name as Factory
-from table2 t2
+   profile_54646.name_vendor_filter as vendor,profile_54646.name_country
+FROM table2 as tab2
 
-left join profile_4227 on
-t2.projectId = profile_4227.projectId
+LEFT JOIN profile_4227 ON
+tab2.projectId = profile_4227.projectId
 
-left join profile_54646 on
+LEFT JOIN profile_54646 ON
 profile_4227.projectId = profile_54646.projectId
 
 left join ds_mysql_prod_project fac
-on t2.projectid = fac.id
+on tab2.projectid = fac.id
+
+where vendor ilike 'VENDOR:%'
