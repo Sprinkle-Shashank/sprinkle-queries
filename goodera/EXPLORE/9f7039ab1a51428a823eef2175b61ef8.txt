@@ -8,10 +8,12 @@ from profile_60928 p1
 where p1.curr_cr_rating = 957780 and nvl(cr_tier, 0) not in (957759, 957760)),
 
 sub2 as(
-  select s1.*, source_div from sub1 s1, s1.source_div_new source_div)
+  select s1.*, source_div from sub1 s1, s1.source_div_new source_div),
+  sub3 as(
   
-select s2.region, s2.timeperiod_timerange, s2.factory_id, t1.name as source_div, t2.name as CR_Rating_text, 1 as count
+select s2.region, s2.timeperiod_timerange, split_to_array(listagg(s2.factory_id,','),',') as Factory_id, t1.name as source_div, t2.name as CR_Rating_text
 from sub2 s2
 left join ds_mysql_prod_tagelement t1 on t1.id = s2.source_div
 left join ds_mysql_prod_tagelement t2 on t2.id = s2.curr_cr_rating
-group by s2.region, s2.timeperiod_timerange, s2.factory_id, t1.name, t2.name
+group by s2.region, s2.timeperiod_timerange, t1.name, t2.name)
+select array_length(Factory_id) as count,region, timeperiod_timerange, Factory_id, source_div, CR_Rating_Text from sub3
