@@ -1,6 +1,9 @@
 with table1 as (select partner_name, /*, charindex('(',partner_name )as index ,case when index <> 0 then substring(partner_name,0,index)
-else partner_name end as vendor,*/projectid,target_2014,target_2015,target_2016,target_2017,target_2018,target_2019,target_2020,target_2021,target_2022
-from profile_4579 ),
+else partner_name end as vendor,*/projectid,target_2014,target_2015,target_2016,target_2017,target_2018,target_2019,target_2020,target_2021,target_2022,pace_mapping.name_vendor_filter as vendor
+from profile_4579  p
+			   
+	left join profile_54646 pace_mapping on
+p.partner_name = pace_mapping.name_vendor		   ),
 
 temp as (
   select 'FY 2014' as C
@@ -21,7 +24,7 @@ temp as (
   Union all
   select 'FY 2022' as C )
   
-/* select pro.name as projectid, partner_name, 
+ select pro.name as projectid, partner_name, 
  sum( Case C
 	When 'FY 2014' then p.target_2014
 	When 'FY 2015' then p.target_2015
@@ -33,14 +36,13 @@ temp as (
 	 When 'FY 2021' then p.target_2021
 	 When 'FY 2022' then p.target_2022
 	 
-	 else null end) as value, temp.c as start_year,pace_mapping.name_vendor_filter as vendor from table1 p
+	 else null end) as value, temp.c as start_year,vendor from table1 p
 cross join temp 	 
 left join ds_mysql_prod_project as pro
   on p.projectid = pro.id
-left join profile_54646 pace_mapping on
-p.partner_name = pace_mapping.name_vendor
 
-group by pro.name,vendor, temp.c,partner_name */
 
-select * from table1
+group by pro.name,vendor, temp.c,partner_name 
+
+--select * from table1
 
