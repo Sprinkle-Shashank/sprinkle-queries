@@ -1,0 +1,23 @@
+select b.fy_timerange as fy_timerange,name_bene,taga.name as bene_age,tagb.name as family_income,
+case
+   when bene_age <18 then 'Under 18'
+   when bene_age between 18 and 24 then '18-24'
+   when bene_age between 25 and 34then '25-34'
+   when bene_age >34 then 'Above 34'
+ END as age_range,
+case
+   when family_income <10000 then 'Under 10000'
+   when family_income  between 10000 and 30000 then '10000-30000'
+   when family_income between 30001 and 60000 then '30001-60000'
+   when family_income >60001 then 'Above 60001'
+ END as age_range,count(*)
+
+from profile_79267 a
+
+left join profile_79266 b on a.bene_batch = b._id
+left join profile_79263 c on b.centre_name = c._id
+left join ds_mysql_prod_tagelement taga on taga.id = a.bene_age
+left join ds_mysql_prod_tagelement taga on tagb.id = a.family_income
+
+group by b.fy_timerange,name_bene,taga.name ,tagb.name 
+
