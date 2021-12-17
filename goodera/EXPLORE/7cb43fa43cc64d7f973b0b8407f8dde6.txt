@@ -1,13 +1,13 @@
-with table1 as (select  p.projectid, target_2014, target_2015, target_2016, target_2017, target_2018, target_2019, target_2020, target_2021, target_2022, profile_54646.name_vendor,profile_54646.name_vendor_filter,profile_54646.name_rp as regional_partner, profile_54646.partner_type
+with table1 as (select  p.projectid, target_2014, target_2015, target_2016, target_2017, target_2018, target_2019, target_2020, target_2021, target_2022, profile_54646.name_vendor_filter,profile_54646.name_rp as regional_partner, profile_54646.partner_type
 from profile_4579  p
 			   
 	left join profile_54646 on
 p.partner_name = profile_54646.name_vendor
-	left join profile_4227 on
-profile_4227.projectId = profile_54646.projectId
+--left join profile_4227 on profile_4227.projectId = profile_54646.projectId
+--type_program in ('Academic','Community','Leadership','Vocational School','Girls') and profile_54646.projcode_factory like 'CP%'
 				
-where type_program in ('Academic','Community','Leadership','Vocational School','Girls') and name_vendor is not null and profile_54646.partner_type = 'Community' and profile_54646.projcode_factory like 'CP%'
-	group by p.projectid,target_2014,target_2015,target_2016,target_2017,target_2018,target_2019,target_2020,target_2021,target_2022, profile_54646.name_vendor,profile_54646.name_vendor_filter,profile_54646.name_rp, profile_54646.partner_type  ),
+where profile_54646.partner_type = 'Vendor' 
+	group by p.projectid, target_2014, target_2015, target_2016, target_2017, target_2018, target_2019, target_2020, target_2021, target_2022, profile_54646.name_vendor_filter,profile_54646.name_rp, profile_54646.partner_type  ),
 	
 
 temp as (
@@ -29,7 +29,7 @@ temp as (
   Union all
   select 'FY 2022' as C )
   
- select pro.name as projectid,  name_vendor, name_vendor_filter, regional_partner, partner_type,
+ select pro.name as projectid, name_vendor_filter, regional_partner, partner_type,
  sum( Case C
 	When 'FY 2014' then p.target_2014
 	When 'FY 2015' then p.target_2015
@@ -48,7 +48,7 @@ left join ds_mysql_prod_project as pro
   
 
 
-group by pro.name, temp.c, name_vendor, name_vendor_filter, regional_partner,partner_type
+group by pro.name, temp.c, name_vendor_filter, regional_partner,partner_type
 
 --select * from table1
 
