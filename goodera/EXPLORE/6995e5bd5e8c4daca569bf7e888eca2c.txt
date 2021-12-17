@@ -6,16 +6,21 @@ with temp as(
   Select 'Other' as col
 ),
 sub1 as(
-Select  t4.name as course,temp.col as Gender,p1.name as location,attend_percentage
-FROM  profile_79267 sq
+Select  t4.name as course,temp.col as Gender,taga.name as location,attend_percentage,b.fy_timerange as fy_timerange
+FROM  profile_79267 a
 cross join temp
 left join ds_mysql_prod_project p1
-ON sq.projectid=p1.id  
+ON a.projectid=p1.id  
 
 left join ds_mysql_prod_tagelement t4
-  ON t4.id=sq.bene_specialization
-GROUP BY  t4.name, Gender,p1.name,attend_percentage
+  ON t4.id=a.bene_specialization
+left join profile_79266 b on a.bene_batch = b._id
+left join profile_79263 c on b.centre_name = c._id 
+ left join ds_mysql_prod_tagelement taga on taga.id = c.location
+  
+  
+GROUP BY  b.fy_timerange,t4.name, Gender,taga.name,attend_percentage
  )
-  Select  course, Gender,attend_percentage,location
+  Select b.fy_timerange, course, Gender,attend_percentage,location
   FROM sub1
   
