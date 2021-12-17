@@ -1,9 +1,9 @@
-with table1 as (select  p.projectid, target_2014, target_2015, target_2016, target_2017, target_2018, target_2019, target_2020, target_2021, target_2022, profile_54646.name_vendor,profile_54646.name_country, profile_54646.name_vendor_filter,profile_54646.name_rp as regional_partner, profile_54646.projcode_factory as codes, profile_54646.name_factory as locations
+with table1 as (select  p.projectid, target_2014, target_2015, target_2016, target_2017, target_2018, target_2019, target_2020, target_2021, target_2022, profile_54646.name_vendor,profile_54646.name_vendor_filter,profile_54646.name_rp as regional_partner, partner_type
 from profile_4579  p
 			   
 	left join profile_54646 on
 p.partner_name = profile_54646.name_vendor	
-	group by partner_name,p.projectid,target_2014,target_2015,target_2016,target_2017,target_2018,target_2019,target_2020,target_2021,target_2022, profile_54646.name_vendor,profile_54646.name_country, profile_54646.name_vendor_filter,profile_54646.name_rp, profile_54646.projcode_factory, profile_54646.name_factory   ),
+	group by p.projectid,target_2014,target_2015,target_2016,target_2017,target_2018,target_2019,target_2020,target_2021,target_2022, profile_54646.name_vendor,profile_54646.name_vendor_filter,profile_54646.name_rp, partner_type  ),
 
 temp as (
   select 'FY 2014' as C
@@ -24,7 +24,7 @@ temp as (
   Union all
   select 'FY 2022' as C )
   
- select pro.name as projectid,  name_vendor,name_country, name_vendor_filter, regional_partner, codes, locations,
+ select pro.name as projectid,  name_vendor, name_vendor_filter, regional_partner, partner_type,
  sum( Case C
 	When 'FY 2014' then p.target_2014
 	When 'FY 2015' then p.target_2015
@@ -41,9 +41,9 @@ cross join temp
 left join ds_mysql_prod_project as pro
   on p.projectid = pro.id
   
-where name_vendor is not null and codes like 'CP%'
+where name_vendor is not null and partner_type = "Community Partner"
 
-group by pro.name, temp.c,partner_name ,partner_name,  name_vendor,name_country, name_vendor_filter, regional_partner, codes, locations
+group by pro.name, temp.c, name_vendor, name_vendor_filter, regional_partner,partner_type
 
 --select * from table1
 
