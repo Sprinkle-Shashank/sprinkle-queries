@@ -1,3 +1,58 @@
+with table1 as (select  p.projectid, target_2014, target_2015, target_2016, target_2017, target_2018, target_2019, target_2020, target_2021, target_2022, profile_54646.name_vendor,profile_54646.name_country, profile_54646.name_vendor_filter,profile_54646.name_rp as regional_partner, profile_54646.projcode_factory as codes, profile_54646.name_factory as locations
+from profile_4579  p
+			   
+	left join profile_54646 on
+p.partner_name = profile_54646.name_vendor	
+				
+
+where name_vendor is not null and codes like 'CP%'
+				
+	group by p.projectid,target_2014,target_2015,target_2016,target_2017,target_2018,target_2019,target_2020,target_2021,target_2022, profile_54646.name_vendor,profile_54646.name_country, profile_54646.name_vendor_filter,profile_54646.name_rp, profile_54646.projcode_factory, profile_54646.name_factory, type_program   ),
+
+temp as (
+  select 'FY 2014' as C
+  Union all
+  select 'FY 2015' as C
+  Union all
+  select 'FY 2016' as C
+  Union all
+  select 'FY 2017' as C
+  Union all 
+  select 'FY 2018' as C
+  Union all
+  select 'FY 2019' as C
+  Union all
+  select 'FY 2020' as C
+  Union all
+  select 'FY 2021' as C
+  Union all
+  select 'FY 2022' as C )
+  
+ select pro.name as projectid,  name_vendor,name_country, name_vendor_filter, regional_partner, codes, locations,
+ sum( Case C
+	When 'FY 2014' then p.target_2014
+	When 'FY 2015' then p.target_2015
+	 When 'FY 2016' then p.target_2016
+	 When 'FY 2017' then p.target_2017
+     When 'FY 2018' then p.target_2018
+	 When 'FY 2019' then p.target_2019
+	 When 'FY 2020' then p.target_2020
+	 When 'FY 2021' then p.target_2021
+	 When 'FY 2022' then p.target_2022
+	 
+	 else null end) as value, temp.c as start_year,type_program from table1 p
+cross join temp 	 
+left join ds_mysql_prod_project as pro
+  on p.projectid = pro.id
+  
+
+group by pro.name, temp.c, name_vendor,name_country, name_vendor_filter, regional_partner, codes, locations,type_program
+
+--select * from table1
+
+
+
+/*
 select pro.name as projectId, p.vendor_id ,target_2014,target_2015,profile_54646.name_vendor,profile_54646.name_country, profile_54646.name_vendor_filter from profile_4579 p
 
 left join ds_mysql_prod_project pro
@@ -5,3 +60,4 @@ on p.projectid = pro.id
 
 LEFT JOIN profile_54646 ON
 pro.name = profile_54646.name_vendor
+*/
