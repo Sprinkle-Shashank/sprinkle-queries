@@ -1,0 +1,55 @@
+
+with table1 as(Select p.projectId,p._id,stry_title,impact_story, photo,date,concat('FY',concat(' ',substring(date,1,4) )) AS  start_year,substring(date,6,2) as start_month,case when start_month = '01' then 'Jan'
+when start_month = '02' then 'Feb'
+when start_month = '03' then 'Mar'
+when start_month = '04' then 'Apr'
+when start_month = '05' then 'May'
+when start_month = '06' then 'Jun'
+when start_month = '07' then 'Jul'
+when start_month = '08' then 'Aug'
+when start_month = '09' then 'Sep'
+when start_month = '10' then 'Oct'
+when start_month = '11' then 'Nov'
+when start_month = '12' then 'Dec'
+
+end as month
+  ,case when (month = 'Feb') or (month='Apr') or (month='Mar') then 1
+ when (month = 'May') or (month = 'Jun') or (month = 'Jul') then 2
+ when (month = 'Aug') or (month = 'Sep') or (month = 'Oct') then 3
+ when (month = 'Nov') or (month = 'Dec') or (month = 'Jan') then 4
+end as quarter,
+  case when quarter = 1
+then '1st (Feb-Apr)'
+ when quarter = 2
+then '2nd (May-Jul)'
+ when quarter = 3
+then '3rd (Aug-Oct)'
+ when quarter = 4
+then '4th (Nov-Jan)'
+end as start_quarter,profile_54646.name_vendor_filter as vendor,profile_54646.name_country as country,fac.name as  factory
+from profile_4580 p
+
+LEFT JOIN profile_54646 ON
+p.projectId = profile_54646.projectId
+left join ds_mysql_prod_project fac
+on p.projectid = fac.id
+			   
+),
+table2 as( 
+	select tab1.*,cast (c as varchar) from table1 tab1, tab1.photo as c
+),
+table3 as(Select tab1.projectId,tab1.stry_title,tab1.impact_story, tab1.photo as c,tab1.start_year,tab1.start_quarter,tab1.vendor,tab1._id,table2._id,tab1.factory,tab1.country from table1 tab1
+
+left join table2 on
+tab1._id = table2._id
+
+
+where  table2._id is null
+group by tab1.projectId,tab1.stry_title,tab1.impact_story, tab1.photo,tab1.start_year,tab1.start_quarter,tab1.vendor,tab1.country, tab1._id,table2._id,tab1.factory
+)
+
+Select stry_title,impact_story,projectId,c,start_year,start_quarter,vendor,factory,country from table2
+UNION all
+Select stry_title,impact_story,projectId,c,start_year,start_quarter,vendor,factory,country from table3
+
+--where vendor ilike 'VENDOR:%'
