@@ -9,7 +9,7 @@ with temp as(
   union all
   select 'outreach_unidentified' as col)
 
-select p._id as id, p1.name as site, (p.date||'|'||p.date) as fy_timerange, temp.col as Dimensions, p.date,
+select p3.name as project_parent, p2.name as projectid, p._id as id, p1.name as site, (p.date||'|'||p.date) as fy_timerange, temp.col as Dimensions, p.date,
 to_char(p.date, 'DD/MM/YYYY') as x_date,
 sum(case col
 		when 'outreach_male' then p.outreach_male
@@ -31,5 +31,7 @@ end as beneficiary_type
 from profile_78085 p
 	cross join temp
 	left join profile_78079 p1 on p1._id = p.site
-	group by id, p1.name, fy_timerange, dimensions, beneficiary_type, x_date, p.date
+	left join ds_mysql_prod_project p2 on p2.id = p.projectid
+	left join ds_mysql_prod_project p3 on p3.id = p2.parent
+	group by id, p1.name, fy_timerange, dimensions, beneficiary_type, x_date, p.date, p2.name, p3.name
 	order by p.date asc
