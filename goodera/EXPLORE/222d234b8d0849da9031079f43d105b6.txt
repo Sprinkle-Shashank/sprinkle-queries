@@ -1,0 +1,70 @@
+with temp as(
+  Select 'male_6thgrade' as col
+    union all
+  Select 'female_6thgrade' as col
+    union all
+  Select 'male_7thgrade' as col
+    union all
+  Select 'female_7thgrade' as col
+    union all
+  Select 'male_8thgrade' as col
+    union all
+  Select 'female_8thgrade' as col
+    union all
+  Select 'male_9thgrade' as col
+    union all
+  Select 'female_9thgrade' as col
+    union all
+  Select 'male_10thgrade' as col
+    union all
+  Select 'female_10thgrade' as col
+)
+Select school_name, t2.name as district, fy_timerange,t1.name as state,temp.col as dimensions,
+case 
+	when dimensions='male_6thgrade' then 'Male'
+	when dimensions='male_7thgrade' then 'Male'
+	when dimensions='male_8thgrade' then 'Male'
+	when dimensions='male_9thgrade' then 'Male'
+	when dimensions='male_10thgrade' then 'Male'
+	else 'Female'
+end as gender,
+case 
+	when dimensions='male_6thgrade' then '6th'
+	when dimensions='female_6thgrade' then '6th'
+	when dimensions='male_7thgrade' then '7th'
+	when dimensions='female_7thgrade' then '7th'
+	when dimensions='male_8thgrade' then '8th'
+	when dimensions='female_8thgrade' then '8th'
+	when dimensions='male_9thgrade' then '9th'
+	when dimensions='female_9thgrade' then '9th'
+	else '10th'
+	end as grade,
+case 
+	when grade='6th' then '1'
+	when grade='7th' then '2'
+	when grade='8th' then '3'
+	when grade='9th' then '4'
+	else '5'
+end as sort,
+sum(case col
+	when 'male_6thgrade' then sq.students_male_6th
+	when 'female_6thgrade' then sq.students_female_6th
+	when 'male_7thgrade' then sq.students_male_7th
+	when 'female_7thgrade' then sq.students_female_7th
+	when 'male_8thgrade' then sq.students_male_8th
+	when 'female_8thgrade' then sq.students_female_8th
+	when 'male_9thgrade' then sq.students_male_9th
+	when 'female_9thgrade' then sq.students_female_9th
+	when 'male_10thgrade' then sq.students_male_10th
+	when 'female_10thgrade' then sq.students_female_10th
+	else NULL
+end) as Values
+FROM profile_79305 sq
+cross join temp
+LEFT JOIN ds_mysql_prod_tagelement t
+ON t.id=sq.state_district
+left join ds_mysql_prod_tagelement t1
+ON t1.id=t.parent
+left join ds_mysql_prod_tagelement t2
+ON t2.id=sq.state_district
+GROUP BY school_name, t2.name, fy_timerange, t1.name, dimensions, gender, grade, sort
