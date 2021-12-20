@@ -1,6 +1,5 @@
-with table1 as 
-(
-  select p.projectId,stry_title, impact_story, photo,date,concat('FY',concat(' ',substring(date,1,4) )) AS  start_year,substring(date,6,2) as start_month,case when start_month = '01' then 'Jan'
+
+with table1 as(Select p.projectId,p._id,stry_title,impact_story, photo,date,concat('FY',concat(' ',substring(date,1,4) )) AS  start_year,substring(date,6,2) as start_month,case when start_month = '01' then 'Jan'
 when start_month = '02' then 'Feb'
 when start_month = '03' then 'Mar'
 when start_month = '04' then 'Apr'
@@ -27,44 +26,30 @@ then '2nd (May-Jul)'
 then '3rd (Aug-Oct)'
  when quarter = 4
 then '4th (Nov-Jan)'
-end as start_quarter,profile_54646.name_vendor_filter as vendor,profile_54646.name_country as country,fac.name as factory
-
-FROM profile_4580 p
-
+end as start_quarter,profile_54646.name_vendor_filter as vendor,fac.name as  factory
+from profile_4580 p
 
 LEFT JOIN profile_54646 ON
 p.projectId = profile_54646.projectId
-
 left join ds_mysql_prod_project fac
 on p.projectid = fac.id
- /*extract(year from date) as start_year,extract (month from date) as start_month*/
-
-
-
-  )
-  , table2 as 
-  (
+			   
+),
+table2 as( 
 	select tab1.*,cast (c as varchar) from table1  tab1, tab1.photo c
+),
+table3 as(Select tab1.projectId,tab1.stry_title,tab1.impact_story, tab1.photo as c,tab1.start_year,tab1.start_quarter,tab1.vendor,tab1._id,table2._id,factory from table1 tab1
+
+left join table2 on
+tab1._id = table2._id
+
+
+where  table2._id is null
+group by tab1.projectId,tab1.stry_title,tab1.impact_story, tab1.photo,tab1.start_year,tab1.start_quarter,tab1.vendor,tab1._id,table2._id,factory
 )
-/*
-select fac.name as factory, stry_title, impact_story, tab2.c as photo,cast(concat('FY ' ,profile_4227.start_year) as varchar) as start_year ,case when profile_4227.start_quarter=1 then '1st (Feb-Apr)'
- when profile_4227.start_quarter=2 then '2nd (May-Jul)'
-  when profile_4227.start_quarter=3 then '3rd (Aug-Oct)'
-   when profile_4227.start_quarter=4 then '4th (Nov-Jan)'
-   else null end as start_quarter,  
-   profile_54646.name_vendor_filter as vendor,profile_54646.name_country as country
-FROM table2 as tab2
 
-LEFT JOIN profile_4227 ON
-tab2.projectId = profile_4227.projectId
+Select stry_title,impact_story,projectId,c,start_year,start_quarter,vendor,factory from table2
+UNION all
+Select stry_title,impact_story,projectId,c,start_year,start_quarter,vendor,factory from table3
 
-LEFT JOIN profile_54646 ON
-tab2.projectId = profile_54646.projectId
-
-left join ds_mysql_prod_project fac
-on tab2.projectid = fac.id
-
---where vendor ilike 'Vendor:%'
---group by fac.name,stry_title,impact_story,tab2.c,start_year,start_quarter,vendor,country
-*/
-select * from table2
+--where photo is not null
