@@ -14,7 +14,8 @@ with table1 as (
   select 'fluoride' as q 
  )
 
-select p._id,p.quality_check_date fy_timerange,t.school,table1.q, 
+select r._id, r.fy_timerange, r.school, s.school_name, r.parameter, r.value
+(select p._id,p.quality_check_date fy_timerange, school, table1.q parameter, 
 case table1.q
 when 'ph' then avg(p.ph)
 when 'tds' then avg(p.tds)
@@ -24,9 +25,9 @@ when 'calcium' then avg(p.calcium)
 when 'magnesium' then avg(p.magnesium)
 when 'fluoride' then avg(p.fluoride)
 else null
-end as count 
-from profile_77020 p ,select school from p.school t
+end as value 
+from profile_77020 p , p.school school) as r
 left join profile_76997 s on
-t.school = s._id
+r.school = s._id
 cross join table1
 group by 1,2,3,4,5;
