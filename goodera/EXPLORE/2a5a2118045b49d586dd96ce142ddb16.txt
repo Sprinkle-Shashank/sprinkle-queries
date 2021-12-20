@@ -1,0 +1,29 @@
+with temp as(
+  Select 'age_below10' as col
+  union all
+  Select 'age_11to15' as col
+    union all
+  Select 'age_16to18' as col
+    union all
+  Select 'age_above19' as col
+)
+select school_name, t2.name as district, fy_timerange,temp.col as dimension,comp_think_camp as no_comp_think_camp,
+case 
+	when dimension='age_below6' then '0-10'
+	when dimension='age_11to15' then '11-15'
+	when dimension='age_16to18' then '16-18'
+	else '19 and above'
+end as age_bucket,
+sum(case col
+	when 'age_below10' then sq.student_below_10yrs
+	when 'age_11to15' then sq.student_bw_11_and_15
+	when 'age_16to18' then sq.student_bw_16_and_18 
+	when 'age_above19' then sq.student_above_19 	
+	else NULL
+end) as Value
+
+FROM profile_79305 sq
+cross join temp
+left join ds_mysql_prod_tagelement t2
+ON t2.id=sq.state_district
+GROUP BY school_name, t2.name, fy_timerange, dimension, age_bucket
