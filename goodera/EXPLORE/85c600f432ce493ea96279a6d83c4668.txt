@@ -1,49 +1,9 @@
-with table1 as(Select profile_54646.name_vendor as vendor ,profile_54646.name_country as country,profile_54646.name_rp as regional_partner,profile_54646.name_factory as locations,profile_54646.projcode_factory as codes,class,attendance as x,num_enrolled_class as y,
-/*CASE WHEN y is not null and x is not null then (x*100.0)/y else null end as percentage1,*/
-(x*100.0)/y as percentage1,			   
-			   CAST(percentage1 as FLOAT) as percentage,p.projectId,mdl_parent.name as module,md_nme.name as module1 from profile_4228 p
+Select stry_title,impact_story,projectId,profile_54646.name_vendor_filter as vendor,profile_4227.start_year from profile_4580 p
 
-left join ds_mysql_prod_tagelement md_nme
-on p.module_name = md_nme.id
+LEFT JOIN profile_4227 ON
+p.projectId = profile_4227.projectId
 
-left join ds_mysql_prod_tagelement mdl_parent
-on md_nme.parent = mdl_parent.id
+LEFT JOIN profile_54646 ON
+p.projectId = profile_54646.projectId 
 
-left join profile_54646 on
-p.projectId = profile_54646.projectId
-
-where 
-codes ilike '%CP%' and
- vendor is not null and mdl_parent.name in  
-('Academic','Community','Leadership','Vocational School','Younger Girls','Older Girls') and
-module1 ilike '%Time%' 
-and x is not null 
-and y<>0
-and percentage is not null and percentage >=0
-
-group by class,p.projectid,mdl_parent.name ,md_nme.name, 
-profile_54646.name_vendor ,profile_54646.name_country,profile_54646.name_factory,profile_54646.name_rp,profile_54646.projcode_factory,x,y,percentage1,percentage
-
-),
-table2 as(Select _id,cast(concat('FY ' ,start_year) as varchar) as start_year, start_quarter as start_quarter_new ,case when start_quarter=1 then '1st (Feb-Apr)'
- when start_quarter=2 then '2nd (May-Jul)'
-  when start_quarter=3 then '3rd (Aug-Oct)'
-   when start_quarter=4 then '4th (Nov-Jan)'
-   else null end as start_quarter,p2.projectId
-   from profile_4227 p2
-
-group by start_year,start_quarter,projectId,_id
-)
-Select  module,module1,t1.projectId,
-vendor,country,locations,regional_partner,
-AVG(percentage),t2.start_year,t2.start_quarter from table1 t1
-
-left join table2 t2 on
-t1.class = t2._id
-
-group by vendor,country,
-module,module1,start_year,start_quarter,
-locations,regional_partner,t1.projectId
-
-
-
+group by stry_title,impact_story,vendor,profile_4227.start_year,projectId
