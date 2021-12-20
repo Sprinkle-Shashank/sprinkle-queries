@@ -1,55 +1,122 @@
-with table1 as (select  p.projectid, target_2014, target_2015, target_2016, target_2017, target_2018, target_2019, target_2020, target_2021, target_2022, profile_54646.name_vendor_filter,profile_54646.name_country
-				--,profile_54646.name_rp as regional_partner
-from profile_4579  p
-			   
-	left join profile_54646 on
-p.partner_name = profile_54646.name_vendor
---left join profile_4227 on profile_4227.projectId = profile_54646.projectId
---type_program in ('Academic','Community','Leadership','Vocational School','Girls') and profile_54646.projcode_factory like 'CP%'
-				
-where profile_54646.partner_type = 'Community' and name_vendor_filter is not null
-				
-group by p.projectid, target_2014, target_2015, target_2016, target_2017, target_2018, target_2019, target_2020, target_2021, target_2022, profile_54646.name_vendor_filter
-				,profile_54646.name_country--profile_54646.name_rp--, , profile_54646.partner_type
-			   ),
+with table1 as 
+(
+select pr_46.name_factory , pr_13.projectid , pr_13._id ,
+  row_number() over 
+(partition by pr_13.projectid --factory
+ order by pr_13._id desc) as row
+  from profile_52713 pr_13
+ 
+left join profile_54646 pr_46 on 
+ pr_13.projectid = pr_46.projid_factory
+  
+left join profile_54267 pr_67 on 
+ pr_13.projectid = pr_67.projectid
+    
+where sourcing_yn = 57472 and pr_67.pace_status = 845114 
+  
+)
+
+, table2 as 
+(
+select pr_46.name_factory, pr_13.projectid , pr_13._id , sourcing_yn , pace_status_2 from profile_52713 as pr_13
+ 
+left join profile_54646 pr_46 on 
+ pr_13.projectid = pr_46.projectid
+    
+--where pr_13.sourcing_yn = 57473 and pr_13.pace_status_2 = 845114 and pr_13.pace_status_2 is null
+)
+
+, table3 as 
+(
+select pr_46.name_factory , pr_13.projectid , pr_13._id from profile_52713 as pr_13
+ 
+left join profile_54646 pr_46 on 
+ pr_13.projectid = pr_46.projid_factory
+  
+left join profile_4948 pr_48 on 
+ pr_13.projectid = pr_48.projectid
+    
+where pr_48.pace_status = 182398
+)
+
+, table4 as 
+(
+  select name_factory , tab1.projectid from table1 as tab1 union all select name_factory , tab2.projectid from table2 as tab2 union all select name_factory , tab3.projectid from table3 as tab3 
+ )
+ 
+ , table5 as 
+(
+select pr_48.cp_location_id , pr_13.projectid from profile_52713 as pr_13
+  
+left join profile_4948 pr_48
+on pr_13.ProjectID = pr_48.ProjectID
+  
+ where pr_48.pace_status = 182398
+)
+
+, table6 as
+(
+select pr_46.name_vendor_filter , pr_13.projectid from profile_52713 as pr_13  
+   
+left join profile_54646 pr_46
+on pr_13.ProjectID = pr_46.projid_vendor
+  
+left join profile_4948 pr_48
+on pr_13.ProjectID = pr_48.ProjectID
+
+where pr_48.pace_status = 182398
+)
+
+, table7 as
+(
+select to_char(pr_27.start_date , 'YYYY-MM-DD') as start_date , pr_13.projectid from profile_52713 pr_13 
+  
+  left join profile_4227 pr_27 
+  on pr_13.projectid = pr_27.projectid
+  
+  where pr_27.end_date_2 is null
+)
+
+, table8 as 
+(
+ select to_char(pr_27.end_date , 'YYYY-MM-DD') as end_date , pr_13.projectid from profile_52713 pr_13 
+  
+  left join profile_4227 pr_27 
+  on pr_13.projectid = pr_27.projectid
+  
+  where pr_27.end_date_2 is null
+  )
+
+, table9 as
+(
+ select pr_27.num_females as num_females , pr_13.projectid from profile_52713 pr_13 
+  
+  left join profile_4227 pr_27 
+  on pr_13.projectid = pr_27.projectid
+  
+  where pr_27.end_date_2 is null
+  )
+  
+  , table10 as 
+  (
+	select 1 as count , pr_13.projectid from profile_52713 pr_13 
 	
-
-temp as (
-  select 'FY 2014' as C
-  Union all
-  select 'FY 2015' as C
-  Union all
-  select 'FY 2016' as C
-  Union all
-  select 'FY 2017' as C
-  Union all 
-  select 'FY 2018' as C
-  Union all
-  select 'FY 2019' as C
-  Union all
-  select 'FY 2020' as C
-  Union all
-  select 'FY 2021' as C
-  Union all
-  select 'FY 2022' as C )
-  
- select pro.name as projectid, name_vendor_filter, name_country,
- sum( Case C
-	When 'FY 2014' then p.target_2014
-	When 'FY 2015' then p.target_2015
-	 When 'FY 2016' then p.target_2016
-	 When 'FY 2017' then p.target_2017
-     When 'FY 2018' then p.target_2018
-	 When 'FY 2019' then p.target_2019
-	 When 'FY 2020' then p.target_2020
-	 When 'FY 2021' then p.target_2021
-	 When 'FY 2022' then p.target_2022
-	 
-	 else null end) as value, temp.c as start_year from table1 p
-cross join temp 	 
-left join ds_mysql_prod_project as pro
-  on p.projectid = pro.id
-  
-
-
-group by pro.name, temp.c, name_vendor_filter,name_country
+	left join profile_4228 pr_28
+	on pr_13.projectid = pr_28.projectid
+	
+	where pr_28.end_date is not null
+   )
+   
+    , table11 as 
+  (
+	select 1 as count , pr_13.projectid from profile_52713 pr_13 
+	
+	left join profile_4228 pr_28
+	on pr_13.projectid = pr_28.projectid
+	
+	where pr_28.end_date is null
+   )
+   
+   
+   
+select * from table2 
