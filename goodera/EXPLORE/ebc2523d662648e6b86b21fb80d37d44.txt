@@ -1,21 +1,10 @@
 select fac.name as factory , case when sourcing_yn=57472 then cast(factory_vpid_1 as varchar)
 when sourcing_yn=57473 then cast(factory_vpid_2 as varchar) end as factory_id , case when sourcing_yn = 57473 then pace_status_2 when sourcing_yn = 57472 then pr_67.pace_status end as pace_status ,  row_number() over 
 (partition by p.projectid --factory
- order by p._id desc) as row from profile_52713  p
+ order by p._id desc) as row , case when sourcing_yn = 57473 then null when sourcing_yn = 57472 then pr_67.facility_score end as sustain from profile_52713  p
 
  left join ds_mysql_prod_project fac 
 on p.projectId = fac.id
 
 left join profile_54267 pr_67 on 
 p.projectid = pr_67.projectid
-
-/*
-IF sourcing_yn == 57473:
-  Show {pace_status_2} in 52713
-  
-  IF sourcing_yn == 57472
-  LEFT JOIN 52713 and 54267 ON 52713.project = 54267.project
- Show {pace_status} in 54267
-  show {pace_status} for the latest {fy} and {month} available for factory
-  */
-
