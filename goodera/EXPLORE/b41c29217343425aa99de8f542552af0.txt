@@ -1,5 +1,25 @@
-Select a.fy_timerange, b.name as school,a.artifact_technology,score_50,advanced_comp_thinking,comp_thinking,complete_comp_thinking,count(*) as value
+with temp as(
+  Select 'artifact_technology' as col
+    union all
+  Select 'score_50' as col
+    union all
+  Select 'advanced_comp_thinking' as col
+    union all
+  Select 'comp_thinking' as col
+    union all
+  Select 'complete_comp_thinking' as col
+)
+
+Select a.fy_timerange, b.name as school,count(*) as value,temp.col as dimensions,
+sum(case col
+	when 'artifact_technology' then a.artifact_technology
+	when 'score_50' then a.score_50
+	when 'advanced_comp_thinking' then a.advanced_comp_thinking
+	when 'comp_thinking' then a.comp_thinking
+	when 'complete_comp_thinking' then a.complete_comp_thinking
+	 else NULL
+end) as Values
 from profile_79307 a
 
 left join profile_79305 b on a.school = b._id
-Group by a.fy_timerange, b.name,a.artifact_technology,score_50,advanced_comp_thinking,comp_thinking,complete_comp_thinking
+Group by a.fy_timerange, b.name,dimensions
