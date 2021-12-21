@@ -3,7 +3,7 @@ with temp as(
   union all
   select 'covishield_doses_administered' as col)
 
-select p1.name as site, (p.date||'|'||p.date) as fy_timerange, temp.col as Dimensions,
+select p3.name as project_parent, p2.name as projectid, p1.name as site, (p.date||'|'||p.date) as fy_timerange, temp.col as Dimensions,
 sum(case col
 		when 'covaxin_doses_administered' then p.covaxin_doses_administered
 		when 'covishield_doses_administered' then p.covishield_doses_administered
@@ -12,4 +12,6 @@ sum(case col
 from profile_78081 p
 	cross join temp
 	left join profile_78079 p1 on p1._id = p.site
-	group by p1.name, fy_timerange , dimensions
+	left join ds_mysql_prod_project p2 on p2.id = p.projectid
+	left join ds_mysql_prod_project p2 on p3.id = p2.parent	
+	group by p1.name, fy_timerange , dimensions, p2.name, p3.name
