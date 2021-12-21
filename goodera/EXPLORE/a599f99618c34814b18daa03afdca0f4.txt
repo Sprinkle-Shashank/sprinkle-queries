@@ -13,7 +13,7 @@ with temp as(
   union all
   select 'total_eligible' as col)
   
-select p._id as id, p.name as site, temp.col as Dimensions,
+select p2.name as project_parent, p1.name as projectid, p._id as id, p.name as site, temp.col as Dimensions,
 
 sum(case col
 		when 'doctors' then p.doctors
@@ -35,5 +35,7 @@ end as fy_timerange
 
 from profile_78079 p
 cross join temp
-	group by id, site, dimensions, fy_timerange
+	left join ds_mysql_prod_project p1 on p1.id = p.projectid
+	left join ds_mysql_prod_project p2 on p2.id = p1.parent	
+	group by p._id, site, dimensions, fy_timerange, p1.name, p2.name
   
