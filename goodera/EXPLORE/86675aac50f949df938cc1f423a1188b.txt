@@ -1,35 +1,57 @@
 with sub1 as(
-  select p1.*,
-cast(timestamp 'epoch' + CAST(p1.eventdate AS BIGINT)/1000 * interval '1 second' as datetime) as event_date,
-cast(timestamp 'epoch' + CAST(p1.created AS BIGINT)/1000 * interval '1 second' as datetime) as create_date,
-is_array(p1.focus_area) as array_check,
-case
-	when array_check = false then array(p1.focus_area)
-	else p1.focus_area
-end as focus_area_new
-from profile_26729 p1),
-
-sub2 as(
-  select s1.*, (s1.event_date + interval '5.5 hour') as eventdate,  (s1.create_date + interval '5.5 hour') as createdate, focus_area_1 from sub1 s1, s1.focus_area_new focus_area_1)
+  select r1.*,
+  case
+  		when extract(year from cast(r1.end_date as date)) > extract(year from cast(r1.start_date as date))
+		then r1.participation_date
+		else r1.start_date
+  end as start_date_new
+  from rb_volhours r1),
   
-select s2._id as id, nvl(s2.eventdate, s2.createdate) as start_date,
-nvl(s2.event_date, s2.create_date) as end_date,
+sub2 as(
+  select cast(s1.event_id as varchar) as id, t1.name as focus_area, p3.name as country, p3.map_code, s1.participation_date,
+(cast(s1.start_date_new as date)||'|'||cast(s1.start_date_new as date)) as fy_timerange,
+s1.vol_hours, s1.vol_hours*p4.vol_conversion_factor as volunteering_cost,
+extract(year from cast(s1.start_date_new as date)) as year_check,
+('FY'||' '||extract(year from cast(s1.start_date_new as date))) as x_axis2, 
+cast('Volunteering' as varchar) as x_axis,
+cast('Reckitt Global' as varchar) as prod_brand, s1.opportunityType,
+	case
+  		when(year_check = extract(year from current_date)) then 'Current year'
+  		when(year_check = extract(year from current_date)-1) then 'Previous year'
+  	else 'Not Applicable'
+  	end as year_status
+from sub1 s1
+left join profile_78929 p2 on p2.vol_focus_area_full = s1.focus_area
+left join ds_mysql_prod_tagelement t1 on t1.id = p2.focus_area
+left join profile_78788 p3 on p3.vol_country = s1.country
+left join profile_78933 p4 on p4.name = extract(year from cast(s1.start_date_new as date))
+where year_check > 2017 and year_check < 2026),
 
-case
-	when t1.name is not null then t1.name
-	when t1.name is null and t2.name is not null then t2.name
-	else 'Others'
-end as focus_area,
+-- Volunteering Hours xx--
 
-case
-	when s2.country is not null or s2.officecountry is not null 
-	then nvl(INITCAP(s2.officecountry), INITCAP(s2.country))
-	else 'Global'
-end as country,
+sub3 as(
+  select r2.id, t2.name as focus_area, p6.name as country, p6.map_code, cast('LOG' as varchar) as opportunityType,
+cast(r2.start_date as date) as participation_date,
+(cast(r2.start_date as date)||'|'||cast(r2.start_date as date)) as fy_timerange,
+r2.hours as vol_hours, r2.hours*p7.vol_conversion_factor as volunteering_cost,
+extract(year from cast(r2.start_date as date)) as year_check,
+('FY'||' '||extract(year from cast(r2.start_date as date))) as x_axis2, 
+cast('Volunteering' as varchar) as x_axis,
+cast('Reckitt Global' as varchar) as prod_brand,
+	case
+  		when(year_check = extract(year from current_date)) then 'Current year'
+  		when(year_check = extract(year from current_date)-1) then 'Previous year'
+  	else 'Not Applicable'
+  	end as year_status
+from rb_loghours r2
+left join profile_78929 p5 on UPPER(p5.vol_focus_area_full) = UPPER(r2.focus_area)
+left join ds_mysql_prod_tagelement t2 on t2.id = p5.focus_area
+left join profile_78788 p6 on p6.vol_country = r2.country
+left join profile_78933 p7 on p7.name = extract(year from cast(r2.start_date as date))
+where year_check > 2017 and year_check < 2026)
 
-sum(s2.hours_contributed) as hours
-from sub2 s2
-left join ds_mysql_prod_refFocusArea t1 on t1.id = s2.focus_area_1
-left join ds_mysql_prod_tagElement t2 on t2.id = s2.focus_area_2
-where s2.hours_contributed is not null and s2.hours_contributed != 0
-group by s2._id, start_date, end_date, t1.name, s2.country, s2.officecountry, t2.name
+-- Log Hours xx--
+
+select id, fy_timerange, participation_date, focus_area, country, map_code, prod_brand, year_check, year_status, x_axis, x_axis2, vol_hours, volunteering_cost, opportunityType from sub2
+union all
+select id, fy_timerange, participation_date, focus_area, country, map_code, prod_brand, year_check, year_status, x_axis, x_axis2, vol_hours, volunteering_cost, opportunityType from sub3
