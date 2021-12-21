@@ -1,11 +1,39 @@
-select p._id , fac.name as factory_name , case when sourcing_yn=57472 then cast(factory_vpid_1 as varchar)
-when sourcing_yn=57473 then cast(factory_vpid_2 as varchar) end as factory_id , case when sourcing_yn = 57473 then pace_status_2 when sourcing_yn = 57472 then pr_67.pace_status end as pace_status ,  row_number() over 
+select 
+cast(concat('FY ' ,pr_27.start_year) as varchar) as start_year ,
+case when pr_27.start_quarter=1 then '1st (Feb-Apr)'
+ when pr_27.start_quarter=2 then '2nd (May-Jul)'
+  when pr_27.start_quarter=3 then '3rd (Aug-Oct)'
+   when pr_27.start_quarter=4 then '4th (Nov-Jan)'
+   else null end as start_quarter , pr_46.name_vendor_filter as  vendor , 
+   fac_filter.name as factory , 
+   
+   
+p._id , fac.name as factory_name ,
+
+case when sourcing_yn=57472 then cast(factory_vpid_1 as varchar)
+when sourcing_yn=57473 then cast(factory_vpid_2 as varchar) end as factory_id , 
+
+case when sourcing_yn = 57473 then pace_status_2 when sourcing_yn = 57472 then pr_67.pace_status end as pace_status ,  row_number() over 
 (partition by factory_name --factory
- order by p._id desc) as row , case when sourcing_yn = 57473 then null when sourcing_yn = 57472 then pr_67.facility_score end as sustain , sum(pr_27.num_females) as women_enrolled , SUM(pr_27.num_females_graduated) as women_graduated , pr_27.start_date as recent_date from profile_52713  p
+ order by p._id desc) as row ,
  
+ case when sourcing_yn = 57473 then null when sourcing_yn = 57472 then pr_67.facility_score end as sustain , row_number() over 
+(partition by factory_name --factory
+ order by p._id desc) as row ,
+ 
+ sum(pr_27.num_females) as women_enrolled ,
+ 
+ SUM(pr_27.num_females_graduated) as women_graduated ,
+ 
+ pr_27.start_date as recent_date 
+ 
+ from profile_52713 p
 
  left join ds_mysql_prod_project fac 
 on p.projectId = fac.id
+
+ left join ds_mysql_prod_project fac_filter
+on pr_27.projectId = fac_filter.id
 
 left join profile_54267 pr_67 on 
 p.projectid = pr_67.projectid
