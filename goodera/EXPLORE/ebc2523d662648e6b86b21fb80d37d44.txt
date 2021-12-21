@@ -1,11 +1,20 @@
 select fac.name as factory , case when sourcing_yn=57472 then cast(factory_vpid_1 as varchar)
-when sourcing_yn=57473 then cast(factory_vpid_2 as varchar) end as factory_id from profile_52713 as p
+when sourcing_yn=57473 then cast(factory_vpid_2 as varchar) end as factory_id , case when sourcing_yn = 57473 then pace_status_2 when sourcing_yn = 57472 then 1 end as pace_status from profile_52713 as p
 
  left join ds_mysql_prod_project fac 
 on p.projectId = fac.id
 
- left join ds_mysql_prod_project ven 
-on fac.parent = ven.id
+left join profile_54267 pr_67
+p.project = pr_67.project
 
- left join ds_mysql_prod_project cou 
-on ven.parent = cou.id
+
+/*
+IF sourcing_yn == 57473:
+  Show {pace_status_2} in 52713
+  
+  IF sourcing_yn == 57472
+  LEFT JOIN 52713 and 54267 ON 52713.project = 54267.project
+ Show {pace_status} in 54267
+  show {pace_status} for the latest {fy} and {month} available for factory
+  */
+
