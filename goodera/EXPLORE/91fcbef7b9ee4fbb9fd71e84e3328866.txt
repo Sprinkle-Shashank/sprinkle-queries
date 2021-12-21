@@ -1,2 +1,15 @@
-select fy_timerange,student_webinars,teacher_webinar,paper_submitted
+with temp as(
+  Select 'students_webinars' as col
+    union all
+  Select 'teacher_webinars' as col
+ 
+)
+select fy_timerange,paper_submitted,temp.col as dimensions,
+sum(case col
+	when 'students_webinars' then a.student_webinars
+	when 'teacher_webinars' then a.teacher_webinar
+    else NULL
+end) as Values
 from profile_79308 a
+cross join temp
+GROUP BY fy_timerange,paper_submitted,dimensions
