@@ -1,24 +1,39 @@
-with table1 as(Select projectid,fy_timerange,centres_qia_palliative_care,centres_name_pal,male_qia_pal,female_qia_pal,male_qia_nurse_pal,female_qia_nurse_pal,report_pal from profile_79232 p
-
-/*LEFT JOIN ds_mysql_prod_tagelement tri on
-p.training_format = tri.id
-*/
-/*LEFT JOIN ds_mysql_prod_tagelement cen on
-p.centres_name_pal = cen.id
-			   */
-),
-table2 as (select t1.*,CAST(centres as int) from table1 t1,t1.centres_name_pal centres	
-
-),
-table3 as(SELECT cen.name as centres,projectId from table2 t2
-LEFT JOIN ds_mysql_prod_tagelement cen on
-t2.centres = cen.id
-)
-Select listagg(centres,','),projectId from table3
-group by projectId
-/*projectid,fy_timerange,centres_qia_palliative_care,female_qia_pal,male_qia_nurse_pal,female_qia_nurse_pal,report_pal,listagg(centres,',')*/
-
+with temp as (
+  select 'TOTAL_QIA_PALLATIVE_CENTRES' as C
+  UNION ALL
+  select 'TOTAL_QIA_PAL' as C
+  UNION ALL
+  select 'TOTAL_qia_nurse_pal' as C
+  UNION ALL
+  select 'TOTAL_QIA_CENTRES_DAYCARE' as C
+  UNION ALL
+  select 'TOTAL_qia_daycare' as C
+  UNION ALL
+  select 'TOTAL_DEPT_FORMS' as C
+  UNION ALL
+  select 'TOTAL_staff_function' as C
+  UNION ALL
+  select 'TOTAL_iapc' as C
+ 
+  
 
 
+  
+  )
+select projectid, fy_timerange,
 
+male_qia_pal+female_qia_pal as TOTAL_QIA_PAL,male_qia_nurse_pal+female_qia_nurse_pal as TOTAL_qia_nurse_pal,male_qia_daycare+female_qia_daycare as TOTAL_qia_daycare,female_staff_function+male_staff_function as TOTAL_staff_function,male_iapc+female_iapc as TOTAL_iapc, case C
+WHEN 'TOTAL_QIA_PALLATIVE_CENTRES' then p.centres_qia_palliative_care
+WHEN 'TOTAL_QIA_PAL' then TOTAL_QIA_PAL
+WHEN 'TOTAL_qia_nurse_pal' then TOTAL_qia_nurse_pal
+WHEN 'TOTAL_QIA_CENTRES_DAYCARE' then p.centres_qia_daycare
+WHEN 'TOTAL_qia_daycare' then TOTAL_qia_daycare
+WHEN 'TOTAL_staff_function' then TOTAL_staff_function
+WHEN 'TOTAL_iapc' then TOTAL_iapc
+WHEN 'TOTAL_DEPT_FORMS' then p.dept_forms
 
+ELSE NULL
+END AS value , temp.C as dimension
+
+from profile_79232 p
+Cross join temp
