@@ -1,5 +1,5 @@
 with sub1 as(
-  select p1._id as id, p1.project_name, p1.program_type, p1.fy_timerange, cast(p1.start_date as date) as start_date, cast(p2.offset_date as date) as offset_date, p3.region, p4.projcode_factory, p1.end_date_2 as end_date, p3.source_div,
+  select p1._id as id, p1.project_name, p1.program_type, p1.fy_timerange, cast(p1.start_date as date) as start_date, cast(p2.offset_date as date) as offset_date, p3.region, p4.projcode_factory, p1.end_date_2 as end_date, p3.source_div, p2.pvh_id, p1.num_females,
 
 case
   when extract(month from cast(p1.fy_timerange.start as date)) = 1
@@ -25,10 +25,16 @@ left join profile_62482 p4 on p4.project_id = p1.project_id
 where year >= 2020 and start_date >= nvl(offset_date,'2020-01-01') and filter = 1
 and nvl(p1.lg_status,0) != 1105812 and p2.pvh_id is not NULL
 
-group by p1._id, p1.project_name, p1.program_type, p1.fy_timerange, p1.fy_timerange.start, p1.start_date, p2.offset_date, p3.region, p4.projcode_factory, p1.end_date_2, filter, p3.source_div, p3.brands),
+group by p1._id, p1.project_name, p1.program_type, p1.fy_timerange, p1.fy_timerange.start, p1.start_date, p2.offset_date, p3.region, p4.projcode_factory, p1.end_date_2, filter, p3.source_div, p3.brands, p2.pvh_id, p1.num_females),
 
 sub2 as(
   select s1.*, country, source_division, brand
   from sub1 s1, s1.region country, s1.source_div source_division, s1.brands_new brand)
   
-select * from sub1
+select s2.pvh_id, 'P.A.C.E.' as program, t1.name as biz_div, t2.name as brand, t3.name as region,
+('FY'|| extract(year from cast(s2.fy_timerange.start)) as fy, sum(s2.num_females) as total_females
+ from sub2 s2
+ left join ds_mysql_prod_tagelement t1 on t1.id = s2.source_division
+ left join ds_mysql_prod_tagelement t2 on t2.id = s2.brand
+ left join ds_mysql_prod_tagelement t3 on t3.id = s2.country
+ group by s2.pvh_id, t1.name, t2.name, t3.name, s2.fy_timerange.start
