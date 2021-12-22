@@ -3,15 +3,19 @@ with table1 as(Select projectid,fy_timerange,centres_qia_palliative_care,centres
 /*LEFT JOIN ds_mysql_prod_tagelement tri on
 p.training_format = tri.id
 */
-LEFT JOIN ds_mysql_prod_tagelement cen on
+/*LEFT JOIN ds_mysql_prod_tagelement cen on
 p.centres_name_pal = cen.id
+			   */
 ),
 table2 as (select t1.*,CAST(centres as int) from table1 t1,t1.centres_name_pal centres	
 
-)
-SELECT cen.name as centres from table2 t2
+),
+table3 as(SELECT cen.name as centres,projectId from table2 t2
 LEFT JOIN ds_mysql_prod_tagelement cen on
 t2.centres = cen.id
+)
+Select listagg(centres,','),projectId from table3
+group by projectId
 /*projectid,fy_timerange,centres_qia_palliative_care,female_qia_pal,male_qia_nurse_pal,female_qia_nurse_pal,report_pal,listagg(centres,',')*/
 
 
