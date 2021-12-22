@@ -1,99 +1,74 @@
 
 with table1 as
- (
-select pr_13.projectid , pace_status_2 ,pace_2.name as pace_2 , pr_67.pace_status , pace.name as pace from profile_52713 pr_13
-
-left join ds_mysql_prod_tagelement pace_2 
-on pr_13.pace_status_2 = pace_2.id
-
-left join profile_54267 pr_67 on 
-pr_13.projectid = pr_67.projectid 
-
-left join ds_mysql_prod_tagelement pace
-on pr_67.pace_status = pace.id
-  )
-
-, table2 as 
 (
-  select pr_13.projectid , fac.name as factory_name , case when sourcing_yn = 57473 then null when sourcing_yn = 57472 then pr_67.facility_score end as sustain , row_number() over 
-(partition by factory_name --factory
- order by pr_13._id desc) as row2 from profile_52713 pr_13
+  select p.projectid , pace.name as pace_status , facility_score , row_number() over 
+(partition by  p.projectid
+ order by p._id desc) as row from profile_54267 as p
   
- left join ds_mysql_prod_project fac 
-on pr_13.projectId = fac.id
-  
-left join profile_54267 pr_67 on 
-pr_13.projectid = pr_67.projectid 
+left join ds_mysql_prod_tagelement pace
+on p.pace_status = pace.id
+)
+
+, table2 as
+(
+ select * from table1 where row=1
 )
 
 , table3 as 
 (
  select pr_27.projectid , cast(pr_27.name as varchar) as name, row_number() over 
-(partition by pr_27.projectid  --factory
- order by pr_27.start_date desc) as row2 , position(' Batch' in name) as index_value , right( name , (len(name) - index_value)) as updated_name  from profile_4227 pr_27 
+(partition by pr_27.projectid  order by pr_27.start_date desc) as row2 , position(' Batch' in name) as index_value , right( name , (len(name) - index_value)) as updated_name  from profile_4227 pr_27 
  )
   
-  , table4 as 
+, table4 as 
   (
-  select pr_13.projectid , fac.name as factory_name , case when sourcing_yn = 57473 then tab1.pace_2 when sourcing_yn = 57472 then tab1.pace end as pace_status ,  row_number() over 
-(partition by factory_name --factory
- order by pr_13._id desc) as row1 
-  from profile_52713 pr_13 
-  
- left join ds_mysql_prod_project fac 
-on pr_13.projectId = fac.id
-  
-  left join table1 tab1 on 
-  pr_13.projectid = tab1.projectid
-)
-  
-  
-select 
+  select * from table3 where row2=1
+	)
+	
+select p.projectid , 
 
-cast(concat('FY ' ,pr_27.start_year) as varchar) as start_year ,
-case when pr_27.start_quarter=1 then '1st (Feb-Apr)'
- when pr_27.start_quarter=2 then '2nd (May-Jul)'
-  when pr_27.start_quarter=3 then '3rd (Aug-Oct)'
-   when pr_27.start_quarter=4 then '4th (Nov-Jan)'
-   else null end as start_quarter , pr_46.name_vendor_filter as vendor , fac.name as factory ,
+cast(concat('FY ' ,batch.start_year) as varchar) as start_year ,
+case when batch.start_quarter=1 then '1st (Feb-Apr)'
+ when batch.start_quarter=2 then '2nd (May-Jul)'
+  when batch.start_quarter=3 then '3rd (Aug-Oct)'
+   when batch.start_quarter=4 then '4th (Nov-Jan)'
+   else null end as start_quarter , q.name_vendor_filter as vendor , fac.name as factory ,
    
-   pr_13._id , 
-   
-fac.name as factory_name ,
-      
+   fac.name as factory_name ,     
+
 case when sourcing_yn=57472 then cast(factory_vpid_1 as varchar)
-when sourcing_yn=57473 then cast(factory_vpid_2 as varchar) end as factory_id ,
-   
-tab4.pace_status , 
+when sourcing_yn=57473 then cast(factory_vpid_2 as varchar) end as factory_id , 
 
-tab2.sustain ,
+case when sourcing_yn = 57473 then pace_2.name when sourcing_yn = 57472 then tab2.pace_status end as update_pace_status , 
 
-(pr_27.num_females) as women_enrolled ,
- 
- (pr_27.num_females_graduated) as women_graduated ,
+case when sourcing_yn = 57472 then tab2.facility_score else null end as sustain , 
 
-tab3.updated_name as recent_date
+sum(batch.num_females) as women_enrolled ,
 
-from profile_52713 pr_13 
+sum(batch.num_females_graduated) as women_graduated ,
 
- left join ds_mysql_prod_project fac 
-on pr_13.projectId = fac.id
+tab4.updated_name as recent_batch
 
-left join table4 tab4 on 
-pr_13.projectid = tab4.projectid
+from profile_52713 as p
 
-left join table2 tab2 on 
-pr_13.projectid = tab2.projectid
+left join ds_mysql_prod_project fac
+on p.projectid = fac.id
 
-left join table3 tab3 on 
-pr_13.projectid = tab3.projectid
+left join ds_mysql_prod_tagelement pace_2
+on p.pace_status_2 = pace_2.id
 
-left join profile_4227 pr_27 on 
-pr_13.projectid = pr_27.projectid
+left join table2 tab2 on
+p.projectid = tab2.projectid
 
-left join profile_54646  pr_46 on
-pr_13.projectId = pr_46.projectId
+left join table4 tab4 on
+p.projectid = tab4.projectid
 
-group by start_year , start_quarter , vendor , factory , pr_13._id  , fac.name , factory_id  , tab4.pace_status , tab2.sustain , women_enrolled , women_graduated , recent_date 
+left join profile_4227 batch on 
+p.projectid = batch.projectid
+
+left join profile_54646 q on 
+p.projectid = q.projectid
+
+group by p.projectid , batch.start_year , batch.start_quarter , q.name_vendor_filter , fac.name , factory_id , update_pace_status , sustain , recent_batch
 
 
