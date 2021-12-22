@@ -31,8 +31,19 @@ sub2 as(
   select s1.*, country, source_division, brand
   from sub1 s1, s1.region country, s1.source_div source_division, s1.brands_new brand)
   
-select s2.id, s2.pvh_id, 'P.A.C.E.' as program, t4.name as biz_div, t2.name as brand, t3.name as region,
-('FY' || extract(year from cast(s2.fy_timerange.start as date))) as fy, s2.num_females 
+select s2.id, s2.pvh_id, 'P.A.C.E.' as program, t3.name as region,
+('FY' || extract(year from cast(s2.fy_timerange.start as date))) as fy, s2.num_females,
+
+case
+	when t4.name is null then 'Other'
+	else t4.name
+end as biz_div,
+
+case
+	when t2.name is null then 'Other'
+	else t2.name
+end as brand,
+
 from sub2 s2
  left join ds_mysql_prod_tagelement t1 on t1.id = s2.source_division
  left join ds_mysql_prod_tagelement t2 on t2.id = s2.brand
