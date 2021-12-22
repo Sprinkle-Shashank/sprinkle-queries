@@ -1,7 +1,7 @@
 
 with table1 as
 (
-  select pr_13.projectid , fac.name as factory_name , case when sourcing_yn = 57473 then pace_status_2 when sourcing_yn = 57472 then pr_67.pace_status end as pace_status ,  row_number() over 
+  select pr_13.projectid , fac.name as factory_name , case when sourcing_yn = 57473 then tab4.pace_2 when sourcing_yn = 57472 then tab4.pace end as pace_status ,  row_number() over 
 (partition by factory_name --factory
  order by pr_13._id desc) as row1 
   from profile_52713 pr_13 
@@ -9,8 +9,8 @@ with table1 as
  left join ds_mysql_prod_project fac 
 on pr_13.projectId = fac.id
   
-left join profile_54267 pr_67 on 
-pr_13.projectid = pr_67.projectid 
+  left join table4 tab4 on 
+  pr_13.projectid = tab4.projectid
 )
 
 , table2 as 
@@ -33,7 +33,20 @@ pr_13.projectid = pr_67.projectid
  order by pr_27.start_date desc) as row2 , position(' Batch' in name) as index_value , right( name , (len(name) - index_value)) as updated_name  from profile_4227 pr_27 
  )
 
+, table4 as 
+  (
+select pr_13.projectid , pace_status_2 ,pace_2.name as pace_2 , pr_67.pace_status , pace.name as pace from profile_52713 pr_13
 
+left join ds_mysql_prod_tagelement pace_2 
+on pr_13.pace_status_2 = pace_2.id
+
+left join profile_54267 pr_67 on 
+pr_13.projectid = pr_67.projectid 
+
+left join ds_mysql_prod_tagelement pace
+on pr_67.pace_status = pace.id
+  )
+  
 select 
 
 cast(concat('FY ' ,pr_27.start_year) as varchar) as start_year ,
