@@ -1,5 +1,5 @@
 with sub1 as(
-  select p1._id as id, p1.project_name, p1.program_type, p1.fy_timerange, cast(p1.start_date as date) as start_date, cast(p2.offset_date as date) as offset_date, p3.region, p4.projcode_factory, p1.end_date_2 as end_date, p3.source_div, p3.brands,
+  select p1._id as id, p1.project_name, p1.program_type, p1.fy_timerange, cast(p1.start_date as date) as start_date, cast(p2.offset_date as date) as offset_date, p3.region, p4.projcode_factory, p1.end_date_2 as end_date, p3.source_div,
 
 case
   when extract(month from cast(p1.fy_timerange.start as date)) = 1
@@ -10,7 +10,12 @@ end as year,
 case
 	when p4.projcode_factory like 'C%' or p4.projcode_factory like '%PVH' then 1 
 	else 0
-end as filter
+end as filter,
+  
+case
+  	when is_array(p3.brands) = false or get_array_length = 0 then array(p3.brands)
+  	else p3.brands
+end as brands_new,
 
 from profile_62491 p1
 left join profile_62948 p2 on p2.project_id = p1.project_id
@@ -23,6 +28,7 @@ and nvl(p1.lg_status,0) != 1105812 and p2.pvh_id is not NULL
 group by p1._id, p1.project_name, p1.program_type, p1.fy_timerange, p1.fy_timerange.start, p1.start_date, p2.offset_date, p3.region, p4.projcode_factory, p1.end_date_2, filter, p3.source_div, p3.brands),
 
 sub2 as(
-  select s1.*, country from sub1 s1, s1.region country)
+  select s1.*, country, source_division, brand
+  from sub1 s1, s1.region country, s1.source_div source_division, s1.brands_new brand)
   
 select * from sub1
