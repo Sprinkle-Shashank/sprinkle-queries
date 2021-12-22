@@ -1,7 +1,7 @@
 
 with table1 as
 (
-  select p.projectid , pace.name as pace_status , facility_score , row_number() over 
+  select p.projectid , pace.name as pace_status , facility_score , facility_rating , row_number() over 
 (partition by  p.projectid
  order by p._id desc) as row from profile_54267 as p
   
@@ -32,9 +32,7 @@ case when batch.start_quarter=1 then '1st (Feb-Apr)'
  when batch.start_quarter=2 then '2nd (May-Jul)'
   when batch.start_quarter=3 then '3rd (Aug-Oct)'
    when batch.start_quarter=4 then '4th (Nov-Jan)'
-   else null end as start_quarter , q.name_vendor_filter as vendor , fac.name as factory ,
-   
-   fac.name as factory_name ,     
+   else null end as start_quarter , q.name_vendor_filter as vendor , fac.name as factory , 
 
 case when sourcing_yn=57472 then cast(factory_vpid_1 as varchar)
 when sourcing_yn=57473 then cast(factory_vpid_2 as varchar) end as factory_id , 
@@ -47,7 +45,7 @@ sum(batch.num_females) as women_enrolled ,
 
 sum(batch.num_females_graduated) as women_graduated ,
 
-tab4.updated_name as recent_batch
+tab4.updated_name as recent_batch , tab2.facility_rating as facility_rating
 
 from profile_52713 as p
 
@@ -69,6 +67,6 @@ p.projectid = batch.projectid
 left join profile_54646 q on 
 p.projectid = q.projectid
 
-group by p.projectid , batch.start_year , batch.start_quarter , q.name_vendor_filter , fac.name , factory_id , update_pace_status , sustain , recent_batch
+group by p.projectid , batch.start_year , batch.start_quarter , q.name_vendor_filter , fac.name , factory_id , update_pace_status , sustain , recent_batch , facility_rating
 
 
