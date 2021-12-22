@@ -26,6 +26,14 @@ left join profile_54267 pr_67 on
 pr_13.projectid = pr_67.projectid 
 )
 
+, table3 as 
+(
+ select pr_27.projectid , cast(pr_27.name as varchar) as name, row_number() over 
+(partition by pr_27.projectid  --factory
+ order by pr_27.start_date desc) as row2 , position(' Batch' in name) as index_value , right( name , (len(name) - index_value)) as updated_name  from profile_4227 pr_27 
+ )
+
+
 select 
 
 cast(concat('FY ' ,pr_27.start_year) as varchar) as start_year ,
@@ -50,7 +58,7 @@ tab2.sustain ,
  
  (pr_27.num_females_graduated) as women_graduated ,
 
- pr_27.start_date as recent_date 
+tab3.updated_name as recent_date
 
 from profile_52713 pr_13 
 
@@ -63,9 +71,11 @@ pr_13.projectid = tab1.projectid
 left join table2 tab2 on 
 pr_13.projectid = tab2.projectid
 
+left join table3 tab3 on 
+pr_13.projectid = tab3.projectid
+
 left join profile_4227 pr_27 on 
 pr_13.projectid = pr_27.projectid
-
 
 left join profile_54646  pr_46 on
 pr_13.projectId = pr_46.projectId
