@@ -35,8 +35,9 @@ select s2.id, s2.pvh_id, 'P.A.C.E.' as program, t3.name as region,
 ('FY' || s2.year) as fy, s2.num_females,
 
 case
-	when t4.name is null then 'Other'
-	else t4.name
+	when t4.name is not null then t4.name
+	when t4.name is null and t1.name is not null then t1.name
+	else 'Other'
 end as biz_div,
 case
 	when t2.name is null then 'Other'
@@ -48,4 +49,4 @@ from sub2 s2
  left join ds_mysql_prod_tagelement t2 on t2.id = s2.brand
  left join ds_mysql_prod_tagelement t3 on t3.id = s2.country
  left join ds_mysql_prod_tagelement t4 on t4.id = t1.parent
-group by s2.id, s2.pvh_id, t4.name, t2.name, t3.name, s2.num_females, s2.year
+group by s2.id, s2.pvh_id, t4.name, t2.name, t3.name, s2.num_females, s2.year, t1.name
