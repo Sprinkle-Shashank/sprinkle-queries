@@ -1,0 +1,52 @@
+with temp as (
+  select 'male_nurses' as C
+  UNION ALL
+  select 'female_nurses' as C
+  UNION ALL
+  select 'male_doctors' as C
+  UNION ALL
+  select 'female_doctors' as C
+  UNION ALL
+  select 'male_patients' as C
+  UNION ALL
+  select 'female_patients' as C
+  UNION ALL
+  select 'family_members' as C
+  )
+  select projectid,fy_timerange, (male_patients + female_patients)*3 as family_size,
+  CASE C
+  when 'male_nurses' then p.male_nurses
+when 'female_nurses' then p.female_nurses
+WHEN 'male_doctors' then p.male_doctors
+WHEN 'female_doctors' then p.female_doctors
+WHEN 'male_patients' then p.male_patients 
+WHEN 'female_patients' then p.female_patients
+when 'family_members' then family_size
+end as count , temp.C as dimension,
+CASE 
+when dimension = 'male_nurses' then 'Male'
+when dimension = 'female_nurses' then 'Female'
+when dimension = 'male_doctors' then 'Male'
+when dimension = 'female_doctors' then 'Female'
+when dimension = 'male_patients' then 'Male'
+when dimension = 'female_patients' then 'Female'
+when dimension = 'family_members' then 'Male and Female'
+else NULL
+end as gender_participant ,
+CASE 
+when dimension = 'male_nurses' then 'nurse'
+when dimension = 'female_nurses' then 'nurse'
+when dimension = 'male_doctors' then 'doctor'
+when dimension = 'female_doctors' then 'doctor'
+when dimension = 'male_patients' then 'patients'
+when dimension = 'female_patients' then 'patients'
+when dimension = 'family_members' then 'Family Members of Patients'
+else NULL
+end as participant,
+CASE
+when dimension = 'family_members' then 'indirect'
+else 'direct'
+end as direct_indirect
+
+from profile_79240
+cross join temp
