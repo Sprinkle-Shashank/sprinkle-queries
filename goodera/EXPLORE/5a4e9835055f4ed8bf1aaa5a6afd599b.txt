@@ -1,3 +1,15 @@
-select a.fy_timerange as fy, count(a.enrolled_dell_learning) 
-from profile_77543 a
-group by fy
+select a.projectid,a.region, b.date,b.location,d.name as state,e.code as mapcode, 
+case 
+  when (extract(month from b.date) <=3) then ('FY' || (extract(year from b.date)-1999))
+  when (extract(month from b.date) >3) then ('FY'|| (extract(year from b.date)-1998))
+end as FY,temp.col as gender,
+case col
+when 'Female' then a.female_beneficiaries
+when 'Male, Not disclosing gender, Who do not identify as male or female' then a.not_disclosing_gender
+else Null end as beneficiaries
+from profile_75683 a
+left join profile_78503 b on a.school_reference = b._id
+left join ds_mysql_prod_tagelement c on c.id = b.location
+left join ds_mysql_prod_tagelement d on d.id = c.parent
+left join ds_mongo_reftagelementmetadata e
+on d.reftagelementmetadataid = e._id
