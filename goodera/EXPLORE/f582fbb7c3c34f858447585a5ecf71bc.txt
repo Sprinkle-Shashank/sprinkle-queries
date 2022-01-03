@@ -1,1 +1,35 @@
-select * from profile_79467
+with temp as (
+  select 'doc_consult' as C
+  UNION ALL
+  select 'child_treated' as C
+  UNION ALL
+  select 'child_hospitalized' as C
+  UNION ALL
+  select 'child_sociosupport' as C
+  UNION ALL
+  select 'child_activities' as C
+  UNION ALL
+  select 'child_books' as C
+  )
+
+select projectid,fy_timerange,sta.name as state_centre ,
+
+CASE C
+when 'doc_consult' then p.doc_consult
+when 'child_treated' then p.child_treated
+when 'child_hospitalized' then p.child_hospitalized
+when 'child_sociosupport' then p.child_sociosupport
+when 'child_activities' then p.child_activities
+when 'child_books' then p.child_books
+ELSE NULL
+END AS VALUE ,temp.C as dimension
+
+
+
+from profile_79467 p
+CROSS JOIN temp
+
+
+
+left join ds_mysql_prod_tagelement as stat 
+on p.state_centre = stat.id
