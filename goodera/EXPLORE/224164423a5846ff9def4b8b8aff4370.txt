@@ -1,7 +1,29 @@
-select pro.name as projectid,fy_timerange,stat.name as state,govt_agency,phc_identified,phc_granted,donation from profile_79422 p
+with table1 as (select pro.name as projectid,fy_timerange,stat.name as state,govt_agency,phc_identified,phc_granted,donation from profile_79422 p
 
 left join ds_mysql_prod_tagelement as stat 
   on p.state = stat.id
   
   left join ds_mysql_prod_project as pro
-  on p.projectid = pro.id
+  on p.projectid = pro.id) ,
+  
+ temp as ( select "govt_agency" as c
+		   Union all
+		  select"phc_identified" as c
+		  Union all
+		  select "phc_granted" as c
+		  Union all
+		  select "donation" as c )
+		 
+select projectid,fy_timerange, state,
+sum( case c when "govt_agency" then t1.govt_agency	
+	        when "phc_identified" then t1.phc_identified
+	        when "phc_granted" then t1.phc_granted
+	        when "donation" then t1.donation
+            else null
+	       end ) as value , temp.c as dimension from table1 t1
+		  
+cross join temp
+
+group by projectid,fy_timerange, state,temp.c
+            	
+	
