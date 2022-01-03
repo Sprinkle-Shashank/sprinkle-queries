@@ -4,6 +4,27 @@ left join ds_mysql_prod_project as pro
   on p.projectid = pro.id
  
 left join profile_79423 phc_detail
- on p.phc = phc_detail._id			   )
+ on p.phc = phc_detail._id			   ),
  
- select * from table1
+ temp as ( select 'footfall' as c
+		  Union all 
+		  select 'footfall_increased' as c
+		  Union all
+		  select 'Upatients' as c
+		  Union all
+		  select 'referred_patients' as c )
+select projectid,fy_timerange,phc,
+sum ( case c when 'footfall' then t1.footfall
+	         when 'footfall_increased' then t1.footfall_increased
+	         when 'Upatients' then t1.Upatients
+	         when 'referred_patients' then t1.referred_patients
+	         else null
+	         end) as value, temp.c as dimension from table1 t1
+
+cross join temp
+
+group by projectid,fy_timerange,phc,temp.c
+			 
+
+		  
+ 
