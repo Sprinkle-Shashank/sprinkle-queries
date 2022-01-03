@@ -1,0 +1,17 @@
+with test1 as(
+select p.f_reg_date ||'|'|| p.f_reg_date as fy_timerange, p.projectid, p.f_category, 'Testing' as type, decode(p.covid_tested,1032433,1,0) as final_sum from profile_59462 p
+union all
+select p.f_reg_date ||'|'|| p.f_reg_date as fy_timerange, p.projectid, p.f_category, 'COVID Positive' as type, decode(p.covid_result,1630035,1,0) as final_sum from profile_59462 p
+union all
+select p.f_reg_date ||'|'|| p.f_reg_date as fy_timerange, p.projectid, p.f_category, 'Vaccine 1st Dose' as type, decode(p.covid_dose,1630037,1,0) as final_sum from profile_59462 p
+union all
+select p.f_reg_date ||'|'|| p.f_reg_date as fy_timerange, p.projectid, p.f_category, 'Vaccine 2nd Dose' as type, decode(p.covid_dose,1630038,1,0) as final_sum from profile_59462 p
+)
+
+
+select p.fy_timerange, t.name as projectid, p.f_category, p.type, sum(final_sum) as final_sum
+from test1 p
+left join ds_mysql_prod_project as t on t.id = p.projectid
+group by 1,2,3,4
+
+
