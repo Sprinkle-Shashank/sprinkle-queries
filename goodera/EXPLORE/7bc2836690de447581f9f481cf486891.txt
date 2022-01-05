@@ -21,9 +21,19 @@ table4 as ( select pro.name as projectid,count(*) as ongoing from profile_4228 p
 on p.projectid = pro.id
 		   where end_date is  null 
 		  group by pro.name	 ),
-creationdate_table_for_batch as (	select projectid,substring(createddate,1,10)as batch_date,row_number() over 
+		
+table7 as ( SELECT _id,mon.creatorid, u.email as cemail, mon.modifierid, m.email as memail
+from ds_mongo_profileinstance mon
+left join ds_mysql_prod_user u on
+mon.creatorid = u.id
+left join ds_mysql_prod_user m  on
+mon.modifierid = m.id
+where mon.profileId='4227' and mon.active = 't' and mon.securitycontextid is not null
+			 ),		
+creationdate_table_for_batch as (	select _id,projectid,substring(createddate,1,10)as batch_date,row_number() over 
 (partition by projectid
- order by createddate desc) as row from profile_4227   ),
+ order by createddate desc) as row from profile_4227   
+								),
  
  creationdate_table_for_module as (	select projectid,substring(createddate,1,10)as module_date,row_number() over 
 (partition by projectid
@@ -38,14 +48,7 @@ creationdate_table_for_batch as (	select projectid,substring(createddate,1,10)as
  creation_date as ( select t5.projectid,batch_date,t6.module_date from table5 t5
   
   left join table6 t6 on 
-  t5.projectid= t6.projectid ),
+  t5.projectid= t6.projectid )
   
-  table7 as ( SELECT mon.creatorid, u.email as cemail, mon.modifierid, m.email as memail
-from ds_mongo_profileinstance mon
-left join ds_mysql_prod_user u on
-mon.creatorid = u.id
-left join ds_mysql_prod_user m  on
-mon.modifierid = m.id
-where mon.profileId='4227' and mon.active = 't' and mon.securitycontextid is not null
-			 )
+  
 select * from table7			 
