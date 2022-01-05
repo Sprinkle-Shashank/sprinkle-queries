@@ -9,11 +9,20 @@ table2 as (
 on p.projectid = pro.id*/
   where end_date_2 is null 
 ),
-table3 as ( select pro.name as projectid,count(*) from profile_4228 p
+table3 as ( select pro.name as projectid,count(*) as completed from profile_4228 p
 		   
 		   left join ds_mysql_prod_project as pro
 on p.projectid = pro.id
 		   where end_date is not null 
-		  group by pro.name)
+		  group by pro.name),
+table4 as ( select pro.name as projectid,count(*) as ongoing from profile_4228 p
+		   
+		   left join ds_mysql_prod_project as pro
+on p.projectid = pro.id
+		   where end_date is  null 
+		  group by pro.name	 ),
+creationdate_table_for_batch as (	select projectid,createddate,row_number() over 
+(partition by projectid
+ order by createddate desc) as row from profile_4227   )
   
-  select * from table3
+  select * from creationdate_table_for_batch
