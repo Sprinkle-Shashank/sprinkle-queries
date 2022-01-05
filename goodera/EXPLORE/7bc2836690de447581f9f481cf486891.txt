@@ -32,12 +32,24 @@ where mon.profileId='4227' and mon.active = 't' and mon.securitycontextid is not
 			 ),		
 creationdate_table_for_batch as (	select _id,projectid,substring(createddate,1,10)as batch_date,row_number() over 
 (partition by projectid
- order by createddate desc) as row from profile_4227   
-								),
+ order by createddate desc) as row,t7.cemail from profile_4227 p   
+ left join table7 t7 on
+	p._id = t7._id							),
+	
+table8 as ( SELECT _id,mon.creatorid, u.email as cemail, mon.modifierid, m.email as memail
+from ds_mongo_profileinstance mon
+left join ds_mysql_prod_user u on
+mon.creatorid = u.id
+left join ds_mysql_prod_user m  on
+mon.modifierid = m.id
+where mon.profileId='4228' and mon.active = 't' and mon.securitycontextid is not null
+			 ),	
  
- creationdate_table_for_module as (	select projectid,substring(createddate,1,10)as module_date,row_number() over 
+ creationdate_table_for_module as (	select _id, projectid,substring(createddate,1,10)as module_date,row_number() over 
 (partition by projectid
- order by createddate desc) as row from profile_4228   ),
+ order by createddate desc) as row,t8.cemail from profile_4228 p
+			left join table8 t8 on
+			p._id = t8._id					  ),
  
  table5 as ( select * from creationdate_table_for_batch 
 			where row = 1 ),
@@ -45,10 +57,10 @@ creationdate_table_for_batch as (	select _id,projectid,substring(createddate,1,1
  table6 as ( select * from creationdate_table_for_module 
 			where row = 1 ),
   
- creation_date as ( select t5.projectid,batch_date,t6.module_date from table5 t5
+ creation_date as ( select t5.projectid,batch_date,t5.cemail as batch_email,t6.module_date,t6.cemail as module_email from table5 t5
   
   left join table6 t6 on 
   t5.projectid= t6.projectid )
   
   
-select * from table7			 
+select * from creation_date			 
