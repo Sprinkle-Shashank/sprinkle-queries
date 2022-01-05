@@ -9,18 +9,18 @@ table2 as (
 on p.projectid = pro.id*/
   where end_date_2 is null 
 ),
-table3 as ( select pro.name as projectid,count(*) as completed from profile_4228 p
+table3 as ( select  projectid,count(*) as completed from profile_4228 p
 		   
 		   left join ds_mysql_prod_project as pro
 on p.projectid = pro.id
 		   where end_date is not null 
-		  group by pro.name),
-table4 as ( select pro.name as projectid,count(*) as ongoing from profile_4228 p
+		  group by projectid),
+table4 as ( select  projectid,count(*) as ongoing from profile_4228 p
 		   
 		   left join ds_mysql_prod_project as pro
 on p.projectid = pro.id
 		   where end_date is  null 
-		  group by pro.name	 ),
+		  group by projectid ),
 		
 table7 as ( SELECT _id,mon.creatorid, u.email as cemail, mon.modifierid, m.email as memail
 from ds_mongo_profileinstance mon
@@ -63,7 +63,13 @@ where mon.profileId='4228' and mon.active = 't' and mon.securitycontextid is not
   t5.projectid= t6.projectid )
   
   
-select t1.projectid ,factory, vendor, country, community_id, vp_id,start_date, end_date,  num_females from table1 t1
+select t1.projectid ,factory, vendor, country, community_id, vp_id,start_date, end_date,  num_females,t3.completed,t4.ongoing  from table1 t1
 
 left join table2 t2 on
 t1.projectid = t2.projectid
+
+left join table3 t3 on
+t1.projectid = t3.projectid
+
+left join table4 t4 on
+t1.projectid = t4.projectid
