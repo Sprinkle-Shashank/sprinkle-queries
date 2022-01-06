@@ -4,7 +4,7 @@ left join profile_54646 pace_mapping
 on add_factory.projectid = pace_mapping.projectid ),
 
 table2 as ( 
-  select projectid, start_date, end_date, end_date_2, num_females from profile_4227 p
+  select projectid, start_date, end_date, end_date_2, num_females,concat(projectid,start_date) as unique from profile_4227 p
   /*left join ds_mysql_prod_project as pro
 on p.projectid = pro.id*/
   where end_date_2 is null 
@@ -32,7 +32,7 @@ where mon.profileId='4227' and mon.active = 't' and mon.securitycontextid is not
 			 ),		
 creationdate_table_for_batch as (	select p._id,projectid,p.name,substring(createddate,1,10)as batch_date,row_number() over 
 (partition by name
- order by createddate desc) as row,t7.cemail,p.end_date_2 from profile_4227 p   
+ order by createddate desc) as row,t7.cemail,p.end_date_2,start_date,concat(projectid,start_date) as unique from profile_4227 p   
  left join table7 t7 on
 	p._id = t7._id	
 	where end_date_2 is null							),
@@ -58,13 +58,13 @@ where mon.profileId='4228' and mon.active = 't' and mon.securitycontextid is not
  table6 as ( select * from creationdate_table_for_module 
 			where row = 1 ),
   
- creation_date as ( select t5.projectid,batch_date,t5.cemail as batch_email,t6.module_date,t6.cemail as module_email from table5 t5
+ creation_date as ( select t5.projectid,batch_date,t5.cemail as batch_email,t6.module_date,t6.cemail as module_email,unique from table5 t5
   
   left join table6 t6 on 
   t5._id= t6.class )
   
   
-select t1.projectid ,factory, vendor, country, community_id, vp_id,start_date, end_date,  num_females,t3.completed,t4.ongoing , 
+select t1.projectid ,factory, vendor, country, community_id, vp_id,t2.start_date, t2.end_date,  t2.num_females,t2.unique,t3.completed,t4.ongoing , 
 
 case when t_cd.module_date > t_cd.batch_date then t_cd.module_date
      else t_cd.batch_date end as latest_date,
@@ -83,7 +83,7 @@ left join table4 t4 on
 t1.projectid = t4.projectid
 
 left join creation_date t_cd on
-t1.projectid = t_cd.projectid 
+t1.unique = t_cd.unique
 
-group by t1.projectid,factory,vendor, country , community_id,vp_id,start_date,end_date,num_females,completed,ongoing,latest_date,email_id
+/*group by t1.projectid,factory,vendor, country , community_id,vp_id,start_date,end_date,num_females,completed,ongoing,latest_date,email_id*/
 --select * from table2
