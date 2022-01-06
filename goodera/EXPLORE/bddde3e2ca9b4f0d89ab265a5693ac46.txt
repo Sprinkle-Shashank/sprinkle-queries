@@ -1,0 +1,28 @@
+WITH table1 AS (
+  SELECT 'Number of Events' AS C
+  UNION ALL
+  SELECT 'Number of Audience' AS C
+  UNION ALL
+  SELECT 'Number of Innovators' AS C
+  UNION ALL
+  SELECT 'Number of Partnership with GCoE' AS C
+  UNION ALL
+  SELECT 'Percentage of Awareness' AS C
+)
+SELECT type.name AS event_type, p.fy_timerange, photo,file,
+SUM ( 
+  CASE C
+    	WHEN 'Number of Events' THEN p.event_count
+		WHEN 'Number of Audience' THEN p.audience
+		WHEN 'Number of Innovators' THEN p.innovators	
+		WHEN 'Number of Partnership with GCoE' THEN p.gcoe
+  		WHEN 'Percentage of Awareness' THEN p.awareness
+ELSE NULL
+END) AS value, table1.c AS dim
+
+FROM profile_79474 p
+
+CROSS JOIN table1
+
+LEFT JOIN ds_mysql_prod_tagelement type
+ON p.event_type = type.id
