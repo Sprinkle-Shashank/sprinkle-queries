@@ -1,0 +1,50 @@
+with table1 as 
+(
+ select add_factory.projectid,pace_mapping.name_factory as factory,pace_mapping.name_vendor_filter as vendor,pace_mapping.name_country as country,factory_vpid_1 as community_id, child_vendor_vpid as vp_id from profile_52713 add_factory
+
+left join profile_54646 pace_mapping 
+on add_factory.projectid = pace_mapping.projectid
+),
+
+table2 as
+( 
+ select projectid, start_date, end_date, end_date_2, concat('FY',concat(' ',start_year)) as start_year,num_females,concat(projectid,start_date) as unique from profile_4227 p
+  where end_date_2 is null 
+),
+ 
+table3 as 
+(
+ select  projectid,count(*) as completed from profile_4228 p
+		   
+		   left join ds_mysql_prod_project as pro
+on p.projectid = pro.id
+		   where end_date is not null 
+		  group by projectid
+),
+
+table4 as 
+( 
+ select  projectid,count(*) as ongoing from profile_4228 p
+		   
+		   left join ds_mysql_prod_project as pro
+on p.projectid = pro.id
+		   where end_date is  null 
+group by projectid ),
+	
+table9 as 
+(  
+select t1.projectid ,factory, vendor, country, community_id, vp_id,t2.start_year,t2.start_date, t2.end_date,  t2.num_females,t2.unique,t3.completed,t4.ongoing  	 
+
+from table1 t1
+
+left join table2 t2 on
+t1.projectid = t2.projectid
+
+left join table3 t3 on
+t1.projectid = t3.projectid
+
+left join table4 t4 on
+t1.projectid = t4.projectid
+)
+
+select * from table9
