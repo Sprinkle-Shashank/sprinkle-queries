@@ -1,3 +1,16 @@
+
+with temp as (
+
+  select 'Left_the_factory' as C
+  UNION ALL
+  select 'Pregnancy' as C
+  UNION ALL
+  select 'Course_not_useful' as C
+  UNION ALL
+  select 'High_work_pressure' as C
+  UNION ALL
+  select 'Other' as C 
+)
 Select pr_27._id,pr_27.projectId,cast(concat('FY ' ,start_year) as varchar) as start_year, start_quarter as start_quarter_new ,case when start_quarter=1 then '1st (Feb-Apr)'
  when start_quarter=2 then '2nd (May-Jul)'
   when start_quarter=3 then '3rd (Aug-Oct)'
@@ -5,9 +18,21 @@ Select pr_27._id,pr_27.projectId,cast(concat('FY ' ,start_year) as varchar) as s
    else null end as start_quarter
    ,
   pr_46.name_country as country ,
-  pr_46.name_vendor_filter as vendor,fac.name as factory,reason_pregnancy, reason_left, reason_interest, reason_pressure, reason_other,count(*)
+  pr_46.name_vendor_filter as vendor,fac.name as factory,SUM(reason_pregnancy) as Pregnancy, SUM(reason_left) AS Left_the_factory, Sum(reason_interest) as Course_not_useful, SUM(reason_pressure) AS High_work_pressure, SUM(reason_other) AS Other,case C
+
+WHEN  'Left_the_factory' then Left_the_factory
+WHEN 'Pregnancy' then  Pregnancy
+WHEN 'Course_not_useful' then Course_not_useful
+WHEN 'High_work_pressure' then High_work_pressure
+
+WHEN 'Other' then Other
+
+ELSE NULL
+END AS value , temp.C as dimension
+
 
 from profile_4227 as pr_27
+cross join temp
 			   
  left join profile_54646 pr_46 
 on pr_27.projectId = pr_46.projectId
@@ -15,5 +40,3 @@ left join ds_mysql_prod_project fac
 on pr_27.projectId = fac.id
 
 	where vendor is not null and country is not null  and  pr_27.projectId like '%%'
-	
-group by country,vendor,pr_27._id,pr_27.projectId,start_year,start_quarter,factory,reason_pregnancy, reason_left, reason_interest, reason_pressure, reason_other
