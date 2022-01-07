@@ -8,18 +8,13 @@ on add_factory.projectid = pace_mapping.projectid
 
 table2 as
 ( 
- select projectid, start_date, end_date, end_date_2, concat('FY',concat(' ',start_year)) as start_year,num_females,concat(projectid,start_date) as unique from profile_4227 p
-  where end_date_2 is null 
+ select projectid, start_date, end_date, end_date_2, concat('FY',concat(' ',start_year)) as start_year,num_females,num_females_graduated,concat(projectid,start_date) as unique from profile_4227 p
 ),
  
 table3 as 
 (
- select  projectid,count(*) as completed from profile_4228 p
-		   
-		   left join ds_mysql_prod_project as pro
-on p.projectid = pro.id
-		   where end_date is not null 
-		  group by projectid
+  select projectid, start_date, concat(projectid,start_date) as unique from profile_4227 p
+  where end_date_2 is not null 
 ),
 
 table4 as 
@@ -33,7 +28,7 @@ group by projectid ),
 	
 table9 as 
 (  
-select t1.projectid ,factory, vendor, country, community_id, vp_id,t2.start_year, to_char(t2.start_date, 'YYYY') as year, t2.start_date, t2.end_date,  t2.num_females,t2.unique,t3.completed,t4.ongoing  	 
+select t1.projectid ,factory, vendor, country, community_id, vp_id, to_char(t2.start_date,'YYYY'), t3.start_date, t2.end_date_2,  t2.num_females,t2.unique,t3.completed,t4.ongoing  	 
 
 from table1 t1
 
