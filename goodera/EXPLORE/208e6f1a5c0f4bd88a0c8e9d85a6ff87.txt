@@ -228,8 +228,59 @@ s1.electricity_emission as scope2,
 from sub1 s1),
 
 sub3 as(
-  select s2.*, 'Total' as month_year_2 from sub2 s2)
+  select s2.*, 'Total' as month_year_2 from sub2 s2),
   
-select name, fy_timerange, month_year, total_solvent_emission, scope1, scope2, scope3, total_co2_emission, total_co2_tech_production, total_co2_total_production, water_tech_production, water_total_production, electricity_total_production, hw_total_production, solvent_loss_total_production, natural_gas_total_production, total_renewable_energy_utilization from sub2
+sub4 as(
+  select name, fy_timerange, month_year, total_solvent_emission, scope1, scope2, scope3, total_co2_emission, total_co2_tech_production, total_co2_total_production, water_tech_production, water_total_production, electricity_total_production, hw_total_production, solvent_loss_total_production, natural_gas_total_production, total_renewable_energy_utilization from sub2
 union all
-select name, fy_timerange, month_year_2 as month_year, total_solvent_emission, scope1, scope2, scope3, total_co2_emission, total_co2_tech_production, total_co2_total_production, water_tech_production, water_total_production, electricity_total_production, hw_total_production, solvent_loss_total_production, natural_gas_total_production, total_renewable_energy_utilization from sub3
+select name, fy_timerange, month_year_2 as month_year, total_solvent_emission, scope1, scope2, scope3, total_co2_emission, total_co2_tech_production, total_co2_total_production, water_tech_production, water_total_production, electricity_total_production, hw_total_production, solvent_loss_total_production, natural_gas_total_production, total_renewable_energy_utilization from sub3),
+
+temp as(
+  select 'total_solvent_emission' as col
+  union all
+  select 'scope1' as col
+  union all
+  select 'scope2' as col
+  union all
+  select 'scope3' as col
+  union all
+  select 'total_co2_emission' as col
+  union all
+  select 'total_co2_tech_production' as col
+  union all
+  select 'total_co2_total_production' as col
+  union all
+  select 'water_tech_production' as col
+  union all
+  select 'water_total_production' as col
+  union all
+  select 'electricity_total_production' as col
+  union all
+  select 'hw_total_production' as col
+  union all
+  select 'solvent_loss_total_production' as col
+  union all
+  select 'natural_gas_total_production' as col
+  union all
+  select 'total_renewable_energy_utilization' as col)
+  
+select s4.name, s4.fy_timerange, s4.month_year, temp.col as dimensions,
+sum(case col
+		when 'total_solvent_emission' then s4.total_solvent_emission
+		when 'scope1' then s4.scope1
+		when 'scope2' then s4.scope2
+		when 'scope3' then s4.scope3
+		when 'total_co2_emission' then s4.total_co2_emission
+		when 'total_co2_tech_production' then s4.total_co2_tech_production
+		when 'total_co2_total_production' then s4.total_co2_total_production
+		when 'water_tech_production' then s4.water_tech_production
+		when 'water_total_production' then s4.water_total_production
+		when 'electricity_total_production' then s4.electricity_total_production
+		when 'hw_total_production' then s4.hw_total_production
+		when 'solvent_loss_total_production' then s4.solvent_loss_total_production
+		when 'natural_gas_total_production' then s4.natural_gas_total_production
+		when 'total_renewable_energy_utilization' then s4.total_renewable_energy_utilization
+	else null
+end) as values
+from sub4 s4
+group by s4.name, s4.fy_timerange, s4.month_year, temp.col
