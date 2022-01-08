@@ -1,0 +1,43 @@
+with table1 as(Select select_modules,p._id,p.projectId,cast(concat('FY ' ,start_year) as varchar) as start_year, start_quarter as start_quarter_new ,case when start_quarter=1 then '1st (Feb-Apr)'
+ when start_quarter=2 then '2nd (May-Jul)'
+  when start_quarter=3 then '3rd (Aug-Oct)'
+   when start_quarter=4 then '4th (Nov-Jan)'
+   else null end as start_quarter
+   ,
+  pr_46.name_country as country ,
+  pr_46.name_vendor_filter as vendor,fac.name as factory,start_date,case when end_date_2 is not null
+then
+p.end_date_2
+when end_date_2 is null
+then 
+p.end_date
+end as End_date,
+case when end_date_2 is not null
+then
+'Completed'
+when end_date_2 is null
+then 
+'Ongoing'
+end as Batch_status,num_females,num_males,num_females_dropout,num_males_dropout,absenteeism,prod.name as prod_method,efficiency,turnover,promotions
+  
+ from profile_4227 p
+			   
+ left join profile_54646 pr_46 
+on p.projectid = pr_46.projectid
+left join ds_mysql_prod_project fac
+on p.projectId = fac.id
+left join ds_mysql_prod_tagelement prod
+on p.prod_method = prod.id
+
+	where vendor is not null and country is not null  and  p.projectId like '%%' and vendor ilike '%VENDOR:%'
+),
+table2 as (select t1.*,CAST(select_module as int) from table1 t1,t1.select_modules select_module
+		   
+		   
+
+)
+Select start_year,country,factory,vendor,start_quarter,start_date,End_date,Batch_status,num_females,num_males,num_females_dropout,num_males_dropout,absenteeism,prod_method,efficiency,turnover,promotions,count(select_module) as Modules_being_taught
+from table2 t2
+
+group by start_year,country,factory,vendor,start_quarter,start_date,End_date,Batch_status,num_females,num_males,num_females_dropout,num_males_dropout,absenteeism,prod_method,efficiency,turnover,promotions
+      
