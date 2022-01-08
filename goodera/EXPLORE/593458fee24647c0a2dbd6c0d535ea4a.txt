@@ -1,13 +1,38 @@
-
-
-with table1 as(Select select_modules,cls_time,pr_27._id,pr_27.projectId,cast(concat('FY ' ,start_year) as varchar) as start_year, start_quarter as start_quarter_new ,case when start_quarter=1 then '1st (Feb-Apr)'
+with table1 as(Select select_modules,pr_27._id,pr_27.projectId,cast(concat('FY ' ,start_year) as varchar) as start_year, start_quarter as start_quarter_new ,case when start_quarter=1 then '1st (Feb-Apr)'
  when start_quarter=2 then '2nd (May-Jul)'
   when start_quarter=3 then '3rd (Aug-Oct)'
    when start_quarter=4 then '4th (Nov-Jan)'
    else null end as start_quarter
    ,
   pr_46.name_country as country ,
-  pr_46.name_vendor_filter as vendor,fac.name as factory, end_date_2
+  pr_46.name_vendor_filter as vendor,fac.name as factory,case when 
+select_module IN 
+('64503','70912','70941','70900','70910','70913','70909','70903','70901','70902','70911','264682','264684','264683') and end_date_2 is null  
+  
+then sum(num_males)
+end as males_enrolled,
+ case when select_module IN 
+('64503','70912','70941','70900','70910','70913','70909','70903','70901','70902','70911','264682','264684','264683')
+  then sum(num_males_graduated)
+  end as males_graduated,
+ case  when select_module IN 
+('64503','70912','70941','70900','70910','70913','70909','70903','70901','70902','70911','264682','264684','264683')
+  then sum(num_males_dropout)
+  end as males_dropped,
+  
+  case when 
+select_module IN 
+('64503','70912','70941','70900','70910','70913','70909','70903','70901','70902','70911','264682','264684','264683') and end_date_2 is null  
+  
+then sum(num_females)
+end as females_enrolled,case when select_module IN 
+('64503','70912','70941','70900','70910','70913','70909','70903','70901','70902','70911','264682','264684','264683')
+  then sum(num_females_graduated)
+  end as females_graduated,
+    case when select_module IN 
+('64503','70912','70941','70900','70910','70913','70909','70903','70901','70902','70911','264682','264684','264683')
+  then sum(num_females_dropout)
+  end as females_dropped,end_date_2
 			   
 			    from profile_4227 as pr_27
 			   
@@ -18,35 +43,40 @@ on pr_27.projectId = fac.id
 
 	where vendor is not null and country is not null  and  pr_27.projectId like '%%'
 ),
-table2 as (select t1.*,CAST(select_module as int) from table1 t1,t1.select_modules select_module
+temp as(
 
+with temp as (
+
+  select 'Males_Enrolled' as C
+  UNION ALL
+  select 'Males_Graduated' as C
+  UNION ALL
+  select 'Males_Dropped' as C
+  UNION ALL
+  select 'Females_Enrolled' as C
+  UNION ALL
+  select 'Females_Graduated' as C 
+  UNION ALL
+  select 'Females_Dropped' as C 
 ),
+table2 as (select t1.*,CAST(select_module as int) from table1 t1,t1.select_modules select_module
+		   
+		   
 
-table2a as(select t1.*,CAST(cls_times as varchar) from table2 t1,t1.cls_time cls_times),
-
- 
-
-table3 as (
-select _id,cls_times,
-  /*case when cls_times =57489 then 'During work hours'
-  when cls_times =64744 then 'On a work day outside of work hours'
-  when cls_times =64745  then'On a rest day' else '0' end as class_type,*/
-select_module,start_year,start_quarter,country,vendor,factory
-  
-  
-from table2a 
-  
-  
-
-
-WHERE  select_module IN 
-('64503','70912','70941','70900','70910','70913','70909','70903','70901','70902','70911','264682','264684','264683')  and end_date_2 is not null    
-
-  
 )
-select DISTINCT _id,cls_times, start_year,start_quarter,country,vendor,factory 
+select t2.start_year,t2.start_quarter,country,vendor,factory,temp.C,case C
+	when  'Males_Enrolled'then t2.males_enrolled
+	when 'Males_Graduated' then t2.males_graduated
+	when  'Males_Dropped' then t2.males_dropped
+    when  'Females_Enrolled' then t2.females_enrolled
+	when  'Females_Graduated' then t2.females_graduated
+	when  'Females_Dropped'  then t2.females_dropped
+	Else Null
+	End as value1
 
-from table3
 
-where factory not ilike '%test%' and cls_times!='0'
-group by _id,start_year,start_quarter,country,vendor,factory,cls_times
+
+from table2 t2
+
+where factory not ilike '%test%'and vendor ilike '%VENDOR:%'
+group by start_year,start_quarter,country,vendor,factory,t2.males_enrolled,t2.males_graduated,t2.males_dropped,t2.females_enrolled,t2.females_graduated, t2.females_dropped
