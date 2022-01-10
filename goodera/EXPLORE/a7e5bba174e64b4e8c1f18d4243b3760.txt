@@ -1,11 +1,7 @@
 with table1 as
 (
-select ven.name as vendor_name , com_pil.name as commitment_pillar , par_t.name as partner_type , p.partner_name , split_part(p.partner_name,'(',1) as vendor_name_updated , case when vendor_name_updated='' then p.partner_name else vendor_name_updated end as partner_name_updated , partner_name_updated as name_vendor_filter ,name_vendor_filter as org_name, goal_2022 , community_partner_id from profile_4579 as p
+select ven.name as vendor_name , com_pil.name as commitment_pillar , par_t.name as partner_type , p.partner_name , split_part(p.partner_name,'(',1) as vendor_name_updated , case when vendor_name_updated='' then p.partner_name else vendor_name_updated end as partner_name_updated , partner_name_updated as name_vendor_filter , goal_2022 , community_partner_id from profile_4579 as p
 
-  
-left join profile_54646 on 
-p.partner_name = profile_54646.name_vendor
-  
 left join ds_mysql_prod_tagelement com_pil 
 on p.projectid = com_pil.id
 
@@ -15,19 +11,16 @@ on p.projectid = par_t.id
  left join ds_mysql_prod_project ven 
 on p.projectId = ven.id
 
-where p.partner_type <> 64733 
+where partner_type <> 64733 
 
-  group by p._id, p.projectId, p.name, vp_id, vendor_id, community_partner, community_partner_id, goal_2020, goal_2022, vendor_name, commitment_pillar, p.partner_type , ven.name , com_pil.name, par_t.name , partner_name , name_vendor_filter, community_partner_id,org_name
+  group by p._id, p.projectId, p.name, vp_id, vendor_id, community_partner, community_partner_id, goal_2020, goal_2022, vendor_name, commitment_pillar, partner_type , ven.name , com_pil.name, par_t.name , partner_name , name_vendor_filter, community_partner_id
 )
 
-select community_partner_id, sum(goal_2022) as goal_2022, 
---split_part(substring(name_vendor_filter,4,len(name_vendor_filter)-3),'(',1) as name_vendor_filter 
-org_name as name_vendor_filter
-from table1
+select community_partner_id, sum(goal_2022) as goal_2022, split_part(substring(name_vendor_filter,4,len(name_vendor_filter)-3),'(',1) as name_vendor_filter from table1
 
 where goal_2022>=10000
 
-group by community_partner_id , org_name
+group by community_partner_id , name_vendor_filter 
 
 order by goal_2022 desc
 
