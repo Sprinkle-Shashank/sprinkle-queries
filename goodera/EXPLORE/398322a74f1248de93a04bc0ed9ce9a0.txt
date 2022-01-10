@@ -1,6 +1,7 @@
 select  profile_4227._id,profile_4227.projectId,name_factory, name_vendor, name_vendor_filter, name_country, partner_type,sm.name as select_modules_name,
 nvl2(type_program,type_program,program_type_3) as program,
-nvl2(program,program,select_modules_name) as  program_name
+nvl2(program,program,select_modules_name) as  program_name,
+pc.name as primary_category
 from profile_4227
 
 left join profile_54646 on
@@ -11,7 +12,11 @@ left join ds_mysql_prod_tagelement sm
 on select_modules = sm.id
 
 
-where coalesce(lg_status, 0) <> 848008 and name_country <> 'Test Country' 
+left join ds_mysql_prod_tagelement pc
+on primary_category = pc.id
+
+
+where coalesce(lg_status, 0) <> 848008 and name_country <> 'Test Country' and name_country is not null and pc.name is not null
 
 group by  profile_4227._id, profile_4227.projectId,  profile_4227.name, start_date, end_date, end_date_2, lg_status, num_females, num_males, num_females_graduated, name_factory, name_vendor, name_vendor_filter, name_country, partner_type, program_name, hours,sm.name, profile_4227.type_program,profile_4227.program_type_3
 
