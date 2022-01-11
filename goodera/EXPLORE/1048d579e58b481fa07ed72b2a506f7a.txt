@@ -4,7 +4,7 @@ Select 'GJ' as col
 Select 'kwH' as col
 
 ),
-s1 as (Select t.name as site,t1.name as sub_Region,t2.name as Region,
+s1 as (Select t.name as site,t1.name as sub_Region,t2.name as Region,sta.fin_q
 	   --fy_timerange,
 	   t3.name as Month,len(t3.name) as Month_Length,
 	   (Month_length-7) as month_length1,substring(Month,1,month_length1) as Monthly,
@@ -31,7 +31,7 @@ s1 as (Select t.name as site,t1.name as sub_Region,t2.name as Region,
              WHEN keyword = 'natural_gas_usage' THEN datanumBase
              ELSE 0 
            END) AS natural_gas_usage
-		   from sus_56999
+		   from sus_56999 qw
 		   left join ds_mysql_prod_project t
   on xprojectid=t.id
   left join ds_mysql_prod_project t1
@@ -40,13 +40,19 @@ s1 as (Select t.name as site,t1.name as sub_Region,t2.name as Region,
   on t1.parent=t2.id
 	   left join ds_mysql_prod_tagelement t3
   on financialperiod=t3.id
+	   
+  left join ds_mysql_prod_tagelement a8
+	   on a8.id=qw.financialperiod
+  left join ds_mysql_prod_tagelement sta
+	   on sta.id=q8.parent
+	   
+	   
 		   where keyword in ('electricity_usage','propane_usage','diesel_fuel_usage','gasoline_usage','natural_gas_usage')
-group by t.name,t2.name,
+group by t.name,t2.name,sta.name
 	   --fy_timerange,
 	   t3.name
 			
 ),
-
 s2 as (
   Select  s1.site,s1.Month,s1.Month_length,s1.Month_length1,s1.Monthly,s1.Region,
   --s1.fy_timerange,
@@ -72,7 +78,5 @@ Select s3.site,s3.Region,s3.time_month,
   group by s3.site,s3.Region,
   --s3.fy_timerange,
   temp.col,s3.Month,s3.Month_length,s3.Month_length1,s3.Monthly
-
 )
-
-select * from s4
+select * from sus_56999
