@@ -58,13 +58,13 @@ temp as(
   select 'Females_Dropped' as C 
 )
 
-select t1.start_year,t1.start_quarter,pr_46.name_country as country,pr_46.name_vendor_filter as vendor,fac.name as factory,temp.C,case C
-	when  'Males_Enrolled'then t1.males_enrolled
-	when 'Males_Graduated' then t1.males_graduated
-	when  'Males_Dropped' then t1.males_dropped
-        when  'Females_Enrolled' then t1.females_enrolled
-	when  'Females_Graduated' then t1.females_graduated
-	when  'Females_Dropped'  then t1.females_dropped
+select t1.start_year,t1.start_quarter,pr_46.name_country as country,pr_46.name_vendor_filter as vendor,fac.name as factory,SUM(t1.num_males) as "Males Enrolled", SUM(t1.num_males_graduated) AS "Males Graduated", Sum(t1.num_males_dropout) as "Males Dropped", SUM(t1.num_females) AS "Females Enrolled", SUM(t1.num_females_graduated) AS "Females Graduated", SUM(t1.num_females_dropout) AS "Females Dropped",temp.C as Dimension,case C
+	when  'Males_Enrolled'then "Males Enrolled"
+	when 'Males_Graduated' then "Males Graduated"
+	when  'Males_Dropped' then "Males Dropped"
+        when  'Females_Enrolled' then "Females Enrolled"
+	when  'Females_Graduated' then "Females Graduated" 
+	when  'Females_Dropped'  then "Females Dropped"
 	Else Null
 	End as value1
 
@@ -80,4 +80,4 @@ on t1.projectId = fac.id
 
 
 where factory not ilike '%test%'and vendor ilike '%VENDOR:%'
-group by start_year,start_quarter,pr_46.name_country,  pr_46.name_vendor_filter,factory,t1.males_enrolled,t1.males_graduated,t1.males_dropped,t1.females_enrolled,t1.females_graduated, t1.females_dropped,temp.C
+group by start_year,start_quarter,pr_46.name_country,  pr_46.name_vendor_filter,factory,temp.C
