@@ -1,4 +1,4 @@
- with table1 as (select add_factory.projectid,pace_mapping.name_factory as factory,pace_mapping.name_vendor_filter as vendor,pace_mapping.name_country as country,factory_vpid_1 as community_id, child_vendor_vpid as vp_id from profile_52713 add_factory
+ with table1 as (select add_factory.projectid,pace_mapping.name_factory as factory,pace_mapping.name_vendor_filter as vendor,pace_mapping.name_country as country,    pace_mapping.name_country , pace_mapping.name_vendor , pace_mapping.name_rp , pace_mapping.name_factorystart_date, factory_vpid_1 as community_id, child_vendor_vpid as vp_id from profile_52713 add_factory
 
 left join profile_54646 pace_mapping 
 on add_factory.projectid = pace_mapping.projectid ) ,
@@ -6,7 +6,7 @@ on add_factory.projectid = pace_mapping.projectid ) ,
 
 table2 as
 ( 
- select projectid, start_date, end_date, end_date_2, cast(concat('FY ' ,start_year) as varchar) as start_year , num_females,num_females_graduated,concat(projectid,start_date) as unique from profile_4227 p
+ select projectid, cast(concat('FY ' ,start_year) as varchar) as start_year , end_date, end_date_2, cast(start_year as varchar) as start_year_1 , num_females,num_females_graduated,concat(projectid,start_date) as unique from profile_4227 p
 ),
 
 
@@ -16,17 +16,10 @@ table3 as
   where end_date_2 is not null 
 ),
 
-table4 as 
-( 
- select  projectid,count(*) as ongoing from profile_4228 p
-		   
-		   left join ds_mysql_prod_project as pro
-on p.projectid = pro.id
-		   where end_date is  null 
-group by projectid )
+select t2.* , t3.start_date  from table2 t2
 
-
-select * from table3
+left join table3 t3 on 
+t2.unique = t3.unique
 /*
 table9 as 
 (  
