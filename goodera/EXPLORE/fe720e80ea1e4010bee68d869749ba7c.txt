@@ -9,8 +9,7 @@ table1 as(Select t2.select_modules,t2._id,t2.projectId,cast(concat('FY ' ,start_
    when start_quarter=4 then '4th (Nov-Jan)'
    else null end as start_quarter
    ,
-  pr_46.name_country as country ,
-  pr_46.name_vendor_filter as vendor,fac.name as factory,case when 
+ fac.name as factory,case when 
 select_module IN 
 ('64503','70912','70941','70900','70910','70913','70909','70903','70901','70902','70911','264682','264684','264683') and t2.end_date_2 is null  
   
@@ -41,14 +40,13 @@ end as females_enrolled,case when select_module IN
 			   
 			    from table2 t2
 			   
- left join profile_54646 pr_46 
-on t2.projectid = pr_46.projectid
+
 left join ds_mysql_prod_project fac
 on t2.projectId = fac.id
 
-	where vendor is not null and country is not null  and  t2.projectId like '%%'
+	where  t2.projectId like '%%'
 		  
-group by t2.select_modules,t2._id,t2.projectId,start_year,start_quarter, pr_46.name_country,  pr_46.name_vendor_filter,fac.name,t2.end_date_2,t2.select_module
+group by t2.select_modules,t2._id,t2.projectId,start_year,start_quarter,factory,t2.end_date_2,t2.select_module
 ),
 temp as(
 
@@ -66,7 +64,7 @@ temp as(
   select 'Females_Dropped' as C 
 )
 
-select t2.start_year,t2.start_quarter,pr_46.name_country,pr_46.name_vendor_filter,factory,temp.C,case C
+select t2.start_year,t2.start_quarter,pr_46.name_country as country,pr_46.name_vendor_filter as vendor,factory,temp.C,case C
 	when  'Males_Enrolled'then t2.males_enrolled
 	when 'Males_Graduated' then t2.males_graduated
 	when  'Males_Dropped' then t2.males_dropped
@@ -80,5 +78,10 @@ select t2.start_year,t2.start_quarter,pr_46.name_country,pr_46.name_vendor_filte
 
 from table2 t2
 cross join temp
-where factory not ilike '%test%'and pr_46.name_vendor_filter ilike '%VENDOR:%'
-group by start_year,start_quarter,pr_46.name_country,  pr_46.name_vendor_filter,fac.name,t2.males_enrolled,t2.males_graduated,t2.males_dropped,t2.females_enrolled,t2.females_graduated, t2.females_dropped,temp.C
+
+left join profile_54646 pr_46 
+on t2.projectid = pr_46.projectid
+
+
+where factory not ilike '%test%'and vendor ilike '%VENDOR:%'
+group by start_year,start_quarter,pr_46.name_country,  pr_46.name_vendor_filter,factory,t2.males_enrolled,t2.males_graduated,t2.males_dropped,t2.females_enrolled,t2.females_graduated, t2.females_dropped,temp.C
