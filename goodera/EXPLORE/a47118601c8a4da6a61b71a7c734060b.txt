@@ -1,11 +1,23 @@
-
+with table1 as 
+(
 select p.projectid, projcode_factory , substring(projcode_factory,0,2) as projcode_factory_updated1 ,  pr_27.type_program, pr_27.sub_date, b_outcome_yn , to_char(pr_27.start_date,'YYYY-MM-DD') as start ,  to_char(pr_27.end_date,'YYYY-MM-DD') as end ,  to_char(pr_27.end_date_2,'YYYY-MM-DD') as end_2 , to_char(dateadd(day , 90 , pr_27.end_date_2),'YYYY-MM-DD') as end_2_90 ,
 
 case when projcode_factory_updated1='C' or (projcode_factory_updated1='F' and type_program <> 'Workplace Program') then 'NA' when sub_date is not null then 'Completed' when CURRENT_DATE>=end_2 and CURRENT_DATE<end_2_90 and pr_27.sub_date is null then 'upcoming' when CURRENT_DATE>=end_2_90 and pr_27.sub_date is null then 'Past Due date' end as business_outcomes from profile_54646 p
 
 left join profile_4227 pr_27 on 
 p.projectid = pr_27.projectid
+) , 
 
+table2 as
+(
+  select p.projectid , type_program ,to_char(start_date,'YYYY-MM-DD') as start , sub_date ,  to_char(end_date,'YYYY-MM-DD') as end ,  to_char(end_date_2,'YYYY-MM-DD') as end_2 , to_char(dateadd(day , 90 , end_date_2),'YYYY-MM-DD') as end_2_90 , pr_46.projcode_factory , substring(pr_46.projcode_factory,0,2) as projcode_factory_updated1 , pr_46.b_outcome_yn from profile_4227 p
+  
+  left join profile_54646 pr_46 on 
+  pr_46.projectid = pr_46.projectid
+  )
+
+
+select * from table2
  
 /*
 Check if Project Code is "FXXX"
