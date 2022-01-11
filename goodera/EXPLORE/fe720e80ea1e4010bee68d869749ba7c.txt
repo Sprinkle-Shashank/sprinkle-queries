@@ -9,7 +9,7 @@ table1 as(Select t2.select_modules,t2._id,t2.projectId,cast(concat('FY ' ,start_
    when start_quarter=4 then '4th (Nov-Jan)'
    else null end as start_quarter
    ,
- fac.name as factory,case when 
+case when 
 select_module IN 
 ('64503','70912','70941','70900','70910','70913','70909','70903','70901','70902','70911','264682','264684','264683') and t2.end_date_2 is null  
   
@@ -39,14 +39,11 @@ end as females_enrolled,case when select_module IN
   end as females_dropped,t2.end_date_2
 			   
 			    from table2 t2
-			   
 
-left join ds_mysql_prod_project fac
-on t2.projectId = fac.id
 
 	where  t2.projectId like '%%'
 		  
-group by t2.select_modules,t2._id,t2.projectId,start_year,start_quarter,factory,t2.end_date_2,t2.select_module
+group by t2.select_modules,t2._id,t2.projectId,start_year,start_quarter,t2.end_date_2,t2.select_module
 ),
 temp as(
 
@@ -64,7 +61,7 @@ temp as(
   select 'Females_Dropped' as C 
 )
 
-select t2.start_year,t2.start_quarter,pr_46.name_country as country,pr_46.name_vendor_filter as vendor,factory,temp.C,case C
+select t2.start_year,t2.start_quarter,pr_46.name_country as country,pr_46.name_vendor_filter as vendor,fac.name as factory,temp.C,case C
 	when  'Males_Enrolled'then t2.males_enrolled
 	when 'Males_Graduated' then t2.males_graduated
 	when  'Males_Dropped' then t2.males_dropped
@@ -81,6 +78,8 @@ cross join temp
 
 left join profile_54646 pr_46 
 on t2.projectid = pr_46.projectid
+left join ds_mysql_prod_project fac
+on t2.projectId = fac.id
 
 
 where factory not ilike '%test%'and vendor ilike '%VENDOR:%'
