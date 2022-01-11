@@ -1,5 +1,26 @@
 
-select p.projectid , p.name as name , mod_n.name as module_name , to_char(pr_28.start_date,'YYYY-MM-DD') as start_date , to_char(pr_28.end_date,'YYYY-MM-DD') as end_date ,pre_and_post.name as pre_and_post , pr_28.no_pre_assessment as pre_test , pr_28.score as avg_pre_test , pr_28.no_post_assessment as post_test , pr_28.score2 as avg_post_test , pr_28.attendance as attendance from profile_4227 p
+with table8 as ( SELECT _id,mon.creatorid, u.email as cemail, mon.modifierid, m.email as memail
+from ds_mongo_profileinstance mon
+left join ds_mysql_prod_user u on
+mon.creatorid = u.id
+left join ds_mysql_prod_user m  on
+mon.modifierid = m.id
+where mon.profileId='4228' and mon.active = 't' and mon.securitycontextid is not null
+),	
+ 
+ creationdate_table_for_module as (	select p._id,p.class, projectid,/*substring(createddate,1,10)as*/createddate as module_date,row_number() over 
+(partition by class
+ order by createddate desc) as row,t8.cemail , t8.memail from profile_4228 p
+								   
+left join table8 t8 on
+p._id = t8._id	
+),
+ 			
+ table6 as ( select * from creationdate_table_for_module where row = 1 ),
+			
+ table9 as 
+ (
+select p.projectid , p._id , p.name as name , mod_n.name as module_name , to_char(pr_28.start_date,'YYYY-MM-DD') as start_date , to_char(pr_28.end_date,'YYYY-MM-DD') as end_date ,pre_and_post.name as pre_and_post , pr_28.no_pre_assessment as pre_test , pr_28.score as avg_pre_test , pr_28.no_post_assessment as post_test , pr_28.score2 as avg_post_test , pr_28.attendance as attendance from profile_4227 p
 
 left join profile_4228 pr_28 on 
 p._id = pr_28.class
@@ -9,3 +30,11 @@ on pr_28.module_name = mod_n.id
 
 left join ds_mysql_prod_tagelement pre_and_post 
 on pr_28.pre_post_yn = pre_and_post.id
+ )
+ 
+ select *, t6.memail from table9 t9
+ 
+ left join table6 t6 on 
+ t9._id = t6.class
+ 
+ 
