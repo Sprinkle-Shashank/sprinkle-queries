@@ -1,5 +1,7 @@
 with table1 as (select type_program as program_name,profile_4227._id, profile_4227.projectId, start_date, end_date, end_date_2, lg_status, num_females, num_males, num_females_graduated, name_factory, name_vendor, name_vendor_filter, name_country, partner_type, program_name, num_males_graduated,
-nvl2(program_name in ('Younger Girls', 'Older girls'), 'Girls', program_name) as program,substring(name_vendor,1,strpos(name_vendor, ' (')) as vendor_name
+nvl2(program_name in ('Younger Girls', 'Older girls'), 'Girls', program_name) as program,split_part(name_vendor,'(',1) as vendor_name_updated , case when vendor_name_updated='' then name_vendor else vendor_name_updated end as partner_name_updated
+				
+				--,substring(name_vendor,1,strpos(name_vendor, ' (')) as vendor_name
 
 from profile_4227
 
@@ -13,10 +15,11 @@ where coalesce(lg_status, 0) <> 848008 and name_country <> 'Test Country' and na
 
 group by profile_4227._id, profile_4227.projectId, start_date, end_date, end_date_2, lg_status, num_females, num_males, num_females_graduated, name_factory, name_vendor,vendor_name, name_vendor_filter, name_country, partner_type, program_name, num_males_graduated)
 
-select vendor_name, name_vendor, 
-(case when vendor_name is not null then vendor_name
- when vendor_name is null then name_vendor
- else name_vendor end) as name_vendor_filter
+select partner_name_updated
+--vendor_name, name_vendor, 
+--(case when vendor_name is not null then vendor_name
+-- when vendor_name is null then name_vendor
+ --else name_vendor end) as name_vendor_filter
 --nvl2(vendor_name,name_vendor,vendor_name) as name_vendor_filter2
 
 from table1 
