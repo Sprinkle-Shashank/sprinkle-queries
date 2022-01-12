@@ -1,0 +1,21 @@
+With Base1 as(select p.profileinstanceid,case when p.profileinstanceid is not null then 'New Project' end as type_of_project,p.name as Implementing_agency,p.fy as fy_timerange,p.core_area ,p.contact_person,p.email,p.mobile_number,p.status,approval."timestamp" as timestamp, sub_details, approval from taskresp_27395 p , p.approvallog approval, p.submissionlog sub_details)
+
+,Base2 as(
+select p.profileinstanceid,case when p.profileinstanceid is not null then 'Renewal Project' end as type_of_project,p.ia,p.fy as fy_timerange,p.status,approval."timestamp" as timestamp, sub_details, approval from taskresp_27405 p , p.approvallog approval, p.submissionlog sub_details
+)
+
+,Base3 as(
+select p.profileinstanceid,p.type_of_project,l.name as IA,p.fy_timerange,l.core_area,l.contact_person,l.email,l.mobile_number,p.status,p.timestamp from Base2 p left join
+profile_27395 l 
+on p.ia=l._id),Base4 as(select p.profileinstanceid, p.type_of_project,p.Implementing_agency,p.fy_timerange,p.core_area ,p.contact_person,p.email,p.mobile_number,p.status, p.timestamp from Base1 p
+union all
+select  p.profileinstanceid, p.type_of_project,p.IA,p.fy_timerange,p.core_area ,p.contact_person,p.email,p.mobile_number,p.status, p.timestamp from Base3 p),Base5 as(select p.profileinstanceid,p.type_of_project,f.name as fy_timerange,p.Implementing_agency,p.core_area,p.contact_person,p.email,p.status,cast(split_part(cast(p.timestamp as varchar),'T',1) as date) as timestamp from Base4 p 
+ left join  ds_mysql_prod_tagelement f on
+p.fy_timerange=f.id),Base6 as(select p.profileinstanceid,p.type_of_project,p.fy_timerange,dateadd(year,1,p.timestamp) as Date_of_renewal,p.Implementing_agency,p.core_area,p.contact_person,
+	extract(year from current_date)-cast(split_part(p.fy_timerange,'-',2) as int) as years_of_engagement,
+							  p.email,p.status,p.timestamp from Base5 p)
+,Base7 as(select p.profileinstanceid,p.type_of_project,case when current_date>=p.Date_of_renewal then 'Pending Renewal' when current_date<p.Date_of_renewal and p.Implementing_agency is not null and p.type_of_project='Renewal Project' then 'Renewed' when current_date<p.Date_of_renewal and p.Implementing_agency is null and p.type_of_project='Renewal Project' then 'New' end as Empanelment_type,p.fy_timerange, p.Date_of_renewal,p.Implementing_agency,p.core_area,p.contact_person,p.years_of_engagement,p.email,p.status,p.timestamp from Base6 p 
+		),Base8 as(select p.profileinstanceid,p.type_of_project,p.Empanelment_type,p.fy_timerange,p.Date_of_renewal,p.Implementing_agency,p.contact_person,p.years_of_engagement,p.email,p.status,p.timestamp,core_area from Base7 p,p.core_area core_area) 
+select p.profileinstanceid,p.type_of_project,p.Empanelment_type,p.fy_timerange,p.Date_of_renewal,p.Implementing_agency,p.contact_person,sum(p.years_of_engagement) as years_of_Engagement,p.email,p.status,p.timestamp,c.name as core_area from Base8 p left join  ds_mysql_prod_tagelement c on
+p.core_area=c.id
+group by p.profileinstanceid,p.type_of_project,p.Empanelment_type,p.fy_timerange,p.Date_of_renewal,p.Implementing_agency,p.contact_person,p.email,p.status,p.timestamp,c.name order by p.timestamp desc
