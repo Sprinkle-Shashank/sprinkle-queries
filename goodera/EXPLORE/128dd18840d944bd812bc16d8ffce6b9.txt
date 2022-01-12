@@ -37,9 +37,60 @@ module_completed as (  select class, count(*)as completed from profile_4228
 					 group by class),
 module_ongoing as ( select class, count(*)as ongoing from profile_4228
 					 where end_date is  null
-					 group by class)					 
+					 group by class),
+table7 as ( SELECT _id,mon.creatorid, u.email as cemail, mon.modifierid, m.email as memail
+from ds_mongo_profileinstance mon
+left join ds_mysql_prod_user u on
+mon.creatorid = u.id
+left join ds_mysql_prod_user m  on
+mon.modifierid = m.id
+where mon.profileId='4227' and mon.active = 't' and mon.securitycontextid is not null
+			 ),		
+creationdate_table_for_batch as (	select p._id,p.projectid,p.name,/*substring(createddate,1,10)*/ createddate as batch_date,t7.cemail,p.end_date_2 from profile_4227 p   
+ left join table7 t7 on
+	p._id = t7._id	
+	where end_date_2 is null),
+	
+table8 as ( SELECT _id,mon.creatorid, u.email as cemail, mon.modifierid, m.email as memail
+from ds_mongo_profileinstance mon
+left join ds_mysql_prod_user u on
+mon.creatorid = u.id
+left join ds_mysql_prod_user m  on
+mon.modifierid = m.id
+where mon.profileId='4228' and mon.active = 't' and mon.securitycontextid is not null
+			 ),	
+ 
+ creationdate_table_for_module as (	select p._id,p.class, p.projectid,/*substring(createddate,1,10)as*/createddate as module_date,row_number() over 
+(partition by class
+ order by createddate desc) as row,t8.cemail from profile_4228 p
+			left join table8 t8 on
+			p._id = t8._id					  )	,
+	
+table5 as ( select * from creationdate_table_for_batch 
+			--where row = 1 
+		   ),
+			
+ table6 as ( select * from creationdate_table_for_module 
+			where row = 1 ),
+  
+ creation_date as ( select t5._id,t5.projectid,batch_date,t5.cemail as batch_email,t6.module_date,t6.cemail as module_email from table5 t5
+  
+  left join table6 t6 on 
+  t5._id= t6.class )	
 					 
-select _id,p.projectid,t4.factory,end_date_2,t4.community_id,t4.name_vendor_filter,t4.vp_id_and_cp_id,t4.name_country,start_date,end_date,num_females,module_completed.completed, module_ongoing.ongoing from profile_4227 p
+select p._id,p.projectid,t4.factory,end_date_2,t4.community_id,t4.name_vendor_filter,t4.vp_id_and_cp_id,t4.name_country,start_date,end_date,num_females,module_completed.completed, module_ongoing.ongoing,
+case when t_cd.module_date > t_cd.batch_date then t_cd.module_date
+     else t_cd.batch_date end as latest_date,
+concat(split_part(current_date,' ',1),'T00:00:00.000Z') AS current_date1,
+cast(current_date1 as datetime) as current_date,
+case when t_cd.module_date > t_cd.batch_date then t_cd.module_email
+     else t_cd.batch_email end as email_id,
+case when current_date-latest_date<= 30 then 'Updated in last 30 days'
+	when 30< current_date-latest_date<= 90 then 'No updates in the last 30 days'
+		  else 'No updates in the last 90 days' end as Date_range
+	 
+	 
+	 from profile_4227 p
 
 left join table4 t4 on
 p.projectid= t4.projectid
@@ -49,6 +100,10 @@ p._id = module_completed.class
 
 left join module_ongoing  on 
 p._id = module_ongoing.class
+
+left join creation_date t_cd on
+p._id = t_cd._id
+
 where end_date_2 is null 
 
 --select * from module_ongoing
