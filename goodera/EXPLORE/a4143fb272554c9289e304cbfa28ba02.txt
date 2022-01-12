@@ -6,7 +6,8 @@ on p.ia=l._id),Base4 as(select p.profileinstanceid, p.type_of_project,p.Implemen
 union all
 select  p.profileinstanceid, p.type_of_project,p.IA,p.fy_timerange,p.core_area ,p.contact_person,p.email,p.mobile_number,p.status, p.timestamp from Base3 p),Base5 as(select p.profileinstanceid,p.type_of_project,f.name as fy_timerange,p.Implementing_agency,p.core_area,p.contact_person,p.email,p.status,cast(split_part(cast(p.timestamp as varchar),'T',1) as date) as timestamp from Base4 p 
  left join  ds_mysql_prod_tagelement f on
-p.fy_timerange=f.id),Base6 as(select p.profileinstanceid,p.type_of_project,case when current_date>=p.Date_of_renewal then 'Pending Renewal' when current_date<p.Date_of_renewal and p.Implementing_agency is not null and p.type_of_project='Renewal Project' then 'Renewed' when current_date<p.Date_of_renewal and p.Implementing_agency is null and p.type_of_project='Renewal Project' then 'New' end as Empanelment_type,p.fy_timerange,dateadd(year,1,p.timestamp) as Date_of_renewal,p.Implementing_agency,p.core_area,p.contact_person,datediff(year,p.fy_timerange,current_date) as years_of_engagement,p.email,p.status,p.timestamp from Base5 p)
-select * from Base6
+p.fy_timerange=f.id),Base6 as(select p.profileinstanceid,p.type_of_project,p.fy_timerange,dateadd(year,1,p.timestamp) as Date_of_renewal,p.Implementing_agency,p.core_area,p.contact_person,datediff(year,p.fy_timerange,current_date) as years_of_engagement,p.email,p.status,p.timestamp from Base5 p)
+,Base7 as(select p.profileinstanceid,p.type_of_project,case when current_date>=p.Date_of_renewal then 'Pending Renewal' when current_date<p.Date_of_renewal and p.Implementing_agency is not null and p.type_of_project='Renewal Project' then 'Renewed' when current_date<p.Date_of_renewal and p.Implementing_agency is null and p.type_of_project='Renewal Project' then 'New' end as Empanelment_type,p.fy_timerange, p.Date_of_renewal,p.Implementing_agency,p.core_area,p.contact_person,p.years_of_engagement,p.email,p.status,p.timestamp from Base6 p)
+select * from Base7
 --,datediff(year,p.fy_timerange,current_date) as years_of_engagement
 --,dateadd(year,1,p.timestamp) as Date_of_renewal
