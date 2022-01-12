@@ -1,112 +1,29 @@
-with table1 as (select p.projectId,p._id,p1.name_factory,p2.pace_status,row_number() over (partition by p.projectId order by p._id desc) as row from profile_52713 p
 
-left join profile_54646 p1 on 
- p.projectid = p1.projid_factory
+with table1 as(select facility_name as Factory_name,fac_vpid as Factory_Id,ven.name as vendor_name,parent_vendor_vpid as vendor_id,f_y.name as year,mth.name as month,facility_score as factory_sustainability,status.name as factory_pace,total_workers as Total,female_workers as fem_workers,male_workers as mal_workers,country_name as country from profile_54267 p
 
-left join profile_54267 p2 on 
- p.projectid = p2.projectid
+left join profile_52713 p1 on 
+p.projectId = p1.projectId
 
-where sourcing_yn = 57472 and p2.pace_status = 845114 
-),
-table2 as (select t1.* from table1 t1 
-	   where row =1),
-	   
-table3 as(Select p.projectId,p._id,p1.name_factory,p.pace_status_2 from profile_52713 p
-		  
-left join profile_54646 p1 on 
-p.projectid = p1.projid_factory		  
-	   
-where sourcing_yn = 57473 and (p.pace_status_2 = 845114 or p.pace_status_2 is null)	   
-),
-table4 as(Select  p.projectId,p._id,p1.name_factory,p2.pace_status from profile_52713 p
-		 
- left join profile_54646 p1 on 
-p.projectid = p1.projid_factory	
-		  
-left join profile_4948 p2 on 
- p.projectid = p2.projectid
+left join ds_mysql_prod_tagelement ven
+on p.parent_vendor_name = ven.id
 
-where p2.pace_status = 182398
+left join ds_mysql_prod_tagelement f_y
+on p.fy = f_y.id
+
+left join ds_mysql_prod_tagelement mth
+on p.month = mth.id
+
+left join ds_mysql_prod_tagelement status
+on p.pace_status = status.id
+
+where p1.sourcing_yn = 57472 and p.pace_status =845114
 ),
-table5 as(
-Select name_factory,projectId from table2
-Union all 
-Select name_factory,projectId from table3
-Union all
-Select name_factory,projectId from table4
+table2 as(Select t1.*, cast(category as int) from table1 t1, t1.primary_category category
 ),
-table6 as(select p.factory_vpid as location_id,p.projectId from profile_52713 p
-		  ),
-table7 as(Select p.cp_location_id as location_id1,p.projectId from profile_4948 p
-),
-table8 as(
-select location_id as Locations,projectId from table6 
-union all
-select location_id1 as Locations,projectId from table7
+table3 as(select Factory_name,Factory_Id,vendor_name,vendor_id,year,month,factory_sustainability,factory_pace,Total,fem_workers,mal_workers,country,cat.name as category from table2 t2
+
+left join ds_mysql_prod_tagelement cat on
+t2.category = cat.id
 )
-,
-/*table9 as(
-Select t5.name_factory,t8.Locations  from table5 t5
-left join table8 t8
-on t5.projectId = t8.projectId	
 
-),*/
-table10 as(Select p.projectId,p1.name_vendor_filter as vendor1 from profile_52713 p
-		   
-left join profile_54646 p1 on 
-p.projectid = p1.projid_factory
-),
-table11 as (Select p.projectId,p1.name_vendor_filter as vendor2 from profile_52713 p
-
-left join profile_54646 p1 on 
-p.projectid = p1.projid_factory
-
-		  
-left join profile_4948 p2 on 
- p.projectid = p2.projectid
-			
-where p2.pace_status = 182398
-),
-table12 as (
-Select projectId,vendor1 as vendor from table10
-union all
-select projectId,vendor2 as vendor from table11
-),
-/*table13 as(
-Select t5.name_factory,t8.Locations,t12.vendor  from table5 t5
-left join table8 t8
-on t5.projectId = t8.projectId	
-
-left join table12 t12
-on t5.projectId = t12.projectId	
-),
-*/
-table14 as(select p.projectId,p1.name_country as country1 from profile_52713 p
-		   
-left join profile_54646 p1 on 
-p.projectid = p1.projid_factory
-),
-table15 as(select p.projectId,p1.name_country as country2 from profile_52713 p
-		   
-left join profile_54646 p1 on 
-p.projectid = p1.projid_factory
-		   
-left join profile_4948 p2 on 
- p.projectid = p2.projectid
-		   
-where p2.pace_status = 182398
-),
-table16 as(select projectId,country1 as country from table14
-union all
-		   select projectId,country2 as country from table15
-)
-Select t5.name_factory,t8.Locations,t12.vendor,t16.country from table5 t5
-left join table8 t8
-on t5.projectId = t8.projectId	
-
-left join table12 t12
-on t5.projectId = t12.projectId
-		   
-left join table16 t16
-on t5.projectId = t16.projectId
-
+Select * from table3
