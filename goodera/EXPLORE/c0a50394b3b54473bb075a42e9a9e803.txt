@@ -1,0 +1,58 @@
+with temp as(
+  select 'Resource person' as col
+  union all
+  select 'Implementation associates' as col
+  union all
+  select 'Meeting with education department' as col
+  union all  
+  select 'Implementation managers' as col
+  union all
+  select 'Teachers' as col
+  union all
+  select 'Training modules' as col
+  union all
+  select 'Implementation associates training' as col
+  union all
+  select 'Student Engagement' as col
+  union all
+  select 'Execution & presentation skill' as col
+  union all
+  select 'Subject knowledge skill' as col
+  union all
+  select 'Planning' as col
+  union all
+  select 'Hardware purchased' as col
+  union all
+  select 'Tablets purchased' as col
+  union all
+  select 'Projectors purchased' as col
+  union all
+  select 'Speakers purchased' as col
+ )
+
+select temp.col as dimset ,t.name as projectid,t1.name as school,s1.fy_timerange,
+sum(case col
+	when 'Resource person' then s1.res_persons
+	when 'Implementation associates' then s1.imp_associates
+	when 'Meeting with education department' then s1.meeting_ed_dept
+	when 'Implementation managers' then s1.imp_managers
+	when 'Teachers' then s1.teachers
+	when 'Training modules' then s1.train_modules
+	when 'Implementation associates training' then s1.imp_trainings
+	when 'Student Engagement' then s1.student_engagement
+	when 'Execution & presentation skill' then s1.execution_presentation
+	when 'Subject knowledge skill' then s1.subject_knowledge
+	when 'Planning' then s1.planning
+	when 'Hardware purchased' then s1.hardwares
+	when 'Tablets purchased' then s1.tablets
+	when 'Projectors purchased' then s1.projector
+	when 'Speakers purchased' then s1.speaker
+	else null
+end) as counts
+from profile_78692 s1
+  left join ds_mysql_prod_project t
+  on s1.projectid=t.id
+  left join ds_mysql_prod_tagelement t1
+  on s1.school =t1.id 
+  cross join temp
+  Group by s1._id,t.name ,s1.name ,s1.fy_timerange,dimensions,t1.name
