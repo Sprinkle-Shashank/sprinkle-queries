@@ -3,7 +3,7 @@ with temp as(
   union all
   select 'covaxin_vials_pcmc' as col)
 
-select p3.name as project_parent, p2.name as projectid, p1.name as site, (p.date||'|'||p.date) as fy_timerange, temp.col as Dimensions,
+select p3.name as project_parent, p2.name as projectid, p1.name as site, t1.name as district, t2.name as state,(p.date||'|'||p.date) as fy_timerange, temp.col as Dimensions,
 sum(case col
 		when 'covishield_vials_pcmc' then p.covishield_vials_pcmc
 		when 'covaxin_vials_pcmc' then p.covaxin_vials_pcmc
@@ -14,4 +14,6 @@ from profile_78081 p
 	left join profile_78079 p1 on p1._id = p.site
 	left join ds_mysql_prod_project p2 on p2.id = p.projectid
 	left join ds_mysql_prod_project p3 on p3.id = p2.parent	
-	group by p1.name, fy_timerange , dimensions, p2.name, p3.name
+	left join ds_mysql_prod_tagelement t1 on t1.id = p1.location
+	left join ds_mysql_prod_tagelement t2 on t2.id = p1.state
+	group by p1.name, fy_timerange , dimensions, p2.name, p3.name, t1.name, t2.name
