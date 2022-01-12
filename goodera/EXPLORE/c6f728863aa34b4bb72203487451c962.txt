@@ -1,34 +1,36 @@
-
-
-
-with table1 as(select facility_name as Factory_name,fac_vpid as Factory_Id,ven.name as vendor_name,parent_vendor_vpid as vendor_id,f_y.name as year,mth.name as month,facility_score as factory_sustainability,status.name as factory_pace,total_workers as Total,female_workers as fem_workers,male_workers as mal_workers,con.name as country,primary_category from profile_54267 p
+with table1 as (select p.projectId,p._id,p.name_factory,p.pace_status,row_number() over (partition by p.projectId order by p._id desc) as row from profile_54267 p
+),
+table2 as (Select t1.* from table1 t1 where row=1),
+table3 as(Select p.id,p.projectId,p.name_factory,p1.sourcing_yn,t2.pace_status from profile_54646 p
 
 left join profile_52713 p1 on 
-p.projectId = p1.projectId
+ p.projectId = p1.projectId
 
-left join ds_mysql_prod_tagelement ven
-on p.parent_vendor_name = ven.id
+left join table2 t2 on 
+p.projectId= t2.projectId 
 
-left join ds_mysql_prod_tagelement f_y
-on p.fy = f_y.id
-
-left join ds_mysql_prod_tagelement mth
-on p.month = mth.id
-
-left join ds_mysql_prod_tagelement status
-on p.pace_status = status.id
-			   
-left join ds_mysql_prod_tagelement con
-on p.country_name = con.id
-
-where p1.sourcing_yn = 57472 and p.pace_status =845114
+where sourcing_yn = 57472 and pace_status = 845114
 ),
-table2 as(Select t1.*, cast(category as int) from table1 t1, t1.primary_category category
-),
-table3 as(select Factory_name,Factory_Id,vendor_name,vendor_id,year,month,factory_sustainability,factory_pace,Total,fem_workers,mal_workers,country,cat.name as category from table2 t2
+table4 as(select p.id,p.projectId,p.name_factory,p1.sourcing_yn,p1.pace_status_2 from profile_54646 p
 
-left join ds_mysql_prod_tagelement cat on
-t2.category = cat.id
+
+left join profile_52713 p1 on 
+ p.projectId = p1.projectId
+
+where sourcing_yn = 57473 and pace_status_2 = 845114
+),
+table5 as(select p.id,p.projectId,p.name_factory,p1.pace_status from profile_54646 p
+
+left join profile_4948 p1 on 
+ p.projectId = p1.projectId
+
+where pace_status = 182398
 )
+select projectId,name_factory from table3
+union all
+select projectId,name_factory from table4
+union all
+select projectId,name_factory from table5
+	   
 
-Select * from table3
+
