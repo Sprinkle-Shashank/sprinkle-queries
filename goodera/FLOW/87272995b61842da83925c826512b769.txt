@@ -1,0 +1,25 @@
+drop table if exists sus_79470;
+ create table sus_79470 as
+				select st.xprojectid, p.name, st.financialperiod, t.name as finPeriod,
+				concat(concat(substring(cast(timestamp 'epoch' + CAST(t.start AS BIGINT)/1000 * interval '1 second' as varchar), 1, 10),'T'), concat(split_part(cast(timestamp 'epoch' + CAST(t.start AS BIGINT)/1000 * interval '1 second' as varchar), ' ',2),'.000Z')) as startdate,
+				concat(concat(substring(cast(timestamp 'epoch' + CAST(t.end AS BIGINT)/1000 * interval '1 second' as varchar), 1, 10),'T'), concat(split_part(cast(timestamp 'epoch' + CAST(t.end AS BIGINT)/1000 * interval '1 second' as varchar), ' ',2),'.000Z')) as enddate,
+				concat(concat(startdate,'|'),enddate) as fy_timerange,
+				-- concat(concat(t.start,'|'),t.end) as fy_timerange,
+				st.xquestionid,
+				q.questiontype,
+				q.keyword,
+				q.questiontext,
+				cast(st.datanum as float),
+				cast(st.dataNumBase as float),
+				st.datatext,
+				st.datatagref as dataselect,
+				st.datatable,
+				st.dataTableBase,
+				st.measureunit
+				from ds_mongo_sustainabilityTask st
+				left join ds_mysql_prod_question q on st.xquestionid = q.id
+				left join ds_mysql_prod_project p on st.xprojectid = p.id
+				left join ds_mysql_prod_tagelement t on st.financialperiod = t.id
+				where xprofileId='79470' and status = 'APPROVED'
+				and keyword in ('diesel_consumption','electricity_consumption','diesel_buses_consumption','solid_hazardous_waste','water_cons_gidc','trees_planted','metribuzin','diesel_emission','electricity_emission','diesel_buses_emission','liquid_hazardous_waste','water_cons_tanker','pendimethaline','fo_consumption','cng_buses_consumption','non_haz_sale','treated_wastewater_recycled','total_tech_production','fo_emission','cng_buses_emission','land_fill','treated_wastewater_discharged','formu_production_liq','biomass_consumption','hazardous_waste_auth_coprocessor','treatment_effluents','formu_production_solid','biomass_emission','hazardous_waste_auth_vendor','total_production','lpg_canteen_consumption','plastic_waste','lpg_canteen_emission','ewaste','solvent_loss_edc','total_hazardous_waste','edc_emssion','solvent_loss_xylene','xylene_emission','solvent_loss_dek','dek_emission','solvent_loss_cyclohexane','cyclohexane_emission','solvent_loss_methanol','methanol_emission','solvent_loss_toluene','toluene_emission','solvent_loss_mdc','mdc_emission','solvent_loss_soda_ash','soda_ash_emission','total_solvent_loss','paper_consumption','paper_emission','enamel_paint_consumption','enamel_paint_emission','diesel_vehicle_consumption','diesel_vehicle_emission','cng_vehicle_consumption','cng_vehicle_emission','renenwable_energy_utilized')
+				
