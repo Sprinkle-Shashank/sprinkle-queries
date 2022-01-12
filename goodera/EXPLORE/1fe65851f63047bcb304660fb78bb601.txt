@@ -114,13 +114,13 @@ with sub1 as(
 	  	else 0 
 	  end) as electricity_consumption,
   sum(case
-	  	when keyword = 'total_hazardous_waste' then datanumBase
+	  	when keyword = 'solid_hazardous_waste' then datanumBase
 	  	else 0 
-	  end) as total_hazardous_waste,
+	  end) as hazardous_waste_solid,
   sum(case
-	  	when keyword = 'liquid_hazardous_waste' then datanumBase
+	  	when keyword = 'land_fill' then datanumBase
 	  	else 0 
-	  end) as liquid_hazardous_waste,
+	  end) as land_fill,
   sum(case
 	  	when keyword = 'total_solvent_loss' then datanumBase
 	  	else 0 
@@ -140,30 +140,27 @@ with sub1 as(
   group by name, fy_timerange, startdate),
   
 sub2 as(
-  select name, s1.fy_timerange, s1.month_year,
+  select s1.name, s1.fy_timerange, s1.month_year,
 
-(s1.dms_hexa_emission + s1.edc_hexa_emission + s1.dmf_hexa_emission + s1.methanol_emission + s1.mdcb_hexa_emission + s1.odcb_pekk_emission + s1.hexane_pekk_emission + s1.dpo_pekk_emission + s1.methanol_pekk_emission + s1.xylidine_emission + s1.mdmpa_emission + s1.dipa_lambda_emission + s1.toluene_aceta_emission + s1.hexane_lambda_emission + s1.xylene_km_emission + s1.tea_km_emission + s1.toluene_metco_emission + s1.ech_metco_emission + s1.heptane_tvcp_emission + s1.mdc_metalaxyl_emission +
-s1.mdc_utility_emission) as total_solvent_emission,
+(s1.edc_emssion + s1.xylene_emission + s1.dek_emission + s1.cyclohexane_emission + s1.methanol_emission + s1.toluene_emission + s1.mdc_emission + s1.soda_ash_emission) as total_solvent_emission,
 
-(s1.diesel_emission + s1.fo_emission + s1.natural_gas_emission + total_solvent_emission + s1.paper_emission + s1.enamel_paint_emission + s1.company_vehicle_diesel_emission + s1.company_vehicle_cng_emission) as scope1,
+(s1.diesel_emission + s1.fo_emission + s1.natural_gas_emission + s1.biomass_emission + s1.lpg_canteen_emission + total_solvent_emission + s1.paper_emission + s1.enamel_paint_emission + s1.diesel_vehicle_emission + s1.cng_vehicle_emission) as scope1,
 
 s1.electricity_emission as scope2,
 
-(s1.shift_buses_diesel_emission	+ s1.shift_buses_cng_emission) as scope3,
+(s1.diesel_buses_emission + s1.cng_buses_emission) as scope3,
 
 (scope1 + scope2 + scope3) as total_co2_emission,
 
-(s1.total_techmt - s1.acetamiprid) as tech_production,
-
-(total_co2_emission / NULLIF(tech_production, 0)) as total_co2_tech_production,
+(total_co2_emission / NULLIF(s1.total_tech_production, 0)) as total_co2_tech_production,
 
 (total_co2_emission / NULLIF(s1.total_production, 0)) as total_co2_total_production,
 
-(s1.water_cons_gidc / NULLIF(s1.total_techmt, 0)) as water_tech_production,
+(s1.water_cons_gidc / NULLIF(s1.total_tech_production, 0)) as water_tech_production,
 
-((s1.water_cons_gidc + s1.water_constanker) / NULLIF(s1.total_production, 0)) as water_total_production,
+((s1.water_cons_gidc) / NULLIF(s1.total_production, 0)) as water_total_production,
 
-((s1.electricity) / NULLIF(s1.total_production, 0)) as electricity_total_production,
+((s1.electricity_consumption) / NULLIF(s1.total_production, 0)) as electricity_total_production,
 
 ((s1.hazardous_waste_solid + s1.land_fill) / NULLIF(s1.total_production, 0)) as hw_total_production,
 
@@ -171,7 +168,8 @@ s1.electricity_emission as scope2,
 
 (s1.natural_gas_consumption / NULLIF(s1.total_production, 0)) as natural_gas_total_production,
 
-(s1.total_renewable_energy_utilization) as total_renewable_energy_utilization	
+(s1.renenwable_energy_utilized / NULLIF(s1.total_production, 0)) as renewable_energy_total_production	
 
-from sub1 s1),
+from sub1 s1)
   
+select * from sub2
