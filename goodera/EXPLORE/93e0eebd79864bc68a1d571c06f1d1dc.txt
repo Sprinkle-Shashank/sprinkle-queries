@@ -1,36 +1,4 @@
-with table1 as
-(
-select ven.name as vendor_name , com_pil.name as commitment_pillar , par_t.name as partner_type , p.partner_name , split_part(p.partner_name,'(',1) as vendor_name_updated , case when vendor_name_updated='' then p.partner_name else vendor_name_updated end as partner_name_updated , partner_name_updated as name_vendor_filter , goal_2022 , community_partner_id from profile_4579 as p
-
-left join ds_mysql_prod_tagelement com_pil 
-on p.projectid = com_pil.id
-
-left join ds_mysql_prod_tagelement par_t 
-on p.projectid = par_t.id
-
- left join ds_mysql_prod_project ven 
-on p.projectId = ven.id
-
-where partner_type <> 64733 
-
-  group by p._id, p.projectId, p.name, vp_id, vendor_id, community_partner, community_partner_id, goal_2020, goal_2022, vendor_name, commitment_pillar, partner_type , ven.name , com_pil.name, par_t.name , partner_name , name_vendor_filter, community_partner_id
-)
-
-select community_partner_id, trim(split_part(name_vendor_filter,':',2)) as name_vendor_filter from table1
-
-where goal_2022>=10000
-
-group by community_partner_id , name_vendor_filter 
-
-order by goal_2022 desc
-
-
-
-
-
-
-
-/*select pt.name as partner_type, name_vendor_filter
+select pt.name as partner_type, name_vendor_filter
 
 --profile_4579._id, profile_4579.projectId, profile_4579.name, vp_id, vendor_id, community_partner, community_partner_id, goal_2020, goal_2022, vendor_name, pt.name as partner_type, pn.name as program_name,target_2022, name_vendor_filter, name_vendor
 from profile_4579
@@ -49,4 +17,36 @@ on profile_4579.partner_type = pt.id
 
 where pt.name = 'Vendor' and target_2022 is not null  and name_vendor_filter is not null
 
-group by profile_4579.projectId, profile_4579.name, vp_id, vendor_id, community_partner, community_partner_id, goal_2020, goal_2022, vendor_name,pt.name, pn.name, profile_4579._id, target_2022,name_vendor_filter, name_vendor*/
+group by profile_4579.projectId, profile_4579.name, vp_id, vendor_id, community_partner, community_partner_id, goal_2020, goal_2022, vendor_name,pt.name, pn.name, profile_4579._id, target_2022,name_vendor_filter, name_vendor
+
+/*
+
+
+with table1 as
+(
+select ven.name as vendor_name , com_pil.name as commitment_pillar , par_t.name as partner_type , p.partner_name , split_part(p.partner_name,'(',1) as vendor_name_updated , case when vendor_name_updated='' then p.partner_name else vendor_name_updated end as partner_name_updated , partner_name_updated as name_vendor_filter , goal_2022 , community_partner_id from profile_4579 as p
+
+left join ds_mysql_prod_tagelement com_pil 
+on p.projectid = com_pil.id
+
+left join ds_mysql_prod_tagelement par_t 
+on p.projectid = par_t.id
+
+ left join ds_mysql_prod_project ven 
+on p.projectId = ven.id
+
+where partner_type <> 64733 
+
+  group by p._id, p.projectId, p.name, vp_id, vendor_id, community_partner, community_partner_id, goal_2020, goal_2022, vendor_name, commitment_pillar, partner_type , ven.name , com_pil.name, par_t.name , partner_name , name_vendor_filter, community_partner_id
+)
+
+select community_partner_id, sum(goal_2022) as goal_2022, trim(split_part(name_vendor_filter,':')) as name_vendor_filter from table1
+
+where goal_2022>=10000
+
+group by community_partner_id , name_vendor_filter 
+
+order by goal_2022 desc
+
+
+*/
