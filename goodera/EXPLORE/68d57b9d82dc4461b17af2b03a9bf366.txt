@@ -1,10 +1,24 @@
-with test1 as(
-select p.f_reg_date ||'|'|| p.f_reg_date as fy_timerange, p.projectid, p.f_category, cast('Testing' as text) as type, decode(p.covid_tested,1032433,1,0) as final_sum from profile_59462 p where covid_tested in (1032433)
-)
+with table1 as(
+ select z.name as donor,p.name,p.name, CHR(123) || '"start"'|| ':' || '"' || substring(p.start,1,10) || 'T00:00:00.000Z' || '"' || ',' || '"end"'|| ':' || '"' || substring(p.end,1,10) || 'T00:00:00.000Z' || '"' || Chr(125) as fy_timerange,  y.name as Project,concat(concat(substring(p.start,1,10),' - '),substring(p.end,1,10)) as Period , decode(p.amount,null,0,p.amount) as commitment ,decode(h.utilized,null,0,h.utilized) as utilized, decode(k.amnt,null,0,k.amnt) as disbursed from profile_14715 p
 
-select p.fy_timerange, t.name as projectid, p.f_category, p.type, sum(final_sum) as final_sum
-from test1 p
-left join ds_mysql_prod_project as t on t.id = p.projectid
-group by 1,2,3,4
+left join profile_56059 h on
+p._id=h.donor_com
+
+left join profile_25910 k on
+p._id=k.donor_com
+
+left join ds_mysql_prod_tagelement z on
+p.donor=z.id
 
 
+
+
+--LEFT JOIN ds_mysql_prod_project t on p.projectId=t.id
+--LEFT JOIN ds_mysql_prod_project t1 on t.parent=t1.id      
+--LEFT JOIN ds_mysql_prod_project t2 on t1.parent=t2.id
+
+LEFT JOIN ds_mysql_prod_project y on p.projectid=y.id
+  )
+  
+  select donor, name, fy_timerange, Project, period, sum(commitment), sum(disbursed), sum(utilized) from table1
+Group by 1,2,3,4,5
