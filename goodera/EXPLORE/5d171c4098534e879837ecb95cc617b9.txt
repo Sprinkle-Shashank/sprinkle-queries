@@ -1,0 +1,73 @@
+with table1 as (select p.projectId,p._id,p.pace_status,row_number() over (partition by p.projectId order by p._id desc) as row from profile_54267 p
+),
+table2 as (Select t1.* from table1 t1 where row=1),
+table3 as(Select p.projectId,p.name_factory,p1.sourcing_yn,t2.pace_status from profile_54646 p
+
+left join profile_52713 p1 on 
+ p.projectId = p1.projectId
+
+left join table2 t2 on 
+p.projectId= t2.projectId 
+
+where sourcing_yn = 57472 and pace_status = 845114
+),
+table4 as(select p.projectId,p.name_factory,p1.sourcing_yn,p1.pace_status_2 from profile_54646 p
+
+
+left join profile_52713 p1 on 
+ p.projectId = p1.projectId
+
+where sourcing_yn = 57473 and pace_status_2 = 845114
+),
+table5 as(select p.projectId,p.name_factory,p1.pace_status from profile_54646 p
+
+left join profile_4948 p1 on 
+ p.projectId = p1.projectId
+
+where pace_status = 182398
+),
+table6 as(
+select projectId,name_factory from table3
+union all
+select projectId,name_factory from table4
+union all
+select projectId,name_factory from table5
+),
+table7 as(select p.factory_vpid as location_id1,p.projectId from profile_52713 p
+		  ),
+
+table8 as(Select p.cp_location_id as location_id2,p.projectId from profile_4948 p
+),
+table9 as(
+select location_id1 as Locations,projectId from table7
+union all
+select location_id2 as Locations,projectId from table8
+),
+table10 as(Select p.projectId,p.name_vendor_filter as vendor1 from profile_54646 p
+		   
+
+),
+table11 as (Select p.projectId,p.name_vendor_filter as vendor2 from profile_54646 p
+
+
+
+		  
+left join profile_4948 p2 on 
+ p.projectid = p2.projectid
+			
+where p2.pace_status = 182398
+),
+
+table12 as (
+Select projectId,vendor1 as vendor from table10
+union all
+select projectId,vendor2 as vendor from table11
+)	   
+Select t6.name_factory,t9.Locations,t12.vendor  from table6 t6
+left join table9 t9
+on t6.projectId = t9.projectId	
+
+left join table12 t12
+on t6.projectId = t12.projectId	
+
+group by name_factory,Locations,vendor
