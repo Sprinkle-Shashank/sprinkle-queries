@@ -170,6 +170,58 @@ s1.electricity_emission as scope2,
 
 (s1.renenwable_energy_utilized / NULLIF(s1.total_production, 0)) as renewable_energy_total_production	
 
-from sub1 s1)
+from sub1 s1),
   
-select * from sub2
+sub3 as(
+  select name, fy_timerange, month_year, total_solvent_emission, scope1, scope2, scope3, total_co2_emission, total_co2_tech_production, total_co2_total_production, water_tech_production, water_total_production, electricity_total_production, hw_total_production, solvent_loss_total_production, natural_gas_total_production, renewable_energy_total_production from sub2),
+
+temp as(
+  select 'total_solvent_emission' as col
+  union all
+  select 'scope1' as col
+  union all
+  select 'scope2' as col
+  union all
+  select 'scope3' as col
+  union all
+  select 'total_co2_emission' as col
+  union all
+  select 'total_co2_tech_production' as col
+  union all
+  select 'total_co2_total_production' as col
+  union all
+  select 'water_tech_production' as col
+  union all
+  select 'water_total_production' as col
+  union all
+  select 'electricity_total_production' as col
+  union all
+  select 'hw_total_production' as col
+  union all
+  select 'solvent_loss_total_production' as col
+  union all
+  select 'natural_gas_total_production' as col
+  union all
+  select 'renewable_energy_total_production' as col)
+  
+select s3.name, s3.fy_timerange, s3.month_year, temp.col as dimensions,
+sum(case col
+		when 'total_solvent_emission' then round(s3.total_solvent_emission,2)
+		when 'scope1' then round(s3.scope1,2)
+		when 'scope2' then round(s3.scope2,2)
+		when 'scope3' then round(s3.scope3,2)
+		when 'total_co2_emission' then round(s3.total_co2_emission,2)
+		when 'total_co2_tech_production' then round(s3.total_co2_tech_production,2)
+		when 'total_co2_total_production' then round(s3.total_co2_total_production,2)
+		when 'water_tech_production' then round(s3.water_tech_production,2)
+		when 'water_total_production' then round(s3.water_total_production,2)
+		when 'electricity_total_production' then round(s3.electricity_total_production,2)
+		when 'hw_total_production' then round(s3.hw_total_production,2)
+		when 'solvent_loss_total_production' then round(s3.solvent_loss_total_production,2)
+		when 'natural_gas_total_production' then round(s3.natural_gas_total_production,2)
+		when 'renewable_energy_total_production' then round(s3.renewable_energy_total_production,2)
+	else null
+end) as values
+from sub3 s3
+cross join temp
+group by s3.name, s3.fy_timerange, s3.month_year, temp.col
