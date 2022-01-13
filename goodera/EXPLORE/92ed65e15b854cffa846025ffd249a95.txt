@@ -1,63 +1,109 @@
-with table1 as (select  p.projectid, target_2014, target_2015, target_2016, target_2017, target_2018, target_2019, target_2020, target_2021, target_2022, profile_54646.name_vendor,profile_54646.name_country, profile_54646.name_vendor_filter,profile_54646.name_rp as regional_partner, profile_54646.projcode_factory as codes, profile_54646.name_factory as locations
-from profile_4579  p
-			   
-	left join profile_54646 on
-p.partner_name = profile_54646.name_vendor	
-				
+with table1 as ( select _id , projectid,pace_status as facility_status,row_number() over 
+(partition by projectid
+ order by _id desc) as row from profile_54267 p
+		/*left join ds_mysql_prod_project as pro
+on p.projectid = pro.id*/	   ),
 
-where name_vendor is not null and codes like 'CP%'
-				
-	group by p.projectid,target_2014,target_2015,target_2016,target_2017,target_2018,target_2019,target_2020,target_2021,target_2022, profile_54646.name_vendor,profile_54646.name_country, profile_54646.name_vendor_filter,profile_54646.name_rp, profile_54646.projcode_factory, profile_54646.name_factory, type_program   ),
+table2 as ( select * from table1 
+		  where row = 1),
 
-temp as (
-  select 'FY 2014' as C
-  Union all
-  select 'FY 2015' as C
-  Union all
-  select 'FY 2016' as C
-  Union all
-  select 'FY 2017' as C
-  Union all 
-  select 'FY 2018' as C
-  Union all
-  select 'FY 2019' as C
-  Union all
-  select 'FY 2020' as C
-  Union all
-  select 'FY 2021' as C
-  Union all
-  select 'FY 2022' as C )
+table3 as (
+  select p.projectid,name_factory,name_vendor_filter,name_country,add_factory.sourcing_yn,add_factory.pace_status_2,cast(add_factory.factory_vpid_1 as varchar(65535)) as vpid_1 ,add_factory.factory_vpid_2,add_factory.child_vendor_vpid,add_community.pace_status as status_community,add_community.cp_location_id,add_community.cp_id,t2.facility_status from          profile_54646 p
+
+left join profile_52713 add_factory on
+p.projectid = add_factory.projectid 
+
+left join profile_4948 add_community on
+p.projectid = add_community.projectid
+
+left join table2 t2 on 
+p.projectid= t2.projectid  
+),
+table4 as (
+select projectid,case when sourcing_yn =57472 and facility_status = 845114 then name_factory
+            when sourcing_yn = 57473 and (pace_status_2 in (845114 ,898423,898425,898426))or pace_status_2 is null then   name_factory 
+			when status_community = 182398 then name_factory end as factory,
+case when sourcing_yn =57472 then vpid_1 
+     when sourcing_yn =57473 then factory_vpid_2
+	 when status_community = 182398 then cp_location_id  end as community_id,name_vendor_filter,
+case when status_community = 182398 then cp_id
+     else child_vendor_vpid end as vp_id_and_cp_id,name_country
+			
+			from table3
+where factory is not null
+),
+module_completed as (  select class, count(*)as completed from profile_4228
+					 where end_date is not null
+					 group by class),
+module_ongoing as ( select class, count(*)as ongoing from profile_4228
+					 where end_date is  null
+					 group by class),
+table7 as ( SELECT _id,mon.creatorid, u.email as cemail, mon.modifierid, m.email as memail
+from ds_mongo_profileinstance mon
+left join ds_mysql_prod_user u on
+mon.creatorid = u.id
+left join ds_mysql_prod_user m  on
+mon.modifierid = m.id
+where mon.profileId='4227' and mon.active = 't' and mon.securitycontextid is not null
+			 ),		
+creationdate_table_for_batch as (	select p._id,p.projectid,p.name,/*substring(createddate,1,10)*/ createddate as batch_date,t7.cemail,p.end_date_2 from profile_4227 p   
+ left join table7 t7 on
+	p._id = t7._id	
+	where end_date_2 is null),
+	
+table8 as ( SELECT _id,mon.creatorid, u.email as cemail, mon.modifierid, m.email as memail
+from ds_mongo_profileinstance mon
+left join ds_mysql_prod_user u on
+mon.creatorid = u.id
+left join ds_mysql_prod_user m  on
+mon.modifierid = m.id
+where mon.profileId='4228' and mon.active = 't' and mon.securitycontextid is not null
+			 ),	
+ 
+ creationdate_table_for_module as (	select p._id,p.class, p.projectid,/*substring(createddate,1,10)as*/createddate as module_date,row_number() over 
+(partition by class
+ order by createddate desc) as row,t8.cemail from profile_4228 p
+			left join table8 t8 on
+			p._id = t8._id					  )	,
+	
+table5 as ( select * from creationdate_table_for_batch 
+			--where row = 1 
+		   ),
+			
+ table6 as ( select * from creationdate_table_for_module 
+			where row = 1 ),
   
- select pro.name as projectid,  name_vendor,name_country, name_vendor_filter, regional_partner, codes, locations,
- sum( Case C
-	When 'FY 2014' then p.target_2014
-	When 'FY 2015' then p.target_2015
-	 When 'FY 2016' then p.target_2016
-	 When 'FY 2017' then p.target_2017
-     When 'FY 2018' then p.target_2018
-	 When 'FY 2019' then p.target_2019
-	 When 'FY 2020' then p.target_2020
-	 When 'FY 2021' then p.target_2021
-	 When 'FY 2022' then p.target_2022
+ creation_date as ( select t5._id,t5.projectid,batch_date,t5.cemail as batch_email,t6.module_date,t6.cemail as module_email from table5 t5
+  
+  left join table6 t6 on 
+  t5._id= t6.class )	
+					 
+select p._id,p.projectid,t4.factory,end_date_2,t4.community_id,t4.name_vendor_filter,t4.vp_id_and_cp_id,t4.name_country,start_date,end_date,num_females,module_completed.completed, module_ongoing.ongoing,
+case when t_cd.module_date > t_cd.batch_date then t_cd.module_date
+     else t_cd.batch_date end as latest_date,
+concat(split_part(current_date,' ',1),'T00:00:00.000Z') AS current_date1,
+cast(current_date1 as datetime) as current_date,
+case when t_cd.module_date > t_cd.batch_date then t_cd.module_email
+     else t_cd.batch_email end as email_id,
+case when current_date-latest_date<= 30 then 'Updated in last 30 days'
+	when 30< current_date-latest_date<= 90 then 'No updates in the last 30 days'
+		  else 'No updates in the last 90 days' end as Date_range
 	 
-	 else null end) as value, temp.c as start_year,type_program from table1 p
-cross join temp 	 
-left join ds_mysql_prod_project as pro
-  on p.projectid = pro.id
-  
+	 
+	 from profile_4227 p
 
-group by pro.name, temp.c, name_vendor,name_country, name_vendor_filter, regional_partner, codes, locations,type_program
+left join table4 t4 on
+p.projectid= t4.projectid
 
---select * from table1
+left join module_completed  on 
+p._id = module_completed.class
 
+left join module_ongoing  on 
+p._id = module_ongoing.class
 
+left join creation_date t_cd on
+p._id = t_cd._id
 
-/*
-select pro.name as projectId, p.vendor_id ,target_2014,target_2015,profile_54646.name_vendor,profile_54646.name_country, profile_54646.name_vendor_filter from profile_4579 p
+where end_date_2 is null 
 
-left join ds_mysql_prod_project pro
-on p.projectid = pro.id
-
-LEFT JOIN profile_54646 ON
-pro.name = profile_54646.name_vendor
-*/
+--select * from module_ongoing
