@@ -1,0 +1,56 @@
+with temp as(
+  select 'Enter the area of bund repaired' as col
+  union all
+  select 'Enter the number of species selected for plantation' as col
+  union all
+  select 'Enter the number of saplings planted' as col
+  union all
+  select 'Enter the area covered through  new sapling plantation' as col
+  union all
+  select 'Water spread area for the check dam' as col
+  union all
+  select 'Water spread area under the causeway cum culverts' as col
+  union all
+  select 'Area impacted by the soil moisture conservation activity' as col
+  union all
+  select 'Enter the number of saucer bowl prepared' as col
+   union all
+  select 'Enter the number of volunteers engaged' as col
+   union all
+  select 'Enter the number of volunteers engaged in the plantation of saplings ' as col
+   union all
+  select 'Number of dams constructed' as col
+   union all
+  select 'Number of causeways constructed' as col
+  
+  ),
+ 
+ s as(
+  Select * from profile_78879
+  )
+  Select s.name,s.fy_timerange,t.name as ProjectID,count(*), temp.col,e.name as dams_constructed, f.name as causeway_constructed,
+  sum(case col
+	when 'Enter the area of bund repaired' then s.area_bund_repaired
+	when 'Enter the number of species selected for plantation' then s.plantation_species
+	when 'Enter the number of saplings planted' then s.sapling_planted
+	when 'Enter the area covered through  new sapling plantation' then s.area_saplings
+	when 'Water spread area for the check dam' then s.area_check_dam
+	when 'Water spread area under the causeway cum culverts' then s.causeway_culverts
+	when 'Area impacted by the soil moisture conservation activity' then s.soil_moisture
+	when 'Enter the number of saucer bowl prepared' then s.saucer_bowl
+	when 'Enter the number of volunteers engaged' then s.volunteers_engaged
+	when 'Enter the number of volunteers engaged in the plantation of saplings ' then s.volunteers_plantation
+	when 'Number of dams constructed' then s.no_of_dams
+	when 'Number of causeways constructed' then s.no_of_dams
+
+end) as Value 
+  from s
+  left join ds_mysql_prod_project t
+  on t.id=s.projectId
+   left join ds_mysql_prod_tagelement e
+  on e.id=s.dams_constructed
+  left join ds_mysql_prod_tagelement f
+  on f.id=s.causeway_constructed
+  cross join temp
+  
+  group by s.name,s.fy_timerange,t.name,s._id,temp.col,e.name,f.name
