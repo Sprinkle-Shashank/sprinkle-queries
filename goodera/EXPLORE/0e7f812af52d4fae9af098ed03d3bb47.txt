@@ -8,7 +8,7 @@ table2 as ( select * from table1
 		  where row = 1),
 
 table3 as (
-  select p.projectid, name_vendor,name_rp , name_factory,name_vendor_filter,name_country,add_factory.sourcing_yn,add_factory.pace_status_2,cast(add_factory.factory_vpid_1 as varchar(65535)) as vpid_1 ,add_factory.factory_vpid_2,add_factory.child_vendor_vpid,add_community.pace_status as status_community,add_community.cp_location_id,add_community.cp_id,t2.facility_status from          profile_54646 p
+  select p.projectid, name_vendor,name_rp , name_factory,name_vendor_filter,name_country,add_factory.sourcing_yn,add_factory.pace_status_2,cast(add_factory.factory_vpid_1 as varchar(65535)) as vpid_1 ,add_factory.factory_vpid_2,add_factory.child_vendor_vpid,add_community.pace_status as status_community,add_community.cp_location_id,add_community.cp_id,t2.facility_status , projcode_factory , substring(projcode_factory,0,2) as projcode_factory_updated1 from          profile_54646 p
 
 left join profile_52713 add_factory on
 p.projectid = add_factory.projectid 
@@ -19,6 +19,7 @@ p.projectid = add_community.projectid
 left join table2 t2 on 
 p.projectid= t2.projectid  
 ),
+
 table4 as (
 select projectid, name_vendor , name_rp , case when sourcing_yn =57472 and facility_status = 845114 then name_factory
             when sourcing_yn = 57473 and (pace_status_2 in (845114 ,898423,898425,898426))or pace_status_2 is null then   name_factory 
@@ -27,19 +28,23 @@ case when sourcing_yn =57472 then vpid_1
      when sourcing_yn =57473 then factory_vpid_2
 	 when status_community = 182398 then cp_location_id  end as community_id,name_vendor_filter,
 case when status_community = 182398 then cp_id
-     else child_vendor_vpid end as vp_id_and_cp_id,name_country
+     else child_vendor_vpid end as vp_id_and_cp_id,name_country , projcode_factory_updated1
 			
 			from table3
 where factory is not null
 ),
 
 table5 as
-( select p._id , p.projectid,p.name, cast(concat('FY ' ,start_year) as varchar) as start_year,to_char(start_date,'YYYY') as start_date, case when end_date_2 is not null then to_char(start_date,'YYYY-MM-DD') end as start_date_update,to_char(end_date_2,'YYYY-MM-DD') as end_date_2,num_females,num_females_graduated from profile_4227 p),
+( select p._id , p.projectid,p.name, cast(concat('FY ',start_year) as varchar) as start_year,to_char(start_date,'YYYY') as start_date, case when end_date_2 is not null then to_char(start_date,'YYYY-MM-DD') end as start_date_update,to_char(end_date_2,'YYYY-MM-DD') as end_date_2,num_females,num_females_graduated , type_program ,substring(sub_date,1,10) as sub_date ,  to_char(end_date,'YYYY-MM-DD') as end, to_char(end_date_2,'YYYY-MM-DD') as end_2 , to_char(dateadd(day , 90 , end_date_2),'YYYY-MM-DD') as end_2_90 ,  z.projcode_factory , substring(z.projcode_factory,0,2) as projcode_factory_updated1 , z.name_country ,  z.name_vendor , z.name_rp , z.name_factory , z.name_vendor_filter ,
  
-table7 as
-( select p.*,t4.* from table5 p
-  
-  left join table4 t4 on 
-  p.projectid = t4.projectid
-)
-select * from table7
+case when projcode_factory_updated1='C' or (projcode_factory_updated1='F' and type_program <> 'Workplace Program') then 'NA' when CURRENT_DATE>=end_2 and CURRENT_DATE<end_2_90 then 'upcoming' when CURRENT_DATE>=end_2_90 then 'Past Due date' when sub_date is not null then 'Completed' end as business_outcomes from profile_4227 p 
+ 
+ left join profile_54646 z on 
+ p.projectid = z.projectid
+ 
+ where end_date_2 is not null)
+ 
+select t5.start_year , t4.* from table5 t5
+
+left join table4 t4 on 
+t5.projectid = t4.projectid
