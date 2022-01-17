@@ -1,21 +1,23 @@
+with base1 as (select  p.projectId, p.fy_timerange, q.name as status,p.zone_db as zone, p.partner_db as partner_name, p.center_name_db as center_id, p.batch_id_db as batch_id, p.batch_end_db  as end_e, t2.name as project, case when status='Placed' then 1 when status ='Self Employed' then 1 else 0 end as Count from profile_145 p
 
- select z.name as donor,p.name, CHR(123) || '"start"'|| ':' || '"' || substring(p.start,1,10) || 'T00:00:00.000Z' || '"' || ',' || '"end"'|| ':' || '"' || substring(p.end,1,10) || 'T00:00:00.000Z' || '"' || Chr(125) as fy_timerange,  y.name as Project,concat(concat(substring(p.start,1,10),' - '),substring(p.end,1,10)) as Period , decode(p.amount,null,0,p.amount) as commitment ,decode(h.utilized,null,0,h.utilized) as utilized, decode(k.amnt,null,0,k.amnt) as disbursed from profile_14715 p
+left join ds_mysql_prod_tagelement q on
+p.placed = q.id			   
+LEFT JOIN ds_mysql_prod_project t on p.projectId=t.id
+LEFT JOIN ds_mysql_prod_project t1 on t.parent=t1.id
+LEFT JOIN ds_mysql_prod_project t2 on t1.parent=t2.id
 
-left join profile_56059 h on
-p._id=h.donor_com
+union all
+select  m.projectId,m.fy_timerange, q.name as status, m.zone_db as zone, m.partner_db as partner_name, m.center_name_db as center_id, m.batch_id_db as batch_id, m.batch_end_db as end_e ,t2.name as project ,case when status='Placed' then 1 when status ='Self Employed' then 1 else 0 end as Count from profile_36901 m
 
-left join profile_25910 k on
-p._id=k.donor_com
+			   
+left join ds_mysql_prod_tagelement q on
+m.placed = q.id			   
+			   
+LEFT JOIN ds_mysql_prod_project t on m.projectId=t.id
+LEFT JOIN ds_mysql_prod_project t1 on t.parent=t1.id
+LEFT JOIN ds_mysql_prod_project t2 on t1.parent=t2.id
+)
+select fy_timerange, zone,  partner_name,  center_id, batch_id, project, sum(Count) as count from base1
 
-left join ds_mysql_prod_tagelement z on
-p.donor=z.id
-
-
-
-
---LEFT JOIN ds_mysql_prod_project t on p.projectId=t.id
---LEFT JOIN ds_mysql_prod_project t1 on t.parent=t1.id      
---LEFT JOIN ds_mysql_prod_project t2 on t1.parent=t2.id
-
-LEFT JOIN ds_mysql_prod_project y on p.projectid=y.id
-  
+group by fy_timerange,  zone,  partner_name,  center_id, batch_id,
+ project 
