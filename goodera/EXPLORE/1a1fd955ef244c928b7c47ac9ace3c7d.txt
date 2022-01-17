@@ -21,7 +21,9 @@ mon.modifierid = m.id
 where mon.profileId='4228' and mon.active = 't' and mon.securitycontextid is not null
 			 ),	
  
- creationdate_table_for_module as (	select p._id,p.class, p.projectid,t8.cemail, t8.memail from profile_4228 p
+ creationdate_table_for_module as (	select p._id,p.class, p.projectid,t8.cemail, t8.memail,row_number() over 
+(partition by class
+ order by createddate desc) as row from profile_4228 p
 			left join table8 t8 on
 			p._id = t8._id					  )	,
 	
@@ -29,7 +31,7 @@ table5 as ( select * from creationdate_table_for_batch
 			--where row = 1 
 		   ),
 			
- table6 as ( select * from creationdate_table_for_module ),
+ table6 as ( select * from creationdate_table_for_module where row = 1  ),
   
  creation_date as ( select t5._id,t5.projectid,t5.cemail as batch_email,t6.cemail as module_email , t5.memail as batch_modified , t6.memail as module_modified from table5 t5
   
