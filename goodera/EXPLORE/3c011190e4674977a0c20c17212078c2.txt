@@ -1,17 +1,17 @@
 
 with table5 as
-( select p._id , p.projectid,p.name, cast(concat('FY ' ,start_year) as varchar) as start_year,to_char(start_date,'YYYY') as start_date,to_char(end_date_2,'YYYY-MM-DD') as end_date_2,num_females,num_females_graduated from profile_4227 p),
+( select p._id , p.projectid,p.name, cast(concat('FY ' ,start_year) as varchar) as start_year,to_char(start_date,'YYYY') as start_date, case when end_date_2 is not null then to_char(start_date,'YYYY-MM-DD') end as start_date_update,to_char(end_date_2,'YYYY-MM-DD') as end_date_2,num_females,num_females_graduated , type_program  , to_char(sub_date,'YYYY-MM-DD') as sub_date ,  to_char(end_date,'YYYY-MM-DD') as end ,  to_char(end_date_2,'YYYY-MM-DD') as end_2 , to_char(dateadd(day , 90 , end_date_2),'YYYY-MM-DD') as end_2_90  from profile_4227 p where end_date_2 is not null),
 
 table6 as
-( select p._id , p.projectid , p.name , to_char(start_date , 'YYYY-MM-DD') as start_date from profile_4227 p
- where end_date_2 is not null)
+( select p.projectid , p.name , projcode_factory , substring(projcode_factory,0,2) as projcode_factory_updated1 from profile_54646 p
+ )
+ 
+ select t5.*, p.* from table6 p
+ 
+ left join table5 t5 on
+ p.projectid = t5.projectid
+ 
  
  /*
- select * from table6
+ (p.projcode_factory_updated1='F' and t5.type_program <> 'Workplace Program') then 'NA' when t5.sub_date is not null then 'Completed' when CURRENT_DATE>=t5.end_2 and CURRENT_DATE<t5.end_2_90 and t5.sub_date is null then 'upcoming' when CURRENT_DATE>=t5.end_2_90 and t5.sub_date is null then 'Past Due date' end as business_outcomes from table4 p
  */
- 
- select p.*, t6.start_date from table5 p
- left join table6 t6 on 
- p._id = t6._id
- 
- 
