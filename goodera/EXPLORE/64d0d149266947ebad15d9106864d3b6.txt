@@ -4,7 +4,7 @@ test0 as(Select p.* ,(gbv_goals)from  profile_76755 p
 , p.gbv_goals_arr gbv_goals union all
  select p.*,NULL as gbv_goals from profile_76755 p where gbv_goals_arr IS NULL
 ),
- test1 as (Select p.projectId,p.facility_name,p.year_timerange,p.gbv_goals,p.country,p.director_region,p.facility_type,p.female_workers,p.male_workers,p.female_managers,p.female_supervisors,p.male_supervisors, p.male_managers,ven.name AS vendor,p1.indepth_workers,p1.indepth_managers,p1.gbv_policy,p1.channels_more, p1.anonymous_channel, p1.third_party_channel, p1.response_provided, p1.issues_resolved,
+ test1 as (Select p.projectId,p.facility_name,p.year_timerange,p.gbv_goals,p.country as country,p.director_region as director_region,p.facility_type,p.female_workers,p.male_workers,p.female_managers,p.female_supervisors,p.male_supervisors, p.male_managers,p2.name_vendor_filter as vendor,p1.indepth_workers,p1.indepth_managers,p1.gbv_policy,p1.channels_more, p1.anonymous_channel, p1.third_party_channel, p1.response_provided, p1.issues_resolved,
 female_workers+(male_workers+(female_managers+(male_managers+(male_supervisors+female_supervisors)))) AS total_emp,
 indepth_workers+indepth_managers AS total_trained, total_trained*100 AS total,total/total_emp AS trained,
 CASE WHEN trained >= 100 THEN 'YES'
@@ -33,13 +33,11 @@ left join profile_76894 p1 on
 p.gbv_goals = p1._id
 
 
-left join ds_mysql_prod_project fac
-on p.projectId = fac.id
-left join ds_mysql_prod_project ven
-on fac.parent = ven.id
+left join profile_54646 p2 
+on p.projectid = p2.projectid
 
 where final_result = 'YES'
-group by p.projectId,p.facility_name,p.year_timerange,p.country,p.director_region,ven.name,p1.indepth_workers,p1.indepth_managers,p.facility_type,p.gbv_goals,p.female_workers,p.male_workers,p.female_managers,p.female_supervisors,p.male_supervisors, p.male_managers,p1.gbv_policy,p1.channels_more, p1.anonymous_channel, p1.third_party_channel, p1.response_provided, p1.issues_resolved
+group by p.projectId,p.facility_name,p.year_timerange,p.country,p.director_region,vendor,p1.indepth_workers,p1.indepth_managers,p.facility_type,p.gbv_goals,p.female_workers,p.male_workers,p.female_managers,p.female_supervisors,p.male_supervisors, p.male_managers,p1.gbv_policy,p1.channels_more, p1.anonymous_channel, p1.third_party_channel, p1.response_provided, p1.issues_resolved
 )
 Select p.* from test1 p	
 
