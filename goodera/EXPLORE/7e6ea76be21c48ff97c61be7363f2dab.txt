@@ -1,5 +1,82 @@
-select * from profile_4724
 
-/* 4724
-  4580
+with table7 as ( SELECT _id,mon.creatorid, u.email as cemail, mon.modifierid, m.email as memail
+from ds_mongo_profileinstance mon
+left join ds_mysql_prod_user u on
+mon.creatorid = u.id
+left join ds_mysql_prod_user m  on
+mon.modifierid = m.id
+where mon.profileId='4227' and mon.active = 't' and mon.securitycontextid is not null
+			 ),		
+			 
+creationdate_table_for_batch as (select p._id,p.projectid ,t7.cemail, t7.memail , row_number() over 
+(partition by class
+ order by memail desc) as row from profile_4227 p   
+ left join table7 t7 on
+	p._id = t7._id),
+	
+table8 as ( SELECT _id,mon.creatorid, u.email as cemail, mon.modifierid, m.email as memail
+from ds_mongo_profileinstance mon
+left join ds_mysql_prod_user u on
+mon.creatorid = u.id
+left join ds_mysql_prod_user m  on
+mon.modifierid = m.id
+where mon.profileId='4228' and mon.active = 't' and mon.securitycontextid is not null
+			 ),	
+ 
+ creationdate_table_for_module as (	select p._id,p.class, p.projectid,t8.cemail, t8.memail,row_number() over 
+(partition by class
+ order by memail desc) as row from profile_4228 p
+			left join table8 t8 on
+			p._id = t8._id					  )	,
+			
+
+table9 as ( SELECT _id,mon.creatorid, u.email as cemail, mon.modifierid, m.email as memail
+from ds_mongo_profileinstance mon
+left join ds_mysql_prod_user u on
+mon.creatorid = u.id
+left join ds_mysql_prod_user m  on
+mon.modifierid = m.id
+where mon.profileId='4724' and mon.active = 't' and mon.securitycontextid is not null
+			 ),		
+			 
+creationdate_table_for_events as (select p._id,p.projectid ,t7.cemail, t7.memail  from profile_4724 p   
+ left join table7 t7 on
+	p._id = t7._id),
+	
+	
+table10 as ( SELECT _id,mon.creatorid, u.email as cemail, mon.modifierid, m.email as memail
+from ds_mongo_profileinstance mon
+left join ds_mysql_prod_user u on
+mon.creatorid = u.id
+left join ds_mysql_prod_user m  on
+mon.modifierid = m.id
+where mon.profileId='4580' and mon.active = 't' and mon.securitycontextid is not null
+			 ),		
+			 
+creationdate_table_for_stories as (select p._id,p.projectid ,t7.cemail, t7.memail , row_number() over 
+(partition by class
+ order by memail desc) as row from profile_4580 p   
+ left join table7 t7 on
+	p._id = t7._id)	
+
+	
+table5 as ( select * from creationdate_table_for_batch 
+			where row = 1 
+		   ),
+			
+ table6 as ( select * from creationdate_table_for_module where row = 1  ),
+ 
+ table4 as ( select * from creationdate_table_for_stories where row = 1  ),
+ 
+  table3 as ( select * from creationdate_table_for_events  ),
+  
+ creation_date as ( select t3._id,t3.projectid,t3.cemail as events_email,t6.cemail as module_email , t3.memail as events_modified , t6.memail as module_modified from table3 t3
+  
+  left join table6 t6 on 
+  t3._id= t6.class )	
+  
+  select * from creation_date
+
+/* 4724  1133
+  4580  1844
 */
