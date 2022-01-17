@@ -1,0 +1,61 @@
+with temp as(
+  select 'Number of inputs purchased' as col
+  union all
+  select 'Number of quantity of inputs purchased' as col
+  union all
+  select 'Independent consultant/consulting firm hired for baseline and endline' as col
+  union all
+  select 'Number of executive director appointed' as col
+  union all
+  select 'Number of director for finance, HR and admin appointed' as col
+  union all
+  select 'Number of head of environment vertical appointed' as col
+  union all
+  select 'Number of manager-finance appointed' as col
+  union all
+  select 'Number of senior executive-environment projects appointed' as col
+   union all
+  select 'Number of senior manager M&E appointed' as col
+   union all
+  select 'Number of assistant manager-procurements appointed' as col
+   union all
+  select 'Number of manager-corporate relation appointed' as col
+   union all
+  select 'Number of engineers (external) appointed for assessment' as col
+   union all
+  select 'Number of vendors identified' as col
+   union all
+  select 'Number of resources or modules developed for employee engagement ' as col
+  union all
+  select 'Number of workshops/capacity building sessions conducted for volunteers' as col
+  ),
+ 
+ s as(
+  Select * from profile_78878
+  )
+  Select s.name,s.fy_timerange,t.name as ProjectID,count(*), temp.col,
+  sum(case col
+	when 'Number of inputs purchased' then s.inputs_purchased
+	when 'Number of quantity of inputs purchased' then s.quantity_inp_purchased
+	when 'Independent consultant/consulting firm hired for baseline and endline' then s.consultant_hired
+	when 'Number of executive director appointed' then s.exec_director
+	when 'Number of director for finance, HR and admin appointed' then s.director
+	when 'Number of head of environment vertical appointed' then s.head_environment
+	when 'Number of manager-finance appointed' then s.manager_finance
+	when 'Number of senior executive-environment projects appointed' then s.senior_exec_env
+	when 'Number of senior manager M&E appointed' then s.senior_mngr_me
+	when 'Number of assistant manager-procurements appointed' then s.asst_mngr_proc
+	when 'Number of manager-corporate relation appointed' then s.mngr_crpt_relation
+	when 'Number of engineers (external) appointed for assessment' then s.engineer_ext 
+	when 'Number of vendors identified' then s.vendors
+	when 'Number of resources or modules developed for employee engagement ' then s.emp_engagement
+	when 'Number of workshops/capacity building sessions conducted for volunteers' then s.workshop_volnteers
+	else null
+end) as Value 
+  from s
+  left join ds_mysql_prod_project t
+  on t.id=s.projectId
+ 
+  cross join temp
+  
+  group by s.name,s.fy_timerange,t.name,s._id,temp.col
