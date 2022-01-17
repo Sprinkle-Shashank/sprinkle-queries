@@ -1,52 +1,47 @@
+with test as(
+select p.projectId,p.facility_name,p.year_timerange,p.country as country,p.director_region as director_region,p.facility_type,p.strategic_yn, p.female_workers, p.male_workers, p.female_supervisors, p.male_supervisors, p2.name_vendor_filter as vendor,
 
-with table1 as(Select p.projectId,p._id,stry_title,impact_story, photo,date,concat('FY',concat(' ',substring(date,1,4) )) AS  start_year,substring(date,6,2) as start_month,case when start_month = '01' then 'Jan'
-when start_month = '02' then 'Feb'
-when start_month = '03' then 'Mar'
-when start_month = '04' then 'Apr'
-when start_month = '05' then 'May'
-when start_month = '06' then 'Jun'
-when start_month = '07' then 'Jul'
-when start_month = '08' then 'Aug'
-when start_month = '09' then 'Sep'
-when start_month = '10' then 'Oct'
-when start_month = '11' then 'Nov'
-when start_month = '12' then 'Dec'
+female_workers*100 AS f,
+(female_workers+male_workers) AS t,
+CAST (f AS FLOAT) as fw,
+CAST (t as FLOAT) as tw,
 
-end as month
-  ,case when (month = 'Feb') or (month='Apr') or (month='Mar') then 1
- when (month = 'May') or (month = 'Jun') or (month = 'Jul') then 2
- when (month = 'Aug') or (month = 'Sep') or (month = 'Oct') then 3
- when (month = 'Nov') or (month = 'Dec') or (month = 'Jan') then 4
-end as quarter,
-  case when quarter = 1
-then '1st (Feb-Apr)'
- when quarter = 2
-then '2nd (May-Jul)'
- when quarter = 3
-then '3rd (Aug-Oct)'
- when quarter = 4
-then '4th (Nov-Jan)'
-end as start_quarter,profile_54646.name_vendor_filter as vendor
-from profile_4580 p
 
-LEFT JOIN profile_54646 ON
-p.projectId = profile_54646.projectId
+fw/tw AS worker,
+
+female_supervisors*100 AS f1,
+(male_supervisors+female_supervisors) AS t1,
+CAST (f1 AS FLOAT) as fs,
+CAST (t1 as FLOAT) as ts,
+fs/ts AS supervisor
+
+from profile_76755 p
+  
+
+ 
+left join profile_54646 p2 
+on p.projectid = p2.projectid
+ 
+
+where p.strategic_yn = 'Yes' 
 ),
-table2 as( 
-	select tab1.*,cast (c as varchar) from table1  tab1, tab1.photo c
-),
-table3 as(Select tab1.projectId,tab1.stry_title,tab1.impact_story, tab1.photo as c,tab1.start_year,tab1.start_quarter,tab1.vendor,tab1._id,table2._id from table1 tab1
-
-left join table2 on
-tab1._id = table2._id
-
-
-where  table2._id is null
-group by tab1.projectId,tab1.stry_title,tab1.impact_story, tab1.photo,tab1.start_year,tab1.start_quarter,tab1.vendor,tab1._id,table2._id
+temp as (
+  select 'worker' as dim
+  union all
+  select 'supervisor' as dim
+  
 )
 
-Select stry_title,impact_story,projectId,c,start_year,start_quarter,vendor from table2
-UNION all
-Select stry_title,impact_story,projectId,c,start_year,start_quarter,vendor from table3
+select temp.dim,worker,supervisor,p.projectId, p.facility_name, p.strategic_yn, p.year_timerange, p.country, p.director_region, p.facility_type, p.female_workers, p.male_workers, p.female_supervisors, p.male_supervisors,
+	case dim
+	when 'worker' then worker 
+	when 'supervisor' then supervisor  
+	
 
---where photo is not null
+	Else Null
+	End as value	
+from test p
+cross join temp
+
+where p.strategic_yn = 'Yes' 
+group by  p.projectId,p.facility_name,p.year_timerange,p.country,p.director_region,p.facility_type, p.female_workers, p.male_workers,p.country, p.female_supervisors,p.strategic_yn,p.male_supervisors,temp.dim,vendor,worker,supervisor
