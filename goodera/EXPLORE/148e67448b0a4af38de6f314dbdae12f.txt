@@ -1,5 +1,5 @@
 with test as(
-select p.projectId,p.facility_name,p3._id,p.year_timerange,p.country as country,p.director_region as director_region,p.facility_type,p.strategic_yn, p.female_workers, p.male_workers, p3.female_managers_supervisors, p3.male_managers_supervisors, p2.name_vendor_filter as vendor,
+select p.projectId,p.facility_name,p3._id,p.year_timerange,p.country as country,p.director_region as director_region,p.facility_type,p.strategic_yn, p.female_workers, p.male_workers, p.female_supervisors, p.male_supervisors, p2.name_vendor_filter as vendor,
 
 p.female_workers*100 AS f,
 (p.female_workers+p.male_workers) AS t,
@@ -9,17 +9,17 @@ CAST (t as FLOAT) as tw,
 
 fw/tw AS worker,
 
-p3.female_managers_supervisors*100 AS f1,
-(p3.male_managers_supervisors+p3.female_managers_supervisors) AS t1,
+p.female_supervisors*100 AS f1,
+(p.male_supervisors+p.female_supervisors) AS t1,
 CAST (f1 AS FLOAT) as fs,
 CAST (t1 as FLOAT) as ts,
 fs/ts AS supervisor
 
 from profile_76755 p
   
-left join profile_76770 p3 on
-p.projectid = p3.projectid
- 
+/*left join profile_76770 p3 on
+p.facility_name = p3._id
+*/ 
 left join profile_54646 p2 
 on p.projectid = p2.projectid
 
@@ -33,7 +33,7 @@ temp as (
   
 )
 
-select temp.dim,worker,supervisor,p.projectId, p.facility_name, p.strategic_yn, p.year_timerange, p.country, p.director_region, p.facility_type, p.female_workers, p.male_workers, p3.male_managers_supervisors , p3.female_managers_supervisors ,
+select temp.dim,worker,supervisor,p.projectId, p.facility_name, p.strategic_yn, p.year_timerange, p.country, p.director_region, p.facility_type, 
 	case dim
 	when 'worker' then worker 
 	when 'supervisor' then supervisor  
@@ -41,8 +41,8 @@ select temp.dim,worker,supervisor,p.projectId, p.facility_name, p.strategic_yn, 
 
 	Else Null
 	End as value	
-from test p
+from test t
 cross join temp
 
 where p.strategic_yn = 'Yes' 
-group by  p.projectId,p.facility_name,p.year_timerange,p.country,p.director_region,p.facility_type, p.female_workers, p.male_workers,p.country,  p3.female_managers_supervisors,p.strategic_yn, p3.male_managers_supervisors,temp.dim,vendor,worker,supervisor
+group by  p.projectId,p.facility_name,p.year_timerange,p.country,p.director_region,p.facility_type, p.country, p.strategic_yn, temp.dim,vendor,worker,supervisor
