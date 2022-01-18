@@ -1,5 +1,4 @@
-select p.projectId, p.employee_id,profile_60669.employee_id_pre,ven.name as vendor, cou.name as country,p.production_efficiency,profile_60669.production_efficiency_pre, count(p.projectId) as responses_total
-/*NVL2 ( (production_efficiency - profile_60669.production_efficiency_pre) > 0, 1, 0 ) as count_increase,*/
+select p.projectId, p.employee_id,profile_60669.employee_id_pre,ven.name as vendor, cou.name as country,p.production_efficiency,profile_60669.production_efficiency_pre, count(p.projectId) as responses_total,NVL2 ( (production_efficiency - profile_60669.production_efficiency_pre) > 0, 1, 0 ) as count_increase
 --production_efficiency,  profile_60669.production_efficiency_pre
 --,pe.name, pep.name
 /*count(p.projectId) as responses_total*/
@@ -14,6 +13,13 @@ left join ds_mysql_prod_project ven
 on fac.parent = ven.id
 left join ds_mysql_prod_project cou
 on ven.parent = cou.id
+
+
+where vendor not ilike '%Test%' and production_efficiency_pre is not null 
+
+group by p.projectId, cou.name, ven.name, p.employee_id,profile_60669.employee_id_pre,p.production_efficiency,profile_60669.production_efficiency_pre, count_increase
+
+--, count_increase 
 --where vendor not ilike '%Test%'
 --where production_efficiency_pre is not null 
 /*
