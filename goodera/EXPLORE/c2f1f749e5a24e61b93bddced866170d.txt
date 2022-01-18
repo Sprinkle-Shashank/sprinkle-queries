@@ -17,7 +17,7 @@ with temp as(
   )
   
  Select t.name as projectid, s._id, s.name, e.name as location,s.fy_timerange,count(*),
-  temp.col,
+  temp.col as dimset,
   sum(case col
 	when 'Number of species selected for plantation' then s.species_plantation
 	when 'Number of workshops/capacity building sessions conducted for volunteers' then s.buidling_session_volunteers
@@ -26,11 +26,11 @@ with temp as(
 	when 'Increase in height of the saplings' then s.inc_height_saplings
     when 'Increase of green cover area from the DPR' then s.inc_greencover_dpr
 	else null
-end) as Value 
+end) as Value2 
  from s
   left join ds_mysql_prod_project t
   on t.id=s.projectId
   left join ds_mysql_prod_tagelement e
   on e.id=s.location
   cross join temp
-  group by t.name, s._id, s.name, s.fy_timerange, s.habitat_zones, s.percentchange_temp_forest, s.inc_height_saplings, s.inc_greencover_dpr,s.species_plantation,s.buidling_session_volunteers,temp.col,e.name
+  group by t.name, s._id, s.name, s.fy_timerange, s.habitat_zones, s.percentchange_temp_forest, s.inc_height_saplings, s.inc_greencover_dpr,s.species_plantation,s.buidling_session_volunteers,dimset,e.name
