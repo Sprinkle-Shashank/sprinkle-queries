@@ -64,9 +64,33 @@ union all
 select projectId,vendor2 as vendor from table11
 ),
 table13 as(
-select p.projectId,p.batch as Batch,p.stry_title as Title,p.date as Date1,p.impact_story as Story from profile_4580 p)
+select p.projectId,p.batch as Batch,p.stry_title as Title,substring(p.date,1,10) as Date1,p.impact_story as Story from profile_4580 p
 
-Select t6.name_factory,t9.Locations,t12.vendor,t13.Batch,t13.Title,t13.Date1,t13.Story  from table6 t6
+left join profile_4227 p1
+on p.batch = p1._id),
+table14 as(select p.projectId,case when p2.sourcing_yn = 57472 then p.vpid_1
+when p2.sourcing_yn = 57473 and p2.pace_status_2 = 845114 then p.vpid_2
+end as vendor_vpid1
+
+from profile_52162 p
+
+left join profile_52713 p2 on 
+ p.projectid = p2.projectid
+),
+table15 as(Select p.projectId,p.cp_id as vendor_vpid2 from profile_5997 p
+
+left join profile_4948 p2 on 
+ p.projectid = p2.projectid
+where p2.pace_status = 182398 
+),
+table16 as (
+Select projectId, vendor_vpid1 as vendor_vpid from table14
+union all
+select projectId,vendor_vpid2 as vendor_vpid from table15
+)			
+
+
+Select t6.name_factory,t9.Locations,t12.vendor,t13.Batch,t13.Title,t13.Date1,t13.Story,t16.vendor_vpid   from table6 t6
 left join table9 t9
 on t6.projectId = t9.projectId	
 
@@ -74,6 +98,9 @@ left join table12 t12
 on t6.projectId = t12.projectId	
 
 left join table13 t13
-on t6.projectId = t13.projectId	
+on t6.projectId = t13.projectId
 
-group by name_factory,Locations,vendor,Batch,Title,Date1,Story
+left join table16 t16
+on t6.projectId = t16.projectId	
+
+group by name_factory,Locations,vendor,Batch,Title,Date1,Story,vendor_vpid
