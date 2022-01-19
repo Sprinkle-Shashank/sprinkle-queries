@@ -27,17 +27,7 @@ table4 as
  
  table5 as
  ( select p.projectid , name_vendor_filter, case when name_vendor_filter ilike '%Factory%' then name_vendor_filter when name_vendor_filter ilike '%CP%' then name_vendor_filter else name_vendor_filter end as name_vendor_filter from profile_54646 p),
- /*
- table6 as
- ( select p.projectid , case when sourcing_yn=57472 then cast(vpid_1 as varchar) when sourcing_yn=57473 or child_vpid_autocal is not null then cast(vpid_2 as varchar)  else p9.cp_id end as vendor_partner_id, p.pace_status , p9.pace_status ,case when pace_162.name is not null then pace_162.name else pace_997.name end as pace_Status_update from profile_52162 p
-  
-  left join profile_5997 p9
-  on p.projectid = p9.projectid
-  
-  left join ds_mysql_prod_tagelement pace_162 on 
-  p.pace_status = pace_162.id
-  ), 
-  */
+ 
   table7 as
   (select p.projectid , pace_status , pace.name as pace_update, cp_id from profile_5997 p
    
@@ -45,5 +35,14 @@ table4 as
   p.pace_status = pace.id
    )
  
- select * from table7
+ table6 as
+ ( select p.projectid , case when sourcing_yn=57472 then cast(vpid_1 as varchar) when sourcing_yn=57473 or child_vpid_autocal is not null then cast(vpid_2 as varchar)  else t6.cp_id end as vendor_partner_id , case when pace_162.name is not null then pace_162.name else t6.name end as pace_Status_update from profile_52162 p
+  
+  left join table6 t6
+  on p.projectid = t6.projectid
+  
+  left join ds_mysql_prod_tagelement pace_162 on 
+  p.pace_status = pace_162.id
+  ), 
+ select * from table6
  
