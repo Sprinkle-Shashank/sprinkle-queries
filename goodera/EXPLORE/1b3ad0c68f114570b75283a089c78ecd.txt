@@ -5,8 +5,17 @@ from profile_66533 p1),
 
 sub2 as(
   select * from sub1
-where row_number = 1 and meet_target = 'Yes')
+where row_number = 1 and meet_target = 'Yes'),
 
-select s2.fy_timerange, s2.factory_text, s2.cdms_id, p2.source_div, p2.region, p2.brands
+sub3(
+  select s2.fy_timerange, s2.factory_text, s2.cdms_id, p2.source_div, p2.region, 
+extract(year from cast(s2.fy_timerange.start as date)) as fy,
+case
+  	when is_array(p3.brands) = false or get_array_length(p3.brands) = 0 then array(p3.brands)
+  	else p3.brands
+end as brands_new
 from sub2 s2
-left join profile_60928 p2 on p2.factory_id = s2.cdms_id
+left join profile_60928 p2 on p2.factory_id = s2.cdms_id)
+
+select s3.*, source_division, country, brands
+from sub3 s3, s3.source_div source_division, s3.region country, s3.brands_new brands
