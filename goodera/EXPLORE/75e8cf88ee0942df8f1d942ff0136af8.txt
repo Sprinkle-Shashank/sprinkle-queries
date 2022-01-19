@@ -29,22 +29,24 @@ group by p.projectid, factory,name_vendor_filter,name_country,name_vendor, name_
  vpid_1 , location_id, vpid
 ),
 table4 as(
-  select p.projectId,facility_score,female_workers from profile_54267 p
+  select p.projectId,facility_score,female_workers,primary_category from profile_54267 p
   ),
+table5 as(Select t4.*, cast(category as int) from table4 t4, t4.primary_category category
+),
 table3 as
 ( select p.projectid ,t2.factory, t2.name_vendor_filter,t2.name_country,t2.name_rp,t2.location_id,t2.vpid,sum(num_females) as total_women,type_program ,cast(concat('FY ' ,start_year) as varchar) as start_year, start_quarter as start_quarter_new ,case when start_quarter=1 then '1st (Feb-Apr)'
  when start_quarter=2 then '2nd (May-Jul)'
   when start_quarter=3 then '3rd (Aug-Oct)'
    when start_quarter=4 then '4th (Nov-Jan)'
    else null end as start_quarter,case when end_date_2 is not null then count(*)
- end as completed ,case when end_date_2 is null then count(*) end as ongoing,t4.facility_score,t4.female_workers from profile_4227 p 
+ end as completed ,case when end_date_2 is null then count(*) end as ongoing,t5.facility_score,t5.female_workers from profile_4227 p 
 
 left join table2 t2 on 
 p.projectid= t2.projectid
- left join table4 t4 on 
-p.projectid= t4.projectid
+ left join table5 t5 on 
+p.projectid= t5.projectid
 group by p.projectid,type_program,end_date_2,start_year,start_quarter,t2.projectId,t2.factory,t2.name_vendor_filter,t2.name_country, t2.name_rp,
- t2.location_id, t2.vpid,t4.facility_score,t4.female_workers )
+ t2.location_id, t2.vpid,t5.facility_score,t5.female_workers )
    /*,
 
 table4 as(  select p._id,p.projectid, count(*) as completed from profile_4227 p
