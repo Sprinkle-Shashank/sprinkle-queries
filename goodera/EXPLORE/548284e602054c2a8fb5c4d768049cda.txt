@@ -18,7 +18,11 @@ sub3 as(
   select s2.*, source_division, country, brands
 from sub2 s2, s2.source_div source_division, s2.region country, s2.brands_new brands)
 
-select s3.fy_timerange, s3.factory_text, s3.cdms_id, s3.fy, t2.name as region, 1 as count,
+select s3.fy_timerange, s3.factory_text, s3.cdms_id, s3.fy, 1 as count,
+case
+	when t6.name is not null then t6.name
+	else t2.name
+end as region,
 case
 	when t4.name is not null then t4.name
 	else t3.name
@@ -33,4 +37,5 @@ left join ds_mysql_prod_tagelement t2 on t2.id = t1.parent
 left join ds_mysql_prod_tagelement t3 on t3.id = s3.source_division 
 left join ds_mysql_prod_tagelement t4 on t4.id = t3.parent
 left join ds_mysql_prod_tagelement t5 on t5.id = s3.brands
+left join ds_mysql_prod_tagelement t6 on t6.id = t2.parent
 group by s3.fy_timerange, s3.factory_text, s3.cdms_id, s3.fy, t2.name, t4.name, t3.name, t5.name
