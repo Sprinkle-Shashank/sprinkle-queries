@@ -1,25 +1,4 @@
-with table1 as (
-  select p.projectid,p.name_factory as factory,name_vendor_filter,name_country,name_vendor, name_rp
- ,p2.sourcing_yn,p2.pace_status_2,cast(p2.factory_vpid_1 as varchar(65535)) as vpid_1 ,p2.factory_vpid_2,p2.child_vendor_vpid,p3.cp_location_id,p3.cp_id from profile_54646 p
-
-left join profile_52713 p2  on
-p.projectid = p2.projectid 
-
-left join profile_4948 p3 on
-p.projectid = p3.projectid
-
-  
-),
-table2 as (
-select projectid,factory,
-case when sourcing_yn =57472 then vpid_1 
-     when sourcing_yn =57473 then factory_vpid_2
-	  else cp_location_id  end as location_id,name_vendor_filter,name_country,name_vendor,name_rp
-			
-			from table1 t1
-
-  ),
-  table3 as (select  t1.*,p.projectId,cast(p.vpid_1 as varchar(65535)) as vpid1,cast(p.vpid_2 as varchar(65535)) as vpid2, case when p.sourcing_yn = 57472 then vpid1
+ with table1 as (select  p.projectId,cast(p.vpid_1 as varchar(65535)) as vpid1,cast(p.vpid_2 as varchar(65535)) as vpid2, case when p.sourcing_yn = 57472 then vpid1
  when p.sourcing_yn =57473 then vpid2 
 end as vendor_vpid1
 
@@ -29,7 +8,29 @@ from profile_52162 p
 left join profile_5997 p3 on 
  p.projectid = p3.projectid
 			 
+
+),
+table2 as (
+  select p.projectid,p.name_factory as factory,name_vendor_filter,name_country,name_vendor, name_rp
+ ,p2.sourcing_yn,p2.pace_status_2,cast(p2.factory_vpid_1 as varchar(65535)) as vpid_1 ,p2.factory_vpid_2,p2.child_vendor_vpid,p3.cp_location_id,p3.cp_id,t1.vendor_vpid1 as vpid from profile_54646 p
+
+left join profile_52713 p2  on
+p.projectid = p2.projectid 
+
+left join profile_4948 p3 on
+p.projectid = p3.projectid
+
 left join table1 t1 on 
-p.projectid= t1.projectid   
-) 
+p.projectid= t1.projectid  
+  
+),
+table3 as (
+select projectid,factory,
+case when sourcing_yn =57472 then vpid_1 
+     when sourcing_yn =57473 then factory_vpid_2
+	  else cp_location_id  end as location_id,name_vendor_filter,name_country,name_vendor,name_rp,vpid
+			
+			from table2 t2
+
+  )
 select * from table3
