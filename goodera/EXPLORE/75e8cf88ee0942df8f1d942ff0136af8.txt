@@ -24,13 +24,29 @@ left join table1 t1 on
 p.projectid= t1.projectid  
   
 ),
-table3 as (
-select projectid,factory,
+table3 as
+( select p.projectid , p._id ,sum(num_females) as total_women,type_program ,cast(concat('FY ' ,start_year) as varchar) as start_year, start_quarter as start_quarter_new ,case when start_quarter=1 then '1st (Feb-Apr)'
+ when start_quarter=2 then '2nd (May-Jul)'
+  when start_quarter=3 then '3rd (Aug-Oct)'
+   when start_quarter=4 then '4th (Nov-Jan)'
+   else null end as start_quarter  from profile_4227 p  )
+   /*,
+
+table4 as(  select p._id,p.projectid, count(*) as completed from profile_4227 p
+	 where end_date is not null
+),
+table5 as ( select p._id,p.projectid,   count(*) as ongoing from profile_4227 p
+					 where end_date is null
+					)*/
+table6 as (
+select projectid,factory,t3.*,
 case when sourcing_yn =57472 then vpid_1 
      when sourcing_yn =57473 then factory_vpid_2
 	  else cp_location_id  end as location_id,name_vendor_filter,name_country,name_vendor,name_rp,vpid
 			
 			from table2 t2
+left join table3 t3 on 
+t2.projectid= t1.projectid  
 
   )
-select * from table3
+select * from table6
