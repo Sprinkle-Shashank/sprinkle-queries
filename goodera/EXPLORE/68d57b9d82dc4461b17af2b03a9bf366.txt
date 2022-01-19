@@ -1,3 +1,16 @@
-select p.profileinstanceid,case when p.profileinstanceid is not null then 'New Project' end as type_of_project,p.name as Implementing_agency,p.fy as fy_timerange,p.core_area ,p.contact_person,p.email,p.mobile_number,p.status from taskresp_27395 p 
+With Base1 as(
+ select p.profileinstanceid,case when p.profileinstanceid is not null then 'New Project' end as type_of_project,p.name as Implementing_agency,p.fy as fy_timerange,p.core_area ,p.contact_person,p.email,p.mobile_number,p.status from taskresp_27395 p
+)
+
+,Base2 as(
+select p.profileinstanceid,case when p.profileinstanceid is not null then 'Renewal Project' end as type_of_project,p.ia,p.fy as fy_timerange,p.status from taskresp_27405 p
+)
+
+,Base3 as(
+select p.profileinstanceid,p.type_of_project,l.name as IA,p.fy_timerange,l.core_area,l.contact_person,l.email,l.mobile_number,p.status from Base2 p left join
+profile_27395 l 
+on p.ia=l._id)
+
+select p.profileinstanceid, p.type_of_project,p.Implementing_agency,p.fy_timerange,p.core_area ,p.contact_person,p.email,p.mobile_number,p.status from Base1 p
 union all
-select p.profileinstanceid,case when p.profileinstanceid is not null then 'New Project' end as type_of_project,p.name as Implementing_agency,p.fy as fy_timerange,p.core_area ,p.contact_person,p.email,p.mobile_number,p.status from taskresp_27405 p
+select  p.profileinstanceid, p.type_of_project,p.IA,p.fy_timerange,p.core_area ,p.contact_person,p.email,p.mobile_number,p.status from Base3 p)
