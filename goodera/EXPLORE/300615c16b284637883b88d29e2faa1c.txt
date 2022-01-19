@@ -1,12 +1,12 @@
 select p.projectId, score, cou.name as country, ven.name as vendor,p._id,
-profile_60620.date, trainer_organization,
+profile_60620.date, torg.name as trainer_organization,
 SUBSTRING(to_char(profile_60620.date, 'DD/MM-YYYY'), POSITION('-' in to_char(profile_60620.date, 'DD/MM-YYYY'))+1,4 ) as year,
 Count(p.projectId) as randl_respondents
 from profile_65254 p
 
 
 left join profile_60620
-on p._id = profile_60620.survey
+on p.survey = profile_60620._id
 
 
 left join ds_mysql_prod_project fac
@@ -16,7 +16,8 @@ on fac.parent = ven.id
 left join ds_mysql_prod_project cou
 on ven.parent = cou.id
 
---left join ds_mysql_prod_tagelement torg on profile_60620.trainer_organization = torg.id
---torg.name as 
+left join ds_mysql_prod_tagelement torg 
+on profile_60620.trainer_organization = torg.id
+
 --where trainer_organization <> '' and country <> 'Test Country'
-group by p.projectId, score, cou.name, ven.name, trainer_organization, year,profile_60620.date ,p._id
+group by p.projectId, score, cou.name, ven.name, torg.name, year,profile_60620.date ,p._id
