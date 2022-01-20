@@ -1,57 +1,33 @@
-with table2 as(Select p.* ,CAST(pace_goals as VARCHAR)from profile_76755 p
-, p.pace_goals_arr pace_goals
+with 
+test0 as(Select p.* ,(gbv_goals)from  profile_76755 p
+, p.gbv_goals_arr gbv_goals union all
+ select p.*,NULL as gbv_goals from profile_76755 p where gbv_goals_arr IS NULL
 ),
- table1 as(
-Select t2.projectId, t2.facility_name, t2.pace, t2.strategic_yn, t2.year_timerange, t2.country as country, t2.director_region as director_region, 
-p2.name_vendor_filter as vendor,certified_mts*100 AS a1,
-a1/certified_trainers AS master,p1.certified_trainers , p1.certified_mts , p1.pace_introduced ,
-case 
+ test1 as (Select p.projectId,p.facility_name,p.year_timerange,p.country as country ,p.director_region as director_region,p.facility_type,p1.gbv_policy,p1.channels_more, p1.anonymous_channel, p1.third_party_channel, p1.response_provided, p1.issues_resolved,p2.name_vendor_filter as vendor,case 
 	when 1=1
 	then 1
 	else 0
 	end
 	as count,
-CASE WHEN (pace = 'Yes')
-   then count(*)
-   
-   end as pace_yes
-   ,case when (master>=30)
-   then count(*)
-   end as master_value,case when (p1.pace_introduced = 57472) THEN count(*)
-   end as introduced,case when (pace = 'Yes') or (pace is null) or (pace = 'No') then count(*)
-   end as total_pace,
-   case when (master>=30) or (master<30) then count(*) end as total_master_value,case when 
-   (p1.pace_introduced = 57472) or (p1.pace_introduced = 57473) then count(*) end as total_introduced,(pace_yes*100)/total_pace as kpi1,(master_value*100)/total_master_value as kpi2,(introduced*100)/total_introduced as kpi3
+CASE WHEN (p1.gbv_policy = 57472) or (p1.anonymous_channel=57472) or (p1.third_party_channel=57472) or (p1.response_provided=57472) or (p1.issues_resolved = 57472) and (p1.channels_more=1538190) or (p1.channels_more = 1538189) Then 'YES'
+ELSE 
+'NO'
+END AS result
 
- 
-from table2 t2
-   
-left join profile_76895 p1
-on t2.pace_goals = p1._id
-
-
+from test0 p
+		    
+left join profile_76894 p1 on 
+p.gbv_goals = p1._id
 left join profile_54646 p2 
-on t2.projectid = p2.projectid
-  
-WHERE t2.strategic_yn ='Yes'
-   
- group by t2.projectId,t2.facility_name,t2.pace,t2.strategic_yn,t2.year_timerange, country,  director_region, 
- vendor,master,p1.certified_trainers ,p1.certified_mts , p1.pace_introduced 
-),
-temp as(
- select 'KPI1' as dim
- union all
-  select 'KPI2' as dim
-union all
-select 'KPI3' as dim
+on p.projectid = p2.projectid
+			   
+Group by p.projectId,p.facility_name,p.year_timerange,p.country,p.director_region,p.facility_type,result,p1.gbv_policy,p1.channels_more, p1.anonymous_channel, p1.third_party_channel, p1.response_provided, p1.issues_resolved,vendor			   
 )
-select temp.dim,KPI1,KPI2,KPI3,t1.projectId,t1.facility_name,t1.strategic_yn,t1.year_timerange,country,vendor,director_region,case dim when 'KPI1' then kpi1
-when 'KPI2' then kpi2
-when 'KPI3' then kpi3
-else null
-end as value1
-from table1 t1
-cross join temp
+Select p.* from test1 p			  
 
- 
-group by temp.dim,t1.projectId,t1.facility_name,t1.strategic_yn,t1.year_timerange,country,vendor,director_region
+
+
+
+
+
+
