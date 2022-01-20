@@ -29,15 +29,28 @@ table4 as
   left join ds_mysql_prod_tagelement cou on 
   t3.f1 = cou.id
  ),
-   
+ 
+  table11 as
+( select p.projectid , p.name , p._id ,sum(num_females) as num_females, sum(num_females_graduated) as num_females_graduated, type_program from profile_4227 p group by p.projectid , p.name , p._id , type_program  ),
+
+batch_completed as (  select p._id,p.projectid, count(*)as completed from profile_4227 p
+					 where end_date is not null
+					 group by class),
+batch_ongoing as ( select p._id,p.projectid,  class, count(*)as ongoing from profile_4227 p
+					 where end_date is null
+					 group by class)
+
  table5 as
- ( select p.projectid , name_factory , name_vendor, name_rp , name_vendor_filter, case when name_vendor_filter ilike '%NG%' then 'Community Partner' else 'Vendor Partner' end as partner_type  , case when t1.sourcing_yn=57472 then cast(t1.vpid_1 as varchar) when t1.sourcing_yn=57473 or t1.child_vpid_autocal is not null then cast(t1.vpid_2 as varchar)  else t4.cp_id end as vendor_partner_id ,case when len(partner_type)=6 then t1.pace_status_update else t4.pace_update end as current_pace_status , case when len(partner_type)=6 then t1.country_update else t4.country_update end as country from profile_54646 p
+ ( select p.projectid , name_factory , name_vendor, name_rp , name_vendor_filter, case when name_vendor_filter ilike '%NG%' then 'Community Partner' else 'Vendor Partner' end as partner_type  , case when t1.sourcing_yn=57472 then cast(t1.vpid_1 as varchar) when t1.sourcing_yn=57473 or t1.child_vpid_autocal is not null then cast(t1.vpid_2 as varchar)  else t4.cp_id end as vendor_partner_id ,case when len(partner_type)=6 then t1.pace_status_update else t4.pace_update end as current_pace_status , case when len(partner_type)=6 then t1.country_update else t4.country_update end as country , t11.num_females, t11.num_females_graduated, t11.type_program from profile_54646 p
  
  left join table1 t1 on
  p.projid_vendor = t1.projectid
   
  left join table4 t4 on
  p.projid_vendor = t4.projectid
+  
+ left join table11 t11 on 
+  p.projetid = t11.projectid
   )
    
    select * from table5
