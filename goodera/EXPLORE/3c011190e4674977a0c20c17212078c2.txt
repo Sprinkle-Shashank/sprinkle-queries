@@ -2,15 +2,20 @@
 
 with table1 as
 (
-  select p.projectid , country , cou.name as country_update from profile_52162 p
+  select p.projectid , country , cou.name as country_update , pace_status , pace.name as pace_status_update from profile_52162 p
   
   left join ds_mysql_prod_tagelement cou on 
   p.country = cou.id
+  
+  left join ds_mysql_prod_tagelement pace on 
+  p.pace_status = pace.id
 ),
 
 table2 as 
-( select p.projectid , country from profile_5997 p
-
+( select p.projectid , country , pace_status , pace.name as pace_update, cp_id from profile_5997 p
+ 
+  left join ds_mysql_prod_tagelement pace on 
+  p.pace_status = pace.id
 ),
 
 table3 as
@@ -24,13 +29,6 @@ table4 as
   left join ds_mysql_prod_tagelement cou on 
   t3.f1 = cou.id
  ),
- 
-  table7 as
-  (select p.projectid , pace_status , pace.name as pace_update, cp_id  from profile_5997 p
-   
-  left join ds_mysql_prod_tagelement pace on 
-  p.pace_status = pace.id
-   ),
    
  table5 as
  ( select p.projectid , name_vendor_filter, case when name_vendor_filter ilike '%NG%' then 'Community Partner' else 'Vendor Partner' end as partner_type , projid_vendor , case when p2.sourcing_yn=57472 then cast(p2.vpid_1 as varchar) when p2.sourcing_yn=57473 or child_vpid_autocal is not null then cast(vpid_2 as varchar)  else p3.cp_id end as vendor_partner_id , p2.pace_status , t7.pace_update , case when partner_type='Vendor Partner' then cast(p2.pace_status as varchar) else cast(t7.pace_update as varchar) end as current_pace_status from profile_54646 p
@@ -45,7 +43,7 @@ table4 as
    p.projid_vendor = t7.projectid
  )
    
-   select * from table5
+   select * from table4
  
  /*
  table6 as
