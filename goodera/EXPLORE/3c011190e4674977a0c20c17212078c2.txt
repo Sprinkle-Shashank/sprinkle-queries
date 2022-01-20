@@ -2,7 +2,7 @@
 
 with table1 as
 (
-  select p.projectid , country , cou.name as country_update , pace_status , pace.name as pace_status_update from profile_52162 p
+  select p.projectid , country , cou.name as country_update , pace_status , pace.name as pace_status_update, sourcing_yn , child_vpid_autocal , vpid_1 , vpid_2 from profile_52162 p
   
   left join ds_mysql_prod_tagelement cou on 
   p.country = cou.id
@@ -28,10 +28,19 @@ table4 as
  
   left join ds_mysql_prod_tagelement cou on 
   t3.f1 = cou.id
- )
+ ),
    
+ table5 as
+ ( select p.projectid , name_vendor_filter, case when name_vendor_filter ilike '%NG%' then 'Community Partner' else 'Vendor Partner' end as partner_type , projid_vendor , case when t1.sourcing_yn=57472 then cast(t1.vpid_1 as varchar) when t1.sourcing_yn=57473 or t1.child_vpid_autocal is not null then cast(t1.vpid_2 as varchar)  else t4.cp_id end as vendor_partner_id , t1.pace_status , t4.pace_update , case when partner_type='Vendor Partner' then cast(t1.pace_status as varchar) else cast(t4.pace_update as varchar) end as current_pace_status from profile_54646 p
+ 
+ left join table1 t1 on
+ p.projid_vendor = t1.projectid
+  
+ left join table4 t4 on
+ p.projid_vendor = t4.projectid
+  )
    
-   select * from table4
+   select * from table5
  
  /*
  table6 as
@@ -46,17 +55,6 @@ table4 as
   
   
   
- table5 as
- ( select p.projectid , name_vendor_filter, case when name_vendor_filter ilike '%NG%' then 'Community Partner' else 'Vendor Partner' end as partner_type , projid_vendor , case when p2.sourcing_yn=57472 then cast(p2.vpid_1 as varchar) when p2.sourcing_yn=57473 or child_vpid_autocal is not null then cast(vpid_2 as varchar)  else p3.cp_id end as vendor_partner_id , p2.pace_status , t7.pace_update , case when partner_type='Vendor Partner' then cast(p2.pace_status as varchar) else cast(t7.pace_update as varchar) end as current_pace_status from profile_54646 p
- 
- left join profile_52162 p2 on
- p.projid_vendor = p2.projectid
-  
- left join profile_5997 p3 on
- p.projid_vendor = p3.projectid
-  
-   left join table7 t7 on
-   p.projid_vendor = t7.projectid
  )
   */
  
