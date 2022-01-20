@@ -1,0 +1,28 @@
+with table1 as(
+select fac.name as projectId, cou.name as country, ven.name as vendor, opinion_heard, opinion_express, different_work, easy_content, encourage_participation, 
+Count(projectId) as randl_engaging, 
+
+case when opinion_heard = 1060677 then 1 else 0 end as opinion_heard1,
+case when opinion_express = 1060677 then 1 else 0 end as opinion_express1,
+case when different_work = 1060677 then 1 else 0 end as different_work1,
+case when easy_content = 1060677 then 1 else 0 end as easy_content1,
+case when encourage_participation = 1060677 then 1 else 0 end as encourage_participation1,
+(opinion_heard1 + opinion_express1 + different_work1 + easy_content1 + encourage_participation1) as sum_responses
+
+
+from profile_65254
+
+
+left join ds_mysql_prod_project fac
+on projectid = fac.id
+left join ds_mysql_prod_project ven
+on fac.parent = ven.id
+left join ds_mysql_prod_project cou
+on ven.parent = cou.id
+
+where cou.name <> 'Test Country' and sum_responses>=4 and training_topics_relevant = 1060677
+
+group by fac.name, cou.name, ven.name, opinion_heard, opinion_express, different_work, easy_content, encourage_participation
+
+)
+select projectId, country, vendor, randl_engaging from table1
