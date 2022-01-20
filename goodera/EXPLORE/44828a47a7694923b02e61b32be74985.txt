@@ -1,0 +1,53 @@
+
+
+
+
+
+with test0 as(Select p.* ,CAST(pace_goals as VARCHAR)from profile_76755 p
+, p.pace_goals_arr pace_goals
+),
+ test1 as ( Select  p.projectId, p.facility_name, p.pace, p.strategic_yn, p.year_timerange, p.country as country, p.director_region as director_region,p.pace_goals, 
+p2.name_vendor_filter as vendor,certified_mts*100 AS a1,
+a1/certified_trainers AS master,p1.certified_trainers , p1.certified_mts , p1.pace_introduced ,
+case 
+	when 1=1
+	then 1
+	else 0
+	end
+	as count,
+
+from test0 p
+
+left join profile_76895 p1
+on p.pace_goals = p1._id
+left join profile_54646 p2 
+on p.projectid = p2.projectid
+
+
+
+
+WHERE p.strategic_yn ='Yes' 
+
+temp as(select 'pace' as dim
+        union all
+        select 'pace_introduced' as dim
+        union all
+        select 'master_value' as dim
+)
+select temp.dim,p.projectId, p.facility_name, p.pace, p.strategic_yn, p.year_timerange, country, director_region,p.pace_goals, 
+vendor,certified_mts*100 AS a1,
+a1/certified_trainers AS master,p1.certified_trainers , p1.certified_mts , p1.pace_introduced 
+
+case dim
+when 'pace' then count(*)
+where pace = 'Yes'
+else null
+end as value
+
+from test1 p
+cross join temp
+
+where p.strategic_yn = 'Yes'
+
+Group by  p.projectId, p.facility_name, p.strategic_yn, p.year_timerange, p.country,  result,vendor,p1.certified_mts,p1.pace_introduced,p1.certified_trainers,p.pace,
+p.director_region,p.pace_goals
