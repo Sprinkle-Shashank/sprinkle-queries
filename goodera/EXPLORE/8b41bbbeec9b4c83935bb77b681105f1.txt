@@ -1,9 +1,15 @@
-select _id,school_name, t.name city, address, q.name school_type, principal, principal_no, r.name grades_covered, boys, girls, total_strength, bene_teacher
-from profile_77379 p  
+select p._id, p.teacher_name, p1.school_name, t.name gender, p.email, q.name qualification, p.contact_number, p.fy_timerange, p.prev_trainings, left(p.date,10) date_of_registration, LISTAGG(r.name,', ') subjects_taught, LISTAGG(s.name,', ') grade_taught
+from (
+  select m.*, subjects_taught, grade_taught
+  from profile_77379 m, m.subjects subjects_taught, m.grade grade_taught) p  
+left join profile_77382 p1
+on p.school = p1._id
 left join ds_mysql_prod_tagelement t
-on p.location = t.id
+on p.gender = t.id
 left join ds_mysql_prod_tagelement q
-on p.school_type = q.id
+on p.qualification = q.id
 left join ds_mysql_prod_tagelement r
-on p.grades_covered = r.id
-group by 1,2,3,4,5,6,7,8,9,10,11,12;
+on p.subjects_taught = r.id
+left join ds_mysql_prod_tagelement s
+on p.grade_taught = s.id
+group by 1,2,3,4,5,6,7,8,9,10;
