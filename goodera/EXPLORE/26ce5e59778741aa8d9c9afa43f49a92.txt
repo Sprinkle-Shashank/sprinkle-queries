@@ -7,14 +7,18 @@
  (
     select t11.* from table11 t11 where row=1),
 
-batch_completed as (  select p._id,p.projectid, count(*) as completed from profile_4227 p
+batch_completed as (  select p._id,p.projectid, count(*) as completed , row_number() over 
+(partition by projectid
+ order by _id desc) as row from profile_4227 p
 					 where end_date is not null
 					 group by p.projectid, p._id),
 					 
 table14 as
 ( select * from batch_completed where row=1),
 
-batch_ongoing as ( select p._id,p.projectid, count(*) as ongoing from profile_4227 p
+batch_ongoing as ( select p._id,p.projectid, count(*) as ongoing ,  row_number() over 
+(partition by projectid
+ order by _id desc) as row from profile_4227 p
 					 where end_date is null
 					 group by p.projectid, p._id),
 					 
