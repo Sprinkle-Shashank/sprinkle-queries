@@ -32,11 +32,20 @@ select p.profileinstanceid,p.mobile_number,p.type_of_project,p.fy_timerange,date
 ,Base7 as(select p.profileinstanceid,p.mobile_number,p.type_of_project,case when current_date>=p.Date_of_renewal then 'Pending Renewal' when current_date<p.Date_of_renewal and p.Implementing_agency is not null and p.type_of_project='Renewal Project' then 'Renewed' when current_date<p.Date_of_renewal and p.Implementing_agency is null and p.type_of_project='Renewal Project' then 'New' end as Empanelment_type,p.fy_timerange, p.Date_of_renewal,p.Implementing_agency,p.core_area,p.contact_person,p.years_of_engagement,p.email,p.status,p.timestamp from Base6 p 
 )
 
-
+,Base8 as(
 select p.profileinstanceid,p.mobile_number,p.type_of_project,p.Empanelment_type,p.fy_timerange,p.Date_of_renewal,p.Implementing_agency,p.contact_person,
 sum(p.years_of_engagement) as years_of_Engagement,
 
 p.email,p.status,p.timestamp,p.core_area from Base7 p
 group by p.profileinstanceid,p.mobile_number,p.type_of_project,p.Empanelment_type,p.fy_timerange,p.Date_of_renewal,p.Implementing_agency,p.contact_person,p.email,p.status,p.timestamp,p.core_area order by p.timestamp desc
- 
+  )
+  
+,Base9 as(
+  SELECT
+   Implementing_agency, 
+   row_number() OVER (PARTITION BY p.Implementing_agency ORDER BY p.timestamp desc) AS row_number
+  FROM Base8 p
+)
+SELECT * FROM Base9 WHERE row_number = 1;
+  
 
