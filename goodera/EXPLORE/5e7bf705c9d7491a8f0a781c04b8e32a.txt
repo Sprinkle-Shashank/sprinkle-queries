@@ -8,8 +8,8 @@ WITH S1 AS (
   S.sdg_photo AS sdg_photo_unwind
   )
   
-SELECT S1.projectid, pro.name as startup_name,S1.name, S1.fy_timerange, S1.logo, S1.description_innovation, S1.url, S1.reg_address, S1.target_category,
-T1.name AS social_sector_unwind,
+SELECT S1.projectid, pro.name as startup_name,S1.name,st.name as stage_startup, S1.fy_timerange, S1.logo, S1.description_innovation, S1.url, S1.reg_address, S1.target_category,
+T1.name AS social_sector_unwind ,
 T2.name AS sdgs_unwind,
 LISTAGG(DISTINCT CAST(S1.sdg_photo_unwind AS VARCHAR),',') AS sdg_photo_unwind2
  
@@ -20,7 +20,8 @@ ON T1.id = S1.social_sector_unwind
 
 LEFT JOIN ds_mysql_prod_tagelement AS T2
 ON T2.id = S1.sdgs_unwind
-
+LEFT JOIN ds_mysql_prod_tagelement AS st
+ON s1.stage_startup = st.id
 
   LEFT JOIN ds_mysql_prod_project AS pro
   ON S1.projectid = pro.id
