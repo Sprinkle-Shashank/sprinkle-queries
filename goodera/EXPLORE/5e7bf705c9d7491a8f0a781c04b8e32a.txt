@@ -1,27 +1,24 @@
-WITH table1 AS (
-  SELECT fy_timerange, projectid, name, logo, description_innovation, url ,reg_address , stage_startup, stage_product, sdg_photo, target_category
+WITH S1 AS (
+  SELECT *
   
-  FROM profile_79637),
+  FROM profile_79637 AS S,
+  
+  S.social_sector AS social_sector_unwind,
+  S.sdgs AS sdgs_unwind,
+  S.sdg_photo AS sdg_photo_unwind,
+  )
+  
+SELECT
+T1.name AS social_sector_unwind,
+T2.name AS sdgs_unwind,
+LISTTAG(DISTINCT CAST(S1.sdg_photo_unwind AS VARCHAR),',') AS sdg_photo_unwind2,
+ 
+FROM S1
+ 
+LEFT JOIN ds_mysql_prod_tagelement AS T1
+ON T1.id = S1.social_sector_unwind
 
-table2 AS (SELECT t1.* , CAST(photo_sdg AS VARCHAR) 
+LEFT JOIN ds_mysql_prod_tagelement AS T2
+ON T2.id = S1.sdgs_unwind
 
-FROM table1 t1 , t1.sdg_photo photo_sdg )
-
-SELECT projectid, p.name, pro.name AS startup_name, fy_timerange, logo, description_innovation, url, target_category, reg_address,
-strt.name AS stage_startup, 
-pdt.name AS stage_product,
-
-LISTAGG(DISTINCT CAST(p.photo_sdg AS VARCHAR),',') AS sdg_photo_unwind2
-
-from table2 p 
-
-LEFT JOIN ds_mysql_prod_tagelement AS strt
-ON p.stage_startup = strt.id
-
-LEFT JOIN ds_mysql_prod_tagelement AS pdt
-ON p.stage_product = pdt.id
-
-LEFT JOIN ds_mysql_prod_project AS pro
-ON p.projectid = pro.id
-
-GROUP BY projectid, p.name, pro.name, fy_timerange, logo, description_innovation, url, reg_address, strt.name, pdt.name, target_category, photo_sdg
+GROUP BY S1.projectid, S1.name, S1.fy_timerange, S1.logo, S1.description_innovation, S1.url, S1.reg_address, S1.target_category, T1.name, T2.name
