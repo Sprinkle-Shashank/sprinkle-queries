@@ -10,5 +10,13 @@ sub2 as(
   select s1.*, cast(photos as varchar), cast(uploads as varchar)
   from sub1 s1, s1.photo photos, s1.upload uploads)
   
---select p3.name as partner, p2.name as projectid, (s1.date || '|' || s1.date) as fy_timerange, s1.title, s1.
-select * from sub1
+select p3.name as partner, p2.name as projectid, (s2.date || '|' || s2.date) as fy_timerange, s2.title, s2.description, t1.name as plant, any_value(s2.photos) as photo, listagg(s2.uploads, ', ') as doc_upload,
+case
+	when doc_upload is null then '-'
+	else 'Download'
+end as download
+from sub2 s2
+left join ds_mysql_prod_project p2 on p2.id = s2.projectid
+left join ds_mysql_prod_project p3 on p3.id = p2.parent
+left join ds_mysql_prod_tagelement t1 on t1.id = s2.plant_location
+group by p3.name, p2.name, s2.date, s2.title, s2.description, t1.name
