@@ -1,26 +1,26 @@
-with base1 as(select p.fy_timerange,  k.name as donor, t2.name as project from profile_196 p
+with base1 as(select p.fy_timerange,  k.name as donor, t2.name as project, p.donor_commitment_db as donor_commitment from profile_196 p
 left join ds_mysql_prod_tagelement k on
 p.donor= k.id
 LEFT JOIN ds_mysql_prod_project t on p.projectId=t.id
 LEFT JOIN ds_mysql_prod_project t1 on t.parent=t1.id      
 LEFT JOIN ds_mysql_prod_project t2 on t1.parent=t2.id
-where p.donor is not null
+where p.donor_commitment_db is not null
 
 
 union
 
-select m.fy_timerange,  k.name as donor,t2.name as project from profile_36904 m
+select m.fy_timerange,  k.name as donor,t2.name as project, p.donor_commitment_db as donor_commitment from profile_36904 m
 left join ds_mysql_prod_tagelement k on
 m.donor= k.id
 
 LEFT JOIN ds_mysql_prod_project t on m.projectId=t.id
 LEFT JOIN ds_mysql_prod_project t1 on t.parent=t1.id      
 LEFT JOIN ds_mysql_prod_project t2 on t1.parent=t2.id
-where m.donor is not null
+where m.donor_commitment_db is not null
 )
-,base2 as ( select 	l.fy_timerange,l.donor,l.project  
+,base2 as ( select 	l.fy_timerange,l.donor,l.project,l.donor_commitment  
 from base1 l
-order by l.donor 
+group by 1,2,3,4 order by l.donor_commitment 
 )
 select * from base2
 
