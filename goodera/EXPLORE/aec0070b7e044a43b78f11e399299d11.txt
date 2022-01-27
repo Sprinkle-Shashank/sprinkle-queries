@@ -1,0 +1,42 @@
+select p.projectId,p.name, cou.name as country, ven.name as vendor,p.production_efficiency,p1.production_efficiency_pre,p1.employee_id_pre,p2.fac_cl_vpid, p2.vendor_ngo_id,(p.production_efficiency-p1.production_efficiency_pre) as difference,case when difference>0
+then
+1
+else 
+0 
+end as count_increase,
+case when difference<=0
+then 1
+else 
+0 
+end as no_change,
+case when difference<15
+then 1
+else
+0
+end as minor_change,
+case when difference>=15
+then 
+1 
+else
+0 
+end as major_change
+from profile_65282 p
+
+
+left join profile_60669 p1
+on p.employee_id = p1.employee_id_pre
+
+left join profile_52810 p2
+on p.projectId = p2.projectId
+
+left join ds_mysql_prod_project fac
+on  p.projectid = fac.id
+left join ds_mysql_prod_project ven
+on fac.parent = ven.id
+left join ds_mysql_prod_project cou
+on ven.parent = cou.id
+
+
+
+
+group by p.projectId, cou.name, ven.name,p1.production_efficiency_pre,p1.employee_id_pre,difference,count_increase,production_efficiency,p.name,no_change,major_change,minor_change,p2.fac_cl_vpid, p2.vendor_ngo_id
