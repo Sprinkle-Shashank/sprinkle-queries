@@ -1,6 +1,6 @@
 WITH sub1 AS (
   
-  SELECT projectid, pro.name AS startup_name,pro.name AS eir_name,
+  SELECT projectid, pro.name AS startup_name,pro.name AS eir_name,par.name as parent_name,
   CONCAT(CONCAT(CONCAT(SPLIT_PART(P.date, ' ', 1),'T'),SPLIT_PART(P.date, ' ', 2)),'.000Z') AS fy_timerange,
   p.remarks, p.photo ,
   CASE when
@@ -10,6 +10,8 @@ pro.name ilike '%eir%' then 'eir' else 'startup' end as type_entity
   
   LEFT JOIN ds_mysql_prod_project AS pro
   ON p.projectid = pro.id
+  LEFT JOIN ds_mysql_prod_project as par
+  on pro.parent = par.id
 )
 
 SELECT s1.*,
