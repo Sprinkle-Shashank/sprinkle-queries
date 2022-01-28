@@ -1,0 +1,28 @@
+with S1 as (
+  select * 
+  from profile_79639 as S,
+  
+  S.social_sector AS social_sector_unwind,
+  S.sdgs AS sdgs_unwind,
+  S.sdg_photo AS sdg_photo_unwind
+  )
+  
+  Select S1.projectid, pro.name as eir_name,S1.name,st.name as stage_startup, S1.fy_timerange, S1.logo, S1.description_innovation, S1.url, S1.reg_address, S1.target_category,
+  T1.name AS social_sector_unwind ,
+T2.name AS sdgs_unwind,
+LISTAGG(DISTINCT CAST(S1.sdg_photo_unwind AS VARCHAR),',') AS sdg_photo_unwind2
+ 
+FROM S1
+
+LEFT JOIN ds_mysql_prod_tagelement AS T1
+ON T1.id = S1.social_sector_unwind
+
+LEFT JOIN ds_mysql_prod_tagelement AS T2
+ON T2.id = S1.sdgs_unwind
+LEFT JOIN ds_mysql_prod_tagelement AS st
+ON s1.stage_startup = st.id
+
+  LEFT JOIN ds_mysql_prod_project AS pro
+  ON S1.projectid = pro.id
+  
+  GROUP BY S1.projectid, S1.name, S1.fy_timerange, S1.logo, S1.description_innovation, S1.url, S1.reg_address, S1.target_category, T1.name, T2.name , pro.name , st.name
