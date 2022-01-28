@@ -11,10 +11,17 @@ sub2 as(
   from sub1 s1, s1.photo photos, s1.upload_new uploads)
   
 select p3.name as partner, p2.name as projectid, (s2.date || '|' || s2.date) as fy_timerange, s2.title, s2.description, t1.name as plant, any_value(s2.photos) as photo, listagg(s2.uploads, ', ') as doc_upload,
+
 case
 	when doc_upload is null then '-'
 	else 'Download'
-end as download
+end as download,
+case
+	when p3.name = 'Helpage' then split_part(p2.name, '-', 2)
+	when p3.name = 'Piramal' then split_part(p2.name, '-', 1)
+	else '-'
+end as clinic_type
+
 from sub2 s2
 left join ds_mysql_prod_project p2 on p2.id = s2.projectid
 left join ds_mysql_prod_project p3 on p3.id = p2.parent
