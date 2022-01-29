@@ -1,87 +1,33 @@
-with table2 as (select p.*,CAST(select_module as int) from profile_4227 p,p.select_modules select_module
-),
-table1 as(Select t2._id,t2.projectId,cast(concat('FY ' ,start_year) as varchar) as start_year, start_quarter as start_quarter_new ,case when start_quarter=1 then '1st (Feb-Apr)'
- when start_quarter=2 then '2nd (May-Jul)'
-  when start_quarter=3 then '3rd (Aug-Oct)'
-   when start_quarter=4 then '4th (Nov-Jan)'
-   else null end as start_quarter
-   ,
-case when 
-select_module IN 
-('64503','70912','70941','70900','70910','70913','70909','70903','70901','70902','70911','264682','264684','264683') and t2.end_date_2 is null  
-  
-then sum(num_males)
-end as males_enrolled,
- case when select_module IN 
-('64503','70912','70941','70900','70910','70913','70909','70903','70901','70902','70911','264682','264684','264683')
-  then sum(num_males_graduated)
-  end as males_graduated,
- case  when select_module IN 
-('64503','70912','70941','70900','70910','70913','70909','70903','70901','70902','70911','264682','264684','264683')
-  then sum(num_males_dropout)
-  end as males_dropped,
-  
-  case when 
-select_module IN 
-('64503','70912','70941','70900','70910','70913','70909','70903','70901','70902','70911','264682','264684','264683') and end_date_2 is null  
-  
-then sum(num_females)
-end as females_enrolled,case when select_module IN 
-('64503','70912','70941','70900','70910','70913','70909','70903','70901','70902','70911','264682','264684','264683')
-  then sum(num_females_graduated)
-  end as females_graduated,
-    case when select_module IN 
-('64503','70912','70941','70900','70910','70913','70909','70903','70901','70902','70911','264682','264684','264683')
-  then sum(num_females_dropout)
-  end as females_dropped,t2.end_date_2
-			   
-			    from table2 t2
+select p.project_name, ven.name as vendor,p.projectId, sm.name as single_multi, profile_61498.trainer_2, profile_61498.trainer_name_2,torg.name as trainer_organization , profile_61498.date, ts.name as training_shadowed, ty.name as training_yn, p.remarks,num_female, num_male, prospect_female, total_supervisors, total_other_participants, prospect_total, prospect_male, 
+SUBSTRING(to_char(profile_61498.date, 'DD/MM-YYYY'), POSITION('-' in to_char(profile_61498.date, 'DD/MM-YYYY'))+1,4 ) as year, p.training_id,cou.name as country
+from profile_64075 p
 
+left join profile_61498
+on p.training_id = profile_61498._id
 
-	where  t2.projectId like '%%'
-		  
-group by t2._id,t2.projectId,start_year,start_quarter,t2.end_date_2,t2.select_module
-),
-temp as(
-
-
-  select 'Males Enrolled' as C
-  UNION ALL
-  select 'Males Graduated' as C
-  UNION ALL
-  select 'Males Dropped' as C
-  UNION ALL
-  select 'Females Enrolled' as C
-  UNION ALL
-  select 'Females Graduated' as C 
-  UNION ALL
-  select 'Females Dropped' as C 
-)
-
-select t1.start_year,t1.start_quarter,pr_46.name_country as country,pr_46.name_vendor_filter as vendor,fac.name as factory,temp.C as Dimension,case C
-	when  'Males Enrolled'then t1.males_enrolled
-	when 'Males Graduated' then t1.males_graduated
-	when  'Males Dropped' then t1.males_dropped
-        when  'Females Enrolled' then t1.females_enrolled
-	when  'Females Graduated' then t1.females_graduated
-	when  'Females Dropped'  then t1.females_dropped
-	Else Null
-	End as value1,t1.males_enrolled as "Males Enrolled",t1.males_graduated as "Males Graduated",t1.males_dropped as "Males Dropped", t1.females_enrolled as "Females Enrolled",t1.females_graduated as "Females Graduated",t1.females_dropped as "Females Dropped",Case when Dimension ilike '%Female%' then  'Female'
-	else
-	'Male'
-	end as Gender
-
-
-
-
-from table1 t1
-cross join temp
-
-left join profile_54646 pr_46 
-on t1.projectid = pr_46.projectid
 left join ds_mysql_prod_project fac
-on t1.projectId = fac.id
+on p.projectid = fac.id
+left join ds_mysql_prod_project ven
+on fac.parent = ven.id
+left join ds_mysql_prod_project cou
+on ven.parent = cou.id
+
+left join ds_mysql_prod_tagelement torg
+on profile_61498.trainer_organization = torg.id
 
 
-where factory not ilike '%test%'and vendor ilike '%VENDOR:%'
-group by start_year,start_quarter,pr_46.name_country,  pr_46.name_vendor_filter,factory,temp.C,t1.males_enrolled,t1.males_graduated,t1.males_dropped,t1.females_enrolled,t1.females_graduated, t1.females_dropped,Gender
+left join ds_mysql_prod_tagelement sm
+on profile_61498.single_multi = sm.id
+
+left join ds_mysql_prod_tagelement ts
+on profile_61498.training_shadowed = ts.id
+
+left join ds_mysql_prod_tagelement ty
+on profile_61498.training_yn = ty.id
+
+
+
+
+where p.projectId NOT IN ('54835','54832','31299','31303')
+
+group by p.projectId,p.project_name, profile_61498.date, p.remarks, num_female, num_male, prospect_female, total_supervisors, total_other_participants, prospect_total, prospect_male,  sm.name, trainer_2, trainer_name_2, ts.name, ty.name, year, ven.name, cou.name, torg.name, training_id,p.trainer_org
