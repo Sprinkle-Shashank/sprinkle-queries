@@ -40,10 +40,15 @@ select projectid, partner_db as partner_name, 'gst' as document_type, gst as doc
 select projectid, partner_db as partner_name, 'declaration' as document_type, declaration as document_link from base1
   union all
 select projectid, partner_db as partner_name, 'address_proof' as document_type, address_proof as document_link from base1
-)
+),
 
+base3 as(
 select q.name as projectid, p.partner_name, r.name as project, p.document_type, p.document_link from base2 p 
 left join ds_mysql_prod_project q on p.projectid=q.id
 left join ds_mysql_prod_project r on q.parent=r.id
 where p.partner_name!='' and p.document_link!='""'
+)
+
+select p.projectid, p.partner_name, p.project, p.document_type, doc_link from base3 p, p.document_link doc_link
+
 
