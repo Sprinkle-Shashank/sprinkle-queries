@@ -1,7 +1,7 @@
 with base1 as(
-  select projectId, loi, agreement, reg_doc, due_dill_repr,/* p.80g_attachment as attachment80g,*/ rent_agreement, pan_card_upload, partner_logo, fcra_upload, upload_12aa, staff_list, man_committee_list, authorised_signatory, annual_report, shop_establishment, gst, declaration, address_proof, partner_db from profile_140 p
+  select projectId, cast(loi as super), cast(agreement as super), cast(reg_doc as super), cast(due_dill_repr as super),/* p.80g_attachment as attachment80g,*/ cast(rent_agreement as super), pan_card_upload, cast(partner_logo as super), cast(fcra_upload as super), cast(upload_12aa as super), cast(staff_list as super), cast(man_committee_list as super), cast(authorised_signatory as super), cast(annual_report as super), cast(shop_establishment as super), cast(gst as super), cast(declaration as super), cast(address_proof as super), partner_db from profile_140 p
 union 
-select projectId, loi, agreement, reg_doc, due_dill_repr,/* attachment80g,*/ rent_agreement, pan_card_upload, partner_logo, fcra_upload, upload_12aa, staff_list, man_committee_list, authorised_signatory, annual_report, shop_establishment, gst, declaration, address_proof, partner_db from profile_36869 m
+select projectId,cast(loi as super), cast(agreement as super), cast(reg_doc as super), cast(due_dill_repr as super),/* attachment80g,*/ cast(rent_agreement as super), pan_card_upload, cast(partner_logo as super), cast(fcra_upload as super), cast(upload_12aa as super), cast(staff_list as super), cast(man_committee_list as super), cast(authorised_signatory as super), cast(annual_report as super), cast(shop_establishment as super), cast(gst as super), cast(declaration as super), cast(address_proof as super), partner_db from profile_36869 m
 ),
 
 base2 as(
@@ -43,12 +43,12 @@ select projectid, partner_db as partner_name, 'address_proof' as document_type, 
 ),
 
 base3 as(
-select q.name as projectid, p.partner_name, r.name as project, p.document_type, cast(p.document_link as super) from base2 p 
+select q.name as projectid, p.partner_name, r.name as project, p.document_type, p.document_link from base2 p 
 left join ds_mysql_prod_project q on p.projectid=q.id
 left join ds_mysql_prod_project r on q.parent=r.id
 where p.partner_name!='' and p.document_link!='""'
 )
 
-select p.* from base3 p
+select p.projectid, p.partner_name, p.project, p.document_type, doc_link from base3 p, p.document_link doc_link
 
 
