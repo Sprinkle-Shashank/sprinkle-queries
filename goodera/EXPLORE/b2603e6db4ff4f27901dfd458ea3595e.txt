@@ -1,1 +1,19 @@
-select projectid,fy_timerange,eir_count,startup_count from profile_79726
+with temp as (
+  select 'eir_count' as C
+  Union all 
+  select 'startup_count' as C
+  )
+  select projectid,fy_timerange,
+
+sum(case C
+WHEN 'eir_count' then p.eir_count
+WHEN 'startup_count' then p.startup_count
+ELSE NULL
+END) AS value , temp.C as dimension
+
+
+
+
+from profile_79726 p
+Cross join temp
+group by projectid,fy_timerange,temp.C
