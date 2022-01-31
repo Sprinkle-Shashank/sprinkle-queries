@@ -1,3 +1,14 @@
-select projectId as country1,country1 as country2
-case when country2!='Null' then projectId
-from profile_61483
+select ven.name as country1, cou.name as country2,
+case when country2!='Null' then projectId end as country,
+(p.male_trained+p.female_trained) as total_trained, 
+(p.male_certified+p.female_certified) as total_certified
+from profile_61483 p
+
+left join ds_mysql_prod_project fac
+on  p.projectid = fac.id
+left join ds_mysql_prod_project ven
+on fac.parent = ven.id
+left join ds_mysql_prod_project cou
+on ven.parent = cou.id
+ 
+ group by ven.name,cou.name,country,total_trained, total_certified 
