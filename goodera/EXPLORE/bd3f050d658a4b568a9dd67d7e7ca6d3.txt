@@ -1,0 +1,84 @@
+ with temp as(
+  Select 'No. of projects/assignments undertaken by boys' as col
+    union all
+  Select 'No. of projects/assignments undertaken by girls' as col
+    union all
+  Select 'No. of projects/assignments undertaken by differntly abled students' as col
+    union all
+  Select 'No. of projects/assignments undertaken by other genders' as col
+    union all
+  Select 'No of projects/assignments completed by boys' as col
+    union all
+  Select 'No of projects/assignments completed by girls' as col
+    union all
+  Select 'No. of projects/assignments completed by other genders' as col
+    union all
+  Select 'No. of projects/assignments completed by differntly abled students' as col
+    union all
+  Select 'No. of group projects/assignments undertaken by boys' as col
+    union all
+  Select 'No. of group projects/assignments undertaken by girls' as col
+    union all
+  Select 'No. of group projects/assignments undertaken by differntly abled students' as col
+    union all
+  Select 'No. of group projects/assignments undertaken by other genders' as col
+    union all
+  Select 'No of group projects/assignments completed by boys' as col
+    union all
+  Select 'No of group projects/assignments completed by girls' as col  
+   union all
+  Select 'No. of group projects/assignments completed by other genders' as col
+     union all
+  Select 'No. of group projects/assignments completed by differntly abled students' as col
+   )
+
+
+Select projectid,fy_timerange, t.name as proj_assignment,t1.name as group_proj_assign, temp.col as dimensions,
+
+case 
+	when dimensions='No. of projects/assignments undertaken by boys' then 'Male'
+	when dimensions='No of projects/assignments completed by boys' then 'Male'
+	when dimensions='No. of group projects/assignments undertaken by boys' then 'Male'
+	when dimensions='No of group projects/assignments completed by boys' then 'Male'
+	when dimensions='No. of projects/assignments undertaken by girls' then 'Female'
+	when dimensions='No. of projects/assignments completed by girls' then 'Female'
+	when dimensions='No. of group projects/assignments undertaken by girls' then 'Female'
+	when dimensions='No of group projects/assignments completed by girls' then 'Female'
+	when dimensions='No. of projects/assignments undertaken by other genders' then 'Others'
+	when dimensions='No. of projects/assignments completed by other genders' then 'Others'
+	when dimensions='No. of group projects/assignments undertaken by other genders' then 'Others'
+	when dimensions='No. of group projects/assignments completed by other genders' then 'Others'
+	else 'Differently Abled'
+end as gender,
+
+
+
+sum(case col
+	when 'No. of projects/assignments undertaken by boys' then sq.boys_projects
+	when 'No. of projects/assignments undertaken by girls' then sq.girls_projects
+	when 'No. of projects/assignments undertaken by differntly abled students ' then sq.diff_able_projects
+	when 'No. of projects/assignments undertaken by other genders' then sq.other_gender_projects
+	when 'No of projects/assignments completed by boys' then sq.boys_projects_completed
+	when 'No of projects/assignments completed by girls' then sq.girls_projects_completed
+	when 'No. of projects/assignments completed by other genders' then sq.other_gender_project_completed
+	when 'No. of projects/assignments completed by differntly abled students' then sq.diff_able_project_completed
+	
+	when 'No. of group projects/assignments undertaken by boys' then sq.boys_group_project
+	when 'No. of group projects/assignments undertaken by girls' then sq.girls_group_project
+	when 'No. of group projects/assignments undertaken by differntly abled students' then sq.diff_able_group_projects
+	when 'No. of group projects/assignments undertaken by other genders' then sq.other_gender_group_project 
+	when 'No of group projects/assignments completed by boys' then sq.boys_group_project_completed
+	when 'No of group projects/assignments completed by girls' then sq.girls_group_project_completed
+	when 'No. of group projects/assignments completed by other genders' then sq.other_gender_group_project_completed
+	when 'No. of group projects/assignments completed by differntly abled students' then sq.diff_able_group_project_completed
+	else NULL
+end) as Values
+
+FROM profile_79485 sq
+cross join temp
+LEFT JOIN ds_mysql_prod_tagelement t
+ON t.id=sq.proj_assign
+LEFT JOIN ds_mysql_prod_tagelement t1
+ON t1.id=sq.proj_assign_group
+
+GROUP BY projectid, t.name, fy_timerange, t1.name, dimensions, gender
