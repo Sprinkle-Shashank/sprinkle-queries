@@ -1,0 +1,124 @@
+with temp as(
+  Select 'male 6th grade attendance' as col
+    union all
+  Select 'female 6th grade attendance' as col
+    union all
+  Select 'other 6th grade attendance' as col
+    union all
+  Select 'diff_able female 6th grade attendance' as col
+    union all
+  Select 'diff_able male 6th grade attendance' as col
+    union all
+  Select 'male 7th grade attendance' as col
+    union all
+  Select 'female 7th grade attendance' as col
+    union all
+  Select 'other 7th grade attendance' as col
+    union all
+  Select 'diff_able female 7th grade attendance' as col
+    union all
+  Select 'diff_able male 7th grade attendance' as col
+    union all
+  Select 'male 8th grade attendance' as col
+    union all
+  Select 'female 8th grade attendance' as col
+    union all
+  Select 'other 8th grade attendance' as col
+    union all
+  Select 'diff_able female 8th grade attendance' as col
+    union all
+  Select 'diff_able male 8th grade attendance' as col
+    union all  
+  Select 'male 9th grade attendance' as col
+    union all
+  Select 'female 9th grade attendance' as col
+    union all
+  Select 'other 9th grade attendance' as col
+    union all
+  Select 'diff_able female 9th grade attendance' as col
+    union all
+  Select 'diff_able male 9th grade attendance' as col
+)
+Select projectid,fy_timerange,school_name, t2.name as district ,t1.name as state,temp.col as dimensions,
+case 
+	when dimensions='male 6th grade attendance' then 'Male'
+	when dimensions='male 7th grade attendance' then 'Male'
+	when dimensions='male 8th grade attendance' then 'Male'
+	when dimensions='male 9th grade attendance' then 'Male'
+	when dimensions='female 6th grade attendance' then 'Female'
+	when dimensions='female 7th grade attendance' then 'Female'
+	when dimensions='female 8th grade attendance' then 'Female'
+	when dimensions='female 9th grade attendance' then 'Female'
+	when dimensions='other 6th grade attendance' then 'Other'
+	when dimensions='other 7th grade attendance' then 'Other'
+	when dimensions='other 8th grade attendance' then 'Other'
+	when dimensions='other 9th grade attendance' then 'Other'
+	when dimensions='diff_able female 6th grade attendance' then 'Differently Able Female'
+	when dimensions='diff_able female 7th grade attendance' then 'Differently Able Female'
+	when dimensions='diff_able female 8th grade attendance' then 'Differently Able Female'
+	when dimensions='diff_able female 9th grade attendance' then 'Differently Able Female'
+	
+	else 'Differently Able Male'
+end as gender,
+case 
+	when dimensions='male 6th grade attendance' then '6th'
+	when dimensions='male 7th grade attendance' then '7th'
+	when dimensions='male 8th grade attendance' then '8th'
+	
+	when dimensions='female 6th grade attendance' then '6th'
+	when dimensions='female 7th grade attendance' then '7th'
+	when dimensions='female 8th grade attendance' then '8th'
+	
+	when dimensions='other 6th grade attendance' then '6th'
+	when dimensions='other 7th grade attendance' then '7th'
+	when dimensions='other 8th grade attendance' then '8th'
+	
+	when dimensions='diff_able female 6th grade attendance' then '6th'
+	when dimensions='diff_able female 7th grade attendance' then '7th'
+	when dimensions='diff_able female 8th grade attendance' then '8th'
+	
+	when dimensions='diff_able male 6th grade attendance' then '6th'
+	when dimensions='diff_able male 7th grade attendance' then '7th'
+	when dimensions='diff_able male 8th grade attendance' then '8th'
+	else '9th'
+	end as grade,
+case 
+	when grade='6th' then '1'
+	when grade='7th' then '2'
+	when grade='8th' then '3'
+	
+	else '4'
+end as sort,
+
+sum(case col
+	when 'male 6th grade attendance' then sq.male_6th_attendance
+	when 'female 6th grade attendance' then sq.female_6th_attendance
+	when 'other 6th grade attendance' then sq.other_6th_attendance
+	when 'diff_able female 6th grade attendance' then sq.diff_able_female_6th_attendance
+	when 'diff_able male 6th grade attendance' then sq.diff_able_male_6th_attendance
+	when 'male 7th grade attendance' then sq.male_7th
+	when 'female 7th grade attendance' then sq.female_7th
+	when 'other 7th grade attendance' then sq.other_gender_7th
+	when 'diff_able female 7th grade attendance' then sq.diff_able_female_7th_attendance
+	when 'diff_able male 7th grade attendance' then sq.diff_able_male_7th_attendance
+	when 'male 8th grade attendance' then sq.male_8th
+	when 'female 8th grade attendance' then sq.female_8th
+	when 'other 8th grade attendance' then sq.other_gender_8th
+	when 'diff_able female 8th grade attendance' then sq.diff_able_female_8th_attendance
+	when 'diff_able male 8th grade attendance' then sq.diff_able_male_8th_attendance
+	when 'male 9th grade attendance' then sq.male_9th
+	when 'female 9th grade attendance' then sq.female_9th
+	when 'other 9th grade attendance' then sq.other_gender_9th
+	when 'diff_able female 9th grade attendance' then sq.diff_able_female_9th_attendance
+	when 'diff_able male 9th grade attendance' then sq.diff_able_male_9th_attendance
+	else NULL
+end) as Values
+FROM profile_79481 sq
+cross join temp
+LEFT JOIN ds_mysql_prod_tagelement t
+ON t.id=sq.state_district
+left join ds_mysql_prod_tagelement t1
+ON t1.id=t.parent
+left join ds_mysql_prod_tagelement t2
+ON t2.id=sq.state_district
+GROUP BY projectid,school_name, t2.name, fy_timerange, t1.name, dimensions, gender, grade
