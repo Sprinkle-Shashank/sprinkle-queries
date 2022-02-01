@@ -1,10 +1,50 @@
 
 with table1 as
 (
-  select p.projectid , name_vendor_filter , name_factory , name_vendor , name_country , name_rp , substring(name_vendor_filter,0,2) as substr , case when substr='V' then 'Vendor Partner' else 'Community Partner' end as Partner_type from profile_54646 as p )
+  select p.projectid , name_vendor_filter , name_factory , name_vendor , name_country , name_rp , substring(name_vendor_filter,0,2) as substr , case when substr='V' then 'Vendor Partner' else 'Community Partner' end as Partner_type from profile_54646 as p ),
   
   
-  select * from table1
+table2 as
+(
+  select p.projectid , country , cou.name as country_update , pace_status , pace.name as pace_status_update, sourcing_yn , child_vpid_autocal , vpid_1 , vpid_2 from profile_52162 p
+  
+  left join ds_mysql_prod_tagelement cou on 
+  p.country = cou.id
+  
+  left join ds_mysql_prod_tagelement pace on 
+  p.pace_status = pace.id
+),
+
+
+table3 as 
+( select p.projectid , country , pace_status , pace.name as pace_update, cp_id from profile_5997 p
+ 
+  left join ds_mysql_prod_tagelement pace on 
+  p.pace_status = pace.id
+),
+
+table4 as
+(
+select t3.*, cast(f1 as varchar) from table3 t3, t3.country as f1
+),
+
+table5 as
+( select t34projectid , pace_update , cp_id ,cou.name as country_update from table4 t4
+ 
+  left join ds_mysql_prod_tagelement cou on 
+  t4.f1 = cou.id
+ ),
+ 
+ 
+ table100 as
+ ( select p._id , p.projectid , name_vendor_filter , name_factory , name_vendor , name_country , name_rp , Partner_type from profile_54267 as p 
+  
+ left join table1 t1 on 
+  p.projectid = t1.project 
+  )
+  
+  
+  select * from table100
 
 /* 4227 
 #54267  %
