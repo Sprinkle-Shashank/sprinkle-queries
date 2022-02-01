@@ -1,0 +1,42 @@
+WITH table1 AS (
+  SELECT 'New equipment Target' AS C
+  UNION ALL
+  SELECT 'Old equipment Target' AS C
+  UNION ALL
+  SELECT 'Current equipment Target' AS C
+  UNION ALL
+  SELECT 'Installed equipment Target' AS C
+  UNION ALL
+  SELECT 'Replaced equipment Target' AS C
+  UNION ALL
+  SELECT 'Upgraded equipment Target' AS C
+  UNION ALL
+  SELECT 'Footfall Target' AS C
+  UNION ALL
+  SELECT 'Footfall increased Target' AS C
+  UNION ALL
+  SELECT 'Patients Target' AS C
+  UNION ALL
+  SELECT 'Patients Referred Target' AS C
+  )
+SELECT p.fy_timerange,p.phc
+SUM ( 
+  CASE C
+    	WHEN 'New equipment Target' THEN p.new_equipment
+		WHEN 'Old equipment Target' THEN p.old_equipment
+		WHEN 'Current equipment Target' THEN p.cur_equipment	
+		WHEN 'Installed equipment Target' THEN p.installed
+  		WHEN 'Replaced equipment Target' THEN p.replaced
+  		WHEN 'Upgraded equipment Target' THEN p.upgraded
+  		WHEN 'Footfall Target' THEN p.footfall
+  		WHEN 'Footfall increased Target' THEN p.footfall_increased
+  		WHEN 'Patients Target' THEN p.patients
+  		WHEN 'Patients Referred Target' THEN p.referred_patients
+ELSE NULL
+END) AS val, table1.c AS dim
+
+FROM profile_79734 p
+
+CROSS JOIN table1
+
+GROUP BY p.fy_timerange,p.phc,table1.C
