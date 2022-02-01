@@ -21,9 +21,9 @@ left join table2 t2 on
 p.projectid= t2.projectid  
 ),
 table4 as (
-select projectid,case /*when sourcing_yn =57472 and facility_status = 845114 then name_factory
-            when sourcing_yn = 57473 and (pace_status_2 in (845114 )or pace_status_2 is null) then   name_factory */
-			when status_community = 182398 then name_factory end as factory,
+select projectid/*,case when sourcing_yn =57472 and facility_status = 845114 then name_factory
+            when sourcing_yn = 57473 and (pace_status_2 in (845114 )or pace_status_2 is null) then   name_factory 
+			when status_community = 182398 then name_factory end as factory*/,
 case when sourcing_yn =57472 then vpid_1 
      when sourcing_yn =57473 then factory_vpid_2
 	 when status_community = 182398 then cp_location_id  end as community_id,name_vendor_filter,
@@ -79,7 +79,20 @@ table5 as ( select * from creationdate_table_for_batch
   left join table6 t6 on 
   t5._id= t6.class )	
 					 
-/*select p._id,p.projectid,t4.factory,end_date_2,t4.community_id,t4.name_vendor_filter,t4.vp_id_and_cp_id,t4.name_country,t4.name_vendor,t4.name_rp,start_date,
+select p._id,p.projectid,
+case when add_factory.sourcing_yn =57472 and t2.facility_status = 845114 then   		  			mapping.name_factory
+     when add_factory.sourcing_yn = 57473 and (add_factory.pace_status_2 in (845114 )or           add_factory.pace_status_2 is null) then   mapping.name_factory 
+	 when add_community.pace_status then mapping.name_factory end as factory
+,end_date_2,cast(add_factory.factory_vpid_1 as varchar(65535)) as vpid_1,
+case when add_factory.sourcing_yn =57472 then vpid_1 
+     when add_factory.sourcing_yn =57473 then add_factory.factory_vpid_2
+	 when add_community.pace_status = 182398 then add_community.cp_location_id  
+	 end as       community_id
+,mapping.name_vendor_filter,
+case when add_community.pace_status = 182398 then add_community.cp_id
+     else add_factory.child_vendor_vpid end as vp_id_and_cp_id
+
+,mapping.name_country,mapping.name_vendor,mapping.name_rp,start_date,
 concat('FY ' ,to_char(start_date,'YYYY')) as start_year ,
 end_date,num_females,module_completed.completed, module_ongoing.ongoing,
 case when t_cd.module_date > t_cd.batch_date then t_cd.module_date
@@ -95,8 +108,8 @@ case when current_date-latest_date<= 30 then 'Updated in last 30 days'
 	 
 	 from profile_4227 p
 
-left join table4 t4 on
-p.projectid= t4.projectid
+left join table3 t3 on
+p.projectid= t3.projectid
 
 left join module_completed  on 
 p._id = module_completed.class
@@ -107,12 +120,23 @@ p._id = module_ongoing.class
 left join creation_date t_cd on
 p._id = t_cd._id
 
-where end_date_2 is null and factory is not null*/
+left join profile_52713 add_factory on
+p.projectid = add_factory.projectid
+
+left join profile_54646 mapping on
+p.projectid = mapping.projectid 
+
+left join profile_4948 add_community on
+p.projectid = add_community.projectid
+
+left join table2 t2 on
+p.projectid = t2.projectid
+where end_date_2 is null and factory is not null
 
  --or b_outcome_yn =  ''
 
 
-select pro.name as projectid ,add_community.pace_status from profile_4227 p
+/*select pro.name as projectid ,add_community.pace_status from profile_4227 p
 
 /*left join table4 t4 on
 p.projectid= t4.projectid*/
@@ -121,7 +145,7 @@ p.projectid = add_community.projectid
 left join ds_mysql_prod_project as pro
 on p.projectid = pro.id
 
-where end_date_2 is null and pace_status = 182398
+where end_date_2 is null and pace_status = 182398*/
 
 /*select * from table3
 where  status_community = 182398*/
