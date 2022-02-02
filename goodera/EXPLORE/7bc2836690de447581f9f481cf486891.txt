@@ -21,7 +21,7 @@ left join ds_mysql_prod_user m  on
 mon.modifierid = m.id
 where mon.profileId='4227' and mon.active = 't' and mon.securitycontextid is not null
 			 ),		
-creationdate_table_for_batch as (	select p._id,p.projectid,p.name,/*substring(createddate,1,10)*/ modifieddate as batch_date,t7.cemail,p.end_date_2 from profile_4227 p   
+creationdate_table_for_batch as (	select p._id,p.projectid,p.name,/*substring(createddate,1,10)*/ modifieddate as batch_date,t7.cemail,t7.memail,p.end_date_2 from profile_4227 p   
  left join table7 t7 on
 	p._id = t7._id	
 	where end_date_2 is null),
@@ -37,7 +37,7 @@ where mon.profileId='4228' and mon.active = 't' and mon.securitycontextid is not
  
  creationdate_table_for_module as (	select p._id,p.class, p.projectid,/*substring(createddate,1,10)as*/modifieddate as module_date,row_number() over 
 (partition by class
- order by createddate desc) as row,t8.cemail from profile_4228 p
+ order by createddate desc) as row,t8.cemail,t8.memail from profile_4228 p
 			left join table8 t8 on
 			p._id = t8._id					  )	,
 	
@@ -48,7 +48,7 @@ table5 as ( select * from creationdate_table_for_batch
  table6 as ( select * from creationdate_table_for_module 
 			where row = 1 ),
   
- creation_date as ( select t5._id,t5.projectid,batch_date,t5.cemail as batch_email,t6.module_date,t6.cemail as module_email from table5 t5
+ creation_date as ( select t5._id,t5.projectid,batch_date,t5.memail as batch_email,t6.module_date,t6.memail as module_email from table5 t5
   
   left join table6 t6 on 
   t5._id= t6.class ),	
