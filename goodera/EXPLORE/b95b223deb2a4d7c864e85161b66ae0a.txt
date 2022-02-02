@@ -1,11 +1,19 @@
-select p1.id, p2.name as proj_location, p1.gender, p1.caste, p1.annual_family_income, p1.city, p1.stream, t1.name as location, p1.disablity, p1.start_date, p1.end_date, t2.name as imp_partner
+select p1.id, p2.name as proj_location, p1.gender, p1.caste, p1.annual_family_income, p1.city, p1.stream,p1.hh_location, t1.name as location, p1.disablity, p1.start_date, p1.end_date, t2.name as imp_partner,t3.name as exam,t4.name as place_high_stud,count(p1.no_benf)
 
 from profile_1580 p1
 left join ds_mysql_prod_project p2 on p2.id= p1.projectid
 left join ds_mysql_prod_project p3 on p3.id = p2.parent
 
 left join profile_65603 p4.projectid= p2.name -- to compare with partner name
-left join ds_mysql_prod_tagelement t1 on t1.id= p2.location
+left join ds_mysql_prod_tagelement t1 on t1.id= p2.location --location in both tables 65603 and 1580
 
 left join profile_65552 p5 on p5.projectid= p2.parent -- to compare with partner name
 left join ds_mysql_prod_tagelement t2 on t2.id= p4.impl_agency
+
+--Expression: obj(kv(start,$start_date),kv(end,$end_date)) on fy_timerange remaining to addd
+
+left join profile_1580 p6 on p6._id= p1.id
+left join ds_mysql_prod_tagelement t3 on t3._id = p6.exam
+left join ds_mysql_prod_tagelement t4 on t4._id = p6.place_high_stud
+
+group by p1.id, p2.name, p1.gender, p1.caste, p1.annual_family_income, p1.city, p1.stream,p1.hh_location, t1.name, p1.disablity, p1.start_date, p1.end_date, t2.name,t3.name,t4.name
