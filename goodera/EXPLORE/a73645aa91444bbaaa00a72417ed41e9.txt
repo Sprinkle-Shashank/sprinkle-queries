@@ -48,7 +48,7 @@ batch_ongoing as ( select p.projectid, count(*)as ongoing from profile_4227 p
   table3 as
   (
 	
-select p.projectid , p._id , p.name , name_country , name_vendor , name_vendor_filter , name_rp , name_vendor_filter as Partner_name , substring(Partner_name ,0,2) as First_Value, case when First_Value='V' then 'Vendor Partner' else 'Community Partner' end as Partner_type , case when First_Value='V' and t3.sourcing_yn=57472 then cast(t3.vpid_1 as varchar) when First_Value='V' and t3.sourcing_yn=57473 then cast(t3.vpid_2 as varchar) when First_Value='V' then cast(t3.child_vpid_autocal as varchar) else p2.cp_id end as Vendor_partner_ID  ,  case when First_Value='V' then t3.pace_update_2 else p2.pace_update_1 end as current_pace_status , p2.country_update_1 , t3.country_update_2 , case when First_Value='V' then t3.country_update_2 else p2.country_update_1 end as country , t6.num_females , t6.num_females_graduated , t6.Programs_run  from profile_54646 p
+select p.projectid , p._id , p.name , name_country , name_vendor , name_vendor_filter , name_rp , name_vendor_filter as Partner_name , substring(Partner_name ,0,2) as First_Value, case when First_Value='V' then 'Vendor Partner' else 'Community Partner' end as Partner_type , case when First_Value='V' and t3.sourcing_yn=57472 then cast(t3.vpid_1 as varchar) when First_Value='V' and t3.sourcing_yn=57473 then cast(t3.vpid_2 as varchar) when First_Value='V' then cast(t3.child_vpid_autocal as varchar) else p2.cp_id end as Vendor_partner_ID  ,  case when First_Value='V' then t3.pace_update_2 else p2.pace_update_1 end as current_pace_status , p2.country_update_1 , t3.country_update_2 , case when First_Value='V' then t3.country_update_2 else p2.country_update_1 end as country , t6.num_females , t6.num_females_graduated , t6.Programs_run , b_complete.completed ,  b_ongoing.ongoing from profile_54646 p
 
 left join table5 t3 on 
 p.name_vendor = t3.vendor
@@ -58,6 +58,12 @@ p.name_vendor = p2.update_ngo_name
 	
 	left join table6 t6 on 
 	p.projectid = t6.projectid 
+	
+	left join batch_completed b_complete on 
+	p.projectid = b_complete.projectid 
+	
+	left join batch_ongoing b_ongoing on 
+	p.projectid = b_ongoing.projectid 
 	)
 	
   select * from table3
