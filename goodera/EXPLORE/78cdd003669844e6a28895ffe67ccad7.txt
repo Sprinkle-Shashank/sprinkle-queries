@@ -18,18 +18,52 @@ p.projectid = add_community.projectid
 
 left join table2 t2 on 
 p.projectid= t2.projectid  
-)/*,
-table5 as (select  pro.id ,pro.name,p.taskuserid,u.email,pp.name from profile_4227 p
-left join ds_mysql_prod_taskuser tu on
-p.taskuserid = tu.id
-left join ds_mysql_prod_programuser pu on
-tu.programuserid = pu.id 
-left join ds_mysql_prod_project as pro
-on pu.programid = pro.programid
+), 
+
+table5 as ( with table1 as ( SELECT _id,projectid,mon.creatorid, u.email as cemail, mon.modifierid, m.email as memail
+from ds_mongo_profileinstance mon
 left join ds_mysql_prod_user u on
-pu.userid = u.id
-left join ds_mysql_prod_personprofile pp on
-u.id = pp.userid)*/,
+mon.creatorid = u.id
+left join ds_mysql_prod_user m  on
+mon.modifierid = m.id
+where mon.profileId='4228' and mon.active = 't' and mon.securitycontextid is not null
+			 ),
+table2 as ( SELECT _id,projectid,mon.creatorid, u.email as cemail, mon.modifierid, m.email as memail
+from ds_mongo_profileinstance mon
+left join ds_mysql_prod_user u on
+mon.creatorid = u.id
+left join ds_mysql_prod_user m  on
+mon.modifierid = m.id
+where mon.profileId='4227' and mon.active = 't' and mon.securitycontextid is not null		),
+table3 as ( SELECT _id,projectid,mon.creatorid, u.email as cemail, mon.modifierid, m.email as memail
+from ds_mongo_profileinstance mon
+left join ds_mysql_prod_user u on
+mon.creatorid = u.id
+left join ds_mysql_prod_user m  on
+mon.modifierid = m.id
+where mon.profileId='4580' and mon.active = 't' and mon.securitycontextid is not null
+),
+table4 as ( SELECT _id,projectid,mon.creatorid, u.email as cemail, mon.modifierid, m.email as memail
+from ds_mongo_profileinstance mon
+left join ds_mysql_prod_user u on
+mon.creatorid = u.id
+left join ds_mysql_prod_user m  on
+mon.modifierid = m.id
+where mon.profileId='4724' and mon.active = 't' and mon.securitycontextid is not null
+		   ),
+table5 as (		   
+select distinct projectid,cemail,memail from table1
+union all
+select distinct projectid,cemail,memail from table2
+union all
+select distinct projectid,cemail,memail from table3
+union all 
+select distinct projectid,cemail,memail from table4
+)
+select projectid, listagg(cemail,',') as creator_email from table5
+
+group by projectid
+),
   
   
 table4 as (
