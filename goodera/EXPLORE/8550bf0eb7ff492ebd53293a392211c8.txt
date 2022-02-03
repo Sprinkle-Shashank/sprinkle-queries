@@ -1,61 +1,18 @@
-
-
-with table1 as ( select _id , projectid,pace_status as facility_status,row_number() over 
+with table1 as ( select _id ,projectid, pro.name as factory,pace_status as facility_status,row_number() over 
 (partition by projectid
  order by _id desc) as row from profile_54267 p
-		/*left join ds_mysql_prod_project as pro
-on p.projectid = pro.id*/	   ),
+		left join ds_mysql_prod_project as pro
+on p.projectid = pro.id	   ),
 
 table2 as ( select * from table1 
 		  where row = 1),
 
-table3 as (
-  select p.projectid, name_vendor,name_rp , name_factory,name_vendor_filter,name_country,add_factory.sourcing_yn,add_factory.pace_status_2,cast(add_factory.factory_vpid_1 as varchar(65535)) as vpid_1 ,add_factory.factory_vpid_2,add_factory.child_vendor_vpid,add_community.pace_status as status_community,add_community.cp_location_id,add_community.cp_id,t2.facility_status , projcode_factory , substring(projcode_factory,0,2) as projcode_factory_updated1 from          profile_54646 p
-
-left join profile_52713 add_factory on
-p.projectid = add_factory.projectid 
-
-left join profile_4948 add_community on
-p.projectid = add_community.projectid
-
-left join table2 t2 on 
-p.projectid= t2.projectid  
-),
-
-table4 as (
-select projectid, name_vendor , name_rp , case when sourcing_yn =57472 and facility_status = 845114 then name_factory
-            when sourcing_yn = 57473 and (pace_status_2 in (845114 ,898423,898425,898426))or pace_status_2 is null then   name_factory 
-			when status_community = 182398 then name_factory end as factory,
-case when sourcing_yn =57472 then vpid_1 
-     when sourcing_yn =57473 then factory_vpid_2
-	 when status_community = 182398 then cp_location_id  end as community_id,name_vendor_filter,
-case when status_community = 182398 then cp_id
-     else child_vendor_vpid end as vp_id_and_cp_id,name_country , projcode_factory_updated1
-			
-			from table3
-where factory is not null
-),
-
-table10 as
-( select p._id , p.projectid,concat(p._id , p.projectid) as unique , p.name, cast(concat('FY ',start_year) as varchar) as start_year,to_char(start_date,'YYYY') as start_date, case when end_date_2 is not null then to_char(start_date,'YYYY-MM-DD') end as start_date_update,to_char(end_date_2,'YYYY-MM-DD') as end_date_2,num_females,num_females_graduated , type_program ,substring(sub_date,1,10) as sub_date ,  to_char(end_date,'YYYY-MM-DD') as end, to_char(end_date_2,'YYYY-MM-DD') as end_2 , to_char(dateadd(day , 90 , end_date_2),'YYYY-MM-DD') as end_2_90 ,  z.projcode_factory , substring(z.projcode_factory,0,2) as projcode_factory_updated1 , z.name_country ,  z.name_vendor , z.name_rp , z.name_factory , z.name_vendor_filter , substring(b_outcome_yn,0,2) as b_outcome_yn_update ,
- 
-case when (projcode_factory_updated1='C' or projcode_factory_updated1='F') and type_program <> 'Workplace Program' and  b_outcome_yn_update='Y' then 'NA' when projcode_factory_updated1='F' and type_program ='Workplace Program' and  b_outcome_yn_update='Y' and sub_date is not null then 'Completed' when
-projcode_factory_updated1='F' and type_program ='Workplace Program' and  b_outcome_yn_update='Y' and  CURRENT_DATE>=end_2 and CURRENT_DATE<end_2_90 then 'upcoming' when 
- 
-projcode_factory_updated1='F' and type_program ='Workplace Program' and  b_outcome_yn_update='Y' and CURRENT_DATE>=end_2_90 then 'Past Due date' end as business_outcomes ,
- 
- 
-case when (projcode_factory_updated1='C' or projcode_factory_updated1='F') and type_program <> 'Workplace Program' and  b_outcome_yn_update='Y' then '-' when projcode_factory_updated1='F' and type_program ='Workplace Program' and  b_outcome_yn_update='Y' and sub_date is not null then sub_date when 
-projcode_factory_updated1='F' and type_program ='Workplace Program' and  b_outcome_yn_update='Y' and CURRENT_DATE>=end_2 and CURRENT_DATE<end_2_90 then end_2 when  
-projcode_factory_updated1='F' and type_program ='Workplace Program' and  b_outcome_yn_update='Y' and CURRENT_DATE>=end_2_90 then end_2 end as business_outcomes_DATE
- from profile_4227 p 
- 
- left join profile_54646 z on 
- p.projectid = z.projectid
- 
- where end_date_2 is not null  and z.name_country is not null),
- 
- 
+module_completed as (  select class, count(*)as completed from profile_4228
+					 where end_date is not null
+					 group by class),
+module_ongoing as ( select class, count(*)as ongoing from profile_4228
+					 where end_date is  null
+					 group by class),
 table7 as ( SELECT _id,mon.creatorid, u.email as cemail, mon.modifierid, m.email as memail
 from ds_mongo_profileinstance mon
 left join ds_mysql_prod_user u on
@@ -64,7 +21,7 @@ left join ds_mysql_prod_user m  on
 mon.modifierid = m.id
 where mon.profileId='4227' and mon.active = 't' and mon.securitycontextid is not null
 			 ),		
-creationdate_table_for_batch as (	select p._id,p.projectid,p.name,/*substring(createddate,1,10)*/ createddate as batch_date,t7.cemail,p.end_date_2 from profile_4227 p   
+creationdate_table_for_batch as (	select p._id,p.projectid,p.name,/*substring(createddate,1,10)*/ modifieddate as batch_date,t7.cemail,p.end_date_2,t7.memail from profile_4227 p   
  left join table7 t7 on
 	p._id = t7._id	
 	where end_date_2 is not null),
@@ -78,9 +35,9 @@ mon.modifierid = m.id
 where mon.profileId='4228' and mon.active = 't' and mon.securitycontextid is not null
 			 ),	
  
- creationdate_table_for_module as (	select p._id,p.class, p.projectid,/*substring(createddate,1,10)as*/createddate as module_date,row_number() over 
+ creationdate_table_for_module as (	select p._id,p.class, p.projectid,/*substring(createddate,1,10)as*/modifieddate as module_date,row_number() over 
 (partition by class
- order by createddate desc) as row,t8.cemail from profile_4228 p
+ order by createddate desc) as row,t8.cemail,t8.memail from profile_4228 p
 			left join table8 t8 on
 			p._id = t8._id					  )	,
 	
@@ -91,56 +48,90 @@ table5 as ( select * from creationdate_table_for_batch
  table6 as ( select * from creationdate_table_for_module 
 			where row = 1 ),
   
- creation_date as ( select t5._id,t5.projectid,concat(t5._id , t5.projectid) as unique , batch_date,t5.cemail as batch_email,t6.module_date,t6.cemail as module_email from table5 t5
+ creation_date as ( select t5._id,t5.projectid,batch_date,t5.memail as batch_email,t6.module_date,t6.memail as module_email from table5 t5
   
   left join table6 t6 on 
   t5._id= t6.class ),	
+test as (					 
+select p._id,p.projectid,
+case when add_factory.sourcing_yn =57472 and t2.facility_status = 845114 then   		  			mapping.name_factory
+     
+     when add_factory.sourcing_yn = 57473 and (add_factory.pace_status_2 in (845114 )or           add_factory.pace_status_2 is null) then   mapping.name_factory 
+	when add_community.pace_status=182398 then mapping.name_factory end as factory,
+	 add_factory.sourcing_yn,t2.facility_status,add_factory.pace_status_2,add_community.pace_status
+,end_date_2,cast(add_factory.factory_vpid_1 as varchar(65535)) as vpid_1,
+case when add_factory.sourcing_yn =57472 then vpid_1 
+     when add_factory.sourcing_yn =57473 then add_factory.factory_vpid_2
+	 when add_community.pace_status = 182398 then add_community.cp_location_id  
+	 end as       community_id
+,mapping.name_vendor_filter,
+case when add_community.pace_status = 182398 then add_community.cp_id
+     else add_factory.child_vendor_vpid end as vp_id_and_cp_id
+
+,mapping.name_country,mapping.name_vendor,mapping.name_rp,start_date,
+concat('FY ' ,to_char(start_date,'YYYY')) as start_year ,
+end_date,num_females,module_completed.completed, module_ongoing.ongoing,
+case when t_cd.module_date > t_cd.batch_date then t_cd.module_date
+     else t_cd.batch_date end as latest_date,
+concat(split_part(current_date,' ',1),'T00:00:00.000Z') AS current_date1,
+cast(current_date1 as datetime) as current_date,
+case when t_cd.module_date > t_cd.batch_date then t_cd.module_email
+     else t_cd.batch_email end as email_id 
+/*case when current_date-latest_date<= 30 then 'Updated in last 30 days'
+	when 30< current_date-latest_date<= 90 then 'No updates in the last 30 days'
+		  else 'No updates in the last 90 days' end as Date_range*/ 
+	 
+  , SPLIT_PART(name_factory, ':', 1) as first_word , substring(b_outcome_yn,0,2) as b_outcome_yn_update , type_program , substring(sub_date,1,10) as sub_date_update , to_char(end_date_2,'YYYY-MM-DD') as end_2 , to_char(dateadd(day , 90 , end_date_2),'YYYY-MM-DD') as end_2_90 , 
+  
+  
+case 
+  when first_word='CP' or (first_word='Factory' and type_program <> 'Workplace Program') then 'NA' 
+  
+  when first_word='Factory' and type_program ='Workplace Program' and  b_outcome_yn_update='Y' and sub_date_update is not null then 'Completed'
+  
+ when first_word='Factory' and type_program ='Workplace Program' and  b_outcome_yn_update='Y' and  CURRENT_DATE>=end_2 and CURRENT_DATE<end_2_90 then 'upcoming'
+ 
+  when first_word='Factory' and type_program ='Workplace Program' and  b_outcome_yn_update='Y' and CURRENT_DATE>=end_2_90 then 'Past Due date' end as business_outcomes ,
+ 
+ 
+case 
+ when first_word='CP' or (first_word='Factory' and type_program <> 'Workplace Program') then '-' 
+  
+  when first_word='Factory' and type_program ='Workplace Program' and  b_outcome_yn_update='Y' and sub_date_update is not null then sub_date_update 
+ 
+  when first_word='Factory' and type_program ='Workplace Program' and  b_outcome_yn_update='Y' and CURRENT_DATE>=end_2 and CURRENT_DATE<end_2_90 then end_2 
+  
+ when  first_word='Factory' and type_program ='Workplace Program' and  b_outcome_yn_update='Y' and CURRENT_DATE>=end_2_90 then end_2 end as business_outcomes_DATE 
+	 
+	 from profile_4227 p
 
 
-table20 as
-(
-select t10._id , t10.start_year , t4.* , start_date , start_date_update ,  end_date_2 , num_females , num_females_graduated , business_outcomes , business_outcomes_DATE, case when t_cd.module_date > t_cd.batch_date then to_char(t_cd.module_date,'YYYY-MM-DD')
-     else to_char(t_cd.batch_date,'YYYY-MM-DD') end as latest_date from table10 t10
 
-left join table4 t4 on 
-t10.projectid = t4.projectid
+left join module_completed  on 
+p._id = module_completed.class
+
+left join module_ongoing  on 
+p._id = module_ongoing.class
 
 left join creation_date t_cd on
-t10._id = t_cd._id
+p._id = t_cd._id
+
+left join profile_52713 add_factory on
+p.projectid = add_factory.projectid
+
+left join profile_54646 mapping on
+p.projectid = mapping.projectid 
+
+left join profile_4948 add_community on
+p.projectid = add_community.projectid
+
+left join table2 t2 on
+p.projectid = t2.projectid
   
-  where factory is not null
-)
+left join ds_mysql_prod_project as pro
+on p.projectid = pro.id
+where end_date_2 is not null )
 
-select * from table20
+select * from test
 
-/*
-
-
-select p.projectid , p.name , p2.projectid from profile_4228 p
-
-left join profile_4227 p2 on 
-p.projectid = p2.projectid
-
-
-
-select p.projectid , fac.name as factory , ven.name as vendor , cou.name as country from profile_5997 p
-
- left join ds_mysql_prod_project fac 
-on p.projectId = fac.id
-
- left join ds_mysql_prod_project ven 
-on fac.parent = ven.id
-
- left join ds_mysql_prod_project cou 
-on ven.parent = cou.id
-
-projcode_factory_updated1='F' and type_program ='Workplace Program' and  b_outcome_yn_update='Y' and
-
-
-
-case when (projcode_factory_updated1='C' or projcode_factory_updated1='F') and type_program <> 'Workplace Program' and  b_outcome_yn_update='Y' then 'NA' when projcode_factory_updated1='F' and type_program ='Workplace Program' and  b_outcome_yn_update='Y' and sub_date is not null then 'Completed' when projcode_factory_updated1='F' and type_program ='Workplace Program' and  b_outcome_yn_update='Y' and CURRENT_DATE>=end_2 and CURRENT_DATE<end_2_90 then 'upcoming' when projcode_factory_updated1='F' and type_program ='Workplace Program' and  b_outcome_yn_update='Y' and CURRENT_DATE>=end_2_90 then 'Past Due date' end as business_outcomes ,
- 
- 
-case when (projcode_factory_updated1='C' or projcode_factory_updated1='F') and type_program <> 'Workplace Program' and  b_outcome_yn_update='Y' then '-' when projcode_factory_updated1='F' and type_program ='Workplace Program' and  b_outcome_yn_update='Y' and sub_date is not null then sub_date when projcode_factory_updated1='F' and type_program ='Workplace Program' and  b_outcome_yn_update='Y' and  CURRENT_DATE>=end_2 and CURRENT_DATE<end_2_90 then end_2 when projcode_factory_updated1='F' and type_program ='Workplace Program' and  b_outcome_yn_update='Y' and CURRENT_DATE>=end_2_90 then end_2 end as business_outcomes_DATE
-
-*/
+where factory is not null 
