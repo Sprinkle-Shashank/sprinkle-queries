@@ -79,20 +79,38 @@ with temp as(
   union all
   select 'unidentified_second_60' as col
   union all
-  select 'male_first_60' as col
+  select 'male_booster_60' as col
   union all
-  select 'female_first_60' as col
+  select 'female_booster_60' as col
   union all
-  select 'other_first_60' as col
+  select 'other_booster_60' as col
   union all
-  select 'pwd_first_60' as col
+  select 'pwd_booster_60' as col
   union all
-  select 'unidentified_first_60' as col)
+  select 'unidentified_booster_60' as col
+  union all
+  select 'male_booster_frontline' as col
+  union all
+  select 'female_booster_frontline' as col
+  union all
+  select 'other_booster_frontline' as col
+  union all
+  select 'pwd_booster_frontline' as col)
   
 select p3.name as project_parent, p2.name as projectid, p1.name as site, t1.name as district, t2.name as state,(p.date||'|'||p.date) as fy_timerange, temp.col as Dimensions, p.date,
 to_char(p.date, 'DD/MM/YYYY')  as x_date,
 sum(case col
-		when 'male_first_18_44' then p.male_first_18_44
+		when 'male_first_15_17' then p.male_first_15_17
+  		when 'female_first_15_17' then p.female_first_15_17
+  		when 'other_first_15_17' then p.other_first_15_17
+  		when 'pwd_first_15_17' then p.pwd_first_15_17
+  		when 'unidentified_first_15_17' then p.unidentified_first_15_17
+  		when 'male_second_15_17' then p.male_second_15_17
+  		when 'female_second_15_17' then p.female_second_15_17
+ 		when 'other_second_15_17' then p.other_second_15_17
+  		when 'pwd_second_15_17' then p.pwd_second_15_17
+  		when 'unidentified_second_15_17' then p.unidentified_second_15_17
+	when 'male_first_18_44' then p.male_first_18_44
   		when 'female_first_18_44' then p.female_first_18_44
   		when 'other_first_18_44' then p.other_first_18_44
   		when 'pwd_first_18_44' then p.pwd_first_18_44
@@ -124,12 +142,22 @@ sum(case col
  		when 'other_second_60' then p.other_second_60
   		when 'pwd_second_60' then p.pwd_second_60
   		when 'unidentified_second_60' then p.unidentified_second_60
+	when 'male_booster_60' then p.male_booster_60
+  		when 'female_booster_60' then p.female_booster_60
+ 		when 'other_booster_60' then p.other_booster_60
+  		when 'pwd_booster_60' then p.pwd_booster_60
+  		when 'unidentified_booster_60' then p.unidentified_booster_60
+	when 'male_booster_frontline' then p.male_booster_frontline
+  		when 'female_booster_frontline' then p.female_booster_frontline
+ 		when 'other_booster_frontline' then p.other_booster_frontline
+  		when 'pwd_booster_frontline' then p.pwd_booster_frontline
    	else NULL
    	end) as values,
 		
 case
 	when(temp.col) like '%first%' then 'First Dose'
-	else 'Second Dose'
+	when(temp.col) like '%second%' then 'Second Dose'
+	else 'Booster Dose'
 end as dose,
 
 case
@@ -141,6 +169,7 @@ case
 end as beneficiary_type,
 
 case
+	when(temp.col) like '%15_17' then '15-17'
 	when(temp.col) like '%18_44' then '18-44'
 	when(temp.col) like '%45_59' then '45-59'
 	else '60+'
