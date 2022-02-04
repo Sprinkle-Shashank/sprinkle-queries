@@ -1,4 +1,86 @@
-select p.projectid , p.name , p_name.name as name_update_p from profile_4227 p 
 
+with table1 as 
+(
+   select p.*, pace_value.name as pace_update_1 , p_name.name as vendor_update from profile_5997 p
+  
+  left join ds_mysql_prod_tagelement pace_value on 
+  p.pace_status = pace_value.id
+  
 left join ds_mysql_prod_project p_name on 
 p.projectid = p_name.id
+  
+  ),
+  
+ table11 as 
+(
+   select p.*, cast(c as varchar) from table1 p, p.country c
+  ),
+  
+  table2 as
+  (
+	select p.* , cou.name as country_update_1 from table11 p
+  
+  left join ds_mysql_prod_tagelement cou on 
+  p.c = cou.id),
+  
+  table5 as 
+  (
+	 select p.* , pace_value.name as pace_update_2 , cou.name as country_update_2 from profile_52162 p
+	
+	left join ds_mysql_prod_tagelement pace_value on 
+  p.pace_status = pace_value.id
+	
+  left join ds_mysql_prod_tagelement cou on 
+  p.country = cou.id
+	),
+	
+  table6 as 
+  (
+	 select p.projectid , Sum(num_females) as num_females , Sum(num_females_graduated) as num_females_graduated, type_program as Programs_run from profile_4227 p group by p.projectid , programs_run 
+	
+	),
+	
+batch_completed as (  select count(*)as completed ,  p46.name_vendor as vendor_batch_completed from profile_4227 p
+				   
+	left join profile_54646 p46 on 
+	p.projectid = p46.projectid
+					
+	where end_date_2 is not null 
+	group by p46.name_vendor 
+				   ),
+				   
+batch_ongoing as ( select  count(*)as ongoing ,  p46.name_vendor as vendor_batch_ongoing from profile_4227 p
+				  
+				  left join profile_54646 p46 on 
+	p.projectid = p46.projectid
+				  
+					 where end_date_2 is  null
+					 group by p46.name_vendor ),
+	
+	
+  table3 as
+  (
+	
+select p.projectid , p._id , p.name , name_country , p.name_vendor , name_vendor_filter , name_rp , name_vendor_filter as Partner_name , substring(Partner_name ,0,2) as First_Value, case when First_Value='V' then 'Vendor Partner' else 'Community Partner' end as Partner_type ,
+	
+	case when First_Value='V' and t5.sourcing_yn=57472 then cast(t5.vpid_1 as varchar) when First_Value='V' and t5.sourcing_yn=57473 then cast(t5.vpid_2 as varchar) when First_Value='V' then cast(t5.child_vpid_autocal as varchar) else p2.cp_id end as Vendor_partner_ID  , 
+	
+	case when First_Value='V' then t5.pace_update_2 else p2.pace_update_1 end as current_pace_status , p2.country_update_1 , t5.country_update_2 , case when First_Value='V' then t5.country_update_2 else p2.country_update_1 end as country , t6.num_females , t6.num_females_graduated , t6.Programs_run , b_complete.completed ,  b_ongoing.ongoing from profile_54646 p
+
+left join table5 t5 on 
+p.name_vendor = t5.vendor
+
+left join table2 p2 on 
+p.name_vendor = p2.vendor_update
+	
+	left join table6 t6 on 
+	p.projectid = t6.projectid 
+	
+	left join batch_completed b_complete on 
+	p.name_vendor = b_complete.vendor_batch_completed 
+	
+	left join batch_ongoing b_ongoing on 
+	p.name_vendor = b_ongoing.vendor_batch_ongoing 
+	)
+	
+  select distinct name_vendor , name_country  , name_vendor_filter , name_rp , First_Value , Partner_type , Vendor_partner_ID , current_pace_status , country , num_females , num_females_graduated , Programs_run , completed , ongoing  from table3 p
