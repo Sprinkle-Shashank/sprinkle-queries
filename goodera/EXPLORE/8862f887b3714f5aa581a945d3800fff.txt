@@ -1,8 +1,15 @@
-select  (projid_vendor) as vendorID, (projid_country) as countryID, COUNT(projid_factory) as factoryid, profile_52810.pace_brands, projid_rp as rpid , projcode_factory as factorycode, name_factory as factoryname from profile_54646
-
-INNER JOIN profile_52810 on
-	profile_54646.projectId = profile_52810.projectId
---where profile_52810.pace_brands LIKE 1151834
-
-group by profile_52810.pace_brands,projid_country,projid_vendor,projid_factory,projid_rp,projcode_factory, name_factory
-
+select
+				JSON_SERIALIZE(table_52810.pace_brands) as pace_brand,
+				p._id,
+				p.projectid,
+				table_54267._id as id_54267,
+				case when pace_status is not NULL then pace_status else pace_status_2 end  as pacestatus,
+				case when pace_brand like '%1151834%' then 1 else 0 end  as brand 
+				from profile_52713 p
+inner join profile_52810 table_52810 on
+table_52810.projectid=p.projectid
+inner join profile_4227 table_4227 on
+table_4227.projectid=p.projectid
+inner join profile_54267 table_54267 on
+table_54267.projectid=p.projectid
+where brand = 1 and (pacestatus = 845114 or pacestatus = null) group by p.projectid, table_52810.pace_brands
