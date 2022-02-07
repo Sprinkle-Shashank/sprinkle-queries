@@ -192,7 +192,7 @@ with sub1 as(
   group by name, fy_timerange, startdate),
   
 sub2 as(
-  select name, s1.fy_timerange, s1.month_year,
+  select name, s1.fy_timerange, s1.month_year, s1.startdate,
 
 (s1.dms_hexa_emission + s1.edc_hexa_emission + s1.dmf_hexa_emission + s1.methanol_emission + s1.mdcb_hexa_emission + s1.odcb_pekk_emission + s1.hexane_pekk_emission + s1.dpo_pekk_emission + s1.methanol_pekk_emission + s1.xylidine_emission + s1.mdmpa_emission + s1.dipa_lambda_emission + s1.toluene_aceta_emission + s1.hexane_lambda_emission + s1.xylene_km_emission + s1.tea_km_emission + s1.toluene_metco_emission + s1.ech_metco_emission + s1.heptane_tvcp_emission + s1.mdc_metalaxyl_emission +
 s1.mdc_utility_emission) as total_solvent_emission,
@@ -228,7 +228,9 @@ s1.electricity_emission as scope2,
 from sub1 s1),
 
 sub3 as(
-  select name, fy_timerange, cast('Total' as varchar) as month_year, total_solvent_emission, scope1, scope2, scope3, total_co2_emission, total_co2_tech_production, total_co2_total_production, water_tech_production, water_total_production, electricity_total_production, hw_total_production, solvent_loss_total_production, natural_gas_total_production, total_renewable_energy_utilization from sub2),
+  select name, fy_timerange, startdate, month_year, total_solvent_emission, scope1, scope2, scope3, total_co2_emission, total_co2_tech_production, total_co2_total_production, water_tech_production, water_total_production, electricity_total_production, hw_total_production, solvent_loss_total_production, natural_gas_total_production, total_renewable_energy_utilization from sub2
+union all
+	select name, fy_timerange, startdate, cast('Total' as varchar) as month_year, total_solvent_emission, scope1, scope2, scope3, total_co2_emission, total_co2_tech_production, total_co2_total_production, water_tech_production, water_total_production, electricity_total_production, hw_total_production, solvent_loss_total_production, natural_gas_total_production, total_renewable_energy_utilization from sub2),
 
 temp as(
   select 'total_solvent_emission' as col
@@ -280,3 +282,4 @@ end) as values
 from sub3 s3
 cross join temp
 group by s3.name, s3.fy_timerange, s3.month_year, temp.col
+order by cast(startdate as date) asc
