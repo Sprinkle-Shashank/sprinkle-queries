@@ -230,7 +230,7 @@ from sub1 s1),
 sub3 as(
   select name, fy_timerange, cast(startdate as date), month_year, total_solvent_emission, scope1, scope2, scope3, total_co2_emission, total_co2_tech_production, total_co2_total_production, water_tech_production, water_total_production, electricity_total_production, hw_total_production, solvent_loss_total_production, natural_gas_total_production, total_renewable_energy_utilization from sub2
 union all
-	select name, fy_timerange, to_date('20251231', 'YYYYMMDD') as startdate, cast('Total' as varchar) as month_year, total_solvent_emission, scope1, scope2, scope3, total_co2_emission, total_co2_tech_production, total_co2_total_production, water_tech_production, water_total_production, electricity_total_production, hw_total_production, solvent_loss_total_production, natural_gas_total_production, total_renewable_energy_utilization from sub2),
+	select name, fy_timerange, cast(startdate as date), cast('Total' as varchar) as month_year, total_solvent_emission, scope1, scope2, scope3, total_co2_emission, total_co2_tech_production, total_co2_total_production, water_tech_production, water_total_production, electricity_total_production, hw_total_production, solvent_loss_total_production, natural_gas_total_production, total_renewable_energy_utilization from sub2),
 
 temp as(
   select 'total_solvent_emission' as col
@@ -278,7 +278,11 @@ sum(case col
 		when 'natural_gas_total_production' then round(s3.natural_gas_total_production,2)
 		when 'total_renewable_energy_utilization' then round(s3.total_renewable_energy_utilization,2)
 	else null
-end) as values
+end) as values,
+case
+	when s3.month_year = 'Total' then 2
+	else 1
+end as sort_order
 from sub3 s3
 cross join temp
 group by s3.name, s3.fy_timerange, s3.month_year, temp.col, s3.startdate
