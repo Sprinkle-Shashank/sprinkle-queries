@@ -1,0 +1,151 @@
+with sub1 as(
+  select name, fy_timerange, cast(startdate as date),
+extract(month from cast(startdate as date)) as start_month, extract(year from cast(startdate as date)) as start_year,
+  case
+		  when start_month = 1 then 'Jan'
+		  when start_month = 2 then 'Feb'
+		  when start_month = 3 then 'Mar'
+		  when start_month = 4 then 'Apr'
+		  when start_month = 5 then 'May'
+		  when start_month = 6 then 'Jun'
+		  when start_month = 7 then 'Jul'
+		  when start_month = 8 then 'Aug'
+		  when start_month = 9 then 'Sep'
+		  when start_month = 10 then 'Oct'
+		  when start_month = 11 then 'Nov'
+		  when start_month = 12 then 'Dec'
+		  else NULL
+	end as month_new,
+  
+   sum(case
+	  	when keyword = 'diesel_emission' then datanumBase
+	  	else 0 
+	  end) as diesel_emission,
+  sum(case
+	  	when keyword = 'fo_emission' then datanumBase
+	  	else 0 
+	  end) as fo_emission,
+  sum(case
+	  	when keyword = 'biomass_emission' then datanumBase
+	  	else 0 
+	  end) as biomass_emission,
+  sum(case
+	  	when keyword = 'lpg_emission' then datanumBase
+	  	else 0 
+	  end) as lpg_emission,
+  sum(case
+	  	when keyword = 'mdc_emission' then datanumBase
+	  	else 0 
+	  end) as mdc_emission,
+  sum(case
+	  	when keyword = 'ea_emission' then datanumBase
+	  	else 0 
+	  end) as ea_emission,
+  sum(case
+	  	when keyword = 'meg_emission' then datanumBase
+	  	else 0 
+	  end) as meg_emission,
+  sum(case
+	  	when keyword = 'paper_emission' then datanumBase
+	  	else 0 
+	  end) as paper_emission,
+  sum(case
+	  	when keyword = 'enamel_paint_emission' then datanumBase
+	  	else 0 
+	  end) as enamel_paint_emission,
+  sum(case
+	  	when keyword = 'petrol_vehicle_emission' then datanumBase
+	  	else 0 
+	  end) as petrol_vehicle_emission,
+  sum(case
+	  	when keyword = 'cng_vehicle_emission' then datanumBase
+	  	else 0 
+	  end) as cng_vehicle_emission,
+   sum(case
+	  	when keyword = 'electricity_emission' then datanumBase
+	  	else 0 
+	  end) as electricity_emission,
+  sum(case
+	  	when keyword = 'diesel_buses_emission' then datanumBase
+	  	else 0 
+	  end) as diesel_buses_emission,
+  sum(case
+	  	when keyword = 'cng_buses_emission' then datanumBase
+	  	else 0 
+	  end) as cng_buses_emission,
+  sum(case
+	  	when keyword = 'total_tech_acephate' then datanumBase
+	  	else 0 
+	  end) as total_tech_acephate,
+  sum(case
+	  	when keyword = 'total_production' then datanumBase
+	  	else 0 
+	  end) as total_production,
+  sum(case
+	  	when keyword = 'water_cons_midc' then datanumBase
+	  	else 0 
+	  end) as water_cons_midc,
+  sum(case
+	  	when keyword = 'electricity_consumption' then datanum
+	  	else 0 
+	  end) as electricity_consumption,
+  sum(case
+	  	when keyword = 'solid_hazardous_waste' then datanumBase
+	  	else 0 
+	  end) as hazardous_waste_solid,
+  sum(case
+	  	when keyword = 'land_fill' then datanumBase
+	  	else 0 
+	  end) as land_fill,
+  sum(case
+	  	when keyword = 'total_solvent_loss' then datanumBase
+	  	else 0 
+	  end) as total_solvent_loss,
+  sum(case
+	  	when keyword = 'renenwable_energy_utilized' then datanum
+	  	else 0 
+	  end) as renenwable_energy_utilized,
+  sum(case
+	  	when keyword = 'natural_gas_consumption' then datanumBase
+	  	else 0 
+	  end) as natural_gas_consumption,
+  
+  (month_new||' ('||start_year||')') as month_year
+  from sus_79777
+  where name = 'Training_3'
+  group by name, fy_timerange, startdate),
+  
+sub2 as(
+  select s1.name, s1.fy_timerange, s1.month_year, s1.startdate,
+  
+(s1.mdc_emission + s1.ea_emission) as total_solvent_emission,
+  
+(s1.diesel_emission + s1.fo_emission + s1.biomass_emission + s1.lpg_emission + s1.mdc_emission + s1.ea_emission + total_solvent_emission + s1.paper_emission + s1.enamel_paint_emission + s1.petrol_vehicle_emission + s1.cng_vehicle_emission) as scope1,
+  
+s1.electricity_emission as scope2,
+
+(s1.diesel_buses_emission + s1.cng_buses_emission) as scope3,
+
+(scope1 + scope2 + scope3) as total_co2_emission,
+
+(total_co2_emission / NULLIF(s1.total_tech_acephate, 0)) as total_co2_tech_production,
+
+(total_co2_emission / NULLIF(s1.total_production, 0)) as total_co2_total_production,
+  
+(s1.water_cons_midc / NULLIF(s1.total_tech_acephate, 0)) as water_tech_production,
+
+((s1.water_cons_midc) / NULLIF(s1.total_production), 0)) as water_total_production,
+  
+((s1.electricity_consumption) / NULLIF(s1.total_production, 0)) as electricity_total_production,
+
+((s1.hazardous_waste_solid + s1.land_fill) / NULLIF(s1.total_production, 0)) as hw_total_production,
+
+(s1.total_solvent_loss / NULLIF(s1.total_production, 0)) as solvent_loss_total_production,
+
+(s1.natural_gas_consumption / NULLIF(s1.total_production, 0)) as natural_gas_total_production,
+
+(s1.renenwable_energy_utilized / NULLIF(s1.total_production, 0)) as renewable_energy_total_production	
+
+from sub1 s1)
+
+select * from sub2
