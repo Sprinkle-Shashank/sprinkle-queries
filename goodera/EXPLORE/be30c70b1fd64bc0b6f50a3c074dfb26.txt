@@ -1,0 +1,54 @@
+with table1 as(
+  
+select * from profile_68161 
+),
+
+table2 as 
+(
+  select p.* , cast( c as varchar ) as programs_run_update  from table1 p , p.programs_run as c 
+ 
+),   
+  
+table3 as
+( 
+    select  facility_name, child_vendor_name, parent_vendor_name, facility_status, facility_rating, country_code, pace_status, pace_status_detail, assessor, last_assessment_date, sustainability_contact, payment_method, last_assessment_name, last_assessment_type, date_latest, pace, wcp, sst, wep, gbv, goodera_facility_name, goodera_facility_name_text, fac_vpid, child_vendor_vpid, parent_vendor_vpid, facility_score, open_issues, total_workers, female_workers, male_workers, fac_id,
+	
+	programs_run_update_1.name as programs_run_1 , 
+	parent_vendor_name_1.name as vendor_name_1, 
+	primary_category_1.name as primary_category_1 ,
+	country_name_1.name as country_name_1,
+  
+	profile_60670.status_begin as status_begin
+  	profile_65025.status_begin as status_new
+	from table2 p 
+	 
+	
+ 	 left join ds_mysql_prod_tagelement programs_run_update_1 on
+ 	 p.programs_run_update = programs_run_update_1.id
+	
+	 left join ds_mysql_prod_tagelement parent_vendor_name_1 on
+ 	 p.parent_vendor_name = parent_vendor_name_1.id
+	
+	 left join ds_mysql_prod_tagelement  primary_category_1 on
+ 	 p.primary_category =  primary_category_1.id
+	
+	 left join ds_mysql_prod_tagelement  country_name_1 on
+ 	 p.country_name =  country_name_1.id
+	
+	 left join profile_60670 on 
+	 p.goodera_facility_name_text = profile_60670.facility_project_name_main
+  
+  	 left join profile_65025 on 
+	 p.goodera_facility_name_text = profile_65025.facility_project_name_update
+	
+	where facility_status in (845097, 845104) and wep = 57472  	-- may be error
+  
+  Group By projectId, facility_name, child_vendor_name, parent_vendor_name, facility_status, facility_rating, country_code, pace_status, pace_status_detail, assessor, last_assessment_date, sustainability_contact, payment_method, last_assessment_name, last_assessment_type, date_latest, pace, wcp, sst, wep, gbv, goodera_facility_name, goodera_facility_name_text, fac_vpid, child_vendor_vpid, parent_vendor_vpid, facility_score, open_issues, total_workers, female_workers, male_workers,  fac_id,programs_run_update_1.name, parent_vendor_name_1.name , primary_category_1.name ,
+	country_name_1.name,profile_16619.status
+	
+	)
+	
+	 select  facility_name, child_vendor_name, parent_vendor_name, facility_status, facility_rating, country_code, pace_status, pace_status_detail, assessor, last_assessment_date, sustainability_contact, payment_method, last_assessment_name, last_assessment_type, date_latest, pace, wcp, sst, wep, gbv, goodera_facility_name, goodera_facility_name_text, fac_vpid, child_vendor_vpid, parent_vendor_vpid, facility_score, open_issues, total_workers, female_workers, male_workers,  fac_id ,country_name_1 ,primary_category_1 ,vendor_name_1  ,status,
+	 listagg(programs_run_1 ,',') as programs_run_final  from table3 as p 
+	 
+	 group by  facility_name, child_vendor_name, parent_vendor_name, facility_status, facility_rating, country_code, pace_status, pace_status_detail, assessor, last_assessment_date, sustainability_contact, payment_method, last_assessment_name, last_assessment_type, date_latest, pace, wcp, sst, wep, gbv, goodera_facility_name, goodera_facility_name_text, fac_vpid, child_vendor_vpid, parent_vendor_vpid, facility_score, open_issues, total_workers, female_workers, male_workers,  fac_id ,country_name_1 ,primary_category_1 ,vendor_name_1,status
