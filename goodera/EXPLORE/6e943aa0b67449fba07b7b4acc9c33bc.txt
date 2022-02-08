@@ -1,7 +1,41 @@
-Select xprojectid,financialperiod,datanumBase
-	  
-	  
-		   from sus_56999 
- 
- where keyword ='propane_usage'
- --group by t.name,t1.name,t2.name
+with s1 as (
+Select t.name as site,t1.name as sub_Region,t2.name as Region,
+         Sum(CASE 
+             WHEN keyword = 'electricity_usage' THEN datanumBase
+             ELSE 0 
+           END)  as electricity_usage,
+		     Sum(CASE 
+             WHEN keyword = 'electricity_solar' THEN datanumBase
+             ELSE 0 
+           END)  as electricity_solar,
+		     Sum(CASE 
+             WHEN keyword = 'propane_usage' THEN datanumBase
+             ELSE 0 
+           END)  as propane_usage,
+		     Sum(CASE 
+             WHEN keyword = 'diesel_fuel_usage' THEN datanumBase
+             ELSE 0 
+           END)  as diesel_fuel_usage,
+		     Sum(CASE 
+             WHEN keyword = 'gasoline_usage' THEN datanumBase
+             ELSE 0 
+           END)  as gasoline_usage,
+		     Sum(CASE 
+             WHEN keyword = 'natural_gas_usage' THEN datanumBase
+             ELSE 0 
+           END)  as natural_gas_usage,
+		   fy_timerange
+
+
+from sus_56999
+  left join ds_mysql_prod_project t
+  on xprojectid=t.id
+  left join ds_mysql_prod_project t1
+  on t.parent=t1.id
+  left join ds_mysql_prod_project t2
+  on t1.parent=t2.id
+
+  
+  group by t.name,t1.name,t2.name,fy_timerange
+)
+Select * from s1 
