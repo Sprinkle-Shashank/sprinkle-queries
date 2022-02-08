@@ -2,12 +2,13 @@ with lookup as (select
 				JSON_SERIALIZE(table_52810.pace_brands) as pace_brand,
 				case when pace_brand like '%1151834%' then 1 else 0 end  as brand,
 				pace_status as paceStatus,
+				listagg( distinctp.projectid) as projectId,
 				case when paceStatus = 182398 then 1 else 0 end as status,
-				listagg(table_54646.name_country) as country_name,
-				listagg(table_54646.name_vendor_filter) as vendor,
-				listagg(table_54646.name) as factory_name,
-				cp_location_id as factory_id,
-				cp_id as vendor_vpid
+				listagg(Distinct table_54646.name_country) as country_name,
+				listagg(Distinct table_54646.name_vendor_filter) as vendor,
+				(table_54646.name) as factory_name,
+				listagg(Distinct cp_location_id) as factory_id,
+				listagg(cp_id) as vendor_vpid
 				
 				from profile_4948 p
 				
@@ -20,5 +21,5 @@ table_4227.projectid=p.projectid
 left join profile_54646 table_54646 on
 table_54646.projectid=p.projectid
 				
-group by   pace_brand,vendor_vpid, p.projectid,factory_id,brand,paceStatus,status)
+group by   pace_brand, p.projectid,brand,paceStatus,status,factory_name)
 select * from lookup p where brand = 1 and status = 1
