@@ -1,7 +1,17 @@
-Select  a.fy_timerange,p.name as projectid,a.school_name,t.name as location,count(distinct(a.school_name)) as count_of_schools,a.teachers_school as number_of_teachers,count(*)
+with temp as(
+  Select 'Total number of teachers' as col
+)
+
+
+Select  a.fy_timerange,p.name as projectid,a.school_name,t.name as location,temp.col as dimensions,count(*),
+sum(case col
+	when 'Total number of teachers' then a.teachers_school
+	 else NULL
+end) as Values
+
 from profile_79427 a
 
 left join ds_mysql_prod_project p on p.id = a.projectid
 left join ds_mysql_prod_tagelement t on t.id=a.location
 
-group by a.fy_timerange,p.name,a.school_name,t.name,a.teachers_school
+group by a.fy_timerange,p.name,a.school_name,t.name,temp.col
