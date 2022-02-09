@@ -1,21 +1,18 @@
 with lookup as (select
 				JSON_SERIALIZE(table_52810.pace_brands) as pace_brand,
 				case when pace_brand like '%1151834%' then 1 else 0 end  as brand,
-				SUBSTRING(p.name, 1, 2) AS ExtractString;
-				case when ExtractString is not ' ' then 1 else 0 and as check,
+				SUBSTRING(p.name, 1, 2) as ExtractString,
+				case when ExtractString not like '-' then 1 else 0 end as ch,
 				p.name as name,
-				module_name as module_name,
-				start_date as start_date,
-				end_date as end_date,
-				pre_post_yn as pre_post_yn,
-				no_pre_assessment as no_pre_assessment,
-				score as score,
-				no_post_assessment as no_post_assessment,
-				score2 as score2,
-				attendance as attendance,
-				data_user as data_user
-				
-				
+				p.module_name as module_name,
+				p.start_date as start_date,
+				p.end_date as end_date,
+				p.pre_post_yn as pre_post_yn,
+				p.no_pre_assessment as no_pre_assessment,
+				p.score as score,
+				p.no_post_assessment as no_post_assessment,
+				p.score2 as score2,
+				p.attendance as attendance	
 				
 				from profile_4228 p
 						
@@ -26,8 +23,9 @@ inner join profile_4227 table_4227 on
 table_4227.projectid=p.projectid
 				
 left join ds_mongo_taskresponse taskResponse on
-taskResponse.profileinstanceid=p._id
-				
-				)
+taskResponse.profileinstanceid=p._id		
+			
+			   
+order by extractstring)
 --group by   pace_brand, p.projectid,brand,paceStatus,status,factory_name)
-select * from lookup p where brand = 1 and check =1
+select * from lookup p where brand = 1 and ch =1
