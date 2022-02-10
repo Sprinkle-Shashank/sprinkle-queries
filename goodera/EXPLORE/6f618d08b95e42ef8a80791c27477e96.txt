@@ -1,0 +1,48 @@
+with table1 as (select fy_timerange, num_participants, loc_sates_districts, case when num_direct_bene is not null then 'Not Known' end as gender, t.name as proj_location, t1.name as partner, t2.name as projectId, t3.name as project,   profile_75455.state as state_codes, profile_75455.state as state
+
+from profile_27713
+
+
+left join ds_mysql_prod_project t
+on profile_27713.projectid=t.id
+left join ds_mysql_prod_project t1
+on t.parent=t1.id
+left join ds_mysql_prod_project t2
+on t1.parent=t2.id
+				left join ds_mysql_prod_project t3
+on t2.parent=t3.id
+
+
+left join profile_75455
+on profile_75455.projectId=profile_27713.projectId
+
+),
+table2 as (
+  select t.name as projectid,  proj_start_date, proj_end_date,fa.name as focus_area, pp.name as project_pillar, pt.name as project_type from profile_65552
+ left join ds_mysql_prod_project t
+ on profile_65552.projectid=t.id
+  
+  
+left join ds_mysql_prod_tagelement fa
+on  profile_65552.focus_area = fa.id
+  
+  
+left join ds_mysql_prod_tagelement pp
+on  profile_65552.project_pillar = pp.id
+  
+  
+left join ds_mysql_prod_tagelement pt
+on  profile_65552.project_type = pt.id
+  
+  
+
+)
+select table1.projectId, NVL2(gender,gender,'Not known') as gender, fy_timerange, project, partner,state, state_codes as state_code, proj_start_date, proj_end_date, focus_area, project_pillar, project_type,sum(num_direct_bene) as DirectBeneficiaries, case when project_type is not null then 'Beneficiaries' end as filter from table1
+
+
+--left join profile_73573 st on table1.state_codes = st.nptel_loc
+
+left join table2
+on table2.projectId = table1.partner
+
+group by  table1.projectId, gender, fy_timerange, partner,project,  proj_start_date, proj_end_date, focus_area, project_pillar, project_type, state, state_code, filter, gender
