@@ -1,5 +1,5 @@
 			
-with table1 as ( select sel_location, no_beneficiaries, fy_timerange, t.name as proj_location, t1.name as partner, t2.name as projectId, t3.name as project
+with table1 as ( select sel_location, no_beneficiaries, fy_timerange, t.name as proj_location, t1.name as partner, t2.name as projectId, t3.name as project, count(*) as count
 
 from profile_72876
 
@@ -18,6 +18,8 @@ on t2.parent=t3.id
 left join profile_75455
 on profile_75455.projectId=profile_72876.projectId
 
+group by sel_location, no_beneficiaries, fy_timerange, t.name, t1.name , t2.name, t3.name
+				
 ),table3 as 
 (
    select p.* , cast(c as varchar)  as state from table1 as p , p.sel_location as c
@@ -45,7 +47,7 @@ on  profile_65552.project_type = pt.id
   
 
 )
-select table3.projectId, fy_timerange, project, partner,stcd.name as state, table3.state as state_code, proj_start_date, proj_end_date, focus_area, project_pillar, project_type, count(*) as count, case when project_type is not null then 'Beneficiaries' end as filter from table3
+select table3.projectId, fy_timerange, project, partner,stcd.name as state, table3.state as state_code, proj_start_date, proj_end_date, focus_area, project_pillar, project_type,count, case when project_type is not null then 'Beneficiaries' end as filter from table3
 
 
 left join ds_mysql_prod_tagelement st
@@ -59,4 +61,4 @@ on  st.parent = stcd.id
 left join table2
 on table2.projectId = table3.partner
 
-group by  table3.projectId, fy_timerange, partner,project,  proj_start_date, proj_end_date, focus_area, project_pillar, project_type, stcd.name, state_code, filter
+group by  table3.projectId, fy_timerange, partner,project,  proj_start_date, proj_end_date, focus_area, project_pillar, project_type, stcd.name, state_code, filter,count
