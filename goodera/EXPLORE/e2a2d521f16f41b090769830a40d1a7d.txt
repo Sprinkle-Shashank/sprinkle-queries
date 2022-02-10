@@ -1,10 +1,9 @@
-with temp as (
-Select 'Male' as col
-  union all
-Select 'Female' as col),
-sub1 as(
-select t.name as proj_location, t1.name as partner, t2.name as projectId, no_girls, no_boys, school_name, class, fy_timerange
-from profile_67673 ss
+select projectId, fy_timerange, school_name,t1.name as partner, t2.name as projectId
+,proj_start_date, proj_end_date, focus_area, project_pillar, project_type, st.name
+
+from profile_67373
+
+
 left join ds_mysql_prod_project t
 on ss.projectid=t.id
 left join ds_mysql_prod_project t1
@@ -12,61 +11,11 @@ on t.parent=t1.id
 left join ds_mysql_prod_project t2
 on t1.parent=t2.id
 
-),
-sub2 as
-(
-select t3.name as location, s1.proj_location, s1.partner, s1.projectId, mr.impl_agency as imp_partner, sum(no_girls) as Female, sum(no_boys) as Male, school_name, class, fy_timerange
-from sub1 s1
-left join profile_65603 pd
-on s1.proj_location=pd.projectId
-left join profile_65552 mr
-on mr.projectId=s1.partner
-  left join ds_mysql_prod_tagelement t3
-on t3.id=pd.location
-group by proj_location, class, fy_timerange, partner, s1.projectId, location, impl_agency, t3.name,school_name),
-sub3 as(
-select s2.*, 
-  case 
-  when class=836474 then 6
-  when class=836475 then 7
-  when class=836476 then 8
-  when class=836477 then 9
-  when class=836478 then 10
-  when class=836479 then 11
-  when class=836480 then 12
-  when class=836481 then 13
-  when class=836482 then 14
-  when class=836483 then 15
-  when class=836484 then 16
-  else 17 end as age
-  from sub2 s2), 
-  sub4 as(
-  select s1.*,
-	case 
-		when s1.age<=6 then 'Less than 6'
-		when s1.age>=6 and s1.age<=10 then '6 to 10'
-		when s1.age>=10 and s1.age<=15 then '10 to 15'
-		when s1.age>=15 and s1.age<=18 then '15 to 18'
-		when s1.age>=18 and s1.age<=35 then '18 to 35'
-		when s1.age>=35 and s1.age<=60 then '35 to 60'
-		else 'Greater than 60'
-		end as age_bucket
-	from sub3 s1), 
-	sub5 as(
-	select s4.*,  st.name as state_code,cast('School' as text
-)  as center_school
-	from sub4 s4
-	  left join profile_73573 st
-	on st.loc_select=s4.location),
-	sub6 as (
-	select s5.proj_location, s5.fy_timerange, s5.partner, s5.projectId, s5.location, s5.age_bucket, s5.state_code, s5.center_school,
-	  sum(case col 
-  	when 'Male' then s5.male
-   when 'Female' then s5.female
-  else null
-  end )as no_benf,temp.col as gender
-	  from sub5 s5
-	  cross join temp 
-	  group by s5.proj_location, s5.fy_timerange, s5.partner, s5.projectId, s5.location, s5.age_bucket, s5.state_code, s5.center_school,temp.col
-	)
-	  select * from sub6
+left join profile_65552
+on profile_65552.projectId=profile_67373.partner
+
+left join profile_75455
+on profile_75455.projectId=profile_67373.projecId
+
+left join ds_mysql_prod_tagelement st
+on  profile_75455.state = st.id
