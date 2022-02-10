@@ -11,13 +11,13 @@ with lookup as (select
 				table_54646.name_vendor_filter as vendor,
 				table_54646.name as factory_name,
 				p.child_vendor_vpid as vendor_vpid,
-				table_4580.batch as batch,
-				table_4580.stry_title as stry_title,
+				listagg( distinct table_4580.batch) as batch,
+				listagg(distinct table_4580.stry_title) as stry_title,
 				listagg(distinct table_4580.date) as date,
-				table_4580.impact_story as impact_story,
+				listagg( distinct table_4580.impact_story) as impact_story,
 				listagg(distinct table_4580._id) as _id,
 				--table_4227.start_date as start_date,
-				table_4227.name as batch_name			
+				listagg( distinct table_4227.name) as batch_name			
 				from profile_52713 p
 						
 inner join profile_52810 table_52810 on
@@ -37,11 +37,16 @@ table_4580.projectid=p.projectid
 				
 left join ds_mongo_taskresponse taskResponse on
 taskResponse.profileinstanceid=p._id		
-group by table_52810.pace_brands,table_54267.pace_status,p.pace_status_2,factory_vpid_1,sourcing_yn,table_54646.name_vendor_filter,table_54646.name,p.child_vendor_vpid,table_4580.batch,table_4580.stry_title,
+group by table_52810.pace_brands,table_54267.pace_status,p.pace_status_2,factory_vpid_1,
+				--sourcing_yn,
+				table_54646.name_vendor_filter,table_54646.name,p.child_vendor_vpid,
+				--table_4580.batch,
+				--table_4580.stry_title,
 				--table_4580.date,
-				table_4580.impact_story,
+				--table_4580.impact_story,
 				--table_4580._id,
 				--table_4227.start_date,
-				table_4227.name,p.factory_vpid_2
+				--table_4227.name,
+				p.factory_vpid_2
 )
 select * from lookup p where brand = 1 and status =1
