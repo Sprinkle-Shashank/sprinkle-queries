@@ -6,15 +6,12 @@ with lookup as (select
 				(table_54646.name) as factory_name,
 				table_54646.fac_brand_code as brand_code,
 				cp_location_id as factory_id,
-				p.child_vendor_vpid as vendor_vpid,
 				table_52810.pace_brands as brand_code_new,
 				
 				case when table_54267.pace_status is not null then table_54267.pace_status else pace_status_2 end as paceStatus,
-				case when paceStatus = 845114 or paceStatus is null then 845114 else paceStatus end as pace_status
+				case when paceStatus = 845114 or paceStatus is null then 845114 else paceStatus end as pace_status,
 				
-				
-				
-				
+				taskResponse.submissionLog[0].email as data_user
 				table_4227.start_date as start_date,
 				table_4227.end_date as end_date,
 				table_4227.num_females as num_females,
@@ -49,7 +46,8 @@ with lookup as (select
 				table_4227.lg_status as lg_status,
 				table_4227._id as _id,
 				brand_code as brand_code_old,
-		
+				brandTag.name as brand_code_new1,
+				tag.name as pace_status,
 				
 				case when lg_status = 848007 or lg_status is null  then 1 else 0 end as lg
 				
@@ -68,10 +66,13 @@ inner join profile_54646 table_54646 on
 table_54646.projectid=p.projectid
 				
 left join ds_mongo_taskresponse taskResponse on
-taskResponse.profileinstanceid=p._id
+taskResponse.profileinstanceid=table_4227._id
 				
 left join ds_mysql_prod_tagElement brandTag on
 brandTag.id=p.projectid
+				
+left join ds_mysql_prod_tagElement tag on
+brandTag.id=p.pace_status_2
 				)
 --group by   pace_brand, p.projectid,brand,paceStatus,status,factory_name)
 select * from lookup p where brand = 1 and lg=1
