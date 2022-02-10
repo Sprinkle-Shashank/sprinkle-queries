@@ -1,5 +1,5 @@
 			
-with table1 as ( select sel_location, no_beneficiaries, fy_timerange, t.name as proj_location, t1.name as partner, t2.name as projectId, t3.name as project, profile_72876.sel_location as state_codes, st.name as state
+with table1 as ( select sel_location, no_beneficiaries, fy_timerange, t.name as proj_location, t1.name as partner, t2.name as projectId, t3.name as project, profile_72876.sel_location as state
 
 from profile_72876
 
@@ -18,9 +18,13 @@ on t2.parent=t3.id
 left join profile_75455
 on profile_75455.projectId=profile_72876.projectId
 
-left join ds_mysql_prod_tagelement st
-on  profile_72876.sel_location = st.id
-),
+),table3 as 
+(
+   select p.* , cast(c as varchar)  as states from table1 as p , p.sel_location as c
+ ),
+
+
+
 table2 as (
   select t.name as projectid,  proj_start_date, proj_end_date,fa.name as focus_area, pp.name as project_pillar, pt.name as project_type from profile_65552
  left join ds_mysql_prod_project t
@@ -41,12 +45,12 @@ on  profile_65552.project_type = pt.id
   
 
 )
-select table1.projectId, fy_timerange, project, partner,state, state_codes as state_code, proj_start_date, proj_end_date, focus_area, project_pillar, project_type, count(*) as count, case when project_type is not null then 'Beneficiaries' end as filter from table1
+select table3.projectId, fy_timerange, project, partner,table3.state, table3.state as state_code, proj_start_date, proj_end_date, focus_area, project_pillar, project_type, count(*) as count, case when project_type is not null then 'Beneficiaries' end as filter from table3
 
 
 --left join profile_73573 st on table1.state_codes = st.nptel_loc
 
 left join table2
-on table2.projectId = table1.partner
+on table2.projectId = table3.partner
 
 group by  table1.projectId, fy_timerange, partner,project,  proj_start_date, proj_end_date, focus_area, project_pillar, project_type, state, state_code, filter
