@@ -5,6 +5,7 @@ Select 'Kilograms' as col
 ),
 s1 as (Select t.name as site,t1.name as sub_Region,t2.name as Region,fy_timerange,t3.name as Month,len(t3.name) as Month_Length,t4.name as fin_q,t5.name as fin_hy,t6.name as fin_y,EXTRACT(YEAR FROM(CAST(startdate AS datetime))) as year,
 	   (Month_length-7) as month_length1,substring(Month,1,month_length1) as Monthly,
+	   EXTRACT(Month FROM(CAST(startdate AS datetime))) as m,
 	   --substring(fy_timerange.start,6,2) as time_month,
 	  Sum(CASE 
              WHEN keyword = 'biomedical_disposal' THEN datanumBase
@@ -47,14 +48,14 @@ group by t.name,t1.name,t2.name,fy_timerange,t3.name,t4.name,t5.name,t6.name,sta
 ),
 
 s2 as (
-  Select  s1.site,s1.sub_Region,s1.Month,s1.Month_length,s1.Month_length1,s1.Monthly,s1.fin_q,s1.fin_hy,s1.fin_y,s1.Region,s1.year,s1.fy_timerange,
+  Select  s1.site,s1.sub_Region,s1.Month,s1.Month_length,s1.Month_length1,s1.Monthly,s1.fin_q,s1.fin_hy,s1.fin_y,s1.Region,s1.year,s1.fy_timerange,s1.m,
   (nvl(s1.biomedical_disposal,0)+nvl(s1.total_hazwaste,0)+nvl(s1.total_nonhaz,0)+nvl(s1.total_nonhaz_recycled,0)+nvl(s1.nonhaz_reg_total,0)) as tons
   from s1
   
 
 ),
 s3 as (
-  Select s2.site,s2.Region,s2.year,s2.fy_timerange,s2.Monthly,
+  Select s2.site,s2.Region,s2.year,s2.fy_timerange,s2.Monthly,s2.m,
   temp.col as unit,
    sum(case col
     when 'Tons'  then s2.tons
@@ -65,10 +66,10 @@ s3 as (
   from s2
   
   cross join temp
-  group by s2.site,s2.Region,s2.year,s2.fy_timerange,temp.col,s2.Monthly
+  group by s2.site,s2.Region,s2.year,s2.fy_timerange,temp.col,s2.Monthly,s2.m
 )
 
-Select s3.site,s3.Region,s3.year,s3.fy_timerange,s3.unit,(s3.total_waste) as waste_m,s3.Monthly
+Select s3.site,s3.Region,s3.year,s3.fy_timerange,s3.unit,(s3.total_waste) as waste_m,s3.Monthly,s3.m,
   from s3
   where  coalesce(s3.Monthly,'')  NOT IN ('Q1' , 'Q2',' ')
  
