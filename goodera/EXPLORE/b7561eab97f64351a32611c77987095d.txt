@@ -8,11 +8,12 @@ with sub1  as(
 Select a.fy_timerange, p.name as projectid,a.name as programs, p1.name as Implementation_partner,
 count(a.name) as no_of_programs,count(partner_name) as no_of_Implementation_partners,
 t.name as state, count(t.name) as no_of_states ,
-a.start as start_date,a.end as end_date,
+to_char(a.start, 'DD-MM-YYYY') as start_date,
+to_char(a.end, 'DD-MM-YYYY') as end_date,
 a.about as Project_description,
 t1.name as focus_area,
-t2.name as schedule_vii,
-d.name as sdg
+listagg(t2.name, ', ') as schedule_vii,
+listagg(d.name, ', ') as sdg
 
 
 from  sub1 a
@@ -26,4 +27,4 @@ left join ds_mysql_prod_tagelement t2 on t2.id=a.unwind_schedule_vii
 
 left join  profile_61260 d on d._id = a.unwind_sdg_id
 
-group by a.fy_timerange,a.name,p.name,p1.name,t.name,a.start,a.end,a.about,t1.name,t2.name,d.name
+group by a.fy_timerange,a.name,p.name,p1.name,t.name,a.start,a.end,a.about,t1.name
