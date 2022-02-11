@@ -1,13 +1,11 @@
 select p1.line_item, p1.fy_timerange, 
-p1.budgeted_amount, t.name category , project.name project_name, 
-case when sum(p.amount_utilized)  is NULL then '0' 
-	 else sum(p.amount_utilized) end  amount_utilized,
+p1.budgeted_amount, t.name category , project.name project_name, p.amount_utilized,
 case when p.amount_utilized is NULL then sum(p1.budgeted_amount)
 	 else (sum(p1.budgeted_amount) - sum(p.amount_utilized)) end unspent_amount, 
 case when p.amount_utilized is NULL then '0'
 	 else sum(p.amount_utilized)*100/sum(p1.budgeted_amount) end percentage_utilised
-from profile_77224 p 
-right join profile_77223 p1
+from profile_77223 p1
+left join profile_77224 p
 on p.line_item = p1._id
 left join ds_mysql_prod_tagelement as t 
 on p1.category = t.id
