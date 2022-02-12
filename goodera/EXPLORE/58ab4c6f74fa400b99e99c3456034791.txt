@@ -1,5 +1,5 @@
 select p.strategic_yn, 
-p.projectId,p.facility_name,p.year_timerange,p.country,p.female_workers,p.pace_enrolled,(pace_enrolled*100) AS p1, p1/female_workers AS PACE,ven.name as vendor,
+p.projectId,p.facility_name,p.year_timerange,p.country as country,p.female_workers,p.pace_enrolled,(pace_enrolled*100) AS p1, p1/female_workers AS PACE,p2.name_vendor_filter as vendor,
 case 
 	when 1=1
 	then 1
@@ -14,16 +14,14 @@ END AS result
 
 
 from profile_76755 p
-left join ds_mysql_prod_project fac
-on p.projectId = fac.id
-left join ds_mysql_prod_project ven
-on fac.parent = ven.id
+left join profile_54646 p2 
+on p.projectid = p2.projectid
 
 
 
-WHERE p.strategic_yn ='Yes' AND result = 'YES'
+WHERE p.strategic_yn ='Yes' --AND result = 'YES'
 
-Group by  p.projectId, p.facility_name, p.year_timerange, p.country, ven.name, result, 
+Group by  p.projectId, p.facility_name, p.year_timerange, p.country, vendor, result, 
 p.female_workers,p.pace_enrolled,p.pace,p.strategic_yn
 
 
