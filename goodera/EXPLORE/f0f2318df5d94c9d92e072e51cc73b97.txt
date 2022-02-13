@@ -1,42 +1,54 @@
-with table1 as(
-  
-select * from profile_68161 
+
+
+
+
+
+
+
+with test0 as(Select p.* ,CAST(pace_goals as VARCHAR)from profile_76755 p
+, p.pace_goals_arr pace_goals
 ),
-  
-  
-table3 as
-( 
-select  p.projectid, facility_name,  facility_status, facility_rating, pace_status, pace_status_detail, assessor, last_assessment_date,  payment_method, pace, wcp, sst, wep, gbv, goodera_facility_name_text, fac_vpid, parent_vendor_vpid, facility_score, open_issues, total_workers,
-	
-  
-	parent_vendor_name_1.name as vendor_name, 
-	primary_category_1.name as primary_category ,
-	country_name_1.name as country_name
-	from table1 p 
-  
-  
-	 left join ds_mysql_prod_tagelement parent_vendor_name_1 on
- 	 p.parent_vendor_name = parent_vendor_name_1.id
-	
-	 left join ds_mysql_prod_tagelement  primary_category_1 on
- 	 p.primary_category =  primary_category_1.id
-	
-	 left join ds_mysql_prod_tagelement  country_name_1 on
- 	 p.country_name =  country_name_1.id
-	
-	 left join profile_16619 p2 on 
-	 p.goodera_facility_name_text = p2.facility_project_name
-	
-    where facility_status in (845097, 845104) and p.projectid like '%%' and (p2.status=1400365 or p2.status is null) 
-  
-  Group By   p.projectId, p.name, month, fy, facility_name, child_vendor_name, parent_vendor_name, facility_status, facility_rating, country_code, pace_status, pace_status_detail, assessor, last_assessment_date, sustainability_contact, payment_method, last_assessment_name, last_assessment_type, date_latest, pace, wcp, sst, wep, gbv, fac_id, goodera_facility_name, goodera_facility_name_text, fac_vpid, child_vendor_vpid, parent_vendor_vpid, facility_score, open_issues, total_workers, female_workers, male_workers, vendor_name,  parent_vendor_name_1.name , primary_category_1.name , country_name_1.name
-	
-	)
-	
-	select  p.projectid, facility_name,  facility_status, facility_rating, pace_status, pace_status_detail, assessor, last_assessment_date,  payment_method, pace, wcp, sst, wep, gbv, goodera_facility_name_text, fac_vpid, parent_vendor_vpid, facility_score, open_issues, total_workers,
-	
-  
-	 vendor_name, 
-	primary_category ,
-	country_name
-	from table3 p
+
+ test1 as(
+Select t0.projectId, t0.facility_name, t0.pace, t0.strategic_yn, t0.year_timerange, t0.country as country, t0.director_region as director_region, 
+certified_mts*100 AS a1,
+a1/certified_trainers AS master,p1.certified_trainers , p1.certified_mts , p1.pace_introduced 
+
+
+from test0 t0
+   
+left join profile_76895 p1
+on t0.pace_goals = p1._id
+),
+test2 as (select t1.projectid,p2.name_vendor_filter as vendor,CASE WHEN (pace = 'Yes') AND (master>=30) AND (pace_introduced = 57472) THEN 'Yes'
+ELSE 
+'No'
+END AS result
+
+from test1 t1
+
+left join profile_54646 p2 
+on t1.projectid = p2.projectid
+
+group by t1.projectId,vendor
+
+),
+test3 as (Select t1.projectId,t1.facility_name, t1.pace, t1.strategic_yn, t1.year_timerange, t1.country as country, t1.director_region as director_region, certified_mts*100 AS a1,
+a1/certified_trainers AS master,t1.certified_trainers , t1.certified_mts , t1.pace_introduced ,t2.result,t2.vendor,
+case 
+	when 1=1
+	then 1
+	else 0
+	end
+	as count
+
+from test1 t1
+
+
+
+left join test2 t2 on
+on t1.projectid = t2.projectid
+
+
+)
+select * from test3
