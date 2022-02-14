@@ -4,7 +4,7 @@ with lookup as (select
 				table_54646.name_country as country_name,
 				table_54646.name_vendor_filter as vendor,
 				(table_54646.name) as factory_name,
-				table_54646.fac_brand_code as brand_code,
+				table_54646.fac_brand_code as brand_code_old,
 				cp_location_id as factory_id,
 				table_52810.pace_brands as brand_code_new,
 				
@@ -12,44 +12,41 @@ with lookup as (select
 				case when paceStatus = 845114 or paceStatus is null then 845114 else paceStatus end as pace_status,
 				
 				taskResponse.submissionLog[0].email as data_user,
-				table_4227.start_date as start_date,
-				table_4227.end_date as end_date,
-				table_4227.num_females as num_females,
+				listagg(distinct table_4227.start_date) as start_date,
+				listagg(distinct table_4227.end_date) as end_date,
+				listagg(distinct table_4227.num_females) as num_females,
 				table_4227.name as name,
-				table_4227.hours as hours,
+				listagg(distinct table_4227.hours) as hours,
 				table_4227.cls_time as cls_time,
-				table_4227.num_males as num_males,
+				listagg(distinct table_4227.num_males) as num_males,
 				table_4227.influencers as influencers,
-				table_4227.other_influencer as other_influencer,
-				table_4227.end_date_2 as end_date_2,
-				table_4227.num_females_graduated as num_females_graduated,
-				table_4227.reason_pregnancy as reason_pregnancy,
-				table_4227.reason_left as reason_left,
-				table_4227.reason_interest as reason_interest,
-				table_4227.reason_pressure as reason_pressure,
-				table_4227.reason_other as reason_other,
-				table_4227.reason_additional as reason_additional,
-				table_4227.num_females_dropout as num_females_dropout,
-				table_4227.num_males_graduated as num_males_graduated,
-				table_4227.num_males_dropout as num_males_dropout,
-				table_4227.absenteeism as absenteeism,
-				table_4227.absenteeism_1 as absenteeism_1,
-				table_4227.efficiency as efficiency,
-				table_4227.efficiency_1 as efficiency_1,
-				table_4227.turnover as turnover,
-				table_4227.turnover_1 as turnover_1,
-				table_4227.promotions as promotions,
-				table_4227.promotions_1 as promotions_1,
+				listagg(distinct table_4227.other_influencer) as other_influencer,
+				listagg(distinct table_4227.end_date_2) as end_date_2,
+				listagg(distinct table_4227.num_females_graduated) as num_females_graduated,
+				listagg(distinct table_4227.reason_pregnancy) as reason_pregnancy,
+				listagg(distinct table_4227.reason_left) as reason_left,
+				listagg(distinct table_4227.reason_interest) as reason_interest,
+				listagg(distinct table_4227.reason_pressure) as reason_pressure,
+				listagg(distinct table_4227.reason_other) as reason_other,
+				listagg(distinct table_4227.reason_additional) as reason_additional,
+				listagg(distinct table_4227.num_females_dropout) as num_females_dropout,
+				listagg(distinct table_4227.num_males_graduated) as num_males_graduated,
+				listagg(distinct table_4227.num_males_dropout) as num_males_dropout,
+				listagg(distinct table_4227.absenteeism) as absenteeism,
+				listagg(distinct table_4227.absenteeism_1) as absenteeism_1,
+				listagg(distinct table_4227.efficiency) as efficiency,
+				listagg(distinct table_4227.efficiency_1) as efficiency_1,
+				listagg(distinct table_4227.turnover) as turnover,
+				listagg(distinct table_4227.turnover_1) as turnover_1,
+				listagg(distinct table_4227.promotions) as promotions,
+				listagg(distinct table_4227.promotions_1) as promotions_1,
 				table_4227.select_modules as select_modules,
-				table_4227.created as date_created,
-				table_4227.modified as date_modified,
-				table_4227.lg_status as lg_status,
-				table_4227._id as _id,
-				brand_code as brand_code_old,
+				listagg(distinct table_4227.created) as date_created,
+				listagg(distinct table_4227.modified) as date_modified,
+				listagg(distinct table_4227.lg_status) as lg_status,
 				brandTag.name as brand_code_new1,
 				case when lg_status = 848007 or lg_status is null  then 1 else 0 end as lg,
 				tag1.name as pace_status1
-				
 				from profile_4948 p
 						
 left join profile_52810 table_52810 on
@@ -72,6 +69,9 @@ brandTag.id = p.projectid
 				
 left join ds_mysql_prod_tagElement tag1 on
 tag1.id = p.pace_status_2
-				)
---group by   pace_brand, p.projectid,brand,paceStatus,status,factory_name)
+				
+group by table_52810.pace_brands,table_54267.pace_status,p.pace_status_2,taskResponse.submissionLog[0].email,table_54267.facility_status,p.facility_status_2,p.factory_vpid_1,p.sourcing_yn,p.factory_vpid_2,table_54646.name, table_4227.cls_time, table_4227.influencers, table_4227.select_modules,
+table_4227.lg_status,p.projectid,table_4227.name,paceStatus,data_user			   
+			   )
+
 select * from lookup p where brand = 1 and lg=1
