@@ -14,9 +14,19 @@ profile_27395 l
 on p.ia=l._id
 )
 
+,Base4 as(
+  select p._id, p.profileinstanceid, p.type_of_project,p.implementing_agency,p.fy_timerange,p.contact_person,p.email,p.mobile_number,p.status, p.timestamp,p.core_area from Base3 p
+union all
+  select p._id, p.profileinstanceid, p.type_of_project,p.implementing_agency,p.fy_timerange,p.contact_person,p.email,p.mobile_number,p.status, p.timestamp,p.core_area from profile_27395 p
+union all
+select p._id, p.profileinstanceid,p.type_of_project,l.name as implementing_agency,p.fy_timerange,p.contact_person,p.email,p.mobile_number,p.status,p.timestamp,l.core_area from profile_27405 p left join
+profile_27395 l 
+on p.ia=l._id
+)
+
 
 ,Base5 as(
- select p._id, p.profileinstanceid,p.type_of_project,f.name as fy_timerange,p.Implementing_agency,p.mobile_number,p.contact_person,p.email,p.status,cast(split_part(cast(p.timestamp as varchar),'T',1) as date) as timestamp,p.core_area from Base3 p 
+ select p._id, p.profileinstanceid,p.type_of_project,f.name as fy_timerange,p.Implementing_agency,p.mobile_number,p.contact_person,p.email,p.status,cast(split_part(cast(p.timestamp as varchar),'T',1) as date) as timestamp,p.core_area from Base4 p 
  left join  ds_mysql_prod_tagelement f on
 p.fy_timerange=f.id
 )
