@@ -6,9 +6,12 @@ with lookup as (select
 				taskResponse_4227.sectionId as sectionId,
 				taskResponse_4227.submissionLog as submissionLog,
 				case when taskResponse_4227.status like 'SUBMITTED' then 1 else 0 end as status1,
-				case when taskResponse_4227.sectionId <> 9292 or taskResponse_4227.submissionLog is null then null else taskResponse_4227.submissionLog[0].email end as data_user,
+				case when taskResponse_4227.sectionId <> 9292 or taskResponse_4227.submissionLog is null then null else taskResponse_4227.submissionLog[0].email end as data1,
+				listagg( distinct data1) as data_user,
+				listagg(distinct p._id) as _4227_id,
 				cast(p.end_date_2 as varchar(256)) as enddate2,
-				case when taskResponse_4227.modified is null or taskResponse_4227.sectionId <> 9296 then enddate2 else last_modified end as business_date
+				case when taskResponse_4227.modified is null or taskResponse_4227.sectionId <> 9296 then enddate2 else last_modified end as business,
+				max(business) as business_date
 				
 				from profile_4227 p
 				
@@ -18,6 +21,7 @@ table_52810.projectid=p.projectid
 				
 inner join ds_mongo_taskresponse taskResponse_4227 on
 taskResponse_4227.profileinstanceid=p._id
-			   
+		
+group by table_52810.pace_brands,p._id,taskResponse_4227.status,taskResponse_4227.sectionId,taskResponse_4227.submissionLog,taskResponse_4227.status,taskResponse_4227.submissionLog[0].email,p.end_date_2,taskResponse_4227.modified
 			   )
 select * from lookup p where brand = 1 and status1 = 1
