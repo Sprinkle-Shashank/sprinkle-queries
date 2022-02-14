@@ -3,32 +3,34 @@ with test0 as(Select p.* ,CAST(pace_goals as VARCHAR)from profile_76755 p
 ),
 
  test1 as(
-Select t0.projectId, t0.facility_name_2, t0.pace, t0.strategic_yn, t0.year_timerange, t0.country as country, t0.director_region as director_region, 
-certified_mts*100 AS a1,
-a1/certified_trainers AS master,p1.certified_trainers , p1.certified_mts , p1.pace_introduced 
+Select t0.projectId,p2.name_vendor_filter as vendor, t0.facility_name_2, t0.pace, t0.strategic_yn, t0.year_timerange, t0.country as country, t0.director_region as director_region, p1.pace_introduced,case when (pace='Yes' and pace_introduced = 57472) then 'Yes' else 'No' end as result_1
+
 
 
 from test0 t0
    
 left join profile_76895 p1
 on t0.pace_goals = p1._id
+left join profile_54646 p2 
+on t0.projectid = p2.projectid
+
 
 
    
 
 
 ),
-test2 as (select t1.projectid,p2.name_vendor_filter as vendor,CASE WHEN (pace = 'Yes') AND (master>=30) AND (pace_introduced = 57472) THEN 'Yes'
-ELSE 
-'No'
-END AS result
-
+test2 as (select t1.projectid,t1.vendor as vendor,t1.country as country,certified_mts*100 AS a1,
+a1/certified_trainers AS master,t1.certified_trainers , t1.certified_mts,case when (master>=30) then 'Yes'
+		  else 'No' end as result_2
+		  
 from test1 t1
 
 left join profile_54646 p2 
 on t1.projectid = p2.projectid
-
-group by t1.projectId,vendor,t1.pace,t1.master,t1.pace_introduced
+		  
+		  
+group by t1.projectId,vendor,t1.master,country
 
 ),
 test3 as (Select t1.projectId,t1.facility_name_2, t1.pace, t1.strategic_yn, t1.year_timerange, t1.country as country, t1.director_region as director_region, certified_mts*100 AS a1,
@@ -48,7 +50,7 @@ from test1 t1
 left join test2 t2 on
 t1.projectid = t2.projectid
 
-where t1.strategic_yn = 'Yes'
+where t1.strategic_yn = 'Yes' and result_1 = 'Yes' and result_2 = 'Yes'
 )
 select * from test3
 
