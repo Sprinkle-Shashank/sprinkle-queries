@@ -1,7 +1,15 @@
-select t1.name as plant, p3.patient, p3.name as trucker_id,
+with sub1 as(
+  select t1.name as plant, p3.patient, p3.name as trucker_id,
 min(p1.date_visit) as date_visit, count(*)
 from profile_73098 p1
 left join profile_73150 p2 on p2._id = p1.clinic
 left join profile_73096 p3 on p3._id = p1.trucker_id
 left join ds_mysql_prod_tagelement t1 on t1.id = p2.plant
-group by t1.name, p3.patient, p3.name
+group by t1.name, p3.patient, p3.name)
+
+select s1.plant, s1.patient, s1.trucker_id, (s1.date_visit || '|' || s1.date_visit) as fy_timerange, s1.date_visit, s1.count as total_visits,
+case
+	when s1.count = 1 then 'Unique Patient'
+	else 'Repeated Patient'
+end as patient_type
+from sub1 s1
