@@ -1,34 +1,25 @@
-select p.strategic_yn, 
-p.projectId,p.name as facility,p.year_timerange,p.country as country,p.female_workers,p.pace_enrolled,(p.pace_enrolled*100) AS p1, p1/p.female_workers AS pace_1,p2.name_vendor_filter as vendor
-,
-case 
-	when 1=1
-	then 1
-	else 0
-	end
-	as count,
-CASE WHEN(pace_1>=50) THEN 'YES'
-ELSE
-'NO'
-END AS result
+Select p.projectid as project,fac.name as projectId,cou.name as country,dir.name as director_region,p1.name_vendor_filter as vendor
+
+from profile_76770 p
 
 
 
-from profile_76755 p
-left join profile_54646 p2 
-on p.projectid = p2.projectid
-left join profile_76770 p3 
-on p.facility_name = p3._id
+left join ds_mysql_prod_project fac
+on p.projectid = fac.id
+left join ds_mysql_prod_project ven
+on fac.parent = ven.id
 
 
-
-WHERE p.strategic_yn ='Yes'
-
-Group by  p.projectId, p.name, p.year_timerange, p.country, vendor, result, 
-p.female_workers,p.pace_enrolled,p.strategic_yn,pace_1
-
+left join ds_mysql_prod_tagelement dir
+on p.director_region = dir.id
+left join ds_mysql_prod_tagelement cou
+on p.country = cou.id
 
 
+left join profile_54646 p1 
+on p.projectid = p1.projectid
 
+where project ilike '%%'
 
- 
+group by cou.name ,dir.name,vendor,project,fac.name 
+order by projectId asc
