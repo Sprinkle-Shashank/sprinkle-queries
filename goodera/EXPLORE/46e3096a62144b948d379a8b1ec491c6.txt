@@ -1,4 +1,4 @@
-with temp as(select p1.name,p1.financialPeriod, p1.fy_timerange, p1.datanumbase as amt_ton,amt_ton*1000 as amt_kg,t1.name as half_fy,t2.name as full_fy,t3.name as FY,
+with temp as(select p1.name,t.name as financialPeriod, p1.fy_timerange, p1.datanumbase as amt_ton,amt_ton*1000 as amt_kg,t1.name as half_fy,t2.name as full_fy,t3.name as FY,
 case 
 	when keyword ='paper_purchased' then 'Paper/Cardboard'
 	when keyword ='cafe_grease' then 'Cafeteria Grease'
@@ -20,9 +20,9 @@ left join ds_mysql_prod_tagelement t on p1.financialPeriod =t.id
 left join ds_mysql_prod_tagelement t1 on t.parent =t1.id	left join ds_mysql_prod_tagelement t2 on t1.parent =t2.id	left join ds_mysql_prod_tagelement t3 on t2.parent =t3.id		 
 where p1.keyword in ('paper_purchased','cafe_grease', 'plastic', 'metals', 'electronics_medical', 'electronics_it', 'batteries', 'organic_waste', 'batteries__on_market', 'residual_waste') and datanumbase is not null)
 
-select temp.name,temp.fy_timerange,temp.types_of_waste,temp.financialyear_num,t4.name as financialyear,sum(temp.amt_kg) from temp
+select temp.name,temp.financialPeriod,temp.fy_timerange,temp.types_of_waste,temp.financialyear_num,t4.name as financialyear,sum(temp.amt_kg) from temp
 
 left join ds_mysql_prod_tagelement t4 on temp.financialyear_num =t4.id
-group by 1,2,3,4,t4.name
+group by 1,2,3,4,5,t4.name
 
 --nvl
