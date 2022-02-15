@@ -15,9 +15,7 @@ p.participants as participants_awareness,
   CASE when p4.managers_in_depth is null then 0 else p4.managers_in_depth end as managers_in_depth,
   CASE when p4.workers_in_depth is null then 0 else p4.workers_in_depth end as workers_in_depth,
   CASE when p4.days_resolve is null then 0 else p4.days_resolve end as days_resolve,
---New Field: Expression: mid($vendor,1,find($vendor," (")) as vendor_name,
-  CASE when vendor_name = ' ' then vendor else vendor_namee end as vendorExpression,
-p1.vendor_ngo_id, p1.primary_category, p1.fac_cl_vpid 
+  p5.name_vendor_filter as vendor,p1.vendor_ngo_id, p1.primary_category, p1.fac_cl_vpid 
 from profile_61572 p
 
 left join ds_mysql_prod_project fac
@@ -34,6 +32,8 @@ left join profile_64801 p2
 on p.projectId = p1.projectId
 left join profile_65469 p4
 on p.projectId = p1.projectId
+left join profile_54646 p5
+on p.projectId = p5.projectId
 
 left join ds_mysql_prod_tagelement primary_category1 on
 	p1.primary_category = primary_category1.id
@@ -45,13 +45,14 @@ left join ds_mysql_prod_tagelement local_foreign1 on
 	p.local_foreign = local_foreign1.id
 
 --group by
-group by  p.projectId , ven.name  , cou.name ,
-p1.fac_cl_vpid, p1.vendor_ngo_id , primary_category1.name,
-trainer_organization1.name ,training_type1.name,local_foreign1.name
-),
+group by p.projectId , ven.name as vendor , cou.name as country ,
+p1.fac_cl_vpid, p1.vendor_ngo_id , primary_category1.name , trainer_organization1.name  ,               training_type1.name , local_foreign1.name ,p.submitter ,p.hours , p.date ,p.num_managers ,
+p.num_middle , p.num_other  , p.participants , p4.cases , p4.cases_resolved , p4.managers_in_depth , p4.workers_in_depth, p4.days_resolve ,
+p1.vendor_ngo_id, p1.primary_category, p1.fac_cl_vpid,p5.name_vendor_filter
+)
 
 
-table2 as (
+/*table2 as (
   
 select p3.trainer_organization, p3.submitter_indepth, p3.in_depth_training, p3.num_female, p3.num_male, p3.num_middle, p3.hours, p3.total_participants, p3.num_other, p3.date,
 trainer_organization2.name as trainer_org_indepth,
@@ -62,13 +63,12 @@ left join ds_mysql_prod_tagelement trainer_organization2 on
 p3.trainer_organization = trainer_organization2.id
 
 --group by
-group by  p3.trainer_organization, p3.submitter_indepth, p3.in_depth_training, p3.num_female, p3.num_male, p3.num_middle, p3.hours, p3.total_participants, p3.num_other, p3.date,
-trainer_organization2.name
+group by  
  
   
- ), 
+ )*/ 
 
-
+select * from table1
   
   
  
