@@ -1,4 +1,4 @@
-With /*Base1 as(
+With Base1 as(
  select p._id, p.profileinstanceid,case when p.profileinstanceid is not null then 'New Project' end as type_of_project,p.name as implementing_agency,p.fy as fy_timerange,p.contact_person,p.email,p.mobile_number,decode(approval."approvalStatus",'SUBMITTED','APPROVED',approval."approvalStatus") as status,cast(approval."timestamp" as varchar) as timestamp,p.core_area, sub_details, approval from taskresp_27395 p , p.approvallog approval, p.submissionlog sub_details
 )
 
@@ -14,18 +14,18 @@ profile_27395 l
 on p.ia=l._id
 )
 
-,*/Base4 as(
- /*  select p._id, p.profileinstanceid, p.type_of_project,p.implementing_agency,p.fy_timerange,p.contact_person,p.email,p.mobile_number,p.status, p.timestamp,p.core_area from Base3 p
-union all*/
- select p._id, p._id as profileinstanceid, 'New Project' as type_of_project,p.name as implementing_agency,p.fy as fy_timerange,p.contact_person,p.email,p.mobile_number,'APPROVED' as status, cast(split_part(p.renewal_date,'T',1) as date) as timestamp,p.core_area from profile_27395 p
+,Base4 as(
+  select p._id, p.profileinstanceid, p.type_of_project,p.implementing_agency,p.fy_timerange,p.contact_person,p.email,p.mobile_number,p.status, p.timestamp,p.core_area from Base3 p
 /*union all
- select p._id, p._id as profileinstanceid,'Renewal Project' as type_of_project,l.name as implementing_agency,p.fy as fy_timerange, p.contact_person, p.email, p.mobile_number, 'APPROVED' as status, cast(p.date_renewal as varchar) as timestamp, l.core_area from profile_27405 p left join
+  select p._id, p._id as profileinstanceid, 'New Project' as type_of_project,p.name as implementing_agency,p.fy as fy_timerange,p.contact_person,p.email,p.mobile_number,'APPROVED' as status, cast((cast(split_part(p.renewal_date,'T',1) as date)- interval '365 day')as varchar) as timestamp,p.core_area from profile_27395 p */
+union all
+select p._id, p._id as profileinstanceid,'Renewal Project' as type_of_project,l.name as implementing_agency,p.fy as fy_timerange, p.contact_person, p.email, p.mobile_number, 'APPROVED' as status, cast(p.date_renewal as varchar) as timestamp, l.core_area from profile_27405 p left join
 profile_27395 l 
-on p.ia=l._id*/
+on p.ia=l._id
 )
 
 
-/*,Base5 as(
+,Base5 as(
  select p._id, p.profileinstanceid,p.type_of_project,f.name as fy_timerange,p.Implementing_agency,p.mobile_number,p.contact_person,p.email,p.status,cast(split_part(cast(p.timestamp as varchar),'T',1) as date) as timestamp,p.core_area from Base4 p 
  left join  ds_mysql_prod_tagelement f on
 p.fy_timerange=f.id
@@ -70,5 +70,5 @@ select p._id, core_areas from Base10 p, p.core_area core_areas
 select p._id,p.profileinstanceid,p.Implementing_agency,p.status,p.fy_timerange,
 p.years_of_engagement as years_of_Engagement,p.contact_person,p.email, p.mobile_number, p.Empanelment_type, p.timestamp, p.Date_of_renewal, p.type_of_project,l.core_area from Base10 p
 left join Base12 l on p._id=l._id 
-)*/
-select * from Base4
+)
+select * from Base13
