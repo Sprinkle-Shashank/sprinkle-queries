@@ -1,8 +1,43 @@
-Select a.fy_timerange,p.name as projectid,p1.name as parent_projectid,a.male_students as no_of_males,a.female_students as no_of_females,a.other_students as no_of_LGBTQ,
-a.teachers as no_of_teachers,a.school_name,
-(a.male_students + a.female_students + a.other_students) as total_benef
+with temp as (
+  Select 'male_students' as col
+  union all
+  Select 'female_students' as col
+  union all
+  Select 'other_students' as col
+   union all
+  Select 'teachers' as col
+  )
+ 
+
+Select a.fy_timerange,p.name as projectid,p1.name as parent_projectid,
+
+sum(case col
+	when 'male_students' then a.male_students
+	when 'female_students' then a.female_students
+	when 'other_students' then a.other_students
+	when 'teachers' then a.teachers
+	else NULL
+	end) as Values,
+	
+	
+	case 
+	when temp.col ='male_students' then 'Male'  
+	when temp.col ='female_students' then 'Female'
+	when temp.col ='other_students' then 'LGBTG+'
+	else NULL
+	end AS Gender,
+	
+	case
+	when temp.col LIKE '%students' then 'Students'
+	else
+	'Teacher'
+	end as x_axis
 
 from profile_76188 a
 
+cross join temp
+
 left join ds_mysql_prod_project p on p.id = a.projectid
 left join ds_mysql_prod_project p1 on p1.id = p.parent
+
+Group by a.fy_timerange,p.name,p1.name
