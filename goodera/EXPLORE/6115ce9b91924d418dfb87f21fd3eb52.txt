@@ -42,7 +42,11 @@ select p._id,p.profileinstanceid,p.mobile_number,p.type_of_project,p.fy_timerang
 
 
 ,Base7 as(
-  select p._id,p.profileinstanceid,p.mobile_number,p.type_of_project,case when current_date>=p.Date_of_renewal then 'Pending Renewal' when current_date<p.Date_of_renewal and p.type_of_project='Renewal Project' and p.Implementing_agency is not null  then 'Renewed' when current_date<p.Date_of_renewal and p.Implementing_agency is null and p.type_of_project='Renewal Project' then 'New' end as Empanelment_type,p.fy_timerange, p.Date_of_renewal,p.Implementing_agency,p.contact_person,p.years_of_engagement,p.email,p.status,cast(p.timestamp as date),p.core_area from Base6 p 
+  select p._id,p.profileinstanceid,p.mobile_number,p.type_of_project,
+  case when current_date>=p.Date_of_renewal then 'Pending Renewal' 
+  when current_date<p.Date_of_renewal and p.type_of_project='Renewal Project' and p.Implementing_agency is not null  then 'Renewed' 
+  when current_date<p.Date_of_renewal and p.Implementing_agency is null and p.type_of_project='Renewal Project' then 'New' 
+  end as Empanelment_type,p.fy_timerange, p.Date_of_renewal,p.Implementing_agency,p.contact_person,p.years_of_engagement,p.email,p.status,cast(p.timestamp as date),p.core_area from Base6 p 
 )
 
 ,Base8 as(
@@ -75,4 +79,4 @@ select p._id,p.profileinstanceid,p.Implementing_agency,p.status,p.fy_timerange,
 p.years_of_engagement as years_of_Engagement,p.contact_person,p.email, p.mobile_number, p.Empanelment_type, decode(p.status,'APPROVED',p.timestamp) as timestamp, decode(p.status,'APPROVED',p.Date_of_renewal) as Date_of_renewal, p.type_of_project,l.core_area from Base10 p
 left join Base12 l on p._id=l._id 
 )
-select * from Base13
+select * from Base13 where type_of_project ='Renewal Project'
