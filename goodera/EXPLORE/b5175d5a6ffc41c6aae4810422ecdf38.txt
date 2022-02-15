@@ -1,1 +1,35 @@
-select * from profile_76770
+
+
+select p.projectId as project,fac.name as projectId, p.strategic_yn, 
+p.year_timerange,cou.name as country,p.female_workers,p.pace_enrolled,(pace_enrolled*100) AS p1, p1/female_workers AS pace_1,ven.name as vendor1,  nvl2(SUBSTRING(vendor1, 1, POSITION(' (' in vendor1)), SUBSTRING(vendor1, 1, POSITION(' (' in vendor1)), vendor1) as vendor_name, case when vendor_name='' then vendor1 else vendor_name end as vendor,p.director_region as director_region
+,
+case 
+	when 1=1
+	then 1
+	else 0
+	end
+	as count,
+CASE WHEN(pace_1>=50) THEN 'YES'
+ELSE
+'NO'
+END AS result
+
+
+
+from profile_76755 p
+
+left join ds_mysql_prod_project fac 
+on p.projectId = fac.id
+
+left join ds_mysql_prod_project ven 
+on fac.parent = ven.id
+
+left join ds_mysql_prod_project cou 
+on ven.parent = cou.id
+
+
+
+WHERE p.strategic_yn ='Yes' and project ilike '%%' and country is not null and vendor <> 'Test Vendor'
+
+Group by  project, fac.name, p.year_timerange, cou.name, vendor, result,ven.name, 
+p.female_workers,p.pace_enrolled,p.strategic_yn,pace_1,p.director_region
