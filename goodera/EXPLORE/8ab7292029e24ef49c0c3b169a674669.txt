@@ -1,9 +1,35 @@
+with temp as (
+
+  Select 'students' as col
+   union all
+  Select 'teachers' as col
+  )
+ 
+
+
+
 Select a.timerange_timerange as fy_timerange,p.name as projectid,p1.name as parent_projectid,
 a.teachers  as no_of_teachers,
-a.total_ben as total_benef
+a.total_ben as total_benef,
+
+
+sum(case col
+
+	when 'students' then a.total_ben
+	when 'teachers' then a.teachers
+	else NULL
+	end) as Values,
+
+
+case
+	when temp.col LIKE 'students' then 'Students'
+	else
+	'Teacher'
+	end as x_axis
 
 
 from  profile_61061 a
+cross join temp
 
 left join ds_mysql_prod_project p on p.id = a.projectid
 left join ds_mysql_prod_project p1 on p1.id = p.parent
