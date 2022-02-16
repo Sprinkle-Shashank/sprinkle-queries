@@ -1,12 +1,94 @@
-Select fy_timerange,p.name as projectid,p1.name as parent_projectid
+with temp as (
+  Select 'male6th_students' as col
+   union all
+  Select 'female6th_students' as col
+   union all
+  Select 'other6th_students' as col
+   union all
+  Select 'teachers' as col
+   union all
+  Select 'male7th_students' as col
+   union all
+  Select 'female7th_students' as col
+  union all
+  Select 'other7th_students' as col
+   union all
+  Select 'male8th_students' as col
+   union all
+  Select 'female8th_students' as col
+   union all
+  Select 'other8th_students' as col
+   union all
+  Select 'male4th_students' as col
+   union all
+  Select 'female4th_students' as col
+   union all
+  Select 'other4th_students' as col
+   union all
+  Select 'male5th_students' as col
+   union all
+  Select 'female5th_students' as col
+   union all
+  Select 'other5th_students' as col
+   union all
+  )
+
+Select fy_timerange,p.name as projectid,p1.name as parent_projectid,
+
+sum(case col
+	when 'male6th_students' then a.male_6th
+	when 'female6th_students' then a.female_6th
+	when 'other6th_students' then a.other_gender_6th
+	when 'teachers' then a.teachers_school
+	when 'male7th_students' then a.male_7th
+	when 'female7th_students' then a.female_7th
+	when 'other7th_students' then a.other_gender_7th
+	when 'male8th_students' then a.male_8th
+	when 'female8th_students' then a.female_8th
+	when 'other8th_students' then a.other_gender_8th
+	when 'male4th_students' then a.male_4th
+	when 'female4th_students' then a.female_4th
+	when 'other4th_students' then a.other_gender_4th
+	when 'male5th_students' then a.male_5th
+	when 'female5th_students' then a.female_5th
+	when 'other5th_students' then a.other_gender_5th
+	else NULL
+	end) as Values,
+	
+	
+	case
+	when temp.col LIKE '%students' then 'Students'
+	else
+	'Teacher'
+	end as x_axis,
+	
+	case 
+	when temp.col ='male6th_students' OR temp.col ='male7th_students' OR temp.col ='male8th_students' OR temp.col ='male4th_students' OR temp.col ='male5th_students'
+	then 'Male'  
+	
+	
+	
+	when temp.col ='female6th_students' OR temp.col ='female7th_students' OR temp.col ='female8th_students' OR temp.col ='female4th_students' OR temp.col ='female5th_students'
+	then 'Female'  
+	
+	
+	when temp.col ='other6th_students' OR temp.col ='other7th_students' OR temp.col ='other8th_students' OR temp.col ='other4th_students' OR temp.col ='other5th_students'
+	then 'LGBTQ+'  
+	else NULL
+	end AS Gender
+	
 
 
 
-from profile_79414 a
 
---cross join temp
+
+
+
+from profile_79427 a
+
+cross join temp
 
 left join ds_mysql_prod_project p on p.id = a.projectid
 left join ds_mysql_prod_project p1 on p1.id = p.parent
 
-group by fy_timerange,p.name,p1.name
+group by fy_timerange,p.name,p1.name,temp.col
