@@ -1,4 +1,4 @@
-select p1.name,t.name as financialPeriod, p1.fy_timerange, p1.paper_disposed, p1.toner_used, p1.toner_recycled, p1.cafe_grease, p1.plastic, p1.metals, p1.electronics_medical, p1.electronics_it, p1.batteries, p1.organic_waste, p1.total_nonhaz_recycled, p1.nonhaz_recycle_cost, p1.plastic_recycled, p1.plastic_disposed, p1.batteries__on_market, p1.residual_waste, p1.total__waste_generated, p1.total__waste__disposed,t1.name as half_fy,t2.name as full_fy, t3.name as FY,sum(p1.paper_disposed,p1.plastic_recycled,p1.metals) as Total_Non_Hazardous_Waste_Recycled, Total_Non_Hazardous_Waste_Recycled*1000 as Total_Non_Hazardous_Waste_Recycled_Kg,
+with sub1 as(select p1.name,t.name as financialPeriod, p1.fy_timerange,t1.name as half_fy,t2.name as full_fy, t3.name as FY
 
 nvl(t3.name,t2.name,t1.name,t.name) as financialyear_num
 Sum(CASE 
@@ -21,4 +21,5 @@ left join ds_mysql_prod_tagelement t2 on t2.id= t1.parent
 left join ds_mysql_prod_tagelement t3 on t3.id= t2.parent
 where keyword in('paper_disposed','plastic_recycled','metals')
 -- 13th and 14th step and 
-group by 1,2,3
+group by 1,2,3 ),
+select sub1.name,sub1.fy_timerange,sub1.financialyear_num,sub1.paper_disposed + plastic_recycled + metals as Total_Non_Hazardous_Waste_Recycled,Total_Non_Hazardous_Waste_Recycled*1000 as Total_Non_Hazardous_Waste_Recycled_kg
