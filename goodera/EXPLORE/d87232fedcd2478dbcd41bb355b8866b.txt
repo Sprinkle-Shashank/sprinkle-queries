@@ -1,1 +1,32 @@
-select * from profile_64075
+select p.projectId as project,fac.name as projectId,p1.projectId, p1.programs_run, cou.name as country, p1.vendor_ngo, p1.vendor_ngo_id, so.name as sourcing,
+p2.name, p2.single_multi, p2.trainer_2, p2.trainer_name_2,torg.name as trainer_organization , p2.date, p2.training_shadowed, p2.training_yn,
+SUBSTRING(to_char(p.date_1, 'DD/MM-YYYY'), POSITION('-' in to_char(p.date_1, 'DD/MM-YYYY'))+1,4 ) as year,
+num_female, num_male, prospect_female,  total_supervisors, total_other_participants, prospect_total, prospect_male, programs_run,ven.name as vendor1,nvl2(SUBSTRING(vendor1, 1, POSITION(' (' in vendor1)), SUBSTRING(vendor1, 1, POSITION(' (' in vendor1)), vendor1) as vendor_name, case when vendor_name='' then vendor1 else vendor_name end as vendor
+from profile_64075 p
+
+left join profile_52810 p1
+on p.projectId = p1.projectId 
+
+left join profile_61498 p2
+on p.training_id = p2._id
+
+left join ds_mysql_prod_project fac
+on p1.projectid = fac.id
+left join ds_mysql_prod_project ven
+on fac.parent = ven.id
+left join ds_mysql_prod_project cou
+on ven.parent = cou.id
+
+left join ds_mysql_prod_tagelement so
+on p1.sourcing = so.id
+
+left join ds_mysql_prod_tagelement torg
+on p2.trainer_organization = torg.id
+
+
+where p1.projectId not in (54835,54832,31299, 31303)
+
+group by project,fac.name,p2.name, training_id, p2.trainer_org, p2.date, p.remarks, num_female, num_male, prospect_female, total_supervisors, total_other_participants, prospect_total, prospect_male, programs_run, vendor_ngo, vendor_ngo_id, so.name, country, single_multi, trainer_2, trainer_name_2, training_shadowed, training_yn, year, ven.name, cou.name, torg.name,p1.projectId,vendor
+
+
+/*select * from profile_64075*/
