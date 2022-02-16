@@ -1,0 +1,18 @@
+with memcount as (
+	select count(members_saved) as didtsave count(members_double_saved)
+),
+	totalpart as (
+		select (p1.participants-p1.members_saved) as total_participants from profile_58862 p1
+	),
+	totalpart2 as (
+		select (t.total_participants + p.members_double_saved) as tpts from profile_58862 p, totalpart t
+	),
+	savings as(
+	select (p2.amount_saved*t1.tpts) as total_savings from profile_58862 p2, totalpart2 t1
+	)
+
+Select proj1.name as projectid , CAST(p1.date AS VARCHAR)||'|'||DECODE(CAST(closure_date_1 AS VARCHAR),null,'2026-04-01T00:00:00.000Z','','2026-04-01T00:00:00.000Z',CAST(closure_date_1 AS VARCHAR)) as fy_timerange, SUM(tm.total_savings)
+from memcount tm, profile_58862 p1
+left join ds_mysql_prod_project proj1 
+on p1.projectid = proj1.id
+group by 1,2
