@@ -1,6 +1,6 @@
 with sub1 as(
   select (p1.date_visit || '|' || p1.date_visit) as fy_timerange, t1.name as plant, p3.name as trucker_id,
-extract(month from p1.date_visit) as mon, m_code.code as map_code,
+extract(month from p1.date_visit) as mon,
   
 case
   when mon < 10 then (0 || mon)
@@ -17,9 +17,7 @@ from profile_73098 p1
 left join profile_73150 p2 on p2._id = p1.clinic
 left join profile_73096 p3 on p3._id = p1.trucker_id
 left join ds_mysql_prod_tagelement t1 on t1.id = p2.plant
-left join ds_mongo_reftagelementmetadata m_code on m_code._id = t1.reftagelementmetadataid
 left join ds_mysql_prod_tagelement t2 on t2.id = p1.type_of_visit)
 
-select s1.fy_timerange, s1.plant, s1.map_code, s1.x_axis, s1.activity_type,  count(*) from sub1 s1
-where s1.map_code is not null
-group by s1.fy_timerange, s1.plant, s1.map_code, s1.x_axis, s1.activity_type
+select s1.fy_timerange, s1.plant, s1.x_axis, s1.activity_type,  count(*) from sub1 s1
+group by s1.fy_timerange, s1.plant, s1.x_axis, s1.activity_type
