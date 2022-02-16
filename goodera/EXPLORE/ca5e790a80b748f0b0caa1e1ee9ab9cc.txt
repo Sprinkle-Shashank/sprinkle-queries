@@ -1,0 +1,34 @@
+with table1 as
+(select p.projectId as project,fac.name as projectId,cou.name as country,ven.name as vendor
+ from profile_64075 p
+
+left join ds_mysql_prod_project fac 
+on p.projectId = fac.id
+
+left join ds_mysql_prod_project ven 
+on fac.parent = ven.id
+
+left join ds_mysql_prod_project cou 
+on ven.parent = cou.id
+
+),
+table2 as(select p.projectId as project,fac.name as projectId,cou.name as country,ven.name as vendor from profile_61572 p
+		  
+left join ds_mysql_prod_project fac 
+on p.projectId = fac.id
+
+left join ds_mysql_prod_project ven 
+on fac.parent = ven.id
+
+left join ds_mysql_prod_project cou 
+on ven.parent = cou.id
+),
+table3 as (select * from table1
+		   union all
+		   select * from table2
+)
+select * from table3
+
+where project ilike '%%' and country <> 'Test Country'
+
+
