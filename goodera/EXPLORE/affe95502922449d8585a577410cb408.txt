@@ -5,35 +5,35 @@ where keyword='south_african_coal_consumed'
 )
 ,
 s2 as(
-Select site,year,fy_timerange,questiontext,cast(tablesettings."0"."elec_ren_org"."measureUnitBase" as varchar) as Elec_ren_unit,cast(tablesettings."0"."heat_ren_org"."measureUnitBase" as varchar) as Heat_ren_unit,cast(tablesettings."0"."steam_ren_org"."measureUnitBase"as varchar) as steam_ren_unit,cast(tablesettings."0"."cool_ren_org"."measureUnitBase" as varchar) as Cool_ren_unit,coun.elec_ren_org,coun.heat_ren_org,coun.cool_ren_org,coun.steam_ren_org from s as p, unpivot p.datatablebase as coun at xyz
+Select site,year,fy_timerange,questiontext,cast(tablesettings."0"."sa_cogen_trigen"."measureUnitBase" as varchar) as Cogen_trigen_unit,cast(tablesettings."0"."sa_heat"."measureUnitBase" as varchar) as Heat_ren_unit,cast(tablesettings."0"."sa_steam"."measureUnitBase"as varchar) as steam_ren_unit,cast(tablesettings."0"."sa_cooling"."measureUnitBase" as varchar) as Cool_ren_unit,coun.sa_cogen_trigen,coun.sa_heat,coun.sa_cooling,coun.sa_steam from s as p, unpivot p.datatablebase as coun at xyz
 ),
 s3 as (
-Select 'Electricity' as col
+Select 'South African Coal - consumed for self Cogen / trigen' as col
  union all
-Select 'Heat' as col
+Select 'South African Coal - consumed for self - generation of Heat' as col
   union all
-Select 'Steam' as col
+Select 'South African Coal - consumed for self - generation of Steam' as col
   union all
-Select 'Cool' as col
+Select 'South African Coal - consumed for self - generation of Cooling' as col
   
 )
 
 Select site,year financialPeriod,fy_timerange,questiontext questions,s3.col as source,
 case col
-	  when 'Electricity' then s2.Elec_ren_unit
-	    when 'Heat' then s2.Heat_ren_unit
-	    when 'Steam' then s2.steam_ren_unit
-	   when 'Cool' then s2.Cool_ren_unit
+	  when 'South African Coal - consumed for self Cogen / trigen' then s2.Cogen_trigen_unit
+	    when 'South African Coal - consumed for self - generation of Heat' then s2.Heat_ren_unit
+	    when 'South African Coal - consumed for self - generation of Steam' then s2.steam_ren_unit
+	   when 'South African Coal - consumed for self - generation of Cooling' then s2.Cool_ren_unit
 	   else null
 	   end as Unit,
 sum(case col
-		when 'Electricity' then s2.elec_ren_org
-	    when 'Heat' then s2.heat_ren_org
-	    when 'Steam' then s2.steam_ren_org
-	   when 'Cool' then s2.cool_ren_org
+		when 'South African Coal - consumed for self Cogen / trigen' then s2.sa_cogen_trigen
+	    when 'South African Coal - consumed for self - generation of Heat' then s2.sa_heat
+	    when 'South African Coal - consumed for self - generation of Steam' then s2.sa_steam
+	   when 'South African Coal - consumed for self - generation of Cooling' then s2.sa_cooling
 	else null
 	end) as Values
 
 	from s2
 	cross join s3
-group by 1,2,3,4,5,s2.Elec_ren_unit,s2.Heat_ren_unit,s2.steam_ren_unit,s2.Cool_ren_unit
+group by 1,2,3,4,5,s2.sa_cogen_trigen,s2.sa_heat,s2.sa_cooling,s2.sa_steam
