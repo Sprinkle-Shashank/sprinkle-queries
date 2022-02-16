@@ -10,8 +10,8 @@ with lookup as (select
 				
 				listagg(distinct p._id) as _4227_id,
 				listagg(distinct cast(p.end_date_2 as varchar(256))) as enddate2,
-				case when taskResponse_4227.modified is null or sectionId1 <> 9296 then enddate2 else last_modified end as business_date
-				--case when table_4228._id is null then p._id else table_4228._id end as _4228id,
+				case when taskResponse_4227.modified is null or sectionId1 <> 9296 then enddate2 else last_modified end as business_date,
+				case when table_4228._id is null then p._id else table_4228._id end as _4228id
 				--case when taskResponse_4228.status not like 'SUBMITTED' or taskResponse_4228.data is null then null else taskResponse_4228.modified end as date_modified,
 				--case when date_modified > last_modified then date_modified else last_modified end as last_entry_date
 			
@@ -26,10 +26,11 @@ taskResponse_4227.profileinstanceid=p._id
 left join profile_4228 table_4228 on
 table_4228.class = p._id
 				
-inner join ds_mongo_taskresponse taskResponse_4228 on
-taskResponse_4228.profileinstanceid=table_4228._id
+left join ds_mongo_taskresponse taskResponse_4228 on
+taskResponse_4228.profileinstanceid=_4228id
+				--table_4228._id
 		
-group by table_52810.pace_brands,p._id,taskResponse_4227.submissionLog[0].email,taskResponse_4227.modified--,taskresponse_4227.submissionlog
+group by table_52810.pace_brands,p._id,taskResponse_4227.submissionLog[0].email,taskResponse_4227.modified,table_4228._id--,taskresponse_4227.submissionlog
 				--table_4228._id,taskresponse_4228.status,taskresponse_4228.data,taskresponse_4228.modified
 			   )
 select * from lookup p where brand = 1 and status1 = 1
