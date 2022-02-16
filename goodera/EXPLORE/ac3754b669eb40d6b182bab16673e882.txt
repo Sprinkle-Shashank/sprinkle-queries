@@ -1,17 +1,20 @@
 select 
 p1.name as vendor , cou.name as country , 
 start_year1.name as start_year,
-status1.name as status ,
-service_provider1.name as service_provider , 
-start_year1.name as start_year,
+--status1.name as status_begin ,
+--service_provider1.name as service_provider_begin , 
+--features1.name as features_begin,
 p2.fac_cl_vpid, p2.vendor_ngo_id,       
 primary_category1.name as primary_category,
-p.status as status_begin,
-p.service_provider as service_provider_begin,
-p.features as features_begin,
-survey_yn1.name as survey_yn,
-survey_yn as survey_yn_begin
-
+--survey_yn1.name as survey_yn_begin,
+--service_provider2.name as service_provider,
+--features2.name as features_updated,
+--survey_yn2.name as survey_yn_updated , 
+--status2.name as status_updated,
+case when status2.name is null then status1.name else status2.name end as wep_status,  
+case when service_provider2.name is null then service_provider1.name else service_provider2.name end as service_provider,
+case when features2.name is null then features1.name else features2.name end as features_end
+case when survey_yn2.name is null then survey_yn1.name else survey_yn2.name end as survey_yn_end
 
 from profile_60670 p
 
@@ -26,7 +29,8 @@ left join profile_54646 p1
 on p.projectId = p1.projectId
 left join profile_52810 p2
 on p.projectId = p2.projectId
-
+left join profile_65025 p3
+on p.projectId = p3.projectId
 
 
 left join ds_mysql_prod_tagelement start_year1 on
@@ -41,3 +45,11 @@ left join ds_mysql_prod_tagelement primary_category1 on
 	p2.primary_category = primary_category1.id
 left join ds_mysql_prod_tagelement survey_yn1 on
 	p.survey_yn = survey_yn1.id
+left join ds_mysql_prod_tagelement service_provider2 on
+	p3.service_provider = service_provider2.id
+left join ds_mysql_prod_tagelement features2 on
+	p3.features = features2.id
+left join ds_mysql_prod_tagelement survey_yn2 on
+	p3.survey_yn = survey_yn2.id
+left join ds_mysql_prod_tagelement status2 on
+	p3.status = status2.id
