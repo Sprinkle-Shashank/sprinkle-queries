@@ -6,12 +6,18 @@ case
   when mon < 10 then (0 || mon)
   else cast(mon as VARCHAR)
 end as mon_two,
+
+case
+  when t2.name = 'Regular Clinic Visit' then 'Regular Clinic'
+  else 'Specialist Camp'
+end as activity_type,
   
 to_date((extract(year from p1.date_visit) || mon_two || 1), 'YYYYMMDD') as x_axis
 from profile_73098 p1
 left join profile_73150 p2 on p2._id = p1.clinic
 left join profile_73096 p3 on p3._id = p1.trucker_id
-left join ds_mysql_prod_tagelement t1 on t1.id = p2.plant)
+left join ds_mysql_prod_tagelement t1 on t1.id = p2.plant
+left join ds_mysql_prod_tagelement t2 on t2.id = p1.type_of_visit)
 
-select s1.fy_timerange, s1.plant, s1.x_axis, count(*) from sub1 s1
-group by s1.fy_timerange, s1.plant, s1.x_axis
+select s1.fy_timerange, s1.plant, s1.x_axis, s1.activity_type, count(*) from sub1 s1
+group by s1.fy_timerange, s1.plant, s1.x_axis, s1.activity_type
