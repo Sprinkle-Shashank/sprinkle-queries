@@ -1,5 +1,11 @@
-select (p1.date_visit || '|' || p1.date_visit) as fy_timerange, t1.name as plant, p2.name,
-row_number() over (partition by t1.name, p2.name order by p1.date_visit asc) as row_num, 
+with sub1 as(
+  select (p1.date_visit || '|' || p1.date_visit) as fy_timerange, t1.name as plant, p2.name as trucker_id,
+row_number() over (partition by t1.name, p2.name order by p1.date_visit asc) as row_num
 from profile_73100 p1
 left join ds_mysql_prod_tagelement t1 on t1.id = p1.plant
-left join profile_73096 p2 on p2._id = p1.trucker_id
+left join profile_73096 p2 on p2._id = p1.trucker_id)
+
+select s1.fy_timerange, s1.plant, s1.trucker_id, count(*)
+from sub1 s1
+where s1.row_num = 1
+group by s1.fy_timerange, s1.plant, s1.trucker_id
