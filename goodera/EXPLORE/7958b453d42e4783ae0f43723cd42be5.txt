@@ -1,0 +1,24 @@
+with sub1 as(select p1.name as projectid,p1.fy_timerange,t1.name as half_fy,t2.name as full_fy,t3.name as FY, ,
+
+nvl(t3.name,t2.name,t1.name,t.name) as financialyear_num,
+
+sum(case
+			when keyword = 'nonhaz_recycle_cost' then datanumbase
+			else 0
+			end) as nonhaz_recycle_cost
+	
+
+from sus_62370
+
+left join ds_mysql_prod_tagelement t on t.id=p1.financialPeriod
+left join ds_mysql_prod_tagelement t1 on t1.id=t.parent
+left join ds_mysql_prod_tagelement t2 on t2.id=t1.parent
+left join ds_mysql_prod_tagelement t3 on t3.id=t1.parent
+where keyword= 'nonhaz_recycle_cost'
+
+group by 1,2,3,4,5)
+
+select name,fy_timerange,financialyear_num,sub1.datanumbase as nonhaz_recycle_cost,nonhaz_recycle_cost*1.1259 as cost_euro,sum(cost_euro) as cost
+
+group by 1,2,3
+
