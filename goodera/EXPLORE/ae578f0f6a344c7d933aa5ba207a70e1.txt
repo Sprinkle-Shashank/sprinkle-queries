@@ -1,17 +1,22 @@
 with a as (
-  	select p.members_saved,get_array_length(p.members_saved) as memsave, get_array_length(p.members_double_saved) as memdouble, p.participants, p.amount_saved, proj.name as projectid,  p.fy_timerange
+  	select get_array_length(p.members_saved) as memsave, get_array_length(p.members_double_saved) as memdouble, p.participants, p.amount_saved, proj.name as projectid,  cast(p.fy_timerange.start as varchar)||'|'||cast(p.fy_timerange.end as varchar) as fy_timerange
     from profile_58862 p
   	left join ds_mysql_prod_project proj
   	on p.projectid = proj.id 
   	
-)/*, b as (
-	select (a1.participants - a1.memsave) as tpm from a a1
-), c as (
-	select (b1.tpm + a1.memdouble) as tp from a a1,b b1
-), d as (
-	select (a1.amount_saved * c1.tp) as ts from a a1,c c1
+),
+
+b as (
+	select memdouble, (a1.participants - decode(a1.memsave,null,0,a1.memsave) as tpm,a1.amount_saved, a1.projectid,  a1.fy_timerange from a a1
+),
+
+c as (
+	select (decode(b1.tpm,null,0,b1.tpm) + decode(b1.memdouble,null,0,b1.memdouble)) as tp, b1.amount_saved, b1.projectid,  b1.fy_timerange from b b1
+),
+
+d as (
+	select (c1.amount_saved * c1.tp) as ts, c1.projectid,  c1.fy_timerange  from c c1
 )
-select a1.projectid,a1.fy_timerange,SUM(d1.ts) as total_savings from a a1,d d1
+select a1.projectid,a1.fy_timerange,SUM(a1.ts) as total_savings from d a1
 GROUP BY 1,2
-*/
-select * from a
+
