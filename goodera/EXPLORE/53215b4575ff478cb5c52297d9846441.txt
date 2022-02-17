@@ -1,0 +1,53 @@
+select p.id, p.created, p.projectId, p.brand, p.year_timerange, p.contact_gap, p.keyword_1, , p.start_year,
+cou.name as country, 
+start_year1.name as start_year ,
+status1.name as statusy ,
+service_provider1.name as service_provider , 
+features1.name as features,
+p2.fac_cl_vpid, p2.vendor_ngo_id, primary_category1.name as primary_category,    
+nvl2(SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), ven.name) as vendor_name, case when vendor_name='' then ven.name else vendor_name end as vendor,
+case when status2.name is null then status1.name else status2.name end as wep_status,  
+case when service_provider2.name is null then service_provider1.name else service_provider2.name end as service_provider,
+case when features2.name is null or features2.name ='' then features1.name else features2.name end as features,
+case when survey_yn2.name is null then survey_yn1.name else survey_yn2.name end as survey_yn
+from profile_64075 p
+
+left join ds_mysql_prod_project fac
+on  p.projectid = fac.id
+left join ds_mysql_prod_project ven
+on fac.parent = ven.id
+left join ds_mysql_prod_project cou
+on ven.parent = cou.id
+
+left join profile_52810 p2
+on p.projectId = p2.projectId
+left join profile_65025 p3
+on p.projectId = p3.projectId
+
+left join ds_mysql_prod_tagelement primary_category1 on
+	p2.primary_category = primary_category1.id
+left join ds_mysql_prod_tagelement start_year1 on
+	p.start_year = start_year1.id
+left join ds_mysql_prod_tagelement survey_yn1 on
+	p.survey_yn = survey_yn1.id
+left join ds_mysql_prod_tagelement status1 on
+	p.status = status1.id
+left join ds_mysql_prod_tagelement service_provider1 on
+	p.service_provider = service_provider1.id
+left join ds_mysql_prod_tagelement features1 on
+	p.features = features1.id
+left join ds_mysql_prod_tagelement service_provider2 on
+	p3.service_provider = service_provider2.id
+left join ds_mysql_prod_tagelement features2 on
+	p3.features = features2.id
+left join ds_mysql_prod_tagelement survey_yn2 on
+	p3.survey_yn = survey_yn2.id
+left join ds_mysql_prod_tagelement status2 on
+	p3.status = status2.id
+	
+group by  p.id, p.created, p.projectId, p.brand, p.year_timerange, p.contact_gap, p.keyword_1, , p.start_year,
+cou.name as country, start_year1.name ,
+p2.fac_cl_vpid, p2.vendor_ngo_id, primary_category1.name ,ven.name ,status2.name ,status1.name 
+, service_provider2.name , service_provider1.name ,features2.name  , features1.name  , 
+survey_yn2.name  ,survey_yn1.name
+
