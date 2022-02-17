@@ -5,36 +5,66 @@ where keyword= 'emission_factor_fuel_type'
 )
 ,
 s2 as(
-Select site,year,fy_timerange,questiontext, cast(coun.em_coal.unit_em_factor as varchar) coal_unit,cast(coun.em_natural_gas.unit_em_factor as varchar) ,cast(coun.em_petcoke.unit_em_factor as varchar) ,cast(coun.em_petrol.unit_em_factor as varchar) ,cast(coun.em_diesel.unit_em_factor as varchar) ,cast(coun.em_fo.unit_em_factor as varchar) ,cast(coun.em_sacoal.unit_em_factor as varchar) ,cast(coun.em_anthra.unit_em_factor as varchar) ,cast(coun.em_lubes.unit_em_factor as varchar) ,cast(coun.em_plastics.unit_em_factor as varchar) ,cast(coun.em_indocoal.unit_em_factor as varchar) ,
-  coun.em_coal.emission_factor,coun.em_natural_gas.emission_factor,coun.em_petcoke.emission_factor,coun.em_petrol.emission_factor,coun.em_diesel.emission_factor,coun.em_fo.emission_factor,coun.em_sacoal.emission_factor,coun.em_anthra.emission_factor,coun.em_lubes.emission_factor,coun.em_plastics.emission_factor,coun.em_indocoal.emission_factor from s as p, unpivot p.datatablebase as coun at xyz
+Select site,year,fy_timerange,questiontext, cast(coun.em_coal.unit_em_factor as varchar) coal_unit,cast(coun.em_natural_gas.unit_em_factor as varchar) ng_unit ,cast(coun.em_petcoke.unit_em_factor as varchar) pc_unit,cast(coun.em_petrol.unit_em_factor as varchar) petr_unit ,cast(coun.em_diesel.unit_em_factor as varchar)  dies_unit,cast(coun.em_fo.unit_em_factor as varchar) fo_unit ,cast(coun.em_sacoal.unit_em_factor as varchar) sacoal_unit ,cast(coun.em_anthra.unit_em_factor as varchar) anthra_unit ,cast(coun.em_lubes.unit_em_factor as varchar) lubes_unit,cast(coun.em_plastics.unit_em_factor as varchar) plast_unit ,cast(coun.em_indocoal.unit_em_factor as varchar) indo_unit,
+  coun.em_coal.emission_factor coal ,coun.em_natural_gas.emission_factor ng,coun.em_petcoke.emission_factor pc,coun.em_petrol.emission_factor petr,coun.em_diesel.emission_factor dies,coun.em_fo.emission_factor fo,coun.em_sacoal.emission_factor sacoal,coun.em_anthra.emission_factor anthra,coun.em_lubes.emission_factor lubes,coun.em_plastics.emission_factor plast,coun.em_indocoal.emission_factor indo from s as p, unpivot p.datatablebase as coun at xyz
 ),
 s3 as (
-Select 'Lubricants- consumed for self Cogen / trigen' as col
+Select 'Coal' as col
  union all
-Select 'Lubricants- consumed for self - generation of Heat' as col
+Select 'Natural Gas' as col
   union all
-Select 'Lubricants- consumed for self - generation of Steam' as col
+Select 'Pet Coke' as col
   union all
-Select 'Lubricants- consumed for self - generation of Cooling' as col
+Select 'Petrol' as col
+   union all
+Select 'Diesel' as col
+   union all
+Select 'FO' as col
+   union all
+Select 'South African Coal' as col
+   union all
+Select 'Anthracite Coal' as col
+   union all
+Select 'Lubricants' as col
+  union all
+Select 'Plastics' as col
+  union all
+Select 'Indonesian Coal' as col
+  
   
 )
 
 Select site,year financialPeriod,fy_timerange,questiontext questions,s3.col as source,
 case col
-	  when 'Lubricants- consumed for self Cogen / trigen' then s2.Cogen_trigen_unit
-	    when 'Lubricants- consumed for self - generation of Heat' then s2.Heat_ren_unit
-	    when 'Lubricants- consumed for self - generation of Steam' then s2.steam_ren_unit
-	   when 'Lubricants- consumed for self - generation of Cooling' then s2.Cool_ren_unit
+ 		When 'Coal' then s2.coal_unit
+		When 'Natural Gas' then s2.ng_unit
+		When 'Pet Coke' then s2.pc_unit
+		When 'Petrol' then s2.petr_unit
+		When 'Diesel' then s2.dies_unit
+		When 'FO' then s2.fo_unit
+		When 'South African Coal' then s2.sacoal_unit
+		When 'Anthracite Coal' then s2.anthra_unit
+		When 'Lubricants' then s2.lubes_unit
+		When 'Plastics' then s2.plast_unit
+		When 'Indonesian Coal' then s2.indo_unit
+
 	   else null
 	   end as Unit,
 sum(case col
-		when 'Lubricants- consumed for self Cogen / trigen' then s2.lubri_cogen_trigen
-	    when 'Lubricants- consumed for self - generation of Heat' then s2.lubri_heat
-	    when 'Lubricants- consumed for self - generation of Steam' then s2.lubri_steam
-	   when 'Lubricants- consumed for self - generation of Cooling' then s2.lubri_cooling
-	else null
+		When 'Coal' then s2.coal
+		When 'Natural Gas' then s2.ng
+		When 'Pet Coke' then s2.pc
+		When 'Petrol' then s2.petr
+		When 'Diesel' then s2.dies
+		When 'FO' then s2.fo
+		When 'South African Coal' then s2.sacoal
+		When 'Anthracite Coal' then s2.anthra
+		When 'Lubricants' then s2.lubes
+		When 'Plastics' then s2.plast
+		When 'Indonesian Coal' then s2.indo
+		else null
 	end) as Values
 
 	from s2
 	cross join s3
-group by 1,2,3,4,5,s2.Cogen_trigen_unit,s2.Heat_ren_unit,s2.steam_ren_unit,s2.Cool_ren_unit
+group by 1,2,3,4,5,s2.coal_unit,s2.ng_unit,s2.pc_unit,s2.petr_unit, s2.dies_unit,s2.fo_unit,s2.sacoal_unit,s2.anthra_unit,s2.lubes_unit,s2.plast_unit,s2.indo_unit
