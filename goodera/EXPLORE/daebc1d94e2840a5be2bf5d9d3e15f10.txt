@@ -20,8 +20,10 @@ left join ds_mysql_prod_tagelement t2 on t2.id=t1.parent
 left join ds_mysql_prod_tagelement t3 on t3.id=t1.parent
 where keyword in( 'paper_purchased','paper_disposed')and datanumbase is not null
 
-group by 1,2,3,4,5,t.name)
+group by 1,2,3,4,5,t.name),
 
-select projectid,fy_timerange,financialyear_num,paper_purchased*1000 as sum(paper_purchased_kg),paper_disposed*1000 as sum(paper_disposed_kg) from sub1
+sub2 as(select projectid,fy_timerange,financialyear_num,paper_purchased*1000 as paper_purchased_kg, sum(paper_purchased_kg) paper_purchased_kg1, paper_disposed*1000 as paper_disposed_kg,sum(paper_disposed_kg) paper_disposed_kg1 from sub1
 
-group by 1,2,3
+group by 1,2,3,paper_purchased,paper_disposed)
+
+select projectid,fy_timerange,financialyear_num,paper_purchased_kg1 as paper_purchased_kg, paper_disposed_kg1 as paper_disposed_kg from sub2
