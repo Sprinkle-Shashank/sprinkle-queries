@@ -1,1 +1,27 @@
-select * from profile_58858
+with phase1 as(
+	select proj.name as projectId, p2.name as location,p1.shg as shg, member, joindate, 
+  	(cast(p.fy_timerange.start as varchar)||'|'||cast(p.fy_timerange.end as varchar)) as fy_timerange, 
+  	p3.name as cooperative, tag1.name as yes, tag2.name as scheme_beneficiary, p.date, p.scheme_name, p.amount,tag3.name as income_generation, p.start_date,tag4.name as business_type,tag5.name as business, tag6.name as dropout, p.age
+  	from profile_58858 p
+  	left join profile_58848 p1
+  	on p.shg = p1._id
+  	left join profile_58845 p2
+	on p.location = p2._id
+  	left join profile_58846 p3
+  	on p.cooperative = p3._id
+  	left join ds_mysql_prod_project proj
+  	on p.projectid = proj.id
+  	left join ds_mysql_prod_tagelement tag1
+  	on p.yes = tag1.id
+  	left join ds_mysql_prod_tagelement tag2
+  	on p.scheme_beneficiary = tag2.id
+  	left join ds_mysql_prod_tagelement tag3
+  	on p.income_generation = tag3.id
+  	left join ds_mysql_prod_tagelement tag4
+  	on p.business_type = tag4.id
+  	left join ds_mysql_prod_tagelement tag5
+  	on p.business = tag5.id
+  	left join ds_mysql_prod_tagelement tag6
+  	on p.dropout = tag6.id
+)
+select * from phase1
