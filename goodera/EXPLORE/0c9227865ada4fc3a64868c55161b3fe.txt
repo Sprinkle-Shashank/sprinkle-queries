@@ -1,27 +1,43 @@
-with lookup as (select 
-				task.approvallog,
-				task.approval, 
-				p.subcat_output, 
-				task.status, 
-				split_part(split_part(prod.name,'|',1),'.',1) as ProjectCode,
-				f.name as fy_timerange,
-				m.name as Month,
-				concat(ProjectCode,fy_timerange) as CODE,
-				split_part(prod.name,'|',3) as census, 
-				p._id, 
-				case when p.subcat_output is not NULL and p.flag_deviation_delay='1' then 1 else 0 end  as devreported, 
-				case when task.status='PENDING_APPROVAL' then 0 else 1 end as datacheck, 
-				case when p.subcat_output is NULL or p.subcat_output = 0 or dataCheck=0 then 0 else 1 end  as manager1, 
-				case when dataCheck=1 and p.subcat_output = 0 then 1 else manager1 end  as manager2, 
-				case when p.subcat_output is not NULL then 1 else 0 end  as tasksReported, 
-				case when task.status like '%SUB%' then 1 else 0 end  as firstLevelApproval, 
-				cast(task.approvallog."approvalStatus" as super) as status1 from profile_54963 p
-left join taskresp_54963 task on
-task.profileinstanceid=p._id, task.approvallog approval
-left join ds_mysql_prod_project prod on
-prod.id=p.projectid
-left join ds_mysql_prod_tagelement f on
-p.fy=f.id
-left join ds_mysql_prod_tagelement m on
-p.month=m.id)
-select distinct (p._id), p.fy_timerange, p.Month, p.devreported, p.datacheck, p.manager2, p.status1, p.tasksReported, p.firstLevelApproval, p.status, p.subcat_output, p.approvallog, p.approval, p.ProjectCode from lookup p where ((p.projectcode='P0317'))
+with lookup as (select
+JSON_SERIALIZE(table_52810.pace_brands) as pace_brand,
+case when pace_brand like '%1151834%' then 1 else 0 end  as brand,
+max(distinct(( taskResponse_4227.modified))) as last_modified,
+listagg(distinct taskResponse_4227.status) as status10,
+listagg(distinct taskResponse_4227.sectionId) as sectionId1,
+case when listagg(JSON_SERIALIZE(taskResponse_4227.submissionLog)) is null then 0 else 1 end as submissionstatus,
+case when sectionId1 <> 9292 or submissionstatus = 0  then null else taskResponse_4227.submissionLog[0].email end as data_user,
+
+listagg(distinct p._id) as _4227_id,
+listagg(distinct( cast(p.end_date_2 as varchar(256)))) as enddate2,
+case when taskResponse_4227.modified is null or sectionId1 <> 9296 then enddate2 else last_modified end as business_date,
+--listagg(distinct table_4228._id,',') as id4228,
+
+case when table_4228._id is null then p._id else table_4228._id end as _4228id,
+
+listagg(distinct taskResponse_4228.status) as status11,
+max(distinct(( taskResponse_4228.modified ))) as modified11,
+case when listagg(JSON_SERIALIZE(taskResponse_4228.data)) is null then 0 else 1 end as s,
+case when status11 like 'SUBMITTED' or s =1 then modified11 else null end as date_modified,
+case when date_modified > last_modified then date_modified else last_modified end as last_entry_date
+
+from profile_4227 p
+ 
+inner join profile_52810 table_52810 on
+table_52810.projectid=p.projectid
+
+inner join ds_mongo_taskresponse taskResponse_4227 on
+taskResponse_4227.profileinstanceid=p._id
+
+left join profile_4228 table_4228 on
+table_4228.class = p._id
+
+left join ds_mongo_taskresponse taskResponse_4228 on
+taskResponse_4228.profileinstanceid=
+_4228id
+--table_4228._id
+
+
+group by table_52810.pace_brands,p._id,taskResponse_4227.submissionLog[0].email,taskResponse_4227.modified
+,table_4228._id
+  )
+select * from lookup p where brand = 1 and status10 = 'SUBMITTED'
