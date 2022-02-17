@@ -1,0 +1,36 @@
+Select p.projectId as project,fac.name as projectId,ven.name as vendor1,nvl2(SUBSTRING(vendor1, 1, POSITION(' (' in vendor1)), SUBSTRING(vendor1, 1, POSITION(' (' in vendor1)), vendor1) as vendor_name, case when vendor_name='' then vendor1 else vendor_name end as vendor,cou.name as country,p.mr_wr,p.how_member_bc, p.function,p.collect_suggestions,p.agenda,p.comfort,p.resolution,p.satisfaction,p.quality_relationship, p.usefulness,p.suggestions,p.suggestions_explain_2,p.sub_unit,p.suggestions_explain,p.code,p.sub_unit_1,p.name,
+p2.fac_cl_vpid,p2.vendor_ngo_id,cat.name as primary_category,p3.status, p3.date_enrollment,case 
+	when 1=1
+	then 1
+	else 0
+	end
+	as total_responses
+
+from profile_20703 p
+
+
+left join profile_52810 p2
+on p.projectId = p2.projectId
+
+left join profile_16619 p3
+on p.projectId = p3.projectId
+
+
+
+left join ds_mysql_prod_project fac
+on p.projectid = fac.id
+left join ds_mysql_prod_project ven
+on fac.parent = ven.id
+left join ds_mysql_prod_project cou
+on ven.parent = cou.id
+
+left join ds_mysql_prod_tagelement cat
+on p2.primary_category= cat.id
+
+
+where  p3.date_enrollment is not null  and (p3.status = 1400365 or p3.status is Null) and cou.id <> 13761 and  project ilike '%%'
+
+group by  project,fac.name ,ven.name,vendor,cou.name,p.mr_wr,p.how_member_bc, p.function,p.collect_suggestions,p.agenda,p.comfort,p.resolution,p.satisfaction,p.quality_relationship, p.usefulness,p.suggestions,p.suggestions_explain_2,p.sub_unit,p.suggestions_explain,p.code,p.sub_unit_1,p.name,p2.fac_cl_vpid,p2.vendor_ngo_id,cat.name ,p3.status, p3.date_enrollment
+
+
+
