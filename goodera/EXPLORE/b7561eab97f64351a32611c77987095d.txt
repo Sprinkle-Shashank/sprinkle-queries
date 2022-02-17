@@ -1,13 +1,13 @@
 with sub1  as(
-  select b.*,unwind_schedule_vii,unwind_sdg_id
+  select b.*,unwind_schedule_vii,unwind_sdg_id,unwind_state
   from profile_55495 b , b.schedule_vii as unwind_schedule_vii,
-  b.sdg_id as unwind_sdg_id)
+  b.sdg_id as unwind_sdg_id,b.state as unwind_state)
 
 
 
 Select a.fy_timerange, p.name as projectid,a.name as programs, p1.name as Implementation_partner
 ,count(p1.name) as no_of_Implementation_partners,
-t.name as state, count(t.name) as no_of_states ,a.location,
+t.name as state,a.location,
 to_char(a.start, 'DD-MM-YYYY') as start_date,
 to_char(a.end, 'DD-MM-YYYY') as end_date,
 a.about as Project_description,
@@ -21,7 +21,7 @@ from  sub1 a
 left join ds_mysql_prod_project p on p.id = a.projectid
 left join ds_mysql_prod_project p1 on p1.id = p.parent
 
-left join ds_mysql_prod_tagelement t on t.id=a.state
+left join ds_mysql_prod_tagelement t on t.id=a.a.unwind_state
 left join ds_mysql_prod_tagelement t1 on t1.id=a.focus_area
 left join ds_mysql_prod_tagelement t2 on t2.id=a.unwind_schedule_vii
 
