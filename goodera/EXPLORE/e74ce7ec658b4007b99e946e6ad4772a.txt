@@ -1,0 +1,24 @@
+with table1 as(
+select projectId from profile_64075  
+union all
+select projectId from profile_61572
+union all
+select projectId from profile_64801
+union all
+select projectId from profile_60670
+)
+
+select p.projectId ,cou.name as country ,fac.name as factory,
+nvl2(SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), ven.name) as vendor_name, case when vendor_name='' then ven.name else vendor_name end as vendor
+ from table1 p
+
+left join ds_mysql_prod_project fac
+on  p.projectid = fac.id
+left join ds_mysql_prod_project ven
+on fac.parent = ven.id
+left join ds_mysql_prod_project cou
+on ven.parent = cou.id
+
+where country <> 'Test Country'  
+
+order by vendor ASC
