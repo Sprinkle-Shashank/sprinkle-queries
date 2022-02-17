@@ -1,9 +1,16 @@
-Select a.fy_timerange, p.name as projectid,a.name as programs, p1.name as Implementation_partner,count(distinct(p.name))
+with sub1  as(
+  select b.*,unwind_state
+  from profile_55495 b , b.state as unwind_state
+  )
 
 
-from profile_55495 a 
+Select a.fy_timerange, p.name as projectid,a.name as programs, p1.name as Implementation_partner,t.name as state,t1.code as map_code
+
+
+from sub1 a 
 
 left join ds_mysql_prod_project p on p.id = a.projectid
 left join ds_mysql_prod_project p1 on p1.id = p.parent
+left join ds_mysql_prod_tagelement t on t.id=a.unwind_state
 
-group by a.fy_timerange, p.name,a.name, p1.name
+group by a.fy_timerange, p.name,a.name, p1.name,t.name,t1.code
