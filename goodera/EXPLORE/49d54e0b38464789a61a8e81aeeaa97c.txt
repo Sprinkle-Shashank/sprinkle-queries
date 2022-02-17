@@ -18,8 +18,8 @@ with lookup as (select
 				listagg(distinct table_4580.date) as date1,
 				table_4580.impact_story as impact_story,
 				listagg(distinct table_4580._id) as _id,
-				max(table_4227.start_date) as start_date,
-				listagg( distinct table_4227.name) as batch_name			
+				(table__4227.start_date) as start_date,
+				listagg( distinct table__4227.name) as batch_name			
 				from profile_52713 p
 						
 inner join profile_52810 table_52810 on
@@ -30,12 +30,15 @@ table_54267.projectid=p.projectid
 				
 inner join profile_54646 table_54646 on
 table_54646.projectid=p.projectid
-				
+
 left join profile_4227 table_4227 on
 table_4227.projectid=p.projectid
 				
 inner join profile_4580 table_4580 on
 table_4580.projectid=p.projectid
+				
+left join profile_4227 table__4227 on
+table__4227.projectid=table_4580.batch
 				
 left join ds_mongo_taskresponse taskResponse on
 taskResponse.profileinstanceid=table_4580._id	
@@ -46,6 +49,7 @@ group by table_52810.pace_brands,table_54267.pace_status,p.pace_status_2,factory
 				table_54646.name_vendor_filter,table_54646.name,p.child_vendor_vpid,
 				p.factory_vpid_2,
 				p.projectId,
-				taskresponse.submissionlog
+				taskresponse.submissionlog,
+				table__4227.start_date
 )
 select * from lookup p where brand = 1 and status =1
