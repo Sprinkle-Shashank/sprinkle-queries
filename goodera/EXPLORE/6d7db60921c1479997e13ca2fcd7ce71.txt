@@ -1,18 +1,3 @@
-with sub1 as(
-  select (p1.date_visit || '|' || p1.date_visit) as fy_timerange, t1.name as plant, p3.name as trucker_id,
-row_number() over (partition by p3.name order by p1.date_visit asc) as row_num, 
-extract(month from p1.date_visit) as mon, 
-  
-case
-  when mon < 10 then (0 || mon)
-  else cast(mon as VARCHAR)
-end as mon_two,
-  
-to_date((extract(year from p1.date_visit) || mon_two || 1), 'YYYYMMDD') as x_axis
-from profile_73098 p1
-left join profile_73150 p2 on p2._id = p1.clinic
-left join profile_73096 p3 on p3._id = p1.trucker_id
-left join ds_mysql_prod_tagelement t1 on t1.id = p2.plant)
-
-select fy_timerange, plant, trucker_id, row_num, x_axis from sub1
-group by 1,2,3,4,5
+select * from profile_73100 p1
+left join profile_73096 p2 on p2._id = p1.trucker_id
+where p2.name = 'APLR18170'
