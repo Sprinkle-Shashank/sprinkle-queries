@@ -6,13 +6,16 @@ with lookup as (select
 				
 			
 				listagg(distinct taskResponse_4227.status) as status10,
-				listagg(taskResponse_4227.sectionId) as sectionId1,
+				array(listagg(distinct taskResponse_4227.sectionId,',')) as sectionId1,
+				JSON_SERIALIZE(sectionId1) as sectionId2,
+				case when sectionId2 like '%9292%' then 1 else 0 end  as secid,
+				case when sectionId2 like '%9296%' then 1 else 0 end  as secid2,
 				case when listagg(JSON_SERIALIZE(taskResponse_4227.submissionLog)) is null then 0 else 1 end as submissionstatus,
-				case when sectionId1 = 9292 or submissionstatus=1 then (max(taskResponse_4227.submissionLog[0].email)) else null end as data_user,
+				case when secid = 1 or submissionstatus=1 then (max(taskResponse_4227.submissionLog[0].email)) else null end as data_user,
 				
 				listagg(distinct p._id) as _4227_id,
 				listagg(distinct( cast(p.end_date_2 as varchar(256)))) as enddate2,
-				case when last_modified is null or sectionId1 <> 9296 then enddate2 else last_modified end as business_date,
+				case when last_modified is null or secid2 <> 0 then enddate2 else last_modified end as business_date,
 				--listagg(distinct table_4228._id,',') as id4228,
 				
 				--case when table_4228._id is null then p._id else table_4228._id end as _4228id,
