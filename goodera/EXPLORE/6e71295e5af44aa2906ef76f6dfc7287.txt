@@ -1,1 +1,37 @@
-select * from profile_79933
+with temp as ( select "sessions" as c
+			   Union all
+               select "direct_male" as c
+			   Union all
+			   select "indirect_male" as c
+			   Union all 
+			   select "direct_female" as c
+			   Union all
+			   select "indrect_female" as c
+			   Union all 
+			   select "direct_boy" as c
+			   Union all
+			   select "indirect_boy" as c
+			   Union all 
+			   select "direct_girl" as c
+			  Union all
+			  select "indirect_girls" as c
+			  )
+  
+
+select projectid,fy_timerange,activity,
+sum( case c when "sessions" then p.sessions
+	        when "direct_male" then p.direct_male
+			when "indirect_male" then p.indirect_male
+	        when "direct_female" then p.direct_female
+	        when "indirect_female" then p.indirect_female
+	        when "direct_boy" then p.direct_boy
+	        when "indirect_boy" then p.indirect_boy
+	        when "direct_girl" then p.direct_girl
+	        when "indirect_girl" then p.direct_girl
+	     else null end ) as val, temp.c as dim
+			   
+	        
+from profile_79933 p
+cross join temp
+
+group by projectid,fy_timerange,activity,temp.c
