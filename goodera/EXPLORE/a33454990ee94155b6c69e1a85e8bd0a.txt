@@ -1,1 +1,42 @@
-select * from profile_16862
+with table1 as(
+Select p.projectId as project,fac.name as projectId,ven.name as vendor1,nvl2(SUBSTRING(vendor1, 1, POSITION(' (' in vendor1)), SUBSTRING(vendor1, 1, POSITION(' (' in vendor1)), vendor1) as vendor_name, case when vendor_name='' then vendor1 else vendor_name end as vendor,cou.name as country,p.status,p2.fac_cl_vpid,p2.vendor_ngo_id,cat.name as primary_category,p2.sourcing,p.name, p.name_subunit,p.worker_rep,p.mgmt_rep,p3.total_workers
+
+from profile_16619 p
+
+
+left join profile_52810 p2
+on p.projectId = p2.projectId
+
+left join profile_68161 p3
+on p2.fac_cl_vpid = p3.fac_id
+
+
+
+left join ds_mysql_prod_project fac
+on p.projectid = fac.id
+left join ds_mysql_prod_project ven
+on fac.parent = ven.id
+left join ds_mysql_prod_project cou
+on ven.parent = cou.id
+
+left join ds_mysql_prod_tagelement cat
+on p2.primary_category= cat.id
+
+
+where (project ilike '%%') and (cou.id <> 13761) and 
+(p.status = 1400365 or p.status is Null)
+
+group by  project,fac.name ,ven.name,vendor,cou.name ,p2.fac_cl_vpid,p2.vendor_ngo_id,cat.name,p.status,p2.sourcing,p.name, p.name_subunit,p.worker_rep,p.mgmt_rep,p3.total_workers
+
+),
+table2 as(select t1.*,row_number() over 
+(partition by projectid
+ order by t1._id desc) as row from table1 t1
+)
+select * from table2 where row = 1
+
+
+
+
+
+/*select * from profile_16862*/
