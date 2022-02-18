@@ -1,19 +1,6 @@
 with base1 as(
-  select p1.fy, p1._id,p1.renewal, p1.payment_amount, p1.createddate as request_date, p1.modifieddate as modified, p1.uc, p1.projectId,  p1.tranche, decode(p1.renewal,430820,p1.project_renew,p1.project_name) as joincolumn from profile_27398 p1 
-  ),
-  
-  base2 as(
-	select p1.fy, p1.payment_amount, p1.request_date, p1.modified, p1.uc, p1.projectId,  p1.tranche, p1._id as profileinstanceid, decode(p1.renewal,430820,p3.project_code,p2.name) as project_code, decode(p1.renewal,430820,p3.name_project,p2.name_project) as project_name from base1 p1
-  	left join profile_27396 p2 on p1.joincolumn=p2._id
-	left join profile_27420 p3 on p1.joincolumn=p3._id
-  ),
-  
-  base3 as(
-  	select t1.name as fy_timerange, p1.payment_amount, p1.request_date, p1.modified, p1.uc, pro.name as projectId,  t2.name as tranche, p1.profileinstanceid, p1.project_name,  decode(p1.project_code,p2._id,p2.name,p1.project_code) as project_code from base2 p1
-	left join profile_27396 p2 on p1.project_code=p2._id
-	left join ds_mysql_prod_project pro on p1.projectid=pro.id
-	left join ds_mysql_prod_tagelement t1 on p1.fy=t1.id
-	left join ds_mysql_prod_tagelement t2 on p1.tranche=t2.id
+  select  p1.profileInstanceId,p1.renewal, p1.payment_amount, p1.createddate as request_date, p1.modifieddate as modified, p1.uc, p1.projectId,  p1.tranche, decode(p1.renewal,430820,p1.project_renew,p1.project_name) as joincolumn from taskresp_27398 p1 
+  left join profile_27398 p2 on p1.profileInstanceId=p2._id
   )
   
-  select * from base3 where project_code='P0176'
+  select * from base1
