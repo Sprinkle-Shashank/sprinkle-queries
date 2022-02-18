@@ -1,18 +1,17 @@
-with Base1 as(select p.name as Projectcode,f.name as fy_timerange,case when p.budget is not null then 'Yes'
-else 'No' end as  Budget_File_uploaded,case when p.monitoring_plan is not null then 'Yes' else 'No' end as Monitoring_File_uploaded,m.name as Monitoring_Live
-			  ,w.name as Project_renewal_fy
-,case when  l.budget is not null then 'Yes' 
-			  when w.name is not null and l.budget is null then 'No' end as renewal_budget_file,case when l.monitoring_plan is not null then 'Yes' when w.name is not null and l.monitoring_plan is null then 'No' end as Renewal_monitoring_file,n.name as project_renewal_live_monitoring
+with base1 as(
+  select p.name, t1.name as fy, p.budget, p.monitoring_plan, m1.name as monitoring_live, p._id, t2.name as fy2, q.budget as budget2, q.monitoring_plan as monitoring_plan2, m2.name as monitoring_live2, decode(p._id,q.project_code,1,0) as renewals
 from profile_27396 p
-left join ds_mysql_prod_tagelement f on
-p.fy=f.id
-left join ds_mysql_prod_tagelement m on
-p.monitoring_live=m.id
-left join profile_27420 l on
-p._id=l.project_code
-left join ds_mysql_prod_tagelement w on
-l.fy=w.id
-left join ds_mysql_prod_tagelement n on
-l.monitoring_live=n.id
-			 )
-select * from Base1
+left join profile_27420 q on
+p._id=q.project_code
+left join ds_mysql_prod_tagelement t1 on
+p.fy=t1.id
+left join ds_mysql_prod_tagelement t2 on
+q.fy=t2.id
+left join ds_mysql_prod_tagelement m1 on
+p.monitoring_live=m1.id
+left join ds_mysql_prod_tagelement m2 on
+q.monitoring_live=m2.id
+  order by fy2
+ )
+ 
+ select * from base1
