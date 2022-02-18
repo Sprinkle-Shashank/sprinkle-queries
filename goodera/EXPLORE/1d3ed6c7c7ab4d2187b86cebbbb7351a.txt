@@ -12,7 +12,18 @@ temp as(
   union all
   select 'Cooling Generation' as col)
   
-select s1.name as projectid, s1.fy_timerange, 'Renewable Resources' as x_axis, temp.col as dimensions,
+select s1.fy_timerange, 'Renewable Resources' as x_axis, temp.col as dimensions,
+
+case
+	when s1.name like 'TCE%' then 'TCE'
+	when s1.name like 'TCML%' then 'TCML'
+	when s1.name like 'TCNA%' then 'TCNA'
+	when s1.name like 'Mambattu%' then 'Mambattu'
+	when s1.name like 'Cuddalore%' then 'Cuddalore'
+	when s1.name like 'Mithapur%' then 'Mithapur'
+	else s1.name
+end as projectid,
+
 sum(case col
 		when 'Electricity Generation' then s1.elec_ren
 		when 'Heat Generation' then s1.heat_ren
@@ -20,6 +31,7 @@ sum(case col
 		when 'Cooling Generation' then s1.cooling_ren
 	else NULL
 end) as values
+
 from sub1 s1
 cross join temp
 group by s1.name, s1.fy_timerange, temp.col
