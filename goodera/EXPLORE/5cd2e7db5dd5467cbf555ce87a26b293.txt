@@ -1,4 +1,5 @@
-select fy_timerange, 'Actual Savings' as x_axis, sum(datanumbase) as values, keyword,
+with sub1 as(
+  select fy_timerange, extract(year from startdate) as x_axis, sum(datanumbase) as values,
 
 case
 	when name like 'TCE%' then 'TCE'
@@ -8,8 +9,11 @@ case
 	when name like 'Cuddalore%' then 'Cuddalore'
 	when name like 'Mithapur%' then 'Mithapur'
 	else name
-end as projectid,
+end as projectid
 
 from sus_56551 
 where keyword in ('gri_electrcity_saved', 'gri_thermal_saved')
-group by name, fy_timerange, keyword
+group by name, fy_timerange)
+
+select * from sub1
+where values is not null
