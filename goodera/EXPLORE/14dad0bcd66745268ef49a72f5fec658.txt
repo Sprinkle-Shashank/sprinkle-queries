@@ -1,1 +1,25 @@
-select * from sus_64073
+with sub1 as(
+  select name, fy_timerange, unwind.ng_heat,  unwind.ng_steam, unwind.ng_cooling, unwind.ng_cogen_trigen
+from sus_64073 p1, unpivot p1.datatablebase unwind at row
+where keyword = 'natural_gas_consumed'),
+
+temp as(
+  select 'Natural Gas - Consumed for heat generation' as col
+  union all
+  select 'Natural Gas - Consumed for steam generation' as col
+  union all
+  select 'Natural Gas - Consumed for cooling generation' as col
+  union all
+  select 'Natural Gas - Consumed for Cogen/trigen' as col)
+  
+select s1.name, s1.fy_timerange, 'Natural Gas' as x_axis, 
+sum(case col
+		when 'Natural Gas - Consumed for heat generation' then s1.ng_heat
+		when 'Natural Gas - Consumed for steam generation' then s1.ng_steam
+		when 'Natural Gas - Consumed for cooling generation' then s1.ng_cooling
+		when 'Natural Gas - Consumed for Cogen/trigen' then s1.ng_cogen_trigen
+	else NULL
+end) as values
+from sub1 s1
+cross join temp
+group by s1.name, s1.fy_timerange
