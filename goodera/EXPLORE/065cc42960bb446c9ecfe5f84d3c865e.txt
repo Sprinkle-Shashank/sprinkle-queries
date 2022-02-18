@@ -2,4 +2,20 @@ with sub1 as(
   select p1.name, p1.fy_timerange, p1.startdate, unwind.mtco2
 from sus_56551 p1, unpivot p1.datatablebase unwind at row
 where keyword = 'cdp_cc_c6_5_scope_3_emissions_data')
-select * from sub1
+
+select s1.fy_timerange, temp.col as dimensions, sum(s1.mtco2) as values
+extract(year from cast(s1.startdate as date)) as year, 'Scope 2 Emission' as emission_type,
+
+case
+	when s1.name like 'TCE%' then 'TCE'
+	when s1.name like 'TCML%' then 'TCML'
+	when s1.name like 'TCNA%' then 'TCNA'
+	when s1.name like 'Mambattu%' then 'Mambattu'
+	when s1.name like 'Cuddalore%' then 'Cuddalore'
+	when s1.name like 'Mithapur%' then 'Mithapur'
+	else s1.name
+end as projectid
+
+from sub1 s1
+cross join temp
+group by s1.fy_timerange, s1.name, s1.startdate, temp.col
