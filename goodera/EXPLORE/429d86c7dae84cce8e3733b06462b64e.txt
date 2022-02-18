@@ -1,0 +1,20 @@
+with sub1 as(
+  select fy_timerange, extract(year from cast(startdate as date)) as year, sum(datanumbase) as values,
+'Scope 2 Emission' as emission_type, keyword,
+
+case
+	when name like 'TCE%' then 'TCE'
+	when name like 'TCML%' then 'TCML'
+	when name like 'TCNA%' then 'TCNA'
+	when name like 'Mambattu%' then 'Mambattu'
+	when name like 'Cuddalore%' then 'Cuddalore'
+	when name like 'Mithapur%' then 'Mithapur'
+	else name
+end as projectid
+
+from sus_56551 
+where keyword in ('gri_scope_3_business_travel', 'gri_scope_3_inbound_logistics', 'gri_scope_3_outbound_logistics')
+group by name, fy_timerange, startdate, keyword)
+
+select * from sub1
+where values is not null
