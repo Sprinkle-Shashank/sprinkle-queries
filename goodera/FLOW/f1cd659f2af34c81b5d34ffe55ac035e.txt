@@ -1,0 +1,25 @@
+drop table if exists sus_79923;
+ create table sus_79923 as
+				select st.xprojectid, p.name, st.financialperiod, t.name as finPeriod,
+				concat(concat(substring(cast(timestamp 'epoch' + CAST(t.start AS BIGINT)/1000 * interval '1 second' as varchar), 1, 10),'T'), concat(split_part(cast(timestamp 'epoch' + CAST(t.start AS BIGINT)/1000 * interval '1 second' as varchar), ' ',2),'.000Z')) as startdate,
+				concat(concat(substring(cast(timestamp 'epoch' + CAST(t.end AS BIGINT)/1000 * interval '1 second' as varchar), 1, 10),'T'), concat(split_part(cast(timestamp 'epoch' + CAST(t.end AS BIGINT)/1000 * interval '1 second' as varchar), ' ',2),'.000Z')) as enddate,
+				concat(concat(startdate,'|'),enddate) as fy_timerange,
+				-- concat(concat(t.start,'|'),t.end) as fy_timerange,
+				st.xquestionid,
+				q.questiontype,
+				q.keyword,
+				q.questiontext,
+				cast(st.datanum as float),
+				cast(st.dataNumBase as float),
+				st.datatext,
+				st.datatagref as dataselect,
+				st.datatable,
+				st.dataTableBase,
+				st.measureunit
+				from ds_mongo_sustainabilityTask st
+				left join ds_mysql_prod_question q on st.xquestionid = q.id
+				left join ds_mysql_prod_project p on st.xprojectid = p.id
+				left join ds_mysql_prod_tagelement t on st.financialperiod = t.id
+				where xprofileId='79923' and status = 'APPROVED'
+				and keyword in ('reduction_target_2019','reduction_target_2023','reduction_target_2024','reduction_target_2025','reduction_target_2026','reduction_target_2027','reduction_target_2030','reduction_target_2022')
+				
