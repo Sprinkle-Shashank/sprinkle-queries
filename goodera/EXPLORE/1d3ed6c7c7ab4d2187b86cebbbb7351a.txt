@@ -1,6 +1,25 @@
 with sub1 as(
   select name, fy_timerange, unwind.elec_ren,  unwind.heat_ren, unwind.steam_ren, unwind.cooling_ren
 from sus_64073 p1, unpivot p1.datatablebase unwind at row
-where keyword = 'gen_renewable__source')
+where keyword = 'gen_renewable__source'),
 
-select * from sub1 
+temp as(
+  select 'Electricity Generation' as col
+  union all
+  select 'Heat Generation' as col
+  union all
+  select 'Steam Generation' as col
+  union all
+  select 'Cooling Generation' as col)
+  
+select s1.name as projectid, s1.fy_timerange, 'Renewable Resources' as x_axis, temp.col as dimensions,
+sum(case col
+		when 'Electricity Generation' then s1.elec_ren
+		when 'Heat Generation' then s1.heat_ren
+		when 'Steam Generation' then s1.steam_ren
+		when 'Cooling Generation' then s1.cooling_ren
+	else NULL
+end) as values
+from sub1 s1
+cross join temp
+group by s1.name, s1.fy_timerange, temp.col
