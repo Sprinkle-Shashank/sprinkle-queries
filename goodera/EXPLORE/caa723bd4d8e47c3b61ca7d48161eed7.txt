@@ -1,0 +1,84 @@
+Select p.projectId as project,fac.name as projectId,ven.name as vendor1,nvl2(SUBSTRING(vendor1, 1, POSITION(' (' in vendor1)), SUBSTRING(vendor1, 1, POSITION(' (' in vendor1)), vendor1) as vendor_name, case when vendor_name='' then vendor1 else vendor_name end as vendor,cou.name as country,p2.fac_cl_vpid,p2.vendor_ngo_id,cat.name as primary_category,p2.sourcing,
+
+
+nvl(to_char(date,'DD-MM-YYYY'),'0') as hours_1,
+nvl(to_char(date_2,'DD-MM-YYYY'),'0') as hours_2,
+nvl(to_char(date_3,'DD-MM-YYYY'),'0') as hours_3,
+nvl(to_char(date_4,'DD-MM-YYYY'),'0') as hours_4,
+nvl(to_char(date_5,'DD-MM-YYYY'),'0') as hours_5,
+nvl(to_char(date_6,'DD-MM-YYYY'),'0') as hours_6,
+nvl(to_char(date_7,'DD-MM-YYYY'),'0') as hours_7,
+nvl(to_char(date_8,'DD-MM-YYYY'),'0') as hours_8,
+case when (hours_1 = 0) 
+then
+0
+else
+8
+end as hours_1,
+case when (hours_2 = 0)
+then
+0
+else
+4
+end as hours_2,
+case when (hours_3 = 0)
+then
+0
+else
+4
+end as hours_3,
+case when (hours_4 = 0)
+then
+0
+else
+4
+end as hours_4,
+case when (hours_5 = 0)
+then
+0
+else
+4
+end as hours_5,
+case when (hours_6 = 0)
+then
+0
+else
+4
+end as hours_6,
+case when (hours_7 = 0)
+then
+0
+else
+8
+end as hours_7,
+case when (hours_8 = 0)
+then
+0
+else
+8
+end as hours_8,
+(hours_1+hours_2+hours_3+hours_4+hours_5+hours_6+hours_7+hours_8) as hours_total
+ from profile_16619 p
+
+
+left join profile_52810 p2
+on p.projectId = p2.projectId
+
+
+
+
+left join ds_mysql_prod_project fac
+on p.projectid = fac.id
+left join ds_mysql_prod_project ven
+on fac.parent = ven.id
+left join ds_mysql_prod_project cou
+on ven.parent = cou.id
+
+left join ds_mysql_prod_tagelement cat
+on p2.primary_category= cat.id
+
+
+where (project ilike '%%') and (cou.id <> 13761) 
+
+group by  project,fac.name,ven.name,vendor,cou.name ,p2.fac_cl_vpid,p2.vendor_ngo_id,cat.name,p2.sourcing,p.date,p.date_2,p.date_3,p.date_4,p.date_5,p.date_6,p.date_7,p.date_8,hours_total
+/*select * from profile_16862*/
