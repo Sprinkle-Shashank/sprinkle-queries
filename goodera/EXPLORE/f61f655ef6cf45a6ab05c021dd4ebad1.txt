@@ -10,7 +10,7 @@ with base1 as(
   ),
   
   base3 as(
-  	select t1.name as fy_timerange, p1.payment_amount, p1.request_date, p1.modified, p1.uc, pro.name as projectId,  t2.name as tranche, p1._id, p1.profileinstanceid, p1.project_name,  decode(p1.project_code,p2._id,p2.name,p1.project_code) as project_code,p1.approvallog,p1.status from base2 p1
+  	select t1.name as fy_timerange, p1.payment_amount, cast(p1.request_date as date) , cast(p1.modified as date), p1.uc, pro.name as projectId,  t2.name as tranche, p1._id, p1.profileinstanceid, p1.project_name,  decode(p1.project_code,p2._id,p2.name,p1.project_code) as project_code,p1.approvallog,p1.status from base2 p1
 	left join profile_27396 p2 on p1.project_code=p2._id
 	left join ds_mysql_prod_project pro on p1.projectid=pro.id
 	left join ds_mysql_prod_tagelement t1 on p1.fy=t1.id
@@ -19,12 +19,17 @@ with base1 as(
   
   base4 as(
   select p1.*,count(*) as rejections from base3 p1, p1.approvallog approval where  approval."approvalStatus"='REJECTED' group by 1,2,3,4,5,6,7,8,9,10,11,12,13
-	)
+	),
+	
+	base5 as(
 	select p1.*, 0 as rejections from base3 p1 where p1._id not in(select p1._id from base3 p1, p1.approvallog approval where approval."approvalStatus"='REJECTED' group by 1)
 	union all
 	select p1.* from base4 p1
 	union all 
 	select *, 0 as rejections from base3 where status='SAVED'
+	  )
+	  
+	  select *, 'Click Here' as download_label from base5
 	
 	
   
