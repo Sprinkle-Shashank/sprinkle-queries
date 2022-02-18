@@ -1,4 +1,6 @@
-select p. projectId , p1.name as vendor ,cou.name as country ,
+select p. projectId ,
+nvl2(SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), ven.name) as vendor_name, case when vendor_name='' then ven.name else vendor_name end as vendor,
+cou.name as country ,
 p2.country, p2.fac_cl_vpid, p2.vendor_ngo_id,        --p2
 primary_category1.name as primary_category ,         --p2
 p3.year, num_supervisors, p3.total_employed, p3.saturation, p3.timerange_timerange,  --p3
@@ -17,8 +19,7 @@ on fac.parent = ven.id
 left join ds_mysql_prod_project cou
 on ven.parent = cou.id
 
-left join profile_54646 p1
-on p.projectId = p1.projectId
+
 left join profile_52810 p2
 on p.projectId = p2.projectId
 left join profile_65283 p3
@@ -39,7 +40,7 @@ left join ds_mysql_prod_tagelement single_multi1  on
 
 where (p.projectId <> 31303 and p.projectId <> 46455 and p.projectId <>54832 and p.projectId <>31299) and p.projectId ilike'%%'
 
-group by p. projectId , p1.name ,cou.name  ,
+group by p. projectId , ven.name ,cou.name  ,
 p2.country, p2.fac_cl_vpid, p2.vendor_ngo_id,     
 primary_category1.name,p3.year, num_supervisors, p3.total_employed, p3.saturation, p3.timerange_timerange, 
 p4.date, single_multi1.name , p4.responsible_person,p.num_male, p.num_female, p.total_supervisors,p.date_1  ,   
