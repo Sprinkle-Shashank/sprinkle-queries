@@ -1,9 +1,21 @@
-select name as projectid, fy_timerange, 'Renewable Resources' as x_axis, sum(datanumbase) as values,
+select  fy_timerange, 'Renewable Resources' as x_axis, sum(datanumbase) as values,
+
+case
+	when s1.name like 'TCE%' then 'TCE'
+	when s1.name like 'TCML%' then 'TCML'
+	when s1.name like 'TCNA%' then 'TCNA'
+	when s1.name like 'Mambattu%' then 'Mambattu%'
+	when s1.name like 'Cuddalore%' then 'Cuddalore'
+	when s1.name like 'Mithapur%' then 'Mithapur'
+	else s1.name
+end as projectid,
+
 case
 	when keyword = 'gri_renewable' then 'Energy Consumption - Renewable Energy Source'
 	when keyword = 'gri_renewableelectricity_produced' then  'Total Renewable Elctricity Produced'
 	else 'NA'
 end as dimensions
+
 from sus_56551
 where keyword in ('gri_renewable', 'gri_renewableelectricity_produced')
 group by name, fy_timerange, keyword
