@@ -3,4 +3,17 @@ with sub1 as(
 from sus_64073 p1, unpivot p1.datatablebase unwind at row
 where keyword = 'project_details')
 
-select * from sub1
+temp as(
+  select 'Energy Savings' as col
+  union all
+  select 'Emission Savings' as col)
+  
+select s1.name as projectid, s1.fy_timerange, 'Energy Efficiency Improvement Projects' as x_axis, temp.col as dimensions,
+sum(case col
+		when 'Energy Savings' then s1.energy_savings
+		when 'Emission Savings' then s1.emission_savings
+	else NULL
+end) as values
+from sub1 s1
+cross join temp
+group by s1.name, s1.fy_timerange, temp.col
