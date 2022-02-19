@@ -1,0 +1,31 @@
+with 
+test0 as(Select p.* ,(gbv_goals)from  profile_76755 p
+, p.gbv_goals_arr gbv_goals union all
+ select p.*,NULL as gbv_goals from profile_76755 p where gbv_goals_arr IS NULL
+),
+test1 as (Select p._id,p.projectId as project,p2.name as factory,p.year_timerange,p.gbv_goals,p.country as country,p.facility_type,p.director_region as director_region,p.female_workers,p.male_workers,p.female_managers,p.female_supervisors,p.male_supervisors, p.male_managers,ven.name as vendor1,nvl2(SUBSTRING(vendor1, 1, POSITION(' (' in vendor1)), SUBSTRING(vendor1, 1, POSITION(' (' in vendor1)), vendor1) as vendor_name, case when vendor_name='' then vendor1 else vendor_name end as vendor,p1.indepth_workers,p1.indepth_managers,
+female_workers+(male_workers+(female_managers+(male_managers+(male_supervisors+female_supervisors)))) AS total_emp,
+indepth_workers+indepth_managers AS total_trained, total_trained*100.0 AS total,total/total_emp AS trained,
+CASE WHEN trained >= 100 THEN 'YES'
+ELSE 
+'NO'
+END AS result,count(p.projectId) as count
+
+
+from test0 p
+
+left join profile_76894 p1 on 
+p.gbv_goals = p1._id
+
+left join profile_76770 p2 on
+p.facility_name = p2._id
+		  
+left join ds_mysql_prod_project fac
+on p.projectid = fac.id
+left join ds_mysql_prod_project ven
+on fac.parent = ven.id
+
+
+where project ilike '%%'
+group by p._id, project,factory,p.facility_type,p.country,ven.name,vendor,p.year_timerange,result,p1.indepth_workers,p1.indepth_managers,p.gbv_goals,p.female_workers,p.male_workers,p.female_managers,p.female_supervisors,p.male_supervisors,p.director_region,p.male_managers
+)
