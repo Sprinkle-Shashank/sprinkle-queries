@@ -3,8 +3,7 @@ test0 as(Select p.* ,(sdis)from  profile_76755 p
 , p.sdis_arr sdis union all
  select p.*,NULL as sdis from profile_76755 p where sdis_arr IS NULL
 ),
- test1 as (Select p.projectId,p.facility_name,p.sdis,p.year_timerange,p.director_region as director_region,p.facility_type,p.country as country, p.strategic_yn,p1.name_vendor_filter as vendor,
-
+ test1 as (Select p._id,p.projectId as project,p2.name as factory,fac.name as projectId,p.sdis,p.year_timerange,p.facility_type, p.strategic_yn,ven.name as vendor1,nvl2(SUBSTRING(vendor1, 1, POSITION(' (' in vendor1)), SUBSTRING(vendor1, 1, POSITION(' (' in vendor1)), vendor1) as vendor_name, case when vendor_name='' then vendor1 else vendor_name end as vendor,p.country as country,p.director_region as director_region,
 
 Case when (p1.recognized_union = 1409098) or (p1.recognized_union = 1409096)
 THEN 1
@@ -96,11 +95,7 @@ THEN 1
 else 
 0
 end as sdi18,
-case 
-	when 1=1
-	then 1
-	else 0
-	end
+count(p.projectId)
 	as count,
 
 sdi1+(sdi2+(sdi3+(sdi4+(sdi5+(sdi6+(sdi7+(sdi8+(sdi9+(sdi10+(sdi11+(sdi12+(sdi13+(sdi14+(sdi15+(sdi16+(sdi17+sdi18)))))))))))))))) as num,
@@ -122,17 +117,27 @@ else
 'no'
   end
   )
-end as kpi2_met 
+end as kpi2_Met 
 
 from test0 p
 		   
 left join profile_66923 p1 on 
 p.sdis = p1._id
 
-left join profile_54646 p1 
-on p.projectid = p1.projectid
+left join profile_76770 p2 on
+p.facility_name = p2._id
 
-where p.strategic_yn = 'Yes' and kpi2_met = 'yes'
-group by p.projectId,p.facility_name,p.sdis,p.year_timerange,p.country,p.director_region,p.facility_type, p.strategic_yn,vendor, p1.recognized_union, p1.workers_production_unit, p1.male_female, p1.female_representation, p1.decision_making, p1.decision_making_attendance, p1.meeting_held, p1.members_present_meetings, p1.active_members_list, p1.reps_elected, p1.issues_addressed, p1.follow_up, p1.members_duty_released, p1.peers_reachout, p1.assessment_review, p1.retaliation, p1.alternative_trade_union, p1.grievance_handling
+
+left join ds_mysql_prod_project fac
+on p.projectid = fac.id
+left join ds_mysql_prod_project ven
+on fac.parent = ven.id
+
+
+where p.strategic_yn = 'Yes' and kpi2_Met = 'yes' and project ilike '%%'
+group by p._id,p.projectId,factory,fac.name,p.sdis,p.year_timerange,p.country,p.director_region,p.facility_type, p.strategic_yn,vendor,ven.name, p1.recognized_union, p1.workers_production_unit, p1.male_female, p1.female_representation, p1.decision_making, p1.decision_making_attendance, p1.meeting_held, p1.members_present_meetings, p1.active_members_list, p1.reps_elected, p1.issues_addressed, p1.follow_up, p1.members_duty_released, p1.peers_reachout, p1.assessment_review, p1.retaliation, p1.alternative_trade_union, p1.grievance_handling,kpi2_Met
 )
-Select  p.projectId,p.facility_name,p.year_timerange,p.country,p.director_region,p.facility_type, p.strategic_yn,vendor,count,kpi2_met from test1 p	
+Select * from test1
+
+
+
