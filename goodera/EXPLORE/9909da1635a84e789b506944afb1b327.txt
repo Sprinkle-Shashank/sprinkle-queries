@@ -1,50 +1,47 @@
-Select  p.projectId, p.facility_name, p.strategic_yn, p.year_timerange, p.country as country,p1.name_vendor_filter as vendor, p.female_workers, p.male_workers, p.female_managers, p.male_managers, p.female_reps_worker, p.male_reps_workers, p.female_reps_management, p.male_reps_management, p.female_supervisors, p.male_supervisors,p.director_region as director_region,
-female_reps_management*100 AS a,(female_reps_management + male_reps_management) AS b,
+Select  p._id,p.projectId as project,fac.name as projectId,p2.name as factory,p.director_region as director_region , p.facility_type, p.strategic_yn, p.year_timerange, p.country as country,ven.name as vendor1,nvl2(SUBSTRING(vendor1, 1, POSITION(' (' in vendor1)), SUBSTRING(vendor1, 1, POSITION(' (' in vendor1)), vendor1) as vendor_name, case when vendor_name='' then vendor1 else vendor_name end as vendor, p.female_workers, p.male_workers, p.female_managers, p.male_managers, p.female_reps_worker, p.male_reps_workers, p.female_reps_management, p.male_reps_management, p.female_supervisors, p.male_supervisors, 
+p.female_reps_management*100 AS a,(p.female_reps_management + p.male_reps_management) AS b,
 CAST (a AS FLOAT) as a1,
 CAST (b as FLOAT) as b1,
-a1/b1 AS f1,
+a1/nullif(b1,0) AS f1,
 
-female_managers*100 AS c, (female_managers+male_managers) AS d,
+p.female_managers*100 AS c, (p.female_managers+p.male_managers) AS d,
 CAST (c AS FLOAT) as c1,
 CAST (d as FLOAT) as d1,
 Case when p.country IN ('Cambodia','Vietnam')
 THEN 
-c1/d1 
+c1/nullif(d1,0) 
 
 END as f2,
-female_reps_worker*100 AS e, (female_reps_worker + male_reps_workers) AS g,
+p.female_reps_worker*100 AS e, (p.female_reps_worker + p.male_reps_workers) AS g,
 CAST (e AS FLOAT) as e1,
 CAST (g as FLOAT) as g1,
-e1/g1 AS f3,
+e1/nullif(g1,0) AS f3,
 
-(female_workers+female_supervisors)*100 AS h, (female_workers + female_supervisors+male_workers+male_supervisors) AS i,
+(p.female_workers+p.female_supervisors)*100 AS h, (p.female_workers + p.female_supervisors+p.male_workers+p.male_supervisors) AS i,
 CAST (h AS FLOAT) as h1,
 CAST (i as FLOAT) as i1,
 Case when p.country IN ('Cambodia','Vietnam')
 THEN
-h1/i1
+h1/nullif(i1,0)
 
 end as f4,
-case 
-	when 1=1
-	then 1
-	else 0
-	end
-	as count,
+count(p.projectId) as count,
 CASE WHEN(f1>f2 AND f3>f4) THEN 'YES'
 ELSE
 'NO'
 END AS result
 
-
-
-
-
 from profile_76755 p
-left join profile_54646 p1 
-on p.projectid = p1.projectid
+
+left join profile_76770 p2 on
+p.facility_name = p2._id
 
 
+left join ds_mysql_prod_project fac
+on p.projectid = fac.id
+left join ds_mysql_prod_project ven
+on fac.parent = ven.id
 
-WHERE p.strategic_yn ='Yes' AND result = 'YES'
-Group by  p.projectId, p.facility_name, p.strategic_yn, p.year_timerange, p.country, p.director_region, f1, f3, f4, result, vendor, f2,p.female_workers, p.male_workers,p.female_managers, p.male_managers, p.female_reps_worker, p.male_reps_workers, p.female_reps_management, p.male_reps_management, p.female_supervisors, p.male_supervisors
+
+WHERE p.strategic_yn ='Yes' and result = 'YES' and project ilike '%%'
+Group by  p._id,project,fac.name,factory,p.director_region,p.facility_type, p.strategic_yn, p.year_timerange,p.country,ven.name,f1, f3, f4, result, vendor, f2,p.female_workers, p.male_workers,p.female_managers, p.male_managers, p.female_reps_worker, p.male_reps_workers, p.female_reps_management, p.male_reps_management, p.female_supervisors, p.male_supervisors
