@@ -1,20 +1,25 @@
-select p.strategic_yn, 
-p.projectId,p.facility_name,p.facility_type,p.year_timerange,p.country,p.female_workers,p.pace_enrolled,(pace_enrolled*100) AS p1, p1/female_workers AS PACE,ven.name as vendor,p.director_region,
-
-CASE WHEN(PACE > 50) THEN 'YES'
+select p._id,p.projectId as project,fac.name as projectId,p.strategic_yn ,p2.name as factory,p.year_timerange,p.country as country,ven.name as vendor1,nvl2(SUBSTRING(vendor1, 1, POSITION(' (' in vendor1)), SUBSTRING(vendor1, 1, POSITION(' (' in vendor1)), vendor1) as vendor_name, case when vendor_name='' then vendor1 else vendor_name end as vendor,p.director_region as director_region,p.facility_type,p.female_workers,p.pace_enrolled,(p.pace_enrolled*100) AS p1, p1/nullif(p.female_workers,0) AS pace_1,
+CASE WHEN(pace_1>=50) THEN 'YES'
 ELSE
 'NO'
-END AS KPI_3_Met
+END AS result
 
 
 
 from profile_76755 p
+
+
+left join profile_76770 p2 on
+p.facility_name = p2._id
+
 left join ds_mysql_prod_project fac
-on p.projectId = fac.id
+on p.projectid = fac.id
 left join ds_mysql_prod_project ven
 on fac.parent = ven.id
 
 
+WHERE p.strategic_yn ='Yes' and project ilike '%%' 
 
-WHERE p.strategic_yn ='Yes'
+Group by  p._id,p.projectId,fac.name,factory,p.facility_type,ven.name,p.year_timerange, p.country, vendor, result,p.director_region, 
+p.female_workers,p.pace_enrolled,p.strategic_yn,pace_1
 
