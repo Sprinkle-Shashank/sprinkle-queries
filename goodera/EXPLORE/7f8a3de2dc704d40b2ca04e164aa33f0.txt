@@ -1,47 +1,71 @@
-with test0 as(Select p.* ,CAST(pace_goals as VARCHAR) from profile_76755 p
-, p.pace_goals_arr pace_goals 
+
+
+with test0 as(Select p.* ,CAST(pace_goals as VARCHAR)from profile_76755 p
+, p.pace_goals_arr pace_goals
 ),
- test1 as(Select p.projectId , p.facility_name, p.pace, p.strategic_yn, p.year_timerange, p.country as country, p.director_region as director_region,p.pace_goals,p.facility_type,p.female_workers, p.pace_enrolled,
 
-pace_enrolled*100/female_workers as pace_1,
-p2.name_vendor_filter as vendor,
-CASE
-	WHEN 1=1
-	THEN  1
-	ELSE 0
-	END
-	AS count,
-CASE WHEN pace_1 >= 50  THEN 'YES'
+ test1 as(
+Select t0._id,t0.projectId as project,fac.name as projectId, p2.name as factory,t0.pace,t0.strategic_yn,t0.facility_type,t0.year_timerange, t0.country as country,ven.name as vendor1,nvl2(SUBSTRING(vendor1, 1, POSITION(' (' in vendor1)), SUBSTRING(vendor1, 1, POSITION(' (' in vendor1)), vendor1) as vendor_name, case when vendor_name='' then vendor1 else vendor_name end as vendor, t0.director_region as director_region, p1.pace_introduced,p1.certified_trainers, p1.certified_mts,case when (t0.pace='Yes' and p1.pace_introduced = 57472) then 'Yes' else 'No' end as result_1,concat(vendor,t0.country) as unique,t0.female_workers,t0.pace_enrolled,(t0.pace_enrolled*100) AS p3, p3/nullif(t0.female_workers,0) AS pace_1
+,
+
+CASE WHEN(pace_1>=50) THEN 'Yes'
 ELSE
-'NO'
-END AS result_kpi3,
-((certified_mts*100.0)/certified_trainers) as master
---(cast(a1 as float)/cast(p1.certified_trainers as float)) AS master,
---cast(master as float),		 
-,p1.certified_trainers , p1.certified_mts , p1.pace_introduced ,
+'No'
+END AS result_3
 
-CASE WHEN (pace = 'Yes') AND (master>30)  AND (pace_introduced = 57472) THEN 'YES'
-ELSE 
-'NO'
-END AS result_kpi4,
-CASE WHEN (result_kpi3 = 'YES') AND (result_kpi4 = 'YES') THEN 
-'YES'
-ELSE
-'NO'
-END AS final_result
 
-from test0 p
 
+from test0 t0
+   
 left join profile_76895 p1
-on p.pace_goals = p1._id
-
-left join profile_54646 p2 
-on p.projectid = p2.projectid
+on t0.pace_goals = p1._id
 
 
-WHERE p.strategic_yn = 'Yes' AND  final_result = 'YES'
-Group by  p.projectId, p.facility_name, p.strategic_yn, p.year_timerange, p.country,p.facility_type,p.female_workers, p.pace_enrolled,  vendor,p1.certified_mts,p1.pace_introduced,p1.certified_trainers,p.pace,
-p.director_region,p.pace_goals,result_kpi3,result_kpi4,final_result
+left join profile_76770 p2 on
+t0.facility_name = p2._id
+		   
+left join ds_mysql_prod_project fac
+on t0.projectid = fac.id
+left join ds_mysql_prod_project ven
+on fac.parent = ven.id
+
+
+   
+
+
+),
+test2 as (select t1.vendor,t1.country,Sum(t1.certified_mts) as certified_masters,Sum(t1.certified_trainers) as total_trainers,certified_masters*100 AS a1,
+a1/nullif(total_trainers,0) AS master
+		  --t1.certified_trainers,t1.certified_mts
+		  ,case when (master>=30) then 'Yes'
+		  else 'No' end as result_2,concat(vendor,t1.country) as unique
+		  
+from test1 t1
+		  
+		  
+group by vendor,country
+
 )
-Select p.* from test1 p
---(pace_enrolled*100) AS p2, cast(p2 as float)/cast(female_workers as float) AS PACE,
+
+,
+test3 as (Select t1._id,project,factory, t1.pace,t1.facility_type, t1.strategic_yn, t1.year_timerange, t1.country , t1.director_region as director_region,t2.master
+		  ,t2.result_2,t1.result_1,t1.result_3,t1.vendor,t1.pace_introduced,t2.total_trainers,t2.certified_masters,case when (result_1 = 'Yes' and result_2 ='Yes' and result_3 = 'Yes' ) then 'Yes' else 'No'
+end as final_result,
+count(project) as count
+from test1 t1
+
+
+
+left join test2 t2 on
+t1.unique = t2.unique
+
+
+where t1.strategic_yn = 'Yes' and project ilike '%%' and final_result = 'Yes'
+		  
+group by t1._id,project,factory, t1.pace,t1.facility_type, t1.strategic_yn, t1.year_timerange, t1.country , t1.director_region ,t2.master
+		  ,t2.result_2,t1.result_1,t1.vendor,t1.pace_introduced,t2.total_trainers,t2.certified_masters
+
+		  
+)
+
+select * from test3
