@@ -3,7 +3,7 @@ with test0 as(Select p.* ,CAST(pace_goals as VARCHAR)from profile_76755 p
 ),
 
  test1 as(
-Select t0.projectId,p2.name_vendor_filter as vendor, t0.facility_name, t0.pace, t0.strategic_yn,t0.facility_type,t0.year_timerange, t0.country as country, t0.director_region as director_region, p1.pace_introduced,p1.certified_trainers, p1.certified_mts,case when (pace='Yes' and pace_introduced = 57472) then 'Yes' else 'No' end as result_1,concat(vendor,country) as unique
+Select t0._id,t0.projectId as project,fac.name as projectId, p2.name as factory,t0.pace,t0.strategic_yn,t0.facility_type,t0.year_timerange, t0.country as country,ven.name as vendor1,nvl2(SUBSTRING(vendor1, 1, POSITION(' (' in vendor1)), SUBSTRING(vendor1, 1, POSITION(' (' in vendor1)), vendor1) as vendor_name, case when vendor_name='' then vendor1 else vendor_name end as vendor, t0.director_region as director_region, p1.pace_introduced,p1.certified_trainers, p1.certified_mts,case when (t0.pace='Yes' and p1.pace_introduced = 57472) then 'Yes' else 'No' end as result_1,concat(vendor,t0.country) as unique
 
 
 
@@ -11,20 +11,26 @@ from test0 t0
    
 left join profile_76895 p1
 on t0.pace_goals = p1._id
-left join profile_54646 p2 
-on t0.projectid = p2.projectid
 
+
+left join profile_76770 p2 on
+t0.facility_name = p2._id
+		   
+left join ds_mysql_prod_project fac
+on t0.projectid = fac.id
+left join ds_mysql_prod_project ven
+on fac.parent = ven.id
 
 
    
 
 
 ),
-test2 as (select t1.vendor,t1.country as country,Sum(t1.certified_mts) as certified_masters,Sum(t1.certified_trainers) as total_trainers,certified_masters*100 AS a1,
-a1/total_trainers AS master
+test2 as (select t1.vendor,t1.country,Sum(t1.certified_mts) as certified_masters,Sum(t1.certified_trainers) as total_trainers,certified_masters*100 AS a1,
+a1/nullif(total_trainers,0) AS master
 		  --t1.certified_trainers,t1.certified_mts
 		  ,case when (master>=30) then 'Yes'
-		  else 'No' end as result_2,concat(vendor,country) as unique
+		  else 'No' end as result_2,concat(vendor,t1.country) as unique
 		  
 from test1 t1
 		  
@@ -34,17 +40,8 @@ group by vendor,country
 )
 
 ,
-test3 as (Select t1.projectId,t1.facility_name, t1.pace,t1.facility_type, t1.strategic_yn, t1.year_timerange, t1.country as country, t1.director_region as director_region,t2.master
-		  ,t2.result_2,t1.result_1,t1.vendor,t1.pace_introduced,t2.total_trainers,t2.certified_masters,case when (t1.result_1 = 'Yes' and t2.result_2 = 'Yes') then 'Yes'
-		  else 'No'
-		  end as KPI_4_met,
-case 
-	when 1=1
-	then 1
-	else 0
-	end
-	as count
-
+test3 as (Select t1._id,project,factory, t1.pace,t1.facility_type, t1.strategic_yn, t1.year_timerange, t1.country , t1.director_region as director_region,t2.master
+		  ,t2.result_2,t1.result_1,t1.vendor,t1.pace_introduced,t2.total_trainers,t2.certified_masters
 from test1 t1
 
 
@@ -53,8 +50,12 @@ left join test2 t2 on
 t1.unique = t2.unique
 
 
-where t1.strategic_yn = 'Yes' 
-		  --and result_1 = 'Yes' and result_2 = 'Yes'
+where t1.strategic_yn = 'Yes' and project ilike '%%' 
+		  
+group by t1._id,project,factory, t1.pace,t1.facility_type, t1.strategic_yn, t1.year_timerange, t1.country , t1.director_region ,t2.master
+		  ,t2.result_2,t1.result_1,t1.vendor,t1.pace_introduced,t2.total_trainers,t2.certified_masters
+
+		  
 )
 
 select * from test3
