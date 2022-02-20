@@ -1,40 +1,38 @@
+
+
 with 
-test0 as(Select p.* ,(sdis_arr)from  profile_76755 p
+test0 as(Select p.* ,(sdis)from  profile_76755 p
 , p.sdis_arr sdis union all
- select p.*,NULL as sdis from profile_76755 p where sdis IS NULL
+ select p.*,NULL as sdis from profile_76755 p where sdis_arr IS NULL
 ),
- test1 as(Select  p.projectId,p.director_region as director_region , p.facility_name, p.strategic_yn, p.year_timerange,p.facility_type, p.country as country,p2.name_vendor_filter as vendor, p.female_workers, p.male_workers, p.female_managers, p.male_managers, p.female_reps_worker, p.male_reps_workers, p.female_reps_management, p.male_reps_management, p.female_supervisors, p.male_supervisors,
-female_reps_management*100 AS a,(female_reps_management + male_reps_management) AS b,
+ test1 as(Select p._id, p.projectId as project,fac.name as projectId,p2.name as factory,p.director_region as director_region,  p.strategic_yn, p.year_timerange,p.facility_type, p.country as country,ven.name as vendor1,nvl2(SUBSTRING(vendor1, 1, POSITION(' (' in vendor1)), SUBSTRING(vendor1, 1, POSITION(' (' in vendor1)), vendor1) as vendor_name, case when vendor_name='' then vendor1 else vendor_name end as vendor, p.female_workers, p.male_workers, p.female_managers, p.male_managers, p.female_reps_worker, p.male_reps_workers, p.female_reps_management, p.male_reps_management, p.female_supervisors, p.male_supervisors,
+p.female_reps_management*100 AS a,(p.female_reps_management + p.male_reps_management) AS b,
 CAST (a AS FLOAT) as a1,
 CAST (b as FLOAT) as b1,
-a1/b1 AS f1,
+a1/nullif(b1,0) AS f1,
 
-female_managers*100 AS c, (female_managers+male_managers) AS d,
+p.female_managers*100 AS c, (p.female_managers+p.male_managers) AS d,
 CAST (c AS FLOAT) as c1,
 CAST (d as FLOAT) as d1,
 Case when p.country IN ('Cambodia','Vietnam')
 THEN 
-c1/d1 
+c1/nullif(d1,0) 
 
 END as f2,
-female_reps_worker*100 AS e, (female_reps_worker + male_reps_workers) AS g,
+p.female_reps_worker*100 AS e, (p.female_reps_worker + p.male_reps_workers) AS g,
 CAST (e AS FLOAT) as e1,
 CAST (g as FLOAT) as g1,
-e1/g1 AS f3,
+e1/nullif(g1,0) AS f3,
 
-(female_workers+female_supervisors)*100 AS h, (female_workers + female_supervisors+male_workers+male_supervisors) AS i,
+(p.female_workers+p.female_supervisors)*100 AS h, (p.female_workers + p.female_supervisors+p.male_workers+p.male_supervisors) AS i,
 CAST (h AS FLOAT) as h1,
 CAST (i as FLOAT) as i1,
 Case when p.country IN ('Cambodia','Vietnam')
 THEN
-h1/i1
+h1/nullif(i1,0)
 
 end as f4,
-case 
-	when 1=1
-	then 1
-	else 0
-	end
+count(p.projectId)
 	as count,
 CASE WHEN(f1>f2 AND f3>f4) THEN 'YES'
 ELSE
@@ -163,19 +161,21 @@ from test0 p
 
 left join profile_66923 p1 on 
 p.sdis = p1._id
-left join profile_54646 p2 
-on p.projectid = p2.projectid
+
+
+left join profile_76770 p2 on
+p.facility_name = p2._id
+
+
+left join ds_mysql_prod_project fac
+on p.projectid = fac.id
+left join ds_mysql_prod_project ven
+on fac.parent = ven.id
 
 
 
+WHERE p.strategic_yn ='Yes' and final_result = 'YES' and project ilike '%%'
 
-WHERE p.strategic_yn ='Yes' and final_result = 'YES'
-
-Group by  p.projectId, p.facility_name, p.strategic_yn, p.year_timerange, p.country,  vendor, p.female_workers, p.male_workers,p.female_managers, p.male_managers, p.female_reps_worker, p.male_reps_workers, p.female_reps_management, p.male_reps_management, p.female_supervisors, p.male_supervisors,director_region,p.sdis,p.facility_type, p1.recognized_union, p1.workers_production_unit, p1.male_female, p1.female_representation, p1.decision_making, p1.decision_making_attendance, p1.meeting_held, p1.members_present_meetings, p1.active_members_list, p1.reps_elected, p1.issues_addressed, p1.follow_up, p1.members_duty_released, p1.peers_reachout, p1.assessment_review, p1.retaliation, p1.alternative_trade_union, p1.grievance_handling
+Group by  p._id,p.projectId,fac.name,factory,ven.name,p.strategic_yn, p.year_timerange, p.country,  vendor, p.female_workers, p.male_workers,p.female_managers, p.male_managers, p.female_reps_worker, p.male_reps_workers, p.female_reps_management, p.male_reps_management, p.female_supervisors, p.male_supervisors,director_region,p.sdis,p.facility_type, p1.recognized_union, p1.workers_production_unit, p1.male_female, p1.female_representation, p1.decision_making, p1.decision_making_attendance, p1.meeting_held, p1.members_present_meetings, p1.active_members_list, p1.reps_elected, p1.issues_addressed, p1.follow_up, p1.members_duty_released, p1.peers_reachout, p1.assessment_review, p1.retaliation, p1.alternative_trade_union, p1.grievance_handling
 )
-Select p.* from test1 p	
-
-
-
-
-
+Select * from test1
