@@ -1,14 +1,16 @@
-
-select p.projectId,p.facility_name,p.strategic_yn,p.year_timerange,p.country,p.director_region,p.facility_type,p1.male_managers_supervisors,p1.female_managers_supervisors,ven.name as Vendor
+select p._id,p.projectId as project,fac.name,p2.name as factory,p.strategic_yn,p.year_timerange,p.country,ven.name as vendor1,nvl2(SUBSTRING(vendor1, 1, POSITION(' (' in vendor1)), SUBSTRING(vendor1, 1, POSITION(' (' in vendor1)), vendor1) as vendor_name, case when vendor_name='' then vendor1 else vendor_name end as vendor,p.director_region,p.facility_type,p2.male_managers_supervisors,p2.female_managers_supervisors,
 from profile_76755 p
 
 
-left join profile_76770 p1 on
-p.facility_name = p1._id
+left join profile_76770 p2 on
+p.facility_name = p2._id
 
 left join ds_mysql_prod_project fac
 on p.projectId = fac.id
 left join ds_mysql_prod_project ven
 on fac.parent = ven.id
 
-where p.strategic_yn = 'Yes'
+where p.strategic_yn = 'Yes' and project ilike '%%'
+
+Group by
+p._id,p.projectId ,fac.name,factory,p.strategic_yn,p.year_timerange,p.country,ven.name,vendor,p.director_region,p.facility_type,p2.male_managers_supervisors,p2.female_managers_supervisors
