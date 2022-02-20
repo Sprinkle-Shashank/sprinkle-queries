@@ -1,17 +1,26 @@
-Select cou.name as country,p1.name_vendor_filter as vendor,dir.name as director_region
 
-
+select p.projectId as project,fac.name as factory,cou.name as country,ven.name as vendor1,nvl2(SUBSTRING(vendor1, 1, POSITION(' (' in vendor1)), SUBSTRING(vendor1, 1, POSITION(' (' in vendor1)), vendor1) as vendor_name, case when vendor_name='' then vendor1 else vendor_name end as vendor,dir.name as director_region
 from profile_76770 p
 
 
-left join ds_mysql_prod_tagelement cou
-on p.country = cou.id
+
+left join ds_mysql_prod_project fac
+on p.projectId = fac.id
+left join ds_mysql_prod_project ven
+on fac.parent = ven.id
+left join ds_mysql_prod_project cou
+on ven.parent = cou.id
+
 
 left join ds_mysql_prod_tagelement dir
 on p.director_region = dir.id
 
-left join profile_54646 p1 
-on p.projectid = p1.projectid
 
-group by cou.name,dir.name, vendor 
-order by vendor asc
+
+
+where  project ilike '%%'
+
+Group by
+p.projectId ,fac.name,factory,cou.name,ven.name,vendor,dir.name
+
+order by vendor
