@@ -1,30 +1,35 @@
-select p.projectId,p.facility_name,p.strategic_yn,p.year_timerange,p.country as country,p.director_region as director_region,p.female_workers, p.male_workers, p.female_supervisors, p.male_supervisors,p2.name_vendor_filter as vendor,
-female_workers*100 AS f,
-(female_workers+male_workers) AS t,
+
+
+select p._id,p.projectId as project,fac.name as projectId,p2.name as factory,p.strategic_yn,p.year_timerange,p.country as country,ven.name as vendor1,nvl2(SUBSTRING(vendor1, 1, POSITION(' (' in vendor1)), SUBSTRING(vendor1, 1, POSITION(' (' in vendor1)), vendor1) as vendor_name, case when vendor_name='' then vendor1 else vendor_name end as vendor,p.director_region as director_region,p.female_workers, p.male_workers, p.female_supervisors,p.facility_type,p.male_supervisors,
+p.female_workers*100 AS f,
+(p.female_workers+p.male_workers) AS t,
 CAST (f AS FLOAT) as fw,
 CAST (t as FLOAT) as tw,
 
 
-fw/tw AS worker,
+fw/NULLIF(tw,0) AS worker,
 
-female_supervisors*100 AS f1,
-(male_supervisors+female_supervisors) AS t1,
+p.female_supervisors*100 AS f1,
+(p.male_supervisors+p.female_supervisors) AS t1,
 CAST (f1 AS FLOAT) as fs,
 CAST (t1 as FLOAT) as ts,
-fs/ts AS supervisor,
-case 
-	when 1=1
-	then 1
-	else 0
-	end
-	as count,
+fs/NULLIF(ts,0) AS supervisor,
+count(p.projectId) as count,
 
 CASE WHEN (supervisor >= worker) THEN 'YES'
 ELSE
 'NO'
 END as result
 from profile_76755 p
-left join profile_54646 p2 
-on p.projectid = p2.projectid
-WHERE p.strategic_yn ='Yes'
-group by p.projectId, p.facility_name, p.year_timerange, p.country, director_region,p.strategic_yn,  result, vendor,p.female_workers, p.male_workers, p.female_supervisors, p.male_supervisors
+
+
+left join profile_76770 p2 on
+p.facility_name = p2._id
+		   
+left join ds_mysql_prod_project fac
+on p.projectid = fac.id
+left join ds_mysql_prod_project ven
+on fac.parent = ven.id
+
+WHERE p.strategic_yn ='Yes' and project ilike '%%'
+group by p._id,project,fac.name,ven.name,vendor,factory,p.facility_type,  p.year_timerange, p.country, p.director_region,p.strategic_yn,  result, p.female_workers, p.male_workers, p.female_supervisors, p.male_supervisors
