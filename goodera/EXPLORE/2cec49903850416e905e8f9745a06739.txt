@@ -1,16 +1,16 @@
-Select p.projectId,p.strategic_yn,p.year_timerange,p.country as country,p.director_region as director_region,p1.name_vendor_filter as vendor,case 
-	when 1=1
-	then 1
-	else 0
-	end
-	as count
+Select p._id,p.projectId as project,fac.name as projectId,p2.name as factory,p.strategic_yn,p.year_timerange,p.country as country,ven.name as vendor1,nvl2(SUBSTRING(vendor1, 1, POSITION(' (' in vendor1)), SUBSTRING(vendor1, 1, POSITION(' (' in vendor1)), vendor1) as vendor_name, case when vendor_name='' then vendor1 else vendor_name end as vendor,p.director_region as director_region,count(p.projectId) as count
 
 from profile_76755 p 
 
+left join profile_76770 p2 on
+p.facility_name = p2._id
 
-left join profile_54646 p1 
-on p.projectid = p1.projectid
 
+left join ds_mysql_prod_project fac
+on p.projectid = fac.id
+left join ds_mysql_prod_project ven
+on fac.parent = ven.id
 
-where p.strategic_yn = 'Yes'
-group by p.projectId, country ,director_region,vendor, p.strategic_yn, p.year_timerange
+where p.strategic_yn = 'Yes' and project ilike '%%'
+
+group by p._id,project,fac.name,factory,p.strategic_yn, p.year_timerange,p.country,p.director_region,vendor,ven.name
