@@ -1,6 +1,10 @@
-select projectId, t.name as proj_location, t1.name as partner, t2.name as projectId, t3.name as project,
-state, proj_start_date, proj_end_date, focus_area, schedule_vii, target_benf_group, impl_agency, project_pillar, project_status, bu, project_type, sec_partners, _id from profile_75455
+with table1 as (select profile_75455.projectId, t.name as proj_location, t1.name as partner, t2.name as projectIds, t3.name as project, st.name as state
+				from profile_75455
 
+left join ds_mysql_prod_tagelement st
+on  profile_75455.state = st.id			   
+			   
+				
 
 left join ds_mysql_prod_project t
 on profile_75455.projectid=t.id
@@ -10,6 +14,41 @@ left join ds_mysql_prod_project t2
 on t1.parent=t2.id
 left join ds_mysql_prod_project t3
 on t2.parent=t3.id
+			   
+			   ), table2 as ( select t.name as projectid, proj_start_date, proj_end_date, fa.name as focus_area, pp.name as project_pillar, pt.name as project_type, sd.name as schedule_vii, tb.name as target_benf_group,ia.name as impl_agency, ps.name as project_status, bu, sec_partners, profile_65552._id from profile_65552
+	
+							 left join ds_mysql_prod_project t
+ on profile_65552.projectid=t.id
+  
+  
+left join ds_mysql_prod_tagelement fa
+on  profile_65552.focus_area = fa.id
+  
+  
+left join ds_mysql_prod_tagelement pp
+on  profile_65552.project_pillar = pp.id
+  
+  
+left join ds_mysql_prod_tagelement pt
+on  profile_65552.project_type = pt.id		
+							 
+							 
+left join ds_mysql_prod_tagelement ia
+on  profile_65552.impl_agency = ia.id
+							 
+							 
+left join ds_mysql_prod_tagelement tb
+on  profile_65552.target_benf_group = tb.id
+							 
+							 left join ds_mysql_prod_tagelement sd
+on  profile_65552.schedule_vii = sd.id
+							 
+							 left join ds_mysql_prod_tagelement ps
+on  profile_65552.project_status = ps.id
+			   
+			   )
+select table1.projectIds as projectid, state, partner, project,  proj_start_date, proj_end_date, focus_area, schedule_vii, target_benf_group, impl_agency, project_pillar, project_status, bu, project_type, sec_partners, table2._id from table1
 
-left join profile_65552 on 
-t1.name = profile_65552.projectId
+
+left join table2 on 
+table1.partner = table2.projectId
