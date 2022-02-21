@@ -1,7 +1,8 @@
-select p.projectId ,cou.name as country ,fac.name as factory,
-p.training_id, p.project_name, p.trainer_org, p.date_1, p.date, p.num_female, p.num_male, p.prospect_female, p.total_supervisors, p.total_other_participants, p.prospect_total, p.prospect_male, p.name,
+select p._Id, p.projectId ,cou.name as country ,fac.name as factory,
+p3.name as training_id, p.project_name, p.trainer_org, p.date_1, p.date, p.num_female, p.num_male, p.prospect_female, p.total_supervisors, p.total_other_participants, p.prospect_total, p.prospect_male, p.name,
 nvl2(SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), ven.name) as vendor_name, case when vendor_name='' then ven.name else vendor_name end as vendor,
- p2.fac_cl_vpid, p2.vendor_ngo_id, primary_category1.name as primary_category    --p2
+ p2.fac_cl_vpid, p2.vendor_ngo_id, primary_category1.name as primary_category ,
+ count(p.projectId) as training
  from profile_64075 p
 
 left join ds_mysql_prod_project fac
@@ -13,13 +14,15 @@ on ven.parent = cou.id
 
 left join profile_52810 p2
 on p.projectId = p2.projectId
+left join profile_61498 p3
+on p.training_id = p3._Id
 
 left join ds_mysql_prod_tagelement primary_category1 on
 	p2.primary_category = primary_category1.id
 
 where (p.projectId <> 31303 and p.projectId <> 46455 and p.projectId <> 54832 and p.projectId <> 31299) and p.projectId ilike'%%'
 
-group by p.projectId ,cou.name,fac.name ,
-p.training_id, p.project_name, p.trainer_org, p.date_1, p.date, p.num_female, p.num_male, p.prospect_female, p.total_supervisors, p.total_other_participants, p.prospect_total, p.prospect_male, p.name,ven.name , p2.fac_cl_vpid, p2.vendor_ngo_id, primary_category1.name
+group by p.projectId ,cou.name,fac.name ,p._Id,
+p3.name, p.project_name, p.trainer_org, p.date_1, p.date, p.num_female, p.num_male, p.prospect_female, p.total_supervisors, p.total_other_participants, p.prospect_total, p.prospect_male, p.name,ven.name , p2.fac_cl_vpid, p2.vendor_ngo_id, primary_category1.name
 
 --complet
