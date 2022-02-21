@@ -4,14 +4,23 @@ sub2 as(
 select a.benef_id, a.religion, a.mother_tongue, a.community, a.parental_status, a.shelter_home_text, a.dob, a.benef_name, a.admission_date, a.start_date, b.location, c.fy_timerange, c.school_name, c.class, c.medium, c.school_type, c.child_status, c.fy_timerange.end as end_date from sub1 a
   left join profile_79953 b on a.shelter_home_text=b.name
   left join profile_79955 c on c.benef_id_text=a.benef_id
-), 
+)
+select * from sub2
+/*, 
 sub3 as(
-select a.benef_id, a.religion, a.mother_tongue, a.community, a.parental_status, a.shelter_home_text, a.dob, a.benef_name, a.admission_date, a.location, concat(concat(a.start_date,'|'), a.end_date) as fy_timerange, a.class, a.child_status, t.name as shelter_home_type from sub2 a
+select a.benef_id, a.religion, a.mother_tongue, a.community, a.parental_status, a.shelter_home_text, a.dob, a.benef_name, a.admission_date, a.location, concat(concat(cast(a.start_date as date),'|'), cast(a.end_date as date)) as fy_timerange, a.class, a.child_status, t.name as shelter_home_type from sub2 a
 left join profile_79953 b on b.name=a.shelter_home_text
 left join ds_mysql_prod_tagelement t on t.id=b.shelter_home_type),
 sub4 as(
   select benef_id, religion, mother_tongue, community, parental_status, shelter_home_text, benef_name, dob, admission_date, location, fy_timerange, child_status,
   case when shelter_home_type='Sneh Ghar' then 'Male' else 'Female' end as gender from sub3 order by fy_timerange desc)
-  select benef_id, religion, mother_tongue, community, parental_status, shelter_home_text, benef_name, dob, admission_date, location, gender, fy_timerange
-  from sub4 
+  select benef_id, religion, mother_tongue, community, parental_status, shelter_home_text, benef_name, dob, admission_date, location, gender
+  , 
+  first_value(fy_timerange) over(partition by benef_id, religion, mother_tongue, community, parental_status, shelter_home_text, benef_name, dob, admission_date, location, gender
+order by cast(fy_timerange.start as date) desc
+rows between unbounded preceding and unbounded following) as fy_timerange,
+  first_value(child_status) over(partition by benef_id, religion, mother_tongue, community, parental_status, shelter_home_text, benef_name, dob, admission_date, location, gender
+order by cast(fy_timerange.start as date) desc
+rows between unbounded preceding and unbounded following) as child_status
+  from sub4 */
   --group by  benef_id, religion, mother_tongue, community, parental_status, shelter_home_text, benef_name, dob, admission_date, location, gender, fy_timerange
