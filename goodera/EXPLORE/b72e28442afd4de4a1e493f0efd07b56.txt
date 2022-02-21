@@ -13,5 +13,8 @@ sub4 as(
   select benef_id, religion, mother_tongue, community, parental_status, shelter_home_text, benef_name, dob, admission_date, location, fy_timerange, child_status,
   case when shelter_home_type='Sneh Ghar' then 'Male' else 'Female' end as gender from sub3 order by fy_timerange desc)
   select benef_id, religion, mother_tongue, community, parental_status, shelter_home_text, benef_name, dob, admission_date, location, gender, 
-  any_value(fy_timerange) as fy_timerange, any_value(child_status) as child_status
+  first_value(fy_timerange) as fy_timerange over(partition by benef_id
+order by fy_timerange desc
+rows between unbounded preceding and unbounded following)
+  --any_value(child_status) as child_status
   from sub4 group by  benef_id, religion, mother_tongue, community, parental_status, shelter_home_text, benef_name, dob, admission_date, location, gender
