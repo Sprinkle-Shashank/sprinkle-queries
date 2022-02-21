@@ -1,7 +1,7 @@
 with lookup as (select
---JSON_SERIALIZE(table_52810.pace_brands) as pace_brand,
+JSON_SERIALIZE(table_52810.pace_brands) as pace_brand,
 				
---case when pace_brand like '%1151834%' then 1 else 0 end  as brand,
+case when pace_brand like '%1151834%' then 1 else 0 end  as brand,
 				
 max(distinct((concat(concat(substring(cast(timestamp 'epoch' + CAST(taskResponse_4227.modified AS BIGINT)/1000 * interval '1 second' as varchar), 1, 10),'T'), concat(split_part(cast(timestamp 'epoch' + CAST(taskResponse_4227.modified AS BIGINT)/1000 * interval '1 second' as varchar), ' ',2),'.000Z'))))) as last_modified,
 
@@ -18,15 +18,13 @@ listagg(distinct p._id) as _4227_id,
 listagg(distinct( cast(p.end_date_2 as varchar(256)))) as enddate2,
 				
 case when last_modified is null or sectionId1 != 9296 then enddate2 else last_modified end as business_date,
-				
---max(table_4228._id) as _4228,
---case when _4228 is null then p._id else _4228 end as _4228id			
+							
 case when table_4228._id is null then p._id else table_4228._id end as _4228id
 
 from profile_4227 p
 
---inner join profile_52810 table_52810 on
---table_52810.projectid=p.projectid
+inner join profile_52810 table_52810 on
+table_52810.projectid=p.projectid
 
 inner join ds_mongo_taskresponse taskResponse_4227 on
 taskResponse_4227.profileinstanceid=p._id
@@ -34,8 +32,7 @@ taskResponse_4227.profileinstanceid=p._id
 left join profile_4228 table_4228 on
 table_4228.class = p._id
 
-group by --table_52810.pace_brands,
-				p._id,taskResponse_4227.submissionLog[0].email
+group by table_52810.pace_brands,p._id,taskResponse_4227.submissionLog[0].email
 				,table_4228._id 
 ),
 
@@ -46,7 +43,7 @@ lookup2 as (select
 			case when taskResponse_4228.profileinstanceid=_4228id then 1 else 0 end as s,
 			case when status11 = 'SUBMITTED' or s =1 then modified11 else null end as date_modified,
 			case when date_modified > last_modified then date_modified else last_modified end as last_entry_date,
-			--brand,
+			brand,
 			status10,
 			data_user,
 			business_date,
@@ -70,7 +67,7 @@ group by 	taskResponse_4228.status,
 			
 order by p._4227_id),
 lookup3 as( select
-  		--brand,
+  		brand,
 		status10,
   		data_user,
   		(business_date),
@@ -83,6 +80,5 @@ lookup3 as( select
 		from lookup2 p
 group by _4227_id,brand,status10,data_user,business_date,last_modified,last_entry_date
 )
-select data_user,business_date,_4227_id,last_entry_date,last_modified,date_modified from lookup3 p where --brand = 1 and 
-status10 = 'SUBMITTED'
+select data_user,business_date,_4227_id,last_entry_date,last_modified,date_modified from lookup3 p where brand = 1 and status10 = 'SUBMITTED'
 --select _4228id from lookup p where brand = 1 and status10 = 'SUBMITTED'
