@@ -40,7 +40,7 @@ group by table_52810.pace_brands,p._id,taskResponse_4227.submissionLog[0].email
 lookup2 as (select
 (taskResponse_4228.status) as status11,
 			
-((concat(concat(substring(cast(timestamp 'epoch' + CAST(taskResponse_4228.modified AS BIGINT)/1000 * interval '1 second' as varchar), 1, 10),'T'), concat(split_part(cast(timestamp 'epoch' + CAST(taskResponse_4228.modified AS BIGINT)/1000 * interval '1 second' as varchar), ' ',2),'.000Z')))) as modified11,
+(min(concat(concat(substring(cast(timestamp 'epoch' + CAST(taskResponse_4228.modified AS BIGINT)/1000 * interval '1 second' as varchar), 1, 10),'T'), concat(split_part(cast(timestamp 'epoch' + CAST(taskResponse_4228.modified AS BIGINT)/1000 * interval '1 second' as varchar), ' ',2),'.000Z')))) as modified11,
 			case when taskResponse_4228.profileinstanceid=_4228id then 1 else 0 end as s,
 			case when status11 = 'SUBMITTED' or s =1 then modified11 else null end as date_modified,
 			case when date_modified > last_modified then date_modified else last_modified end as last_entry_date,
@@ -50,21 +50,22 @@ lookup2 as (select
 			business_date,
 			_4227_id,
 			last_modified,
-			max(_4228id) as _4228
+			_4228id
 			
 		   from lookup p
 
 left join ds_mongo_taskresponse taskResponse_4228 on
 taskResponse_4228.profileinstanceid=_4228id
 
-group by 1,2,3,4,5,6,7,8,9,10,11
+--group by 1,2,3,4,5,6,7,8,9,10,11
 			
---group by 	taskResponse_4228.status,	
---			taskResponse_4228.profileinstanceid,p.last_modified,p.brand,p.status10
-	--		,p.data_user
-		--	,p.business_date
-			--,p._4227_id
+group by 	taskResponse_4228.status,	
+			taskResponse_4228.profileinstanceid,p.last_modified,p.brand,p.status10
+			,p.data_user
+			,p.business_date
+			,p._4227_id
+			,p._4228id
 			
 order by p._4227_id)
-select data_user,business_date,_4227_id,last_entry_date,_4228,last_modified,date_modified from lookup2 p where brand = 1 and status10 = 'SUBMITTED'
+select data_user,business_date,_4227_id,last_entry_date,_4228id,last_modified,date_modified from lookup2 p where brand = 1 and status10 = 'SUBMITTED'
 --select _4228id from lookup p where brand = 1 and status10 = 'SUBMITTED'
