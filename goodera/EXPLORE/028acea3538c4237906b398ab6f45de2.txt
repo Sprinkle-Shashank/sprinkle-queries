@@ -1,1 +1,7 @@
-select projectId, project_name, fy_timerange, tot_disbursed from profile_65556
+select profile_65556.projectId, project_name, fy_timerange, tot_disbursed, focus_area, project_type, proj_name, impl_agency, sum(tot_disbursed) as tot_disbursed, case when profile_65556.projectId is not null then 'CSR Spend' end as filter, case when Substring(json_serialize(fy_timerange),3,3) = 'end' then Substring(json_serialize(fy_timerange),11,4) else Substring(json_serialize(fy_timerange),9,4) as FY
+from profile_65556
+
+left join profile_65552 on
+profile_65556._id= profile_65552.proj_name
+
+group by profile_65556.projectId, project_name, fy_timerange, focus_area, project_type, proj_name, impl_agency,filter,tot_disbursed,FY
