@@ -11,11 +11,15 @@ left join profile_79953 b on b.name=a.shelter_home_text
 left join ds_mysql_prod_tagelement t on t.id=b.shelter_home_type),
 sub4 as(
   select benef_id, religion, mother_tongue, community, parental_status, shelter_home_text, benef_name, dob, admission_date, location, fy_timerange, child_status,
-  case when shelter_home_type='Sneh Ghar' then 'Male' else 'Female' end as gender from sub3 order by fy_timerange desc)
-  select benef_id, religion, mother_tongue, community, parental_status, shelter_home_text, benef_name, dob, admission_date, location, gender, 
+  case when shelter_home_type='Sneh Ghar' then 'Male' else 'Female' end as gender from sub3 order by fy_timerange desc), 
+  sub5 as(
+  select benef_id, religion, mother_tongue, community, parental_status, shelter_home_text, benef_name, dob, admission_date, t.name as location, gender, 
   first_value(fy_timerange) over(partition by benef_id, religion, mother_tongue, community, parental_status, shelter_home_text, benef_name, dob, admission_date, location, gender
 rows between unbounded preceding and unbounded following) as fy_timerange,
   first_value(child_status) over(partition by benef_id, religion, mother_tongue, community, parental_status, shelter_home_text, benef_name, dob, admission_date, location, gender
 rows between unbounded preceding and unbounded following) as child_status
   from sub4
-  --group by  benef_id, religion, mother_tongue, community, parental_status, shelter_home_text, benef_name, dob, admission_date, location, gender, fy_timerange
+  leftjoin ds_mysql_prod_tagelement t
+  on t.id=location)
+  select benef_id, religion, mother_tongue, community, parental_status, shelter_home_text, benef_name, dob, admission_date, location, gender, fy_timerange, child_status from sub5
+  group by  benef_id, religion, mother_tongue, community, parental_status, shelter_home_text, benef_name, dob, admission_date, location, gender, fy_timerange
