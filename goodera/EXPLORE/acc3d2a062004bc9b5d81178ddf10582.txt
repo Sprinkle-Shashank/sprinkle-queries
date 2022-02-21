@@ -1,1 +1,19 @@
-select * from profile_78617
+with temp as(
+  select 'Baseline - Students Percentage' as col
+  union all
+  select 'Endline - Students Percentage' as col)
+  
+select p1._id as id, p1.fy_timerange, t1.name as standard, t2.name as subject, t3.name as competency, 
+temp.col as dimensions,
+sum(case col
+		when 'Baseline - Students Percentage' then p1.baseline_students_perc
+		when 'Endline - Students Percentage' then p1.endline_students_perc
+	else null
+end) as values
+from profile_78617 p1
+left join ds_mysql_prod_tagelement t1 on t1.id = p1.standard
+left join ds_mysql_prod_tagelement t2 on t2.id = p1.subject
+left join ds_mysql_prod_tagelement t3 on t3.id = p1.competency
+cross join temp
+group by p1._id, p1.fy_timerange, t1.name, t2.name, t3.name
+order by t2.name
