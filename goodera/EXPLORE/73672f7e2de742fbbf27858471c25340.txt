@@ -1,0 +1,48 @@
+with table2 as(
+select p._id,p.projectId as project,fac.name as projectId,p3.name as factory,p.year_timerange,p.country as country,ven.name as vendor1,nvl2(SUBSTRING(vendor1, 1, POSITION(' (' in vendor1)), SUBSTRING(vendor1, 1, POSITION(' (' in vendor1)), vendor1) as vendor_name, case when vendor_name='' then vendor1 else vendor_name end as vendor,p.director_region as director_region,p.facility_type,p.strategic_yn, p.female_workers, p.male_workers, p3.female_managers_supervisors, p3.male_managers_supervisors,  p3._id,
+
+p.female_workers*100 AS f,
+(p.female_workers+p.male_workers) AS t,
+CAST (f AS FLOAT) as fw,
+CAST (t as FLOAT) as tw,
+
+
+fw/nullif(tw,0) AS worker,
+
+p3.female_managers_supervisors*100 AS f1,
+(p3.male_managers_supervisors+p3.female_managers_supervisors) AS t1,
+CAST (f1 AS FLOAT) as fs,
+CAST (t1 as FLOAT) as ts,
+fs/nullif(ts,0) AS supervisor
+
+from profile_76755 p
+  
+
+left join profile_76770 p3 on
+p.facility_name = p3._id
+
+ 
+
+where p.strategic_yn = 'Yes' and project ilike '%%'
+),
+temp as (
+  select 'worker' as dim
+  union all
+  select 'supervisor' as dim
+  
+)
+
+select t2._id,t2.factory,fac.name,temp.dim,worker,supervisor,t2.projectId, t2.strategic_yn, t2.year_timerange, t2.country, t2.director_region, t2.facility_type, t2.female_workers, t2.male_workers,t2.vendor,
+	case dim
+	when 'worker' then worker 
+	when 'supervisor' then supervisor  
+	
+
+	Else Null
+	End as value	
+from table2 t2
+cross join temp
+
+where t2.strategic_yn = 'Yes' and project ilike '%%'
+),
+group by t2._id, t2.projectId,fac.name,factory,t2.year_timerange,t2.country,t2.director_region,t2.facility_type, t2.female_workers, t2.male_workers, t2.strategic_yn,temp.dim,t2.vendor,worker,supervisor
