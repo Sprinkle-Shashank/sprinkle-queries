@@ -1,4 +1,9 @@
 with phase1 AS (
-	select * from profile_58858
+	select proj.name as projectId, SUBSTRING(cast(p.joindate as varchar),1,10)||'T00:00:00.000Z' as joindate,p.dropdate, p.member,CURRENT_DATE||'T'||SUBSTRING(convert_timezone('Indian/Maldives', GETDATE()),12,23)||':000Z' as end from profile_58858 p
+  	left join ds_mysql_prod_project proj
+  	on p.projectid = proj.id
+),
+phase2 as (
+	select DECODE(x1.dropdate,'',x1.end,x1.dropdate) as end_date from phase1 x1
 )
-select * from phase1
+select * from phase2
