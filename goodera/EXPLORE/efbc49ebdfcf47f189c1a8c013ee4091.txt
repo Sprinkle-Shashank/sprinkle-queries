@@ -1,14 +1,27 @@
 with temp as(
-  select 'orientation_teachers' as col
+  select 'Sikshana-@Home - Sessions' as col
   union all
-  select 'orientation_participation' as col)
+  select 'Sikshana-@Home - Teachers' as col
+  union all
+  select 'Prerana - HMs/Teachers' as col
+  union all
+  select 'Prerana - Students' as col
+  union all
+  select 'Prerana - Communites' as col
+  union all
+  select 'Prerana - Department Officials' as col)
   
-select p1.fy_timerange, temp.col as dimensions, 
+select p1.fy_timerange, temp.col as dimensions, t1.name as program, 
 sum(case col 
-		when 'orientation_teachers' then p1.orientation_teachers
-		when 'orientation_participation' then p1.orientation_participation
+		when 'Sikshana-@Home - Sessions' then p1.sessions_organised
+		when 'Sikshana-@Home - Teachers' then p1.orientation_participation
+		when 'Prerana - HMs/Teachers' then p1.prerana_hms_teachers
+		when 'Prerana - Students' then p1.prerana_students
+		when 'Prerana - Communites' then p1.prerana_communities
+		when 'Prerana - Department Officials' then p1.prerana_dept_officials
 	else null
 end) as values
 from profile_77283 p1
 cross join temp
-group by fy_timerange, dimensions
+left join ds_mysql_prod_tagelement t1 on t1.id = p1.program
+group by p1.fy_timerange, temp.col, t1.name
