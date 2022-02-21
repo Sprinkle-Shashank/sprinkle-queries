@@ -1,11 +1,15 @@
 with phase1 as(
-	select proj.name as projectId,p2.name as location,p3.name as shg, p.member, tag1.name as scheme_beneficiary, p.date, 
-  	p.scheme_name from profile_58858 p
+	select proj.name as projectId,p2.name as location,p3.name as shg,tag1.name as scheme_beneficiary, SUBSTRING(p.date,1,10)||'T00:00:00.000Z' as fy_timerange,SUBSTRING(p.date,1,4) as fy,
+  	COUNT(*) as count from profile_58858 p
+  	left join ds_mysql_prod_project proj
+  	on p.projectid = proj.id
   	left join profile_58845 p2
 	on p.location = p2._id
-  	left join profile_58848 p3
+  	left join profile_58848test p3
   	on p.shg = p3._id
   	left join ds_mysql_prod_tagelement tag1
   	on p.scheme_beneficiary = tag1.id
+  	where p.date is not null
+  	group by 1,2,3,4,5,6
 )
 select * from phase1
