@@ -5,11 +5,27 @@ with temp as(
   
 select p1._id as id, p1.fy_timerange, t1.name as standard, t2.name as subject, t3.name as competency, 
 temp.col as dimensions,
+
+case
+	when t3.name = 'Numbers' then 1
+	when t3.name = 'Addition and Subtraction' then 2
+	when t3.name = 'Multiplication and Division' then 3
+	when t3.name = 'Cleared All Levels' then 4
+	when t3.name = 'Basic' then 1
+	when t3.name = 'Level - 1' then 2
+	when t3.name = 'Level - 2' then 3
+	when t3.name = 'Knowledge Level - 0-65%' then 1
+	when t3.name = 'Knowledge Level - Above 65%' then 2
+	when t3.name = 'Understanding Level - 0-50%' then 3
+	when t3.name = 'Understanding Level - Above 50%' then 4
+	else null
+end as sort_order,
 sum(case col
 		when 'Baseline' then p1.baseline_students_perc
 		when 'Endline' then p1.endline_students_perc
 	else null
 end) as values
+
 from profile_78617 p1
 left join ds_mysql_prod_tagelement t1 on t1.id = p1.standard
 left join ds_mysql_prod_tagelement t2 on t2.id = p1.subject
