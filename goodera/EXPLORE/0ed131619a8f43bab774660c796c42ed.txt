@@ -1,0 +1,38 @@
+
+
+with sub as 
+(
+select 
+ p.projectId as project,fac.name as projectId,p.name,p.date,p.notes,p.keyword_1,p.hours, p.num_middle,p.trainer_organization,cou.name as country,case when extract(month from date)=1 then (extract(year from date)-1) else extract(year from date) end as year,ven.name as vendor1,nvl2(SUBSTRING(vendor1, 1, POSITION(' (' in vendor1)), SUBSTRING(vendor1, 1, POSITION(' (' in vendor1)), vendor1) as vendor_name, case when vendor_name='' then vendor1 else vendor_name end as vendor,p.other,p.photo,p.file,p.historical,p.num_female,p.num_male,p.num_other , p.total_participants,p.trainer,
+  (extract(month from date) - (extract(month from date)-1)) as count
+  from profile_64801 p
+  
+ 
+
+  
+ left join ds_mysql_prod_project fac 
+on p.projectId = fac.id
+
+ left join ds_mysql_prod_project ven 
+on fac.parent = ven.id
+
+ left join ds_mysql_prod_project cou 
+on ven.parent = cou.id
+)
+, sub2 as
+(
+select s1.*,c from sub s1, s1.trainer_organization c
+)
+
+select
+project,s2.projectId,s2.name,s2.date,s2.other,s2.notes,s2.photo,s2.file,s2.trainer,s2.historical, s2.num_female,s2.num_male,s2.keyword_1,s2.num_other,s2.hours,s2.num_middle,country, vendor,triorg.name as trainer_organization,s2.total_participants,year,count
+from sub2  s2
+
+left join ds_mysql_prod_tagelement triorg 
+on s2.c = triorg.id
+
+where country <> 'Test Country' and project ilike '%%'
+
+group by 
+project,s2.projectId,s2.name,s2.date,s2.other,s2.notes,s2.photo,s2.file,s2.historical, s2.keyword_1,s2.num_female,s2.num_male,s2.hours,total_participants,s2.num_middle,country,vendor, triorg.name,s2.trainer_organization,s2.trainer ,
+s2.num_other,year,count
