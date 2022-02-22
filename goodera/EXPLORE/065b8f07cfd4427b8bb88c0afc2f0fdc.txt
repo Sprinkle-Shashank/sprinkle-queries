@@ -1,8 +1,7 @@
 with table1 as(
-select  p.projectId , cou.name as country ,
+select  p.projectId , cou.name as country ,p1.fac_cl_vpid, p1.vendor_ngo_id ,
 nvl2(SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), ven.name) as vendor_name, case when vendor_name='' then ven.name else vendor_name end as vendor,
-p1.fac_cl_vpid, p1.vendor_ngo_id ,
-  
+
 primary_category1.name as primary_category ,
 trainer_organization1.name as trainer_org_awareness ,                 
 training_type1.name as training_type_awareness,
@@ -13,8 +12,7 @@ local_foreign1.name as local_foreign_awarenes,
   CASE when p4.managers_in_depth is null then 0 else p4.managers_in_depth end as managers_in_depth,
   CASE when p4.workers_in_depth is null then 0 else p4.workers_in_depth end as workers_in_depth,
   CASE when p4.days_resolve is null then 0 else p4.days_resolve end as days_resolve,
-  p1.vendor_ngo_id, p1.primary_category, p1.fac_cl_vpid ,
-p3.trainer_organization,
+  p1.vendor_ngo_id, p1.primary_category, p1.fac_cl_vpid ,p3.trainer_organization,
 
 CASE when training_type1.name = p3.in_depth_training then p3.hours else p.hours end as hours,
 CASE when training_type1.name = p3.in_depth_training then p3.date else p.date end as date,
@@ -26,8 +24,6 @@ CASE when training_type1.name = p3.in_depth_training then p3.total_participants 
 CASE when training_type1.name = p3.in_depth_training then p3.num_male else 0 end as male_workers ,
 CASE when training_type1.name = p3.in_depth_training then p3.num_female else 0 end as female_workers
   
-  
-  
 from profile_61572 p
 
 left join ds_mysql_prod_project fac
@@ -36,7 +32,6 @@ left join ds_mysql_prod_project ven
 on fac.parent = ven.id
 left join ds_mysql_prod_project cou
 on ven.parent = cou.id
-
 
 left join profile_52810 p1
 on p.projectId = p1.projectId
@@ -62,16 +57,21 @@ p1.fac_cl_vpid, p1.vendor_ngo_id , primary_category1.name , trainer_organization
 p.submitter ,p.hours , p.date ,p.num_managers ,p.num_middle  , p.num_other, p.participants, p4.cases, p4.cases_resolved ,p4.managers_in_depth, p4.workers_in_depth ,p4.days_resolve ,p1.vendor_ngo_id, p1.primary_category, p1.fac_cl_vpid ,
 p3.trainer_organization, p3.submitter_indepth, p3.in_depth_training, p3.num_female, p3.num_male, p3.num_middle, p3.hours, p3.total_participants, p3.num_other, p3.date,p3.date 
 )
-select * from table1
+select tb.projectId, tb.fac_cl_vpid, tb.vendor, tb.vendor_ngo_id,tb.country, tb.training_type, tb.trainer_organization, tb.managers_in_depth, tb.workers_in_depth,
+tb.cases_reported,tb.cases_resolved,tb.days_resolve,
+CASE when tb.middle_managers is null then 0 else tb.middle_managers end as middle_managers,
+CASE when tb.managers is null then 0 else tb.managers end as managers,
+CASE when tb.other_participants is null then 0 else tb.other_participants end as other_participants,
 
+New Field: date Expression: concat(day($date),"-",month($date),"-",year($date))
+concat((extract(day from tb.date)),'-'(extract(month from tb.date)),'-',(extract(year from tb.date))) as date,
 
-  
-  
- 
+CASE when tb.male_workers is null then 0 else tb.male_workers end as male_workers,
+CASE when tb.female_workers is null then 0 else tb.female_workers end as female_workers,
+CASE when tb.hours is null then 0 else hours end as tb.hours,
 
-/*
-projectId, fac_cl_vpid, vendor, vendor_ngo_id,country, training_type, trainer_organization, date, male_workers,
-female_workers,managers,middle_managers,other_participants, hours, managers_in_depth, workers_in_depth,
-cases_reported,cases_resolved,days_resolve
-*/
+from table1 tb
+
+group by tb.
+
 
