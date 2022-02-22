@@ -1,0 +1,19 @@
+select p.projectid as project,fac.name as projectId, cou.name as country,ven.name as vendor1,nvl2(SUBSTRING(vendor1, 1, POSITION(' (' in vendor1)), SUBSTRING(vendor1, 1, POSITION(' (' in vendor1)), vendor1) as vendor_name, case when vendor_name='' then vendor1 else vendor_name end as vendor,
+case when extract(month from date)=1 then (extract(year from date)-1)
+else extract(year from date) end as year_new,p.name,p.other,p.trainer_organization,p.notes,p.photo,p.file,p.trainer,p.historical, p.keyword_1,p.num_female,p.num_male,p.num_middle,p.hours,p.total_participants,p.num_other,p.date
+from profile_64801 p
+
+left join ds_mysql_prod_project fac 
+on p.projectId = fac.id
+
+ left join ds_mysql_prod_project ven 
+on fac.parent = ven.id
+
+ left join ds_mysql_prod_project cou 
+on ven.parent = cou.id
+
+
+where cou.id <> 13761 and project ilike '%%'
+
+group by project,fac.name,cou.name,ven.name,vendor,
+p.name,p.other,p.trainer_organization,p.notes,p.photo,p.file,p.trainer,p.historical,p.keyword_1, p.num_female,p.num_male,p.num_middle,p.hours,p.total_participants,p.num_other,year,date,year_new
