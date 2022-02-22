@@ -1,0 +1,20 @@
+select p.projectId as project,fac.name as projectId,ven.name as vendor1,nvl2(SUBSTRING(vendor1, 1, POSITION(' (' in vendor1)), SUBSTRING(vendor1, 1, POSITION(' (' in vendor1)), vendor1) as vendor_name, case when vendor_name='' then vendor1 else vendor_name end as vendor, service.name as service_provider, p.status,p.brand,p.year_timerange,p.other_status,p.features,p.survey_yn, p.start_year,p.notes,p.contact_gap,p.other_features,p.keyword_1, cou.name as country, yr.name as year
+from profile_60670 p
+
+
+left join ds_mysql_prod_project fac
+on p.projectid = fac.id
+left join ds_mysql_prod_project ven
+on fac.parent = ven.id
+left join ds_mysql_prod_project cou
+on ven.parent = cou.id
+
+left join ds_mysql_prod_tagelement service
+on p.service_provider = service.id
+
+left join ds_mysql_prod_tagelement yr
+on p.start_year = yr.id
+
+where p.status = 1159910 and p.survey_yn = 57472 and project ilike '%%'
+group by project,fac.name,ven.name,vendor,service.name,p.status,p.brand, p.year_timerange,p.other_status,p.features,p.survey_yn,p.start_year,p.notes, p.contact_gap,p.other_features,p.keyword_1,cou.name,yr.name
+
