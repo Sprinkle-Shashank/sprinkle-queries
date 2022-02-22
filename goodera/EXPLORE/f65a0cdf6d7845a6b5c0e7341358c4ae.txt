@@ -1,1 +1,10 @@
-select projectId, fy_timerange, , benef_id_text, child_status from profile_79955
+with sub1 as(
+select a.projectId, a.fy_timerange, a.benef_id_text, a.child_status, b.shelter_home_text,t.name as location from profile_79955 a
+left join profile_79954 b on b.name=a.benef_id_text
+left join profile_79953 c on b.shelter_home_text=c.name
+  left join ds_mysql_prod_tagelement t on t.id=c.location
+where child_status in (1678339,1678340)),
+sub2 as(
+  select a.projectId, a.fy_timerange, a.benef_id_text, a.shelter_home_text, a.location, listagg(distinct a.benef_id_text) as benef_id_array from sub1 a
+group by a.projectId, a.fy_timerange, a.benef_id_text, a.shelter_home_text, a.location)
+  select a.projectId, a.fy_timerange, a.benef_id_text, a.shelter_home_text, a.location, a.benef_id_array, regexp_count(a.benef_id_array,',')+1 as count from sub2 a
