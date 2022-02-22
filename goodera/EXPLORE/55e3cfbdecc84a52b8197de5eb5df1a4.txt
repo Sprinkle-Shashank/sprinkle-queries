@@ -1,0 +1,48 @@
+
+select p.projectId as project,fac.name as projectId,ven.name as vendor1,nvl2(SUBSTRING(vendor1, 1, POSITION(' (' in vendor1)), SUBSTRING(vendor1, 1, POSITION(' (' in vendor1)), vendor1) as vendor_name, case when vendor_name='' then vendor1 else vendor_name end as vendor,cou.name as country,yr.name as year,stat_70.name as status_begin,service_70.name as service_provider_begin,survey_70.name as survey_yn_begin,stat_25.name as status_updated,feature.name as features_updated,service_25.name as service_provider_updated,survey_25.name as survey_yn_updated,
+nvl2(status_updated,status_begin,status_updated) as wep_status,
+nvl2(service_provider_updated,service_provider_begin,service_provider_updated) as service_provider,
+nvl2(survey_yn_updated,survey_yn_begin,survey_yn_updated) as survey_yn
+
+
+from profile_60670 p
+
+left join profile_65025 p2
+on p.projectId = p2.projectId 
+
+left join ds_mysql_prod_project fac
+on p.projectid = fac.id
+left join ds_mysql_prod_project ven
+on fac.parent = ven.id
+left join ds_mysql_prod_project cou
+on ven.parent = cou.id
+
+left join ds_mysql_prod_tagelement service_70
+on p.service_provider = service_70.id
+
+left join ds_mysql_prod_tagelement yr
+on p.year = yr.id
+
+left join ds_mysql_prod_tagelement survey_70
+on p.survey_yn = survey_70.id
+
+
+left join ds_mysql_prod_tagelement stat_70
+on p.status = stat_70.id
+
+left join ds_mysql_prod_tagelement service_25
+on p2.service_provider = service_25.id
+
+
+left join ds_mysql_prod_tagelement survey_25
+on p2.survey_yn = servey_25.id
+
+left join ds_mysql_prod_tagelement stat_25
+on p2.status = stat_25.id
+
+left join ds_mysql_prod_tagelement feature
+on p2.features = feature.id
+
+where cou.id <> '13761' and wep_status = 'Active (launched)' and project ilike '%%'
+
+group by project,fac.name,yr.name wep_status,service_provider,survey_yn,cou.name,vendor,ven.name,stat_70.name,service_70.name,survey_70.name,stat_25.name,service_25.name,survey_25.name,feature.name,yr.name
