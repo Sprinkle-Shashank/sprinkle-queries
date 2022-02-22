@@ -1,20 +1,32 @@
 with table1 as(
 select  p.projectId , cou.name as country ,
 p1.fac_cl_vpid, p1.vendor_ngo_id ,
+  
 primary_category1.name as primary_category ,
 trainer_organization1.name as trainer_org_awareness ,                 
 training_type1.name as training_type_awareness,
 local_foreign1.name as local_foreign_awarenes,
-p.submitter as submitter_awareness,
-p.hours as hours_awareness, p.date as date_awareness ,p.num_managers as num_managers_awarenes ,
-p.num_middle as num_middle_awareness , p.num_other as num_other_awareness ,
-p.participants as participants_awareness,
+  
   CASE when p4.cases is null then 0 else  p4.cases end as cases_reported, 
   CASE when p4.cases_resolved is null then 0 else p4.cases_resolved end as cases_resolved,
   CASE when p4.managers_in_depth is null then 0 else p4.managers_in_depth end as managers_in_depth,
   CASE when p4.workers_in_depth is null then 0 else p4.workers_in_depth end as workers_in_depth,
   CASE when p4.days_resolve is null then 0 else p4.days_resolve end as days_resolve,
-  p1.vendor_ngo_id, p1.primary_category, p1.fac_cl_vpid   --, p5.name_vendor_filter
+  p1.vendor_ngo_id, p1.primary_category, p1.fac_cl_vpid ,
+p3.trainer_organization,trainer_organization2.name as trainer_org_indepth
+
+CASE when training_type1.name = p3.in_depth_training then p3.hours else p.hours end as hours,
+CASE when training_type1.name = p3.in_depth_training then p3.date else p.date end as date,
+CASE when training_type1.name = p3.in_depth_training then p3.submitter_indepth else p.submitter end as submitter,
+CASE when training_type1.name = p3.in_depth_training then p3.num_other else p.num_other end as other_participants,
+CASE when training_type1.name = p3.in_depth_training then p3.num_middle else p.num_middler end as middle_managers ,
+CASE when training_type1.name = p3.in_depth_training then  '-' else p.num_managers end as managers ,
+CASE when training_type1.name = p3.in_depth_training then p3.total_participants else p.participants end as total_participants ,
+CASE when training_type1.name = p3.in_depth_training then p3.num_male else '-' end as male_workers ,
+CASE when training_type1.name = p3.in_depth_training then p3.num_female else '-' end as female_workers
+  
+  
+  
 from profile_61572 p
 
 left join ds_mysql_prod_project fac
@@ -31,43 +43,27 @@ left join profile_64801 p2
 on p.projectId = p2.projectId
 left join profile_65469 p4
 on p.projectId = p4.projectId
---left join profile_54646 p5
---on p.projectId = p5.projectId
+left join profile_64801 p3
+on p.projectId = p3.projectId
 
 left join ds_mysql_prod_tagelement primary_category1 on
 	p1.primary_category = primary_category1.id
-left join ds_mysql_prod_tagelement trainer_organization1 on                    --1
+left join ds_mysql_prod_tagelement trainer_organization1 on                    
 	p.trainer_organization = trainer_organization1.id
 left join ds_mysql_prod_tagelement training_type1 on
 	p.training_type = training_type1.id
 left join ds_mysql_prod_tagelement local_foreign1 on
 	p.local_foreign = local_foreign1.id
 
---group by
-group by p.projectId , cou.name  ,
-p1.fac_cl_vpid, p1.vendor_ngo_id , primary_category1.name , trainer_organization1.name  ,               training_type1.name , local_foreign1.name ,p.submitter ,p.hours , p.date ,p.num_managers ,
-p.num_middle , p.num_other  , p.participants , p4.cases , p4.cases_resolved , p4.managers_in_depth , p4.workers_in_depth, p4.days_resolve ,
-p1.vendor_ngo_id, p1.primary_category, p1.fac_cl_vpid --,p5.name_vendor_filter
+
+group by p.projectId , cou.name as country ,
+p1.fac_cl_vpid, p1.vendor_ngo_id , primary_category1.name , trainer_organization1.name ,training_type1.name,local_foreign1.name ,
+p.submitter ,p.hours , p.date ,p.num_managers ,p.num_middle  , p.num_other, p.participants, p4.cases, p4.cases_resolved ,p4.managers_in_depth, p4.workers_in_depth ,p4.days_resolve ,p1.vendor_ngo_id, p1.primary_category, p1.fac_cl_vpid ,
+p3.trainer_organization, p3.submitter_indepth, p3.in_depth_training, p3.num_female, p3.num_male, p3.num_middle, p3.hours, p3.total_participants, p3.num_other, p3.date, trainer_organization2.name ,p3.date 
 )
-
-
-/*table2 as (
-  
-select p3.trainer_organization, p3.submitter_indepth, p3.in_depth_training, p3.num_female, p3.num_male, p3.num_middle, p3.hours, p3.total_participants, p3.num_other, p3.date,
-trainer_organization2.name as trainer_org_indepth,
-p3.date as date_indepth
-from profile_64801 p3
-
-left join ds_mysql_prod_tagelement trainer_organization2 on 
-p3.trainer_organization = trainer_organization2.id
-
---group by
-group by  
- 
-  
- )*/ 
-
 select * from table1
+
+
   
   
  
