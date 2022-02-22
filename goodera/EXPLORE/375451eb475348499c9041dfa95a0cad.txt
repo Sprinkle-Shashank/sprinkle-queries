@@ -34,7 +34,11 @@ select p.*, case when p.fy_p3<=p.fy1 then p.project_manager_p3 else p.project_ma
 ),
 
 base7 as(
-select p.project_code, p.project_name, p.project_manager, count(*) as activities_planned, listagg(distinct p.month,', ') as month, first_value(p.fy1) over (partition by p.project_code, p.project_name, p.project_manager) as fy_timerange  from base6 p group by 1,2,3,6
+select p.project_code, p.project_name, p.project_manager, count(*) as activities_planned, listagg(distinct p.month,', ') as month, p.fy_timerange,p.projectid  from
+  (
+	select first_value(p.fy1) over (partition by p.project_code, p.project_name, p.project_manager) as fy_timerange, first_value(p.projectid) over (partition by p.project_code, p.project_name, p.project_manager) as projectid,p.* from base6 p
+  ) as p
+  group by 1,2,3,4,5,6
 )
 
 select p.* from base7 p
