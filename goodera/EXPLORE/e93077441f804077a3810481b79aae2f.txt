@@ -1,8 +1,9 @@
 with sub1 as(
 select a.projectId, t.name as camp_type, a.photo, a.shelter_home_text, a.number_ben_child, 
-case when a.external_ben_number is NULL then 0 else a.external_ben_number end as external_ben_number, a.date as fy_timerange, b.location from profile_79959 a 
+case when a.external_ben_number is NULL then 0 else a.external_ben_number end as external_ben_number, a.date as fy_timerange, t.name as location from profile_79959 a 
 left join profile_79953 b on b.name=a.shelter_home_text
-left join ds_mysql_prod_tagelement t on t.id=a.camp_type),
+left join ds_mysql_prod_tagelement t on t.id=a.camp_type
+left join ds_mysql_prod_tagelement t on t.id=b.location),
 sub2 as(
 select projectId, fy_timerange, photo, shelter_home_text, number_ben_child, location, external_ben_number, listagg(distinct camp_type) as camp_type from sub1 group by projectId, fy_timerange, photo, shelter_home_text, number_ben_child, location, external_ben_number)
 select projectId, fy_timerange, photo, shelter_home_text, number_ben_child, location, external_ben_number, camp_type, 'Click Here' as click, substring(fy_timerange,1,10) as date from sub2
