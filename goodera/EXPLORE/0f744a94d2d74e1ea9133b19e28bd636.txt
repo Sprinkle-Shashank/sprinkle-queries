@@ -1,0 +1,22 @@
+
+select p2.projectId,fac.name as projectId, p2.overall_valuable, p2.overall_workers, p2.roi, p2.wep_data_collection, p2.start_date, p2.improvements, p2.reason, p2.others, p2.survey_yn, p2.shared_results, p2.num_workers, p2.num_positive, p2.turnover, p2.num_workers_total, p2.num_registered, p2.num_active, p2.year, ven.name as vendor1,nvl2(SUBSTRING(vendor1, 1, POSITION(' (' in vendor1)), SUBSTRING(vendor1, 1, POSITION(' (' in vendor1)), vendor1) as vendor_name, case when vendor_name='' then vendor1 else vendor_name end as vendor, cou.name as country, ((p2.num_active/nullif(p2.num_registered,0))*100) as utilization_rate, service.name as service_provider,p.status,p.contact_gap,p.other_features
+from profile_60670 p
+left join profile_60782 p2 on 
+p.projectId = p2.projectId
+
+left join ds_mysql_prod_project fac
+on p2.projectid = fac.id
+left join ds_mysql_prod_project ven
+on fac.parent = ven.id
+left join ds_mysql_prod_project cou
+on ven.parent = cou.id
+
+
+left join ds_mysql_prod_tagelement service
+on p.service_provider = service.id
+
+where p.status = 1159910 and p2.projectId is not null and p.projectId ilike '%%'
+
+group by p2.projectId,p.status,fac.name,p.contact_gap,p.other_features,p2.overall_valuable, p2.overall_workers,p2.roi,p2.wep_data_collection,p2.start_date,p2.improvements, p2.reason,p2.others,p2.shared_results,p2.year,p2.num_workers,p2.num_positive, p2.turnover,p2.num_workers_total,p2.num_registered,p2.num_active, utilization_rate, cou.name, service.name,vendor,ven.name, p2.survey_yn
+
+order by year ASC
