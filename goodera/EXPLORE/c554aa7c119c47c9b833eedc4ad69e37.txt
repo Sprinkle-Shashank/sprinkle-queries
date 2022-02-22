@@ -1,0 +1,23 @@
+
+
+
+select p.projectId as project,fac.name as projectId,p.overall_valuable, p.overall_workers,cou.name as country,ven.name as vendor1,nvl2(SUBSTRING(vendor1, 1, POSITION(' (' in vendor1)), SUBSTRING(vendor1, 1, POSITION(' (' in vendor1)), vendor1) as vendor_name, case when vendor_name='' then vendor1 else vendor_name end as vendor,yr.name as year, p2.service_provider,p.roi,p.wep_data_collection, p.improvements,p.reason,p.features,p.others,p.survey_yn,p.shared_results, p.notes,p.num_workers,p.num_positive,p.turnover,p.num_workers_total, p.num_registered,p.num_active,p2.contact_gap,p2.status,p.overall_valuable 
+from profile_60782 p
+
+left join profile_60670 p2 on
+p.projectId = p2.projectId
+
+left join ds_mysql_prod_project fac
+on p.projectid = fac.id
+left join ds_mysql_prod_project ven
+on fac.parent = ven.id
+left join ds_mysql_prod_project cou
+on ven.parent = cou.id
+
+
+left join ds_mysql_prod_tagelement yr
+on p2.start_year = yr.id
+
+where p.overall_valuable in (1256562, 1256561, 1256560) and p.overall_workers in (1256561, 1256560, 1256562) and project ilike '%%'
+
+group by project,fac.name,p.overall_workers,p.roi,p.wep_data_collection, p.improvements,p.reason,p.features,p.others,p.survey_yn,p.shared_results, p.notes,p.num_workers,p.num_positive,p.turnover,p.num_workers_total, p.num_registered,p.num_active,vendor,ven.name,cou.name,p2.service_provider, p2.status,p2.contact_gap,yr.name,p.overall_valuable
