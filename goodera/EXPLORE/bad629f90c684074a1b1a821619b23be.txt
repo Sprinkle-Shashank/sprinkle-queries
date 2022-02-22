@@ -10,16 +10,16 @@ with table1 as ( select
 			sum(num_females_graduated) as total_females_graduated,
 			sum(num_females_dropout) as total_females_dropout,
 			case when end_date_2 is null  then num_females else 0 end as ongoing,
-			sum(ongoing) as total_females_ongoing,
+			
 			case when end_date_2 is null then 1 else 0 end as batchongoing,
-			sum(batchongoing) as total_batches_ongoing,
-			case when data_type(end_date_2) = date then 1 else 0 end as batchcomp,
-			sum(batchcomp) as total_batches_completed,
+			
+			--case when data_type(end_date_2) = date then 1 else 0 end as batchcomp,
+			--sum(batchcomp) as total_batches_completed,
 			avg(hours) as average_hours,
 			sum(hours) as total_hours,
 			sum(num_males) as total_males,
 			case when end_date_2 is null then num_males else 0 end as mongoing,	
-			sum(mongoing) as total_males_ongoing,
+			
 			sum(num_males_graduated) as total_males_graduated,
 			sum(num_males_dropout) as total_males_dropout,
 			sum(reason_pregnancy) as dropout_pregnancy,
@@ -27,8 +27,7 @@ with table1 as ( select
 			sum(reason_interest) as dropout_interest,
 			sum(reason_pressure) as dropout_pressure,
 			sum(reason_other) as dropout_other,
-			case when end_date_2 is null  then 0 else num_females end as fcomp,
-			sum(fcomp) as total_females_completed
+			case when end_date_2 is null  then 0 else num_females end as fcomp
 				
 			from profile_4227 p
   	
@@ -39,9 +38,16 @@ table_54646.projectId = p.projectId
 inner join profile_52810 table_52810 on
 table_52810.projectId = p.projectId
 
-group by p.lg_status,table_54646.projectId,table_52810.pace_brands,table_54646.projcode_factory,table_52810.offset_date,p.start_date,p.end_date_2,p.num_females,p.num_males
+group by p.lg_status,table_54646.projectId,table_52810.pace_brands,table_54646.projcode_factory,table_52810.offset_date,p.start_date,p.end_date_2,p.num_females,p.num_males,
 )
-select * from table1 p where status = 1 
+table2 as ( select
+		   status,brand,total_females_dropout,
+		   status1,token,total_females,total_females_graduated,sum(ongoing) as total_females_ongoing,sum(batchongoing) as total_batches_ongoing,average_hours,total_hours,total_males,sum(mongoing) as total_males_ongoing,total_males_graduated,total_males_dropout,dropout_pregnancy,dropout_left,dropout_interest,dropout_pressure,dropout_other,sum(fcomp) as total_females_completed
+
+		from table1 p
+group by status,brand,status1,token,total_females_dropout,total_females,total_females_graduated,average_hours,total_hours,total_males,total_males_graduated,total_males_dropout,dropout_pregnancy,dropout_left,dropout_interest,dropout_pressure,dropout_other
+) 
+select * from table2 p where status = 1 
 and status1 = 1 
 --and brand = 1 
 --and token = 1
