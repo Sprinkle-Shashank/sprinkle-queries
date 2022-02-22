@@ -1,1 +1,27 @@
-select * from profile_4227
+with table1 as (select 
+				substring(table_54646.projcode_factory,1,1) as code
+				,
+				--cast (table_54646.projcode_factory as varchar(256)) as projcode,
+				--string_split(projcode,'-') as code1
+				--SUBSTRING_INDEX(projcode,'-',-1) as code_brand
+				JSON_SERIALIZE(table_52810.pace_brands) as pace_brand,	
+				case when pace_brand like '%1011796%' then 1 else 0 end  as brand,
+				case when table_52810.offset_date is null then '2020-02-01T00:00:00.000Z' else table_52810.offset_date end as offset_date,
+				p.start_date as start_date,
+				case when lg_status = 848007 or lg_status is null then 1 else 0 end as status,
+				p.num_females as females,
+				p.start_year
+				
+				
+				
+				from profile_4227 p
+inner join profile_54646 table_54646 on
+table_54646.projectId = p.projectId
+				
+inner join profile_52810 table_52810 on
+table_52810.projectId = p.projectId				
+
+group by p.num_females,p.lg_status,p.start_date,table_52810.offset_date,table_52810.pace_brands,table_54646.projcode_factory,p.start_year
+)
+
+select sum(females) as total_females,(p.start_year) from table1 p where brand = 1 and start_date>offset_date and status = 1
