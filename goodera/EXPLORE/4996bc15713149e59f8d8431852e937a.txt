@@ -3,7 +3,8 @@ with temp as(
   union all
   select 'academics' as col
   union all
-  select 'lifeskills' as col)
+  select 'lifeskills' as col),
+  sub1 as(
 select projectId, fy_timerange, p_d, academics, lifeskills, temp.col as activity_type, 
 case col when 'p_d' then p_d
 when 'academics' then academics
@@ -11,4 +12,8 @@ when 'lifeskills' then lifeskills
 else NULL
 end as activities
 from profile_52389
-cross join temp
+cross join temp)
+select projectId, fy_timerange, activities, 
+case when activity_type='p_d' then 'Personality Development' else 
+(case when activity_type='academics' then 'Academics' else 'Life Skills' end) 
+end as activity_type from sub1
