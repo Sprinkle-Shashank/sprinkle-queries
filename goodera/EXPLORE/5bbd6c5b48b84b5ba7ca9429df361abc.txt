@@ -1,0 +1,21 @@
+select p.projectId as project,fac.name as projectId,p.keyword_1_timerange,p.channel, p.other_channel,p.policies_reviewed,p.policies_update,p.year,p.cases_resolved,p.cases, p.managers_in_depth,p.workers_in_depth,p.internal_trainers,p.name,cou.name as country,ven.name as vendor1,nvl2(SUBSTRING(vendor1, 1, POSITION(' (' in vendor1)), SUBSTRING(vendor1, 1, POSITION(' (' in vendor1)), vendor1) as vendor_name, case when vendor_name='' then vendor1 else vendor_name end as vendor,
+ case when p.days_resolve is null then 0 else p.days_resolve 
+end as days_resolve
+from profile_65469  p
+
+left join ds_mysql_prod_project daysresol 
+on p.days_resolve = daysresol.id
+
+left join ds_mysql_prod_project fac 
+on p.projectId = fac.id
+
+ left join ds_mysql_prod_project ven 
+on fac.parent = ven.id
+
+ left join ds_mysql_prod_project cou 
+on ven.parent = cou.id
+
+where cou.id <> 13761 and project ilike '%%'
+
+group by
+ project,fac.name,p.name,p.keyword_1_timerange,p.channel,p.other_channel,p.policies_reviewed, p.policies_update,p.year,p.cases_resolved,p.cases,p.managers_in_depth,p.workers_in_depth , days_resolve,p.internal_trainers,cou.name,vendor,ven.name
