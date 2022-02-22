@@ -1,13 +1,7 @@
-select p.projectId as project,fac.name as projectId,ven.name as vendor1,nvl2(SUBSTRING(vendor1, 1, POSITION(' (' in vendor1)), SUBSTRING(vendor1, 1, POSITION(' (' in vendor1)), vendor1) as vendor_name, case when vendor_name='' then vendor1 else vendor_name end as vendor,cou.name as country,yr.name as year,stat_70.name as status_begin,service_70.name as service_provider_begin,survey_70.name as survey_yn_begin,stat_25.name as status_updated,feature.name as features_updated,service_25.name as service_provider_updated,survey_25.name as survey_yn_updated,p.year_timerange,
-nvl2(stat_25.name,stat_25.name,stat_25.name) as wep_status,
-nvl2(service_25.name,service_70.name,service_25.name) as service_provider,
-nvl2(survey_25.name ,survey_70.name,survey_25.name ) as survey_yn
+select p.projectId as project,fac.name as projectId,ven.name as vendor1,nvl2(SUBSTRING(vendor1, 1, POSITION(' (' in vendor1)), SUBSTRING(vendor1, 1, POSITION(' (' in vendor1)), vendor1) as vendor_name, case when vendor_name='' then vendor1 else vendor_name end as vendor, p.overall_workers,p.roi,p.wep_data_collection,p.start_date,p.improvements,p.reason,p.features, p.others, p.survey_yn, p.shared_results, p.notes, p.num_workers, p.num_positive, p.turnover, p.num_workers_total, p.num_registered, p.num_active, p.overall_valuable, ,cou.name as country, service.name as service_provider, DATEPART(YEAR,start_date) as year_new from profile_60782 p
 
-
-from profile_60670 p
-
-left join profile_65025 p2
-on p.projectId = p2.projectId 
+left join profile_60670 p2
+on p.projectId = p2.projectId
 
 left join ds_mysql_prod_project fac
 on p.projectid = fac.id
@@ -16,32 +10,16 @@ on fac.parent = ven.id
 left join ds_mysql_prod_project cou
 on ven.parent = cou.id
 
-left join ds_mysql_prod_tagelement service_70
-on p.service_provider = service_70.id
 
-left join ds_mysql_prod_tagelement yr
-on p.start_year = yr.id
+left join ds_mysql_prod_tagelement service on
+p2.service_provider = service.id
 
-left join ds_mysql_prod_tagelement survey_70
-on p.survey_yn = survey_70.id
+where cou.id <> 13761
 
 
-left join ds_mysql_prod_tagelement stat_70
-on p.status = stat_70.id
-
-left join ds_mysql_prod_tagelement service_25
-on p2.service_provider = service_25.id
+group by project,fac.name,vendor,ven.name,p.overall_workers, p.roi, p.wep_data_collection, p.start_date, p.improvements, p.reason, p.features, p.others, p.survey_yn, p.shared_results, p.notes, p.num_workers, p.num_positive, p.turnover, p.num_workers_total, p.num_registered, p.num_active,cou.name,year_new,service.name,p.overall_valuable
 
 
-left join ds_mysql_prod_tagelement survey_25
-on p2.survey_yn = survey_25.id
+order by start_date DESC
 
-left join ds_mysql_prod_tagelement stat_25
-on p2.status = stat_25.id
 
-left join ds_mysql_prod_tagelement feature
-on p2.features = feature.id
-
-where cou.id <> '13761' and wep_status = 'Active (launched)' and project ilike '%%'
-
-group by project,fac.name,cou.name,vendor,ven.name,stat_70.name,service_70.name,survey_70.name,stat_25.name,service_25.name,survey_25.name,feature.name,yr.name,p.year_timerange
