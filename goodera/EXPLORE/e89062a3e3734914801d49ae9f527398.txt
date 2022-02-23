@@ -7,7 +7,8 @@ with table1 as (select
 				--table_52810.start_date,
 				module_name as select_modules,
 				table_4227.start_date as start_date,
-				case when num_enrolled_class and attendance and num_enrolled_class != 0 then (attendance/num_enrolled_class) else null end as avg_attendance
+				case when num_enrolled_class and attendance and num_enrolled_class != 0 then (attendance/num_enrolled_class) else null end as avg_attendance,
+				case when table_52810.offset_date is null then '2020-02-01T00:00:00.000Z' else table_52810.offset_date end as offset_date
 
 
 			from profile_4228 p
@@ -19,12 +20,19 @@ table_52810.projectId = p.projectId
 				
 inner join profile_4227 table_4227 on
 table_4227._id = p.class
-)/*,
+),
 
-table2 as (select brand,
+table2 as (select brand,case when start_date >= offset_date then 1 else 0 end as token,select_modules, avg(avg_attendance) as total_avg_attendance,
+		   moduleTable.name as module 
 
 			from table1 p
-)*/
+		   
+left join ds_mysql_prod_tagelement moduleTable on
+moduleTable.Id = select_modules
+		   
+group by brand,token,select_modules,module,moduleTable.sortOrder
+order by moduleTable.sortOrder
+)
 
 
-select * from table1 p where brand = 1
+select * from table2 p where brand = 1 and token = 1
