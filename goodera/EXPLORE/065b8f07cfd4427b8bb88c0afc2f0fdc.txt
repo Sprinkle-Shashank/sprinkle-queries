@@ -1,18 +1,19 @@
 with table1 as
 (
-select  p.projectId , cou.name as country ,p1.fac_cl_vpid, p1.vendor_ngo_id ,fac.name as factory,
+select  p.projectId , cou.name as country ,p1.fac_cl_vpid, p1.vendor_ngo_id ,
 nvl2(SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), ven.name) as vendor_name, case when vendor_name='' then ven.name else vendor_name end as vendor,
 primary_category1.name as primary_category ,
 trainer_organization1.name as trainer_org_awareness ,                 
 training_type1.name as training_type_awareness,
 local_foreign1.name as local_foreign_awarenes,
-  
+p.submitter , p.hours , p.date ,p.num_managers , p.num_middle , p.num_other , p.participants , p4.cases , p4.cases_resolved , p4.managers_in_depth , p4.workers_in_depth , p4.days_resolve ,
+p3.trainer_organization, p3.submitter_indepth, p3.in_depth_training, p3.num_female, p3.num_male, p3.num_middle, p3.hours, p3.total_participants, p3.num_other, p3.date  
   CASE when p4.cases is null then 0 else  p4.cases end as cases_reported, 
   CASE when p4.cases_resolved is null then 0 else p4.cases_resolved end as cases_resolved,
   CASE when p4.managers_in_depth is null then 0 else p4.managers_in_depth end as managers_in_depth,
   CASE when p4.workers_in_depth is null then 0 else p4.workers_in_depth end as workers_in_depth,
   CASE when p4.days_resolve is null then 0 else p4.days_resolve end as days_resolve,
-  p3.trainer_organization
+  p3.trainer_organization,
 
 
   
@@ -44,13 +45,13 @@ left join ds_mysql_prod_tagelement local_foreign1 on
 	p.local_foreign = local_foreign1.id
 
 
-group by p.projectId , cou.name , ven.name ,fac.name,
+group by p.projectId , cou.name , ven.name ,
 p1.fac_cl_vpid, p1.vendor_ngo_id , primary_category1.name , trainer_organization1.name , training_type1.name,local_foreign1.name ,
 p.submitter , p.hours , p.date ,p.num_managers , p.num_middle , p.num_other , p.participants , p4.cases , p4.cases_resolved , p4.managers_in_depth , p4.workers_in_depth , p4.days_resolve ,p1.vendor_ngo_id, p1.fac_cl_vpid ,
 p3.trainer_organization, p3.submitter_indepth, p3.in_depth_training, p3.num_female, p3.num_male, p3.num_middle, p3.hours, p3.total_participants, p3.num_other, p3.date
 )
 
-select tb.factory as projectId, tb.fac_cl_vpid , tb.vendor, tb.vendor_ngo_id , tb.country, tb.training_type_awareness, tb.trainer_organization,
+select tb.projectId, tb.fac_cl_vpid , tb.vendor, tb.vendor_ngo_id , tb.country, tb.training_type_awareness, tb.trainer_organization,
 tb.managers_in_depth, tb.workers_in_depth,
 tb.cases_reported , tb.cases_resolved , tb.days_resolve ,
 CASE when tb.middle_managers is null then 0 else tb.middle_managers end as middle_managers,
