@@ -1,5 +1,6 @@
 with table1 as ( select
 			projid_factory as factory_id,
+				p.projectId as projectId,
 			substring(projcode_factory,1,1) as code,
 			--string_split(projcode_factory,'-') as code_brand,
 			--SUBSTRING_INDEX(projcode_factory,'-',-1) as code_brand,
@@ -14,10 +15,11 @@ table_52810.projectId = p.projectId
 ),
 
 table2 as ( select
-			factory_id,brand,code,offset_date,
+			factory_id,brand,code,offset_date,projectId
 		    table_4227.start_date as start_date,
 		    table_4227.select_modules as select_modules,
 		    case when start_date >= offset_date then 1 else 0 end as token,
+		    case when table_71993.partner_type = 1132938 the 1 else 0 end as token2, 
 		    table_71993.target_2022 as target2022,
 		    table_71993.target_2021 as target2021,
 		    table_71993.target_2020 as target2020
@@ -28,5 +30,11 @@ table_4227.projectId = p.factory_id
 left join profile_71993 table_71993 on
 table_71993.projectId = p.projectId	
     
-)
-select * from table2 p where brand = 1 and token =1 and table_71993.partner_type = 1132938
+),
+table3 as ( select token,token2,brand, distinct(target2022) as target2022, distinct(target2021) as target2021, distinct(target2020) as target2020,projectId
+		   
+		   from table2 p
+
+group by token,token2,brand,projectId		  
+		  )
+select * from table2 p where brand = 1 and token =1 and token2 = 1
