@@ -1,1 +1,88 @@
-select benef_id_text from profile_64041
+select child_status from profile_79955
+/*with temp as
+(
+  select 'energy_levelsachieved_verified' as col
+  union all
+  select 'wastewater_levelsachieved_verified' as col
+  union all
+  select 'ems_levelsachieved_verified' as col
+  union all
+  select 'chemicals_levelsachieved_verified' as col
+  union all
+  select 'waste_levelsachieved_verified' as col
+  union all
+  select 'air_levelsachieved_verified' as col
+  union all
+  select 'water_levels_achieved_verified' as col
+  ),
+sub1 as(
+select group_name, groupid, surveyid, country, energy_levelsachieved_verified, wastewater_levelsachieved_verified, ems_levelsachieved_verified, chemicals_levelsachieved_verified, sq.fy_timerange, waste_levelsachieved_verified, air_levelsachieved_verified, water_levels_achieved_verified, sacid, 
+case col
+	when 'energy_levelsachieved_verified' then sq.energy_levelsachieved_verified
+	when 'wastewater_levelsachieved_verified' then sq.wastewater_levelsachieved_verified
+	when 'ems_levelsachieved_verified' then sq.ems_levelsachieved_verified
+	when 'chemicals_levelsachieved_verified' then sq.chemicals_levelsachieved_verified
+	when 'waste_levelsachieved_verified' then sq.waste_levelsachieved_verified
+	when 'air_levelsachieved_verified' then sq.air_levelsachieved_verified
+	when 'water_levels_achieved_verified' then sq.water_levels_achieved_verified
+  else Null
+	end as level, temp.col as module
+from profile_74133 sq
+cross join temp
+  ),
+  sub2 as(
+  select group_name, groupid, surveyid, country, position(1 in level) as level1, position(2 in level) as level2, position(3 in level) as level3, module, upper(substring(module,1,position('_' in module)-1)) as modules, sacid, s1.fy_timerange
+	from sub1 s1
+  group by group_name, groupid, surveyid, country,module, level, sacid, s1.fy_timerange),
+  sub3 as(
+  select country,s2.fy_timerange, level1, cdms_id, modules, case when get_array_length(source_div) = 0 then array(0)
+  else COALESCE(source_div,array(0)) end new_source, rtrim(ltrim(json_serialize(new_source),'['),']') as source_div1, timeperiod_timerange
+	from sub2 s2
+  left join profile_74334 pd
+  on pd.higg_id=s2.sacid
+  left join profile_60928 mr
+  on mr.factory_id=pd.cdms_id
+  ),
+  sub31 as(
+   select country, fy_timerange, level1, cdms_id, modules, 
+	 first_value(source_div1)
+over(partition by country, fy_timerange, level1, cdms_id, modules
+order by cast(timeperiod_timerange.start as date) desc
+rows between unbounded preceding and unbounded following) as source_div_new from sub3),
+  sub32 as(
+	select country, fy_timerange, level1, cdms_id, modules, SPLIT_TO_ARRAY(source_div_new,',') as source_div
+		   from sub31
+		   group by country, fy_timerange, level1, cdms_id, modules, source_div),
+  sub4 as
+  (
+  select s3.country, s3.fy_timerange, s3.level1, s3.cdms_id, s3.modules, source from sub32 s3, s3.source_div source),
+  sub5 as
+  (
+  select t1.name as region, s4.fy_timerange, cdms_id, 
+	listagg(distinct modules,', ') as modules, level1,
+	rtrim(ltrim(json_serialize(source),'"'),'"') as source_div
+  from sub4 s4
+  left join ds_mysql_prod_tagelement t
+	on t.id=s4.country
+	left join ds_mysql_prod_tagelement t1
+	on t.parent=t1.id
+	  where cdms_id is not null 
+	group by s4.fy_timerange, source, t1.name, cdms_id, level1
+	)
+	, 
+	sub6 as
+	(
+	select fy_timerange, t.name as source_div, region, cdms_id,
+	case when level1=0 then 0 else regexp_count(modules,',')+1 end as mods
+	  from sub5
+	left join ds_mysql_prod_tagelement t
+	on t.id=source_div),
+	
+	sub7 as
+	(
+	select fy_timerange, case when source_div is null then 'Not Found' else source_div end as source_div, region, mods, cdms_id as facs, 1 as count
+from sub6
+	  --where regexp_count(modules,',')+1=7
+	group by fy_timerange, source_div, region, mods, cdms_id)
+	select * from sub7
+	*/
