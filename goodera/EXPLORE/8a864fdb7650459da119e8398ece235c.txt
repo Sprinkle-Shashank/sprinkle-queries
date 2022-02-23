@@ -1,11 +1,13 @@
 with Lookup as
-(select cast((split_part(split_part(prod.name,'|',1),'.',1)) as varchar) as ProjectCode,split_part(prod.name,'|',3) as census,f.name as fy_timerange,p.bennum as No_of_Beneficiaries,p.latitude as Latitude,p.logitude as Logitude,p.focus_area as Focusarea,p.asset_cat as Asset_type,CONCAT(ProjectCode,fy_timerange) as CODE, cast(concat(concat(substring(cast(timestamp 'epoch' + CAST(p.created AS BIGINT)/1000 * interval '1 second' as varchar), 1, 10),'T'), concat(split_part(cast(timestamp 'epoch' + CAST(p.created AS BIGINT)/1000 * interval '1 second' as varchar), ' ',2),'.000Z')) as datetime) as created_date,z.name as bene_type,p.pic1 from profile_59426 p 
+(select cast((split_part(split_part(prod.name,'|',1),'.',1)) as varchar) as ProjectCode,split_part(prod.name,'|',3) as census,f.name as fy_timerange,p.bennum as No_of_Beneficiaries,p.latitude as Latitude,p.logitude as Logitude,p.focus_area as Focusarea,p.asset_cat as asset_cat,y.name as asset_subcat, CONCAT(ProjectCode,fy_timerange) as CODE, cast(concat(concat(substring(cast(timestamp 'epoch' + CAST(p.created AS BIGINT)/1000 * interval '1 second' as varchar), 1, 10),'T'), concat(split_part(cast(timestamp 'epoch' + CAST(p.created AS BIGINT)/1000 * interval '1 second' as varchar), ' ',2),'.000Z')) as datetime) as created_date,z.name as bene_type,p.pic1 from profile_59426 p 
 left join ds_mysql_prod_project prod on
 prod.id=p.projectid
 left join ds_mysql_prod_tagelement f on
 p.fy=f.id
 left join ds_mysql_prod_tagelement z on
-p.bene=z.id 
+p.bene=z.id
+left join ds_mysql_prod_tagelement y on
+p.cat=y.id 
 )
 
 ,Base1 as
@@ -26,12 +28,12 @@ left join ds_mysql_prod_tagelement m on
 c.project_manager=m.id)
 
 ,Base2 as
-(select p.fy_timerange,l.Project_Manager,p.ProjectCode,p.Focusarea,p.Asset_type,m.state as State,concat(concat(concat(m.state,'['),p.Focusarea),']') as title,p.Latitude,p.Logitude,p.No_of_Beneficiaries,m.village,to_char(P.created_date,'DD-Mon-YYYY') as created_date, p.bene_type,p.pic1  
+(select p.fy_timerange,l.Project_Manager,p.ProjectCode,p.Focusarea,p.asset_cat, p.asset_subcat, m.state as State,concat(concat(concat(m.state,'['),p.Focusarea),']') as title,p.Latitude,p.Logitude,p.No_of_Beneficiaries,concat(m.village,p.bene_type),to_char(P.created_date,'DD-Mon-YYYY') as created_date, p.bene_type,p.pic1  
 from Lookup p
 left join Base1 l
 on p.CODE=l.CODE
 left join profile_27489 m on
 p.census=m.name
  )
-select * from base2 where fy_timerange = '2021-2022'
+select * from base2 
 --select * from lookup
