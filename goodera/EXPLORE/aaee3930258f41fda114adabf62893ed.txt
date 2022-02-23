@@ -1,7 +1,7 @@
 with sub1 as(
-select projectId, name as benef_id, fy_timerange, shelter_home_text, substring(dob,1,10) as dob, concat(concat(first_name,' '),last_name) as benef_name, substring(cast(fy_timerange.start as date),1,10) as admission_date, fy_timerange.start as start_date from profile_52387),
+select projectId, name as benef_id, fy_timerange, shelter_home_text, age, name as benef_name, substring(cast(fy_timerange.start as date),1,10) as admission_date, fy_timerange.start as start_date from profile_52387),
 sub2 as(
-  select a.projectId, a.benef_id, a.shelter_home_text, a.dob,  a.benef_name, a.admission_date, a.start_date, t.name as location, c.fy_timerange, c.school_name, t2.name as class, c.medium, t1.name as school_type, t3.name as child_status from sub1 a 
+  select a.projectId, a.benef_id, a.shelter_home_text, a.age,  a.benef_name, a.admission_date, a.start_date, t.name as location, c.fy_timerange, c.school_name, t2.name as class, c.medium, t1.name as school_type, t3.name as child_status from sub1 a 
   left join profile_79953 b on b.name=a.shelter_home_text
 left join profile_79955 c on c.benef_id_text=a.benef_id
 left join ds_mysql_prod_tagelement t on t.id=b.location
@@ -9,11 +9,11 @@ left join ds_mysql_prod_tagelement t1 on t1.id=c.school_type
 left join ds_mysql_prod_tagelement t2 on t2.id=c.class
 left join ds_mysql_prod_tagelement t3 on t3.id=c.child_status),
 sub3 as (
-  select a.projectId, a.benef_id, a.shelter_home_text, a.dob,  a.benef_name, a.admission_date, a.start_date, a.location, a.school_name, a.class, a.medium, a.school_type, a.child_status, a.fy_timerange.start as end_date, concat(concat(cast(start_date as date),'|'),cast(end_date as date)) as fy_timerange from sub2 a where a.school_name is not null ),
+  select a.projectId, a.benef_id, a.shelter_home_text, a.age,  a.benef_name, a.admission_date, a.start_date, a.location, a.school_name, a.class, a.medium, a.school_type, a.child_status, a.fy_timerange.start as end_date, concat(concat(cast(start_date as date),'|'),cast(end_date as date)) as fy_timerange from sub2 a where a.school_name is not null ),
   sub4 as(
-  select projectId, benef_id, religion, mother_tongue, community, parental_status, shelter_home_text, benef_name, dob, admission_date, location,
+  select projectId,  shelter_home_text, benef_name, age, admission_date, location,
   first_value(fy_timerange)
-over(partition by projectId, benef_id, religion, mother_tongue, community, parental_status, shelter_home_text, benef_name, dob, admission_date, location
+over(partition by projectId, benef_id, shelter_home_text, benef_name, age, admission_date, location
 order by a.start_date desc
 rows between unbounded preceding and unbounded following) as fy_timerange,
 	first_value(school_name)
