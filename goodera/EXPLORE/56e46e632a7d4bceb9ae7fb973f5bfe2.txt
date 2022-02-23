@@ -1,13 +1,17 @@
 with phase1 as (
 	select proj.name as projectId,(current_date||'T00:00:00.000Z') as end,
-  	SUBSTRING(cast(p.date_iga as varchar),1,10)||'T00:00:00.000Z' as date_iga,p.shg_member,tag1.name as iga
+  	SUBSTRING(cast(p.date_iga as varchar),1,10)||'T00:00:00.000Z' as date_iga,pg.name as shg_member,tag1.name as iga
   	from profile_58865 p
+  	left join ds_mysql_prod_project proj
+  	on p.projectid = proj.id
   	left join ds_mysql_prod_tagelement tag1
   	on p.iga = tag1.id
+  	left join profile_58858 pg
+  	on p.shg_member = pg._id
   	where tag1.name = 'Yes'
 ),
 phase2 as (
-	select x.projectId, x.shg_member, x.iga,x.date_iga||'|'||x.end as fy_timerange,SUBSTRING(x.date_iga,1,4) as fy,COUNT(*) as count from phase1 x
+	select x.projectId, x.shg_member, x.iga,x.date_iga||'|'||x.end as fy_timerange,extract(year from p.date_iga) as fy,COUNT(*) as count from phase1 x
   	group by 1,2,3,4,5
 )
 select * from phase2 p2
