@@ -1,7 +1,7 @@
 with base1 as(
-  select projectid, substring(cast(p.start_date as varchar),1,10)||'T00:00:00.000Z'||'|'||substring(cast(current_date as varchar),1,10)||'T00:00:00.000Z' as fy_timerange, 'shg_member_train' as type, shg1 as beneficiaries from profile_58864 p,p.shg_member_train shg1
+  select projectid, substring(cast(p.start_date as varchar),1,10)||'T00:00:00.000Z'||'|'||substring(cast(current_date as varchar),1,10)||'T00:00:00.000Z' as fy_timerange, extract(year from p.start_date) as fy, 'shg_member_train' as type, shg1 as beneficiaries from profile_58864 p,p.shg_member_train shg1
 union all
-select projectid,substring(cast(p.start_date as varchar),1,10)||'T00:00:00.000Z'||'|'||substring(cast(current_date as varchar),1,10)||'T00:00:00.000Z' as fy_timerange, 'shg_non_member_training' as type, shg2 as beneficiaries from profile_58864 p,p.shg_non_member_training shg2
+select projectid,substring(cast(p.start_date as varchar),1,10)||'T00:00:00.000Z'||'|'||substring(cast(current_date as varchar),1,10)||'T00:00:00.000Z' as fy_timerange, extract(year from p.start_date) as fy, 'shg_non_member_training' as type, shg2 as beneficiaries from profile_58864 p,p.shg_non_member_training shg2
   )
-  select proj.name as projectid, fy_timerange, type, beneficiaries, 1 as count from base1 p
-left join ds_mysql_prod_project proj on p.projectId=proj.id where beneficiaries is not null group by 1,2,3,4,5
+  select proj.name as projectid, fy_timerange, fy, type, beneficiaries, 1 as count from base1 p
+left join ds_mysql_prod_project proj on p.projectId=proj.id where beneficiaries is not null group by 1,2,3,4,5,6
