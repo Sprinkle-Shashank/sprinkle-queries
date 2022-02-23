@@ -1,7 +1,52 @@
+with table1 as
+(
 select projectId, trainer_organization ,submitter,
-0 as in_depth_training, 0 as num_female, 0 as num_male
+null as in_depth_training, null as num_female, null as num_male
 , num_managers,  num_middle , hours, participants, num_other, date from profile_61572
 union
 select projectId , trainer_organization, submitter_indepth,
-in_depth_training, num_female, num_male,0 as num_managers, num_middle,
+in_depth_training, num_female , num_male, null as num_managers, num_middle,
 hours, total_participants, num_other, date from profile_64801
+)
+
+  select p.projectId , p.trainer_organization, p.submitter_indepth,p.in_depth_training, p.num_female , p.num_male, p.num_managers, p.num_middle,p.hours, p.total_participants, p.num_other, p.date,     --table1
+nvl2(SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), ven.name) as vendor_name, case when vendor_name='' then ven.name else vendor_name end as vendor, 
+	primary_category1.name as primary_category ,
+	trainer_organization1.name as trainer_organization ,                 
+	training_type1.name as training_type_awareness,
+	local_foreign1.name as local_foreign_awarenes,
+	to_char( p.date ,'dd-mm-yyyy')as date,
+  CASE when p4.cases is null then 0 else  p4.cases end as cases_reported, 
+  CASE when p4.cases_resolved is null then 0 else p4.cases_resolved end as cases_resolved,
+  CASE when p4.managers_in_depth is null then 0 else p4.managers_in_depth end as managers_in_depth,
+  CASE when p4.workers_in_depth is null then 0 else p4.workers_in_depth end as workers_in_depth,
+  CASE when p4.days_resolve is null then 0 else p4.days_resolve end as days_resolve
+  
+  from table1 p
+  
+  left join ds_mysql_prod_project fac
+on  p.projectid = fac.id
+left join ds_mysql_prod_project ven
+on fac.parent = ven.id
+left join ds_mysql_prod_project cou
+on ven.parent = cou.id
+
+left join profile_52810 p1
+on p.projectId = p1.projectId
+left join profile_61572 p2
+on p.projectId = p2.projectId
+left join profile_65469 p4
+on p.projectId = p4.projectId
+
+left join ds_mysql_prod_tagelement primary_category1 on
+	p1.primary_category = primary_category1.id
+left join ds_mysql_prod_tagelement trainer_organization1 on                    
+	p.trainer_organization = trainer_organization1.id
+left join ds_mysql_prod_tagelement training_type1 on
+	p2.training_type = training_type1.id
+left join ds_mysql_prod_tagelement local_foreign1 on
+	p2.local_foreign = local_foreign1.id
+  
+  group by
+
+  
