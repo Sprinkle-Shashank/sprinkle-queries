@@ -4,32 +4,38 @@ Sum(CASE
              ELSE 0 
            END)  as personal_vehicle,
 			 Sum(CASE 
-             WHEN keyword = 'personal_vehicle' THEN datanumBase
+             WHEN keyword = 'motorbike_mileage' THEN datanumBase
              ELSE 0 
-           END)  as personal_vehicle,
+           END)  as motorbike_mileage,
 			 Sum(CASE 
-             WHEN keyword = 'personal_vehicle' THEN datanumBase
+             WHEN keyword = 'bus_mileage' THEN datanumBase
              ELSE 0 
-           END)  as personal_vehicle,
+           END)  as bus_mileage,
 			 Sum(CASE 
-             WHEN keyword = 'personal_vehicle' THEN datanumBase
+             WHEN keyword = 'train_mileage' THEN datanumBase
              ELSE 0 
-           END)  as personal_vehicle,Sum(CASE 
-             WHEN keyword = 'personal_vehicle' THEN datanumBase
+           END)  as train_mileage,
+			 Sum(CASE 
+             WHEN keyword = 'metro_mileage' THEN datanumBase
              ELSE 0 
-           END)  as personal_vehicle,Sum(CASE 
-             WHEN keyword = 'personal_vehicle' THEN datanumBase
+           END)  as metro_mileage,
+			 Sum(CASE 
+             WHEN keyword = 'walk_mileage' THEN datanumBase
              ELSE 0 
-           END)  as personal_vehicle,Sum(CASE 
-             WHEN keyword = 'personal_vehicle' THEN datanumBase
+           END)  as walk_mileage,
+			 Sum(CASE 
+             WHEN keyword = 'bicycle_mileage' THEN datanumBase
              ELSE 0 
-           END)  as personal_vehicle,Sum(CASE 
-             WHEN keyword = 'personal_vehicle' THEN datanumBase
+           END)  as bicycle_mileage,
+			 Sum(CASE 
+             WHEN keyword = 'other_mileage' THEN datanumBase
              ELSE 0 
-           END)  as personal_vehicle,
+           END)  as other_mileage,
 			 
 from sus_64637
-where p1.keyword in('personal_vehicle','motorbike_mileage','bus_mileage','train_mileage','metro_mileage','walk_mileage','bicycle_mileage','other_mileage','tram_mileage','scooter_mileage') and p1.datanumbase is not null)
+where p1.keyword in('personal_vehicle','motorbike_mileage','bus_mileage','train_mileage','metro_mileage','walk_mileage','bicycle_mileage','other_mileage') and p1.datanumbase is not null),
 
-select name,Timerange,sum(commute_type) as commute
-group by 	
+sub2 as(select name,Timerange,sum(personal_vehicle,other_mileage,bicycle_mileage,walk_mileage,metro_mileage,motorbike_mileage,bus_mileage,train_mileage) as commute
+from sub1)
+select name,Timerange,sum(commute) as commute_distance from sub2
+group by 	1,2
