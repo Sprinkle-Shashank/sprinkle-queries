@@ -1,6 +1,14 @@
 with phase1 as (
-	select projectId, fy_timerange, location, unit_name, unit_production, upi, no_units_produced, 
-  	nounits_sold, income, nomember, mincome, atf, non_atf from profile_58866 p
+	select proj.name as projectId,(p.fy_timerange.start||p.fy_timerange.end) as fy_timerange,ploc.name as location, p.unit_name, 	
+  	tag1.name as unit_production, p.upi, p.no_units_produced, 
+  	p.nounits_sold, p.income, p.nomember, p.mincome, p.atf, p.non_atf from profile_58866 p
+  	left join ds_mysql_prod_project proj
+  	on p.projectid = proj.id
+  	left join ds_mysql_prod_tagelement tag1
+  	on p.unit_production = tag1.id
+  	left join profile_58845 ploc
+  	on p.location = ploc._id
+  	
 ), phase2 as (
   	select * from
 	(SELECT projectId, fy_timerange, location, unit_name, unit_production, upi, no_units_produced, 
