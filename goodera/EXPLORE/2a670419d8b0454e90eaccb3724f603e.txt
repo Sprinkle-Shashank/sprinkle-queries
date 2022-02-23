@@ -1,1 +1,20 @@
-select projectId, benef_id, fy_timerange, education_type, accomodation_type, grouphome_name, accomodation_name, amount_education, amount_living_expense from profile_79957
+with temp as(
+  select 'Beneficiaries_Recieving_Education_Support' as col
+  union all
+  select 'Beneficiaries_Recieving_Accommodation_Support' as col
+  ),
+  sub1 as(
+select  benef_id, fy_timerange, education_type, accommodation_type, grouphome_name, accommodation_name, amount_education, amount_living_expense,
+case when amount_living_expense=0 then 0 else 1 end as Beneficiaries_Recieving_Accommodation_Support,
+case when amount_education=0 then 0 else 1 end as Beneficiaries_Recieving_Education_Support, temp.col as Dimensions, 
+case col when 'Beneficiaries_Recieving_Education_Support' then Beneficiaries_Recieving_Education_Support
+when 'Beneficiaries_Recieving_Accommodation_Support' then Beneficiaries_Recieving_Accommodation_Support
+else Null end as Values
+from profile_79957
+cross join temp),
+sub2 as(
+  select a.benef_id, a.fy_timerange, a.education_type, a.accommodation_type, a.grouphome_name, a.accommodation_name, a.Dimensions, b.shelter_home,c.location, a.Values from sub1 a 
+  left join profile_52387 b on a.benef_id=b._id
+  left join profile_79953 c on c._id=b.shelter_home)
+  select a.benef_id, a.fy_timerange, a.education_type, a.accommodation_type, a.grouphome_name, a.accommodation_name, a.Dimensions, a.shelter_home, a.location, sum(a.Values) as Values from sub2 a 
+  group by a.benef_id, a.fy_timerange, a.education_type, a.accommodation_type, a.grouphome_name, a.accommodation_name, a.Dimensions, a.shelter_home, a.location
