@@ -1,3 +1,23 @@
-select name, fy_timerange, datanumbase
+select fy_timerange, sum(datanumbase) as values,
+
+case 
+	when keyword = 'gri_recycled_limestone' then 'Recycled - Limestone'
+	when keyword = 'gri_sulphur_sludge' then 'Recycled - Sulphur Sludge'
+	when keyword = 'gri_recycled_esfdrycake' then 'Recycled - ESF Dry Cake'
+	when keyword = 'gri_recycled_flyash' then 'Recycled - Fly Ash'
+	when keyword = 'gri_recycled_sodium_carbonate' then 'Recycled - Sodium Carbonate'
+	else 'NA'
+end as dimensions,
+case
+	when name like 'TCE%' then 'TCE'
+	when name like 'TCML%' then 'TCML'
+	when name like 'TCNA%' then 'TCNA'
+	when name like 'Mambattu%' then 'Mambattu'
+	when name like 'Cuddalore%' then 'Cuddalore'
+	when name like 'Mithapur%' then 'Mithapur'
+	else name
+end as projectid
+
 from sus_56551
-where keyword in ('gri_recycled_limestone', 'gri_sulphur_sludge', 'gri_recycled_esfdrycake', 'gri_recycled_flyash', 'gri_recycled_sodium_carbonate') 
+where keyword in ('gri_recycled_limestone', 'gri_sulphur_sludge', 'gri_recycled_esfdrycake', 'gri_recycled_flyash', 'gri_recycled_sodium_carbonate') and datanumbase is not null
+group by fy_timerange, keyword, name
