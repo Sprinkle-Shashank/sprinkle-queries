@@ -1,6 +1,6 @@
 with table1 as
 (
-  select p.projectid , p._id , cou.name as country_1 , fac_c_i.name as fac_c_i_1 , vendor_n_i.name as vendor_n_i_1 , primary_category from profile_52810 as p
+  select p.projectid , p._id , cou.name as country_1 , fac_c_i.name as fac_c_i_1 , vendor_n_i.name as vendor_n_i_1 , primary_category_id.name as primary_category_id_1  from profile_52810 as p
   
   left join ds_mysql_prod_tagelement cou on 
   p.country = cou.id 
@@ -9,17 +9,20 @@ with table1 as
   p.fac_cl_vpid = fac_c_i.id
   
   left join ds_mysql_prod_tagelement vendor_n_i on
-  p.vendor_ngo_id = vendor_n_i.id 
+  p.vendor_ngo_id = vendor_n_i.id
+  
+  left join ds_mysql_prod_tagelement primary_category_id on
+  p.primary_category = primary_category_id.id 
   
   ),
   
   
 	table2 as 
 	(
-	  select p.projectid , p._id , listagg(primary_category) as primary_category_id from table1 p
-	  
-	  group by p.projectid , p._id 
+	  select p.projectid , p._id , cast(c as varhcahr) from table1 p, c as primary_category
 	  ),
+	  
+	  
 	  
 	  table4 as 
 	  (
@@ -27,11 +30,40 @@ with table1 as
 (partition by p.projectid
  order by p._id desc) as row from table1 p 
 	  ), 
+	  table5 as 
+	  (
+	select * from table4 where row=1 
+		),
+		
+		
+	 table6 as 
+	 (
+	    select p.projectid , p._id ,fac_c_i_1 , row_number() over 
+(partition by p.projectid
+ order by p._id desc) as row from table1 p 
+	  ),
+	  table7 as 
+	  ( 
+	select * from table6 where row=1 
+		),
+		
+		
+	table8 as 
+	 (
+	    select p.projectid , p._id , vendor_n_i_1 , row_number() over 
+(partition by p.projectid
+ order by p._id desc) as row from table1 p 
+	  ),
+	  
+	  table9 as 
+	  (
+	select * from table6 where row=1 
+		),
 	  
 	
   table3 as
   (
-select p.projectid , fac.name as factory_name, ven.name as vendor, cou.name as country , t1.country_1 , t1.fac_c_i_1 , t1.vendor_n_i_1   from profile_64075 p
+select p.projectid , fac.name as factory_name, ven.name as vendor, cou.name as country ,    from profile_64075 p
 
 left join ds_mysql_prod_project fac
 on  p.projectid = fac.id
@@ -44,14 +76,12 @@ on ven.parent = cou.id
 	
 left join table1 t1 on 
 p.projectid = t1.projectid
-	
 
 	)
 	
-	select * from table4 where row=1
-	
+	select * from table1
 	/*
 	
-	 country_1 , fac_c_i_1 , vendor_n_i_1 , 
+	
 	 
 	 */
