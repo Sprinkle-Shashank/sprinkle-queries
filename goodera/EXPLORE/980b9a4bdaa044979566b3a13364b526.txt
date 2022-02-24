@@ -16,14 +16,22 @@ with table1 as
   
 	table2 as 
 	(
-	  select p.projectid , p._id , country_1 , fac_c_i_1 , vendor_n_i_1 ,  listagg(primary_category) as primary_category_id from table1 p
+	  select p.projectid , p._id , listagg(primary_category) as primary_category_id from table1 p
 	  
-	  group by p.projectid , p._id , country_1 , fac_c_i_1 , vendor_n_i_1
+	  group by p.projectid , p._id 
 	  ),
+	  
+	  table4 as 
+	  (
+		 select p.projectid , p._id ,country , row_number() over 
+(partition by p.projectid
+ order by p._id desc) as row from table1 p 
+	  ), 
+	  
 	
   table3 as
   (
-select p.projectid , fac.name as factory_name, ven.name as vendor, cou.name as country , t2.country_1 , t2.fac_c_i_1 , t2.vendor_n_i_1 ,  t2.primary_category_id from profile_64075 p
+select p.projectid , fac.name as factory_name, ven.name as vendor, cou.name as country , t2.country_1 , t2.fac_c_i_1 , t2.vendor_n_i_1 ,  t2.primary_category_id  from profile_64075 p
 
 left join ds_mysql_prod_project fac
 on  p.projectid = fac.id
@@ -35,9 +43,15 @@ left join ds_mysql_prod_project cou
 on ven.parent = cou.id
 	
 left join table2 t2 on 
-	p.projectid = t2.projectid 
+p.projectid = t2.projectid
+	
+
 	)
 	
-	select * from table3
+	select * from table4
 	
+	/*
 	
+	 country_1 , fac_c_i_1 , vendor_n_i_1 , 
+	 
+	 */
