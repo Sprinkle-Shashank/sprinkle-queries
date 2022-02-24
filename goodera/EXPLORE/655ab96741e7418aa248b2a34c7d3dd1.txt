@@ -1,0 +1,41 @@
+select p.projectId as project,p.project_name,ven.name as vendor1,nvl2(SUBSTRING(vendor1, 1, POSITION(' (' in vendor1)), SUBSTRING(vendor1, 1, POSITION(' (' in vendor1)), vendor1) as vendor_name, case when vendor_name='' then vendor1 else vendor_name end as vendor,fac.name as projectId,sm.name as single_multi, profile_61498.trainer_2, profile_61498.trainer_name_2,torg.name as trainer_organization , profile_61498.date, ts.name as training_shadowed, ty.name as training_yn, p.remarks,num_female, num_male, prospect_female, total_supervisors, total_other_participants, prospect_total, prospect_male,profile_61498.name as trainingID,
+case when extract(month from profile_61498.date)=1 then extract(year from profile_61498.date)-1 
+else extract(year from profile_61498.date) end as year,cou.name as country
+from profile_64075 p
+
+left join profile_61498
+on p.training_id = profile_61498._id
+
+
+
+left join ds_mysql_prod_project fac
+on p.projectid = fac.id
+left join ds_mysql_prod_project ven
+on fac.parent = ven.id
+left join ds_mysql_prod_project cou
+on ven.parent = cou.id
+
+left join ds_mysql_prod_tagelement torg
+on profile_61498.trainer_organization = torg.id
+
+
+left join ds_mysql_prod_tagelement sm
+on profile_61498.single_multi = sm.id
+
+
+
+
+left join ds_mysql_prod_tagelement ts
+on profile_61498.training_shadowed = ts.id
+
+left join ds_mysql_prod_tagelement ty
+on profile_61498.training_yn = ty.id
+
+
+
+
+where p.projectId NOT IN ('54835','54832','31299','31303') and project ilike '%%'
+
+group by project,fac.name,p.project_name, profile_61498.date, p.remarks, num_female, num_male, prospect_female, total_supervisors, total_other_participants, prospect_total, prospect_male,  sm.name, trainer_2, trainer_name_2, ts.name, ty.name, year, ven.name,vendor, cou.name, torg.name, p.trainer_org,trainingID
+
+
