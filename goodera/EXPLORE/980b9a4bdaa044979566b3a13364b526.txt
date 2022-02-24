@@ -58,11 +58,19 @@ with table1 as
 	  (
 	select * from table8 where row=1 
 		),
+		
+		
+		table11 as 
+		(
+		  select p4.projectid , p4._id ,  p4.date, p4.single_multi, p4.responsible_person , sing.name as single_multi_update from profile_61498 p4 
+		
+		left join ds_mysql_tagelement sing on 
+		p4.single_multi = sing.name ),
 	  
 	
   table3 as
   (
-select p.projectid , fac.name as factory_name, ven.name as vendor, cou.name as country , t5.country_1 , t7.fac_c_i_1 , t9.vendor_n_i_1 , t2.primary_category_id_1 , sum(p3.num_supervisors) , sum(p3.total_employed) , avg(p3.saturation) , position('(' in vendor) as position , case when position<1 then len(vendor) else position end as position_update , substring(ven.name , 0 , position_update) as vendor_name , case when vendor_name is null then vendor else vendor_name end as vendor_1 , p4.date, p4.single_multi, p4.responsible_person , sing.name as training_type from profile_64075 p
+select p.projectid , fac.name as factory_name, ven.name as vendor, cou.name as country , t5.country_1 , t7.fac_c_i_1 , t9.vendor_n_i_1 , t2.primary_category_id_1 , sum(p3.num_supervisors) , sum(p3.total_employed) , avg(p3.saturation) , position('(' in vendor) as position , case when position<1 then len(vendor) else position end as position_update , substring(ven.name , 0 , position_update) as vendor_name , case when vendor_name is null then vendor else vendor_name end as vendor_1 , p4.date, p4.single_multi, p4.responsible_person , p4.single_multi_update from profile_64075 p
 
 left join ds_mysql_prod_project fac
 on  p.projectid = fac.id
@@ -91,16 +99,17 @@ p.projectid = t9.projectid
 	left join profile_61498 p4 on 
 	p.training_id = p4._id
 	
-left join ds_mysql_prod_project sing
-on p4.single_multi = sing.id
+	left join table11 p4 on 
+	p.training_id = p4._id
 	
 	where vendor ilike '%vendor:%'
 
-	group by  p._id, p.projectId, p.remarks, p.name, training_id, p.project_name, p.trainer_org, p.date_1, p.date, p.num_female, p.num_male, p.prospect_female, p.total_supervisors, p.total_other_participants, p.prospect_total, p.prospect_male, vendor , t5.country_1 , t7.fac_c_i_1 , t9.vendor_n_i_1 , t2.primary_category_id_1 , cou.name , ven.name , fac.name , vendor_name , vendor_1 , p4.date, p4.single_multi, p4.responsible_person , sing.name
+	group by  p._id, p.projectId, p.remarks, p.name, training_id, p.project_name, p.trainer_org, p.date_1, p.date, p.num_female, p.num_male, p.prospect_female, p.total_supervisors, p.total_other_participants, p.prospect_total, p.prospect_male, vendor , t5.country_1 , t7.fac_c_i_1 , t9.vendor_n_i_1 , t2.primary_category_id_1 , cou.name , ven.name , fac.name , vendor_name , vendor_1 ,  p4.date, p4.single_multi, p4.responsible_person , p4.single_multi_update
 	
 	)
 	
 	select * from table3
+	
 	
 /*
 single_multi, responsible_person, training_type, remarks 
