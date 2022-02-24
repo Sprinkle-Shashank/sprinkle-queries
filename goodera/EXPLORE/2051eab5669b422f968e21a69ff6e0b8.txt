@@ -1,36 +1,24 @@
+select p.projectId as project,fac.name as projectId,cou.name as country,ven.name as vendor1,nvl2(SUBSTRING(vendor1, 1, POSITION(' (' in vendor1)), SUBSTRING(vendor1, 1, POSITION(' (' in vendor1)), vendor1) as vendor_name, case when vendor_name='' then vendor1 else vendor_name end as vendor,p.vendor_vpid, p.facility_vpid,p.factory_name,p.participant_type,p.num_participants, p.num_participants_2,p.male_trained,p.female_trained,p.male_certified,p.female_certified,p2.name,p2.trainer_organization,p2.date,p2.photo,p2.notes,p2.trainer,DATEPART(YEAR,p2.date) as year,(p.male_trained + p.female_trained) as total_trained,(p.male_certified + p.female_certified) as total_certified
 
-select profile_64075.projectId as project,fac.name as projectId, profile_52810.projectId,ven.name as vendor1,nvl2(SUBSTRING(vendor1, 1, POSITION(' (' in vendor1)), SUBSTRING(vendor1, 1, POSITION(' (' in vendor1)), vendor1) as vendor_name, case when vendor_name='' then vendor1 else vendor_name end as vendor, cou.name as country,profile_52810.programs_run,  profile_52810.vendor_ngo, profile_52810.vendor_ngo_id, so.name as sourcing,
-profile_61498.name as training_id, profile_61498.single_multi, profile_61498.trainer_2, profile_61498.trainer_name_2,torg.name as trainer_organization , profile_61498.date, profile_61498.training_shadowed, profile_61498.training_yn,
-SUBSTRING(to_char(profile_64075.date_1, 'DD/MM-YYYY'), POSITION('-' in to_char(profile_64075.date_1, 'DD/MM-YYYY'))+1,4 ) as year,
-num_female, num_male, prospect_female,  total_supervisors, total_other_participants, prospect_total, prospect_male, programs_run,profile_64075.remarks
-from profile_64075
-
-left join profile_52810
-on profile_64075.projectId = profile_52810.projectId 
-
-left join profile_61498
-on profile_64075.training_id = profile_61498._id
-
-/*left join profile_61498
-on profile_64075.training_id = profile_61498.name*/
+from profile_61483 p
 
 left join ds_mysql_prod_project fac
-on profile_52810.projectid = fac.id
+on p.projectid = fac.id
 left join ds_mysql_prod_project ven
 on fac.parent = ven.id
+left join ds_mysql_prod_project cou
+on ven.parent = cou.id
 
 
-left join ds_mysql_prod_tagelement so
-on profile_52810.sourcing = so.id
 
-left join ds_mysql_prod_tagelement torg
-on profile_61498.trainer_organization = torg.id
+left join profile_61482 p2 on
+p.projectId= p2.projectId
 
+where year is not null and project ilike '%%'
 
-left join ds_mysql_prod_tagelement cou
-on profile_52810.country = cou.id
+group by project,fac.name,cou.name,ven.name,vendor,p2.name,p.vendor_vpid, p.facility_vpid,p.factory_name,p.participant_type,p.num_participants, p.num_participants_2,p.male_trained,p.female_trained,p.male_certified,p.female_certified,p2.trainer_organization,p2.date,p2.photo,p2.notes,p2.trainer, year, total_trained, total_certified
 
 
-where profile_52810.projectId not in (54835,54832,31299, 31303) and project ilike '%%' and country is not null
 
-group by project,profile_61498.name, profile_61498.trainer_org, profile_61498.date, profile_64075.remarks, num_female, num_male, prospect_female, total_supervisors, total_other_participants, prospect_total, prospect_male, programs_run, vendor_ngo, vendor_ngo_id, so.name,  single_multi, trainer_2, trainer_name_2, training_shadowed, training_yn, year, ven.name,vendor, cou.name, torg.name, profile_52810.projectid,fac.name
+
+
