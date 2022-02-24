@@ -31,7 +31,20 @@ select  projectid,in_depth_training,trainer_org, date,null as num_managers, hour
  )
 --select * from union_table
 select p.projectid,fac.name as factory,ven.name as vendor,cou.name as country, training_type, train_org.name as trainer_org, date,
-num_managers, hours, num_middle, num_other, participants, submitter,num_female,num_male,q.cases from union_table p 
+num_managers, hours, num_middle, num_other, participants, submitter,num_female,num_male,
+case when q.cases is null then 0
+     else q.cases end as cases_reported,
+case when q.cases_resolved is null then 0
+     else q.cases_resolved end as cases_resolved,
+case when q.managers_in_depth is null then 0
+     else q.managers_in_depth end as managers_in_depth,
+case when q.workers_in_depth is null then 0
+     else q.workers_in_depth end as workers_in_depth,
+case when q.days_resolve is null then 0
+     else q.days_resolve end as days_resolve	 
+  
+
+from union_table p 
 
 left join ds_mysql_prod_project fac
 on  p.projectid = fac.id
