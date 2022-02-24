@@ -1,1 +1,17 @@
-Select * from profile_79942
+with temp as (
+  select 'tar_kits' as C
+  Union all 
+  select 'tar_family' as C
+  )
+  
+
+Select projectid,fy_timerange,
+SUM(Case C
+	When 'tar_kits' then p.target_num_kits_distributed
+	When 'tar_family' then p.target_num_family_reach
+	Else Null
+END) as values,
+temp.C as dimensions
+from profile_79942
+cross join temp
+Group by projectid , fy_timerange, temp.C
