@@ -1,19 +1,19 @@
 with sub1 as(
-  select fy_timerange, extract(year from cast(startdate as date)) as year, sum(datanumbase) as values,
-'Scope 3 Emission' as emission_type,
-  
-case
-  	when keyword = 'gri_scope_3_business_travel' then 'Business Travel'
-  	when keyword = 'gri_scope_3_inbound_logistics' then 'Inbound Logistics'
-  	when keyword = 'gri_scope_3_outbound_logistics' then 'Outbound Logistics'
-  	else 'NA'
-end as dimensions,
+  select p1.name, p1.fy_timerange, p1.startdate, unwind.scope_1_figure
+from sus_56551 p1, unpivot p1.datatablebase unwind at row
+where keyword = 'gri_scope_1_emission')
 
-name
+select s1.fy_timerange, sum(s1.scope_1_figure) as values, 
+extract(year from cast(s1.startdate as date)) as year, 'Scope 1 Emission' as emission_type,
 
-from sus_56551 
-where keyword in ('gri_scope_3_business_travel', 'gri_scope_3_inbound_logistics', 'gri_scope_3_outbound_logistics')
-group by name, fy_timerange, startdate, keyword)
+case 
+	when 'TCML - Magadi, Kenya' then 'TCML'
+	when 'TCNA - Wyoming, USA' then 'TCNA'
+	when 'Mithapur, India' then 'Mithapur'
+	when 'TCE - (WN, LS, CHP)' then 'TCE'
+	when 'Mambattu' then 'Mambattu'
+	else 'Cuddalore'
+end as projectid
 
-select * from sub1
-where values is not null	
+from sub1 s1
+group by s1.fy_timerange, s1.name, s1.startdate
