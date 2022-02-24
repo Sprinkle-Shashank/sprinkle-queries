@@ -1,6 +1,31 @@
 with sub1 as(
   select name, fy_timerange, unwind.consumption, row 
 from sus_56551 s1, unpivot s1.datatablebase unwind at row
-where consumption is not null)
+where unwind.consumption is not null)
 
-select * from sub1
+select s1.fy_timerange, sum(s1.consumption), 
+
+case
+	where s1.row = 'ground_water' then 'Ground Water'
+	where s1.row = 'purchased_water' then 'Purchased Water'
+	where s1.row = 'surface_water' then 'Surface Water'
+	where s1.row = 'rain_water' then 'Rain Water'
+	where s1.row = 'municipal_water' then 'Municipal Water'
+	where s1.row = 'river_water' then 'River Water'
+	where s1.row = 'sea_water' then 'Sea Water'
+	else 'NA'
+end as x_axis,
+case
+	when s1.name like 'TCE%' then 'TCE'
+	when s1.name like 'TCML%' then 'TCML'
+	when s1.name like 'TCNA%' then 'TCNA'
+	when s1.name like 'Mambattu%' then 'Mambattu'
+	when s1.name like 'Cuddalore%' then 'Cuddalore'
+	when s1.name like 'Mithapur%' then 'Mithapur'
+	else s1.name
+end as projectid
+
+from sub1 s1
+where projectid in ('TCE', 'TCML', 'TCNA', 'Mambattu', 'Cuddalore', 'Mithapur') and 
+x_axis not in ('Sea Water', 'NA')
+group by s1.name, s1.fy_timerange, s1.row
