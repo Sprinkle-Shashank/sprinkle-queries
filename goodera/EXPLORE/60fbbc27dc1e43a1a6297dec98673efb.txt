@@ -1,12 +1,13 @@
 with sub1 as(
-select a.projectId, a.fy_timerange, a.child_status, a.benef_id_text, a.today, b.age, b.shelter_home_text,  t1.name as location, t.name as shelter_home_type
+select a.projectId, a.fy_timerange, a.child_status, a.benef_id_text, a.today, t2.name as age_group, b.shelter_home_text,  t1.name as location, t.name as shelter_home_type
 from profile_79955 a 
 left join profile_52387 b on b.name=a.benef_id_text
 left join profile_79953 c on c.name=b.shelter_home_text
 left join ds_mysql_prod_tagelement t on t.id=c.shelter_home_type
-left join ds_mysql_prod_tagelement t1 on t1.id=c.location),
+left join ds_mysql_prod_tagelement t1 on t1.id=c.location
+left join ds_mysql_prod_tagelement t2 on t2.id=b.age),
 sub2 as(
-  select a.projectId, a.fy_timerange, a.child_status, a.benef_id_text, a.today, a.shelter_home_text,  a.location, a.shelter_home_type, case when a.shelter_home_type='Rainbow Home' then 'Female' else 'Male' end as gender, a.age as age_group from sub1 a),
+  select a.projectId, a.fy_timerange, a.child_status, a.benef_id_text, a.today, a.shelter_home_text,  a.location, a.shelter_home_type, case when a.shelter_home_type='Rainbow Home' then 'Female' else 'Male' end as gender, age_group from sub1 a),
   sub3 as(
   select projectId, fy_timerange, benef_id_text, location, gender, age_group, listagg(distinct benef_id_text) as benef_id_array from sub2 group by projectId, fy_timerange, benef_id_text, location, gender, age_group)
   select projectId, fy_timerange, benef_id_text, location, gender, age_group, benef_id_array, regexp_count(a.benef_id_array,',')+1 as count from sub3 a order by age_group asc
