@@ -1,29 +1,38 @@
-with sub1 as(select p1.name as projectid,p1.fy_timerange as Timerange,p1.datanumbase as commute_mileage,
-case 
-	when keyword='personal_vehicle' then 'Personal Vehicle'
-	when keyword='motorbike_mileage' then 'Motorbike'
-	when keyword='bus_mileage' then 'Bus'
-	when keyword='train_mileage' then 'Train'
-	when keyword='metro_mileage' then 'Metro'
-	when keyword='walk_mileage' then 'Walk'
-	when keyword='bicycle_mileage' then 'Bicycle'
-	when keyword='other_mileage' then 'Otherse'
-	when keyword='tram_mileage' then 'Tram'
-	when keyword='scooter_mileage' then 'Scooter'
-	else null
-end as commute_type
+with sub1 as (
+  select p1.personal_vehicle as Personal_Vehicle, p1.motorbike_mileage as Motorbike, p1.bus_mileage as Bus,p1.train_mileage as Train,p1.metro_mileage as Metro, p1.walk_mileage as Walk, p1.bicycle_mileage as Bicycle, p1.other_mileage as Others, p1.tram_mileage as Tram, p1.scooter_mileage as Scooter,
+select 'Personal_Vehicle' as col
+union all
+select 'Motorbike' as col
+union all
+select 'Bus' as col
+union all
+select 'Train' as col
+union all
+select 'Metro' as col
+union all
+select 'Walk' as col
+union all
+select 'Bicycle' as col
+union all
+select 'Others' as col
+union all
+select 'Tram' as col
+union all
+select 'Scooter' as col)
 
-from sus_64637 p1
-where p1.keyword in('personal_vehicle','motorbike_mileage','bus_mileage','train_mileage','metro_mileage','walk_mileage','bicycle_mileage','other_mileage','tram_mileage','scooter_mileage') and p1.datanumbase  is not null and commute_mileage != 0)
-
-select projectid,Timerange,commute_mileage,commute_type,
-case
-	when commute_type='Others' then 'Others'
-	when commute_type='Personal Vehicle' then 'Car'
-	when commute_type='Walk' then 'Walking/ Bike/E-Scooter/ E-Bike'
-	when commute_type='Motorbike' then 'Motorbike/Scooter'
-	when commute_type='Bicycle' then 'Walking/ Bike/E-Scooter/ E-Bike'
-	else 'Public Transport'
-end as commute
-
+select p2.name as projectId, p1.year_timerange,sub1.col as dimensions,
+sum(
+  case col
+	when 'Personal_Vehicle' then p1.personal_vehicle
+  	when 'Motorbike' then p1.motorbike_mileage
+  	when 'bus_mileage' then p1.Bus
+  	when 'Train' then p1.train_mileage
+	when 'Metro' then p1.metro_mileage
+	when 'Walk' then p1.walk_mileage
+	when 'Bicycle' then p1.bicycle_mileage
+	when 'Others' then p1.other_mileage
+	when 'Tram' then p1.tram_mileage
+	when 'Scooter' then p1.scooter_mileage
+  
+  
 from sub1
