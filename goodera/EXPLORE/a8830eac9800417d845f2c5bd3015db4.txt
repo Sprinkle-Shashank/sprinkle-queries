@@ -10,11 +10,11 @@ with phase1 as (
   	on p.location = ploc._id
   	
 ), phase2 as (
-  	select * from
-	(SELECT projectId, fy_timerange, location, unit_name, unit_production, upi, no_units_produced, 
-  	nounits_sold FROM phase1) pvt
-  	UNPIVOT
-  	(Totals for Types_of_Units IN (no_units_produced, nounits_sold)) as unpvt
+	SELECT projectId, fy_timerange, location, unit_name, unit_production, upi, 'no_units_produced' as Type_of_units, no_units_produced 
+  	as Totals FROM phase1 pvt
+  	union all
+  	SELECT projectId, fy_timerange, location, unit_name, unit_production, upi, 'nounits_sold' as Type_of_units, nounits_sold 
+  	as Totals FROM phase1 pvt
 )
 select pl.projectId, pl.fy_timerange, pl.location, pl.unit_name, pl.upi, pl.Types_of_Units , pl.unit_production,SUM(pl.totals) as Prod_and_Sold from phase2 pl
 group by 1,2,3,4,5,6,7
