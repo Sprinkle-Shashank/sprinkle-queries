@@ -1,7 +1,6 @@
-with table1 as (select p.projectId, training_type, trainer_organization, date, other, trainer, local_foreign, no_local_foreign, location, notes, survey_yn, excel_upload, tr_created, num_managers, hours, num_middle, num_other, participants,  submitter,r.fac_cl_vpid, r.vendor_ngo_id, r.primary_category from profile_61572 p
+with table1 as (select p.projectId, training_type, trainer_organization, date, other, trainer, local_foreign, no_local_foreign, location, notes, survey_yn, excel_upload, tr_created, num_managers, hours, num_middle, num_other, participants,  submitter from profile_61572 p
 
-left join profile_52810 r on 
-p.projectid = r.projectid				
+			
 
 
 group by p.projectId, training_type, trainer_organization, date, other, trainer, local_foreign, no_local_foreign, location, notes, survey_yn, excel_upload, tr_created, num_managers, hours, num_middle, num_other, participants,  submitter,
@@ -33,7 +32,20 @@ select  projectid,in_depth_training,trainer_org, date,null as num_managers, hour
  )
 --select * from union_table
 select p.projectid,fac.name as factory,ven.name as vendor,cou.name as country, training_type, train_org.name as trainer_org, date,
-num_managers, hours, num_middle, num_other, participants, submitter,num_female,num_male,
+case when num_managers is null then 0
+     else num_managers end as managers,
+case when hours is null then 0
+     else hours end as hours ,
+case when num_middle is null then 0 
+     else num_middle end as middle_managers
+,
+case when num_other is null then 0
+     else num_other end as other_participants
+	 , participants as total_participants, submitter,
+case when num_female is null then 0 
+     else num_female end as female_workers,
+case when num_male is null then 0
+     else num_male end as male_workers,
 case when q.cases is null then 0
      else q.cases end as cases_reported,
 case when q.cases_resolved is null then 0
