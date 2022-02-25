@@ -78,7 +78,11 @@ select p.projectid , fac.name as factory_name, ven.name as vendor, cou.name as c
 	case when vendor_name is null then vendor else vendor_name end as vendor_1 ,
 	p4.date, p4.single_multi, p4.responsible_person , p4.single_multi_update , p4.single_multi_update as training_type , to_char(date_1 ,'DD-MM-YYYY') as date_update 
 	
-, sum(p3.num_supervisors) , sum(p3.total_employed) , avg(p3.saturation) from profile_64075 p
+, sum(p3.num_supervisors) , sum(p3.total_employed) , avg(p3.saturation) 
+	
+, p6.male_certified, p6.female_certified
+	
+, case when p3.saturation is null then '0' else p3.saturation end as saturation_update 	from profile_64075 p
 
 left join ds_mysql_prod_project fac
 on  p.projectid = fac.id
@@ -107,9 +111,12 @@ p.training_id = p4._id
 left join profile_65283 p3 on 
 p.projectid = p3.projectid
 	
+left join profile_61483 p6 on 
+p.projectid = p6.projectid
+	
 	where vendor ilike '%vendor:%'
 
-	group by  p._id, p.projectId, p.remarks, p.name, training_id, p.project_name, p.trainer_org, p.date_1, p.date, p.num_female, p.num_male, p.prospect_female, p.total_supervisors, p.total_other_participants, p.prospect_total, p.prospect_male , t5.country_1 , t7.fac_c_i_1 , t9.vendor_n_i_1 , t2.primary_category_id_1 , cou.name , ven.name , fac.name , vendor_name , vendor_1 , p4.date , p4.single_multi, p4.responsible_person , p4.single_multi_update , training_type , date_update 
+	group by  p._id, p.projectId, p.remarks, p.name, training_id, p.project_name, p.trainer_org, p.date_1, p.date, p.num_female, p.num_male, p.prospect_female, p.total_supervisors, p.total_other_participants, p.prospect_total, p.prospect_male , t5.country_1 , t7.fac_c_i_1 , t9.vendor_n_i_1 , t2.primary_category_id_1 , cou.name , ven.name , fac.name , vendor_name , vendor_1 , p4.date , p4.single_multi, p4.responsible_person , p4.single_multi_update , training_type , date_update ,  p6.male_certified, p6.female_certified , saturation_update
 	
 	)
 	
@@ -124,12 +131,6 @@ p.projectid = p3.projectid
 left join profile_65283 p3 on 
 p.projectid = p3.projectid
 
-, sum(p3.num_supervisors) , sum(p3.total_employed) , avg(p3.saturation) 
-
-
-
-	, p5.num_males, p5.num_females, p5.num_total ,
-,  p5.num_males, p5.num_females, p5.num_total
 
 
 left join profile_63398 p5 on 
@@ -138,8 +139,6 @@ p.projectid = p5.projectid
  p8.users_sst , p8.gap_sst , , p6.male_certified, p6.female_certified
  
  
-left join profile_61483 p6 on 
-p.projectid = p6.projectid
 	
 left join profile_75144 p8 on 
 p.projectid = p8.projectid 
