@@ -1,25 +1,23 @@
-Select timerange_timerange as fy_timerange , p.name as projectid,t.name as fund,a.amount as utilized_amount,d.name as prod_budjet,t1.name as budget_head,
---case 
---when p1.name = 'Amadeus' then 'Sikshana'
---else p1.name
---end
-p1.name as Implementation_partner
-
-from profile_58321 a
+with sub1  as(
+  select b.*,unwind_state
+  from profile_55495 b , b.state as unwind_state
+  )
 
 
+Select a.fy_timerange, p.name as projectid,a.name as programs, p1.name as Implementation_partner,t.name as state,t1.code as map_code,
+case
+when p.name ='Udayan Care' then (a.start||'|'||nvl(a.end,to_date(20250430,'YYYYMMDD')))
+else fy_timerange as fy_timerange2
+
+
+
+
+from sub1 a 
 
 left join ds_mysql_prod_project p on p.id = a.projectid
 left join ds_mysql_prod_project p1 on p1.id = p.parent
-left join  profile_64120 d on d._id = a.proj_budget
+left join ds_mysql_prod_tagelement t on t.id=a.unwind_state
 
+left join ds_mongo_reftagelementmetadata t1 on t1._id=t.reftagelementmetadataid
 
-left join ds_mysql_prod_tagelement t on t.id=a.fund
-left join ds_mysql_prod_tagelement t1 on t1.id=d.budget_head
-
-where t.name = 'Utilized' and p1.name = 'GiftAbled'
-
- group by a.amount,timerange_timerange,p1.name,d.name,p.name,t.name,t1.name
-
-
-
+group by a.fy_timerange, p.name,a.name, p1.name,t.name,t1.code,a.start,a.end
