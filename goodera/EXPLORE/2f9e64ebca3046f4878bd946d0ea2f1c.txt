@@ -71,6 +71,74 @@ base8 as(
 select p._id, p.fy_timerange, p.project_code, p.project_name, p.project_manager, p.month, p.activities_reported, (p.approved1st+p.approved2nd) as approved1st, p.pending1st, p.approved2nd, p.approved1st as pending2nd from base7 p
 )
 
+
+
 -----********************************************************************************************************------
+-----********************************************************************************************************------
+-----********************************************************************************************************------
+
+
+
+with base21 as(
+select p._id, proj1.name as projectid, split_part(proj1.name,'|',1) as project_code, decode(proj1.parent,18943, split_part(proj1.name,'|',2),split_part(proj1.name,'|',4)) as project_name, tag1.name as fy1, decode(proj1.parent,18943,proj1.id,proj1.parent) as parent, tag4.name as month from profile_54963 p
+  left join ds_mysql_prod_project proj1 on p.projectid=proj1.id
+  left join ds_mysql_prod_tagelement tag1 on p.fy=tag1.id
+  left join ds_mysql_prod_tagelement tag4 on p.month=tag4.id
+  
+),
+  
+base21b as(
+select p._id, p.projectid, p.project_code, p.project_name, p.fy1, split_part(proj2.name,'|',1) as parent_code, p2.project_manager as project_manager_p2,  tag2.name as fy_p2, p3.project_manager as project_manager_p3, tag3.name as fy_p3, p.month from base21 p
+  left join ds_mysql_prod_project proj2 on p.parent=proj2.id
+  left join profile_27396 p2 on split_part(proj2.name,'|',1) = p2.name
+  left join profile_27420 p3 on p3.project_code = p2._id
+  left join ds_mysql_prod_tagelement tag2 on p2.fy=tag2.id
+  left join ds_mysql_prod_tagelement tag3 on p3.fy=tag3.id
+  
+  
+),
+
+base22 as(
+select case when p.fy_p3 is null or p.fy_p3='' or split_part(p.fy1,'-',1)<split_part(p.fy_p3,'-',1) then p.fy_p2 else p.fy_p3 end as fy_p3 ,decode(p.project_manager_p3,null,p.project_manager_p2,p.project_manager_p3) as project_manager_p3,  
+p.project_code, p.project_name, p.projectid, p.month, p.fy1, p.project_manager_p2,p.fy_p2, p._id from base21b p 
+),
+
+base22b as(
+select fy_p3, project_manager_p3, 
+case when split_part(p.fy_p3,'-',1)<=split_part(p.fy1,'-',1) or split_part(p.fy_p2,'-',1)<=split_part(p.fy1,'-',1) then 1 else 0 end as flag, 
+p.project_code, p.project_name, p.projectid, p.month, p.fy1, p.project_manager_p2,p.fy_p2, p._id from base22 p 
+),
+
+base23 as(
+select p.* from base22b p where flag=1 order by p.fy_p3 desc
+),
+
+base24 as(
+select *, row_number() over(partition by _id) as row_num from base23
+),
+
+base25 as(
+select * from base24 where row_num=1
+),
+
+base26 as(
+select p.*, case when p.fy_p3<=p.fy1 then p.project_manager_p3 else p.project_manager_p2 end as project_manager from base25 p
+),
+
+base27 as(
+select p._id, p.fy1 as fy_timerange, p.projectid, p.project_code, p.project_name, tag1.name as project_manager, listagg(distinct p.month,', ') as month, sum(1) as activities_planned from base26 p
+  left join ds_mysql_prod_tagelement tag1 on p.project_manager=tag1.id
+  group by 1,2,3,4,5,6
+ /* (
+	select first_value(p.fy1) over (partition by p.project_code, p.project_name, p.project_manager) as fy_timerange, first_value(p.projectid) over (partition by p.project_code, p.project_name, p.project_manager) as projectid,p.project_code, p.project_name, tag1.name as project_manager,p._id, p.month from base6 p
+	left join ds_mysql_prod_tagelement tag1 on p.project_manager=tag1.id
+  ) as p*/
+  
+)
+
+select * from base27 p 
+
+
+
 
 select * from base8 p 
