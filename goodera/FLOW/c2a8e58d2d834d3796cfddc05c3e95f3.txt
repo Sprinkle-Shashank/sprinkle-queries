@@ -1,25 +1,29 @@
-drop table if exists sus_73046;
- create table sus_73046 as
-				select st.xprojectid, p.name, st.financialperiod, t.name as finPeriod,
-				concat(concat(substring(cast(timestamp 'epoch' + CAST(t.start AS BIGINT)/1000 * interval '1 second' as varchar), 1, 10),'T'), concat(split_part(cast(timestamp 'epoch' + CAST(t.start AS BIGINT)/1000 * interval '1 second' as varchar), ' ',2),'.000Z')) as startdate,
-				concat(concat(substring(cast(timestamp 'epoch' + CAST(t.end AS BIGINT)/1000 * interval '1 second' as varchar), 1, 10),'T'), concat(split_part(cast(timestamp 'epoch' + CAST(t.end AS BIGINT)/1000 * interval '1 second' as varchar), ' ',2),'.000Z')) as enddate,
-				concat(concat(startdate,'|'),enddate) as fy_timerange,
-				-- concat(concat(t.start,'|'),t.end) as fy_timerange,
-				st.xquestionid,
-				q.questiontype,
-				q.keyword,
-				q.questiontext,
-				cast(st.datanum as float),
-				cast(st.dataNumBase as float),
-				st.datatext,
-				st.datatagref as dataselect,
-				st.datatable,
-				st.dataTableBase,
-				st.measureunit
-				from ds_mongo_sustainabilityTask st
-				left join ds_mysql_prod_question q on st.xquestionid = q.id
-				left join ds_mysql_prod_project p on st.xprojectid = p.id
-				left join ds_mysql_prod_tagelement t on st.financialperiod = t.id
-				where xprofileId='73046'
-				and keyword in ('name','name_location','mileage','transport_type','total__days_per_week','car_pooling','pooling_yes','carpool_people','pooling_noabsent','car_type','avg_emissions_prev_yr','distance_car','distance_motorbike','distance_public_transport','distance_walking','distance_others','car_days_per_week','publictransport_days_per_week','motorbike_days_week','walking_days_week','others_days_per_week','co2_em','avg_previous_year','no_trees','year_timerange')
-				
+drop table if exists profile_73046;
+ create table profile_73046 as
+ SELECT projectid, _id,
+ CAST(data.name as VARCHAR),
+ CAST(data.year_timerange as SUPER),
+ CAST(data.name_location as VARCHAR),
+ CAST(data.mileage as INT),
+ CAST(data.transport_type as SUPER),
+ CAST(data.total__days_per_week as INT),
+ CAST(data.car_pooling as INT),
+ CAST(data.pooling_yes as INT),
+ CAST(data.carpool_people as INT),
+ CAST(data.pooling_noabsent as INT),
+ CAST(data.car_type as INT),
+ CAST(data.avg_emissions_prev_yr as INT),
+ CAST(data.distance_car as INT),
+ CAST(data.distance_motorbike as INT),
+ CAST(data.distance_public_transport as INT),
+ CAST(data.distance_walking as INT),
+ CAST(data.distance_others as INT),
+ CAST(data.car_days_per_week as INT),
+ CAST(data.publictransport_days_per_week as INT),
+ CAST(data.motorbike_days_week as INT),
+ CAST(data.walking_days_week as INT),
+ CAST(data.others_days_per_week as INT),
+ CAST(data.co2_em as INT),
+ CAST(data.avg_previous_year as INT),
+ CAST(data.no_trees as INT)
+from ds_mongo_profileinstance where profileId='73046' and active = 't' and securitycontextid is not null
