@@ -57,9 +57,9 @@ select p.profileinstanceid as _id, p.project_code, p.project_name, p.project_man
 ),
 
 base7 as(
-select p._id, p.fy1 as fy_timerange, p.project_code, p.project_name, tag1.name as project_manager, listagg(distinct p.month,', ') as month, sum(approved2nd) as approved2nd, sum(approved1st) as approved1st , sum(pending1st) as pending1st, sum(1) as activities_reported from base6b p
+select p.fy1 as fy_timerange, p.project_code, p.project_name, tag1.name as project_manager, listagg(distinct p.month,', ') as month, sum(approved2nd) as approved2nd, sum(approved1st) as approved1st , sum(pending1st) as pending1st, sum(1) as activities_reported from base6b p
   left join ds_mysql_prod_tagelement tag1 on p.project_manager=tag1.id
-  group by 1,2,3,4,5
+  group by 1,2,3,4
  /* (
 	select first_value(p.fy1) over (partition by p.project_code, p.project_name, p.project_manager) as fy_timerange, first_value(p.projectid) over (partition by p.project_code, p.project_name, p.project_manager) as projectid,p.project_code, p.project_name, tag1.name as project_manager,p._id, p.month from base6 p
 	left join ds_mysql_prod_tagelement tag1 on p.project_manager=tag1.id
@@ -68,7 +68,7 @@ select p._id, p.fy1 as fy_timerange, p.project_code, p.project_name, tag1.name a
 ),
 
 base8 as(
-select p._id, p.fy_timerange, p.project_code, p.project_name, p.project_manager, p.month, p.activities_reported, (p.approved1st+p.approved2nd) as approved1st, p.pending1st, p.approved2nd, p.approved1st as pending2nd from base7 p
+select p.fy_timerange, p.project_code, p.project_name, p.project_manager, p.month, p.activities_reported, (p.approved1st+p.approved2nd) as approved1st, p.pending1st, p.approved2nd, p.approved1st as pending2nd from base7 p
 ),
 
 
@@ -126,9 +126,9 @@ select p.*, case when p.fy_p3<=p.fy1 then p.project_manager_p3 else p.project_ma
 ),
 
 base27 as(
-select p._id, p.fy1 as fy_timerange, p.projectid, p.project_code, p.project_name, tag1.name as project_manager, listagg(distinct p.month,', ') as month, sum(1) as activities_planned from base26 p
+select p.fy1 as fy_timerange, p.projectid, p.project_code, p.project_name, tag1.name as project_manager, listagg(distinct p.month,', ') as month, sum(1) as activities_planned from base26 p
   left join ds_mysql_prod_tagelement tag1 on p.project_manager=tag1.id
-  group by 1,2,3,4,5,6
+  group by 1,2,3,4,5
  /* (
 	select first_value(p.fy1) over (partition by p.project_code, p.project_name, p.project_manager) as fy_timerange, first_value(p.projectid) over (partition by p.project_code, p.project_name, p.project_manager) as projectid,p.project_code, p.project_name, tag1.name as project_manager,p._id, p.month from base6 p
 	left join ds_mysql_prod_tagelement tag1 on p.project_manager=tag1.id
@@ -138,7 +138,7 @@ select p._id, p.fy1 as fy_timerange, p.projectid, p.project_code, p.project_name
 
 final as(
 select p.fy_timerange, p.project_code, p.project_name, p.project_manager, p.month, q.activities_planned, p.activities_reported, p.approved1st, p.pending1st, p.approved2nd, p.pending2nd from base27 q
-left join base8 p on p._id=q._id
+left join base8 p on p.fy_timerange=q.fy_timerange and p.project_code=q.project_code and p.project_name=q.project_name
 group by 1,2,3,4,5,6,7,8,9,10,11
   )
   
