@@ -57,7 +57,7 @@ select p.profileinstanceid as _id, p.project_code, p.project_name, p.project_man
 ),
 
 base7 as(
-select p.fy1 as fy_timerange, p.project_code, p.project_name, tag1.name as project_manager, listagg(distinct p.month,', ') as month, sum(approved2nd) as approved2nd, sum(approved1st) as approved1st , sum(pending1st) as pending1st from base6b p
+select p.fy1 as fy_timerange, p.project_code, p.project_name, tag1.name as project_manager, listagg(distinct p.month,', ') as month, sum(approved2nd) as approved2nd, sum(approved1st) as approved1st , sum(pending1st) as pending1st, sum(activities_reported) as activities_reported from base6b p
   left join ds_mysql_prod_tagelement tag1 on p.project_manager=tag1.id
   group by 1,2,3,4
  /* (
@@ -68,7 +68,7 @@ select p.fy1 as fy_timerange, p.project_code, p.project_name, tag1.name as proje
 ),
 
 base8 as(
-select p.fy_timerange, p.project_code, p.project_name, p.project_manager, p.month, (p.approved1st+p.approved2nd) as approved1st, p.approved2nd, p.pending1st, p.approved1st as pending2nd from base7 
+select p.fy_timerange, p.project_code, p.project_name, p.project_manager, p.month, p.activities_reported, (p.approved1st+p.approved2nd) as approved1st, p.pending1st, p.approved2nd, p.approved1st as pending2nd from base7 p
 )
 
 select * from base8 p 
