@@ -1,3 +1,15 @@
-select date from profile_16619
+select p.projectId as project,DATEPART(YEAR,date_enrollment) as year_new,fac.name as factory,cou.name as country,ven.name as vendor,name_subunit as subunit,p.date_enrollment,p.date_completion,p.status,count(DISTINCT factory) as counts from profile_16619 p
+
+
+left join ds_mysql_prod_project fac
+on p.projectid = fac.id
+left join ds_mysql_prod_project ven
+on fac.parent = ven.id
+left join ds_mysql_prod_project cou
+on ven.parent = cou.id
+
+where (p.date_enrollment is not null and p.date_completion is null) and (p.status = 1400365 or p.status is null) 
+
+group by project,year_new,fac.name,cou.name,ven.name,subunit,p.date_enrollment,p.date_completion,p.status
 
 
