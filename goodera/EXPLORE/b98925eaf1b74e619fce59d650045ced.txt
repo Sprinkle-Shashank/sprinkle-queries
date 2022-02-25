@@ -1,22 +1,19 @@
 with table1 as 
 (
-  select p.* , p2._id , p2.name as factory_update from profile_61483 as p
+   select p.projectid , p._id , avg(saturation) as saturation from profile_65283 p 
   
-	left join profile_61680 p2 on 
-    p.factory_name = p2._id
-)
-	
-	select * from table1
-	/*
-	
+  group by p.projectid , p._id 
+  ),
+  
   table2 as 
   (
-	 select p.projectid , p.name, p2.projectid , p2.factory_name , p2.name as factory_update_1 from profile_64075 p
-      
-	left join table1 t1 on 
-	p.projectid = t1.projectid 
-	
-	left join profile_61680 p2 on 
-    t1.factory_name = p2.id
-	)
-	*/
+	select p.projectid , p._id , case when saturation is null then '0' else saturation end as saturation from table1 p
+  
+  )
+  
+  select p.projectid , p99.projectid , p._id , p.name , p99.saturation  from profile_64075
+  
+  left join table2 p99 on 
+  p.projectid = p99.projectid 
+  
+  group by p.projectid , p._id , p,name , p99.saturation , p99.projectid
