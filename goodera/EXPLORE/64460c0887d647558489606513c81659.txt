@@ -1,1 +1,14 @@
-select * from profile_58861
+select proj.name as projectid,cast(p.fy_timerange.start||'|'||p.fy_timerange.end as varchar) as fy_timerange,p.name,
+tag1.name as loanclosure,p.reason,p2.name as location,p3.name as shg,tag2.name as fin_institution,p.others,
+SUBSTRING(p.loan_start,1,10)||'T00:00:00.000Z' as loan_start,p.amount,SUBSTRING(p.loan_end,1,10)||'T00:00:00.000Z' as loan_end
+from profile_58861 p
+left join ds_mysql_prod_project proj
+on p.projectid = proj.id
+left join ds_mysql_prod_tagelement tag1
+on p.loanclosure = tag1.id
+left join profile_58845 p2
+on p.location = p2._id
+left join profile_58848 p3
+on p.shg = p3._id
+left join ds_mysql_prod_tagelement tag2
+on p.fin_institution = tag2.id
