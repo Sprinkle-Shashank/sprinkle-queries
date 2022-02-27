@@ -1,20 +1,26 @@
-
-with 
-table2 as(Select p.* ,(gbv_goals)from  profile_76755 p
-, p.gbv_goals_arr gbv_goals union all
- select p.*,NULL as gbv_goals from profile_76755 p where gbv_goals_arr IS NULL
+with table2 as(Select p.* ,CAST(pace_goals as VARCHAR)from profile_76755 p
+, p.pace_goals_arr pace_goals
 ),
- table1 as (Select t2._id,t2.projectId as project,fac.name as projectId,p2.name as factory,t2.year_timerange,t2.country as country ,t2.director_region as director_region,t2.facility_type,ven.name as vendor1,nvl2(SUBSTRING(vendor1, 1, POSITION(' (' in vendor1)), SUBSTRING(vendor1, 1, POSITION(' (' in vendor1)), vendor1) as vendor_name, case when vendor_name='' then vendor1 else vendor_name end as vendor,p1.gbv_policy,p1.anonymous_channel,p1.third_party_channel,p1.response_provided,p1.issues_resolved,p1.channels_more,count(t2.projectId) as count,
-CASE WHEN (p1.gbv_policy = 57472) then count(*)
-			end as gbv_value,case when (p1.anonymous_channel=57472) then count(*)
-			end as anonymous,case when (p1.third_party_channel=57472) then count(*) end as third_party,case when (p1.response_provided = 1678551 or p1.response_provided = 1678553 ) then count(*) end as response,case when (p1.issues_resolved = 1678554 or p1.response_provided = 1678556) then count(*) end as issues,case when (p1.channels_more=1538190) or (p1.channels_more = 1538189) then count(*) end as channels   
+ table1 as(
+Select t2._id,t2.projectId as project,fac.name as projectId,p2.name as factory,t2.pace, t2.strategic_yn, t2.year_timerange,ven.name as vendor1,nvl2(SUBSTRING(vendor1, 1, POSITION(' (' in vendor1)), SUBSTRING(vendor1, 1, POSITION(' (' in vendor1)), vendor1) as vendor_name, case when vendor_name='' then vendor1 else vendor_name end as vendor, t2.country as country, t2.director_region as director_region, 
+certified_mts*100 AS a1,
+a1/certified_trainers AS master,p1.certified_trainers , p1.certified_mts , p1.pace_introduced ,
+count(t2.projectId) as count,
+CASE WHEN (t2.pace = 'Yes')
+   then count(*)
+   
+   end as pace_yes,case when (master>=30) then count(*)
+   end as master_value,
+case when (p1.pace_introduced = 57472) then count(*) end as introduced_value
 
+ 
 from table2 t2
-		    
-left join profile_76894 p1 on 
-t2.gbv_goals = p1._id
-left join profile_76770 p2 on 
-t2.facility_name = p2._id
+   
+left join profile_76895 p1
+on t2.pace_goals = p1._id
+
+left join profile_76770 p2
+on t2.facility_name = p2._id
 
   
 left join ds_mysql_prod_project fac
@@ -22,8 +28,9 @@ on t2.projectId = fac.id
 left join ds_mysql_prod_project ven
 on fac.parent = ven.id
 
-where project ilike '%%'
-			   
-Group by t2.projectId,t2._id,fac.name,factory,ven.name,vendor,t2.year_timerange,t2.country,t2.director_region,t2.facility_type,vendor,p1.gbv_policy,p1.anonymous_channel,p1.third_party_channel,p1.third_party_channel,p1.response_provided,p1.issues_resolved,p1.channels_more		   
+WHERE t2.strategic_yn ='Yes' and project ilike '%%'
+   
+ group by t2._id,t2.projectId,fac.name,factory,t2.pace,t2.strategic_yn,t2.year_timerange,t2.country,t2.director_region, ven.name,
+ vendor,master,p1.certified_trainers ,p1.certified_mts , p1.pace_introduced 
 )
-select * from table1 
+select * from table1
