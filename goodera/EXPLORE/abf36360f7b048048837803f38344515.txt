@@ -1,0 +1,34 @@
+
+
+
+
+
+
+
+with test0 as(Select p.* ,CAST(stories as VARCHAR)from profile_76755 p
+, p.stories_arr stories
+),
+ test1 as (Select p._id,p.projectId as project,fac.name as projectId,p2.name as factory,p.year_timerange,p.country as country ,p.director_region as director_region,p.facility_type,p.stories,p1.date,p1.stry_title,p1.image,ven.name as vendor1,nvl2(SUBSTRING(vendor1, 1, POSITION(' (' in vendor1)), SUBSTRING(vendor1, 1, POSITION(' (' in vendor1)), vendor1) as vendor_name, case when vendor_name='' then vendor1 else vendor_name end as vendor,p1.stry_details
+from test0 p
+
+left join profile_77700 p1
+on p.stories = p1._id
+
+left join profile_76770 p2
+on p.facility_name = p2._id
+		   
+
+
+left join ds_mysql_prod_project fac
+on p.projectId = fac.id
+left join ds_mysql_prod_project ven
+on fac.parent = ven.id
+
+		   
+
+where p.stories IS NOT  NULL and project ilike '%%'
+),test2 as(
+select t1.*, cast(c as varchar)  from test1  t1, t1.image c 
+)
+
+Select * from test2 t2
