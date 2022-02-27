@@ -1,57 +1,29 @@
-with test as(
-select p._id,p.projectId as project,fac.name as projectId,p2.name as factory,p.year_timerange,p.country,p.director_region,p.facility_type,p.strategic_yn,ven.name as vendor1,nvl2(SUBSTRING(vendor1, 1, POSITION(' (' in vendor1)), SUBSTRING(vendor1, 1, POSITION(' (' in vendor1)), vendor1) as vendor_name, case when vendor_name='' then vendor1 else vendor_name end as vendor, p.female_workers, p.male_workers, p.female_supervisors, p.male_supervisors, 
 
-p.female_workers*100 AS f,
-(p.female_workers+p.male_workers) AS t,
-CAST (f AS FLOAT) as fw,
-CAST (t as FLOAT) as tw,
+with 
+table2 as(Select p.* ,(gbv_goals)from  profile_76755 p
+, p.gbv_goals_arr gbv_goals union all
+ select p.*,NULL as gbv_goals from profile_76755 p where gbv_goals_arr IS NULL
+),
+ table1 as (Select t2._id,t2.projectId as project,fac.name as projectId,p2.name as factory,t2.year_timerange,t2.country as country ,t2.director_region as director_region,t2.facility_type,ven.name as vendor1,nvl2(SUBSTRING(vendor1, 1, POSITION(' (' in vendor1)), SUBSTRING(vendor1, 1, POSITION(' (' in vendor1)), vendor1) as vendor_name, case when vendor_name='' then vendor1 else vendor_name end as vendor,p1.gbv_policy,p1.anonymous_channel,p1.third_party_channel,p1.response_provided,p1.issues_resolved,p1.channels_more,count(t2.projectId) as count,
+CASE WHEN (p1.gbv_policy = 57472) then count(*)
+			end as gbv_value,case when (p1.anonymous_channel=57472) then count(*)
+			end as anonymous,case when (p1.third_party_channel=57472) then count(*) end as third_party,case when (p1.response_provided=57472) then count(*) end as response,case when  (p1.issues_resolved = 57472)then count(*) end as issues,case when (p1.channels_more=1538190) or (p1.channels_more = 1538189) then count(*) end as channels   
 
+from table2 t2
+		    
+left join profile_76894 p1 on 
+t2.gbv_goals = p1._id
+left join profile_76770 p2 on 
+t2.facility_name = p2._id
 
-fw/nullif(tw,0) AS worker,
-
-p.female_supervisors*100 AS f1,
-(p.male_supervisors+p.female_supervisors) AS t1,
-CAST (f1 AS FLOAT) as fs,
-CAST (t1 as FLOAT) as ts,
-fs/nullif(ts,0) AS supervisor,
-CASE WHEN (supervisor >= worker) THEN 0
-ELSE
-1
-END as result
-from profile_76755 p
   
 left join ds_mysql_prod_project fac
 on p.projectId = fac.id
 left join ds_mysql_prod_project ven
 on fac.parent = ven.id
 
-
-left join profile_76770 p2 on 
-p.facility_name = p2._id
-  
-
-where p.strategic_yn = 'Yes' 
-),
-temp as (
-  select 'worker' as dim
-  union all
-  select 'supervisor' as dim
-  union all
-  select 'result' as dim
+where project ilike '%%'
+			   
+Group by t2.projectId,t2._id,fac.name,factory,ven.name,vendor,t2.year_timerange,t2.country,t2.director_region,t2.facility_type,vendor,p1.gbv_policy,p1.anonymous_channel,p1.third_party_channel,p1.third_party_channel,p1.response_provided,p1.issues_resolved,p1.channels_more		   
 )
-
-select p._id,project,projectId,factory,temp.dim,result,worker,supervisor,  p.strategic_yn, p.year_timerange, p.country, p.director_region, p.facility_type, p.female_workers, p.male_workers,vendor,p.female_supervisors, p.male_supervisors,
-	case dim
-	when 'worker' then worker 
-	when 'supervisor' then supervisor  
-	when 'result' then result
-
-	Else Null
-	End as value	
-from test p
-cross join temp
-
-where p.strategic_yn = 'Yes' and project ilike '%%'
-group by  project,p._id,projectId,factory,p.year_timerange,p.country,p.director_region,p.facility_type, p.female_workers, p.male_workers,p.country, p.female_supervisors,p.strategic_yn,p.male_supervisors,temp.dim,vendor,worker,supervisor,result
-
-
+select * from table1 
