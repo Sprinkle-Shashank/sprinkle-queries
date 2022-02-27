@@ -1,59 +1,145 @@
-with table1 as(
-select p.projectId , fac.name as factory ,p3.name as training_id, p.trainer_org, p.prospect_female, p.total_other_participants, p.prospect_total, p.prospect_male, p.remarks,
-nvl2(SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), ven.name) as vendor_name, case when vendor_name='' then ven.name else vendor_name end as vendor,
-cou.name as country ,
- p2.fac_cl_vpid, p2.vendor_ngo_id,        --p2
-primary_category1.name as primary_category ,         --p2
-p3.year,sum(p3.num_supervisors) as num_supervisors, sum(p3.total_employed) as total_employed ,
-avg(p3.saturation) as saturation, p3.timerange_timerange ,                       --p3
-p4.date, single_multi1.name as training_type , p4.responsible_person,            --p4
-p.num_male, p.num_female, p.total_supervisors,                 
-to_char( p.date_1 ,'dd-mm-yyyy')as date_1 ,   
-p7.users_sst,p7.gap_sst,
-p6.male_certified , p6.female_certified                                 --
+with table1 as
+(
+  select p.projectid , p._id , cou.name as country_1 , fac_c_i.name as fac_c_i_1 , vendor_n_i.name as vendor_n_i_1 , primary_category_id.name as primary_category_id_1  from profile_52810 as p
   
+  left join ds_mysql_prod_tagelement cou on 
+  p.country = cou.id 
   
-from profile_64075 p
+  left join ds_mysql_prod_tagelement fac_c_i on
+  p.fac_cl_vpid = fac_c_i.id
+  
+  left join ds_mysql_prod_tagelement vendor_n_i on
+  p.vendor_ngo_id = vendor_n_i.id
+  
+  left join ds_mysql_prod_tagelement primary_category_id on
+  p.primary_category = primary_category_id.id 
+  
+  ),
+  
+  table2 as 
+	(
+	  select p.projectid , listagg(primary_category_id_1) as primary_category_id_1 from table1 p 
+	  
+	  group by  p.projectid  
+	  ),
+	 
+  
+	  table4 as 
+	  (
+		 select p.projectid , p._id ,country_1 , row_number() over 
+(partition by p.projectid
+ order by p._id desc) as row from table1 p 
+	  ), 
+	  table5 as 
+	  (
+	select * from table4 where row=1 
+		),
+		
+
+	 table6 as 
+	 (
+	    select p.projectid , p._id ,fac_c_i_1 , row_number() over 
+(partition by p.projectid
+ order by p._id desc) as row from table1 p 
+	  ),
+	  table7 as 
+	  ( 
+	select * from table6 where row=1 
+		),
+		
+		
+	table8 as 
+	 (
+	    select p.projectid , p._id , vendor_n_i_1 , row_number() over 
+(partition by p.projectid
+ order by p._id desc) as row from table1 p 
+	  ),
+	  table9 as 
+	  (
+	select * from table8 where row=1 
+		),
+		
+		
+		table11 as 
+		(
+		  select p.projectid , p._id ,  p.date , p.responsible_person , single.name as single_multi_update from profile_61498 p 
+		
+left join ds_mysql_prod_tagelement single
+on p.single_multi  = single.id
+		),
+		
+		table12 as 
+		(
+		   select p.projectid , male_certified, female_certified from profile_61483 as p
+		 ),
+
+       table13 as 
+	   (
+		  select p8.projectid , p8.users_sst , p8.gap_sst from profile_75144 p8
+		),
+	
+  table3 as
+  (
+select p.projectid , fac.name as factory_name, ven.name as vendor, cou.name as country , t5.country_1 , t7.fac_c_i_1 , t9.vendor_n_i_1 , t2.primary_category_id_1 , 
+	
+	position('(' in vendor) as position_1 , case when position_1<1 then len(vendor) else position_1 end as position_update , substring(ven.name , 0 , position_update) as vendor_name ,
+	
+	case when vendor_name is null then vendor else vendor_name end as vendor_1 ,
+	p4.date, p4.responsible_person , p4.single_multi_update , p4.single_multi_update as training_type , to_char(date_1 ,'DD-MM-YYYY') as date_update 
+	
+, sum(p3.num_supervisors) as num_supervisors , sum(p3.total_employed) as total_employed
+	
+, p6.male_certified , p6.female_certified 
+	
+ , case when p6.male_certified is null then '0' else p6.male_certified end as male_certified_update , case when p6.female_certified is null then '0' else p6.female_certified end as female_certified_update  
+
+, p8.users_sst , p8.gap_sst 
+
+	, avg(p3.saturation) as saturation_update , 
+	
+	case when saturation_update is null then 0 else saturation_update end as saturation_update_1 
+	
+	from profile_64075 p
 
 left join ds_mysql_prod_project fac
 on  p.projectid = fac.id
+
 left join ds_mysql_prod_project ven
 on fac.parent = ven.id
+
 left join ds_mysql_prod_project cou
 on ven.parent = cou.id
+	
+left join table2 t2 on 
+p.projectid = t2.projectid
+	
+left join table5 t5 on 
+p.projectid = t5.projectid
+	
+left join table7 t7 on 
+p.projectid = t7.projectid
+	
+left join table9 t9 on 
+p.projectid = t9.projectid
+	
+left join table11 p4 on 
+p.training_id = p4._id
+	
+left join profile_65283 p3 on 
+p.projectid = p3.projectid
+	
+left join table12 p6 on 
+p.projectid = p6.projectid
+	
+left join table13 p8 on 
+p.projectid = p8.projectid 
+	
+	
+where vendor ilike '%vendor:%'
 
-
-left join profile_52810 p2
-on p.projectId = p2.projectId
-left join profile_65283 p3
-on p.projectId = p3.projectId
-left join profile_61498 p4
-on p.training_id = p4._id
-left join profile_61483 p6
-on p.projectId = p6.factory_name
-left join profile_75144 p7
-on p.projectId = p7.projectId
-left join profile_61498 p5
-on p.training_id = p3._Id
-
-left join ds_mysql_prod_tagelement primary_category1 on
-	p2.primary_category = primary_category1.id
-left join ds_mysql_prod_tagelement single_multi1  on
-	p4.single_multi = single_multi1.id
-
-
-
-
-group by p.projectId ,fac.name ,ven.name ,cou.name ,p2.fac_cl_vpid, p2.vendor_ngo_id,p3.name , primary_category1.name , p3.year, p3.num_supervisors, p3.total_employed,
-p3.saturation, p3.timerange_timerange,p4.date, single_multi1.name , p4.responsible_person, p.num_male, p.num_female, p.total_supervisors,p.date_1 , 
-p7.users_sst,p7.gap_sst, p6.male_certified , p6.female_certified ,  p.training_id, p.trainer_org, p.prospect_female, p.total_other_participants, p.prospect_total, p.prospect_male, p.remarks
-  )
-  
-  select projectId, trainer_org, num_female, num_male, total_other_participants, prospect_total, fac_cl_vpid, vendor_ngo_id, country, vendor, training_type, date_1,
-CASE when saturation is null then 0 else saturation end as saturation, 
-CASE when male_certified is null then 0 else male_certified end as male_certified,
-CASE when female_certified is null then 0 else female_certified end as female_certified from table1
-  
- where (projectId <> 31303 and projectId <> 46455 and projectId <> 54832 and projectId <> 31299) and projectId ilike'%%'
-  
-  group by projectId, trainer_org, num_female, num_male, total_other_participants, prospect_total, fac_cl_vpid, vendor_ngo_id, country, vendor, training_type, date_1, male_certified, female_certified, saturation
+	group by  p._id, p.projectId, p.remarks, p.name, training_id, p.project_name, p.trainer_org, p.date_1, p.date, p.num_female, p.num_male, p.prospect_female, p.total_supervisors, p.total_other_participants, p.prospect_total, p.prospect_male , t5.country_1 , t7.fac_c_i_1 , t9.vendor_n_i_1 , t2.primary_category_id_1 , cou.name , ven.name , fac.name , vendor_name , vendor_1 , p4.date , p4.responsible_person , p4.single_multi_update , training_type , date_update , p6.male_certified , p6.female_certified , p8.users_sst , p8.gap_sst , male_certified_update , female_certified_update 
+	
+	)
+	
+	select * from table3
+	
