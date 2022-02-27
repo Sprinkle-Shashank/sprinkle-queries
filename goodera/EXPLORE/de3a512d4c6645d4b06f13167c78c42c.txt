@@ -1,36 +1,36 @@
-with table2 as(Select p.* ,CAST(pace_goals as VARCHAR)from profile_76755 p
-, p.pace_goals_arr pace_goals
+with 
+test0 as(Select p.* ,(gbv_goals)from  profile_76755 p
+, p.gbv_goals_arr gbv_goals union all
+ select p.*,NULL as gbv_goals from profile_76755 p where gbv_goals_arr IS NULL
 ),
- table1 as(
-Select t2._id,t2.projectId as project,fac.name as projectId,p2.name as factory,t2.pace, t2.strategic_yn, t2.year_timerange,ven.name as vendor1,nvl2(SUBSTRING(vendor1, 1, POSITION(' (' in vendor1)), SUBSTRING(vendor1, 1, POSITION(' (' in vendor1)), vendor1) as vendor_name, case when vendor_name='' then vendor1 else vendor_name end as vendor, t2.country as country, t2.director_region as director_region, 
-certified_mts*100 AS a1,
-a1/nullif(certified_trainers,0) AS master,p1.certified_trainers , p1.certified_mts , p1.pace_introduced ,
-count(t2.projectId) as count,
-CASE WHEN (t2.pace = 'Yes')
-   then count(*)
-   
-   end as pace_yes,case when (master>=30) then count(*)
-   end as master_value,
-case when (p1.pace_introduced = 57472) then count(*) end as introduced_value
+test1 as (Select p._id,p.projectId as project,fac.name as projectId,p2.name as factory,p.year_timerange,p.gbv_goals,p.female_workers,p.male_workers,p.female_managers,p.female_supervisors,p.male_supervisors, p.male_managers,p.facility_type,ven.name as vendor1,nvl2(SUBSTRING(vendor1, 1, POSITION(' (' in vendor1)), SUBSTRING(vendor1, 1, POSITION(' (' in vendor1)), vendor1) as vendor_name, case when vendor_name='' then vendor1 else vendor_name end as vendor,p1.indepth_workers,p1.indepth_managers,p.country,p.director_region,
+p.female_workers+(p.male_workers+(p.female_managers+(p.male_managers+(p.male_supervisors+p.female_supervisors)))) AS total_emp,
+p1.indepth_workers+p1.indepth_managers AS total_trained, total_trained*100 AS total,total/nullif(total_emp,0) AS trained,
+CASE WHEN trained >= 100 THEN 'YES'
+ELSE 
+'NO'
+END AS result,
+avg(trained) as avg_trained,
+count(p.projectId) count
 
- 
-from table2 t2
-   
-left join profile_76895 p1
-on t2.pace_goals = p1._id
+from test0 p
 
-left join profile_76770 p2
-on t2.facility_name = p2._id
+left join profile_76894 p1 on 
+p.gbv_goals = p1._id
 
-  
+left join profile_76770 p2 on 
+p.facility_name = p2._id
+
+
 left join ds_mysql_prod_project fac
-on t2.projectId = fac.id
+on p.projectId = fac.id
 left join ds_mysql_prod_project ven
 on fac.parent = ven.id
 
-WHERE t2.strategic_yn ='Yes' and project ilike '%%'
-   
- group by t2._id,t2.projectId,fac.name,factory,t2.pace,t2.strategic_yn,t2.year_timerange,t2.country,t2.director_region, ven.name,
- vendor,master,p1.certified_trainers ,p1.certified_mts , p1.pace_introduced 
+where project ilike '%%'
+
+group by p._id,p.projectId,fac.name,factory,p.year_timerange,ven.name,vendor,result,p1.indepth_workers,p1.indepth_managers,p.gbv_goals,p.female_workers,p.male_workers,p.female_managers,p.female_supervisors,p.male_supervisors, p.male_managers,p.country,p.director_region,p.facility_type
+
 )
-select * from table1
+Select * from test1 
+
