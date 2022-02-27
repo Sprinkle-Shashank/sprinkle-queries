@@ -1,36 +1,68 @@
-with 
-test0 as(Select p.* ,(gbv_goals)from  profile_76755 p
-, p.gbv_goals_arr gbv_goals union all
- select p.*,NULL as gbv_goals from profile_76755 p where gbv_goals_arr IS NULL
-),
-test1 as (Select p._id,p.projectId as project,fac.name as projectId,p2.name as factory,p.year_timerange,p.gbv_goals,p.female_workers,p.male_workers,p.female_managers,p.female_supervisors,p.male_supervisors, p.male_managers,p.facility_type,ven.name as vendor1,nvl2(SUBSTRING(vendor1, 1, POSITION(' (' in vendor1)), SUBSTRING(vendor1, 1, POSITION(' (' in vendor1)), vendor1) as vendor_name, case when vendor_name='' then vendor1 else vendor_name end as vendor,p1.indepth_workers,p1.indepth_managers,p.country,p.director_region,
-p.female_workers+(p.male_workers+(p.female_managers+(p.male_managers+(p.male_supervisors+p.female_supervisors)))) AS total_emp,
-p1.indepth_workers+p1.indepth_managers AS total_trained, total_trained*100 AS total,total/nullif(total_emp,0) AS trained,
-CASE WHEN trained >= 100 THEN 'YES'
-ELSE 
-'NO'
-END AS result,
-avg(trained) as avg_trained,
-count(p.projectId) count
 
-from test0 p
+with table2 as(
+select p._id,p.projectId as project,fac.name as projectId,p3.name as factory,p.year_timerange,p.country as country,ven.name as vendor1,nvl2(SUBSTRING(vendor1, 1, POSITION(' (' in vendor1)), SUBSTRING(vendor1, 1, POSITION(' (' in vendor1)), vendor1) as vendor_name, case when vendor_name='' then vendor1 else vendor_name end as vendor,p.director_region as director_region,p.facility_type,p.strategic_yn, p.female_workers, p.male_workers, p3.female_managers_supervisors, p3.male_managers_supervisors, 
 
-left join profile_76894 p1 on 
-p.gbv_goals = p1._id
-
-left join profile_76770 p2 on 
-p.facility_name = p2._id
+p.female_workers*100 AS f,
+(p.female_workers+p.male_workers) AS t,
+CAST (f AS FLOAT) as fw,
+CAST (t as FLOAT) as tw,
 
 
+fw/nullif(tw,0) AS worker,
+
+p3.female_managers_supervisors*100 AS f1,
+(p3.male_managers_supervisors+p3.female_managers_supervisors) AS t1,
+CAST (f1 AS FLOAT) as fs,
+CAST (t1 as FLOAT) as ts,
+fs/nullif(ts,0) AS supervisor
+
+from profile_76755 p
+  
+
+left join profile_76770 p3 on
+p.facility_name = p3._id
+
+   
 left join ds_mysql_prod_project fac
 on p.projectId = fac.id
 left join ds_mysql_prod_project ven
 on fac.parent = ven.id
 
-where project ilike '%%'
-
-group by p._id,p.projectId,fac.name,factory,p.year_timerange,ven.name,vendor,result,p1.indepth_workers,p1.indepth_managers,p.gbv_goals,p.female_workers,p.male_workers,p.female_managers,p.female_supervisors,p.male_supervisors, p.male_managers,p.country,p.director_region,p.facility_type
-
+where p.strategic_yn = 'Yes' and project ilike '%%'
+),
+temp as (
+  select 'worker' as dim
+  union all
+  select 'supervisor' as dim
+  
 )
-Select * from test1 
 
+select t2._id,t2.projectId as project,fac.name as projectId,factory,temp.dim,worker,supervisor,t2.strategic_yn, t2.year_timerange, t2.country, t2.director_region, t2.facility_type, t2.female_workers, t2.male_workers,t2.vendor,
+	case dim
+	when 'worker' then worker 
+	when 'supervisor' then supervisor  
+	
+
+	Else Null
+	End as value	
+from table2 t2
+cross join temp
+
+left join ds_mysql_prod_project fac
+on t2.projectId = fac.id
+left join ds_mysql_prod_project ven
+on fac.parent = ven.id
+
+where t2.strategic_yn = 'Yes' and project ilike '%%'
+
+group by t2._id, t2.projectId,fac.name,factory,t2.year_timerange,t2.country,t2.director_region,t2.facility_type, t2.female_workers, t2.male_workers, t2.strategic_yn,temp.dim,t2.vendor,worker,supervisor
+
+
+
+
+where p.stories IS NOT  NULL and project ilike '%%'
+),test2 as(
+select t1.*, cast(c as varchar)  from test1  t1, t1.channel c 
+)
+
+Select * from test2 t2
