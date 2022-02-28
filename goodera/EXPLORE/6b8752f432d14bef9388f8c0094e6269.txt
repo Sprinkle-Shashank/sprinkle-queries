@@ -1,0 +1,22 @@
+with temp as(
+  Select 'Inter school events' as col
+    union all
+  Select 'Intra school events' as col
+    union all
+  Select '2 Day Workshop' as col
+    union all
+  Select '11 Day TOT capacity building' as col
+  )
+select p.projectid, p.fy_timerange, temp.col as caption,
+sum(case col
+	when 'Inter school events' then a.intr_school_pic
+	when 'Intra school events' then a.intra_school_pics
+	when '2 Day Workshop' then p.photo
+	when '11 Day TOT capacity building' then p.photo_tot
+	else NULL
+end) as pictures
+from profile_79486 p
+cross join temp
+left join profile_79485 a
+on a.projectid=p.projectid
+group by p.projectid, p.fy_timerange, caption
