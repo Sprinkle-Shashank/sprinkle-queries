@@ -2,11 +2,40 @@ with table1 as (select
 					case when lg_status != 848008 then 1 else 0 end as status,
 				substring(table_54646.projcode_factory,1,1) as code,
 				reverse(SPLIT_PART(reverse(table_54646.projcode_factory), '-',1)) as code_brand,
-				case when code = 'F' then 1 else 0 end as codeStatus
-	
+				case when code = 'F' then 1 else 0 end as codeStatus,
+				JSON_SERIALIZE(table_52810.pace_brands) as pace_brand,	
+				case when pace_brand like '%1151834%' then 1 else 0 end  as brand,
+				sum(num_females) as total_females,
+				sum(num_females_graduated) as total_females_graduated,
+				sum(num_females_dropout) as total_females_dropout,
+				case when end_date_2 is null then sum(num_females) else null end as total_females_ongoing,
+				case when end_date_2 is null then 1 else 0 end as batchOng,
+				sum(batchOng)as total_batches_ongoing,
+				
+				case when batchOng = 0 then 1 else 0 end as batchComp,
+				sum(batchComp) as total_batches_completed,
+				avg(hours) as average_hours,
+				sum(hours) as total_hours,
+				sum(num_males) as total_males,
+				case when $end_date_2 is null then sum(num_males) else 0 end as total_males_ongoing,
+				sum(num_males_graduated) as total_males_graduated,
+				sum(num_males_dropout) as total_males_dropout,
+				sum(reason_pregnancy) as dropout_pregnancy,
+				sum(reason_left) as dropout_left,
+				sum(reason_interest) as dropout_interest,
+				sum(reason_pressure) as dropout_pressure,
+				sum(reason_other) as dropout_other,
+				case when end_date_2 is null then 0 else sum(num_females) end as total_females_completed
+				
 
 				from profile_4227 p
 inner join profile_54646 table_54646 on
 table_54646.projectId = p.projectId
+
+inner join profile_52810 table_52810 on
+table_52810.projectId = p.projectId
+				
+				
+group by lg_status,table_54646.projcode_factory,table_52810.pace_brands
 )
-Select * from table1 p where status = 1 and codeStatus = 1
+Select * from table1 p where status = 1 and codeStatus = 1 and brand = 1
