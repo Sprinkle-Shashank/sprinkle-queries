@@ -1,6 +1,6 @@
 with sub1 as (
-  select p1.projectid,p1.year_timerange, p1.distance_car, p1.distance_public_transport, p1.distance_motorbike, p1.distance_walking, p1.distance_others from profile_64637 p1),
--------------------------- change names
+  select p1.projectid,p1.year_timerange, p1.distance_car, p1.distance_public_transport, p1.distance_motorbike, p1.distance_walking, p1.distance_others from profile_73046 p1),
+
 sub2 as(select 'Car' as col
 union all
 select 'Public Transport (bus, train, metro, subway, etc)' as col
@@ -14,26 +14,18 @@ select 'Others' as col),
 sub3 as(select p1._id,p2.name as projectId, p1.year_timerange as Timerange,sub2.col as commute_type, 
 sum(
   case col
-	when 'Personal_Vehicle' then p1.personal_vehicle
-  	when 'Motorbike' then p1.motorbike_mileage
-  	when 'Bus' then p1.bus_mileage
-  	when 'Train' then p1.train_mileage
-	when 'Metro' then p1.metro_mileage
-	when 'Walk' then p1.walk_mileage
-	when 'Bicycle' then p1.bicycle_mileage
-	when 'Others' then p1.other_mileage
-	when 'Tram' then p1.tram_mileage
-	when 'Scooter' then p1.scooter_mileage
+	when 'Car' then p1.distance_car
+  	when 'Public Transport (bus, train, metro, subway, etc)' then p1.distance_public_transport
+  	when 'Motorbike/Scooter' then p1.distance_motorbike
+  	when 'Walking/ Bike/E-Scooter/ E-Bike' then p1.distance_walking
+	when 'Others' then p1.distance_others
 	else null
   end
   ) as commute_mileage,
   case
-	when commute_type='Others' then 'Others'
-	when commute_type='Personal_Vehicle' then 'Car'
-	when commute_type='Walk' then 'Walking/ Bike/E-Scooter/ E-Bike'
-	when commute_type='Motorbike' then 'Motorbike/Scooter'
-	when commute_type='Bicycle' then 'Walking/ Bike/E-Scooter/ E-Bike'
-	else 'Public Transport'
+	when commute_type='Public Transport (bus, train, metro, subway, etc)' then 'Public Transport'
+
+	else commute_type
 end as commute
 
 from sub1 p1
@@ -41,7 +33,9 @@ from sub1 p1
 
   
 cross join sub2
-left join ds_mysql_prod_project p2 on p2.id= p1.projectId
+--------------profile
+--left join ds_mysql_prod_project p2 on p2.id= p1.projectId
+left join profile_74147 p2 on p2.id= p1.
 group by 1,2,3,4
 )
  
