@@ -1,4 +1,11 @@
-select p._id,p.projectId,fac.name as factory,ven.name as vendor,cou.name as country,p2.name as facility_names,p.status,p2.sustainability_rating as rating,p2.date as start_date from profile_16619 p
+with table2 as(select p._id,p.projectId,p.status,case when p.status = 'Deactivated' then
+			   'Deactivated' when p.status is null then 'Ongoing'	end as Status
+			   from profile_31726 p
+	   
+left join ds_mysql_prod_tagelement stat
+on p.status = stat.id
+),
+table3 as(select p._id,p.projectId,fac.name as factory,ven.name as vendor,cou.name as country,p2.name as facility_names,p.status,p2.sustainability_rating as rating,p2.date as start_date,t2.status from profile_16619 p
 
 left join ds_mysql_prod_project fac
 on p.projectid = fac.id
@@ -10,5 +17,12 @@ on ven.parent = cou.id
 left join profile_17526 p2 on
 p.projectId = p2.projectId
 
+left join table2 t2 on
+p.projectId = t2.projectId
+
 where (p.status = 1400365 or p.status is null) and cou.name <> 'Test Country'
+ 
+ group by p._id,p.projectId,fac.name ,ven.name ,cou.name ,p2.name ,p.status,p2.sustainability_rating ,p2.date 
+)
+select * from table3
 
