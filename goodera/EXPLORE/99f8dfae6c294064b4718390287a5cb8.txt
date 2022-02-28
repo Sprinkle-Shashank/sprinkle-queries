@@ -6,6 +6,7 @@ with table1 as (select
 				case when code = 'F' then 1 else 0 end as codeStatus,
 				JSON_SERIALIZE(table_52810.pace_brands) as pace_brand,	
 				case when pace_brand like '%1151834%' then 1 else 0 end  as brand,
+				
 				sum(num_females) as total_females,
 				sum(num_females_graduated) as total_females_graduated,
 				sum(num_females_dropout) as total_females_dropout,
@@ -39,7 +40,28 @@ table_52810.projectId = p.projectId
 				
 group by lg_status,table_54646.projcode_factory,table_52810.pace_brands,p.end_date_2
 )
-Select * from table1 p where --status = 1 
---and 
-codeStatus = 1 
-and brand = 1
+table2 as (select
+		   sum(total_females) as total_females,
+		   sum(total_females_graduated) as total_females_graduated,
+		   sum(total_females_dropout) as total_females_dropout,
+		   sum(total_females_ongoing) as total_females_ongoing,
+		   sum(total_batches_ongoing) as total_batches_ongoing,
+		   sum(total_batches_completed) as total_batches_completed,
+		   avg(average_hours) as average_hours,
+		   sum(total_hours) as total_hours,
+		   sum(total_males) as total_males,
+		   sum(total_males_ongoing) as total_males_ongoing,
+		   sum(total_males_graduated) as total_males_graduated,
+		   sum(total_males_dropout) as total_males_dropout,
+		   sum(dropout_pregnancy) as dropout_pregnancy,
+		   sum(dropout_left) as dropout_left,
+		   sum(dropout_interest) as dropout_interest,
+		   sum(dropout_pressure) as dropout_pressure,
+		   sum(dropout_other) as dropout_other,
+		   sum(total_females_completed) as total_females_completed,
+		   status,codeStatus,brand
+
+	from table1 p
+group by status,codeStatus,brand 
+)
+Select * from table2 p where status = 1 and codeStatus = 1 and brand = 1
