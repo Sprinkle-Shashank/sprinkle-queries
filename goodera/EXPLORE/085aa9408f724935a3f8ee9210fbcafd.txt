@@ -7,9 +7,11 @@ with sub1  as(
 
 
 
-Select a.fy_timerange,p1.name as implementation_partner,p.name as projectd,
-t.name as state
-
+Select p1.name as implementation_partner,p.name as projectd,
+t.name as state,
+case
+when p.name ='Udayan Care' then (a.start||'|'||a.end)
+else json_serialize(fy_timerange) end  as fy_timerange
 
 from sub1 a 
 
@@ -20,4 +22,4 @@ left join ds_mysql_prod_tagelement t on t.id=a.unwind_state
 
 
 
-group by a.fy_timerange, p.name,a.name, p1.name,t.name
+group by a.fy_timerange, p.name,a.name, p1.name,t.name,a.start,a.end
