@@ -1,0 +1,15 @@
+select p.projectId as project,fac.name as factory,ven.name as vendor,cou.name as country,DATEPART(YEAR,p.date_enrollment) as year_new,p.name_subunit as unit,p.date_formation,p.date_3,p.date_enrollment,p.status,count(p.date_3) as records,count(p.date_enrollment) as total_records from profile_16619 p
+
+
+
+left join ds_mysql_prod_project fac
+on p.projectid = fac.id
+left join ds_mysql_prod_project ven
+on fac.parent = ven.id
+left join ds_mysql_prod_project cou
+on ven.parent = cou.id
+
+where project ilike '%%' and cou.name <> 'Test Country' and (p.status = 1400365 or p.status is null) 
+
+
+group by p.projectId,fac.name,ven.name,cou.name,year_new,p.date_3,p.name_subunit,p.date_enrollment,p.date_formation,p.status
