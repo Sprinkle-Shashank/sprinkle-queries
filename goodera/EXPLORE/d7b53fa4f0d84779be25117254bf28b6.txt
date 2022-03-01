@@ -1,0 +1,39 @@
+--select date, date_2 , date_3 , date_4 , date_5 , date_6 , date_7 , date_8, mgmt_rep_absent , worker_rep_absent , mgmt_rep_absent_2 , worker_rep_absent_2 , mgmt_rep_absent_3 , worker_rep_absent_3 , mgmt_rep_absent_4 , worker_rep_absent_4 , mgmt_rep_absent_5 , worker_rep_absent_5 , mgmt_rep_absent_6 , worker_rep_absent_6 , mgmt_rep_absent_7 , worker_rep_absent_7 , mgmt_rep_absent_8 , worker_rep_absent_8 , ven.name as vendor , 
+--
+
+select  date, date_2 , date_3 , date_4 , date_5 , date_6 , date_7 , date_8, coalesce(mgmt_rep_absent , 0) as m1 ,   coalesce(worker_rep_absent , 0) as w1 , coalesce(mgmt_rep_absent_2 ,0) as m2 ,coalesce( worker_rep_absent_2 , 0) as w2 , coalesce(mgmt_rep_absent_3 , 0) as m3 , coalesce( worker_rep_absent_3 ,0) as w3 , coalesce( mgmt_rep_absent_4 , 0) as m4 , coalesce( worker_rep_absent_4 ,0) as w4 , coalesce( mgmt_rep_absent_5 ,0) as m5 , coalesce( worker_rep_absent_5 ,0) as w5 , coalesce( mgmt_rep_absent_6 ,0) as m6 , coalesce( worker_rep_absent_6 , 0) as w6 , coalesce(mgmt_rep_absent_7 , 0) as m7 , coalesce(worker_rep_absent_7 ,0) as w7, coalesce( mgmt_rep_absent_8 ,0) as m8 , coalesce( worker_rep_absent_8 , 0) as w8 ,
+ven.name as vendor,
+
+
+
+
+sum(mgmt_rep_2 + worker_rep_2 + mgmt_rep_3 + worker_rep_3 + mgmt_rep_4 + worker_rep_4 + mgmt_rep_5 + worker_rep_5 + mgmt_rep_6 + worker_rep_6 + mgmt_rep_7 + worker_rep_7 + mgmt_rep_8 + worker_rep_8 ) as numerator , 
+
+sum(m1+w1+m2+w2+m3+w3+m4+w4+m5+w5+m6+w6+m7+w7+m8+w8+mgmt_rep_2 + worker_rep_2 + mgmt_rep_3 + worker_rep_3 + mgmt_rep_4 + worker_rep_4 + mgmt_rep_5 + worker_rep_5 + mgmt_rep_6 + worker_rep_6 + mgmt_rep_7 + worker_rep_7 + mgmt_rep_8 + worker_rep_8) as denominator
+
+
+
+
+
+--sum(mgmt_rep_absent + worker_rep_absent + mgmt_rep_absent_2 + worker_rep_absent_2 + mgmt_rep_absent_3 + worker_rep_absent_3 + mgmt_rep_absent_4 + worker_rep_absent_4 + mgmt_rep_absent_5 + worker_rep_absent_5 + mgmt_rep_absent_6 + worker_rep_absent_6 + mgmt_rep_absent_7 + worker_rep_absent_7 + mgmt_rep_absent_8 + worker_rep_absent_8 + mgmt_rep_2 + worker_rep_2 + mgmt_rep_3 + worker_rep_3 + mgmt_rep_4 + worker_rep_4 + mgmt_rep_5 + worker_rep_5 + mgmt_rep_6 + worker_rep_6 + mgmt_rep_7 + worker_rep_7 + mgmt_rep_8 + worker_rep_8 ) as denominator 
+
+--+ mgmt_rep_2 + worker_rep_2 + mgmt_rep_3 + worker_rep_3 + mgmt_rep_4 + worker_rep_4 + mgmt_rep_5 + worker_rep_5 + mgmt_rep_6 + worker_rep_6 + mgmt_rep_7 + worker_rep_7 + mgmt_rep_8 + worker_rep_8 
+
+from profile_16619 p
+
+
+left join ds_mysql_prod_project fac
+on p.projectid = fac.id
+left join ds_mysql_prod_project ven
+on fac.parent = ven.id
+left join ds_mysql_prod_project cou
+on ven.parent = cou.id
+
+where (date, date_2 , date_3 , date_4 , date_5 , date_6 , date_7 , date_8) is not null
+and
+cou.name <> 'Test Country' and cou.name <> 'GAP Inc.'
+and 
+p.status = 1400365 or p.status is null
+
+group by p.date, p.date_2 , p.date_3 , p.date_4 , p.date_5 , p.date_6 , p.date_7 , p.date_8 , p.mgmt_rep_absent , p.worker_rep_absent , p.mgmt_rep_absent_2 , p.worker_rep_absent_2 , p.mgmt_rep_absent_3 , p.worker_rep_absent_3 , p.mgmt_rep_absent_4 , p.worker_rep_absent_4 , p.mgmt_rep_absent_5 , p.worker_rep_absent_5 , p.mgmt_rep_absent_6 , p.worker_rep_absent_6 , p.mgmt_rep_absent_7 , p.worker_rep_absent_7 , p.mgmt_rep_absent_8 , p.worker_rep_absent_8
+, ven.name
