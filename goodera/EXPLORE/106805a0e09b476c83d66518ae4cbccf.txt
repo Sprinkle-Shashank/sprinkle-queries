@@ -1,4 +1,12 @@
-select p.projectId as project,fac.name as factory,ven.name as vendor,cou.name as country,type.name as event_type,p.description from profile_17524 p
+with table1 as(select p.projectId as project,p.pic as photo,p.caption as caption from profile_17524),
+table2 as (select p.projectId as project,p.pic_2 as photo,p.caption_2 as caption from profie_17524),
+table3 as(select project, photo,caption from table1
+		  union
+		  select project,photo,caption from table2
+		  ),
+
+  
+  table4 as(select p.projectId as project,fac.name as factory,ven.name as vendor,cou.name as country,type.name as event_type,p.description,p.doc,t3.photo,t3.caption from profile_17524 p
 
 
 		  
@@ -11,6 +19,14 @@ on ven.parent = cou.id
 
 left join ds_mysql_prod_tagelement type
 on p.event_type = type.id
+			
+			
+left join table3 t3 on
+p.projectId = t3.project
+			
+group by project,fac.name,cou.name,ven.name,event_type,p.description,t3.photo,t3.caption
+)
+select * from table4
 
 /*with table2 as(select p._id,p.projectId,stat.name as status_new,case when status_new = 'Deactivated' then
 			   'Deactivated' when status_new  is null then 'Ongoing' end as Status,p.sustainability_rating as rating_2,row_number() over 
