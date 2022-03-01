@@ -1,15 +1,6 @@
-with table1 as(select p.projectId as proj,p.pic as photo,p.caption as caption from profile_17524 p
-			  
-	group by p.projectId,p.pic,p.caption),
-table2 as (select p.projectId as proj,p.pic_2 as photo,p.caption_2 as caption from profile_17524 p
-		  	group by p.projectId,p.pic_2,p.caption_2),
-table3 as(select proj, photo,caption from table1
-		  union all
-		  select proj,photo,caption from table2
-		  ),
 
   
-  table4 as(select p.projectId as project,fac.name as factory,ven.name as vendor,cou.name as country,type.name as event_type,p2.description,p2.doc,p.status,t3.photo,t3.caption from profile_16619 p
+  table4 as(select p.projectId as project,fac.name as factory,ven.name as vendor,cou.name as country,type.name as event_type,p.description,p.doc,p2.status,p.pic,p.pic_2,p.caption,p.caption_1 from profile_17524 p
 
 
 		  
@@ -20,19 +11,17 @@ on fac.parent = ven.id
 left join ds_mysql_prod_project cou
 on ven.parent = cou.id
 			
-left join profile_17524 p2 on
+left join profile_16619 p2 on
 p.projectId = p2.projectId
 
 left join ds_mysql_prod_tagelement type
-on p2.event_type = type.id
+on p.event_type = type.id
 			
-left join table3 t3 on
-p.projectId = t3.proj
 
 			
-where (cou.name <> 'Test Country' and cou.name <> 'GAP Inc.') and (p.status = 1400365 or p.status is null)
+where (cou.name <> 'Test Country' and cou.name <> 'GAP Inc.') and (p2.status = 1400365 or p2.status is null)
 			
-group by project,fac.name,cou.name,ven.name,type.name,p2.description,p2.doc,p.status,t3.photo,t3.caption
+group by project,fac.name,cou.name,ven.name,type.name,p.description,p.doc,p2.status,p.pic,p.pic_2,p.caption,p.caption_1
 )
 select * from table4
 
