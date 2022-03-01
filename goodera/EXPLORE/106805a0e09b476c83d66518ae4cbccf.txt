@@ -2,7 +2,7 @@
 with table2 as(select p._id,p.projectId,stat.name as status_new,case when status_new = 'Deactivated' then
 			   'Deactivated' when status_new  is null then 'Ongoing' end as Status,p.sustainability_rating as rating_2,row_number() over 
 (partition by p.projectid
- order by p._id desc) as row,p.date as current_date
+ order by p._id desc) as row,to_char(p.date,'DD-MM-YYYY') as current_date
 			   from profile_31726 p
 	   
 left join ds_mysql_prod_tagelement stat
@@ -22,7 +22,7 @@ table5 as
 (select * from table4 
  where row=1 
 ),
-table3 as(select p.projectId,fac.name as factory,ven.name as vendor,cou.name as country,p.status,t5.rating_1,p2.date as start_date,p2.name as facility_names,t6.status,t6.rating_2,t6.current_date,abs(rating_1-rating_2) as differential,case when (differential >0) then 'down' 
+table3 as(select p.projectId,fac.name as factory,ven.name as vendor,cou.name as country,p.status,t5.rating_1,to_char(p2.date,'DD-MM-YYYY') as start_date,p2.name as facility_names,t6.status,t6.rating_2,t6.current_date,abs(rating_1-rating_2) as differential,case when (differential >0) then 'down' 
 when (differential < 0)
 		  then 'up'
 when (differential = 0)
