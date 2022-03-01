@@ -22,17 +22,17 @@ table5 as
 (select * from table4 
  --where row=1 
 ),
-table3 as(select p.projectId,fac.name as factory,ven.name as vendor,cou.name as country,p2.status,t5.rating_1,p.date as start_date,t6.status,t6.rating_2,t6.current_date,abs(rating_1-rating_2) as differential,case when (differential >0) then 'down' 
+table3 as(select p.projectId,fac.name as factory,ven.name as vendor,cou.name as country,p.status,t5.rating_1,p2.date as start_date,p2.name as facility_names,t6.status,t6.rating_2,t6.current_date,abs(rating_1-rating_2) as differential,case when (differential >0) then 'down' 
 when (differential < 0)
 		  then 'up'
 when (differential = 0)
 		  then '-'
 end as trend
-		  from profile_17526 p
+		  from profile_16619 p
 
 		  
 
-left join profile_16619 p2
+left join profile_17526 p2
 on p.projectId = p2.projectId		  
 		  
 left join ds_mysql_prod_project fac
@@ -50,8 +50,8 @@ p.projectId = t6.projectId
 left join table5 t5 on
 p.projectId = t5.projectId
 
-where (p2.status = 1400365 or p2.status is null) and (cou.name <> 'Test Country' and cou.name <> 'GAP Inc.') 
+where (p.status = 1400365 or p.status is null) and (cou.name <> 'Test Country' and cou.name <> 'GAP Inc.') 
  
- group by p.projectId,fac.name ,ven.name ,cou.name ,p2.status,t5.rating_1 ,p.date,t6.status,t6.rating_2,trend,t6.current_date
+ group by p.projectId,fac.name ,ven.name ,cou.name ,p.status,t5.rating_1 ,p2.date,t6.status,t6.rating_2,trend,t6.current_date,p2.name
 )
 select * from table3
