@@ -1,4 +1,11 @@
-select p1.name as projectid, p.fy_timerange, p.school_name, t1.name as locations, t2.name as comp_lab_yn, p.num_computers, t3.name as internet_con,
+with temp as 
+(select 'Number of computers' as col
+ union all
+ select 'Computer labs' as col
+ union all
+ select 'Internet connection' as col
+ ) 
+select p1.name as projectid, p.fy_timerange, p.school_name, t1.name as locations, t2.name as comp_lab_yn, p.num_computers, t3.name as internet_con, temp.col as dim
 case
 	when comp_lab_yn = 1380557
 	then 1 else 0
@@ -6,8 +13,13 @@ case
 case
 	when internet_con = 1380557
 	then 1 else 0
-	end as internet_yes
-
+	end as internet_yes,
+sum(case col
+	when 'Number of computers' then p.num_computers
+	when 'Computer labs' then labs_yes
+	when 'Internet connection' then internet_yes
+  	else NULL
+	end) as val
 from profile_79305 p
 left join ds_mysql_prod_tagelement t1 on
 t1.id=p.state_district
@@ -16,4 +28,4 @@ t2.id=p.comp_lab_yn
 left join ds_mysql_prod_tagelement t3 on
 t3.id=p.internet_con
 left join ds_mysql_prod_project p1 on
-t1.id=p.projectid
+p1.id=p.projectid
