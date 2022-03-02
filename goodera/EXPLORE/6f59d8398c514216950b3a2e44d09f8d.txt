@@ -1,0 +1,40 @@
+select p.projectId as project,fac.name as factory,ven.name as vendor,cou.name as country,case when country in ('India', 'Bangladesh', 'Sri Lanka')
+then 'South Asia'
+when country in ('China')
+then 'North Asia'
+when country in ('Guatemala', 'El Salvador', 'Dominican Republic')
+then 'Americas'
+when country in ('Philippines', 'Cambodia',  'Vietnam',  'Indonesia', 'Myanmar')
+then 'South East Asia'
+end as region,DATEPART(p.date_enrollment) as year,p.name_subunit,decode(p.mgmt_rep_2,null,0,p.mgmt_rep_2) as a1, decode(p.worker_rep_2,null,0,p.worker_rep_2) as b1,decode(p.mgmt_rep_3,null,0,p.mgmt_rep_3) as a2, decode(p.worker_rep_3,null,0,p.worker_rep_3) as b2,decode(p.mgmt_rep_4,null,0,p.mgmt_rep_4) as a3, decode(p.worker_rep_4,null,0,p.worker_rep_4) as b3,decode(p.mgmt_rep_5,null,0,p.mgmt_rep_5) as a4, decode(p.worker_rep_5,null,0,p.worker_rep_5) as b4,decode(p.mgmt_rep_6,null,0,p.mgmt_rep_6) as a5, decode(p.worker_rep_6,null,0,p.worker_rep_6) as b5,decode(p.mgmt_rep_7,null,0,p.mgmt_rep_7) as a6,decode(p.worker_rep_7,null,0,p.worker_rep_7) as b6,decode(p.mgmt_rep_8,null,0,p.mgmt_rep_8) as a7,decode(p.worker_rep_8,null,0,p.worker_rep_8) as b7,
+decode(p.worker_rep_absent,null,0,p.worker_rep_absent) as c1,decode(p.worker_rep_absent_2,null,0,p.worker_rep_absent_2) as c2,decode(p.worker_rep_absent_3,null,0,p.worker_rep_absent_3) as c3,
+decode(p.worker_rep_absent_4,null,0,p.worker_rep_absent_4) as c4,
+decode(p.worker_rep_absent_5,null,0,p.worker_rep_absent_5) as c5,
+decode(p.worker_rep_absent_6,null,0,p.worker_rep_absent_6) as c6,
+decode(p.worker_rep_absent_7,null,0,p.worker_rep_absent_7) as c7,
+decode(p.worker_rep_absent_8,null,0,p.worker_rep_absent_8) as c8,
+
+decode(p.mgmt_rep_absent,null,0,p.mgmt_rep_absent) as d1,decode(p.mgmt_rep_absent_2,null,0,p.mgmt_rep_absent_2) as d2,decode(p.mgmt_rep_absent_3,null,0,p.mgmt_rep_absent_3) as d3,
+decode(p.mgmt_rep_absent_4,null,0,p.mgmt_rep_absent_4) as d4,
+decode(p.mgmt_rep_absent_5,null,0,p.mgmt_rep_absent_5) as d5,
+decode(p.mgmt_rep_absent_6,null,0,p.mgmt_rep_absent_6) as d6,
+decode(p.mgmt_rep_absent_7,null,0,p.mgmt_rep_absent_7) as d7,
+decode(p.mgmt_rep_absent_8,null,0,p.mgmt_rep_absent_8) as d8,
+
+
+
+(a1+a2+a3+a4+a5+a6+a7+b1+b2+b3+b4+b5+b6+b7) as numerator,
+(a1+a2+a3+a4+a5+a6+a7+b1+b2+b3+b4+b5+b6+b7+c1+c2+c3+c4+c5+c6+c7+c8+d1+d2+d3+d4+d5+d6+d7+d8) as denominator from profile_16619 p
+
+
+ left join ds_mysql_prod_project fac 
+on p.projectId = fac.id
+
+ left join ds_mysql_prod_project ven 
+on fac.parent = ven.id
+
+ left join ds_mysql_prod_project cou 
+on ven.parent = cou.id
+
+
+group by p.projectId ,fac.name ,ven.name ,cou.name,region,year,p.name_subunit
