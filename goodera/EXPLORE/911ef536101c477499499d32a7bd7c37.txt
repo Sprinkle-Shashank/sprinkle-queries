@@ -1,13 +1,14 @@
-select a.projectid,a.indirect_reach, a.region, b.date,b.location,d.name as state,e.code as mapcode, g.code as country_mapcode,
-case 
-  when (extract(month from b.date) <=3) then ('FY' || (extract(year from b.date)-1999))
-  when (extract(month from b.date) >3) then ('FY'|| (extract(year from b.date)-1998))
-end as FY
-from profile_77543 a
-left join profile_78503 b on a.school_name = b._id
-left join ds_mysql_prod_tagelement c on c.id = b.location
-left join ds_mysql_prod_tagelement d on d.id = c.parent
-left join ds_mongo_reftagelementmetadata e
-on d.reftagelementmetadataid = e._id
-left join ds_mysql_prod_tagelement f on f.id = d.parent
-left join ds_mongo_reftagelementmetadata g on f.reftagelementmetadataid = g._id
+Select tt.name as projectid,tt2.name as imp_partner,tt3.name as sdg,s.beneficiary_type,tt4.name as business_unit,t1.amount_allocated,t2.update_disbursal,s.tar_bene,s.ach_bene,s.fy_timerange
+from profile_76974 s
+left join profile_2990 t1 on
+t1.projectid=s.projectid
+left join profile_1969 t2 on
+t2.projectid=s.projectid
+left join ds_mysql_prod_project tt
+on tt.id=s.projectid
+left join ds_mysql_prod_project tt2
+on tt2.id=tt.parent
+left join ds_mysql_prod_tagelement tt3
+on tt3.id=s.sdg
+left join ds_mysql_prod_tagelement tt4
+on tt4.id=s.business_unit
