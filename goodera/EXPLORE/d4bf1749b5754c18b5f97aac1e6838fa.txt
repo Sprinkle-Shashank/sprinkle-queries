@@ -1,12 +1,21 @@
 with table1 as (Select 
+				p.projid_factory as factory_id,
 				substring(projcode_factory,1,1) as code,
 				reverse(SPLIT_PART(reverse(projcode_factory), '-',1)) as code_brand,
 				case when code = 'F' then 1 else 0 end as codeStatus,
 				JSON_SERIALIZE(table_52810.pace_brands) as pace_brand,	
-				case when pace_brand like '%1151834%' then 1 else 0 end  as brand
+				case when pace_brand like '%1151834%' then 1 else 0 end  as brand,
+				table_4227.start_date as start_date,
+				table_4227.select_modules as select_modules
 
 				from profile_54646 p
 inner join profile_52810 table_52810 on
 table_52810.projectId = p.projectId
+
+left join profile_4227 table_4227 on
+table_4227.projectId = p.projid_factory
+				
+left join profile_71993 table_71993 on
+table_71993.projectId = p.projectId
 )
 select * from table1 p where codeStatus = 1 and brand = 1
