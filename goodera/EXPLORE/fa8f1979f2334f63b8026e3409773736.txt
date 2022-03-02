@@ -8,14 +8,14 @@ with test1 as (
   	left join ds_mysql_prod_tagelement tag1
 	on tag1.id = profile_63885.clinic_type
   	where tag1.name != 'OPD'
-),
+)/*,
 test2 as (
 	select concat(p.f_reg_date,concat('|',p.f_reg_date)) as fy_timerange, projectid, f_category,
   	tag1.name as s_clinic_type,search_status
   	from profile_59462 p
   	left join ds_mysql_prod_tagelement tag1
 	on tag1.id = p.s_clinic_type
-),
+)*/,
 final as (
   	select concat(cast(fy_timerange.start as varchar), concat('|', cast(fy_timerange.end as varchar))) as fy_timerange, projectid, f_category,clinic_type,
 	sum(final_sum) as final_sum
@@ -24,9 +24,11 @@ final as (
   
   	union all
   
-  	select fy_timerange, projectid, f_category,s_clinic_type, count(*) as final_sum
-  	from test2
+  	select concat(p.f_reg_date,concat('|',p.f_reg_date)) as fy_timerange, projectid, f_category,tag1.name as s_clinic_type, count(*) as final_sum
+  	from profile_59462 p
   	where search_status in ('NEW','RENEW','REVISIT')
+  	left join ds_mysql_prod_tagelement tag1
+	on tag1.id = p.s_clinic_type
   	group by 1,2,3,4
 ),
 ff as (
