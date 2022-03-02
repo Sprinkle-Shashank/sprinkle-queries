@@ -6,7 +6,8 @@ table2 as(select * from table1
 		  where row =1
 		  
 ),
-table3 as(select p.projectId , p.name , p.status,cou.name as country , ven.name as vendor, fac.name as factory , p.date_enrollment , p.worker_rep , p.mgmt_rep,t2.total_workers,
+
+table3 as(select p.projectId , p.name , p.status,cou.name as country , ven.name as vendor, fac.name as factory , p2.date_enrollment , p2.worker_rep , p2.mgmt_rep,t2.total_workers,
 
 case when country in ('India', 'Bangladesh', 'Sri Lanka')
 then 'South Asia'
@@ -18,7 +19,7 @@ when country in ('Philippines', 'Cambodia',  'Vietnam',  'Indonesia', 'Myanmar')
 then 'South East Asia'
 end as region
 
-from profile_16619 p
+from profile_31726 p
 
 
 
@@ -29,11 +30,15 @@ on fac.parent = ven.id
 left join ds_mysql_prod_project cou
 on ven.parent = cou.id
 
-left join table2 t2 
+left join table2 t2
 on p.projectid = t2.projectid
 
-where p.projectId ilike '%%' and (cou.name <> 'Test Country' and cou.name <> 'GAP Inc.') and (p.status = 1400365 or p.status is null) 
+left join profile_16619 p2
+on p.projectid = p2.projectid
 
-group by  p.projectId , p.name , p.status, cou.name ,ven.name ,fac.name, p.worker_rep ,p.mgmt_rep,p.date_enrollment ,t2.total_workers,region
+where p.projectId ilike '%%' and (cou.name <> 'Test Country' and cou.name <> 'GAP Inc.') and (p2.status = 1400365 or p2.status is null) 
+
+group by  p.projectId ,  p2.status, cou.name ,ven.name ,fac.name, p2.worker_rep ,p2.mgmt_rep,p2.date_enrollment ,region,t2.total_workers
 )
 select * from table3
+
