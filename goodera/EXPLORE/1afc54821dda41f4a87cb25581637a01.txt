@@ -1,4 +1,4 @@
-select total_workers ,
+select p1.total_workers ,
 cou.name as country , 
 nvl2(SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)),ven.name) as vendor_name, case when vendor_name='' then ven.name else vendor_name end as vendor, ven.id as vendorID , fac.name as facility , fac.id as facilityID ,
 p.name_subunit as unit,p.sub_unit,
@@ -13,4 +13,14 @@ then 'South East Asia'
 end as region , 
 DATEPART(YEAR,p.date_enrollment) as year_new 
 
-from profile_31726
+from profile_16619 p
+
+left join ds_mysql_prod_project fac
+on  p.projectid = fac.id
+left join ds_mysql_prod_project ven
+on fac.parent = ven.id
+left join ds_mysql_prod_project cou
+on ven.parent = cou.id
+
+left join profile_31726 p1
+on p.projectid = p1.projectid
