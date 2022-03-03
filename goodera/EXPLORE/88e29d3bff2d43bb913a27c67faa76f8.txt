@@ -1,9 +1,10 @@
+with s as (
 Select t.name as projectId, qi.fy_timerange, qi.location, qi.program_name,t2.name as Partner,t3.name as Country,t4.name as Region,sta.name as location1,cou.name as location2,
 case 
   when (extract(month from pd.end_date) <=2) then ('FY' || (extract(year from pd.end_date)-2000))
   when (extract(month from pd.end_date) >2) then ('FY'|| (extract(year from pd.end_date)+1-2000))
   end as FY,
-  sum(qi.male_indirect_beneficiaries+qi.male_direct_beneficiaries+qi.female_indirect_beneficiaries+qi.female_direct_beneficiaries+qi.neither_gender_indirect_beneficiaries+qi.neither_gender_direct_beneficiaries+qi.no_gender_disclosure_indirect_beneficiaries+qi.no_gender_disclosure_direct_beneficiaries) as Beneficiaries
+  (qi.male_indirect_beneficiaries+qi.male_direct_beneficiaries+qi.female_indirect_beneficiaries+qi.female_direct_beneficiaries+qi.neither_gender_indirect_beneficiaries+qi.neither_gender_direct_beneficiaries+qi.no_gender_disclosure_indirect_beneficiaries+qi.no_gender_disclosure_direct_beneficiaries) as Beneficiaries
 from dell_profile_67395 qi
 left join dell_profile_62886 pd on qi.program_name=pd._id
 left join ds_mysql_prod_project as t 
@@ -20,4 +21,9 @@ left join ds_mysql_prod_tagelement sta
 on cit.parent = sta.id
 left join ds_mysql_prod_tagelement cou
 on sta.parent = cou.id
-group by qi.projectId, qi.fy_timerange, qi.location, qi.program_name,t.name, t3.name, t4.name, sta.name, cou.name, FY, t2.name,pd.end_date
+
+)
+Select  projectId, fy_timerange,location, program_name,Partner, Country,Region,location1,location2,FY,
+  sum(Beneficiaries) Beneficiaries
+  from s
+  group by 1,2,3,4,5,6,7,8,9,10
