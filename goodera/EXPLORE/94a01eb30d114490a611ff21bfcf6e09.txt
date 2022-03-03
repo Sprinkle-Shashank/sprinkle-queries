@@ -1,0 +1,25 @@
+with test1 as (
+	select fy_timerange, projectid, 'NEW' as search_status, g_total_new as final_sum from profile_63885 
+  		union all
+  	select fy_timerange, projectid, 'RENEW' as search_status, g_total_renew as final_sum from profile_63885
+  		union all
+  	select fy_timerange, projectid, 'REVISIT' as search_status, g_total_repeat as final_sum from profile_63885
+),
+final as (
+  	select concat(cast(fy_timerange.start as varchar), concat('|', cast(fy_timerange.end as varchar))) as fy_timerange, projectid, search_status,
+	sum(final_sum) as final_sum
+  	from test1 where final_sum is not null
+  	group by 1,2,3
+  
+  	union all
+  
+  	select concat(p.f_reg_date,concat('|',p.f_reg_date)) as fy_timerange, projectid, search_status, count(*) as final_sum
+  	from profile_59462 p where search_status in ('NEW','RENEW','REVISIT')
+  	group by 1,2,3
+)
+
+select fy_timerange, project.name as projectid, search_status,sum(final_sum) as final_sum
+from final left join ds_mysql_prod_project as project
+on project.id = final.projectid where projectid like '%%'
+group by 1,2,3
+
