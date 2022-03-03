@@ -1,7 +1,7 @@
 with sub1 as(select p1.name as projectid,t4.name as Timerange,
 sum(
 case 
-  when keyword='co2_emissions_train' then databasenum
+  when keyword='co2_emissions_train' then datanumbase
   else 0
   end) as co2_emissions_train
 
@@ -11,9 +11,11 @@ left join ds_mysql_prod_tagelement t1 on t1.id=p1.financialPeriod
 left join ds_mysql_prod_tagelement t2 on t2.id=t1.parent
 left join ds_mysql_prod_tagelement t3 on t3.id=t2.parent
 left join ds_mysql_prod_tagelement t4 on t4.id=t3.parent
-where p1.keyword='co2_pm' and p1.datanumbase is not null)
+where p1.keyword='co2_emissions_train' and p1.datanumbase is not null
+group by 1,2)
 
 select projectid,Timerange, sum(co2_emissions_train) as Train 
 
 from sub1
 group by 1,2
+--1 record extra
