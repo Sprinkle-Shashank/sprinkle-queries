@@ -1,0 +1,30 @@
+select ven.name as vendor, cou.name as country , fac.name as factory , case when country in ('India', 'Bangladesh', 'Sri Lanka')
+then 'South Asia'
+when country in ('China')
+then 'North Asia'
+when country in ('Guatemala', 'El Salvador', 'Dominican Republic')
+then 'Americas'
+when country in ('Philippines', 'Cambodia',  'Vietnam',  'Indonesia', 'Myanmar')
+then 'South East Asia'
+end as region , 
+p.projectId ,mgmt_rep , worker_rep , mgmt_rep_2 , worker_rep_2 , mgmt_rep_3 , worker_rep_3 , mgmt_rep_4 , worker_rep_4 , mgmt_rep_5 , worker_rep_5 , mgmt_rep_6 , worker_rep_6 , mgmt_rep_7 , worker_rep_7 , mgmt_rep_8 , worker_rep_8 , mgmt_rep_9 , worker_rep_9 , 
+
+sum( mgmt_rep_2 + worker_rep_2 + mgmt_rep_3 + worker_rep_3 + mgmt_rep_4 + worker_rep_4 + mgmt_rep_5 + worker_rep_5 + mgmt_rep_6 + worker_rep_6 + mgmt_rep_7 + worker_rep_7 + mgmt_rep_8 + worker_rep_8 + mgmt_rep_9 + worker_rep_9) as numerator , 
+
+sum(mgmt_rep + worker_rep) as denominator 
+
+from profile_16619 p
+
+
+left join ds_mysql_prod_project fac
+on p.projectid = fac.id
+left join ds_mysql_prod_project ven
+on fac.parent = ven.id
+left join ds_mysql_prod_project cou
+on ven.parent = cou.id
+
+where (date, date_2 , date_3 , date_4 , date_5 , date_6 , date_7 , date_8) is not null
+and
+(country <> 'Test Country' and country <> 'GAP Inc.')
+
+group by ven.name , cou.name , fac.name , p.mgmt_rep , p.worker_rep , p.mgmt_rep_2 , p.worker_rep_2 , p.mgmt_rep_3 , p.worker_rep_3 , p.mgmt_rep_4 , p.worker_rep_4 , p.mgmt_rep_5 , p.worker_rep_5 , p.mgmt_rep_6 , p.worker_rep_6 , p.mgmt_rep_7 , p.worker_rep_7 , p.mgmt_rep_8 , p.worker_rep_8 , p.mgmt_rep_9 , p.worker_rep_9 
