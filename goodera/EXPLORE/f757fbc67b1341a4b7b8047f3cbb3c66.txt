@@ -1,4 +1,4 @@
-select p._id,p.projectId as project,fac.name as factory,ven.name as vendor1,nvl2(SUBSTRING(vendor1, 1, POSITION(' (' in vendor1)), SUBSTRING(vendor1, 1, POSITION(' (' in vendor1)), vendor1) as vendor_name, case when vendor_name='' then vendor1 else vendor_name end as vendor,case when country in ('India', 'Bangladesh', 'Sri Lanka')
+select p.projectId as project,fac.name as factory,ven.name as vendor1,nvl2(SUBSTRING(vendor1, 1, POSITION(' (' in vendor1)), SUBSTRING(vendor1, 1, POSITION(' (' in vendor1)), vendor1) as vendor_name, case when vendor_name='' then vendor1 else vendor_name end as vendor,cou.name as country,case when country in ('India', 'Bangladesh', 'Sri Lanka')
 then 'South Asia'
 when country in ('China')
 then 'North Asia'
@@ -6,7 +6,7 @@ when country in ('Guatemala', 'El Salvador', 'Dominican Republic')
 then 'Americas'
 when country in ('Philippines', 'Cambodia',  'Vietnam',  'Indonesia', 'Myanmar')
 then 'South East Asia'
-end as region,cou.name as country,DATEPART(YEAR,p1.date_enrollment) as year_new,edu.name as knowledge,p1.name_subunit as unit,p1.status from profile_16864 p
+end as region,DATEPART(YEAR,p1.date_enrollment) as year_new,edu.name as knowledge,p1.name_subunit as unit,p1.status from profile_16864 p
 
 left join profile_16619 p1
 on p.projectId = p.projectId
@@ -25,4 +25,4 @@ on p.knowledge = edu.id
 where edu.name = 'Yes' and (cou.name <> 'Test Country' and cou.name <> 'GAP Inc.') and (p1.status = 1400365 or p1.status is null) and
  (project ilike '%%')
 
-group by p._id,p.projectId,fac.name,ven.name,vendor,cou.name,region,year_new,edu.name,p1.name_subunit,p1.status
+group by p.projectId,fac.name,ven.name,vendor,cou.name,region,year_new,edu.name,p1.name_subunit,p1.status
