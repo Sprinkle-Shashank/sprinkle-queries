@@ -7,9 +7,9 @@ with temp as (
 ),
 
 sub1 as(
-Select qi.projectId,qi.program_name, qi.fy_timerange,qi.male_indirect_beneficiaries, qi.beneficiaries_enrolled as "Direct_beneficiaries", qi.female_indirect_beneficiaries, qi.no_gender_disclosure_indirect_beneficiaries, qi.neither_gender_indirect_beneficiaries, t2.name as Partner,t3.name as Country,t4.name as Region,tt1.name as location_1,tt2.name as location_2,ttt.code as "location_map_code",ttt1.code as "location_1_map_code",ttt2.code as  "location_2_map_code",
-(qi.male_indirect_beneficiaries+qi.female_indirect_beneficiaries+qi.neither_gender_indirect_beneficiaries+qi.no_gender_disclosure_indirect_beneficiaries) "Indirect_beneficiaries",
-(qi.male_indirect_beneficiaries+qi.female_indirect_beneficiaries+qi.neither_gender_indirect_beneficiaries+qi.no_gender_disclosure_indirect_beneficiaries+qi.beneficiaries_enrolled) "Total_beneficiaries",q2.end_date,
+Select qi.projectId,qi.program_name, qi.fy_timerange,qi.male_indirect_beneficiaries, qi.beneficiaries_enrolled as direct_beneficiaries, qi.female_indirect_beneficiaries, qi.no_gender_disclosure_indirect_beneficiaries, qi.neither_gender_indirect_beneficiaries, t2.name as Partner,t3.name as Country,t4.name as Region,tt1.name as location_1,tt2.name as location_2,ttt.code as "location_map_code",ttt1.code as "location_1_map_code",ttt2.code as  "location_2_map_code",
+(qi.male_indirect_beneficiaries+qi.female_indirect_beneficiaries+qi.neither_gender_indirect_beneficiaries+qi.no_gender_disclosure_indirect_beneficiaries) as indirect_beneficiaries,
+(qi.male_indirect_beneficiaries+qi.female_indirect_beneficiaries+qi.neither_gender_indirect_beneficiaries+qi.no_gender_disclosure_indirect_beneficiaries+qi.beneficiaries_enrolled) as total_beneficiaries,q2.end_date,
 case 
   when (extract(month from q2.end_date) <=2) then ('FY' || (extract(year from q2.end_date)-2000))
   when (extract(month from q2.end_date) >2) then ('FY'|| (extract(year from q2.end_date)+1-2000))
@@ -42,9 +42,9 @@ left join ds_mysql_prod_project as t
  
  Select projectId,program_name, fy_timerange,Partner, Country, Region,location_1,location_2,location_map_code "location_map code",location_1_map_code "location_1_map code",location_2_map_code "location_2_map code",FY,temp.col as Dimensions,
  sum(case col
- 	when 'Direct beneficiaries' then sub1.Direct_beneficiaries
-	when 'Indirect beneficiaries' then sub1.Indirect_beneficiaries
-	when 'Total beneficiaries' then sub1.Total_beneficiaries
+ 	when 'Direct beneficiaries' then sub1.direct_beneficiaries
+	when 'Indirect beneficiaries' then sub1.indirect_beneficiaries
+	when 'Total beneficiaries' then sub1.total_beneficiaries
 	else null
 	end) as Value
  from sub1
