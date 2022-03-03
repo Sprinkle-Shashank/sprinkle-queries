@@ -1,0 +1,54 @@
+with temp as (
+  Select 'Direct beneficiaries' as col
+  union all
+  Select 'Indirect beneficiaries' as col
+  union all
+  Select 'Total beneficiaries' as col
+),
+
+sub1 as(
+Select t.name projectId,qi.program_name, qi.fy_timerange,qi.male_indirect_beneficiaries, qi.beneficiaries_enrolled as direct_beneficiaries, qi.female_indirect_beneficiaries, qi.no_gender_disclosure_indirect_beneficiaries, qi.neither_gender_indirect_beneficiaries, t2.name as Partner,t3.name as Country,t4.name as Region,tt1.name as location_1,tt2.name as location_2,ttt.code as "location_map_code",ttt1.code as "location_1_map_code",ttt2.code as  "location_2_map_code",
+(qi.male_indirect_beneficiaries+qi.female_indirect_beneficiaries+qi.neither_gender_indirect_beneficiaries+qi.no_gender_disclosure_indirect_beneficiaries) as indirect_beneficiaries,
+(qi.male_indirect_beneficiaries+qi.female_indirect_beneficiaries+qi.neither_gender_indirect_beneficiaries+qi.no_gender_disclosure_indirect_beneficiaries+qi.beneficiaries_enrolled) as total_beneficiaries,q2.end_date,
+case 
+  when (extract(month from q2.end_date) <=2) then ('FY' || (extract(year from q2.end_date)-2000))
+  when (extract(month from q2.end_date) >2) then ('FY'|| (extract(year from q2.end_date)+1-2000))
+  end as FY
+
+FROM PROFILE_67395 qi
+left join profile_62886 q2
+on qi.program_name=q2._id
+left join ds_mysql_prod_project as t 
+  on qi.projectId = t.id
+  left join ds_mysql_prod_project as t2
+  on t.parent=t2.id
+  left join ds_mysql_prod_project as t3
+  on t2.parent=t3.id 
+  left join ds_mysql_prod_project as t4
+  on t3.parent=t4.id
+  left join ds_mysql_prod_tagelement tt
+  on qi.location =tt.id
+  left join ds_mysql_prod_tagelement tt1
+  on tt.parent =tt1.id
+  left join ds_mysql_prod_tagelement tt2
+  on tt1.parent =tt2.id
+  left join ds_mongo_reftagelementmetadata ttt
+  on tt.reftagelementmetadataid=ttt._id
+  left join ds_mongo_reftagelementmetadata ttt1
+  on tt1.reftagelementmetadataid=ttt1._id
+   left join ds_mongo_reftagelementmetadata ttt2
+  on tt2.reftagelementmetadataid=ttt2._id
+ ) 
+ 
+ Select projectId,program_name, fy_timerange,Partner, Country, Region,location_1,location_2,location_map_code "location_map code",location_1_map_code "location_1_map code",location_2_map_code "location_2_map code",FY,temp.col as Dimensions,
+ sum(case col
+ 	when 'Direct beneficiaries' then sub1.direct_beneficiaries
+	when 'Indirect beneficiaries' then sub1.indirect_beneficiaries
+	when 'Total beneficiaries' then sub1.total_beneficiaries
+	else null
+	end) as Value
+ from sub1
+ cross join temp
+ where location_map_code is not null and Region ='NA'
+ group by  projectId,program_name, fy_timerange,Partner, Country, Region,location_1,location_2,location_map_code,location_1_map_code,location_2_map_code,FY,temp.col
+ 
