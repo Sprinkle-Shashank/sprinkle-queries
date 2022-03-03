@@ -1,0 +1,63 @@
+with temp as (
+  Select 'beneficiaries_enrolled_for_first_time' as col
+  union all
+  Select 'beneficiaries_completing_vocational_training' as col
+  union all
+  Select 'beneficiaries_enrolled' as col
+  union all
+  Select 'underrepresented_beneficiaries_direct' as col
+  union all
+  Select 'underrepresented_beneficiaries_indirect' as col
+  union all
+  Select 'beneficiaries_completed_the_program' as col
+  union all
+  Select 'beneficiary_learning_training_hours' as col
+  union all
+  Select 'beneficiaries_placed_in_an_internship_job_shadow' as col
+  union all
+  Select 'beneficiaries_successfully_receiving_certification' as col
+  union all
+  Select 'beneficiaries_placed_in_full_time_job' as col
+  union all
+  
+)
+Select projectId, t2.name as Partner,t3.name as Country,t4.name as Region,fy_timerange, program_name, temp.col as Dimensions,
+sum(case col 
+    When 'beneficiaries_enrolled_for_first_time'  then qi.beneficiaries_enrolled_for_first_time
+   
+  When 'beneficiaries_completing_vocational_training'  then qi.beneficiaries_completing_vocational_training
+   
+  When 'beneficiaries_enrolled'  then qi.beneficiaries_enrolled
+   
+  When 'underrepresented_beneficiaries_direct'  then qi.underrepresented_beneficiaries_direct
+   
+  When 'underrepresented_beneficiaries_indirect'  then qi.underrepresented_beneficiaries_indirect
+   
+  When 'beneficiaries_completed_the_program'  then qi.beneficiaries_completed_the_program
+   
+  When 'beneficiary_learning_training_hours'  then qi.beneficiary_learning_training_hours
+   
+  When 'beneficiaries_placed_in_an_internship_job_shadow'  then qi.beneficiaries_placed_in_an_internship_job_shadow
+   
+  When 'beneficiaries_successfully_receiving_certification'  then qi.beneficiaries_successfully_receiving_certification
+   
+  When 'beneficiaries_placed_in_full_time_job'  then qi.beneficiaries_placed_in_full_time_job
+  
+  else null
+  end) as Values,
+  case 
+  when temp.col like '%indirect%' then 'Indirect'
+   when temp.col like '%direct%' then 'Direct'
+   else null
+   end as Beneficiary_type
+  
+from profile_67395 qi
+cross join temp
+left join ds_mysql_prod_project as t 
+  on qi.projectId = t.id
+  left join ds_mysql_prod_project as t2
+  on t.parent=t2.id
+  left join ds_mysql_prod_project as t3
+  on t2.parent=t3.id 
+  left join ds_mysql_prod_project as t4
+  on t3.parent=t4.id
