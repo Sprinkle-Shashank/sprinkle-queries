@@ -1,6 +1,6 @@
 with table1 as
 (
-  select p.projectid , p._id , cou.name as country_1 , fac_c_i.name as fac_c_i_1 , vendor_n_i.name as vendor_n_i_1 , primary_category_id.name as primary_category_id_1  from profile_52810 as p
+  select p.projectid , p._id , cou.name as country_1 , fac_c_i.name as fac_c_i_1 ,  fac_cl_vpid as fac_c_i_update , vendor_n_i.name as vendor_n_i_1 , vendor_ngo_id as vendor_n_i_update, primary_category_id.name as primary_category_id_1  from profile_52810 as p
   
   left join ds_mysql_prod_tagelement cou on 
   p.country = cou.id 
@@ -13,7 +13,7 @@ with table1 as
   
   left join ds_mysql_prod_tagelement primary_category_id on
   p.primary_category = primary_category_id.id 
-  
+
   ),
   
   table2 as 
@@ -38,7 +38,7 @@ with table1 as
 
 	 table6 as 
 	 (
-	    select p.projectid , p._id ,fac_c_i_1 , row_number() over 
+	    select p.projectid , p._id ,fac_c_i_1 , vendor_n_i_update , fac_c_i_update, row_number() over 
 (partition by p.projectid
  order by p._id desc) as row from table1 p 
 	  ),
@@ -97,7 +97,7 @@ select p.projectid , fac.name as factory_name, ven.name as vendor, cou.name as c
 
 	, avg(p3.saturation) as saturation_update , 
 	
-	case when saturation_update is null then 0 else saturation_update end as saturation_update_1 , trainer_org , num_male , num_female , prospect_total , total_other_participants
+	case when saturation_update is null then 0 else saturation_update end as saturation_update_1 , trainer_org , num_male , num_female , prospect_total , total_other_participants  , vendor_n_i_update, fac_c_i_update
 	
 	from profile_64075 p
 
@@ -137,12 +137,9 @@ p.projectid = p8.projectid
 	
 where vendor ilike '%vendor:%'
 
-	group by  p._id, p.projectId, p.remarks, p.name, training_id, p.project_name, p.trainer_org, p.date_1, p.date, p.num_female, p.num_male, p.prospect_female, p.total_supervisors, p.total_other_participants, p.prospect_total, p.prospect_male , t5.country_1 , t7.fac_c_i_1 , t9.vendor_n_i_1 , t2.primary_category_id_1 , cou.name , ven.name , fac.name , vendor_name , vendor_1 , p4.date , p4.responsible_person , p4.single_multi_update , training_type , date_update , p6.male_certified , p6.female_certified , p8.users_sst , p8.gap_sst , male_certified_update , female_certified_update , trainer_org , num_male , num_female , prospect_total , total_other_participants  
+	group by  p._id, p.projectId, p.remarks, p.name, training_id, p.project_name, p.trainer_org, p.date_1, p.date, p.num_female, p.num_male, p.prospect_female, p.total_supervisors, p.total_other_participants, p.prospect_total, p.prospect_male , t5.country_1 , t7.fac_c_i_1 , t9.vendor_n_i_1 , t2.primary_category_id_1 , cou.name , ven.name , fac.name , vendor_name , vendor_1 , p4.date , p4.responsible_person , p4.single_multi_update , training_type , date_update , p6.male_certified , p6.female_certified , p8.users_sst , p8.gap_sst , male_certified_update , female_certified_update , trainer_org , num_male , num_female , prospect_total , total_other_participants , vendor_n_i_update, fac_c_i_update
 	
 	)
 	
-	select * from table3
+	select * from table3 where projectid ilike '%%'
 	
-	
-	
-	/* everything is added in the query as per requirement */
