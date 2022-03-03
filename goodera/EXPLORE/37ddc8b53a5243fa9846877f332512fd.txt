@@ -18,9 +18,9 @@ with temp as (
   Select 'beneficiaries_successfully_receiving_certification' as col
   union all
   Select 'beneficiaries_placed_in_full_time_job' as col
-  union all
-  
-)
+    
+),
+s1 as (
 Select projectId, t2.name as Partner,t3.name as Country,t4.name as Region,fy_timerange, program_name, temp.col as Dimensions,
 sum(case col 
     When 'beneficiaries_enrolled_for_first_time'  then qi.beneficiaries_enrolled_for_first_time
@@ -48,7 +48,7 @@ sum(case col
   case 
   when temp.col like '%indirect%' then 'Indirect'
    when temp.col like '%direct%' then 'Direct'
-   else null
+   else 'NA'
    end as Beneficiary_type
   
 from profile_67395 qi
@@ -61,3 +61,10 @@ left join ds_mysql_prod_project as t
   on t2.parent=t3.id 
   left join ds_mysql_prod_project as t4
   on t3.parent=t4.id
+  group by 1,2,3,4,5,6,7
+  )
+  
+  Select Beneficiary_type,count(*)
+  from s1
+  where Beneficiary_type !='NA'
+  group by 1 
