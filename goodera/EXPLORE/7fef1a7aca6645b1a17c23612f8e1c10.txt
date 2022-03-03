@@ -1,7 +1,7 @@
 
 
-select  date, date_2 , date_3 , date_4 , date_5 , date_6 , date_7 , date_8, coalesce(mgmt_rep_absent , 0) as m1 ,   coalesce(worker_rep_absent , 0) as w1 , coalesce(mgmt_rep_absent_2 ,0) as m2 ,coalesce( worker_rep_absent_2 , 0) as w2 , coalesce(mgmt_rep_absent_3 , 0) as m3 , coalesce( worker_rep_absent_3 ,0) as w3 , coalesce( mgmt_rep_absent_4 , 0) as m4 , coalesce( worker_rep_absent_4 ,0) as w4 , coalesce( mgmt_rep_absent_5 ,0) as m5 , coalesce( worker_rep_absent_5 ,0) as w5 , coalesce( mgmt_rep_absent_6 ,0) as m6 , coalesce( worker_rep_absent_6 , 0) as w6 , coalesce(mgmt_rep_absent_7 , 0) as m7 , coalesce(worker_rep_absent_7 ,0) as w7, coalesce( mgmt_rep_absent_8 ,0) as m8 , coalesce( worker_rep_absent_8 , 0) as w8 ,
-ven.name as vendor, cou.name as country , fac.name as factory , case when country in ('India', 'Bangladesh', 'Sri Lanka')
+select  date, date_2 , date_3 , date_4 , date_5 , date_6 , date_7 , date_8, coalesce(mgmt_rep_absent , 0) as m1 ,   coalesce(worker_rep_absent , 0) as w1 , coalesce(mgmt_rep_absent_2 ,0) as m2 ,coalesce( worker_rep_absent_2 , 0) as w2 , coalesce(mgmt_rep_absent_3 , 0) as m3 , coalesce( worker_rep_absent_3 ,0) as w3 , coalesce( mgmt_rep_absent_4 , 0) as m4 , coalesce( worker_rep_absent_4 ,0) as w4 , coalesce( mgmt_rep_absent_5 ,0) as m5 , coalesce( worker_rep_absent_5 ,0) as w5 , coalesce( mgmt_rep_absent_6 ,0) as m6 , coalesce( worker_rep_absent_6 , 0) as w6 , coalesce(mgmt_rep_absent_7 , 0) as m7 , coalesce(worker_rep_absent_7 ,0) as w7, coalesce( mgmt_rep_absent_8 ,0) as m8 , coalesce( worker_rep_absent_8 , 0) as w8 , DATEPART(YEAR,date_enrollment) as year_new, fac.name as factory,cou.name as country,ven.name as vendor1,nvl2(SUBSTRING(vendor1, 1, POSITION(' (' in vendor1)), SUBSTRING(vendor1, 1, POSITION(' (' in vendor1)), vendor1) as vendor_name, case when vendor_name='' then vendor1 else vendor_name end as vendor,case when vendor_name='' then vendor1 else vendor_name end as vendor,decode(name_subunit,' ','NA',name_subunit) as unit
+, case when country in ('India', 'Bangladesh', 'Sri Lanka')
 then 'South Asia'
 when country in ('China')
 then 'North Asia'
@@ -33,9 +33,11 @@ on ven.parent = cou.id
 
 where (date, date_2 , date_3 , date_4 , date_5 , date_6 , date_7 , date_8) is not null
 and
+projectId ilike '%%'
+and
 (country <> 'Test Country' and country <> 'GAP Inc.')
 and 
 (p.status = 1400365 or p.status is null)
 
 group by p.date, p.date_2 , p.date_3 , p.date_4 , p.date_5 , p.date_6 , p.date_7 , p.date_8 , p.mgmt_rep_absent , p.worker_rep_absent , p.mgmt_rep_absent_2 , p.worker_rep_absent_2 , p.mgmt_rep_absent_3 , p.worker_rep_absent_3 , p.mgmt_rep_absent_4 , p.worker_rep_absent_4 , p.mgmt_rep_absent_5 , p.worker_rep_absent_5 , p.mgmt_rep_absent_6 , p.worker_rep_absent_6 , p.mgmt_rep_absent_7 , p.worker_rep_absent_7 , p.mgmt_rep_absent_8 , p.worker_rep_absent_8
-, ven.name , cou.name , fac.name, region , p.projectId
+, ven.name , vendor, cou.name , fac.name, region , unit, p.year_name, p.projectId
