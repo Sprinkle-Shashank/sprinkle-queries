@@ -83,6 +83,14 @@ select * from table1
 ),
 brand_table as ( select projectid,brand_old,pace_brand from profile_52810 p , p.pace_brands pace_brand ),
 
+table5 as ( select _id,select_module from profile_4227 p, p.select_modules select_module ),
+table6 as (select _id, listagg(module.name,',') as select_module from table5 t5
+left join ds_mysql_prod_tagelement module
+on t5.select_module = module.id
+		    
+		  group by _id 
+		   ),
+
 test as (					 
 select p._id,p.projectid,
 case when add_factory.sourcing_yn =57472 and t2.facility_status = 845114 then   		  			mapping.name_factory
@@ -162,7 +170,8 @@ left join ds_mysql_prod_tagelement as brand_pace
 on brand_table.pace_brand = brand_pace.id  
 left join ds_mysql_prod_tagelement as status
 on f_id.pace_status_2 = status.id  
-  
+left join table6 t6 on
+p._id=t6._id  
 --where end_date_2 is not null
 )
 
