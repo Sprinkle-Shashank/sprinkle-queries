@@ -1,7 +1,10 @@
-Select t.name projectId, t2.name as Partner,t3.name as Country,t4.name as Region,qi.location
+Select qi.projectId,qi.program_name, qi.male_indirect_beneficiaries, qi.beneficiaries_enrolled as "Direct beneficiaries", qi.female_indirect_beneficiaries, qi.no_gender_disclosure_indirect_beneficiaries, qi.neither_gender_indirect_beneficiaries, t2.name as Partner,t3.name as Country,t4.name as Region,tt.name as location,ttt.code ,
+(qi.male_indirect_beneficiaries+qi.female_indirect_beneficiaries+qi.neither_gender_indirect_beneficiaries+qi.no_gender_disclosure_indirect_beneficiaries) "Indirect beneficiaries",
+(qi.male_indirect_beneficiaries+qi.female_indirect_beneficiaries+qi.neither_gender_indirect_beneficiaries+qi.no_gender_disclosure_indirect_beneficiaries+qi.Direct beneficiaries) "Total beneficiaries",q2.end_date,t2.name as Partner,t3.name as Country,t4.name as Region
 
 FROM PROFILE_67395 qi
-
+left join profile_62886 q2
+on qi.program_name=q2._id
 left join ds_mysql_prod_project as t 
   on qi.projectId = t.id
   left join ds_mysql_prod_project as t2
@@ -10,3 +13,7 @@ left join ds_mysql_prod_project as t
   on t2.parent=t3.id 
   left join ds_mysql_prod_project as t4
   on t3.parent=t4.id
+  left join ds_mysql_prod_tagelement tt
+  on qi.location =tt.id
+  left join ds_mongo_reftagelementmetadata ttt
+  on tt.reftagelementmetadataid=ttt._id
