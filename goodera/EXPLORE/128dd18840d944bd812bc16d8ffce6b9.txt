@@ -59,7 +59,7 @@ factory_locationid as (
 table1 as ( select  p._id, p.projectid,q.factory_vpid as location_id,
 		   row_number() over 
            (partition by p._id
-            order by p._id desc) as row,r.cp_location_id from  profile_4227 p
+            order by p._id desc) as row,r.cp_location_id,q.pace_stauts_2 from  profile_4227 p
 				  left join profile_52713 q on
                   p.projectid = q.projectid
 		          left join profile_4948 r on
@@ -68,7 +68,7 @@ table1 as ( select  p._id, p.projectid,q.factory_vpid as location_id,
                   on p.projectid = pro.id
 		          where  location_id is not null and cp_location_id is null
   ),
-table2 as (select p._id,p.projectid,q.cp_location_id as location_id from profile_4227 p
+table2 as (select p._id,p.projectid,q.cp_location_id as location_id,q.pace_status_2 from profile_4227 p
 		   left join profile_4948 q on
 		   p.projectid = q.projectid
 		  where  location_id is not null
@@ -76,9 +76,9 @@ table2 as (select p._id,p.projectid,q.cp_location_id as location_id from profile
  table3 as ( 
 select * from table1  
  where row = 1)
- select _id,projectid,location_id from table3
+ select _id,projectid,location_id,pace_status_2 from table3
  union all
-  select _id,projectid,location_id from table2
+  select _id,projectid,location_id,pace_status_2 from table2
   /* 99 factories are not there in add_factory*/
 ),
 brand_table as ( select projectid,brand_old,pace_brand from profile_52810 p , p.pace_brands pace_brand ),
@@ -98,7 +98,7 @@ case when add_factory.sourcing_yn =57472 then vpid_1
      when add_factory.sourcing_yn =57473 and add_factory.pace_status_2 = 845114  then    		factory_vpid_2
 	 when add_community.pace_status = 182398 then add_community.cp_id  end as     			 vpid_and_cpid, 
     mapping.name_country, start_year as financial_year, 
-case when   factory ilike '%CP%' then add_community.pace_stauts_2
+case when   factory ilike '%CP%' then add_community.pace_status_2
      else add_factory.pace_status_2 end as "pace status"
   
   
@@ -166,10 +166,10 @@ on brand_table.pace_brand = brand_pace.id
 --where end_date_2 is not null
 )
 
-select * from test
-where factory is not null 
+/*select * from test
+where factory is not null */
 
---select * from brand_table
+select * from factory_locationid
 
 
 
