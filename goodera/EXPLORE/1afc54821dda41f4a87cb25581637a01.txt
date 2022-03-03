@@ -1,21 +1,16 @@
-with table1 as 
-(
-  select status, cou.name as country , ven.name as vendor, fac.name as factory  , (mgmt_rep_2 + worker_rep_2 +mgmt_rep_3 + worker_rep_3 + mgmt_rep_4 + worker_rep_4 + mgmt_rep_5 + worker_rep_5 + mgmt_rep_6 + worker_rep_6 + mgmt_rep_7 + worker_rep_7+mgmt_rep_8 + worker_rep_8 +mgmt_rep_9 + worker_rep_9) as num ,
+select total_workers ,
+cou.name as country , 
+nvl2(SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)),ven.name) as vendor_name, case when vendor_name='' then ven.name else vendor_name end as vendor, ven.id as vendorID , fac.name as facility , fac.id as facilityID ,
+p.name_subunit as unit,p.sub_unit,
+case when country in ('India', 'Bangladesh', 'Sri Lanka')
+then 'South Asia'
+when country in ('China')
+then 'North Asia'
+when country in ('Guatemala', 'El Salvador', 'Dominican Republic')
+then 'Americas'
+when country in ('Philippines', 'Cambodia',  'Vietnam',  'Indonesia', 'Myanmar')
+then 'South East Asia'
+end as region , 
+DATEPART(YEAR,p.date_enrollment) as year_new 
 
-(mgmt_rep_absent_2 + worker_rep_absent_2 +mgmt_rep_absent_3 + worker_rep_absent_3 + mgmt_rep_absent_4 + worker_rep_absent_4 + mgmt_rep_absent_5 + worker_rep_absent_5 + mgmt_rep_absent_6 + worker_rep_absent_6 + mgmt_rep_absent_7 + worker_rep_absent_7+ mgmt_rep_absent_8 + worker_rep_absent_8) as den
-
-from profile_16619 
-
-left join ds_mysql_prod_project fac
-on  projectid = fac.id
-left join ds_mysql_prod_project ven
-on fac.parent = ven.id
-left join ds_mysql_prod_project cou
-on ven.parent = cou.id
-
-where projectId ilike '%%' and cou.name <> 'Test Country' and (status = 1400365 or status is null) 
-
---group by  projectId ,status ,cou.name , ven.name , fac.name ,
-  
-  )
-  select (num/(num+den)) from table1
+from profile_31726
