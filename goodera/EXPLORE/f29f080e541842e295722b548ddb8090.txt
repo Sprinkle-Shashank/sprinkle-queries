@@ -1,4 +1,12 @@
-select  p.projectId as project,DATEPART(YEAR,date_enrollment) as year_new,fac.name as factory,cou.name as country,ven.name as vendor,name_subunit as subunit,p.date_enrollment,p.date_completion,p.status,count(DISTINCT factory) as counts from profile_16619 p
+select  p.projectId as project,DATEPART(YEAR,date_enrollment) as year_new,fac.name as factory,cou.name as country, ven.name as vendor1,nvl2(SUBSTRING(vendor1, 1, POSITION(' (' in vendor1)), SUBSTRING(vendor1, 1, POSITION(' (' in vendor1)), vendor1) as vendor_name, case when vendor_name='' then vendor1 else vendor_name end as vendor,case when vendor_name='' then vendor1 else vendor_name end as vendor,decode(name_subunit,' ','NA',name_subunit) as unit, case when country in ('India', 'Bangladesh', 'Sri Lanka')
+then 'South Asia'
+when country in ('China')
+then 'North Asia'
+when country in ('Guatemala', 'El Salvador', 'Dominican Republic')
+then 'Americas'
+when country in ('Philippines', 'Cambodia',  'Vietnam',  'Indonesia', 'Myanmar')
+then 'South East Asia'
+end as region,p.date_enrollment,p.date_completion,p.status,count(DISTINCT factory) as counts from profile_16619 p
 
 
 left join ds_mysql_prod_project fac
@@ -11,6 +19,6 @@ on ven.parent = cou.id
 where (p.date_completion is not null) and (p.status = 1400365 or p.status is null) 
 and
 cou.name <> 'Test Country'
-group by project,year_new,fac.name,cou.name,ven.name,subunit,p.date_enrollment,p.date_completion,p.status
+group by project,year_new,fac.name,cou.name,ven.name,vendor , region , unit,p.date_enrollment,p.date_completion,p.status
 
 
