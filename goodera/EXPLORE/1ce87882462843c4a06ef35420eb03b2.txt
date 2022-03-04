@@ -1,0 +1,24 @@
+with s as(
+Select  t4.name as region,
+
+case
+  when (extract(month from sq.end_date) <=2) then ('FY' || (extract(year from sq.end_date)-2000))
+  when (extract(month from sq.end_date) >2) then ('FY'|| (extract(year from sq.end_date)+1-2000))
+  end as FY
+FROM dell_profile_62886 sq
+left join ds_mysql_prod_project as t 
+  on sq.projectId = t.id
+  left join ds_mysql_prod_project as t2
+  on t.parent=t2.id
+  left join ds_mysql_prod_project as t3
+  on t2.parent=t3.id  
+  left join ds_mysql_prod_project t4
+  on t3.parent=t4.id 
+WHERE sq.projectId != '51739' 
+),
+s2 as (
+Select FY,region from s group by FY,region)
+Select *,case 
+	when 1=1 then 1
+	else 0
+	end as count, from s2
