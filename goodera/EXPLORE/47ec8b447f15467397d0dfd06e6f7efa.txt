@@ -1,0 +1,35 @@
+select 
+date, date_2 , date_3 , date_4 , date_5 , date_6 , date_7 , date_8, 
+count (date) as d1 , count(date_2) as d2 , count(date_3) as d3 , count(date_4) as d4 , count(date_5) as d5 , count(date_6) as d6 , count(date_7) as d7 , count(date_8) as d8 ,  cou.name as country , fac.name as factory , case when country in ('India', 'Bangladesh', 'Sri Lanka')
+then 'South Asia'
+when country in ('China')
+then 'North Asia'
+when country in ('Guatemala', 'El Salvador', 'Dominican Republic')
+then 'Americas'
+when country in ('Philippines', 'Cambodia',  'Vietnam',  'Indonesia', 'Myanmar')
+then 'South East Asia'
+end as region , 
+p.projectId , DATEPART(YEAR,date_enrollment) as year_new, ven.name as vendor1,nvl2(SUBSTRING(vendor1, 1, POSITION(' (' in vendor1)), SUBSTRING(vendor1, 1, POSITION(' (' in vendor1)), vendor1) as vendor_name, case when vendor_name='' then vendor1 else vendor_name end as vendor,case when vendor_name='' then vendor1 else vendor_name end as vendor,decode(name_subunit,' ','NA',name_subunit) as unit
+
+,
+
+(d1*8) as p1 , (d2*4) as p2 , (d3*4) as p3 ,  (d4*4) as p4 , (d5*4) as p5 , (d6*4) as p6 ,(d7*8) as p7, (d8*8) as p8  
+--sum(p1+p2+p3+p4+p5+p6+p7+p8)
+from profile_16619 as p
+
+left join ds_mysql_prod_project fac
+on p.projectid = fac.id
+left join ds_mysql_prod_project ven
+on fac.parent = ven.id
+left join ds_mysql_prod_project cou
+on ven.parent = cou.id
+
+
+where 
+cou.name <> 'Test Country' and cou.name <> 'GAP Inc.'
+and 
+projectId ilike '%%'
+and 
+p.status = 1400365 or p.status is null
+
+group by ven.name , vendor , cou.name , fac.name, region ,unit, year_new, p.projectId , p.date, p.date_2 , p.date_3 , p.date_4 , p.date_5 , p.date_6 , p.date_7 , p.date_8 
