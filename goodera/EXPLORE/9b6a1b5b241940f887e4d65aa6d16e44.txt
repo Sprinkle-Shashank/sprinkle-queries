@@ -1,0 +1,13 @@
+with table1 as (SELECT * 
+FROM (SELECT grade,students_physical_schooling, students_elearning, male_enrolled, female_enrolled FROM profile_79767) UNPIVOT (
+    enrolled FOR gender IN ( male_enrolled, female_enrolled)
+)) 
+select gd.name as grade,students_physical_schooling, students_elearning, case when gender = 'male_enrolled' then 'Male' else 'Female' end as gender,sum(enrolled) as enrolled from table1
+
+left join ds_mysql_prod_tagelement gd
+on table1.grade = gd.id
+
+
+group by gender,gd.name
+
+order by gd.name
