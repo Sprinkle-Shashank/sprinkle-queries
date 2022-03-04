@@ -1,14 +1,13 @@
-select sum(p.sub_cat_out_plan) as planned, sum(p.subcat_output) as actual,r.name as years,m.name as months,n.name as focus,o.name as activity_category,q.name as activity_subcategory
-from profile_54963 p
-
+with main as (select r.name as fy_timerange,n.name as months, cast((split_part(split_part(prod.name,'|',1),'.',1)) as varchar) as ProjectCode,CONCAT(ProjectCode,fy_timerange) as code,sum(p.sub_cat_out_plan) as planned, sum(p.subcat_output) as actual,o.name as activity_category,q.name as activity_subcategory,n1.name as focus from profile_54963 p
+			  
+left join ds_mysql_prod_project prod on
+prod.id=p.projectid
+			  
 left join ds_mysql_prod_tagelement r on
 r.id=p.fy
-
-left join ds_mysql_prod_tagelement m on
-m.id=p.month
-
+			  
 left join ds_mysql_prod_tagelement n on
-n.id=p.focus_area
+n.id=p.month),
 
 left join ds_mysql_prod_tagelement o on
 o.id=p.act_cat
@@ -16,4 +15,50 @@ o.id=p.act_cat
 left join ds_mysql_prod_tagelement q on
 q.id=p.subcat
 
-group by years,months,focus,activity_category,activity_subcategory
+left join ds_mysql_prod_tagelement n1 on
+n1.id=p.focus_area
+
+lookup as (select cast(q.name as varchar) as ProjectCode,f.name as fy_timerange,m.name as Project_Manager,CONCAT(ProjectCode,fy_timerange) as code
+from profile_27420 d
+left join ds_mysql_prod_tagelement f on
+d.fy=f.id
+left join ds_mysql_prod_tagelement m on
+d.project_manager=m.id
+left join profile_27396 q on
+d.project_code=q._id
+		   
+union all
+		   
+select cast(c.name as varchar)as ProjectCode,f.name as fy_timerange,m.name as Project_Manager,CONCAT(ProjectCode,fy_timerange) as code 
+from profile_27396 c	
+left join ds_mysql_prod_tagelement f on
+c.fy=f.id
+left join ds_mysql_prod_tagelement m on
+c.project_manager=m.id),
+
+main2 as (
+select b.fy_timerange,b.months,b.code,q.Project_Manager as level1,sum(b.subcat_output) as output,sum(b.sub_cat_out_plan) as planned, sum(b.subcat_output) as actual from main b
+  
+left join lookup q on
+q.code = b.code
+group by b.fy_timerange,b.months,b.code,q.Project_Manager),
+
+level1tab as (select m.name as level1 ,p.approver as level2,p.name as level1email from profile_27424 p
+left join ds_mysql_prod_tagelement m on
+m.id = p.pm_name),
+
+level2tab as (select m.name as level1 , z.level1 as level2 from profile_27424 p
+left join ds_mysql_prod_tagelement m on
+m.id = p.pm_name
+left join level1tab z on
+z.level1email = p.approver)
+
+select p.*,d.level2 from main2 p
+left join level2tab d on
+d.level1 = p.level1
+
+
+
+
+
+
