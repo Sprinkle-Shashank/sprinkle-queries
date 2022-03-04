@@ -3,7 +3,7 @@
 with table1 as (SELECT * 
 FROM (SELECT grade, male_enrolled, female_enrolled FROM profile_79767) UNPIVOT (
     enrolled FOR gender IN ( male_enrolled, female_enrolled)
-)) 
+)) ,table2 as (
 select gd.name as grade, case when gender = 'male_enrolled' then 'Male' else 'Female' end as gender,sum(enrolled) as enrolled from table1
 
 left join ds_mysql_prod_tagelement gd
@@ -11,5 +11,10 @@ on table1.grade = gd.id
 
 
 group by gender,gd.name
-
-order by gd.name
+)select grade, case when grade = 'Nursery' then 'A'
+				     when grade = 'KG' then 'B'
+					 when grade = 'Grade 1' then 'C'
+					 when grade = 'Grade 2' then 'D'
+					 when grade = 'Grade 3' then 'E'
+					 when grade = 'Grade 4' then 'F'
+					 when grade = 'Grade 5' then 'G' end as sort_rule,gender,enrolled from table2
