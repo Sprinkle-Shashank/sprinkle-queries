@@ -1,8 +1,6 @@
+with s as(
 Select t2.name as partner, t4.name as region,
-case 
-	when 1=1 then 1
-	else 0
-	end as count,
+
 case
   when (extract(month from sq.end_date) <=2) then ('FY' || (extract(year from sq.end_date)-2000))
   when (extract(month from sq.end_date) >2) then ('FY'|| (extract(year from sq.end_date)+1-2000))
@@ -17,4 +15,14 @@ left join ds_mysql_prod_project as t
   left join ds_mysql_prod_project t4
   on t3.parent=t4.id 
 WHERE sq.projectId != '51739' 
-GROUP BY t4.name, t2.name,sq.end_date
+)
+,s2 as (
+Select partner,region,fy 
+from s group by 1,2,3
+
+)
+Select *,case 
+	when 1=1 then 1
+	else 0
+	end as count, 
+from s2
