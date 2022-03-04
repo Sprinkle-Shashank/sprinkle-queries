@@ -1,2 +1,13 @@
-Select  start_date, end_date, cycle_name, null
+Select  start_date, end_date, cycle_name, null,
+concat(start_date,'-04-01T00:00:00.000Z') as start1,
+concat(end_date,'-04-01T00:00:00.000Z') as end2,
+concat(concat(concat(concat('{"start":"',start1),'","end":"'),end2),'"}') as fy_timerange
+case
+  when (extract(month from end_date) <=2) then ('FY' || (extract(year from end_date)-2000))
+  when (extract(month from end_date) >2) then ('FY'|| (extract(year from end_date)+1-2000))
+  end as FY,
+  case 
+   when cycle_name like '%Financial%' then 'FY'
+   else 'Region'
+   end as Type
 from profile_75412
