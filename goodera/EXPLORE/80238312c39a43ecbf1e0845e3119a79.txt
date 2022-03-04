@@ -1,0 +1,38 @@
+with s1 as(
+  with temp as(
+  Select 'Percentage of students completing below 40% of the activity books' as col
+    union all
+  Select 'Percentage of students completing between 40%-80% of the activity books' as col
+    union all
+  Select 'Percentage of students completing above 80% of the activity books' as col
+  )
+
+
+Select  a.fy_timerange as timerange_timerange ,p.name as projectid,t.name as grade,t1.name as  activity_book,temp.col as dimensions,
+(t.name || '-' || t1.name) as grade_book,
+
+sum(case col
+	when 'Percentage of students completing below 40% of the activity books' then a.below_40
+	when 'Percentage of students completing between 40%-80% of the activity books' then a.between_40_and_80
+	when 'Percentage of students completing above 80% of the activity books' then a.above_80
+	else NULL
+end) as Values,
+case 
+when temp.col = 'Percentage of students completing below 40% of the activity books' then '1'
+when temp.col = 'Percentage of students completing between 40%-80% of the activity books' then '2'
+else '3'
+end as Sort
+  
+from profile_79436 a
+
+cross join temp
+
+left join ds_mysql_prod_project p on p.id = a.projectid
+left join ds_mysql_prod_tagelement t on t.id=a.grade
+left join ds_mysql_prod_tagelement t1 on t1.id=a.activity_book
+
+group by a.fy_timerange,p.name,t.name,t1.name,temp.col)
+
+
+Select distinct( activity_book ) from s1 
+order by activity_book asc
