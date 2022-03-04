@@ -34,14 +34,16 @@ d.project_code=q._id
 union all
 		   
 select cast(c.name as varchar)as ProjectCode,f.name as fy_timerange,m.name as Project_Manager,CONCAT(ProjectCode,fy_timerange) as code 
+		   
 from profile_27396 c	
+		   
 left join ds_mysql_prod_tagelement f on
 c.fy=f.id
 left join ds_mysql_prod_tagelement m on
 c.project_manager=m.id),
 
 main2 as (
-select b.fy_timerange,b.months,b.code,q.Project_Manager as level1,sum(b.sub_cat_out_plan) as planned, sum(b.subcat_output) as actual,q1.name as activity_subcategory,o.name as activity_category,n1.name as focus from main b
+select b.fy_timerange,b.months,b.code,q.Project_Manager as level1,b.planned, b.actual,q1.name as activity_subcategory,o.name as activity_category,n1.name as focus from main b
   
 left join ds_mysql_prod_tagelement o on
 o.id=b.act_cat
@@ -54,6 +56,7 @@ n1.id=b.focus_area
   
 left join lookup q on
 q.code = b.code
+  
 group by b.fy_timerange,b.months,b.code,q.Project_Manager,activity_subcategory,focus,activity_category ),
 
 level1tab as (select m.name as level1 ,p.approver as level2,p.name as level1email from profile_27424 p
