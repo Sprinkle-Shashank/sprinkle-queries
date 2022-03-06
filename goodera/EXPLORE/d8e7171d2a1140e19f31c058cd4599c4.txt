@@ -1,0 +1,75 @@
+with temp as (
+Select 'beneficiaries_enrolled_for_first_time' as col
+union all
+  Select 'beneficiaries_completing_vocational_training' as col
+union all
+ Select 'beneficiaries_enrolled' as col
+union all
+  Select 'underrepresented_beneficiaries_direct' as col
+union all
+  Select 'underrepresented_beneficiaries_indirect' as col
+union all
+  Select 'beneficiaries_completed_the_program' as col
+union all
+    Select 'beneficiary_learning_training_hours' as col
+union all
+  Select 'beneficiaries_placed_in_an_internship_job_shadow' as col
+  union all
+  Select 'beneficiaries_successfully_receiving_certification' as col
+  union all
+  Select 'beneficiaries_placed_in_full_time_job' as col
+
+),
+s2 as (
+Select s.fy_timerange, sq.name as program_name, s.beneficiaries_enrolled_for_first_time, s.beneficiaries_completing_vocational_training, s.beneficiaries_enrolled, s.underrepresented_beneficiaries_direct, s.underrepresented_beneficiaries_indirect, s.beneficiaries_completed_the_program, s.beneficiary_learning_training_hours, s.beneficiaries_placed_in_an_internship_job_shadow, s.beneficiaries_successfully_receiving_certification, s.beneficiaries_placed_in_full_time_job , t.name as projectId,t2.name as Partner,t3.name as Country,t4.name as Region,sq.end_date,
+case 
+  when (extract(month from sq.end_date) <=2) then ('FY' || (extract(year from sq.end_date)-2000))
+  when (extract(month from sq.end_date) >2) then ('FY'|| (extract(year from sq.end_date)+1-2000))
+  end as FY
+from profile_67395 s
+left join profile_62886 sq
+on sq._id=s.program_name
+left join ds_mysql_prod_project as t 
+  on s.projectId = t.id
+  left join ds_mysql_prod_project as t2
+  on t.parent=t2.id
+  left join ds_mysql_prod_project as t3
+  on t2.parent=t3.id 
+  left join ds_mysql_prod_project as t4
+  on t3.parent=t4.id
+)
+
+Select projectID,program_name,fy_timerange,Fy,Partner,country,region,temp.col as Dimensions,end_date,
+  sum(case col
+    When 'beneficiaries_enrolled_for_first_time'  then s2.beneficiaries_enrolled_for_first_time
+ 
+  When 'beneficiaries_completing_vocational_training' then s2.beneficiaries_completing_vocational_training
+ 
+ When 'beneficiaries_enrolled' then s2.beneficiaries_enrolled
+ 
+  When 'underrepresented_beneficiaries_direct' then s2.underrepresented_beneficiaries_direct
+ 
+  When 'underrepresented_beneficiaries_indirect' then s2.underrepresented_beneficiaries_indirect
+ 
+  When 'beneficiaries_completed_the_program' then s2.beneficiaries_completed_the_program
+ 
+    When 'beneficiary_learning_training_hours' then s2.beneficiary_learning_training_hours
+ 
+  When 'beneficiaries_placed_in_an_internship_job_shadow' then s2.beneficiaries_placed_in_an_internship_job_shadow
+   
+  When 'beneficiaries_successfully_receiving_certification' then s2.beneficiaries_successfully_receiving_certification
+   
+  When 'beneficiaries_placed_in_full_time_job' then s2.beneficiaries_placed_in_full_time_job
+
+  else Null
+  end) as Values,
+  case 
+  	when temp.col like '%indirect%' then 'Indirect'
+  when temp.col like '%direct%' then 'Direct'
+  else 'NA'
+  end as beneficiary_type 
+from s2
+cross join temp
+where beneficiary_type = 'beneficiaries_completed_the_program'
+group by  projectID,program_name,fy_timerange,Fy,Partner,country,region,temp.col ,end_date
+
