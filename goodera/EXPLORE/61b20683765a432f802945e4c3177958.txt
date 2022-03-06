@@ -1,0 +1,62 @@
+with temp as (
+Select 'Male - indirect' as col
+union all
+  Select 'Male - direct' as col
+union all
+ Select 'Female - indirect' as col
+union all
+  Select 'Female - direct' as col
+union all
+  Select 'Other - indirect' as col
+union all
+  Select 'Other - direct' as col
+union all
+    Select 'Gender not disclosed - indirect' as col
+union all
+  Select 'Gender not disclosed - direct' as col
+
+),
+s2 as (
+Select s.fy_timerange, s.program_name, s.male_indirect_beneficiaries , s.neither_gender_indirect_beneficiaries, s.male_direct_beneficiaries, s.female_indirect_beneficiaries , s.neither_gender_direct_beneficiaries, s.no_gender_disclosure_indirect_beneficiaries , s.no_gender_disclosure_direct_beneficiaries , s.female_direct_beneficiaries , t.name as projectId,t2.name as Partner,t3.name as Country,t4.name as Region,
+case 
+  when (extract(month from sq.end_date) <=2) then ('FY' || (extract(year from sq.end_date)-2000))
+  when (extract(month from sq.end_date) >2) then ('FY'|| (extract(year from sq.end_date)+1-2000))
+  end as FY,
+from profile_67395 s
+left join profile_62886 sq
+on sq._id=s.program_name
+left join ds_mysql_prod_project as t 
+  on s.projectId = t.id
+  left join ds_mysql_prod_project as t2
+  on t.parent=t2.id
+  left join ds_mysql_prod_project as t3
+  on t2.parent=t3.id 
+  left join ds_mysql_prod_project as t4
+  on t3.parent=t4.id
+)
+
+Select projectID,program_name,fy_timerange,Fy,Partner,country,region,temp.col as Gender_and_type,end_date,
+  sum(case col
+     When 'Male - indirect' then s2.male_indirect_beneficiaries
+   
+  When 'Male - direct' then s2.male_direct_beneficiaries
+   
+ When 'Female - indirect' then s2.female_indirect_beneficiaries
+   
+  When 'Female - direct' then s2.female_direct_beneficiaries
+   
+  When 'Other - indirect' then s2.neither_gender_indirect_beneficiaries
+   
+  When 'Other - direct' then s2.neither_gender_direct_beneficiaries
+   
+  When 'Gender not disclosed - indirect' then s2.no_gender_disclosure_indirect_beneficiaries
+   
+  When 'Gender not disclosed - direct' then s2.no_gender_disclosure_direct_beneficiaries
+  else Null
+  end) as Beenficiaries,
+  case 
+  	when temp.col like %indirect then "Indirect"
+  when temp.col like %direct then "Direct"
+  end as Type_bucket 
+from s2
+where Type_bucket ="Direct"
