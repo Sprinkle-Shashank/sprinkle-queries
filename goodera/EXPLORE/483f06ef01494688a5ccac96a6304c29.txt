@@ -1,4 +1,5 @@
-with s1 as (select 'beneficiaries_enrolled_for_first_time' as col 
+with s1 as 
+(           select 'beneficiaries_enrolled_for_first_time' as col 
 			union all 
 			select 'beneficiaries_completing_vocational_training' as col
 			union all 
@@ -106,20 +107,136 @@ with s1 as (select 'beneficiaries_enrolled_for_first_time' as col
 			union all 
 			select  'ethnicity_not_specified_beneficiaries_indirect' as col
 			union all 
-			select  'multiple_ethnicity_beneficiaries' as col
-			union all
+			select 'multiple_ethnicity_beneficiaries' as col
 )
-select * from s1
 
-with sub1 as(
-select t._id, fy_timerange, location, year, notes, partner, country, region, beneficiaries_enrolled_for_first_time, beneficiaries_completing_vocational_training, multiple_ethnicity_beneficiaries, male_indirect_beneficiaries, pwd_indirect, beneficiaries_enrolled, underrepresented_beneficiaries_direct, underrepresented_beneficiaries_indirect, age_below_5_years_indirect, age_11_to_13_years_direct, neither_gender_indirect_beneficiaries, beneficiaries_completed_the_program, latinx_hispanic_beneficiaries, beneficiary_learning_training_hours, age_29_to_32_years_indirect, beneficiaries_placed_in_an_internship_job_shadow, age_24_to_28_years_direct, age_19_to_23_years_indirect, age_below_5_years_direct, age_33_to_36_years_indirect, beneficiaries_placed_in_full_time_job, male_direct_beneficiaries, female_indirect_beneficiaries, age_33_to_36_years_direct, neither_gender_direct_beneficiaries, no_gender_disclosure_indirect_beneficiaries, age_above_37_years_indirect, pwd_direct, no_gender_disclosure_direct_beneficiaries, age_11_to_13_years_indirect, african_american_beneficiaries, age_6_to_10_years_indirect, age_14_to_18_years_indirect, female_direct_beneficiaries, age_above_37_years_direct, age_6_to_10_years_direct, beneficiaries_successfully_receiving_certification, age_14_to_18_years_direct, age_29_to_32_years_direct, age_24_to_28_years_indirect, asian_beneficiaries, age_19_to_23_years_direct, beneficiaries_indirect, latinx_hispanic_beneficiaries_indirect, african_american_beneficiaries_indirect, asian_beneficiaries_indirect, multiple_ethnicity_beneficiaries_indirect, age_unreported_direct, american_indian_alaskan_beneficiaries, hawaiian_pacific_islander_beneficiaries, white_beneficiaries, ethnicity_not_specified_beneficiaries, american_indian_alaskan_beneficiaries_indirect, hawaiian_pacific_islander_beneficiaries_indirect, white_beneficiaries_indirect, ethnicity_not_specified_beneficiaries_indirect, program_name,t.end_date,
+
+with sub1 as
+(
+select t._id, t1.fy_timerange, t1.location, t1.year, t1.notes, t1.partner, t1.country, t1.region, t1.program_name,t.end_date,
 case 
   when (extract(month from t.end_date) <=2) then ('FY' || (extract(year from t.end_date)-2000))
   when (extract(month from t.end_date) >2) then ('FY'|| (extract(year from t.end_date)+1-2000))
-  end as FY
-from profile_67395
+  end as FY,
+sum(case col 
+            when 'beneficiaries_enrolled_for_first_time' then
+ t1.beneficiaries_enrolled_for_first_time
+			  
+			when 'beneficiaries_completing_vocational_training' then t1.beneficiaries_completing_vocational_training
+			  
+			when 'male_indirect_beneficiaries' then t1.male_indirect_beneficiaries
+			 
+			when 'pwd_indirect' then t1.pwd_indirect
+			  
+			when 'beneficiaries_enrolled' then t1.beneficiaries_enrolled
+			  
+			when 'underrepresented_beneficiaries_direct' then t1.underrepresented_beneficiaries_direct
+			 
+			when 'underrepresented_beneficiaries_indirect' then t1.underrepresented_beneficiaries_indirect
+			 
+			when 'age_below_5_years_indirect' then t1.age_below_5_years_indirect
+			 
+			when 'age_11_to_13_years_direct'then t1.age_11_to_13_years_direct
+			  
+			when 'neither_gender_indirect_beneficiaries' then t1.neither_gender_indirect_beneficiaries
+			 
+			when 'beneficiaries_completed_the_program' then t1.beneficiaries_completed_the_program
+			  
+			when 'latinx_hispanic_beneficiaries' then t1.latinx_hispanic_beneficiaries
+			  
+			when 'beneficiary_learning_training_hours' then t1.beneficiary_learning_training_hours
+			  
+			when 'age_29_to_32_years_indirect' then t1.age_29_to_32_years_indirect
+			  
+			when  'beneficiaries_placed_in_an_internship_job_shadow' then t1.beneficiaries_placed_in_an_internship_job_shadow
+			 
+			when 'age_24_to_28_years_direct' then t1.age_24_to_28_years_direct
+			 
+			when 'age_19_to_23_years_indirect' then t1.age_19_to_23_years_indirect
+			  
+			when 'age_below_5_years_direct' then t1.age_below_5_years_direct
+			  
+			when  'age_33_to_36_years_indirect' then t1.age_33_to_36_years_indirect
+			 
+			when 'beneficiaries_placed_in_full_time_job' then t1.beneficiaries_placed_in_full_time_job
+			 
+			when 'male_direct_beneficiaries' then t1.male_direct_beneficiaries
+			 
+			when 'female_indirect_beneficiaries' then t1.female_indirect_beneficiaries
+			 
+			when 'age_33_to_36_years_direct' then t1.age_33_to_36_years_direct
+			 
+			when 'neither_gender_direct_beneficiaries' then t1.neither_gender_direct_beneficiaries
+			 
+			when 'no_gender_disclosure_indirect_beneficiaries' then no_gender_disclosure_indirect_beneficiaries
+			  
+			when 'age_above_37_years_indirect' then t1.age_above_37_years_indirect
+			 
+			when 'pwd_direct' then t1.pwd_direct
+			 
+			when 'no_gender_disclosure_direct_beneficiaries' then t1.no_gender_disclosure_direct_beneficiaries
+			 
+			when 'age_11_to_13_years_indirect' then t1.age_11_to_13_years_indirect
+			 
+			when 'african_american_beneficiaries' then t1.african_american_beneficiaries
+			 
+			when 'age_6_to_10_years_indirect' then t1.age_6_to_10_years_indirect
+			  when 'age_14_to_18_years_indirect' then t1.age_14_to_18_years_indirect
+			when 'female_direct_beneficiaries' then t1.female_direct_beneficiaries
+			 
+			when 'age_above_37_years_direct' then t1.age_above_37_years_direct
+			  
+			when 'age_6_to_10_years_direct' then t1.age_6_to_10_years_direct
+			 
+			when 'beneficiaries_successfully_receiving_certification' then t1.beneficiaries_successfully_receiving_certification
+			  
+			when 'age_14_to_18_years_direct' then t1.age_14_to_18_years_direct
+			 
+			when  'age_29_to_32_years_direct' then t1.age_29_to_32_years_direct
+			  
+			when 'age_24_to_28_years_indirect' then t1.age_24_to_28_years_indirect
+			 
+			when 'asian_beneficiaries' then t1.asian_beneficiaries
+			 
+			when 'age_19_to_23_years_direct' then t1.age_19_to_23_years_direct
+			  
+			when 'beneficiaries_indirect' then t1.beneficiaries_indirect
+			 
+			when 'latinx_hispanic_beneficiaries_indirect' then t1.latinx_hispanic_beneficiaries_indirect
+			  
+			when 'african_american_beneficiaries_indirect' then t1.african_american_beneficiaries_indirect
+			 
+			when 'asian_beneficiaries_indirect' then t1.asian_beneficiaries_indirect
+			  
+			when 'multiple_ethnicity_beneficiaries_indirect' then t1.multiple_ethnicity_beneficiaries_indirect
+			 
+			when 'age_unreported_direct' then t1.age_unreported_direct
+			 
+			when  'american_indian_alaskan_beneficiaries' then t1.american_indian_alaskan_beneficiaries
+			  
+			when  'hawaiian_pacific_islander_beneficiaries' then t1.hawaiian_pacific_islander_beneficiaries
+			  
+			when 'white_beneficiaries' then t1.white_beneficiaries
+			  
+			when 'ethnicity_not_specified_beneficiaries' then t1.ethnicity_not_specified_beneficiaries
+			 
+			when 'american_indian_alaskan_beneficiaries_indirect' then t1.american_indian_alaskan_beneficiaries_indirect
+			 
+			when 'hawaiian_pacific_islander_beneficiaries_indirect' then t1.hawaiian_pacific_islander_beneficiaries_indirect
+			   
+			when 'white_beneficiaries_indirect' then t1.white_beneficiaries_indirect
+			  
+			when  'ethnicity_not_specified_beneficiaries_indirect' then t1.ethnicity_not_specified_beneficiaries_indirect
+			  
+			when  'multiple_ethnicity_beneficiaries' then
+t1.multiple_ethnicity_beneficiaries
+            else 
+                  NULL
+  end) as values
+from profile_67395 t1
 left join profile_62886 t
 on t._id = program_name
+group by t1.fy_timerange, t1.location, t1.year, t1.notes, t1.partner, t1.country, t1.region,t1.program_name
 )
 
 
