@@ -2,7 +2,11 @@ with table1 as (Select pre_post_yn,
 				substring(table_54646.projcode_factory,1,1) as code,
 				reverse(SPLIT_PART(reverse(table_54646.projcode_factory), '-',1)) as code_brand,
 				JSON_SERIALIZE(table_52810.pace_brands) as pace_brand,	
-				case when pace_brand like '%1151834%' then 1 else 0 end as brand
+				case when pace_brand like '%1151834%' then 1 else 0 end as brand,
+				module_name as select_modules,
+				table_4227.start_date as start_date,
+				score as pre_score,
+				score2 as post_score
 				
 				
 				
@@ -19,5 +23,18 @@ table_52810.projectId = p.projectId
 left join profile_4227 table_4227 on
 table_4227._id = p.class
 
+),
+table2 as (Select
+		   avg(pre_score) as pre_score,
+		   avg(post_score) as post_score,
+		   pre_post_yn, code, brand, select_modules
+
+			from table1 p
+left join ds_mysql_prod_tagelement tagElement on
+tagElement.id = select_modules
+		
+group by pre_post_yn, code, brand, select_modules
 )
-Select * from table1 p where pre_post_yn = 57472 and code = 'F' and brand = 1
+
+
+Select * from table2 p where pre_post_yn = 57472 and code = 'F' and brand = 1
