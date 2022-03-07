@@ -13,7 +13,7 @@ Select 'services_provided_cogs' as col
   
 ),
 s as (
-Select t2.name as Region, t.name as year, sq.month, sq.partner_name, sq.cash_grant, sq.product_cogs, sq.service_cogs, sq._id, cast(t.name as INT)+2 as fy_str,'FY'||substring(fy_str,3,2) as fy, ss.cash_disbursed, ss.products_disbursed_cogs, ss.services_provided_cogs,temp.col as Dimensions,
+Select t2.name as Region, t.name as year, t2.name as month, ttt.name as partner_name, sq.cash_grant, sq.product_cogs, sq.service_cogs, sq._id, cast(t.name as INT)+2 as fy_str,'FY'||substring(fy_str,3,2) as fy, ss.cash_disbursed, ss.products_disbursed_cogs, ss.services_provided_cogs,temp.col as Dimensions,
 case col
 When 'cash_grant' then sq.cash_grant
 When  'product_cogs' then sq.product_cogs
@@ -28,12 +28,16 @@ from dell_profile_63522  sq
 cross join temp
 left join ds_mysql_prod_tagelement t
 on t.id=sq.year
+left join ds_mysql_prod_tagelement tt
+on tt.id=sq.month
+left join ds_mysql_prod_tagelement ttt
+on ttt.id=sq.partner_name
 left join ds_mysql_prod_project as t2 
-  on sq.projectId = t2.id
+ on sq.projectId = t2.id
 left join dell_profile_063523 ss
 on ss.partner_reference=sq._id
 )
 
-Select _id, Region, year, month, partner_name, fy_str, FY, dimensions,sum(values)
+Select Region, year, month, partner_name, fy_str, FY, dimensions,sum(values)
 from s
-group by _id, Region, year, month, partner_name, fy_str, FY, dimensions
+group by Region, year, month, partner_name, fy_str, FY, dimensions
