@@ -13,7 +13,7 @@ with table1 as (Select
 				table_54267._id as sort_id,
 				table_71993.goal_2022 as commitment,
 				Cast(table_52713.factory_vpid_1 as varchar(65535)) as vpid1,
-				case when table_52713.sourcing_yn = 57473 then table_52713.pace_status_2 else table_54267.pace_status end as pace_status,
+				case when table_52713.sourcing_yn = 57473 then table_52713.pace_status_2 else table_54267.pace_status end as pace_status2,
 				case when table_52713.sourcing_yn = 57472 then vpid1 else
 table_52713.factory_vpid_2 end as factory_id,
 				case when table_52713.sourcing_yn = 57472 then table_54267.facility_score else null end as facility_score,
@@ -38,13 +38,14 @@ table_54267.projectId = p.projectId
 order by start_date,sort_id desc
 ),
 
-table2 as (Select code,brand,min(name_batch) as name_batch,sum(num_females) as num_females, sum(num_females_graduated) as num_females_graduated ,min(name_factory) as name_factory, projectId1, min(commitment) as commitment,min(pace_status) as pace_status1 ,min(factory_id) as factory_id, min(facility_score) as facility_score, min(facility_rating) as facility_rating,
+table2 as (Select code,brand,min(name_batch) as name_batch,sum(num_females) as num_females, sum(num_females_graduated) as num_females_graduated ,min(name_factory) as name_factory, projectId1, min(commitment) as commitment,min(pace_status2) as pace_status1 ,min(factory_id) as factory_id, min(facility_score) as facility_score, min(facility_rating) as facility_rating,
 		   case when (pace_status1) between -2147483648 and 2147483648 then 1 else 0 end as st
+		   case when st = 1 then tag_pace.name else "Currently implementing P.A.C.E." end as pace_status
 		   
   		from table1 p
 
 left join ds_mysql_prod_tagelement tag_pace on
-tag_pace.id = pace_status
-group by code,brand,projectId1
+tag_pace.id = pace_status2
+group by code,brand,projectId1,pace_status
 )
 Select * from table2 p where code = 'F' and brand = 1
