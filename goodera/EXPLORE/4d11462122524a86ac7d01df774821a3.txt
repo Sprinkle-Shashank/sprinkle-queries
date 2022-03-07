@@ -8,7 +8,7 @@
    select 'products_disbursed_cogs' as col
   )
 
-SELECT sq.time_period_timerange as fy_timerange, pd.projectId as Region, pd.partner_name as Partner_name, pd.fy as FY,nvl(sq.cash_disbursed,0)+nvl(sq.products_disbursed_cogs,0) as total_f,
+SELECT sq.time_period_timerange as fy_timerange, t.name as Region, t1.name as Partner_name, t2.name as FY,nvl(sq.cash_disbursed,0)+nvl(sq.products_disbursed_cogs,0) as total_f,
 case
 	when sq.month=1059437 then 'Q1'
 	when sq.month=1059438 then 'Q1'
@@ -34,5 +34,11 @@ FROM dell_profile_063523 sq
 CROSS JOIN temp
 LEFT JOIN dell_profile_63522 pd
 ON pd._id=sq.partner_reference
+left join ds_mysql_prod_project t
+on t.id=sq.projectid
+left join ds_mysql_prod_tagelement t1
+on t1.id=pd.partner_name
+left join ds_mysql_prod_tagelement t2
+on t2.id=pd.fy
 GROUP BY sq.time_period_timerange, pd.projectId, pd.partner_name, pd.FY, Quarter, Dimensions,sq.month,sq.year, sq.partner_reference, sq.cash_disbursed, sq.products_disbursed_cogs, sq.products_disbursedfmv
 
