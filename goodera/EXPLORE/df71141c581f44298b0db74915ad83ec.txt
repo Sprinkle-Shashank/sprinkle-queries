@@ -5,7 +5,7 @@ with table1 as (Select
 				JSON_SERIALIZE(table_52810.pace_brands) as pace_brand,	
 				case when pace_brand like '%1151834%' then 1 else 0 end  as brand,
 				table_4227.start_date as start_date,
-				min(table_4227.name) as name_batch,
+				(table_4227.name) as name_batch,
 				sum(table_4227.num_females) as num_females,
 				sum(table_4227.num_females_graduated) as num_females_graduated,
 				min(name_factory) as name_factory,
@@ -20,7 +20,13 @@ table_52810.projectId = p.projectId
 left join profile_4227 table_4227 on
 table_4227.projectId = p.projid_factory
 				
-group by p.projid_factory,code,code_brand,table_52810.pace_brands, start_date ,projectId1 				
+group by p.projid_factory,code,code_brand,table_52810.pace_brands, start_date ,projectId1 	
 order by start_date desc
+),
+table2 as (Select code,brand,min(name_batch),sum(num_females), sum(num_females_graduated),min(name_factory), projectId1
+		   
+  		from table1 p
+
+group by code,brand,projectId1
 )
-Select * from table1 p where code = 'F' and brand = 1
+Select * from table2 p where code = 'F' and brand = 1
