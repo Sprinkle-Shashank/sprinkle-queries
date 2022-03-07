@@ -1,0 +1,38 @@
+with temp as (
+Select 'cash_disbursed' as col
+  union all
+Select 'products_disbursed_cogs' as col 
+),
+s as (Select month, time_period_timerange, partner_reference, cash_disbursed, products_disbursed_cogs, products_disbursedfmv, year, t2.name as projectId, ss.partner_name, ss.fy,temp.col as Dimensions,
+case 
+	when sq.month=1059437 then 'Q1'
+	when sq.month=1059438 then 'Q1'
+	when sq.month=1059439 then 'Q1'
+	when sq.month=1059440 then 'Q2'
+	when sq.month=1059441 then 'Q2'
+	when sq.month=1059442 then 'Q2'
+	when sq.month=1059443 then 'Q3'
+	when sq.month=1059444 then 'Q3'
+	when sq.month=1059445 then 'Q3'
+	when sq.month=1059446 then 'Q4'
+	when sq.month=1059447 then 'Q4'
+	when sq.month=1059448 then 'Q4'
+	else null
+	end as Quarter,
+case col
+	 When 'cash_disbursed' then sq.cash_disbursed
+     When 'products_disbursed_cogs' then sq.products_disbursed_cogs
+	 else null
+	  end as Values
+	 
+	 
+from dell_profile_063523 sq
+cross join temp
+left join dell_profile_63522 ss
+on ss._id=partner_reference
+left join ds_mysql_prod_project as t2 
+on ss.projectId = t2.id
+)
+Select  Region, FY, Dimensions,sum(Values) Values
+from s 
+group by 1,2,3
