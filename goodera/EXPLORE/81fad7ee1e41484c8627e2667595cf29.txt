@@ -1,0 +1,38 @@
+with temp as (
+Select 'fw_final' as col
+  union all
+Select 'cp_final' as col 
+  union all
+Select 'db_final' as col 
+  union all
+Select 'emp_final' as col
+  union all
+Select 'other' as col 
+  union all
+Select 'ngo_final_score' as col 
+   union all
+Select 'sc_final' as col 
+
+),
+s as (
+Select sq.time_period_timerange, sq.partner_name, t.name as year, sq.region,cast(t.name as INT)+2 as fy_str,'FY'||substring(fy_str,3,2) as fy,temp.col as Dimensions,
+case col
+	 When 'fw_final' then sq.fw_final
+     When 'cp_final' then sq.cp_final
+	 When 'db_final' then sq.db_final
+	 When 'emp_final' then sq.emp_final
+     When 'other' then sq.other
+	 When 'ngo_final_score' then sq.ngo_final_score
+	 When 'sc_final' then sq.sc_final
+	 else null
+	  end as Values
+from profile_63971  sq
+cross join temp
+left join ds_mysql_prod_tagelement t
+on t.id=sq.year
+)
+
+
+Select time_period_timerange, partner_name, year, region, fy_cal, fy_str, FY, Dimensions,sum(Values) as Values
+from s
+group by time_period_timerange, partner_name, year, region, fy_cal, fy_str, FY, Dimensions
