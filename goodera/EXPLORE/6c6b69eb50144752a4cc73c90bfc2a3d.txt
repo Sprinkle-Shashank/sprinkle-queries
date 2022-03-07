@@ -1,0 +1,33 @@
+with temp as (
+Select 'cash_grant' as col
+  union all
+Select 'product_cogs' as col 
+  union all
+Select 'service_cogs' as col 
+),
+s as (
+Select projectId, t.name as year, sq.month, sq.partner_name, sq.cash_grant, sq.product_cogs, sq.service_cogs, sq._id,cast(t.name as INT)+2 as fy_str,'FY'||substring(fy_str,3,2) as fy,temp.col as Dimensions,
+case col
+	 When 'cash_grant' then sq.cash_grant
+     When 'product_cogs' then sq.product_cogs
+	 When 'service_cogs' then sq.service_cogs
+	 else null
+	  end as Values
+from dell_profile_63522 sq
+cross join temp
+left join ds_mysql_prod_tagelement t
+on t.id=sq.year
+),
+s2 as (
+Select FY, Dimensions, SPLIT_TO_ARRAY(listagg(distinct cast(projectid as int) ,',')) as pn,sum(Values) as Values
+from s
+group by 1,2
+)
+,s3 as (
+Select FY, Dimensions,Values,cast(pnn as int)
+from s2 a,a.pn pnn
+)
+Select FY, Dimensions,Values,t.name as Region
+from s3
+left join ds_mysql_prod_project t
+on t.id=pnn
