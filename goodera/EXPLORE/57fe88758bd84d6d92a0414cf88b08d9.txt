@@ -8,11 +8,6 @@ with table1 as (Select pre_post_yn,
 				score as pre_score,
 				score2 as post_score
 				
-				
-				
-				
-				
-				
 				from profile_4228 p
 inner join profile_54646 table_54646 on
 table_54646.projectId = p.projectId				
@@ -22,19 +17,23 @@ table_52810.projectId = p.projectId
 		
 left join profile_4227 table_4227 on
 table_4227._id = p.class
-
 ),
+
 table2 as (Select
 		   avg(pre_score) as pre_score,
 		   avg(post_score) as post_score,
-		   pre_post_yn, code, brand, select_modules
+		   pre_post_yn, code, brand, select_modules,
+		   moduleTable.name as module,
+		   moduleTable.sortOrder as sortOrder,
+		   case when moduleTable.name is null then 0 else 1 end as status
 
 			from table1 p
 left join ds_mysql_prod_tagelement tagElement on
 tagElement.id = select_modules
 		
-group by pre_post_yn, code, brand, select_modules
+group by pre_post_yn, code, brand, select_modules,status,sortOrder,module
+order by sortOrder 
 )
 
 
-Select * from table2 p where pre_post_yn = 57472 and code = 'F' and brand = 1
+Select * from table2 p where pre_post_yn = 57472 and code = 'F' and brand = 1 and status = 1
