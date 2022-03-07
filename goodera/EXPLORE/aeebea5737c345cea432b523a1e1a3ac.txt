@@ -11,22 +11,27 @@ then 'Americas'
 when country in ('Philippines', 'Cambodia',  'Vietnam',  'Indonesia', 'Myanmar')
 then 'South East Asia'
 end as region , 
-DATEPART(YEAR,p.date_enrollment) as year_new ,
-p.date_enrollment , p.worker_rep , p.mgmt_rep
+cast(DATEPART(YEAR,p.date_enrollment) as varchar) as year_new ,
+p.date_enrollment , p.worker_rep , p.mgmt_rep , fast.name as fa
 
 from profile_16619 p
 
 
-
 left join ds_mysql_prod_project fac
 on  p.projectid = fac.id
+
 left join ds_mysql_prod_project ven
 on fac.parent = ven.id
+
 left join ds_mysql_prod_project cou
 on ven.parent = cou.id
+
+left join ds_mysql_prod_project fast
+on cou.parent = fast.id
+
 
 
 where p.projectId ilike '%%' and cou.name <> 'Test Country' and (p.status = 1400365 or p.status is null)  
 and country <> 'GAP Inc.'
 
-group by  p.projectId , p.name , p.status, cou.name ,ven.name ,fac.name, p.worker_rep ,p.mgmt_rep,p.date_enrollment , fac.id , ven.id ,p.name_subunit,p.sub_unit
+group by  p.projectId , p.name , p.status, cou.name ,ven.name ,fac.name, p.worker_rep ,p.mgmt_rep,p.date_enrollment , fac.id , ven.id ,p.name_subunit,p.sub_unit , fast.name
