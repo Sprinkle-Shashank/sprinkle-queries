@@ -1,0 +1,19 @@
+with s as (
+Select sq._id, t.name as year, sq.month, tt.name as partner_reference, sq.cash_disbursed, sq.products_disbursed_cogs, sq.services_provided_cogs, t2.name as Region,ss.partner_name,(nvl(sq.cash_disbursed,0)+nvl(sq.products_disbursed_cogs,0)+nvl(sq.services_provided_cogs,0)) total,cast(t.name as INT)+2 as fy_str,'FY'||substring(fy_str,3,2) as fy
+from dell_profile_063523 sq
+left join dell_profile_63522 ss
+on ss._id=partner_reference
+left join ds_mysql_prod_tagelement t
+on t.id=sq.year
+left join ds_mysql_prod_tagelement tt
+on tt.id=sq.partner_reference
+left join ds_mysql_prod_project as t2 
+ on sq.projectId = t2.id
+),
+s2 as (
+Select  year, FY, region ,listagg(partner_name,',') pn ,sum(total) as Total_disbursed
+from s
+group by 1,2,3
+)
+Select year, FY, region,Total_disbursed "Total disbursed", pnn
+from s2 a,a.pn pnn
