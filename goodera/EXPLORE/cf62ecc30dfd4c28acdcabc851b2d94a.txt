@@ -1,55 +1,98 @@
 
-with table1 as(select add_factory.projectid,factory_vpid,facility_status_2,pace_status_2,pace_mapping.name_factory,pace_mapping.name_vendor_filter,pace_mapping.name_country ,pace_mapping.name_vendor , pace_mapping.name_rp  from profile_52713 add_factory
+with table1 as ( select _id ,projectid, pro.name as factory,pace_status as facility_status,row_number() over 
+(partition by projectid
+ order by _id desc) as row from profile_54267 p
+		left join ds_mysql_prod_project as pro
+on p.projectid = pro.id	   ),
 
-left join profile_54646 pace_mapping on
-add_factory.projectid = pace_mapping.projectid 
-			  ),
-			 		  
-table3 as ( select pro.name as projectid,vpid_1 from profile_52162 p
+
+table2 as ( select * from table1 
+		  where row = 1),
 		  
-	left join ds_mysql_prod_project pro
-on p.projectId = pro.id	  ),
 
- table4 as (
-select t1.projectid,factory_vpid,facility_status_2,pace_status_2,name_factory ,name_vendor_filter ,name_country,t3.vpid_1 , name_vendor , name_rp  from table1 t1
-
-left join table3 t3 on
-t1.name_vendor_filter = t3.projectid
-   ),
-   
-   table5 as
-   (
-	 select p.projectid , p.name , p._id , name_event , date , type_event , other_event , event_description , type_influencer , duration_event , attend from profile_4724 p
-	 ),
-	 
-
-table6 as
-(
-  select  p.projectid , cast(concat('FY ' , start_year) as varchar) as start_year from profile_4227 p
+factory_locationid as (
+  with 
+table1 as ( select  p._id, p.projectid,q.factory_vpid as location_id,
+		   row_number() over 
+           (partition by p._id
+            order by p._id desc) as row,r.cp_location_id,q.pace_status_2 from  profile_4227 p
+				  left join profile_52713 q on
+                  p.projectid = q.projectid
+		          left join profile_4948 r on
+		          p.projectid = r.projectid
+		          left join ds_mysql_prod_project as pro
+                  on p.projectid = pro.id
+		          where  location_id is not null and cp_location_id is null
   ),
   
-  table10 as ( SELECT _id,projectid,mon.creatorid, u.email as cemail, mon.modifierid, m.email as memail
+table2 as (select p._id,p.projectid,q.cp_location_id as location_id,q.pace_status_2 from profile_4227 p
+		   left join profile_4948 q on
+		   p.projectid = q.projectid
+		  where  location_id is not null
+		  ),
+  
+ table3 as ( 
+select * from table1  
+ where row = 1)
+ select _id,projectid,location_id,pace_status_2 from table3
+ union all
+  select _id,projectid,location_id,pace_status_2 from table2
+  /* 99 factories are not there in add_factory*/
+),
+
+
+table21 as 
+(
+  select p.projectid , p._id , name_event , to_char(p.date,'DD-MM-YYYY') as date, type_event , other_event , event_description , type_influencer , duration_event , attend from profile_4724 p
+  
+ ),
+ 
+ 
+user_email as ( SELECT mon._id,mon.creatorid, u.email as cemail, mon.modifierid, m.email as memail
 from ds_mongo_profileinstance mon
+			   
 left join ds_mysql_prod_user u on
 mon.creatorid = u.id
+			   
 left join ds_mysql_prod_user m  on
 mon.modifierid = m.id
+			   
 where mon.profileId='4724' and mon.active = 't' and mon.securitycontextid is not null
-			 ),
-			 
-			 table11 as
-			 (
-select projectid, listagg(cemail,',') as creator_email from table10
+			 )
+  
 
-group by projectid )
+select p.*, use.cemail , 
+case when add_factory.sourcing_yn =57472 and t2.facility_status = 845114 then   		  			mapping.name_factory
+     
+     when add_factory.sourcing_yn = 57473 and (add_factory.pace_status_2 in (845114 )or           add_factory.pace_status_2 is null) then   mapping.name_factory 
+	when add_community.pace_status=182398 then mapping.name_factory end as name_factory,
+     f_id.location_id as factory_locationid
+  
+  , mapping.name_vendor_filter , 
+  cast(add_factory.factory_vpid_1 as varchar(65535)) as vpid_1,	
+case when add_factory.sourcing_yn =57472 then vpid_1 
+     when add_factory.sourcing_yn =57473 and add_factory.pace_status_2 = 845114  then    		factory_vpid_2
+	 when add_community.pace_status = 182398 then add_community.cp_id  end as     			 vpid_and_cpid, 
+    mapping.name_country,  mapping.name_vendor , mapping.name_rp , to_char(date,'YYYY') as start_year from table21 p
 
-	 select  t4.name_vendor , t4.name_rp , t4.name_country , t4.name_factory , t4.factory_vpid , t4.name_vendor_filter , t4.vpid_1 , t5.date , t5.name_event, t5.type_event ,  t5.other_event , t5.event_description , t5.type_influencer , t5.duration_event , t5.attend , t11.creator_email from table5 t5
-	 
-	/* left join table6 t6 on
-	 t5.projectid = t6.projectid t6.start_year */
-	 
-	 left join table4 t4 on
-	 t5.projectid = t4.projectid
-	 
-	 left join table11 t11 on 
-	 t5.projectid = t11.projectid 
+left join user_email use on 
+p._id = use._id
+
+left join profile_52713 add_factory on
+p.projectid = add_factory.projectid
+
+left join profile_54646 mapping on
+p.projectid = mapping.projectid 
+
+left join profile_4948 add_community on
+p.projectid = add_community.projectid
+
+left join table2 t2 on
+p.projectid = t2.projectid
+  
+left join factory_locationid f_id on
+p._id = f_id._id
+
+
+where name_factory is not null 
+order by p._id desc
