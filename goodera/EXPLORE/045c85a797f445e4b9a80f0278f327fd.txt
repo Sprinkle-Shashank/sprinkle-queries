@@ -41,20 +41,10 @@ select * from table1
 ),
 
 
-table11 as 
-(
-  select p.projectid , p._id , name_country ,name_vendor , name_rp , name_factory , name_vendor_filter , p4.pace_status from profile_54646 p
-  
-left join profile_4948 p4 on 
-p.projectid = p4.projectid
-),
-
 table21 as 
 (
-  select p.projectid , p._id , name_event , p.date , type_event , other_event , event_description , type_influencer , duration_event , attend ,  t1.name_country , t1.name_vendor , t1.name_rp , t1.name_factory , t1.name_vendor_filter , t1.pace_status from profile_4724 p
+  select p.projectid , p._id , name_event , p.date, type_event , other_event , event_description , type_influencer , duration_event , attend from profile_4724 p
   
-  left join table11 t1 on 
-  p.projectid = t1.projectid
  ),
  
  
@@ -78,7 +68,12 @@ case when add_factory.sourcing_yn =57472 and t2.facility_status = 845114 then   
 	when add_community.pace_status=182398 then mapping.name_factory end as name_factory,
      f_id.location_id as factory_locationid
   
-  , mapping.name_vendor_filter from table21 p
+  , mapping.name_vendor_filter , 
+  cast(add_factory.factory_vpid_1 as varchar(65535)) as vpid_1,	
+case when add_factory.sourcing_yn =57472 then vpid_1 
+     when add_factory.sourcing_yn =57473 and add_factory.pace_status_2 = 845114  then    		factory_vpid_2
+	 when add_community.pace_status = 182398 then add_community.cp_id  end as     			 vpid_and_cpid, 
+    mapping.name_country,  mapping.name_vendor , mapping.name_rp , to_char(date,'YYYY') as start_year from table21 p
 
 left join user_email use on 
 p._id = use._id
