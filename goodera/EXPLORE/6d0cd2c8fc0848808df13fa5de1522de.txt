@@ -1,0 +1,23 @@
+select  p.projectId as project,DATEPART(YEAR,date_enrollment) as year_new,fac.name as factory,cou.name as country,ven.name as vendor1,nvl2(SUBSTRING(vendor1, 1, POSITION(' (' in vendor1)), SUBSTRING(vendor1, 1, POSITION(' (' in vendor1)), vendor1) as vendor_name, case when vendor_name='' then vendor1 else vendor_name end as vendor ,decode(name_subunit,' ','NA',name_subunit) as unit, 
+
+p.date_enrollment , p.worker_rep , p.mgmt_rep 
+
+from profile_16619 p
+
+
+left join ds_mysql_prod_project fac
+on  p.projectid = fac.id
+
+left join ds_mysql_prod_project ven
+on fac.parent = ven.id
+
+left join ds_mysql_prod_project cou
+on ven.parent = cou.id
+
+
+
+
+where p.projectId ilike '%%' and cou.name <> 'Test Country' and (p.status = 1400365 or p.status is null)  
+and country <> 'GAP Inc.'
+
+group by  p.projectId , cou.name ,ven.name ,fac.name, p.worker_rep ,p.mgmt_rep,p.date_enrollment , fac.id , ven.id ,unit, year_new
