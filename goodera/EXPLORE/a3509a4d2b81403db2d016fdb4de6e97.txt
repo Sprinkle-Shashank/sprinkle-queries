@@ -1,0 +1,36 @@
+with temp as ( 
+select 'perlocation_pits' as c
+  Union all 
+select 'beneficiary_1' as c
+  Union all 
+select 'rtwh_made' as c  
+  Union all 
+  select 'beneficiary_2' as c  
+  Union all 
+  select 'maintenance_kits' as c  
+  Union all 
+  select 'water_saved' as c  
+  Union all 
+  select 'stored_perlocation_pits' as c  
+  Union all 
+  select 'stored_rtwh' as c  
+  Union all 
+
+select pro.name as projectid,keyword_1_timerange,
+sum( case c when 'perlocation_pits' then p.perlocation_pits
+	        when 'beneficiary_1' then p.beneficiary_1
+	        when 'rtwh_made' then p.rtwh_made
+	        when 'beneficiary_2' then p.beneficiary_2
+	        when 'maintenance_kits' then p.maintenance_kits
+	        when 'water_saved' then p.water_saved
+	        when 'stored_perlocation_pits' then p.stored_perlocation_pits
+	        when 'stored_rtwh' then p.stored_rtwh
+	
+	        else null end ) as val, temp.c as dim from profile_80073 p
+			
+			left join ds_mysql_prod_project pro
+             on p.projectid = pro.id
+			cross join temp
+			
+group by projectid,keyword_1_timerange,temp.c,pro.name			
+			
