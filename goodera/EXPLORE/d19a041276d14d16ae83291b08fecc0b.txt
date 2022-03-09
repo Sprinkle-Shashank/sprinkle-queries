@@ -1,9 +1,15 @@
-with base1 as (select g1.code,gpr.action
+with base1 as (select DISTINCT(g1.code)
 from ds_mysql_prod_grantflowtaskgrantproposalrecord gpr
 left join ds_mysql_prod_grantproposal g1
 on g1.id = gpr.grantproposalid
-where gpr.grantflowtaskid = '821'
+where gpr.grantflowtaskid = '821' and gpr.action = 'SOUGHT_CLARIFICAION'
 ),
-base2 as (select *, row_number() over (partition by code order by action asc) as row_number from base1)
+base2 as (select DISTINCT(g1.code)
+from ds_mysql_prod_grantflowtaskgrantproposalrecord gpr
+left join ds_mysql_prod_grantproposal g1
+on g1.id = gpr.grantproposalid
+where gpr.grantflowtaskid = '821' and gpr.action = 'COMPLETED')
 
-select * from base2 where row_number = 1 and action = 'COMPLETED'
+select p.* from base2 p
+left join base1 p2
+on p.code = p2.code
