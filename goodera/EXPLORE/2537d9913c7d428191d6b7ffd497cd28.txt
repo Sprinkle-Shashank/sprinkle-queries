@@ -1,0 +1,55 @@
+with temp as ( 
+select 'shg_reached' as c
+  Union all 
+select 'new_shg_formed' as c
+  Union all 
+select 'lsc_opened' as c 
+  Union all 
+  select 'lsc_enrolled' as c
+  Union all 
+  select 'women_linked' as c 
+  Union all 
+  select 'women_employed' as c 
+  Union all 
+  select 'smc_formed' as c 
+  Union all 
+  select 'campaigns_and_meetings' as c 
+  Union all 
+  select 'vdmp_formed' as c 
+  Union all 
+  select 'women_vdmp' as c 
+  Union all 
+  select 'awareness_sessions' as c 
+  Union all 
+  select 'job_platform' as c 
+  Union all 
+  select 'employed_job_registry' as c 
+  Union all 
+  select 'health_related_campaigns' as c 
+  Union all 
+  select 'health_promotional' as c  )
+  
+  select pro.name as projectid,keyword_1_timerange,
+sum( case c when 'shg_reached' then p.shg_reached
+	        when 'new_shg_formed' then p.new_shg_formed
+	        when 'lsc_opened' then p.lsc_opened
+	        when 'lsc_enrolled' then p.lsc_enrolled
+	        when 'women_linked' then p.women_linked
+	        when 'smc_formed' then p.smc_formed
+	        when 'campaigns_and_meetings' then p.campaigns_and_meetings
+	        when 'vdmp_formed' then p.vdmp_formed
+	        when 'women_vdmp' then p.women_vdmp
+	        when 'awareness_sessions' then p.awareness_sessions
+	        when 'job_platform' then p.job_platform
+	        when 'employed_job_registry' then p.employed_job_registry
+	        when 'health_related_campaigns' then p.health_related_campaigns
+	        when 'health_related_campaigns' then p.health_related_campaigns
+	
+	        else null end ) as val, temp.c as dim from profile_80090 p
+			
+			left join ds_mysql_prod_project pro
+             on p.projectid = pro.id
+			cross join temp
+			
+group by projectid,keyword_1_timerange,temp.c,pro.name			
+			
