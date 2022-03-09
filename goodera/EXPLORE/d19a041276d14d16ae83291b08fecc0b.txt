@@ -1,13 +1,11 @@
-with phase1 as (select gpr.grantflowtaskid,gpr.grantproposalid,p1.name as project_name,cd.code as code,
-cast(concat(concat(substring(cast(timestamp 'epoch' + CAST(gpr.completedon AS BIGINT)/1000 * interval '1 second' as varchar), 1, 10),'T'), concat(split_part(cast(timestamp 'epoch' + CAST(gpr.completedon AS BIGINT)/1000 * interval '1 second' as varchar), ' ',2),'.000Z')) as datetime) as completedon 
+with phase1 as (select grantflowtaskid,grantproposalid,action,p1.name as project_name,
+cast(concat(concat(substring(cast(timestamp 'epoch' + CAST(completedon AS BIGINT)/1000 * interval '1 second' as varchar), 1, 10),'T'), concat(split_part(cast(timestamp 'epoch' + CAST(completedon AS BIGINT)/1000 * interval '1 second' as varchar), ' ',2),'.000Z')) as datetime) as completedon 
 from ds_mysql_prod_grantflowtaskgrantproposalrecord gpr
 left join ds_mysql_prod_grantflowtask gfp1
 on gpr.grantflowtaskid = gfp1.id
-left join ds_mysql_prod_grantproposal cd
-on gpr.grantflowtaskid = cd.grantflowtaskid
 left join profile_12743 p1
 on gfp1.profileid = p1._id
-where gpr.grantflowtaskid = '821' or gpr.grantflowtaskid = '820')
+where grantflowtaskid = '821' or grantflowtaskid = '820')
 
 select *,row_number() over (partition by grantflowtaskid) as SI
 from phase1
