@@ -4,6 +4,7 @@ with table1 as (Select
 				case when lg_status = 848007 or lg_status is null then 1 else 0 end as lg,
 				case when table_54646._id is null then 0 else 1 end as tab,
 				substring(table_54646.projcode_factory,1,1) as code,
+				p.name as name,
 				case when num_females_graduated between -2147483648 and 2147483648 then 1 else 0 end as st,
 				case when st = 1 then num_females else 0 end as total_females_graduation_rate,
 				num_females as total_females,
@@ -13,8 +14,17 @@ with table1 as (Select
 				case when end_date_2 is null then num_females else 0 end as total_females_ongoing,
 				case when end_date_2 is null then 1 else 0 end as total_batches_ongoing,
 				case when end_date_2 is not null then 1 else 0 end as total_batches_completed,
-				hours as average_hours
-				
+				hours as average_hours,
+				hours as total_hours, 
+				num_males as total_males,
+				case when end_date_2 is null then num_males else 0 end as total_males_ongoing,
+				num_males_graduated as total_males_graduated,
+				num_males_dropout as total_males_dropout,
+				reason_pregnancy as dropout_pregnancy,
+				reason_left as dropout_left,
+				reason_interest as dropout_interest,
+				reason_pressure as dropout_pressure
+				reason_other as dropout_other
 				
 				
 				
@@ -26,11 +36,16 @@ left join profile_54646 table_54646 on
 table_54646.projectId = p.projectId
 ),
 
-table2 as (select sum(total_females_graduation_rate) as total_females_graduation_rate, brand, lg, tab, sum(total_females) as total_females, sum(total_females_dropout) as total_females_dropout, sum(total_females_graduated) as total_females_graduated, sum(total_females_completed) as total_females_completed, sum(total_females_ongoing) as total_females_ongoing, sum(total_batches_ongoing) as total_batches_ongoing, sum(total_batches_completed) as total_batches_completed,avg(average_hours) as average_hours
+table2 as (select sum(total_females_graduation_rate) as total_females_graduation_rate, brand, lg, tab, max(total_females) as total_females, sum(total_females_dropout) as total_females_dropout, sum(total_females_graduated) as total_females_graduated, sum(total_females_completed) as total_females_completed, sum(total_females_ongoing) as total_females_ongoing, sum(total_batches_ongoing) as total_batches_ongoing, sum(total_batches_completed) as total_batches_completed,avg(average_hours) as average_hours, name, sum(total_hours) as total_hours, sum(total_males) as total_males, sum(total_males_ongoing) as total_males_ongoing, sum(total_males_graduated) as total_males_graduated, sum(total_males_dropout) as total_males_dropout, sum(dropout_pregnancy) as dropout_pregnancy, sum(dropout_left) as dropout_left, sum(dropout_interest) as dropout_interest, sum(dropout_pressure) as dropout_pressure, sum(dropout_other) as dropout_other
 		from table1 p
 
 
-group by  brand, lg, tab
+group by  brand, lg, tab,name
+
+),
+table3 as (select brand, lg, tab, sum($total_females_graduation_rate) as $total_females_graduation_rate, sum(total_females) as total_females, sum(total_females_dropout) as total_females_dropout, sum(total_females_graduated)as total_females_graduated, sum(total_females_completed) as total_females_completed, sum(total_females_ongoing) as total_females_ongoing, sum(total_batches_ongoing) as total_batches_ongoing, sum(total_batches_completed) as total_batches_completed, sum(average_hours) as average_hours , sum(total_hours) as total_hours, sum(total_males) as total_males, sum(total_males_ongoing) as total_males_ongoing, sum(total_males_graduated) as total_males_graduated, sum(total_males_dropout) as total_males_dropout, sum(dropout_pregnancy) as dropout_pregnancy, sum(dropout_left) as dropout_left, sum(dropout_interest) as dropout_interest, sum(dropout_pressure) as dropout_pressure, sum(dropout_other) as dropout_other
+
+			from table2 p
 
 )
-Select * from table2 p where brand = 1 and lg = 1 and tab = 1
+Select * from table3 p where brand = 1 and lg = 1 and tab = 1
