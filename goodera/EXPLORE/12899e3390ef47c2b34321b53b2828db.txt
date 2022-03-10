@@ -1,4 +1,6 @@
-select p.projectId as project,fac.name as factory,ven.name as vendor1,nvl2(SUBSTRING(vendor1, 1, POSITION(' (' in vendor1)), SUBSTRING(vendor1, 1, POSITION(' (' in vendor1)), vendor1) as vendor_name, case when vendor_name='' then vendor1 else vendor_name end as vendor,case when vendor_name='' then vendor1 else vendor_name end as vendor,cou.name as country,case when country in ('India', 'Bangladesh', 'Sri Lanka')
+
+
+with table1 as(select p._id,p.projectId as project,fac.name as factory,ven.name as vendor1,nvl2(SUBSTRING(vendor1, 1, POSITION(' (' in vendor1)), SUBSTRING(vendor1, 1, POSITION(' (' in vendor1)), vendor1) as vendor_name, case when vendor_name='' then vendor1 else vendor_name end as vendor,cou.name as country,case when country in ('India', 'Bangladesh', 'Sri Lanka')
 then 'South Asia'
 when country in ('China')
 then 'North Asia'
@@ -6,9 +8,7 @@ when country in ('Guatemala', 'El Salvador', 'Dominican Republic')
 then 'Americas'
 when country in ('Philippines', 'Cambodia',  'Vietnam',  'Indonesia', 'Myanmar')
 then 'South East Asia'
-end as region,
---p2.name_subunit as unit,
-DATEPART(YEAR,p.event_date) as year_new,type.name as event_type,p.description,p.doc,p.pic,p.pic_2,p.caption,p.caption_2,count(p.projectId) as event_count from profile_17524 p
+end as region,DATEPART(YEAR,p2.date_enrollment) as year_new,p.title,p.data_type,p.description,p.pic,p.pic_2,p.caption,p.caption_2 from profile_17001 p
 
 
 		  
@@ -19,18 +19,30 @@ on fac.parent = ven.id
 left join ds_mysql_prod_project cou
 on ven.parent = cou.id
 			
+left join profile_16619 p2 on
+p.projectId = p2.projectId
 
-left join ds_mysql_prod_tagelement type
-on p.event_type = type.id
 			
 
 			
 where (cou.name <> 'Test Country' and cou.name <> 'GAP Inc.') 
---and (p2.status = 1400365 or p2.status is null) 
-and project ilike '%%'
+			   --and (p2.status = 1400365 or p2.status is null) 
 			
-group by project,fac.name,cou.name,ven.name,vendor,year_new,--p2.name_subunit,
-type.name,p.description,p.doc,p.pic,p.pic_2,p.caption,p.caption_2,region
+			   and project ilike '%%'
+			
+group by p._id,p.projectId,fac.name,cou.name,ven.name,vendor,year_new,p.title,p.data_type,p.description,p.pic,p.pic_2,p.caption,p.caption_2,region
+),
+table1a as(select t1.*,CAST(type as varchar) from table1 t1,t1.data_type type
+),
+table2 as 
+(
+   select t1.*, cast(c as varchar) , cast(d as varchar) from table1a t1, t1.pic c , t1.pic_2 d
+  )
+  select _id,project,factory,vendor,country,region,year_new,title,description,caption,caption_2,c ,d ,type,count(project) as stories_count from table2 
+
+where type = 478639
+  
+  group by _id,project,factory,country,vendor,region,year_new,title,description,caption,caption_2,c ,d ,type
 
 /*with table1 as(select p.projectId as proj,p.pic as photo,p.caption as caption from profile_17524 p
 			  
