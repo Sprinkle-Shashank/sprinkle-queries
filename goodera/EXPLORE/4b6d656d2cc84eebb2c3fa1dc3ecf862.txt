@@ -1,4 +1,4 @@
-select p.projectId, p.overall_workers, p.roi, p.wep_data_collection, DATEPART(YEAR,p.start_date) as year_new, p.improvements, p.reason, p.features, p.others, p.survey_yn, p.shared_results, p.notes, p.num_workers, p.num_positive, p.turnover, p.num_workers_total, p.num_registered, p.num_active, p.overall_valuable,ven.name as vendor,fac.name as factory,cou.name as country,p2.service_provider from profile_60782 p
+select p.projectId, p.overall_workers, p.roi, p.wep_data_collection, DATEPART(YEAR,p.start_date) as year_new, p.improvements, p.reason, p.features, p.others, p.survey_yn, p.shared_results, p.notes, p.num_workers, p.num_positive, p.turnover, p.num_workers_total, p.num_registered, p.num_active, p.overall_valuable,ven.name as vendor,fac.name as factory,cou.name as country,service.name as service_provider from profile_60782 p
 
 
 left join ds_mysql_prod_project fac
@@ -10,6 +10,14 @@ on ven.parent = cou.id
 
 left join profile_60670 p2 
 on p.projectId = p2.projectId
+
+left join ds_mysql_prod_tagelement service on
+p2.service_provider = service.id
+
+where cou.id <> 13761
+
+
+group by p.projectId, p.overall_workers, p.roi, p.wep_data_collection, year_new, p.improvements, p.reason, p.features, p.others, p.survey_yn, p.shared_results, p.notes, p.num_workers, p.num_positive, p.turnover, p.num_workers_total, p.num_registered, p.num_active, p.overall_valuable,ven.name ,fac.name ,cou.name ,service.name 
 
 /*with table2 as(select p._id,p.projectId,stat.name as status_new,case when status_new = 'Deactivated' then
 			   'Deactivated' when status_new  is null then 'Ongoing' end as Status,p.sustainability_rating as rating_2,row_number() over 
