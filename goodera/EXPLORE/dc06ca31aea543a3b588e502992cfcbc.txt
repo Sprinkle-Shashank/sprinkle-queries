@@ -1,16 +1,25 @@
 with table1 as 
 (
-  select projectId,
+  select projectId,cou.name as country , 
+nvl2(SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)),ven.name) as vendor_name, case when vendor_name='' then ven.name else vendor_name end as vendor, ven.id as vendorID , fac.name as factory , fac.id as facilityID ,
+p.name_subunit as unit,
+  case when total_raised is null then 0 ,
 total_raised,total_raised_2,total_raised_3,total_raised_4,total_raised_5,total_raised_6,total_raised_7,total_raised_8,total_raised_9,          
 rights_based,rights_based_2,rights_based_3,rights_based_4,rights_based_5,rights_based_6,rights_based_7,rights_based_8,rights_based_9,  
 interest_based,interest_based_2,interest_based_3,interest_based_4,interest_based_5,interest_based_6,interest_based_7,interest_based_8,interest_based_9,   
 resolved,resolved_2,resolved_3,resolved_4,resolved_5,resolved_6,resolved_7,resolved_8,resolved_9,
-Sum(total_raised+total_raised_2+total_raised_3+total_raised_4+total_raised_5+total_raised_6+total_raised_7+total_raised_8+total_raised_9) ,     
-sum( rights_based+rights_based_2+rights_based_3+rights_based_4+rights_based_5+rights_based_6+rights_based_7+rights_based_8+rights_based_9), 
-sum(interest_based+interest_based_2+interest_based_3+interest_based_4+interest_based_5+interest_based_6+interest_based_7+interest_based_8+interest_based_9),   
-sum(resolved + resolved_2 + resolved_3 + resolved_4 + resolved_5 + resolved_6 + resolved_7 + resolved_8 + resolved_9)
+  
 from profile_16863
+  
+  where p.projectId ilike '%%' and cou.name <> 'Test Country' and (p.status = 1400365 or p.status is null)  
+and country <> 'GAP Inc.'
 
 group by projectid, total_raised,total_raised_2,total_raised_3,total_raised_4,total_raised_5,total_raised_6,total_raised_7,total_raised_8,total_raised_9,      rights_based,rights_based_2,rights_based_3,rights_based_4,rights_based_5,rights_based_6,rights_based_7,rights_based_8,rights_based_9,  
 interest_based,interest_based_2,interest_based_3,interest_based_4,interest_based_5,interest_based_6,interest_based_7,interest_based_8, interest_based_9,resolved,resolved_2,resolved_3,resolved_4,resolved_5,resolved_6,resolved_7,resolved_8,resolved_9
-  ),
+  )
+  select projectId , status , Sum(total_raised+total_raised_2+total_raised_3+total_raised_4+total_raised_5+total_raised_6+total_raised_7+total_raised_8+total_raised_9) as total-raised,     
+sum( rights_based+rights_based_2+rights_based_3+rights_based_4+rights_based_5+rights_based_6+rights_based_7+rights_based_8+rights_based_9) as right-based, 
+sum(interest_based+interest_based_2+interest_based_3+interest_based_4+interest_based_5+interest_based_6+interest_based_7+interest_based_8+interest_based_9) as interest-based,   
+sum(resolved + resolved_2 + resolved_3 + resolved_4 + resolved_5 + resolved_6 + resolved_7 + resolved_8 + resolved_9) as resolved
+
+from table1
