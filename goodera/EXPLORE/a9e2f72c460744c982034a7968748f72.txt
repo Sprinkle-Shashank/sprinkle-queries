@@ -1,4 +1,4 @@
-with table1 as (select projectId , cou.name as country , date ,/* mgmt_rep , worker_rep ,  mgmt_rep_2 , worker_rep_2 ,*/  sum(mgmt_rep_2 + worker_rep_2) as n1 ,sum( mgmt_rep + worker_rep) as d1 , n1*1.0/d1 as avg1 ,'Communication in the workplace' as module
+with table1 as (select projectId , cou.name as country , date , mgmt_rep , worker_rep ,  mgmt_rep_2 , worker_rep_2 ,  mgmt_rep_2 + worker_rep_2 as n1 , mgmt_rep + worker_rep as d1 , n1*1.0/d1 as avg1 ,'Communication in the workplace' as module
 from profile_16619 as p1
 				 
 left join ds_mysql_prod_project fac
@@ -9,7 +9,7 @@ left join ds_mysql_prod_project cou
 on ven.parent = cou.id
 				 
 where date is not null 
-group by  p1.date , p1.projectId , cou.name ,module ),
+group by  p1.date , p1.projectId , cou.name ,module, mgmt_rep , worker_rep ,  mgmt_rep_2 , worker_rep_2 ),
 
 table2  as (select projectId , cou.name as country ,date_2 ,/* mgmt_rep , worker_rep ,  mgmt_rep_3 , worker_rep_3 , */ sum(mgmt_rep_3 + worker_rep_3) as n2 , sum(mgmt_rep + worker_rep) as d2 , n2*1.0/d2 as avg2 , 'Role and responsibilities in BC' as module
 from profile_16619 as p2
@@ -55,7 +55,7 @@ left join ds_mysql_prod_project cou
 on ven.parent = cou.id			
 			
 where date_4 is not null 
-group by  projectid,cou.name,p4.date_4 , module
+group by  projectid,cou.name,p4.date_4 , module,mgmt_rep , worker_rep ,  mgmt_rep_5 , worker_rep_5
 )
 
 ,
@@ -91,4 +91,4 @@ where date_8 is not null
 group by  p8.date_8 , p8.mgmt_rep_9 , p8.worker_rep_9 , p8.mgmt_rep , p8.worker_rep
 )
 
-select * from table2
+select * from table1
