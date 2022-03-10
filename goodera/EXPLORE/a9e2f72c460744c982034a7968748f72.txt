@@ -1,4 +1,4 @@
-with table1 as (select projectId , cou.name as country , date ,/* mgmt_rep , worker_rep ,  mgmt_rep_2 , worker_rep_2 ,*/  mgmt_rep_2 + worker_rep_2 as n1 , mgmt_rep + worker_rep as d1 , n1*1.0/d1 as avg1 ,'Communication in the workplace' as module
+with table1 as (select projectId , cou.name as country , date ,/* mgmt_rep , worker_rep ,  mgmt_rep_2 , worker_rep_2 ,*/  sum(mgmt_rep_2 + worker_rep_2) as n1 ,sum( mgmt_rep + worker_rep) as d1 , n1*1.0/d1 as avg1 ,'Communication in the workplace' as module
 from profile_16619 as p1
 				 
 left join ds_mysql_prod_project fac
@@ -27,8 +27,16 @@ group by  date_2 , p2.projectId , cou.name,mgmt_rep , worker_rep ,  mgmt_rep_3 ,
 
 ,
 
-table3  as (select date_3 ,mgmt_rep , worker_rep ,  mgmt_rep_4 , worker_rep_4 , sum(mgmt_rep_4 + worker_rep_4) as n3 , sum(mgmt_rep + worker_rep) as d3 , CAST(n3 AS float) / CAST(d3 AS float) as avg3 , 'Risk assessment' as module
+table3  as (select projectid,cou.name as country,date_3 ,mgmt_rep , worker_rep ,  mgmt_rep_4 , worker_rep_4 , mgmt_rep_4 + worker_rep_4 as n3 , mgmt_rep + worker_rep as d3 , CAST(n3 AS float) / CAST(d3 AS float) as avg3 , 'Risk assessment' as module
 from profile_16619 as p3
+			
+left join ds_mysql_prod_project fac
+on p3.projectid = fac.id
+left join ds_mysql_prod_project ven
+on fac.parent = ven.id
+left join ds_mysql_prod_project cou
+on ven.parent = cou.id			
+			
 where date_3 is not null 
 group by  p3.date_3 , p3.mgmt_rep_4 , p3.worker_rep_4 , p3.mgmt_rep , p3.worker_rep
 )
@@ -76,4 +84,4 @@ where date_8 is not null
 group by  p8.date_8 , p8.mgmt_rep_9 , p8.worker_rep_9 , p8.mgmt_rep , p8.worker_rep
 )
 
-select * from table2
+select * from table1
