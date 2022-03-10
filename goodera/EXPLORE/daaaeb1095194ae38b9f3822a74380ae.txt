@@ -8,7 +8,7 @@ with table1 as (select
 				p.start_date as start_date,
 				case when lg_status = 848007 or lg_status is null then 1 else 0 end as status,
 				sum(p.num_females) as females,
-				start_year as year1
+				start_year as year1,p.projectId as projectId1,select_modules
 				from profile_4227 p
 inner join profile_54646 table_54646 on
 table_54646.projectId = p.projectId
@@ -16,17 +16,17 @@ table_54646.projectId = p.projectId
 inner join profile_52810 table_52810 on
 table_52810.projectId = p.projectId				
 
-group by p.lg_status,p.start_date,table_52810.offset_date,table_52810.pace_brands,table_54646.projcode_factory,start_year
+group by p.lg_status,p.start_date,table_52810.offset_date,table_52810.pace_brands,table_54646.projcode_factory,start_year,projectId1,select_modules
 ),
 table2 as ( select 
 		   sum(females) as total_females,
 		   year1 as year,
 		   brand,
-		   status,start_date,
+		   status,start_date,projectId1,select_modules,
 		   case when start_date >= offset_date then 1 else 0 end as token
 		from table1 p
 group by year,brand,
 		   status,
-		   token,start_date
+		   token,start_date,projectId1,select_modules
 )
-select year,total_females,start_date from table2 p where brand = 1 and token = 1 and status = 1
+select year,total_females,start_date,projectId1,select_modules as projectId from table2 p where brand = 1 and token = 1 and status = 1
