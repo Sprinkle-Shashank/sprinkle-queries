@@ -1,0 +1,39 @@
+
+with temp as ( 
+select 'youth_women_reached' as c
+  Union all 
+select 'sports_meet' as c
+  Union all 
+select 'women_lsc' as c 
+  Union all 
+select 'youth_lsc' as c 
+  Union all 
+select 'linked_to_jeevika' as c 
+  Union all 
+select 'registry_platform' as c 
+  Union all 
+select 'institutes_partenered' as c 
+  Union all 
+select 'health_campaigns' as c 
+  Union all 
+select 'handpump' as c )
+
+select pro.name as projectid,keyword_1_timerange,
+sum( case c when 'youth_women_reached' then p.youth_women_reached
+	        when 'sports_meet' then p.sports_meet
+	        when 'women_lsc' then p.women_lsc
+	        when 'youth_lsc' then p.youth_lsc
+	        when 'linked_to_jeevika' then p.linked_to_jeevika
+	        when 'registry_platform' then p.registry_platform
+	        when 'institutes_partenered' then p.institutes_partenered
+	        when 'health_campaigns' then p.health_campaigns
+	        when 'handpump' then p.handpump
+	
+	        else null end ) as val, temp.c as dim from profile_80091 p
+			
+			left join ds_mysql_prod_project pro
+             on p.projectid = pro.id
+			cross join temp
+			
+group by projectid,keyword_1_timerange,temp.c,pro.name			
+			
