@@ -45,10 +45,17 @@ group by  projectid,cou.name,p3.date_3 , p3.mgmt_rep_4 , p3.worker_rep_4 , p3.mg
 ,
 
 
-table4  as (select date_4 ,mgmt_rep , worker_rep ,  mgmt_rep_5 , worker_rep_5 , sum(mgmt_rep_5 + worker_rep_5) as n4 , sum(mgmt_rep + worker_rep) as d4 , CAST(n4 AS float) / CAST(d4 AS float) as avg4 , 'Problem solving' as module
+table4  as (select projectid,cou.name as country,date_4 ,mgmt_rep , worker_rep ,  mgmt_rep_5 , worker_rep_5 , sum(mgmt_rep_5 + worker_rep_5) as n4 , sum(mgmt_rep + worker_rep) as d4 , n4*1.0/d4 as avg4 , 'Problem solving' as module
 from profile_16619 as p4
+left join ds_mysql_prod_project fac
+on p4.projectid = fac.id
+left join ds_mysql_prod_project ven
+on fac.parent = ven.id
+left join ds_mysql_prod_project cou
+on ven.parent = cou.id			
+			
 where date_4 is not null 
-group by  p4.date_4 , p4.mgmt_rep_5 , p4.worker_rep_5 , p4.mgmt_rep , p4.worker_rep
+group by  projectid,cou.name,p4.date_4 , module
 )
 
 ,
