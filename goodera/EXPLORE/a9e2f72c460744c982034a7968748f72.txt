@@ -91,10 +91,17 @@ group by  projectid,cou.name,p6.date_6 , p6.mgmt_rep_7 , p6.worker_rep_7 , p6.mg
 
 ,
 
-table7  as (select date_7 ,mgmt_rep , worker_rep ,  mgmt_rep_8 , worker_rep_8 , sum(mgmt_rep_8 + worker_rep_8) as n7 , sum(mgmt_rep + worker_rep) as d7 , CAST(n7 AS float) / CAST(d7 AS float) as avg7 , 'Negotiation skills' as module
+table7  as (select projectid,cou.name as country,date_7 ,mgmt_rep , worker_rep ,  mgmt_rep_8 , worker_rep_8 , mgmt_rep_8 + worker_rep_8 as n7 , mgmt_rep + worker_rep as d7 , CAST(n7 AS float) / CAST(d7 AS float) as avg7 , 'Negotiation skills' as module
 from profile_16619 as p7
+			
+left join ds_mysql_prod_project fac
+on p7.projectid = fac.id
+left join ds_mysql_prod_project ven
+on fac.parent = ven.id
+left join ds_mysql_prod_project cou
+on ven.parent = cou.id				
 where date_7 is not null 
-group by  p7.date_7 , p7.mgmt_rep_8 , p7.worker_rep_8 , p7.mgmt_rep , p7.worker_rep
+group by  projectid,cou.name,module,p7.date_7 , p7.mgmt_rep_8 , p7.worker_rep_8 , p7.mgmt_rep , p7.worker_rep
 )
 
 ,
