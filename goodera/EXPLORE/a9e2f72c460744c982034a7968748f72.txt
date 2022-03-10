@@ -60,10 +60,17 @@ group by  projectid,cou.name,p4.date_4 , module,mgmt_rep , worker_rep ,  mgmt_re
 
 ,
 
-table5  as (select date_5 ,mgmt_rep , worker_rep ,  mgmt_rep_6 , worker_rep_6 , sum(mgmt_rep_6 + worker_rep_6) as n5 , sum(mgmt_rep + worker_rep) as d5 , CAST(n5 AS float) / CAST(d5 AS float) as avg5 , 'Managing Health and Safety' as module
+table5  as (select projectid,cou.name as country, date_5 ,mgmt_rep , worker_rep ,  mgmt_rep_6 , worker_rep_6 , sum(mgmt_rep_6 + worker_rep_6) as n5 , sum(mgmt_rep + worker_rep) as d5 , CAST(n5 AS float) / CAST(d5 AS float) as avg5 , 'Managing Health and Safety' as module
 from profile_16619 as p5
+			
+left join ds_mysql_prod_project fac
+on p5.projectid = fac.id
+left join ds_mysql_prod_project ven
+on fac.parent = ven.id
+left join ds_mysql_prod_project cou
+on ven.parent = cou.id				
 where date_5 is not null 
-group by  p5.date_5 , p5.mgmt_rep_6 , p5.worker_rep_6 , p5.mgmt_rep , p5.worker_rep
+group by  projectid,cou.name,p5.date_5 , p5.mgmt_rep_6 , p5.worker_rep_6 , p5.mgmt_rep , p5.worker_rep
 )
 
 ,
@@ -91,4 +98,4 @@ where date_8 is not null
 group by  p8.date_8 , p8.mgmt_rep_9 , p8.worker_rep_9 , p8.mgmt_rep , p8.worker_rep
 )
 
-select * from table4
+select * from table5
