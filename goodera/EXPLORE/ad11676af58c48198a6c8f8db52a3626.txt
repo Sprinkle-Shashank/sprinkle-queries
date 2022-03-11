@@ -17,15 +17,52 @@ with table1 as (Select
 			from profile_71993 p
 group by projectid1
 ),
-table2 as (Select projectId1
+table2 as (Select projectId1,
+		   table_54646.projid_factory as factory_id,
+		   table_4227.start_date as start_date,
+		   table_4227.num_females as num_females,
+		   table_4227.lg_status as lg_status,
+		   table_4227.select_modules as select_modules,
+		   JSON_SERIALIZE(table_52810.pace_brands) as pace_brand,	
+		   case when pace_brand like '%1151834%' then 1 else 0 end  as brand,
+		   target_2020 as target2020,
+		   target_2021 as target2021,
+		   target_2022 as target2022,
+		   goal_2020 as goal2020,
+		   goal_2022 as goal2022,
+		   case when lg_status != 848008 then num_females else 0 end as women_reached,
+		   partner,
+		   projectId1 as vp_id
+		   
 
 
 
 			from table1 p
 left join profile_54646 table_54646 on
 table_54646.projid_factory = projectId1
+		   
+left join profile_4227 table_4227 on
+table_4227.projectId = table_54646.projid_factory
+		   
+left join profile_52810 table_52810 on
+table_52810.projectId = table_4227.projectId
+),
+table3 as (Select listagg(distinct(target2020)) as target2020,
+		   listagg(distinct(target2021)) as target2021,
+		   listagg(distinct(target2022)) as target2022,
+		   listagg(distinct(goal2020)) as goal2020,
+		   listagg(distinct(goal2022)) as goal2022,
+		   sum(women_reached) as women_reached,
+		   listagg(distinct(partner)) as partner,
+		   listagg(distinct(vp_id)) as vp_id,		   
+
+	from table2 p
+),)
+table4 as (Select brand, vp_id, sum(target2020) as target2020, sum(target2021) as target2021, sum(target2022) as target2022, sum(goal2020) as goal2020, sum(goal2022) as goal2022, sum(women_reached) as women_reached, listagg(distinct(partner)) as partner
+	from table3 p
+group by brand, vp_id
 )
 
 
 
-Select * from table1 p
+Select * from table4 p where brand = 1
