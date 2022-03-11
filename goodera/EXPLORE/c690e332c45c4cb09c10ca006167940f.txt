@@ -1,7 +1,18 @@
-select p._id,p2.school_name, LEFT(p.session_date,10) start_date, LEFT(p.end_date,10) end_date, t.name session_type , p.duration, p.brief, p.teacher, photo,session_date fy_timerange
-from profile_77006 p  
+with s1 as(
+  select p._id,p2.school_name, LEFT(p.session_date,10) start_date, LEFT(p.end_date,10) end_date, t.name session_type , p.duration, p.brief, p.teacher, photo,session_date fy_timerange
+  from profile_77006 p  
 join profile_77382 p2
 on p.school = p2._id
 left join ds_mysql_prod_tagelement t
 on p.session_type = t.id
 group by 1,2,3,4,5,6,7,8,p.photo,p.session_date;
+),
+
+s3 as (
+select _id,school, start_date, end_date, session_type , duration, brief, teacher, photo,fy_timerange
+FROM s1 as s2,s2.school_name school)
+
+Select  _id,listagg(distinct school  ,'|') as school_name, start_date, end_date, session_type , duration, brief, teacher, photo,fy_timerange 
+from s3
+
+
