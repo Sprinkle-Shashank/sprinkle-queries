@@ -1,4 +1,3 @@
-with table1 as(
 select p.projectId as project,fac.name as factory,ven.name as vendor1,nvl2(SUBSTRING(vendor1, 1, POSITION(' (' in vendor1)), SUBSTRING(vendor1, 1, POSITION(' (' in vendor1)), vendor1) as vendor_name, case when vendor_name='' then vendor1 else vendor_name end as vendor,cou.name as country,case when country in ('India', 'Bangladesh', 'Sri Lanka')
 then 'South Asia'
 when country in ('China')
@@ -7,7 +6,8 @@ when country in ('Guatemala', 'El Salvador', 'Dominican Republic')
 then 'Americas'
 when country in ('Philippines', 'Cambodia',  'Vietnam',  'Indonesia', 'Myanmar')
 then 'South East Asia'
-end as region,p2.name_subunit as unit,DATEPART(YEAR,p2.date_enrollment) as year_new,p.rating, case when p.rating = 394141 then '1'
+end as region,p2.name as unit,DATEPART(YEAR,p2.date_enrollment) as year_new,
+p.rating, case when p.rating = 394141 then '1'
   when p.rating = 394142 then '2'
   when p.rating = 394143 then'3'
 when p.rating = 394144  then '4'
@@ -27,13 +27,13 @@ on ven.parent = cou.id
 
 
 left join profile_16619 p2
-on p.projectId = p2.projectId	
+on p.sub_unit = p2._id	
 
 
 
-where (p2.status = 1400365 or p2.status is null) and (cou.name <> 'Test Country' and cou.name <> 'GAP Inc.')and (project ilike '%%') and rating_type!='0'
+where (p2.status = 1400365 or p2.status is null) and
+(cou.name <> 'Test Country' and cou.name <> 'GAP Inc.')and (project ilike '%%') and rating_type!='0'
 
-group by p.projectId,fac.name,cou.name,ven.name,vendor,year_new,p2.name_subunit,region,p.rating,rating_type
-  )
-select distinct project,factory,vendor,country,region,unit,year_new,rating_type,count from table1
-	
+group by p.projectId,fac.name,cou.name,ven.name,vendor,
+year_new,
+p2.name,region,p.rating,rating_type
