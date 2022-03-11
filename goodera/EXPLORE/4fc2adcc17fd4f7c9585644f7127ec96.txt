@@ -1,4 +1,12 @@
-with table1 as (select ven.name as vendor1,nvl2(SUBSTRING(vendor1, 1, POSITION(' (' in vendor1)), SUBSTRING(vendor1, 1, POSITION(' (' in vendor1)), vendor1) as vendor_name, case when vendor_name='' then vendor1 else vendor_name end as vendor ,decode(name_subunit,' ','NA',name_subunit) as unit,  projectId ,fac.name as factory ,  DATEPART(YEAR,date_enrollment) as year_new,  date , mgmt_rep , worker_rep ,  mgmt_rep_2 , worker_rep_2 ,  mgmt_rep_2 + worker_rep_2 as n1 , mgmt_rep + worker_rep as d1 , n1*1.0/d1 as avg1 ,'Communication in the workplace' as module
+with table1 as (select ven.name as vendor1,nvl2(SUBSTRING(vendor1, 1, POSITION(' (' in vendor1)), SUBSTRING(vendor1, 1, POSITION(' (' in vendor1)), vendor1) as vendor_name, case when vendor_name='' then vendor1 else vendor_name end as vendor ,decode(name_subunit,' ','NA',name_subunit) as unit,  projectId ,fac.name as factory , cou.name as country , case when country in ('India', 'Bangladesh', 'Sri Lanka')
+then 'South Asia'
+when country in ('China')
+then 'North Asia'
+when country in ('Guatemala', 'El Salvador', 'Dominican Republic')
+then 'Americas'
+when country in ('Philippines', 'Cambodia',  'Vietnam',  'Indonesia', 'Myanmar')
+then 'South East Asia'
+end as region , DATEPART(YEAR,date_enrollment) as year_new,  date , mgmt_rep , worker_rep ,  mgmt_rep_2 , worker_rep_2 ,  mgmt_rep_2 + worker_rep_2 as n1 , mgmt_rep + worker_rep as d1 , n1*1.0/d1 as avg1 ,'Communication in the workplace' as module
 from profile_16619 as p1
 				 
 left join ds_mysql_prod_project fac
@@ -9,15 +17,7 @@ left join ds_mysql_prod_project cou
 on ven.parent = cou.id
 				 
 where date is not null 
-group by  p1.date , p1.projectId,fac.name , cou.name , case when country in ('India', 'Bangladesh', 'Sri Lanka')
-then 'South Asia'
-when country in ('China')
-then 'North Asia'
-when country in ('Guatemala', 'El Salvador', 'Dominican Republic')
-then 'Americas'
-when country in ('Philippines', 'Cambodia',  'Vietnam',  'Indonesia', 'Myanmar')
-then 'South East Asia'
-end as region , module, mgmt_rep , worker_rep ,  mgmt_rep_2 , worker_rep_2 , ven.name , vendor , year_new , unit, region ),
+group by  p1.date , p1.projectId,fac.name , cou.name ,module, mgmt_rep , worker_rep ,  mgmt_rep_2 , worker_rep_2 , ven.name , vendor , year_new , unit, region ),
 
 table2  as (select ven.name as vendor1,nvl2(SUBSTRING(vendor1, 1, POSITION(' (' in vendor1)), SUBSTRING(vendor1, 1, POSITION(' (' in vendor1)), vendor1) as vendor_name, case when vendor_name='' then vendor1 else vendor_name end as vendor ,decode(name_subunit,' ','NA',name_subunit) as unit,  projectId ,fac.name as factory , case when country in ('India', 'Bangladesh', 'Sri Lanka')
 then 'South Asia'
