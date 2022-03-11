@@ -15,6 +15,8 @@ test2 as (
   	from profile_59462 p
   	left join ds_mysql_prod_tagelement tag1
 	on tag1.id = p.s_clinic_type
+  	where tag1.name != 'OPD'
+	--modified above 1
 ),
 final as (
   	select concat(cast(fy_timerange.start as varchar), concat('|', cast(fy_timerange.end as varchar))) as fy_timerange, projectid, f_category,clinic_type,
@@ -29,7 +31,7 @@ final as (
   	where search_status in ('NEW','RENEW','REVISIT')
   	group by 1,2,3,4
 )
-select fy_timerange, projectid,clinic_type,f_category,sum(final_sum) as final_sum
+select fy_timerange,project.name as  projectid,clinic_type,f_category,sum(final_sum) as final_sum
 from final
 left join ds_mysql_prod_project as project
 on project.id = final.projectid where projectid like '%%'
