@@ -1,3 +1,19 @@
-select * from profile_79500
 
---where projectid = 63952
+with table1 as (
+    select projectid,profile_79500.name,fa.name as focus_area,description,ngo_logo,sdg_logo as photo,fy_timerange,sd.name as state_district, Substring(json_serialize(fy_timerange),11,10) as start_date, Substring(json_serialize(fy_timerange),44,10) as end_date
+from profile_79500
+  
+left join ds_mysql_prod_tagelement sd
+on profile_79500.state_district= sd.id
+
+ 
+left join ds_mysql_prod_tagelement fa
+on profile_79500.focus_area= fa.id
+
+where projectid = 63951
+  
+)
+select projectid, name, title, cast(sdg_logo as varchar) from table1 t1, t1.photo sdg_logo
+
+group by projectid,name,focus_area,description,ngo_logo,sdg_logo,fy_timerange,state_district, start_date, end_date
+
