@@ -1,6 +1,4 @@
-
-  select ven.name as vendor1,nvl2(SUBSTRING(vendor1, 1, POSITION(' (' in vendor1)), SUBSTRING(vendor1, 1, POSITION(' (' in vendor1)), vendor1) as vendor_name, case when vendor_name='' then vendor1 else vendor_name end as vendor,case when vendor_name='' then vendor1 else vendor_name end as vendor,decode(name_subunit,' ','NA',name_subunit) as unit, cou.name as country , fac.name as factory , 
-case when country in ('India', 'Bangladesh', 'Sri Lanka')
+with table1 as (select ven.name as vendor1,nvl2(SUBSTRING(vendor1, 1, POSITION(' (' in vendor1)), SUBSTRING(vendor1, 1, POSITION(' (' in vendor1)), vendor1) as vendor_name, case when vendor_name='' then vendor1 else vendor_name end as vendor ,decode(name_subunit,' ','NA',name_subunit) as unit,  projectId ,fac.name as factory , case when country in ('India', 'Bangladesh', 'Sri Lanka')
 then 'South Asia'
 when country in ('China')
 then 'North Asia'
@@ -8,46 +6,218 @@ when country in ('Guatemala', 'El Salvador', 'Dominican Republic')
 then 'Americas'
 when country in ('Philippines', 'Cambodia',  'Vietnam',  'Indonesia', 'Myanmar')
 then 'South East Asia'
-end as region , DATEPART(YEAR,date_enrollment) as year_new,
-p.projectId , 
-coalesce(mgmt_rep , 0) as m ,   coalesce(worker_rep , 0) as w , coalesce(mgmt_rep_2 ,0) as m2 ,coalesce( worker_rep_2 , 0) as w2 , coalesce(mgmt_rep_3 , 0) as m3 , coalesce( worker_rep_3 ,0) as w3 , coalesce( mgmt_rep_4 , 0) as m4 , coalesce( worker_rep_4 ,0) as w4 , coalesce( mgmt_rep_5 ,0) as m5 , coalesce( worker_rep_5 ,0) as w5 , coalesce( mgmt_rep_6 ,0) as m6 , coalesce( worker_rep_6 , 0) as w6 , coalesce(mgmt_rep_7 , 0) as m7 , coalesce(worker_rep_7 ,0) as w7, coalesce( mgmt_rep_8 ,0) as m8 , coalesce( worker_rep_8 , 0) as w8 , coalesce( mgmt_rep_9 ,0) as m9 , coalesce( worker_rep_9 , 0) as w9 ,
-
---p.mgmt_rep , p.worker_rep , p.mgmt_rep_2 , p.worker_rep_2 , p.mgmt_rep_3 , p.worker_rep_3 , p.mgmt_rep_4 , p.worker_rep_4 , p.mgmt_rep_5 , p.worker_rep_5 , p.mgmt_rep_6 , p.worker_rep_6 , p.mgmt_rep_7 , p.worker_rep_7 , p.mgmt_rep_8 , p.worker_rep_8 , p.mgmt_rep_9 , p.worker_rep_9 , 
-
-sum( m2 + w2 + m3 + w3 + m4 + w4 + m5 + w5 + m6 + w6 + m7 + w7 + m8 + w8 + m9 + w9) as numerator , 
-
-sum(m + w) as denominator , 
-
-case when date is not null
-then 'Communication in the Workplace'
-when date_2 is not null
-then 'Roles and Responsibilities of BC'
-when date_3 is not null
-then 'Risk Assessment'
-when date_4 is not null
-then 'Problem-Solving'
-when date_5 is not null
-then 'Managing Health and Safety'
-when date_6 is not null
-then 'Grievance Mechanisms'
-when date_7 is not null
-then 'Negotiation Skills'
-when date_8 is not null
-then 'Strengthening Industrial Relations'
-
-end as Modules 
-
-
-from profile_16619 p
-
-
+end as region , DATEPART(YEAR,date_enrollment) as year_new, cou.name as country , date , mgmt_rep , worker_rep ,  mgmt_rep_2 , worker_rep_2 ,  mgmt_rep_2 + worker_rep_2 as n1 , mgmt_rep + worker_rep as d1 , n1*1.0/d1 as avg1 ,'Communication in the workplace' as module
+from profile_16619 as p1
+				 
 left join ds_mysql_prod_project fac
-on p.projectid = fac.id
+on p1.projectid = fac.id
 left join ds_mysql_prod_project ven
 on fac.parent = ven.id
 left join ds_mysql_prod_project cou
 on ven.parent = cou.id
+				 
+where date is not null 
+group by  p1.date , p1.projectId,fac.name , cou.name ,module, mgmt_rep , worker_rep ,  mgmt_rep_2 , worker_rep_2 , ven.name , vendor , year_new , unit, region ),
 
-where (date, date_2 , date_3 , date_4 , date_5 , date_6 , date_7 , date_8) is not null and (country <> 'Test Country' and country <> 'GAP Inc.')
-and projectId ilike '%%' 
-group by p.projectId , ven.name , vendor, year_new , region , unit, cou.name , fac.name , Modules ,  p.mgmt_rep , p.worker_rep , p.mgmt_rep_2 , p.worker_rep_2 , p.mgmt_rep_3 , p.worker_rep_3 , p.mgmt_rep_4 , p.worker_rep_4 , p.mgmt_rep_5 , p.worker_rep_5 , p.mgmt_rep_6 , p.worker_rep_6 , p.mgmt_rep_7 , p.worker_rep_7 , p.mgmt_rep_8 , p.worker_rep_8 , p.mgmt_rep_9 , p.worker_rep_9 
+table2  as (select ven.name as vendor1,nvl2(SUBSTRING(vendor1, 1, POSITION(' (' in vendor1)), SUBSTRING(vendor1, 1, POSITION(' (' in vendor1)), vendor1) as vendor_name, case when vendor_name='' then vendor1 else vendor_name end as vendor ,decode(name_subunit,' ','NA',name_subunit) as unit,  projectId ,fac.name as factory , case when country in ('India', 'Bangladesh', 'Sri Lanka')
+then 'South Asia'
+when country in ('China')
+then 'North Asia'
+when country in ('Guatemala', 'El Salvador', 'Dominican Republic')
+then 'Americas'
+when country in ('Philippines', 'Cambodia',  'Vietnam',  'Indonesia', 'Myanmar')
+then 'South East Asia'
+end as region , DATEPART(YEAR,date_enrollment) as year_new,   cou.name as country ,date_2 , mgmt_rep , worker_rep ,  mgmt_rep_3 , worker_rep_3 ,  mgmt_rep_3 + worker_rep_3 as n2 , mgmt_rep + worker_rep as d2 , n2*1.0/d2 as avg2 , 'Role and responsibilities in BC' as module
+from profile_16619 as p2
+			
+left join ds_mysql_prod_project fac
+on p2.projectid = fac.id
+left join ds_mysql_prod_project ven
+on fac.parent = ven.id
+left join ds_mysql_prod_project cou
+on ven.parent = cou.id		
+			
+where date_2 is not null 
+group by  date_2 , p2.projectId ,fac.name, cou.name,module,mgmt_rep , worker_rep ,  mgmt_rep_3 , worker_rep_3 , ven.name , vendor , year_new , unit, region
+)
+
+,
+
+table3  as (select ven.name as vendor1,nvl2(SUBSTRING(vendor1, 1, POSITION(' (' in vendor1)), SUBSTRING(vendor1, 1, POSITION(' (' in vendor1)), vendor1) as vendor_name, case when vendor_name='' then vendor1 else vendor_name end as vendor ,decode(name_subunit,' ','NA',name_subunit) as unit,  projectId ,fac.name as factory , case when country in ('India', 'Bangladesh', 'Sri Lanka')
+then 'South Asia'
+when country in ('China')
+then 'North Asia'
+when country in ('Guatemala', 'El Salvador', 'Dominican Republic')
+then 'Americas'
+when country in ('Philippines', 'Cambodia',  'Vietnam',  'Indonesia', 'Myanmar')
+then 'South East Asia'
+end as region , DATEPART(YEAR,date_enrollment) as year_new, cou.name as country,date_3 ,mgmt_rep , worker_rep ,  mgmt_rep_4 , worker_rep_4 , mgmt_rep_4 + worker_rep_4 as n3 , mgmt_rep + worker_rep as d3 , n3*1.0/d3 as avg3 , 'Risk assessment' as module
+from profile_16619 as p3
+			
+left join ds_mysql_prod_project fac
+on p3.projectid = fac.id
+left join ds_mysql_prod_project ven
+on fac.parent = ven.id
+left join ds_mysql_prod_project cou
+on ven.parent = cou.id			
+			
+where date_3 is not null 
+group by  projectid,fac.name,cou.name,p3.date_3 , p3.mgmt_rep_4 , p3.worker_rep_4 , p3.mgmt_rep , p3.worker_rep,module , ven.name , vendor , year_new , unit, region
+)
+
+
+,
+
+
+table4  as (select ven.name as vendor1,nvl2(SUBSTRING(vendor1, 1, POSITION(' (' in vendor1)), SUBSTRING(vendor1, 1, POSITION(' (' in vendor1)), vendor1) as vendor_name, case when vendor_name='' then vendor1 else vendor_name end as vendor ,decode(name_subunit,' ','NA',name_subunit) as unit,  projectId ,fac.name as factory , case when country in ('India', 'Bangladesh', 'Sri Lanka')
+then 'South Asia'
+when country in ('China')
+then 'North Asia'
+when country in ('Guatemala', 'El Salvador', 'Dominican Republic')
+then 'Americas'
+when country in ('Philippines', 'Cambodia',  'Vietnam',  'Indonesia', 'Myanmar')
+then 'South East Asia'
+end as region , DATEPART(YEAR,date_enrollment) as year_new,  cou.name as country,date_4 ,mgmt_rep , worker_rep ,  mgmt_rep_5 , worker_rep_5 , mgmt_rep_5 + worker_rep_5 as n4 , mgmt_rep + worker_rep as d4 , n4*1.0/d4 as avg4 , 'Problem solving' as module
+from profile_16619 as p4
+left join ds_mysql_prod_project fac
+on p4.projectid = fac.id
+left join ds_mysql_prod_project ven
+on fac.parent = ven.id
+left join ds_mysql_prod_project cou
+on ven.parent = cou.id			
+			
+where date_4 is not null 
+group by  projectid,fac.name,cou.name,p4.date_4 , module,mgmt_rep , worker_rep ,  mgmt_rep_5 , worker_rep_5 , ven.name , vendor , year_new , unit, region
+)
+
+,
+
+table5  as (select ven.name as vendor1,nvl2(SUBSTRING(vendor1, 1, POSITION(' (' in vendor1)), SUBSTRING(vendor1, 1, POSITION(' (' in vendor1)), vendor1) as vendor_name, case when vendor_name='' then vendor1 else vendor_name end as vendor ,decode(name_subunit,' ','NA',name_subunit) as unit,  projectId ,fac.name as factory , case when country in ('India', 'Bangladesh', 'Sri Lanka')
+then 'South Asia'
+when country in ('China')
+then 'North Asia'
+when country in ('Guatemala', 'El Salvador', 'Dominican Republic')
+then 'Americas'
+when country in ('Philippines', 'Cambodia',  'Vietnam',  'Indonesia', 'Myanmar')
+then 'South East Asia'
+end as region , DATEPART(YEAR,date_enrollment) as year_new,  cou.name as country, date_5 ,mgmt_rep , worker_rep ,  mgmt_rep_6 , worker_rep_6 , sum(mgmt_rep_6 + worker_rep_6) as n5 , sum(mgmt_rep + worker_rep) as d5 , CAST(n5 AS float) / CAST(d5 AS float) as avg5 , 'Managing Health and Safety' as module
+from profile_16619 as p5
+			
+left join ds_mysql_prod_project fac
+on p5.projectid = fac.id
+left join ds_mysql_prod_project ven
+on fac.parent = ven.id
+left join ds_mysql_prod_project cou
+on ven.parent = cou.id				
+where date_5 is not null 
+group by  projectid,fac.name,cou.name,p5.date_5 , p5.mgmt_rep_6 , p5.worker_rep_6 , p5.mgmt_rep , p5.worker_rep,module , ven.name , vendor , year_new , unit, region
+)
+
+,
+
+table6  as (select ven.name as vendor1,nvl2(SUBSTRING(vendor1, 1, POSITION(' (' in vendor1)), SUBSTRING(vendor1, 1, POSITION(' (' in vendor1)), vendor1) as vendor_name, case when vendor_name='' then vendor1 else vendor_name end as vendor ,decode(name_subunit,' ','NA',name_subunit) as unit,  projectId ,fac.name as factory , case when country in ('India', 'Bangladesh', 'Sri Lanka')
+then 'South Asia'
+when country in ('China')
+then 'North Asia'
+when country in ('Guatemala', 'El Salvador', 'Dominican Republic')
+then 'Americas'
+when country in ('Philippines', 'Cambodia',  'Vietnam',  'Indonesia', 'Myanmar')
+then 'South East Asia'
+end as region , DATEPART(YEAR,date_enrollment) as year_new,  cou.name as country, date_6 ,mgmt_rep , worker_rep ,  mgmt_rep_7 , worker_rep_7 , mgmt_rep_7 + worker_rep_7 as n6 , mgmt_rep + worker_rep as d6 , CAST(n6 AS float) / CAST(d6 AS float) as avg6 , 'Grievance Mechanisms' as module
+from profile_16619 as p6
+			
+left join ds_mysql_prod_project fac
+on p6.projectid = fac.id
+left join ds_mysql_prod_project ven
+on fac.parent = ven.id
+left join ds_mysql_prod_project cou
+on ven.parent = cou.id			
+where date_6 is not null 
+group by  projectid,fac.name,cou.name,p6.date_6 , p6.mgmt_rep_7 , p6.worker_rep_7 , p6.mgmt_rep , p6.worker_rep,module , ven.name , vendor , year_new , unit, region
+)
+
+
+,
+
+table7  as (select ven.name as vendor1,nvl2(SUBSTRING(vendor1, 1, POSITION(' (' in vendor1)), SUBSTRING(vendor1, 1, POSITION(' (' in vendor1)), vendor1) as vendor_name, case when vendor_name='' then vendor1 else vendor_name end as vendor ,decode(name_subunit,' ','NA',name_subunit) as unit,  projectId ,fac.name as factory , case when country in ('India', 'Bangladesh', 'Sri Lanka')
+then 'South Asia'
+when country in ('China')
+then 'North Asia'
+when country in ('Guatemala', 'El Salvador', 'Dominican Republic')
+then 'Americas'
+when country in ('Philippines', 'Cambodia',  'Vietnam',  'Indonesia', 'Myanmar')
+then 'South East Asia'
+end as region , DATEPART(YEAR,date_enrollment) as year_new,  cou.name as country,date_7 ,mgmt_rep , worker_rep ,  mgmt_rep_8 , worker_rep_8 , mgmt_rep_8 + worker_rep_8 as n7 , mgmt_rep + worker_rep as d7 , CAST(n7 AS float) / CAST(d7 AS float) as avg7 , 'Negotiation skills' as module
+from profile_16619 as p7
+			
+left join ds_mysql_prod_project fac
+on p7.projectid = fac.id
+left join ds_mysql_prod_project ven
+on fac.parent = ven.id
+left join ds_mysql_prod_project cou
+on ven.parent = cou.id				
+where date_7 is not null 
+group by  projectid,fac.name,cou.name,module,p7.date_7 , p7.mgmt_rep_8 , p7.worker_rep_8 , p7.mgmt_rep , p7.worker_rep , ven.name , vendor , year_new , unit, region
+)
+
+,
+
+table8  as (select ven.name as vendor1,nvl2(SUBSTRING(vendor1, 1, POSITION(' (' in vendor1)), SUBSTRING(vendor1, 1, POSITION(' (' in vendor1)), vendor1) as vendor_name, case when vendor_name='' then vendor1 else vendor_name end as vendor ,decode(name_subunit,' ','NA',name_subunit) as unit,  projectId ,fac.name as factory , case when country in ('India', 'Bangladesh', 'Sri Lanka')
+then 'South Asia'
+when country in ('China')
+then 'North Asia'
+when country in ('Guatemala', 'El Salvador', 'Dominican Republic')
+then 'Americas'
+when country in ('Philippines', 'Cambodia',  'Vietnam',  'Indonesia', 'Myanmar')
+then 'South East Asia'
+end as region , DATEPART(YEAR,date_enrollment) as year_new, cou.name as country,date_8 ,mgmt_rep , worker_rep ,  mgmt_rep_9 , worker_rep_9 , sum(mgmt_rep_9 + worker_rep_9) as n8 , sum(mgmt_rep + worker_rep) as d8 , CAST(n8 AS float) / CAST(d8 AS float) as avg8 , 'Strengthening Industrial Relations' as module
+from profile_16619 as p8
+left join ds_mysql_prod_project fac
+on p8.projectid = fac.id
+left join ds_mysql_prod_project ven
+on fac.parent = ven.id
+left join ds_mysql_prod_project cou
+on ven.parent = cou.id			
+where date_8 is not null 
+group by projectid,fac.name,cou.name,module, p8.date_8 , p8.mgmt_rep_9 , p8.worker_rep_9 , p8.mgmt_rep , p8.worker_rep , ven.name , vendor , year_new , unit, region
+)
+
+select projectid,country,date,mgmt_rep , worker_rep ,  mgmt_rep_2 , worker_rep_2 , n1,d1, avg1,module from table1
+Union all
+select projectid,country,date_2,mgmt_rep , worker_rep ,  mgmt_rep_3 , worker_rep_3 , n2,d2, avg2,module from table2
+Union all
+select projectid,country,date_3,mgmt_rep , worker_rep ,  mgmt_rep_4 , worker_rep_4 , n3,d3, avg3,module from table3
+Union all
+select projectid,country,date_4,mgmt_rep , worker_rep ,  mgmt_rep_5 , worker_rep_5 , n4,d4, avg4,module from table4
+Union all
+select projectid,country,date_5,mgmt_rep , worker_rep ,  mgmt_rep_6 , worker_rep_6 , n5,d5, avg5,module from table5
+Union all
+select projectid,country,date_6,mgmt_rep , worker_rep ,  mgmt_rep_7 , worker_rep_7 , n6,d6, avg6,module from table6
+Union all
+select projectid,country,date_7,mgmt_rep , worker_rep ,  mgmt_rep_8 , worker_rep_8 , n7,d7, avg7,module from table7
+Union all
+select projectid,country,date_8,mgmt_rep , worker_rep ,  mgmt_rep_9 , worker_rep_9 , n8,d8, avg8,module from table8
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
