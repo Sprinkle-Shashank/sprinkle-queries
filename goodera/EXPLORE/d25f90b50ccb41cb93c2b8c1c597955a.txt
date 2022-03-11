@@ -1,0 +1,31 @@
+select p.projectId, p1.status, cou.name as country , 
+nvl2(SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)),ven.name) as vendor_name, case when vendor_name='' then ven.name else vendor_name end as vendor, fac.name as factory ,
+case when country in ('India', 'Bangladesh', 'Sri Lanka')
+then 'South Asia'
+when country in ('China')
+then 'North Asia'
+when country in ('Guatemala', 'El Salvador', 'Dominican Republic')
+then 'Americas'
+when country in ('Philippines', 'Cambodia',  'Vietnam',  'Indonesia', 'Myanmar')
+then 'South East Asia'
+end as region ,p1.name_subunit as unit,
+cast(DATEPART(YEAR,p1.date_enrollment) as varchar) as year_new ,
+p.day_1_workers , p.last_day_workers , p.workers_exited , p.absenteesim_rate , p.labor_disputes , p.bc_meetings , p.person_days_lost  
+    
+from profile_16863 p
+  
+  
+left join ds_mysql_prod_project fac
+on p.projectid = fac.id
+left join ds_mysql_prod_project ven
+on fac.parent = ven.id
+left join ds_mysql_prod_project cou
+on ven.parent = cou.id
+left join profile_16619 p1
+on p.projectid = p1.projectid
+  
+  where p.projectId ilike '%%' and cou.name <> 'Test Country' and (p1.status = 1400365 or p1.status is null)  and country <> 'GAP Inc.'
+
+group by  p.projectId, p1.status, cou.name , ven.name, fac.name , p1.name_subunit , p1.date_enrollment ,
+p.day_1_workers , p.last_day_workers , p.workers_exited , p.absenteesim_rate , p.labor_disputes , p.bc_meetings , p.person_days_lost 
+  
