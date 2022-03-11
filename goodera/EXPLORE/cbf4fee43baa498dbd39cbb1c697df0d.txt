@@ -1,0 +1,35 @@
+with table1 as (Select
+				JSON_SERIALIZE(table_52810.pace_brands) as pace_brand,	
+				case when pace_brand like '%1151834%' then 1 else 0 end  as brand,
+				case when lg_status = 848007 or lg_status is null then 1 else 0 end as status,
+				case when table_54646._id is null then 0 else 1 end as tablestatus,
+				table_54646.name_country as name_country,
+				table_54646.projid_vendor as partner_id,
+				num_females,
+				case when table_5997.pace_status = 182398 or table_5997.pace_status is null then table_5997._id else null end as community_partners,
+				case when table_52162.pace_status = 845114 or table_52162.pace_status is null then table_52162._id else null end as vendor_partners
+				
+				
+				
+				
+				from profile_4227 p
+left join profile_52810 table_52810 on
+table_52810.projectId = p.projectId
+
+left join profile_54646 table_54646 on
+table_54646.projectId = p.projectId	
+				
+left join profile_5997 table_5997 on
+table_5997.projectId = table_54646.projid_vendor
+				
+left join profile_52162 table_52162 on
+table_52162.projectId = table_54646.projid_vendor
+),
+table2 as (Select sum(num_females) as total_females, listagg(distinct(community_partners)) as community_partners, listagg(distinct(vendor_partners)) as vendor_partners, name_country as country, brand, status, tablestatus
+			from table1 p
+group by country, brand, status, tablestatus
+
+)
+
+
+Select * from table2 p where brand = 1 and status = 1 and tablestatus = 1
