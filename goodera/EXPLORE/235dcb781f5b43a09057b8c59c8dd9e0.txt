@@ -12,7 +12,7 @@ with temp as(
   Select 'indirect' as col
 )
 
-Select t1.name as projectid, adult_men, adult_women, children_boys, children_girls, fy_timerange, direct,  indirect, beneficiary_outreach,
+Select t1.name as projectid, adult_men, adult_women, children_boys, children_girls, fy_timerange, direct,  indirect, beneficiary_outreach,temp.col as Dimensions,
 sum(case col
 	when 'adult_men' then sq.adult_men
 	when 'adult_women' then sq.adult_women
@@ -24,6 +24,7 @@ sum(case col
 end) as Values
 
 from profile_80127 sq
+cross join temp
 left join ds_mysql_prod_project t1
 ON sq.projectid=t1.id
-GROUP BY t1.name, fy_timerange
+GROUP BY t1.name, fy_timerange, Dimensions
