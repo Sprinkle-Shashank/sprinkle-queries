@@ -2,8 +2,10 @@ with table1 as (Select
 				JSON_SERIALIZE(table_52810.pace_brands) as pace_brand,	
 				case when pace_brand like '%1151834%' then 1 else 0 end  as brand,
 				case when table_54267._id is null then pace_status_2 else table_54267.pace_status end as paceStatus,
-				case when paceStatus = 845114 or paceStatus is null then 1 else 0 end as status
-				
+				case when paceStatus = 845114 or paceStatus is null then 1 else 0 end as status,
+				p.projectid as projectid1,
+				cast(factory_vpid_1 as varchar(65535)) as factory_vpid1
+				,factory_vpid_2, sourcing_yn
 				
 				
 				from profile_52713 p
@@ -17,5 +19,13 @@ left join profile_54267 table_54267 on
 table_54267.projectId = p.projectId
 				
 order by table_54267._id desc
+),
+
+table2 as (Select brand, status, projectid1, min(factory_vpid1) as factory_vpid1, min(factory_vpid_2) as factory_vpid_2, ,min(sourcing_yn) as sourcing_yn
+			from table1 p
+		   
+group by brand, status, projectid1
+
 )
-select * from table1 p where brand = 1 and status = 1
+
+select * from table2 p where brand = 1 and status = 1
