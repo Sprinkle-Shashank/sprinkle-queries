@@ -5,7 +5,10 @@ with table1 as (Select
 				case when paceStatus = 845114 or paceStatus is null then 1 else 0 end as status,
 				p.projectid as projectid1,
 				cast(factory_vpid_1 as varchar(65535)) as factory_vpid1,
-				factory_vpid_2, sourcing_yn
+				factory_vpid_2, sourcing_yn,
+				table_54646.name_country as country_name,
+				table_54646.name_vendor_filter as vendor,
+				table_54646.name as factory_name
 				
 				
 				from profile_52713 p
@@ -18,14 +21,17 @@ table_4227.projectId = p.projectId
 left join profile_54267 table_54267 on
 table_54267.projectId = p.projectId
 				
+left join profile_54646 table_54646 on
+table_54646.projectId = p.projectId
+				
 order by table_54267._id desc
 ),
 
 table2 as (Select brand, status, projectid1, listagg(distinct(factory_vpid1)) as factory_vpid_1, listagg(distinct(factory_vpid_2)) as factory_vpid2,listagg(distinct(sourcing_yn)) as sourcingyn,
-		   case when sourcingyn = 57472 then factory_vpid_1 else factory_vpid2 end as factory_id
+		   case when sourcingyn = 57472 then factory_vpid_1 else factory_vpid2 end as factory_id, country_name, vendor, factory_name
 			from table1 p
 		   
-group by brand, status, projectid1
+group by brand, status, projectid1,country_name, vendor, factory_name
 )
 
 select * from table2 p where brand = 1 and status = 1
