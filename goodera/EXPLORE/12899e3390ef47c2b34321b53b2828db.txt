@@ -8,7 +8,7 @@ when country in ('Guatemala', 'El Salvador', 'Dominican Republic')
 then 'Americas'
 when country in ('Philippines', 'Cambodia',  'Vietnam',  'Indonesia', 'Myanmar')
 then 'South East Asia'
-end as region,DATEPART(YEAR,p2.date_enrollment) as year_new,p.title,p.data_type,p.description,p.pic,p.pic_2,p.caption,p.caption_2 from profile_17001 p
+end as region,DATEPART(YEAR,p2.date_enrollment) as year_new,p.title,p.data_type,p.description,p.pic,p.pic_2,p.caption,p.caption_2,count(p.projectId) as stories_count from profile_17001 p
 
 
 		  
@@ -36,6 +36,8 @@ group by p._id,p.projectId,fac.name,cou.name,ven.name,vendor,p.title,p.data_type
 ),
 
 table1a as(select t1.*,CAST(type as varchar) from table1 t1,t1.data_type type
+		   
+		   where type = 478638
 		
 ),
 table2 as 
@@ -46,7 +48,7 @@ table2 as
    select t2.*,cast(d as varchar) from table2 t2,t2.pic_2 as d),
 table4 as
 (
-  select t1a.project,t1a.factory,t1a.vendor,t1a.country,t1a.region,t1a.year_new,t1a.title,t1a.type,t1a.description,t1a.caption,t1a.caption_2,t2._id,t1a.pic as c from table1a t1a
+  select t1a.project,t1a.factory,t1a.vendor,t1a.country,t1a.region,t1a.year_new,t1a.title,t1a.type,t1a.description,t1a.caption,t1a.caption_2,t2._id,t1a.pic as c, stories_count from table1a t1a
   
 
 left join table2 t2 on
@@ -59,7 +61,7 @@ group by t1a.project,t1a.factory,t1a.vendor,t1a.country,t1a.region,t1a.year_new,
 ),
 table5 as
 (
-  select t1a.project,t1a.factory,t1a.vendor,t1a.country,t1a.region,t1a.year_new,t1a.title,t1a.type,t1a.description,t1a.caption,t1a.caption_2,t3._id,t1a.pic_2 as d from table1a t1a
+  select t1a.project,t1a.factory,t1a.vendor,t1a.country,t1a.region,t1a.year_new,t1a.title,t1a.type,t1a.description,t1a.caption,t1a.caption_2,t3._id,t1a.pic_2 as d,stories_count from table1a t1a
   
 
 left join table3 t3 on
@@ -71,25 +73,25 @@ where (t3._id is null)
 group by t1a.project,t1a.factory,t1a.vendor,t1a.country,t1a.region,t1a.year_new,t1a.title,t1a.type,t1a.description,t1a.caption,t1a.caption_2,t3._id,t1a.pic_2 
 )
 
-select project,factory,country,vendor,region,year_new,title,cast(c as varchar),type,description,caption,caption_2 from table2 t2 
+select project,factory,country,vendor,region,year_new,title,cast(c as varchar),type,description,caption,caption_2,stories_count from table2 t2 
 
 group by project,factory,country,vendor,region,year_new,title,cast(c as varchar),type,description,caption,caption_2
 
 union all
 
-select project,factory,country,vendor,region,year_new,title,cast(d as varchar),type,description,caption,caption_2 from table3 t3 
+select project,factory,country,vendor,region,year_new,title,cast(d as varchar),type,description,caption,caption_2,stories_count from table3 t3 
 
 group by project,factory,country,vendor,region,year_new,title,cast(d as varchar),type,description,caption,caption_2
 
 union all
 
-select project,factory,country,vendor,region,year_new,title,cast(c as varchar),type,description,caption,caption_2 from table4 t4 
+select project,factory,country,vendor,region,year_new,title,cast(c as varchar),type,description,caption,caption_2,stories_count from table4 t4 
 
 group by project,factory,country,vendor,region,year_new,title,cast(c as varchar),type,description,caption,caption_2
 
 union all
 
-select project,factory,country,vendor,region,year_new,title,cast(d as varchar),type,description,caption,caption_2 from table5 t5 
+select project,factory,country,vendor,region,year_new,title,cast(d as varchar),type,description,caption,caption_2,stories_count from table5 t5 
 
 group by project,factory,country,vendor,region,year_new,title,cast(d as varchar),type,description,caption,caption_2
 
