@@ -43,7 +43,7 @@ when country in ('Guatemala', 'El Salvador', 'Dominican Republic')
 then 'Americas'
 when country in ('Philippines', 'Cambodia',  'Vietnam',  'Indonesia', 'Myanmar')
 then 'South East Asia'
-end as region,p3.sub_unit as unit,DATEPART(YEAR,p.date_enrollment) as year_new,t3.year_update,
+end as region,DATEPART(YEAR,p.date_enrollment) as year_new,t3.year_update,
  t3.month,t3.sustainability_rating,p.status,temp.C as Dimension,case C
 	when  'RED'then t3.red
 	when 'YELLOW' then t3.yellow
@@ -65,8 +65,6 @@ left join ds_mysql_prod_project cou
 on ven.parent = cou.id
 
 
-left join profile_16864 p3
-on p3.sub_unit = p._id
   
  left join table3 t3 on
 p.projectId = t3.project
@@ -76,7 +74,7 @@ p.projectId = t3.project
 where project ilike '%%' and (cou.name <> 'Test Country' and cou.name <> 'GAP Inc.') and (p.status = 1400365 or p.status is null) 
 
 
-group by p.projectId,fac.name,cou.name,vendor,ven.name,region,t3.year_update,year_new,p3.sub_unit,unit,p.status,t3.month,t3.sustainability_rating,t3.red,t3.yellow,t3.green,temp.C
+group by p.projectId,fac.name,cou.name,vendor,ven.name,region,t3.year_update,year_new,p.status,t3.month,t3.sustainability_rating,t3.red,t3.yellow,t3.green,temp.C
 
 
 /*with table1 as(select p._id,p.projectId as project,fac.name as factory,ven.name as vendor1,nvl2(SUBSTRING(vendor1, 1, POSITION(' (' in vendor1)), SUBSTRING(vendor1, 1, POSITION(' (' in vendor1)), vendor1) as vendor_name, case when vendor_name='' then vendor1 else vendor_name end as vendor,cou.name as country,case when country in ('India', 'Bangladesh', 'Sri Lanka')
