@@ -1,6 +1,6 @@
 select  fac.name as factory, cou.name as country ,
 nvl2(SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), ven.name) as vendor_name, case when vendor_name='' then ven.name else vendor_name end as vendor1,case when vendor_name='' then ven.name else vendor_name end as vendor,
-case when p.name_subunit is null or p.name_subunit=' ' then 'N/A' else p.name_subunit end  as unit, p.projectId as project 
+case when p.name_subunit is null or p.name_subunit=' ' then 'N/A' else p.name_subunit end  as unit, p.projectId as project,p.status 
 
 from profile_16619 p
 
@@ -11,7 +11,7 @@ on fac.parent = ven.id
 left join ds_mysql_prod_project cou
 on ven.parent = cou.id
 
-where cou.name <> 'Test Country' and cou.name <> 'GAP Inc.'
+where (cou.name <> 'Test Country' and cou.name <> 'GAP Inc.') and (p.status = 1400365 or p.status is null)
 and project ilike '%%' 
 group by  unit,ven.name,vendor,fac.name , cou.name, project
 
