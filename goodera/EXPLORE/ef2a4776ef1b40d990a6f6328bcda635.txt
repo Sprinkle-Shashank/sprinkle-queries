@@ -12,9 +12,7 @@ when (p.sustainability_rating >=86)  then count(p.projectId)
 end as green, row_number() over 
 (partition by p.projectId 
  order by p._id desc)
-			   as row,case when p.sustainability_rating is not null then min(row) 
-			   end as number
-
+			   as row
 from profile_31726 p
 			   
 		  
@@ -38,7 +36,7 @@ group by p.projectId,fac.name,cou.name,vendor,ven.name,region,f_y.name,mth.name,
 
 ),
 table3 as(select * from table2 t2
-where row = min 
+--where row = 1 
 		 ),
 temp as(
  select 'RED' as C
@@ -48,7 +46,7 @@ temp as(
  select 'GREEN' as C
   
 )
-select t3.project,t3.factory,t3.country,t3.vendor,t3.region,t3.number,DATEPART(YEAR,createddate) as year_new,t3.year_update,
+select t3.project,t3.factory,t3.country,t3.vendor,t3.region,DATEPART(YEAR,createddate) as year_new,t3.year_update,t3.row,
  t3.month,t3.sustainability_rating,p2.status,temp.C as Dimension,case C
 	when  'RED'then t3.red
 	when 'YELLOW' then t3.yellow
@@ -69,4 +67,4 @@ where project ilike '%%' and (country <> 'Test Country' and country <> 'GAP Inc.
 and (p2.status = 1400365 or p2.status is null) 
 
 
-group by t3.project,factory,country,vendor,region,t3.year_update,year_new,p2.status,t3.month,t3.sustainability_rating,t3.red,t3.yellow,t3.green,temp.C,t3.number
+group by t3.project,factory,country,vendor,region,t3.year_update,year_new,p2.status,t3.month,t3.sustainability_rating,t3.red,t3.yellow,t3.green,temp.C,t3.row
