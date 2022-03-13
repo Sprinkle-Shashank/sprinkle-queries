@@ -12,7 +12,9 @@ when (p.sustainability_rating >=86)  then count(p.projectId)
 end as green, row_number() over 
 (partition by p.projectId 
  order by p._id desc)
-			  end as row
+			  end as row,case when p.sustainability_rating is not null
+			   then least(row)
+			   end as number
 			   
 from profile_31726 p
 			   
@@ -37,7 +39,7 @@ group by p.projectId,fac.name,cou.name,vendor,ven.name,region,f_y.name,mth.name,
 
 ),
 table3 as(select * from table2 t2
-		  where (row = 1)
+		  where (row = number)
 		 ),
 temp as(
  select 'RED' as C
