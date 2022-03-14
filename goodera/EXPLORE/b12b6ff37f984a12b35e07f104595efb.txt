@@ -1,28 +1,17 @@
-
-with table1 as (
 select p1.total_workers , p.projectId as project, p._id, DATEPART(YEAR,date_enrollment) as year_new,fac.name as factory,cou.name as country,ven.name as vendor1,nvl2(SUBSTRING(vendor1, 1, POSITION(' (' in vendor1)), SUBSTRING(vendor1, 1, POSITION(' (' in vendor1)), vendor1) as vendor_name, case when vendor_name='' then vendor1 else vendor_name end as vendor ,decode(name_subunit,' ','NA',name_subunit) as unit
 
 from profile_16619 p
 
 left join ds_mysql_prod_project fac
-on  p.projectId = fac.id
+on  p1.projectId = fac.id
 left join ds_mysql_prod_project ven
 on fac.parent = ven.id
 left join ds_mysql_prod_project cou
 on ven.parent = cou.id
 
-left join profile_31726 p1
+left join profile_17526 p1
 on p.projectId = p1.projectId
   
   where  cou.name <> 'Test Country' and (p.status = 1400365 or p.status is null)  and country <> 'GAP Inc.'
   
-  group by p.projectId , p1.total_workers ,year_new, cou.name , ven.name, fac.name  , unit , p.date_enrollment , p._id 
- ),
- table2 as (
-   select projectId , total_workers , factory , year_new , country ,vendor , unit , 
- row_number() over 
-(partition by p.projectId
- order by p._id desc) as row from table1 p
-   )
-   select * from table2
-   where row = 1 and projectId ilike '%%'
+  group by project , p1.total_workers ,year_new, cou.name , ven.name, fac.name  , unit , p.date_enrollment , p._id 
