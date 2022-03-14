@@ -1,20 +1,37 @@
 with table1 as
 (
-  select p1.projectId , p1._id , p1.total_workers , f_y.name as year_new  , row_number() over 
+  select p1.projectId , p1._id , p1.total_workers , f_y.name as year_new ,cou.name as country , 
+nvl2(SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)),ven.name) as vendor_name, case when vendor_name='' then ven.name else vendor_name end as vendor,  fac.name as factory , 
+case when country in ('India', 'Bangladesh', 'Sri Lanka')
+then 'South Asia'
+when country in ('China')
+then 'North Asia'
+when country in ('Guatemala', 'El Salvador', 'Dominican Republic')
+then 'Americas'
+when country in ('Philippines', 'Cambodia',  'Vietnam',  'Indonesia', 'Myanmar')
+then 'South East Asia'
+end as region , row_number() over 
 (partition by p1.projectid
  order by p1._id desc) as row  from profile_31726 p1
+  
+left join ds_mysql_prod_project fac
+on  p1.projectid = fac.id
+left join ds_mysql_prod_project ven
+on fac.parent = ven.id
+left join ds_mysql_prod_project cou
+on ven.parent = cou.id 
 
 left join ds_mysql_prod_tagelement f_y
 on p1.fy = f_y.id
   
-  group by p1.projectId , p1._id , p1.total_workers , f_y.name
+  group by p1.projectId , p1._id , p1.total_workers , f_y.name . ven.name , cou.name , fac.name
  ),
  
  table2 as
  (
    
    select * from table1
-  where row = 1 and projectId ilike '%%'
+  where row = 1 
    ),
    
    table4 as (
@@ -28,39 +45,15 @@ on p1.fy = f_y.id
    
    table5 as (
       select * from table4
-  where row1 = 1 and projectId ilike '%%'
+  where row1 = 1 
    ),
    
-table3 as (
-  
-   select p3.projectId , t5.status ,/* t5.unit ,*/ cou.name as country , 
-nvl2(SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)),ven.name) as vendor_name, case when vendor_name='' then ven.name else vendor_name end as vendor,  fac.name as factory , 
-case when country in ('India', 'Bangladesh', 'Sri Lanka')
-then 'South Asia'
-when country in ('China')
-then 'North Asia'
-when country in ('Guatemala', 'El Salvador', 'Dominican Republic')
-then 'Americas'
-when country in ('Philippines', 'Cambodia',  'Vietnam',  'Indonesia', 'Myanmar')
-then 'South East Asia'
-end as region , 
-t2.total_workers,t2.year_new
-  
-from profile_16619 p3
-
-left join ds_mysql_prod_project fac
-on  p3.projectid = fac.id
-left join ds_mysql_prod_project ven
-on fac.parent = ven.id
-left join ds_mysql_prod_project cou
-on ven.parent = cou.id 
-left join table2 t2 
-on p3.projectid = t2.projectid
+   select p3.projectId , t5.status ,t2.total_workers,t2.year_new, t2.country , t2.factory , t2.region , t2.vendor , t5.status
+   , from table2 t2 
+   
 left join table5 t5 
 on p3.projectid = t5.projectid
   
-  where  cou.name <> 'Test Country' 
+  where  cou.name <> 'Test Country' and p3.projectId ilike '%%'
   
-  group by p3.projectId , t2.total_workers , cou.name , ven.name, fac.name  ,  t5.status , t2.year_new --, t5.unit 
-  )
-  select * from table3
+  group by p3.projectId , t2.total_workers , cou.name , ven.name, fac.name  , t5.status , t2.year_new , t2.region 
