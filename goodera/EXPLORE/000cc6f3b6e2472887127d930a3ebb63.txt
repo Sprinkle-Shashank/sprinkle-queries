@@ -19,11 +19,13 @@ on p.fy = f_y.id
    
    table4 as (
    select p.projectId , case when p.name_subunit is null or p.name_subunit=' ' then 'n/a' else p.name_subunit end  as unit, p.status , row_number() over (partition by p.projectid order by p._id desc) as row1 from profile_16619
+	  where  ((p.status <> 437659 and p.status <> 437658) or p.status is null)
+	 group by p.projectId, p.name_subunit
    ),
    
    table5 as (
       select * from table4
-  where row1 = 1 and projectId ilike '%%'
+  where row1 = 1 and p.projectId ilike '%%'
    ),
    
 table3 as (
@@ -55,7 +57,7 @@ on p.projectid = t2.projectid
 left join table5 t5 
 on p.projectid = t5.projectid
   
-  where  cou.name <> 'Test Country' and ((p.status <> 437659 and p.status <> 437658) or p.status is null)
+  where  cou.name <> 'Test Country' 
   
   group by p.projectId , t2.total_workers , cou.name , ven.name, fac.name  ,  t5.status , t2.year_new,
    t5.unit 
