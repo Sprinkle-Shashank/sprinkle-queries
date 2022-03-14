@@ -10,7 +10,8 @@ with lookup as (select
 				case when p.projectId is not null then 1 else 0 end as pid,
 				case when table_54267.pace_status is not null then table_54267.pace_status else pace_status_2 end as paceStatus,
 				case when paceStatus = 845114 or paceStatus is null then 845114 else paceStatus end as pace_status1,
-				taskResponse.submissionLog[0].email as data_user,
+				listagg(distinct(cast(taskResponse.submissionLog[0].email as varchar(65535))),', ') as data_user,
+				--taskResponse.submissionLog[0].email as data_user,
 				listagg(distinct table_4227.start_date) as start_date,
 				listagg(distinct table_4227.end_date) as end_date,
 				listagg(distinct table_4227.num_females) as num_females,
@@ -70,6 +71,6 @@ brandTag.id = p.projectid
 left join ds_mysql_prod_tagElement tag1 on
 tag1.id = p.pace_status_2
 				
-group by table_52810.pace_brands,table_54267.pace_status,p.pace_status_2,taskResponse.submissionLog[0].email,table_54267.facility_status,table_54646.name, table_4227.cls_time, table_4227.influencers, table_4227.select_modules,p.projectid,table_4227.name,paceStatus,data_user,p.cp_location_id,table_4227.lg_status,tag1.name)
+group by table_52810.pace_brands,table_54267.pace_status,p.pace_status_2,table_54267.facility_status,table_54646.name, table_4227.cls_time, table_4227.influencers, table_4227.select_modules,p.projectid,table_4227.name,paceStatus,data_user,p.cp_location_id,table_4227.lg_status,tag1.name)
 
 select * from lookup p where lg=1 and pid = 1 and brand = 1 
