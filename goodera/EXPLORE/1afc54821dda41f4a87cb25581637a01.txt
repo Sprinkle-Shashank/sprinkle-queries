@@ -12,7 +12,7 @@ then 'Americas'
 when country in ('Philippines', 'Cambodia',  'Vietnam',  'Indonesia', 'Myanmar')
 then 'South East Asia'
 end as region , 
-f_y.name as year_new 
+DATEPART(YEAR,p.date_enrollment) as year_new ,f_y.name as fy,
 
 from profile_16619 p
 
@@ -25,18 +25,18 @@ on ven.parent = cou.id
 
 left join profile_31726 p1
 on p.projectid = p1.projectid
-left join ds_mysql_prod_tagelement f_y
+  left join ds_mysql_prod_tagelement f_y
 on p1.fy = f_y.id
   
  where  cou.name <> 'Test Country' and ((p.status <> 437659 and p.status <> 437658) or p.status is null)   --and country <> 'GAP Inc.'
   
-  group by p.projectId , p1.total_workers , p.projectId, cou.name , ven.name, fac.name  , p.name_subunit ,  p.status,p.date_enrollment , p._id , f_y.name
+  group by p.projectId , p1.total_workers , p.projectId, cou.name , ven.name, fac.name  , p.name_subunit ,  p.status,p.date_enrollment , p._id,f_y.name
  ),
  table2 as (
    select projectId , total_workers , factory , year_new , country ,vendor , unit , region ,
  row_number() over 
 (partition by p.projectid
- order by p._id desc) as row from table1 p  --desc
+ order by p._id desc) as row from table1 p
    )
    select * from table2
   where row = 1 and projectId ilike '%%'
