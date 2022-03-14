@@ -1,0 +1,27 @@
+with temp as(
+  Select 'maths_begineer_percentage' as col
+  union all
+  Select 'maths_not_begineer_percentage' as col
+  union all
+  Select 'maths_progressing_percentage' as col
+  union all
+  Select 'maths_proficient_percentage' as col
+)
+
+select p._id, p.name,temp.col as dimensions, p.test_date fy_timerange, t.name test_type, t2.name standard ,
+AVG (case col
+	   when 'maths_begineer_percentage' then p.maths_begineer_percentage
+	   when 'maths_not_begineer_percentage' then p.maths_not_begineer_percentage
+	   when 'maths_progressing_percentage' then p.maths_progressing_percentage
+	   when 'maths_proficient_percentage' then p.maths_proficient_percentage
+	 else NULL
+end) as maths_score
+
+from profile_77007 p
+cross join temp
+left join ds_mysql_prod_tagelement t
+on p.test_type = t.id
+left join ds_mysql_prod_tagelement t2
+on p.standard = t2.id
+group by 1,2,3,4,5,6;
+
