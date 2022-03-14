@@ -1,26 +1,7 @@
 with table1 as
 (
-  select p.projectId , p._id , p.total_workers , f_y.name as year_new  , row_number() over 
-(partition by p.projectid
- order by p._id desc) as row  from profile_31726 p
-
-left join ds_mysql_prod_tagelement f_y
-on p.fy = f_y.id
-  
-  group by p.projectId , p._id , p.total_workers , f_y.name
- ),
- table2 as
- (
-   
-   select * from table1
-  where row = 1 and projectId ilike '%%'
-   ),
-table3 as (
-  
-   select p.projectId , p.status,
-cou.name as country , 
+  select p1.projectId , p1._id , p1.total_workers , f_y.name as year_new , cou.name as country , 
 nvl2(SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)),ven.name) as vendor_name, case when vendor_name='' then ven.name else vendor_name end as vendor,  fac.name as factory , 
-case when p.name_subunit is null or p.name_subunit=' ' then 'n/a' else p.name_subunit end  as unit,
 case when country in ('India', 'Bangladesh', 'Sri Lanka')
 then 'South Asia'
 when country in ('China')
@@ -29,25 +10,48 @@ when country in ('Guatemala', 'El Salvador', 'Dominican Republic')
 then 'Americas'
 when country in ('Philippines', 'Cambodia',  'Vietnam',  'Indonesia', 'Myanmar')
 then 'South East Asia'
-end as region , 
---DATEPART(YEAR,p.date_enrollment) as year_new ,
-t2.total_workers,t2.year_new
+end as region , row_number() over 
+(partition by p1.projectid order by p1._id desc) as row  from profile_31726 p1
   
-
-from profile_16619 p
-
 left join ds_mysql_prod_project fac
-on  p.projectid = fac.id
+on  p1.projectid = fac.id
 left join ds_mysql_prod_project ven
 on fac.parent = ven.id
 left join ds_mysql_prod_project cou
 on ven.parent = cou.id 
+left join ds_mysql_prod_tagelement f_y
+on p1.fy = f_y.id
+  
+  group by p1.projectId , p1._id , p1.total_workers , f_y.name , ven.name , cou.name , fac.name
+ ),
+ 
+ table2 as
+ (
+   
+   select * from table1
+  where row = 1 
+   ),
+   
+   table4 as (
+   select p2.projectId ,p2._id , 
+	 case when p2.name_subunit is null or p2.name_subunit=' ' then 'n/a' else p2.name_subunit end  as unit, 
+	 p2.status , row_number() over (partition by p2.projectid order by p2._id desc) as row1 
+	 from profile_16619 p2
+	  where  ((p2.status <> 437659 and p2.status <> 437658) or p2.status is null)
+	 group by p2.projectId  , p2._id ,p2.status , p2.name_subunit
+   ),
+   
+   table5 as (
+      select * from table4
+  where row1 = 1 
+   )
+   
+   select t2.projectId , t5.status ,t2.total_workers , t2.year_new, t2.country , t2.factory , t2.region , t2.vendor , t5.status
+    from table5 t5 
+   
 left join table2 t2 
-on p.projectid = t2.projectid
+on t5.projectid = t2.projectid
   
-  where  cou.name <> 'Test Country' and ((p.status <> 437659 and p.status <> 437658) or p.status is null)
+  where  t2.country <> 'Test Country' and t2.projectId ilike '%%'
   
-  group by p.projectId , t2.total_workers , p.projectId, cou.name , ven.name, fac.name  ,  p.status , t2.year_new,
-   p.name_subunit 
-  )
-  select * from table3
+  group by t2.projectId , t5.status ,t2.total_workers , t2.year_new, t2.country , t2.factory , t2.region , t2.vendor , t5.status
