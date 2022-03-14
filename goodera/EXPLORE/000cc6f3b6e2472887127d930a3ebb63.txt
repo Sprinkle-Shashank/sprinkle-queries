@@ -30,8 +30,8 @@ then 'Americas'
 when country in ('Philippines', 'Cambodia',  'Vietnam',  'Indonesia', 'Myanmar')
 then 'South East Asia'
 end as region , 
---DATEPART(YEAR,p.date_enrollment) as year_new ,
-t2.total_workers,t2.year_new
+partition by p.projectid
+ order by p._id desc) as row
 
 from profile_16619 p
 
@@ -41,12 +41,11 @@ left join ds_mysql_prod_project ven
 on fac.parent = ven.id
 left join ds_mysql_prod_project cou
 on ven.parent = cou.id 
-left join table2 t2 
-on p.projectid = t2.projectid
+
   
   where  cou.name <> 'Test Country' and ((p.status <> 437659 and p.status <> 437658) or p.status is null)
   
-  group by p.projectId ,p._id , t2.total_workers , p.projectId, cou.name , ven.name, fac.name  , p.name_subunit ,  p.status , t2.year_new
+  group by p.projectId ,p._id , p.projectId, cou.name , ven.name, fac.name  , p.name_subunit ,  p.status , 
   )
   select * from table3
  
