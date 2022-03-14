@@ -1,19 +1,40 @@
-with temp as (
+with temp as(
   Select 'adult_men' as col
   union all
   Select 'adult_women' as col
+),
+ temp1 as(
+  Select 'children_boys' as col1
+  union all
+  Select 'children_girls' as col1
+),
+ temp2 as(
+  Select 'direct' as col2
+  union all
+  Select 'indirect' as col2
 )
 
-Select t1.name as projectid, adult_men, adult_women, children_boys, children_girls, fy_timerange, direct,  indirect, beneficiary_outreach, temp.col as Dimensions, 
+Select t1.name as projectid, adult_men, adult_women, children_boys, children_girls, fy_timerange, direct,  indirect, beneficiary_outreach, temp.col as total_adults, temp2.col2 as total_beneficiary, temp1.col1 as total_children, 
 
 sum(case col
    	when 'adult_men' then sq.adult_men
 	when 'adult_women' then sq.adult_women
-	else Null
-end) as Values
-
+	else NULL
+end) as V1,
+sum(case col1
+   	when 'children_boys' then sq.children_boys
+	when 'children_girls' then sq.children_girls
+	else NULL
+end) as V2,
+sum(case col2
+   	when 'direct' then sq.direct
+	when 'indirect' then sq.indirect
+	else NULL
+end) as V3
 from profile_80127 sq
 cross join temp
+cross join temp1
+cross join temp2
 left join ds_mysql_prod_project t1
 ON sq.projectid=t1.id
-GROUP BY t1.name, fy_timerange, adult_men, adult_women, children_boys, children_girls, fy_timerange, direct,  indirect, beneficiary_outreach, total_adults, total_children,temp
+GROUP BY t1.name, fy_timerange, adult_men, adult_women, children_boys, children_girls, fy_timerange, direct,  indirect, beneficiary_outreach, total_adults, total_children,temp1.col1,temp.col,temp2.col2
