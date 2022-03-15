@@ -1,14 +1,40 @@
-with table1 as (SELECT gd.name as grade ,sum(students_physical_schooling) as offline_learning, sum(students_elearning) as online_learning from profile_79767
+with table1 as (SELECT fy_timerange, gd.name as grade ,sum(students_physical_schooling) as offline_learning, sum(students_elearning) as online_learning from profile_79767
 
 
 left join ds_mysql_prod_tagelement gd
 on profile_79767.grade = gd.id
 
 
-group by gd.name) select grade, case when grade = 'Nursery' then 'A'
+group by gd.name), table2 as (select grade, case when grade = 'Nursery' then 'A'
 				     when grade = 'KG' then 'B'
 					 when grade = 'Grade 1' then 'C'
 					 when grade = 'Grade 2' then 'D'
 					 when grade = 'Grade 3' then 'E'
 					 when grade = 'Grade 4' then 'F'
-					 when grade = 'Grade 5' then 'G' end as sort_rule,offline_learning,online_learning from table1 
+					 when grade = 'Grade 5' then 'G' end as sort_rule,offline_learning,online_learning, Substring(json_serialize(table1.fy_timerange),11,4) as year, Substring(json_serialize(table1.fy_timerange),16,2) as start_month,
+  Substring(json_serialize(table1.fy_timerange),49,2) as end_month,
+case when start_month = '01' then 'January'
+	 when start_month = '02' then 'February'
+	 when start_month = '03' then 'March'
+	 when start_month = '04' then 'April'
+	 when start_month = '05' then 'May'
+	 when start_month = '06' then 'June'
+	 when start_month = '07' then 'July'
+	 when start_month = '08' then 'August'
+	 when start_month = '09' then 'September'
+	 when start_month = '10' then 'October'
+	 when start_month = '11' then 'November'
+	when start_month = '12' then 'December' end as start_month_name,
+  case when end_month = '01' then 'January'
+	 when end_month = '02' then 'February'
+	 when end_month = '03' then 'March'
+	 when end_month = '04' then 'April'
+	 when end_month = '05' then 'May'
+	 when end_month = '06' then 'June'
+	 when end_month = '07' then 'July'
+	 when end_month = '08' then 'August'
+	 when end_month = '09' then 'September'
+	 when end_month = '10' then 'October'
+	 when end_month = '11' then 'November'
+	when end_month = '12' then 'December' end as end_month_name from table1)
+select year, concat(concat(start_month_name,' - ' ),end_month_name) as quarter, gender, sort_rule, offline_learning, online_learning from table2
