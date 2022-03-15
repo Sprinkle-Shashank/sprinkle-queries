@@ -1,4 +1,26 @@
-Select p.projectId as project,fac.name as projectId,ven.name as vendor1,nvl2(SUBSTRING(vendor1, 1, POSITION(' (' in vendor1)), SUBSTRING(vendor1, 1, POSITION(' (' in vendor1)), vendor1) as vendor_name, case when vendor_name='' then vendor1 else vendor_name end as vendor,cou.name as country,p.status,p.name, decode(name_subunit,' ','NA',name_subunit) as unit, DATEPART(YEAR,date_enrollment) as year_new  ,p.worker_rep,p.mgmt_rep , sum(mgmt_rep + worker_rep) as summ
+select  date, date_2 , date_3 , date_4 , date_5 , date_6 , date_7 , date_8, coalesce(mgmt_rep_absent , 0) as m1 ,   coalesce(worker_rep_absent , 0) as w1 , coalesce(mgmt_rep_absent_2 ,0) as m2 ,coalesce( worker_rep_absent_2 , 0) as w2 , coalesce(mgmt_rep_absent_3 , 0) as m3 , coalesce( worker_rep_absent_3 ,0) as w3 , coalesce( mgmt_rep_absent_4 , 0) as m4 , coalesce( worker_rep_absent_4 ,0) as w4 , coalesce( mgmt_rep_absent_5 ,0) as m5 , coalesce( worker_rep_absent_5 ,0) as w5 , coalesce( mgmt_rep_absent_6 ,0) as m6 , coalesce( worker_rep_absent_6 , 0) as w6 , coalesce(mgmt_rep_absent_7 , 0) as m7 , coalesce(worker_rep_absent_7 ,0) as w7, coalesce( mgmt_rep_absent_8 ,0) as m8 , coalesce( worker_rep_absent_8 , 0) as w8 , mgmt_rep_2 , worker_rep_2 , mgmt_rep_3 , worker_rep_3 , mgmt_rep_4 , worker_rep_4 , mgmt_rep_5 , worker_rep_5 , mgmt_rep_6 , worker_rep_6 , mgmt_rep_7 , worker_rep_7 , mgmt_rep_8 , worker_rep_8 , mgmt_rep_9 , worker_rep_9 , 
+DATEPART(YEAR,date_enrollment) as year_new, p.status,
+fac.name as factory,cou.name as country,ven.name as vendor1,nvl2(SUBSTRING(vendor1, 1, POSITION(' (' in vendor1)), SUBSTRING(vendor1, 1, POSITION(' (' in vendor1)), vendor1) as vendor_name, case when vendor_name='' then vendor1 else vendor_name end as vendor,case when vendor_name='' then vendor1 else vendor_name end as vendor,decode(name_subunit,' ','NA',name_subunit) as unit
+, case when country in ('India', 'Bangladesh', 'Sri Lanka')
+then 'South Asia'
+when country in ('China')
+then 'North Asia'
+when country in ('Guatemala', 'El Salvador', 'Dominican Republic')
+then 'Americas'
+when country in ('Philippines', 'Cambodia',  'Vietnam',  'Indonesia', 'Myanmar')
+then 'South East Asia'
+end as region , 
+p.projectId, 
+
+(mgmt_rep_2 + worker_rep_2)  / ( mgmt_rep_2 + worker_rep_2 +worker_rep_absent + mgmt_rep_absent) as s1 ,
+(mgmt_rep_3 + worker_rep_3) / ( mgmt_rep_3 + worker_rep_3 +worker_rep_absent_2 + mgmt_rep_absent_2) as s2 , 
+(mgmt_rep_4 + worker_rep_4) / ( mgmt_rep_4 + worker_rep_4 +worker_rep_absent_3 + mgmt_rep_absent_3) as s3 , 
+(mgmt_rep_5 + worker_rep_5) /( mgmt_rep_5 + worker_rep_5 +worker_rep_absent_4 + mgmt_rep_absent_4) as s4 , 
+(mgmt_rep_6 + worker_rep_6) / ( mgmt_rep_6 + worker_rep_6 +worker_rep_absent_5 + mgmt_rep_absent_5) as s5 , 
+(mgmt_rep_7 + worker_rep_7) / ( mgmt_rep_7 + worker_rep_7 +worker_rep_absent_6 + mgmt_rep_absent_6) as s6 , 
+(mgmt_rep_8 + worker_rep_8) / ( mgmt_rep_8 + worker_rep_8 +worker_rep_absent_7 + mgmt_rep_absent_7) as s7 , 
+(mgmt_rep_9 + worker_rep_9) / ( mgmt_rep_9 + worker_rep_9 +worker_rep_absent_8 + mgmt_rep_absent_8) as s8 
+
 
 
 from profile_16619 p
@@ -15,7 +37,15 @@ left join ds_mysql_prod_project cou
 on ven.parent = cou.id
 
 
+ --(cou.id <> 13761) 
+where (date, date_2 , date_3 , date_4 , date_5 , date_6 , date_7 , date_8) is not null
+and
+projectId ilike '%%'
+and
+(country <> 'Test Country' and country <> 'GAP Inc.')
+and 
+(p.status = 1400365 or p.status is null)
 
-where (project ilike '%%') and (cou.id <> 13761) and (p.status = 1400365 or p.status is Null)
 
-group by  project,fac.name ,ven.name,vendor,cou.name ,p.status,p.name, p.name_subunit,p.worker_rep,p.mgmt_rep
+group by p.date, p.date_2 , p.date_3 , p.date_4 , p.date_5 , p.date_6 , p.date_7 , p.date_8 , p.mgmt_rep_absent , p.worker_rep_absent , p.mgmt_rep_absent_2 , p.worker_rep_absent_2 , p.mgmt_rep_absent_3 , p.worker_rep_absent_3 , p.mgmt_rep_absent_4 , p.worker_rep_absent_4 , p.mgmt_rep_absent_5 , p.worker_rep_absent_5 , p.mgmt_rep_absent_6 , p.worker_rep_absent_6 , p.mgmt_rep_absent_7 , p.worker_rep_absent_7 , p.mgmt_rep_absent_8 , p.worker_rep_absent_8
+, ven.name , vendor, cou.name , fac.name, region , unit, year_new, p.projectId , p.mgmt_rep_2 , p.mgmt_rep_3 , p.mgmt_rep_4 , p.mgmt_rep_5 , p.mgmt_rep_6 , p.mgmt_rep_7 , p.mgmt_rep_8 , p.mgmt_rep_9 , p.worker_rep_2 , p.worker_rep_3 , p.worker_rep_4 , p.worker_rep_5 , p.worker_rep_6 , p.worker_rep_7 , p.worker_rep_8 , p.worker_rep_9  , p.status
