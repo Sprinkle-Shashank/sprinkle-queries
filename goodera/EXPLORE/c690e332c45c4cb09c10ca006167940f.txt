@@ -1,8 +1,7 @@
 with s1 as(
-  select p._id, p2.school_name, LEFT(p.session_date,10) start_date, LEFT(p.end_date,10) end_date, t.name session_type , p.duration, p.brief, p.teacher, p.photo, p.session_date fy_timerange,p.projectid
+  select p._id, school_name, LEFT(p.session_date,10) start_date, LEFT(p.end_date,10) end_date, t.name session_type , p.duration, p.brief, p.teacher, p.photo, p.session_date fy_timerange,p.projectid
   from profile_77006 p  
-left join profile_77382 p2
-on p.school = p2._id
+
 left join ds_mysql_prod_project q
 ON q.id=p.projectid
 left join ds_mysql_prod_tagelement t
@@ -11,8 +10,11 @@ group by 1,2,3,4,5,6,7,8,p.photo,p.session_date,p.projectid
 ),
 
 s3 as (
-select CAST(school1 as varchar) as school1, s2.*
-FROM s1 as s2,s2.school_name school1)
+select CAST(s2.school1 as varchar) as school1, s2.*
+FROM s1 as s2,s2.school_name school1
+left join profile_77382 p2
+on s2.school1 = p2._id
+)
 
 Select  _id, listagg(distinct school1  ,',') as school_name, start_date, end_date, session_type , duration, brief, teacher, photo,fy_timerange, projectid 
 from s3
