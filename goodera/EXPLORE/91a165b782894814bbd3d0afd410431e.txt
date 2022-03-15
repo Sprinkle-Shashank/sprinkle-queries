@@ -1,8 +1,11 @@
 --select male_enrolled, female_enrolled from profile_79767
 
-with table1 as (
-select gd.name as grade,fy_timerange, sum(enrolled) as enrolled,  Substring(json_serialize(fy_timerange),11,4) as year, Substring(json_serialize(fy_timerange),16,2) as start_month,
-  Substring(json_serialize(fy_timerange),49,2) as end_month,
+with table1 as (SELECT * 
+FROM (SELECT grade,fy_timerange, male_enrolled, female_enrolled FROM profile_79767) UNPIVOT (
+    enrolled FOR gender IN ( male_enrolled, female_enrolled)
+)) ,table2 as (
+select gd.name as grade,fy_timerange, case when gender = 'male_enrolled' then 'Male' else 'Female' end as gender,sum(enrolled) as enrolled,  Substring(json_serialize(table1.fy_timerange),11,4) as year, Substring(json_serialize(table1.fy_timerange),16,2) as start_month,
+  Substring(json_serialize(table1.fy_timerange),49,2) as end_month,
 case when start_month = '01' then 'January'
 	 when start_month = '02' then 'February'
 	 when start_month = '03' then 'March'
@@ -26,10 +29,10 @@ case when start_month = '01' then 'January'
 	 when end_month = '09' then 'September'
 	 when end_month = '10' then 'October'
 	 when end_month = '11' then 'November'
-	when end_month = '12' then 'December' end as end_month_name from profile_79767 p
+	when end_month = '12' then 'December' end as end_month_name from table1
 
 left join ds_mysql_prod_tagelement gd
-on p.grade = gd.id
+on table1.grade = gd.id
 
 
 group by gender,fy_timerange,start_month, start_month_name, end_month,end_month_name,year, gd.name
@@ -39,6 +42,6 @@ group by gender,fy_timerange,start_month, start_month_name, end_month,end_month_
 					 when grade = 'Grade 2' then 'D'
 					 when grade = 'Grade 3' then 'E'
 					 when grade = 'Grade 4' then 'F'
-					 when grade = 'Grade 5' then 'G' end as sort_rule,gender,enrolled from table1
+					 when grade = 'Grade 5' then 'G' end as sort_rule,sum(enrolled) as enrolled from table2
 					 
-group by grade,enrolled,quarter,year,sort_rule
+group by grade,quarter,year,sort_rule
