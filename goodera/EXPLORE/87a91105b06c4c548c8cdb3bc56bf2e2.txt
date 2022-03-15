@@ -1,0 +1,41 @@
+--select male_enrolled, female_enrolled from profile_79767
+
+with table1 as (SELECT * 
+FROM (SELECT grade,fy_timerange, male_enrolled, female_enrolled FROM profile_79767) UNPIVOT (
+    enrolled FOR gender IN ( male_enrolled, female_enrolled)
+)) ,table2 as (
+select gd.name as grade,fy_timerange, case when gender = 'male_enrolled' then 'Male' else 'Female' end as gender,sum(enrolled) as enrolled,  Substring(json_serialize(table1.fy_timerange),11,4) as year, Substring(json_serialize(table1.fy_timerange),16,2) as start_month,
+  Substring(json_serialize(table1.fy_timerange),49,2) as end_month,
+case when start_month = '01' then 'January'
+	 when start_month = '02' then 'February'
+	 when start_month = '03' then 'March'
+	 when start_month = '04' then 'April'
+	 when start_month = '05' then 'May'
+	 when start_month = '06' then 'June'
+	 when start_month = '07' then 'July'
+	 when start_month = '08' then 'August'
+	 when start_month = '09' then 'September'
+	 when start_month = '10' then 'October'
+	 when start_month = '11' then 'November'
+	when start_month = '12' then 'December' end as start_month_name,
+   case when end_month = '02' then 'January'
+	 when end_month = '03' then 'February'
+	 when end_month = '04' then 'March'
+	 when end_month = '05' then 'April'
+	 when end_month = '06' then 'May'
+	 when end_month = '07' then 'June'
+	 when end_month = '08' then 'July'
+	 when end_month = '09' then 'August'
+	 when end_month = '10' then 'September'
+	 when end_month = '11' then 'October'
+	 when end_month = '12' then 'November'
+	when end_month = '01' then 'December' end as end_month_name from table1
+
+left join ds_mysql_prod_tagelement gd
+on table1.grade = gd.id
+
+
+group by gender,fy_timerange,start_month, start_month_name, end_month,end_month_name,year, gd.name
+)select year, concat(concat(start_month_name,' - ' ),end_month_name) as quarter, sum(enrolled) from table2
+					 
+group by year,quarter
