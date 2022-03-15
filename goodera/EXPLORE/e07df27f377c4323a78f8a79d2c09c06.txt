@@ -2,7 +2,7 @@
 with table1 as (SELECT * 
 FROM (SELECT fy_timerange, male_new, female_new FROM profile_79767) UNPIVOT (
     new_admission FOR gender IN ( male_new, female_new)
-)) 
+)),table2 as ( 
 select Substring(json_serialize(table1.fy_timerange),11,4) as year, Substring(json_serialize(table1.fy_timerange),16,2) as start_month,
   Substring(json_serialize(table1.fy_timerange),49,2) as end_month,
 case when start_month = '01' then 'January'
@@ -31,3 +31,5 @@ case when start_month = '01' then 'January'
 	when end_month = '12' then 'December' end as end_month_name, case when gender = 'male_new' then 'Male' else 'Female' end as gender,sum(new_admission) as new_admission from table1
 
 group by year, start_month_name, end_month_name, fy_timerange, gender
+)
+select year, concat(concat(start_month_name,' - ' ),end_month_name) as quarter, gender
