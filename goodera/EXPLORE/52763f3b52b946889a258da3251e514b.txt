@@ -1,6 +1,11 @@
-select p.projectId as project ,fac.name as factory,cou.name as country,ven.name as vendor1,nvl2(SUBSTRING(vendor1, 1, POSITION(' (' in vendor1)), SUBSTRING(vendor1, 1, POSITION(' (' in vendor1)), vendor1) as vendor_name, case when vendor_name='' then vendor1 else vendor_name end as vendor,case when vendor_name='' then vendor1 else vendor_name end as vendor,decode(name_subunit,' ','NA',name_subunit) as unit, DATEPART(YEAR,date_enrollment) as year_new  , mgmt_rep , worker_rep , sum(mgmt_rep + worker_rep) as sum
+Select p.projectId as project,fac.name as projectId,ven.name as vendor1,nvl2(SUBSTRING(vendor1, 1, POSITION(' (' in vendor1)), SUBSTRING(vendor1, 1, POSITION(' (' in vendor1)), vendor1) as vendor_name, case when vendor_name='' then vendor1 else vendor_name end as vendor,cou.name as country,p.status,p.name, decode(name_subunit,' ','NA',name_subunit) as unit, DATEPART(YEAR,date_enrollment) as year_new  ,p.worker_rep,p.mgmt_rep , sum(mgmt_rep + worker_rep) as summ
+
 
 from profile_16619 p
+
+
+
+
 
 left join ds_mysql_prod_project fac
 on p.projectid = fac.id
@@ -8,7 +13,9 @@ left join ds_mysql_prod_project ven
 on fac.parent = ven.id
 left join ds_mysql_prod_project cou
 on ven.parent = cou.id
-  
-where p.status = 1400365 or p.status is null
-and project ilike '%%'
-group by p.mgmt_rep , p.worker_rep , year_new , ven.name , fac.name , cou.name , vendor, unit, project
+
+
+
+where (project ilike '%%') and (cou.id <> 13761) and (p.status = 1400365 or p.status is Null)
+
+group by  project,fac.name ,ven.name,vendor,cou.name ,p.status,p.name, p.name_subunit,p.worker_rep,p.mgmt_rep,p.date_enrollment
