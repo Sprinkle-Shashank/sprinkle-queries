@@ -1,5 +1,44 @@
 
 with table1 as (SELECT * 
+FROM (SELECT fy_timerange, male_transfer, female_transfer FROM profile_79767) UNPIVOT (
+     transferred FOR gender IN ( male_transfer, female_transfer)
+)),table2 as ( 
+select Substring(json_serialize(table1.fy_timerange),11,4) as year, Substring(json_serialize(table1.fy_timerange),16,2) as start_month,
+  Substring(json_serialize(table1.fy_timerange),49,2) as end_month,
+case when start_month = '01' then 'January'
+	 when start_month = '02' then 'February'
+	 when start_month = '03' then 'March'
+	 when start_month = '04' then 'April'
+	 when start_month = '05' then 'May'
+	 when start_month = '06' then 'June'
+	 when start_month = '07' then 'July'
+	 when start_month = '08' then 'August'
+	 when start_month = '09' then 'September'
+	 when start_month = '10' then 'October'
+	 when start_month = '11' then 'November'
+	when start_month = '12' then 'December' end as start_month_name,
+  case when end_month = '01' then 'January'
+	 when end_month = '02' then 'February'
+	 when end_month = '03' then 'March'
+	 when end_month = '04' then 'April'
+	 when end_month = '05' then 'May'
+	 when end_month = '06' then 'June'
+	 when end_month = '07' then 'July'
+	 when end_month = '08' then 'August'
+	 when end_month = '09' then 'September'
+	 when end_month = '10' then 'October'
+	 when end_month = '11' then 'November'
+	when end_month = '12' then 'December' end as end_month_name, case when gender = 'male_transfer' then 'Male' else 'Female' end as gender,sum(transferred) as transferred from table1
+
+group by year, start_month_name, end_month_name, fy_timerange, gender
+)
+select year, concat(concat(start_month_name,' - ' ),end_month_name) as quarter, gender, transferred from table2
+
+
+/*
+
+
+with table1 as (SELECT * 
 FROM (SELECT male_transfer, female_transfer FROM profile_79767) UNPIVOT (
     transferred FOR gender IN ( male_transfer, female_transfer)
 )) 
@@ -7,3 +46,6 @@ select case when gender = 'male_transfer' then 'Male' else 'Female' end as gende
 
 
 group by gender
+
+*/
+
