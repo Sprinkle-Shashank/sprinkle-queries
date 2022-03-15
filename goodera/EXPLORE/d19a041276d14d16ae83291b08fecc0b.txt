@@ -4,17 +4,18 @@ left join ds_mysql_prod_grantproposal g1
 on g1.id = gpr.grantproposalid
 where gpr.grantflowtaskid = '821' and gpr.action = 'SOUGHT_CLARIFICATION'
 ),
-base2 as (select DISTINCT(g1.code),gpr.grantproposalid
+base2 as (select g1.code,gpr.grantproposalid,max(gpr.modified)
 from ds_mysql_prod_grantflowtaskgrantproposalrecord gpr
 left join ds_mysql_prod_grantproposal g1
 on g1.id = gpr.grantproposalid
-where gpr.grantflowtaskid = '821' and gpr.action = 'COMPLETED'),
+where gpr.grantflowtaskid = '821' and gpr.action = 'COMPLETED'
+group by gpr.grantflowtaskid,gpr.grantproposalid),
 
 main as (select p.* from base2 p
 left join base1 p2
 on p.code = p2.code
 where p2.code is NULL)
 
-select * from main
+select * from base2
 
 
