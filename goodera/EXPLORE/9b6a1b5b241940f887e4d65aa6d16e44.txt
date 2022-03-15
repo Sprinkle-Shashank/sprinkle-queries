@@ -11,7 +11,8 @@ group by gd.name), table2 as (select grade, case when grade = 'Nursery' then 'A'
 					 when grade = 'Grade 2' then 'D'
 					 when grade = 'Grade 3' then 'E'
 					 when grade = 'Grade 4' then 'F'
-					 when grade = 'Grade 5' then 'G' end as sort_rule,offline_learning,online_learning, Substring(json_serialize(table1.fy_timerange),11,4) as year, Substring(json_serialize(table1.fy_timerange),16,2) as start_month,
+					 when grade = 'Grade 5' then 'G' end as sort_rule, 
+							  sum(offline_learning) as offline_learning, sum(online_learning) as online_learning, Substring(json_serialize(table1.fy_timerange),11,4) as year, Substring(json_serialize(table1.fy_timerange),16,2) as start_month,
   Substring(json_serialize(table1.fy_timerange),49,2) as end_month,
 case when start_month = '01' then 'January'
 	 when start_month = '02' then 'February'
@@ -36,5 +37,9 @@ case when start_month = '01' then 'January'
 	 when end_month = '09' then 'September'
 	 when end_month = '10' then 'October'
 	 when end_month = '11' then 'November'
-	when end_month = '12' then 'December' end as end_month_name from table1)
-select year, concat(concat(start_month_name,' - ' ),end_month_name) as quarter, gender, sort_rule, offline_learning, online_learning from table2
+	when end_month = '12' then 'December' end as end_month_name from table1
+							 
+group by year, start_month_name, end_month_name, grade, sort_rule 
+							 
+							 )
+select year, concat(concat(start_month_name,' - ' ),end_month_name) as quarter, grade, sort_rule, offline_learning, online_learning from table2
