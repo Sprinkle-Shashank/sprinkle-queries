@@ -5,9 +5,9 @@
 
 with base1 as (select 
 cast(concat(concat(substring(cast(timestamp 'epoch' + CAST(gpr.completedon AS BIGINT)/1000 * interval '1 second' as varchar), 1, 10),'T'), concat(split_part(cast(timestamp 'epoch' + CAST(gpr.completedon AS BIGINT)/1000 * interval '1 second' as varchar), ' ',2),'.000Z')) as datetime) as completedon,gpr.action
-,count(*) over (partition by gpr.modified,gpr.action) as row_count
+,count(*) over (partition by gpr.grantflowtaskid,gpr.modified) as row_count
 from ds_mysql_prod_grantflowtaskgrantproposalrecord gpr
 where (gpr.grantflowtaskid = '817' or gpr.grantflowtaskid = '4496') and gpr.action = 'COMPLETED')
 
 select * from base1
---where row_count = 1
+where row_count = 1
