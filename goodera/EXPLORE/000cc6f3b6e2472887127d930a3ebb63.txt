@@ -1,7 +1,6 @@
-with table1 as
-(
-  select p1.projectId , p1._id , p1.total_workers , f_y.name as year_new , cou.name as country , 
-nvl2(SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)),ven.name) as vendor_name, case when vendor_name='' then ven.name else vendor_name end as vendor,  fac.name as factory , 
+
+  select p.projectId, p1.status, cou.name as country , 
+nvl2(SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)),ven.name) as vendor_name, case when vendor_name='' then ven.name else vendor_name end as vendor, fac.name as factory ,
 case when country in ('India', 'Bangladesh', 'Sri Lanka')
 then 'South Asia'
 when country in ('China')
@@ -10,48 +9,30 @@ when country in ('Guatemala', 'El Salvador', 'Dominican Republic')
 then 'Americas'
 when country in ('Philippines', 'Cambodia',  'Vietnam',  'Indonesia', 'Myanmar')
 then 'South East Asia'
-end as region , row_number() over 
-(partition by p1.projectid order by p1._id desc) as row  from profile_31726 p1
+end as region , case when p1.name_subunit is null or p1.name_subunit=' ' then  'N/A' else p1.name_subunit end  as unit,
+cast(DATEPART(YEAR,p1.date_enrollment) as varchar) as year_new ,
+ quarter1.name as quarter,fy1.name as fy, p.total_raised , p.total_raised_2 , p.total_raised_3 , p.total_raised_4 , p.total_raised_5 , p.total_raised_6 , p.total_raised_7 , p.total_raised_8 , p.total_raised_9 , p.rights_based , p.rights_based_2 , p.rights_based_3 , p.rights_based_4 , p.rights_based_5 , p.rights_based_6 , p.rights_based_7 , p.rights_based_8 , p.rights_based_9,   
+ p.interest_based , p.interest_based_2 , p.interest_based_3 , p.interest_based_4 , p.interest_based_5 , p.interest_based_6 , p.interest_based_7 , p.interest_based_8,   p.interest_based_9 , p.resolved , p.resolved_2 , p.resolved_3 , p.resolved_4 , p.resolved_5 , p.resolved_6 , p.resolved_7 , p.resolved_8 , p.resolved_9
+   
+from profile_16863 p
+  
   
 left join ds_mysql_prod_project fac
-on  p1.projectid = fac.id
+on p.projectid = fac.id
 left join ds_mysql_prod_project ven
 on fac.parent = ven.id
 left join ds_mysql_prod_project cou
-on ven.parent = cou.id 
-left join ds_mysql_prod_tagelement f_y
-on p1.fy = f_y.id
+on ven.parent = cou.id
+  left join ds_mysql_prod_tagelement quarter1 on
+  p.quarter = quarter1.id
+  left join ds_mysql_prod_tagelement fy1 on
+  p.fy = fy1.id
+left join profile_16619 p1
+on p.projectid = p1.projectid
   
-  group by p1.projectId , p1._id , p1.total_workers , f_y.name , ven.name , cou.name , fac.name
- ),
+ -- where p.projectId ilike '%%' and cou.name <> 'Test Country' and (p1.status = 1400365 or p1.status is null) and country <> 'GAP Inc.'
+
+group by p.projectid ,cou.name , fac.name , ven.name , quarter1.name , fy1.name , p1.name_subunit ,p1.date_enrollment , p1.status , p.total_raised , p.total_raised_2 , p.total_raised_3 , p.total_raised_4 , p.total_raised_5 , p.total_raised_6 , p.total_raised_7 , p.total_raised_8 , p.total_raised_9 , p.rights_based , p.rights_based_2 , p.rights_based_3 , p.rights_based_4 , p.rights_based_5 , p.rights_based_6 , p.rights_based_7 , p.rights_based_8 , p.rights_based_9,   
+ p.interest_based , p.interest_based_2 , p.interest_based_3 , p.interest_based_4 , p.interest_based_5 , p.interest_based_6 , p.interest_based_7 , p.interest_based_8,   p.interest_based_9 , p.resolved , p.resolved_2 , p.resolved_3 , p.resolved_4 , p.resolved_5 , p.resolved_6 , p.resolved_7 , p.resolved_8 , p.resolved_9
+  
  
- table2 as
- (
-   
-   select * from table1
-  where row = 1 
-   ),
-   
-   table4 as (
-   select p2.projectId ,p2._id , 
-	 case when p2.name_subunit is null or p2.name_subunit=' ' then 'n/a' else p2.name_subunit end  as unit, 
-	 p2.status , row_number() over (partition by p2.projectid order by p2._id desc) as row1 
-	 from profile_16619 p2
-	  where  ((p2.status <> 437659 and p2.status <> 437658) or p2.status is null)
-	 group by p2.projectId  , p2._id ,p2.status , p2.name_subunit
-   ),
-   
-   table5 as (
-      select * from table4
-  where row1 = 1 
-   )
-   
-   select t2.projectId , t5.status ,t2.total_workers , t2.year_new, t2.country , t2.factory , t2.region , t2.vendor , t5.status
-    from table2 t2 
-   
-left join table5 t5 
-on t2.projectid = t5.projectid
-  
-  where  t2.country <> 'Test Country' and t2.projectId ilike '%%'
-  
-  group by t2.projectId , t5.status ,t2.total_workers , t2.year_new, t2.country , t2.factory , t2.region , t2.vendor , t5.status
