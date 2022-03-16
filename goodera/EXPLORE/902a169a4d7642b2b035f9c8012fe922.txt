@@ -1,0 +1,22 @@
+with temp as ( 
+select 'students_mobilized' as c
+  Union all 
+select 'graduates_mobilized' as c
+  Union all 
+select 'workers_mobilized' as c 
+   Union all
+select 'postgraduates_mobilized' as c  )
+  
+  
+select pro.name as projectid,fy_timerange,
+sum( case c when 'students_mobilized' then p.students_mobilized
+	        when 'graduates_mobilized' then p.graduates_mobilized
+	        when 'workers_mobilized' then p.workers_mobilized
+	         when 'postgraduates_mobilized' then p.postgraduates_mobilized
+	        else null end ) as val, temp.c as dim from profile_79373 p
+			
+			left join ds_mysql_prod_project pro
+             on p.projectid = pro.id
+			cross join temp
+			
+group by projectid,fy_timerange,temp.c,pro.name			
