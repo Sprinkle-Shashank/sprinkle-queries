@@ -2,13 +2,14 @@
 --Desk review for Bajaj csr  ( task id = 817 )
 --Proposal recommendation by Admin for green channel ( task id = 4496 )
 --condition(action is [completed or rejected] )
-with base1 as (select g1.code,gpr.grantproposalid,gpr.modified
-,count(*) over (partition by g1.code,gpr.grantproposalid) as row_count
+
+with base1 as (select gpr.modified,gpr.completedon
+,count(*) over (partition by gpr.modified) as row_count
 from ds_mysql_prod_grantflowtaskgrantproposalrecord gpr
 left join ds_mysql_prod_grantproposal g1
 on g1.id = gpr.grantproposalid
 where (gpr.grantflowtaskid = '817' or gpr.grantflowtaskid = '4496') and gpr.action = 'COMPLETED'
-group by gpr.grantflowtaskid,gpr.grantproposalid,g1.code,gpr.modified
+group by gpr.modified,gpr.completedon
 order by gpr.modified DESC)
 
 select * from base1
