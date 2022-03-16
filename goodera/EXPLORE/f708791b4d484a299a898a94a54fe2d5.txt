@@ -3,11 +3,9 @@
 --Proposal recommendation by Admin for green channel ( task id = 4496 )
 --condition(action is [completed or rejected] )
 
-with base1 as (select 
-gpr.completedon,gpr.action
-,count(*) over (partition by gpr.grantflowtaskid,gpr.grantproposalid) as row_count
-from gfgpr_499 gpr
-where (gpr.grantflowtaskid = '817' or gpr.grantflowtaskid = '4496') and gpr.action = 'COMPLETED')
+with row_number as (select completedon,action,grantproposalid,grantflowtaskid,
+ROW_NUMBER() over(partition by grantproposalid, grantflowtaskid order by openedon DESC) AS row_number 
+from gfgpr_499), 
 
-select * from base1
-where row_count = 1
+temp as (select * from row_number where row_number = 1 order by grantproposalid) 
+select * from temp where grantflowtaskid in (817,4496) and (action = 'COMPLETED' or action = 'REJECTED')
