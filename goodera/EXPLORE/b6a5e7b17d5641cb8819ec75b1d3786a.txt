@@ -1,4 +1,4 @@
-select eg.name as engagement_practice,Substring(json_serialize(fy_timerange),11,4) as year, Substring(json_serialize(fy_timerange),16,2) as start_month,
+with table1 as (select eg.name as engagement_practice,Substring(json_serialize(fy_timerange),11,4) as year, Substring(json_serialize(fy_timerange),16,2) as start_month,
   Substring(json_serialize(fy_timerange),49,2) as end_month,
 case when start_month = '01' then 'January'
 	 when start_month = '02' then 'February'
@@ -26,4 +26,5 @@ case when start_month = '01' then 'January'
 	when end_month = '01' then 'December' end as end_month_name from profile_79767
 
 left join ds_mysql_prod_tagelement eg
-on profile_79767.engagement_practice = eg.id
+on profile_79767.engagement_practice = eg.id ) 
+select year, concat(concat(start_month_name,' - ' ),end_month_name) as quarter, engagement_practice
