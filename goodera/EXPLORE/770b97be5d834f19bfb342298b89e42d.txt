@@ -1,13 +1,39 @@
-select gd.name as grade, (students_blooms_ba + students_bud_ba + students_seeds_ba) as ba,(students_blooms_ea + students_bud_ea + students_seeds_ea) as ea,case when gd.name = 'Nursery' then 'A'
+with table1 as (select gd.name as grade, (students_blooms_ba + students_bud_ba + students_seeds_ba) as ba,no_of_students_ba,(students_blooms_ea + students_bud_ea + students_seeds_ea) as ea,no_of_students_ea, case when gd.name = 'Nursery' then 'A'
 				     when gd.name = 'KG' then 'B'
 					 when gd.name = 'Grade 1' then 'C'
 					 when gd.name = 'Grade 2' then 'D'
 					 when gd.name = 'Grade 3' then 'E'
 					 when gd.name = 'Grade 4' then 'F'
-					 when gd.name = 'Grade 5' then 'G' end as sort_rule from profile_79767
+					 when gd.name = 'Grade 5' then 'G' end as sort_rule, Substring(json_serialize(fy_timerange),11,4) as year, Substring(json_serialize(fy_timerange),16,2) as start_month,
+  Substring(json_serialize(fy_timerange),49,2) as end_month,
+case when start_month = '01' then 'January'
+	 when start_month = '02' then 'February'
+	 when start_month = '03' then 'March'
+	 when start_month = '04' then 'April'
+	 when start_month = '05' then 'May'
+	 when start_month = '06' then 'June'
+	 when start_month = '07' then 'July'
+	 when start_month = '08' then 'August'
+	 when start_month = '09' then 'September'
+	 when start_month = '10' then 'October'
+	 when start_month = '11' then 'November'
+	when start_month = '12' then 'December' end as start_month_name,
+   case when end_month = '02' then 'January'
+	 when end_month = '03' then 'February'
+	 when end_month = '04' then 'March'
+	 when end_month = '05' then 'April'
+	 when end_month = '06' then 'May'
+	 when end_month = '07' then 'June'
+	 when end_month = '08' then 'July'
+	 when end_month = '09' then 'August'
+	 when end_month = '10' then 'September'
+	 when end_month = '11' then 'October'
+	 when end_month = '12' then 'November'
+	when end_month = '01' then 'December' end as end_month_name from profile_79767
 
 
 left join ds_mysql_prod_tagelement gd
 on profile_79767.grade = gd.id
 
-group by gd.name, students_blooms_ba, students_bud_ba, students_seeds_ba, students_blooms_ea, students_bud_ea, students_seeds_ea,sort_rule
+group by gd.name, students_blooms_ba, students_bud_ba, students_seeds_ba, no_of_students_ba, no_of_students_ea, students_blooms_ea, students_bud_ea, students_seeds_ea,sort_rule, fy_timerange) 
+select grade,ba,no_of_students_ba, ea,no_of_students_ea, year, concat(concat(start_month_name,' - ' ),end_month_name) as quarter,sort_rule
