@@ -1,9 +1,19 @@
 
-with tab as (
-select gpr.grantproposalid, gpr.grantflowtaskid,max(gpr.action) as modified
-  from gfgpr_499 gpr
-  group by gpr.grantproposalid, gpr.grantflowtaskid)
- 
-select * from tab
+-- with tab as (
+-- select gpr.grantproposalid, gpr.grantflowtaskid,FIRST_VALUE(gpr.action) as modified
+--  from gfgpr_499 gpr
+ -- group by gpr.grantproposalid, gpr.grantflowtaskid)
 
-  
+--select * from tab
+
+select grantproposalid, grantflowtaskid, modified,
+first_value(action)
+over(partition by modified
+order by modified desc
+-- rows between unbounded preceding and unbounded following)
+-- from (select * from venue where venueseats >0)
+from (select grantproposalid, grantflowtaskid, modified
+rank() over (order by modified) as rnk
+from gfgpr_499
+order by modified desc where rnk = 1;)
+order by modified;
