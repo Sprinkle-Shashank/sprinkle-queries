@@ -1,5 +1,5 @@
 with table1 as(
-select p.projectId as project,DATEPART(YEAR,date_enrollment) as year_new,fac.name as factory,cou.name as country,ven.name as vendor1,nvl2(SUBSTRING(vendor1, 1, POSITION(' (' in vendor1)), SUBSTRING(vendor1, 1, POSITION(' (' in vendor1)), vendor1) as vendor_name, case when vendor_name='' then vendor1 else vendor_name end as vendor ,decode(name_subunit,' ','NA',name_subunit) as unit, case when country in ('India', 'Bangladesh', 'Sri Lanka')
+select p.projectId as project,DATEPART(YEAR,date_enrollment) as year_new,fac.name as factory,cou.name as country,ven.name as vendor1,nvl2(SUBSTRING(vendor1, 1, POSITION(' (' in vendor1)), SUBSTRING(vendor1, 1, POSITION(' (' in vendor1)), vendor1) as vendor_name, case when vendor_name='' then vendor1 else vendor_name end as vendor , case when p.name_subunit is null or p.name_subunit=' ' then 'N/A' else p.name_subunit end  as unit , case when country in ('India', 'Bangladesh', 'Sri Lanka')
 then 'South Asia'
 when country in ('China')
 then 'North Asia'
@@ -23,7 +23,7 @@ on ven.parent = cou.id
 
 where (p.date_enrollment is not null and p.date_completion is null) and (p.status = 1400365 or p.status is null) 
 and
-cou.name <> 'Test Country'
+cou.name <> 'Test Country' 
 
 group by project,year_new,fac.name,cou.name,ven.name,vendor , unit,region , p.date_enrollment,p.date_completion,p.status , p._id
  )
