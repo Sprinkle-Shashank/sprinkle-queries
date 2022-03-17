@@ -1,10 +1,10 @@
-with table1 as (select ven.name as vendor1,nvl2(SUBSTRING(vendor1, 1, POSITION(' (' in vendor1)), SUBSTRING(vendor1, 1, POSITION(' (' in vendor1)), vendor1) as vendor_name, case when vendor_name='' then vendor1 else vendor_name end as vendor ,decode(name_subunit,' ','N/A',name_subunit) as unit,  projectId ,fac.name as factory , cou.name as country1 , case when country1 in ('India', 'Bangladesh', 'Sri Lanka')
+with table1 as (select ven.name as vendor1,nvl2(SUBSTRING(vendor1, 1, POSITION(' (' in vendor1)), SUBSTRING(vendor1, 1, POSITION(' (' in vendor1)), vendor1) as vendor_name, case when vendor_name='' then vendor1 else vendor_name end as vendor , case when p1.name_subunit is null or p1.name_subunit=' ' then 'N/A' else p1.name_subunit end  as unit,  projectId ,fac.name as factory , cou.name as country , case when country in ('India', 'Bangladesh', 'Sri Lanka')
 then 'South Asia'
-when country1 in ('China')
+when country in ('China')
 then 'North Asia'
-when country1 in ('Guatemala', 'El Salvador', 'Dominican Republic')
+when country in ('Guatemala', 'El Salvador', 'Dominican Republic')
 then 'Americas'
-when country1 in ('Philippines', 'Cambodia',  'Vietnam',  'Indonesia', 'Myanmar')
+when country in ('Philippines', 'Cambodia',  'Vietnam',  'Indonesia', 'Myanmar')
 then 'South East Asia'
 end as region , DATEPART(YEAR,date_enrollment) as year_new,  date , mgmt_rep , worker_rep ,  mgmt_rep_2 , worker_rep_2 ,  mgmt_rep_2 + worker_rep_2 as n1 , mgmt_rep + worker_rep as d1 , n1*1.0/d1 as avg1 ,'Communication in the workplace' as module , avg1*100 as avgg1
 from profile_16619 as p1
@@ -16,17 +16,17 @@ on fac.parent = ven.id
 left join ds_mysql_prod_project cou
 on ven.parent = cou.id
 				 
-where date is not null and p1.projectId ilike '%%' and cou.name <> 'Test Country' and (p1.status = 1400365 or p1.status is null) and country1 <> 'GAP Inc.'
+where date is not null and p1.projectId ilike '%%' and cou.name <> 'Test Country' and (p1.status = 1400365 or p1.status is null) and country <> 'GAP Inc.'
  
 group by  p1.date , p1.projectId,fac.name , cou.name ,module, mgmt_rep , worker_rep ,  mgmt_rep_2 , worker_rep_2 , ven.name , vendor , year_new , unit, region ),
 
-table2  as (select ven.name as vendor1,nvl2(SUBSTRING(vendor1, 1, POSITION(' (' in vendor1)), SUBSTRING(vendor1, 1, POSITION(' (' in vendor1)), vendor1) as vendor_name, case when vendor_name='' then vendor1 else vendor_name end as vendor ,decode(name_subunit,' ','N/A',name_subunit) as unit,  projectId ,fac.name as factory , cou.name as country2 , case when country2 in ('India', 'Bangladesh', 'Sri Lanka')
+table2  as (select ven.name as vendor1,nvl2(SUBSTRING(vendor1, 1, POSITION(' (' in vendor1)), SUBSTRING(vendor1, 1, POSITION(' (' in vendor1)), vendor1) as vendor_name, case when vendor_name='' then vendor1 else vendor_name end as vendor , case when p2.name_subunit is null or p2.name_subunit=' ' then 'N/A' else p2.name_subunit end  as unit ,  projectId ,fac.name as factory , cou.name as country , case when country in ('India', 'Bangladesh', 'Sri Lanka')
 then 'South Asia'
-when country2 in ('China')
+when country in ('China')
 then 'North Asia'
-when country2 in ('Guatemala', 'El Salvador', 'Dominican Republic')
+when country in ('Guatemala', 'El Salvador', 'Dominican Republic')
 then 'Americas'
-when country2 in ('Philippines', 'Cambodia',  'Vietnam',  'Indonesia', 'Myanmar')
+when country in ('Philippines', 'Cambodia',  'Vietnam',  'Indonesia', 'Myanmar')
 then 'South East Asia'
 end as region , DATEPART(YEAR,date_enrollment) as year_new,   cou.name as country ,date_2 , mgmt_rep , worker_rep ,  mgmt_rep_3 , worker_rep_3 ,  mgmt_rep_3 + worker_rep_3 as n2 , mgmt_rep + worker_rep as d2 , n2*1.0/d2 as avg2 , 'Role and responsibilities in BC' as module ,avg2*100 as avgg2
 from profile_16619 as p2
@@ -38,19 +38,19 @@ on fac.parent = ven.id
 left join ds_mysql_prod_project cou
 on ven.parent = cou.id		
 			
-where date_2 is not null and p2.projectId ilike '%%' and cou.name <> 'Test Country' and (p2.status = 1400365 or p2.status is null) and country2 <> 'GAP Inc.'
+where date_2 is not null and p2.projectId ilike '%%' and cou.name <> 'Test Country' and (p2.status = 1400365 or p2.status is null) and country <> 'GAP Inc.'
 group by  date_2 , p2.projectId ,fac.name, cou.name,module,mgmt_rep , worker_rep ,  mgmt_rep_3 , worker_rep_3 , ven.name , vendor , year_new , unit, region
 )
 
 ,
 
-table3  as (select ven.name as vendor1,nvl2(SUBSTRING(vendor1, 1, POSITION(' (' in vendor1)), SUBSTRING(vendor1, 1, POSITION(' (' in vendor1)), vendor1) as vendor_name, case when vendor_name='' then vendor1 else vendor_name end as vendor ,decode(name_subunit,' ','N/A',name_subunit) as unit,  projectId ,fac.name as factory , cou.name as country3 , case when country3 in ('India', 'Bangladesh', 'Sri Lanka')
+table3  as (select ven.name as vendor1,nvl2(SUBSTRING(vendor1, 1, POSITION(' (' in vendor1)), SUBSTRING(vendor1, 1, POSITION(' (' in vendor1)), vendor1) as vendor_name, case when vendor_name='' then vendor1 else vendor_name end as vendor ,case when p3.name_subunit is null or p3.name_subunit=' ' then 'N/A' else p3.name_subunit end  as unit,  projectId ,fac.name as factory , cou.name as country , case when country in ('India', 'Bangladesh', 'Sri Lanka')
 then 'South Asia'
-when country3 in ('China')
+when country in ('China')
 then 'North Asia'
-when country3 in ('Guatemala', 'El Salvador', 'Dominican Republic')
+when country in ('Guatemala', 'El Salvador', 'Dominican Republic')
 then 'Americas'
-when country3 in ('Philippines', 'Cambodia',  'Vietnam',  'Indonesia', 'Myanmar')
+when country in ('Philippines', 'Cambodia',  'Vietnam',  'Indonesia', 'Myanmar')
 then 'South East Asia'
 end as region , DATEPART(YEAR,date_enrollment) as year_new, cou.name as country,date_3 ,mgmt_rep , worker_rep ,  mgmt_rep_4 , worker_rep_4 , mgmt_rep_4 + worker_rep_4 as n3 , mgmt_rep + worker_rep as d3 , n3*1.0/d3 as avg3 , 'Risk assessment' as module ,avg3*100 as avgg3
 from profile_16619 as p3
@@ -62,7 +62,7 @@ on fac.parent = ven.id
 left join ds_mysql_prod_project cou
 on ven.parent = cou.id			
 			
-where date_3 is not null and p3.projectId ilike '%%' and cou.name <> 'Test Country' and (p3.status = 1400365 or p3.status is null) and country3 <> 'GAP Inc.'
+where date_3 is not null and p3.projectId ilike '%%' and cou.name <> 'Test Country' and (p3.status = 1400365 or p3.status is null) and country <> 'GAP Inc.'
 group by  projectid,fac.name,cou.name,p3.date_3 , p3.mgmt_rep_4 , p3.worker_rep_4 , p3.mgmt_rep , p3.worker_rep,module , ven.name , vendor , year_new , unit, region
 )
 
@@ -70,13 +70,13 @@ group by  projectid,fac.name,cou.name,p3.date_3 , p3.mgmt_rep_4 , p3.worker_rep_
 ,
 
 
-table4  as (select ven.name as vendor1,nvl2(SUBSTRING(vendor1, 1, POSITION(' (' in vendor1)), SUBSTRING(vendor1, 1, POSITION(' (' in vendor1)), vendor1) as vendor_name, case when vendor_name='' then vendor1 else vendor_name end as vendor ,decode(name_subunit,' ','N/A',name_subunit) as unit,  projectId ,fac.name as factory , cou.name as country4 , case when country4 in ('India', 'Bangladesh', 'Sri Lanka')
+table4  as (select ven.name as vendor1,nvl2(SUBSTRING(vendor1, 1, POSITION(' (' in vendor1)), SUBSTRING(vendor1, 1, POSITION(' (' in vendor1)), vendor1) as vendor_name, case when vendor_name='' then vendor1 else vendor_name end as vendor , case when p4.name_subunit is null or p4.name_subunit=' ' then 'N/A' else p4.name_subunit end  as unit ,  projectId ,fac.name as factory , cou.name as country , case when country in ('India', 'Bangladesh', 'Sri Lanka')
 then 'South Asia'
-when country4 in ('China')
+when country in ('China')
 then 'North Asia'
-when country4 in ('Guatemala', 'El Salvador', 'Dominican Republic')
+when country in ('Guatemala', 'El Salvador', 'Dominican Republic')
 then 'Americas'
-when country4 in ('Philippines', 'Cambodia',  'Vietnam',  'Indonesia', 'Myanmar')
+when country in ('Philippines', 'Cambodia',  'Vietnam',  'Indonesia', 'Myanmar')
 then 'South East Asia'
 end as region , DATEPART(YEAR,date_enrollment) as year_new,  cou.name as country,date_4 ,mgmt_rep , worker_rep ,  mgmt_rep_5 , worker_rep_5 , mgmt_rep_5 + worker_rep_5 as n4 , mgmt_rep + worker_rep as d4 , n4*1.0/d4 as avg4 , 'Problem solving' as module ,avg4*100 as avgg4
 from profile_16619 as p4
@@ -87,19 +87,19 @@ on fac.parent = ven.id
 left join ds_mysql_prod_project cou
 on ven.parent = cou.id			
 			
-where date_4 is not null and p4.projectId ilike '%%' and cou.name <> 'Test Country' and (p4.status = 1400365 or p4.status is null) and country4 <> 'GAP Inc.'
+where date_4 is not null and p4.projectId ilike '%%' and cou.name <> 'Test Country' and (p4.status = 1400365 or p4.status is null) and country <> 'GAP Inc.'
 group by  projectid,fac.name,cou.name,p4.date_4 , module,mgmt_rep , worker_rep ,  mgmt_rep_5 , worker_rep_5 , ven.name , vendor , year_new , unit, region
 )
 
 ,
 
-table5  as (select ven.name as vendor1,nvl2(SUBSTRING(vendor1, 1, POSITION(' (' in vendor1)), SUBSTRING(vendor1, 1, POSITION(' (' in vendor1)), vendor1) as vendor_name, case when vendor_name='' then vendor1 else vendor_name end as vendor ,decode(name_subunit,' ','N/A',name_subunit) as unit,  projectId ,fac.name as factory , cou.name as country5 , case when country5 in ('India', 'Bangladesh', 'Sri Lanka')
+table5  as (select ven.name as vendor1,nvl2(SUBSTRING(vendor1, 1, POSITION(' (' in vendor1)), SUBSTRING(vendor1, 1, POSITION(' (' in vendor1)), vendor1) as vendor_name, case when vendor_name='' then vendor1 else vendor_name end as vendor ,case when p5.name_subunit is null or p5.name_subunit=' ' then 'N/A' else p5.name_subunit end  as unit,  projectId ,fac.name as factory , cou.name as country , case when country in ('India', 'Bangladesh', 'Sri Lanka')
 then 'South Asia'
-when country5 in ('China')
+when country in ('China')
 then 'North Asia'
-when country5 in ('Guatemala', 'El Salvador', 'Dominican Republic')
+when country in ('Guatemala', 'El Salvador', 'Dominican Republic')
 then 'Americas'
-when country5 in ('Philippines', 'Cambodia',  'Vietnam',  'Indonesia', 'Myanmar')
+when country in ('Philippines', 'Cambodia',  'Vietnam',  'Indonesia', 'Myanmar')
 then 'South East Asia'
 end as region , DATEPART(YEAR,date_enrollment) as year_new,  cou.name as country, date_5 ,mgmt_rep , worker_rep ,  mgmt_rep_6 , worker_rep_6 , sum(mgmt_rep_6 + worker_rep_6) as n5 , sum(mgmt_rep + worker_rep) as d5 , CAST(n5 AS float) / CAST(d5 AS float) as avg5 , 'Managing Health and Safety' as module ,avg5*100 as avgg5
 from profile_16619 as p5
@@ -110,19 +110,19 @@ left join ds_mysql_prod_project ven
 on fac.parent = ven.id
 left join ds_mysql_prod_project cou
 on ven.parent = cou.id				
-where date_5 is not null and p5.projectId ilike '%%' and cou.name <> 'Test Country' and (p5.status = 1400365 or p5.status is null) and country5 <> 'GAP Inc.'
+where date_5 is not null and p5.projectId ilike '%%' and cou.name <> 'Test Country' and (p5.status = 1400365 or p5.status is null) and country <> 'GAP Inc.'
 group by  projectid,fac.name,cou.name,p5.date_5 , p5.mgmt_rep_6 , p5.worker_rep_6 , p5.mgmt_rep , p5.worker_rep,module , ven.name , vendor , year_new , unit, region
 )
 
 ,
 
-table6  as (select ven.name as vendor1,nvl2(SUBSTRING(vendor1, 1, POSITION(' (' in vendor1)), SUBSTRING(vendor1, 1, POSITION(' (' in vendor1)), vendor1) as vendor_name, case when vendor_name='' then vendor1 else vendor_name end as vendor ,decode(name_subunit,' ','N/A',name_subunit) as unit,  projectId ,fac.name as factory , cou.name as country6 , case when country6 in ('India', 'Bangladesh', 'Sri Lanka')
+table6  as (select ven.name as vendor1,nvl2(SUBSTRING(vendor1, 1, POSITION(' (' in vendor1)), SUBSTRING(vendor1, 1, POSITION(' (' in vendor1)), vendor1) as vendor_name, case when vendor_name='' then vendor1 else vendor_name end as vendor , case when p6.name_subunit is null or p6.name_subunit=' ' then 'N/A' else p6.name_subunit end  as unit ,  projectId ,fac.name as factory , cou.name as country , case when country in ('India', 'Bangladesh', 'Sri Lanka')
 then 'South Asia'
-when country6 in ('China')
+when country in ('China')
 then 'North Asia'
-when country6 in ('Guatemala', 'El Salvador', 'Dominican Republic')
+when country in ('Guatemala', 'El Salvador', 'Dominican Republic')
 then 'Americas'
-when country6 in ('Philippines', 'Cambodia',  'Vietnam',  'Indonesia', 'Myanmar')
+when country in ('Philippines', 'Cambodia',  'Vietnam',  'Indonesia', 'Myanmar')
 then 'South East Asia'
 end as region , DATEPART(YEAR,date_enrollment) as year_new,  cou.name as country, date_6 ,mgmt_rep , worker_rep ,  mgmt_rep_7 , worker_rep_7 , mgmt_rep_7 + worker_rep_7 as n6 , mgmt_rep + worker_rep as d6 , CAST(n6 AS float) / CAST(d6 AS float) as avg6 , 'Grievance Mechanisms' as module ,avg6*100 as avgg6
 from profile_16619 as p6
@@ -133,20 +133,20 @@ left join ds_mysql_prod_project ven
 on fac.parent = ven.id
 left join ds_mysql_prod_project cou
 on ven.parent = cou.id			
-where date_6 is not null and p6.projectId ilike '%%' and cou.name <> 'Test Country' and (p6.status = 1400365 or p6.status is null) and country6 <> 'GAP Inc.'
+where date_6 is not null and p6.projectId ilike '%%' and cou.name <> 'Test Country' and (p6.status = 1400365 or p6.status is null) and country <> 'GAP Inc.'
 group by  projectid,fac.name,cou.name,p6.date_6 , p6.mgmt_rep_7 , p6.worker_rep_7 , p6.mgmt_rep , p6.worker_rep,module , ven.name , vendor , year_new , unit, region
 )
 
 
 ,
 
-table7  as (select ven.name as vendor1,nvl2(SUBSTRING(vendor1, 1, POSITION(' (' in vendor1)), SUBSTRING(vendor1, 1, POSITION(' (' in vendor1)), vendor1) as vendor_name, case when vendor_name='' then vendor1 else vendor_name end as vendor ,decode(name_subunit,' ','N/A',name_subunit) as unit,  projectId ,fac.name as factory , cou.name as country7 , case when country7 in ('India', 'Bangladesh', 'Sri Lanka')
+table7  as (select ven.name as vendor1,nvl2(SUBSTRING(vendor1, 1, POSITION(' (' in vendor1)), SUBSTRING(vendor1, 1, POSITION(' (' in vendor1)), vendor1) as vendor_name, case when vendor_name='' then vendor1 else vendor_name end as vendor , case when p7.name_subunit is null or p7.name_subunit=' ' then 'N/A' else p7.name_subunit end  as unit ,  projectId ,fac.name as factory , cou.name as country , case when country in ('India', 'Bangladesh', 'Sri Lanka')
 then 'South Asia'
-when country7 in ('China')
+when country in ('China')
 then 'North Asia'
-when country7 in ('Guatemala', 'El Salvador', 'Dominican Republic')
+when country in ('Guatemala', 'El Salvador', 'Dominican Republic')
 then 'Americas'
-when country7 in ('Philippines', 'Cambodia',  'Vietnam',  'Indonesia', 'Myanmar')
+when country in ('Philippines', 'Cambodia',  'Vietnam',  'Indonesia', 'Myanmar')
 then 'South East Asia'
 end as region , DATEPART(YEAR,date_enrollment) as year_new,  cou.name as country,date_7 ,mgmt_rep , worker_rep ,  mgmt_rep_8 , worker_rep_8 , mgmt_rep_8 + worker_rep_8 as n7 , mgmt_rep + worker_rep as d7 , CAST(n7 AS float) / CAST(d7 AS float) as avg7 , 'Negotiation skills' as module ,avg7*100 as avgg7
 from profile_16619 as p7
@@ -157,19 +157,19 @@ left join ds_mysql_prod_project ven
 on fac.parent = ven.id
 left join ds_mysql_prod_project cou
 on ven.parent = cou.id				
-where date_7 is not null and p7.projectId ilike '%%' and cou.name <> 'Test Country' and (p7.status = 1400365 or p7.status is null) and country7 <> 'GAP Inc.'
+where date_7 is not null and p7.projectId ilike '%%' and cou.name <> 'Test Country' and (p7.status = 1400365 or p7.status is null) and country <> 'GAP Inc.'
 group by  projectid,fac.name,cou.name,module,p7.date_7 , p7.mgmt_rep_8 , p7.worker_rep_8 , p7.mgmt_rep , p7.worker_rep , ven.name , vendor , year_new , unit, region
 )
 
 ,
 
-table8  as (select ven.name as vendor1,nvl2(SUBSTRING(vendor1, 1, POSITION(' (' in vendor1)), SUBSTRING(vendor1, 1, POSITION(' (' in vendor1)), vendor1) as vendor_name, case when vendor_name='' then vendor1 else vendor_name end as vendor ,decode(name_subunit,' ','N/A',name_subunit) as unit,  projectId ,fac.name as factory , cou.name as country8 , case when country8 in ('India', 'Bangladesh', 'Sri Lanka')
+table8  as (select ven.name as vendor1,nvl2(SUBSTRING(vendor1, 1, POSITION(' (' in vendor1)), SUBSTRING(vendor1, 1, POSITION(' (' in vendor1)), vendor1) as vendor_name, case when vendor_name='' then vendor1 else vendor_name end as vendor , case when p8.name_subunit is null or p8.name_subunit=' ' then 'N/A' else p8.name_subunit end  as unit ,  projectId ,fac.name as factory , cou.name as country , case when country in ('India', 'Bangladesh', 'Sri Lanka')
 then 'South Asia'
-when country8 in ('China')
+when country in ('China')
 then 'North Asia'
-when country8 in ('Guatemala', 'El Salvador', 'Dominican Republic')
+when country in ('Guatemala', 'El Salvador', 'Dominican Republic')
 then 'Americas'
-when country8 in ('Philippines', 'Cambodia',  'Vietnam',  'Indonesia', 'Myanmar')
+when country in ('Philippines', 'Cambodia',  'Vietnam',  'Indonesia', 'Myanmar')
 then 'South East Asia'
 end as region , DATEPART(YEAR,date_enrollment) as year_new, date_8 ,mgmt_rep , worker_rep ,  mgmt_rep_9 , worker_rep_9 , sum(mgmt_rep_9 + worker_rep_9) as n8 , sum(mgmt_rep + worker_rep) as d8 , CAST(n8 AS float) / CAST(d8 AS float) as avg8 , 'Strengthening Industrial Relations' as module ,avg8*100 as avgg8
 from profile_16619 as p8
@@ -179,25 +179,25 @@ left join ds_mysql_prod_project ven
 on fac.parent = ven.id
 left join ds_mysql_prod_project cou
 on ven.parent = cou.id			
-where date_8 is not null and p8.projectId ilike '%%' and cou.name <> 'Test Country' and (p8.status = 1400365 or p8.status is null) and country8 <> 'GAP Inc.'
+where date_8 is not null and p8.projectId ilike '%%' and cou.name <> 'Test Country' and (p8.status = 1400365 or p8.status is null) and country <> 'GAP Inc.'
 group by projectid,fac.name,cou.name,module, p8.date_8 , p8.mgmt_rep_9 , p8.worker_rep_9 , p8.mgmt_rep , p8.worker_rep , ven.name , vendor , year_new , unit, region
 )
 
-select projectid,country1,date,mgmt_rep , worker_rep ,  mgmt_rep_2 , worker_rep_2 , n1,d1, avg1,module , avgg1 from table1
+select projectid,country, vendor, factory , unit, region , year_new , date,mgmt_rep , worker_rep ,  mgmt_rep_2 , worker_rep_2 , n1,d1, avg1,module , avgg1 from table1
 Union all
-select projectid,country2,date_2,mgmt_rep , worker_rep ,  mgmt_rep_3 , worker_rep_3 , n2,d2, avg2,module , avgg2 from table2
+select projectid,country, vendor, factory , unit, region , year_new ,date_2,mgmt_rep , worker_rep ,  mgmt_rep_3 , worker_rep_3 , n2,d2, avg2,module , avgg2 from table2
 Union all
-select projectid,country3,date_3,mgmt_rep , worker_rep ,  mgmt_rep_4 , worker_rep_4 , n3,d3, avg3,module , avgg3 from table3
+select projectid,country, vendor, factory , unit, region , year_new ,date_3,mgmt_rep , worker_rep ,  mgmt_rep_4 , worker_rep_4 , n3,d3, avg3,module , avgg3 from table3
 Union all
-select projectid,country4,date_4,mgmt_rep , worker_rep ,  mgmt_rep_5 , worker_rep_5 , n4,d4, avg4,module  , avgg4 from table4
+select projectid ,country, vendor, factory , unit, region , year_new ,date_4,mgmt_rep , worker_rep ,  mgmt_rep_5 , worker_rep_5 , n4,d4, avg4,module  , avgg4 from table4
 Union all
-select projectid,country5,date_5,mgmt_rep , worker_rep ,  mgmt_rep_6 , worker_rep_6 , n5,d5, avg5,module , avgg5 from table5
+select projectid,country, vendor, factory , unit, region , year_new ,date_5,mgmt_rep , worker_rep ,  mgmt_rep_6 , worker_rep_6 , n5,d5, avg5,module , avgg5 from table5
 Union all
-select projectid,country6,date_6,mgmt_rep , worker_rep ,  mgmt_rep_7 , worker_rep_7 , n6,d6, avg6,module , avgg6 from table6
+select projectid,country, vendor, factory , unit, region , year_new ,date_6,mgmt_rep , worker_rep ,  mgmt_rep_7 , worker_rep_7 , n6,d6, avg6,module , avgg6 from table6
 Union all
-select projectid,country7,date_7,mgmt_rep , worker_rep ,  mgmt_rep_8 , worker_rep_8 , n7,d7, avg7,module , avgg7 from table7
+select projectid,country, vendor, factory , unit, region , year_new ,date_7,mgmt_rep , worker_rep ,  mgmt_rep_8 , worker_rep_8 , n7,d7, avg7,module , avgg7 from table7
 Union all
-select projectid,country8,date_8,mgmt_rep , worker_rep ,  mgmt_rep_9 , worker_rep_9 , n8,d8, avg8,module , avgg8 from table8
+select projectid,country, vendor, factory , unit, region , year_new , date_8,mgmt_rep , worker_rep ,  mgmt_rep_9 , worker_rep_9 , n8,d8, avg8,module , avgg8 from table8
 
 
   
