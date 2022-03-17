@@ -36,7 +36,9 @@ on ven.parent = cou.id
   
 where (p.status = 1400365 or p.status is null) and (cou.name <> 'Test Country' and cou.name <> 'GAP Inc.') and project ilike '%%'
 group by    p.mgmt_rep_dropped_2 , p.worker_rep_dropped_2 , p.mgmt_rep_dropped_3 , p.worker_rep_dropped_3 , p.mgmt_rep_dropped_4 , p.worker_rep_dropped_4 , p.mgmt_rep_dropped_5 , p.worker_rep_dropped_5 , p.mgmt_rep_dropped_6 , p.worker_rep_dropped_6 , p.mgmt_rep_dropped_7 , p.worker_rep_dropped_7 , p.mgmt_rep_dropped_8 , p.worker_rep_dropped_8 , year_new , ven.name , fac.name , cou.name , vendor, unit, region,project
-  ),temp as(
+  ), 
+  
+  temp as(
 select 'Worker Total Enrolled' as dim
 union all
 select 'Worker Total Dropped' as dim
@@ -51,13 +53,13 @@ when 'Worker Total Dropped' then t1.sum_worker_dropped
 when 'Management Total Enrolled' then t1.enrolled_mgmt
 when 'Management Total Dropped' then t1.sum_mgmt_dropped
 else null
-end as value1,t1.enrolled_worker as "Total Worker Enrolled ",t1.sum_worker_dropped as "Total Worker Dropped",t1.enrolled_mgmt as "Total Management Enrolled", t1.sum_mgmt_dropped as "Total Management Dropped",Case when dim ilike '%Worker%' then  'Worker Representatives'
+end as value1,t1.enrolled_worker as Total_Worker_Enrolled ,t1.sum_worker_dropped as Total_Worker_Dropped,t1.enrolled_mgmt as Total_Management_Enrolled, t1.sum_mgmt_dropped as Total_Management_Dropped, Case when dim ilike '%Worker%' then  'Worker Representatives'
 	when dim ilike '%Management%' then 'Management Representatives' 
-	end as representatives
+	end as representatives, ((Total_Worker_Dropped / Total_Worker_Enrolled))  as p1, ((Total_Management_Dropped / Total_Management_Enrolled)) as p2
 
 from table1 t1
 cross join temp
 
 
-group by t1.project,t1.year_new,t1.vendor,t1.region,t1.country,t1.factory,t1.unit,temp.dim, t1.enrolled_worker,t1.sum_worker_dropped,t1.enrolled_mgmt,t1.sum_mgmt_dropped
+group by t1.project,t1.year_new,t1.vendor,t1.region,t1.country,t1.factory,t1.unit,temp.dim, t1.enrolled_worker,t1.sum_worker_dropped,t1.enrolled_mgmt,t1.sum_mgmt_dropped , p1 , p2
 
