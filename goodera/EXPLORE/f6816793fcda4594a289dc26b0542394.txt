@@ -1,11 +1,10 @@
 with table1 as (
-select sp.name as species, sum(no_of_trees_each_specie) as trees_planted, date_of_plantation,Substring(date_of_plantation,1,4)::smallint as year, 
-Substring(date_of_plantation,6,2)::smallint as month from profile_79496
+select sp.name as species, sum(no_of_trees_each_specie) as trees_planted, date_of_plantation,Substring(date_of_plantation,1,4)::smallint as year from profile_79496
 
 left join ds_mysql_prod_tagelement sp
 on profile_79496.species = sp.id
   
-  group by sp.name
+  group by sp.name, year
   
   
 )
@@ -13,19 +12,7 @@ on profile_79496.species = sp.id
 select table1.species,table1.trees_planted,no_of_trees_under_maintenance ,no_of_trees_not_survive, no_of_trees_replaced,case when (year=2021 and month>3) or (year=2022 and month<4) then 'FY 2021-22' 
 	 when (year=2022 and month>3) or (year=2023 and month<4) then 'FY 2022-23'
 	 when (year=2023 and month>3) or (year=2024 and month<4) then 'FY 2023-24'
-	 else 'FY 2024-25' end as year,
-		case when month = '01' then 'January'
-	 when month = 2 then 'February'
-	 when month = 3 then 'March'
-	 when month = 4 then 'April'
-	 when month = 5 then 'May'
-	 when month = 6 then 'June'
-	 when month = 7 then 'July'
-	 when month = 8 then 'August'
-	 when month = 9 then 'September'
-	 when month = 10 then 'October'
-	 when month = 11 then 'November'
-	when month = 12 then 'December' end as months from profile_79497
+	 else 'FY 2024-25' end as year from profile_79497
 
 left join ds_mysql_prod_tagelement sp
 on profile_79497.tree_under_maintenance = sp.id
