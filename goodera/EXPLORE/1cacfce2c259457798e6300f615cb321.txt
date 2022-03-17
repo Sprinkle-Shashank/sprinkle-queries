@@ -1,6 +1,6 @@
 
 with table1 as (
-  SELECT projectid, profile_79501.name, toa.name as type_of_animal, no_of_animals_supported,no_of_animal_handlers, no_of_veterinary_assistants, Substring(json_serialize(fy_timerange),44,4) as year, Substring(json_serialize(fy_timerange),16,2) as month, month::smallint as month_no,fy_timerange from profile_79501
+  SELECT projectid, profile_79501.name, toa.name as type_of_animal, no_of_animals_supported,no_of_animal_handlers, no_of_veterinary_assistants, Substring(json_serialize(fy_timerange),44,4) as year, Substring(json_serialize(fy_timerange),16,2) as month, month::smallint as month_no,year::smallint as year_no from profile_79501
   
   
 left join ds_mysql_prod_tagelement toa
@@ -8,7 +8,7 @@ on profile_79501.type_of_animal = toa.id
   
 	where fy_timerange is not null
 			   )
-select projectid, name, type_of_animal, no_of_animals_supported,no_of_animal_handlers, no_of_veterinary_assistants,year, fy_timerange,
+select projectid, name, type_of_animal, no_of_animals_supported,no_of_animal_handlers, no_of_veterinary_assistants,case when (year_no=2021 and month_no>3) or (year_no=2022 and month_no<4) then 'FY 2021-22' else 'FY 2022-23' end as year,
 		case when month = '01' then 'January'
 	 when month = '02' then 'February'
 	 when month = '03' then 'March'
