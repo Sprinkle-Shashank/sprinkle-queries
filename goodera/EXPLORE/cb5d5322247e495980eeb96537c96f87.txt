@@ -1,1 +1,10 @@
-select month_timerange, roll_number, participation_in_extracurricular_activities from profile_63445
+with sub1 as(
+select extract(month from cast(month_timerange.start as date)) as month, month_timerange as fy_timerange, roll_number, t.name as participation_in_extracurricular_activities from profile_63445
+left join ds_mysql_prod_tagelement t
+on t.id=participation_in_extracurricular_activities)
+select case when month=4 or month=5 or month=6 then 'Quarter 1'
+when month=7 or month=8 or month=9 then 'Quarter 2'
+when month=10 or month=11 or month=12 then 'Quarter 3'
+when month=1 or month=2 or month=3 then 'Quarter 4'
+end as quarter, fy_timerange, roll_number, participation_in_extracurricular_activities, count(participation_in_extracurricular_activities) as count from sub1
+group by quarter, fy_timerange, roll_number, participation_in_extracurricular_activities
