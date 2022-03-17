@@ -1,0 +1,50 @@
+with row_number as (select completedon,action,grantproposalid,grantflowtaskid,
+ROW_NUMBER() over(partition by grantproposalid, grantflowtaskid order by openedon DESC) AS row_number 
+from gfgpr_499), 
+
+main as(
+select gpr.completedon as fy,gpr.action,gpr.grantflowtaskid,gpr.grantproposalid,g1.code,p1.name as project_name,p2.name as ngo_name
+from row_number gpr
+left join ds_mysql_prod_grantproposal g1
+on g1.id = gpr.grantproposalid
+left join profile_16297 p1
+on p1.grantproposalid = gpr.grantproposalid
+left join profile_16296 p2
+on p2.grantproposalid = gpr.grantproposalid
+where gpr.grantflowtaskid in (4509,4513,4496,4501,4512,4498,4506,4499,4493,4491,15677,15680,4488,4492)
+and gpr.row_number = 1 order by gpr.grantproposalid),
+
+base1 as (
+select mn.fy,mn.code,mn.project_name,mn.ngo_name,an.action as Proposal_Recommendation_by_Admin,
+  a1.action as desk_review,a2.action as Allotment_of_FP,a3.action as Field_Visit_Reports,a4.action as CEO_JBGVS_Review,
+  a5.action as Proposals_Recommended_for_Rejection,a6.action as Recommendations_by_CSR_Board,a7.action as Projects_Approved_by_Board,
+  a8.action as Upload_Payment,a9.action as CS_Confirmation,a10.action as Upload_MOU,a11.action as Grant_closure
+  from main mn
+  left join main an
+  on an.grantflowtaskid = mn.grantflowtaskid and mn.grantflowtaskid = '4496'
+  left join main a1
+  on a1.grantflowtaskid = mn.grantflowtaskid and mn.grantflowtaskid = '4501'
+  left join main a2
+  on a2.grantflowtaskid = mn.grantflowtaskid and mn.grantflowtaskid = '4512'
+  left join main a3
+  on a3.grantflowtaskid = mn.grantflowtaskid and mn.grantflowtaskid = '4498'
+  left join main a4
+  on a4.grantflowtaskid = mn.grantflowtaskid and mn.grantflowtaskid = '4506'
+  left join main a5
+  on a5.grantflowtaskid = mn.grantflowtaskid and mn.grantflowtaskid = '4499'
+  left join main a6
+  on a6.grantflowtaskid = mn.grantflowtaskid and mn.grantflowtaskid = '4493'
+  left join main a7
+  on a7.grantflowtaskid = mn.grantflowtaskid and mn.grantflowtaskid = '4491'
+  left join main a8
+  on a8.grantflowtaskid = mn.grantflowtaskid and mn.grantflowtaskid = '15677'
+  left join main a8
+  on a9.grantflowtaskid = mn.grantflowtaskid and mn.grantflowtaskid = '15680'
+  left join main a10
+  on a10.grantflowtaskid = mn.grantflowtaskid and mn.grantflowtaskid = '4488'
+  left join main a11
+  on a11.grantflowtaskid = mn.grantflowtaskid and mn.grantflowtaskid = '4492'
+  group by 1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16
+)
+
+select * from base1
