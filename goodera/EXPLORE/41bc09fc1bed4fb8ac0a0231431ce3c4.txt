@@ -21,7 +21,8 @@ case when last_modified is null or sectionId1 != 9296 then enddate2 else last_mo
 							
 case when table_4228._id is null then p._id else table_4228._id end as _4228id,
 				p.projectid as projectid1,
-				case when table_52810.offset_date is null then '2020-02-01T00:00:00.000Z' else table_52810.offset_date end as offset_date
+				case when table_52810.offset_date is null then '2020-02-01T00:00:00.000Z' else table_52810.offset_date end as offset_date,
+				p.start_date as start_date
 
 from profile_4227 p
 
@@ -35,7 +36,7 @@ left join profile_4228 table_4228 on
 table_4228.class = p._id 
 
 group by table_52810.pace_brands,p._id,taskResponse_4227.submissionLog[0].email
-				,table_4228._id ,projectid1,table_52810.offset_date
+				,table_4228._id ,projectid1,table_52810.offset_date,p.start_date
 ),
 
 lookup2 as (select
@@ -52,7 +53,7 @@ lookup2 as (select
 			_4227_id,
 			last_modified,
 			_4228id,
-			projectid1, offset_date
+			projectid1, offset_date, start_date
 			
 		   from lookup p
 
@@ -64,7 +65,7 @@ group by 	taskResponse_4228.status,
 			,p.data_user
 			,p.business_date
 			,p._4227_id
-			,p._4228id,p.projectid1,offset_date
+			,p._4228id,p.projectid1,offset_date, start_date
 			
 order by p._4227_id),
 lookup3 as( select
@@ -76,10 +77,10 @@ lookup3 as( select
   		(max(date_modified)) as date_modified,
   		max(last_modified) as last_modified,
   		max(last_entry_date) as last_entry_date ,
-		listagg(_4228id) as _4228id,projectid1,offset_date
+		listagg(_4228id) as _4228id,projectid1,offset_date, start_date
 
 		from lookup2 p
-group by _4227_id,brand,status10,p.projectid1, offset_date
+group by _4227_id,brand,status10,p.projectid1, offset_date, start_date
 order by data_user
 )
 
