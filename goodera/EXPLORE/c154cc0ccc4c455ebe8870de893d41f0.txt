@@ -1,46 +1,15 @@
-with unwind as (select p.*, sdg_unwind from profile_79656 p, p.sdg as sdg_unwind),
- s1 as(
-select t2.name as projectid,schedule_7, 
-sq.logo, sq.description, sq.fy_timerange,sq.employee_promoter, listagg(distinct p1.sdg_icon , ',') as sdg_icon, t1.name as location,
-   
-   concat(start_date,'.000Z') as start1,
-concat(end_date,'.000Z') as end2,
-concat(concat(concat(concat('{"start":"',start1),'","end":"'),end2),'"}') as fy_timerange1,
-
- 
-decode(substring(sq.start_date,6,2),'01','January','02','Febraury','03','March','04','April','05','May','06','June','07','July','08','August','09','September','10','October','11','November','12','December') || ' ' || substring(sq.start_date,1,4) as start_date,
- 
- decode(substring(sq.end_date,6,2),'01','January','02','Febraury','03','March','04','April','05','May','06','June','07','July','08','August','09','September','10','October','11','November','12','December') || ' ' || substring(sq.end_date,1,4) as end_date,
- 
-decode(substring(sq.start_date,6,2),'01','January','02','Febraury','03','March','04','April','05','May','06','June','07','July','08','August','09','September','10','October','11','November','12','December') || ' ' || substring(sq.start_date,1,4) ||' - ' || decode(substring(sq.end_date,6,2),'01','January','02','Febraury','03','March','04','April','05','May','06','June','07','July','08','August','09','September','10','October','11','November','12','December') || ' ' || substring(sq.end_date,1,4) as duration
-
-from unwind sq
-left join profile_79655 p1
-on sq.sdg_unwind=p1._id
+select p._id, p.teacher_name, p1.school_name, t.name gender, p.email, q.name qualification, p.contact_number, p.year_of_joining, p.prev_trainings, left(p.date,10) date_of_registration, LISTAGG(distinct r.name,', ') subjects_taught, LISTAGG(distinct s.name,', ') grade_taught, p.date fy_timerange
+from (
+  select m.*, subjects_taught, grade_taught
+  from profile_77379 m, m.subjects subjects_taught, m.grade grade_taught) p  
+left join profile_77382 p1
+on p.school = p1._id
 left join ds_mysql_prod_tagelement t
-ON t.id=p1.sdg_name
-left join ds_mysql_prod_tagelement t1
-ON t1.id=sq.location
-left join ds_mysql_prod_project t2
-ON t2.id=sq.projectid
-  
-  GROUP BY sq.projectid,sq.start_date, sq.end_date,sq.schedule_7,sq.logo, sq.description, sq.fy_timerange,sq.employee_promoter,t1.name,t2.name,fy_timerange1
-),
-
-s2 as(
-  Select projectid, focus_area, 
-logo, description, fy_timerange, employee_promoter, sdg_icon, location, start_date, end_date, duration,fy_timerange1
-  FROM s1 as s4,s4.schedule_7 focus_area 
-  
-)
-
-Select projectid, listagg(distinct t4.name) as focus_area, 
-logo, description, employee_promoter, sdg_icon, location, start_date, end_date, duration,fy_timerange1 as fy_timerange
-From s2
-left join ds_mysql_prod_tagelement t4
-ON t4.id=focus_area
-GROUP BY s2.projectid, logo, description, employee_promoter, sdg_icon, location, start_date, end_date, duration,fy_timerange1
-
-	
-
-
+on p.gender = t.id
+left join ds_mysql_prod_tagelement q
+on p.qualification = q.id
+left join ds_mysql_prod_tagelement r
+on p.subjects_taught = r.id
+left join ds_mysql_prod_tagelement s
+on p.grade_taught = s.id
+group by 1,2,3,4,5,6,7,8,9,10,13;
