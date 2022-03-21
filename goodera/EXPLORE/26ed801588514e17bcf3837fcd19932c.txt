@@ -60,7 +60,9 @@ with temp as(
   select 'other_booster_frontline' as col),
   
 sub1 as(
-  select p3.name as project_parent, p2.name as projectid, p1.name as site, t1.name as district, t2.name as state,(p.date||'|'||p.date) as fy_timerange, temp.col as Dimensions, p.date,
+  select p3.name as project_parent, p2.name as projectid, p1.name as site, t1.name as district, t2.name as state,(p.date||'|'||p.date) as fy_timerange, 
+ -- temp.col as Dimensions, 
+  p.date,
 to_char(p.date, 'DD/MM/YYYY')  as x_date,
 sum(case col
 		when 'male_first_15_17' then p.male_first_15_17
@@ -106,26 +108,26 @@ sum(case col
    	else NULL
    	end) as values,
 		
-case
-	when(temp.col) like '%first%' then 'First Dose'
-	when(temp.col) like '%second%' then 'Second Dose'
-	else 'Booster Dose'
-end as dose,
+--case
+	--when(temp.col) like '%first%' then 'First Dose'
+	--when(temp.col) like '%second%' then 'Second Dose'
+	--else 'Booster Dose'
+--end as dose,
 
-case
-	when(temp.col) like 'male%' then 'Male'
-	when(temp.col) like 'female%' then 'Female'
-	when(temp.col) like 'other%' then 'Third Gender'
-	else null
-end as beneficiary_type,
+--case
+	--when(temp.col) like 'male%' then 'Male'
+	--when(temp.col) like 'female%' then 'Female'
+	--when(temp.col) like 'other%' then 'Third Gender'
+	--else null
+--end as beneficiary_type,
 
-case
-	when(temp.col) like '%15_17' then '15-17'
-	when(temp.col) like '%18_44' then '18-44'
-	when(temp.col) like '%45_59' then '45-59'
-	when(temp.col) like '%60' then '60+'
-	else 'Frontline Workers'
-end as age_group
+--case
+	--when(temp.col) like '%15_17' then '15-17'
+	--when(temp.col) like '%18_44' then '18-44'
+	--when(temp.col) like '%45_59' then '45-59'
+	--when(temp.col) like '%60' then '60+'
+	--else 'Frontline Workers'
+--end as age_group
 
 from profile_78081 p
 	cross join temp
@@ -134,9 +136,12 @@ from profile_78081 p
 	left join ds_mysql_prod_project p3 on p3.id = p2.parent	
 	left join ds_mysql_prod_tagelement t1 on t1.id = p1.location
 	left join ds_mysql_prod_tagelement t2 on t2.id = p1.state
-	group by p1.name, fy_timerange, dimensions, dose, beneficiary_type, age_group, x_date, p.date, p2.name, p3.name, t1.name, t2.name)
+	group by p1.name, fy_timerange, 
+ -- dimensions, 
+  --dose, beneficiary_type, age_group, 
+  x_date, p.date, p2.name, p3.name, t1.name, t2.name)
 	
-select project_parent, projectid, site, district, state, fy_timerange, date, x_date, dose, age_group, sum(values) as total
+select project_parent, projectid, site, district, state, fy_timerange, date, x_date, dose, beneficiary_type, sum(values) as total
 from sub1
 where values is not null
-group by project_parent, projectid, site, district, state, fy_timerange, date, x_date, dose, age_group
+group by project_parent, projectid, site, district, state, fy_timerange, date, x_date, dose,beneficiary_type
