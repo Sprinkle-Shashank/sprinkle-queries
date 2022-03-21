@@ -57,9 +57,10 @@ with temp as(
   union all
   select 'female_booster_frontline' as col
   union all
-  select 'other_booster_frontline' as col)
+  select 'other_booster_frontline' as col),
   
-select p3.name as project_parent, p2.name as projectid, p1.name as site, t1.name as district, t2.name as state,(p.date||'|'||p.date) as fy_timerange, temp.col as Dimensions, p.date,
+sub1 as(
+  select p3.name as project_parent, p2.name as projectid, p1.name as site, t1.name as district, t2.name as state,(p.date||'|'||p.date) as fy_timerange, temp.col as Dimensions, p.date,
 to_char(p.date, 'DD/MM/YYYY')  as x_date,
 sum(case col
 		when 'male_first_15_17' then p.male_first_15_17
@@ -133,5 +134,9 @@ from profile_78081 p
 	left join ds_mysql_prod_project p3 on p3.id = p2.parent	
 	left join ds_mysql_prod_tagelement t1 on t1.id = p1.location
 	left join ds_mysql_prod_tagelement t2 on t2.id = p1.state
-	group by p1.name, fy_timerange, dimensions, dose, beneficiary_type, age_group, x_date, p.date, p2.name, p3.name, t1.name, t2.name
-	order by p.date asc
+	group by p1.name, fy_timerange, dimensions, dose, beneficiary_type, age_group, x_date, p.date, p2.name, p3.name, t1.name, t2.name)
+	
+select project_parent, projectid, site, district, state, fy_timerange, date, x_date, dose, beneficiary_type, age_group, values
+from sub1
+where values is not null
+group by project_parent, projectid, site, district, state, fy_timerange, date, x_date, dose, beneficiary_type, age_group, values
