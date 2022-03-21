@@ -28,8 +28,13 @@ test6 as(Select p._id ,(stories)from  profile_76755 p
 , p.stories_arr stories union 
  select p._id,NULL as stories from profile_76755 p where stories_arr IS NULL
 ),
-test8 as(Select p.*,p0.gbv_goals,p1.impact_wcp,p2.grievances_wcp,p3.pace_goals,p4.sst_goals,p5.sdis,p6.stories,
- p7.channels_more,p7.anonymous_channel, p7.third_party_channel, p7.response_provided,p7.issues_resolved, p7.indepth_workers, p7.indepth_managers, p7.internal_trainers, p7.indepth_employees, p7.gbv_policy, p8.method, p8.code, p8.bc_meetings, p8.labor_disputes, p8.day_1_workers, p8.production_efficiency, p8.absenteeism_rate, p8.workers_exited, p8.last_day_workers, p8.person_days_lost, p8.sub_unit,p9.facility_vpid,p10.stry_title, p10.image, p10.stry_details, p10.program, p10.date,p11.workers_production_unit, p11.male_female, p11.female_representation, p11.decision_making, p11.decision_making_attendance, p11.meeting_held, p11.members_present_meetings, p11.active_members_list, p11.reps_elected, p11.issues_addressed, p11.follow_up, p11.members_duty_released, p11.peers_reachout, p11.assessment_review, p11.retaliation, p11.alternative_trade_union, p11.grievance_handling, p11.remarks, p11.meeting_minutes,p11.recognized_union,p12.certified_trainers, p12.certified_mts, p12.pace_introduced,p13.saturation, p13.num_supervisors,p14.repeated, p14.rights_based, p14.interest_based, p14.bc_members, p14.gbv_issues,p15.name_vendor_filter as vendor from profile_76755 p
+test8 as(Select p.projectId as project,fac.name as projectId,p.country as country,p.director_region as director_region,ven.name as vendor1,nvl2(SUBSTRING(vendor1, 1, POSITION(' (' in vendor1)), SUBSTRING(vendor1, 1, POSITION(' (' in vendor1)), vendor1) as vendor_name, case when vendor_name='' then vendor1 else vendor_name end as vendor,p0.gbv_goals,p1.impact_wcp,p2.grievances_wcp,p3.pace_goals,p4.sst_goals,p5.sdis,p6.stories,
+channels.name as channels_more,channel.name as anonymous_channel,third.name as third_party_channel,response.name as response_provided,issues.name as issues_resolved, p7.indepth_workers, p7.indepth_managers, p7.internal_trainers, p7.indepth_employees, policy.name as gbv_policy, p8.method, p8.code, p8.bc_meetings, p8.labor_disputes, p8.day_1_workers, p8.production_efficiency, p8.absenteeism_rate, p8.workers_exited, p8.last_day_workers, p8.person_days_lost, p8.sub_unit,p9.facility_vpid,p10.stry_title, p10.image, p10.stry_details, p10.program, p10.date,unit.name as workers_production_unit, male.name as male_female, female.name as female_representation, decision.name as decision_making, attendance.name as decision_making_attendance, meeting.name as meeting_held, members.name as members_present_meetings, active.name as active_members_list, elected.name as reps_elected, addressed.name as issues_addressed, follow.name as  follow_up, duty.name as members_duty_released, peers.name as peers_reachout, review.name as assessment_review, retal.name as retaliation, trade.name as alternative_trade_union, handling.name as grievance_handling, p11.remarks, p11.meeting_minutes,uni.name as recognized_union,p12.certified_trainers, p12.certified_mts, intro.name as pace_introduced,p13.saturation, p13.num_supervisors,p14.repeated, p14.rights_based, p14.interest_based, p14.bc_members, p14.gbv_issues from profile_76755 p
+		 
+left join ds_mysql_prod_project fac
+on p.projectid = fac.id
+left join ds_mysql_prod_project ven
+on fac.parent = ven.id
 		 
 left join test0 p0 on
 p0._id = p._id
@@ -77,13 +82,86 @@ p6.stories = p10._id
 left join profile_76770 p9 on 
 p.facility_name = p9._id
 		 
-left join profile_54646 p15 
-on p.projectid = p15.projectid
+
+left join ds_mysql_prod_tagelement channels
+on p7.channels_more = channels.id 
 		 
+left join ds_mysql_prod_tagelement channel 
+on p7.anonymous_channel = channel.id 	
+		 
+left join ds_mysql_prod_tagelement third 
+on p7.third_party_channel = third.id 
+		 
+left join ds_mysql_prod_tagelement response
+on p7.response_provided = response.id 
+		 
+left join ds_mysql_prod_tagelement issues
+on p7.issues_resolved = issues.id 
+		 
+left join ds_mysql_prod_tagelement policy
+on p7.gbv_policy = policy.id 
+		 
+left join ds_mysql_prod_tagelement unit
+on p11.workers_production_unit = unit.id
+		 
+left join ds_mysql_prod_tagelement male
+on p11.male_female = male.id
+		 
+left join ds_mysql_prod_tagelement female
+on p11.female_representation = female.id
+		 
+left join ds_mysql_prod_tagelement decision
+on p11.decision_making = decision.id
+		 
+left join ds_mysql_prod_tagelement attendance
+on p11.decision_making_attendance = attendance.id
+		 
+left join ds_mysql_prod_tagelement meeting
+on p11.meeting_held = meeting.id
+		 
+left join ds_mysql_prod_tagelement members 
+on p11.members_present_meetings = members.id
+		 
+left join ds_mysql_prod_tagelement active
+on p11.active_members_list = active.id
+		 
+left join ds_mysql_prod_tagelement elected
+on p11.reps_elected =  elected.id
+		 
+		 
+left join ds_mysql_prod_tagelement addressed
+on p11.issues_addressed =  addressed.id
 
 		 
-left join ds_mysql_prod_tagelement faci
-on p.facility_name = faci.id
+left join ds_mysql_prod_tagelement follow
+on p11.follow_up =  follow.id
+		 
+left join ds_mysql_prod_tagelement duty
+on p11.members_duty_released =  duty.id
+		 
+left join ds_mysql_prod_tagelement peers
+on p11.peers_reachout =  peers.id
+		 
+left join ds_mysql_prod_tagelement review
+on p11.assessment_review =  review.id
+		 
+		 
+left join ds_mysql_prod_tagelement retal
+on p11.retaliation =  retal.id
+		 
+		 
+left join ds_mysql_prod_tagelement trade 
+on p11.alternative_trade_union =  trade.id
+		
+left join ds_mysql_prod_tagelement handling 
+on p11.grievance_handling =  handling.id
+
+left join ds_mysql_prod_tagelement uni
+on p11.recognized_union =  uni.id
+		 
+left join ds_mysql_prod_tagelement intro
+on p12.pace_introduced =  intro.id		 
+
 		 
 order by projectId,facility_vpid DESC
 
