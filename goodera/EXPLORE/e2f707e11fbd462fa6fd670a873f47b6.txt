@@ -9,7 +9,7 @@ with temp as(
   union all
   Select 'Indirect' as col
 )
-Select t1.name as projectId, adult_men, adult_women, children_boys, children_girls, indirect,temp.col as Dimensions,
+Select t1.name as projectId, adult_men, adult_women, children_boys, children_girls, indirect,temp.col as Dimensions,direct,
 sum(case col
 	when 'adult_men' then sq.adult_men
 	when 'adult_women' then sq.adult_women
@@ -17,9 +17,9 @@ sum(case col
 	when 'children_girls' then sq.children_girls
 	when 'indirect' then sq.indirect
 	else NULL
-end   )as benef_type
+end   )as sum
 FROM profile_80127 sq
 cross join temp
 left join ds_mysql_prod_project t1
 ON sq.projectid=t1.id
-GROUP BY temp.col,t1.name, adult_men, adult_women, children_boys, children_girls, indirect
+GROUP BY temp.col,t1.name, adult_men, adult_women, children_boys, children_girls, indirect,direct
