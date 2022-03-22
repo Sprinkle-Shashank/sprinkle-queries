@@ -1,0 +1,12 @@
+Select ss.projectId, ss.carrier, ss.fy_timerange, ss.shipment_id, ss.origin_port, ss.dest_port, ss.units, ss.shipment_type, concat(ss.origin_port,ss.dest_port) ports_lookup, tt.start_country, tt.dest_country, tt.start_tradelane, tt.dest_tradelane, tt.km, concat(start_tradelane,dest_tradelane,carrier) tradelane_carrier_lookup ,mm.co2_dry, mm.co2_ref, (mm.co2_dry*tt.km*ss.units) CO2_eff_dry,(mm.co2_ref*tt.km*ss.units) CO2_eff_ref,
+case
+	When ss.shipment_type=1623028 then CO2_eff_dry
+	else CO2_eff_ref
+	end 
+	as CO2_eff
+from profile_79048 ss
+left join profile_79053 tt
+on tt.lookup_port=ports_lookup
+left join profile_79060 mm
+on mm.lookup_tradelane_carrier=tradelane_carrier_lookup
+where km is not null
