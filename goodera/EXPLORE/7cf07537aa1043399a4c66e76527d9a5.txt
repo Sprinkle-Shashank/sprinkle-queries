@@ -4,17 +4,15 @@ with table1 as (Select
 				target_2022,
 				goal_2020,
 				goal_2022,
-				p.name,
-				--vp_id,
-				/*table_4227.start_date as start_date,
+				(p.name) as name1,
 				table_4227.num_females as num_females,
 				table_4227.lg_status as lg_status,
 				table_4227.select_modules as select_modules,
-				
-				p.projectId as projectId1,*/
+				table_4227.start_date as start_date,
 				case when lg_status = 848008 then 0 else num_females end as women_reached,
 				JSON_SERIALIZE(table_52810.pace_brands) as pace_brand,	
-				case when pace_brand like '%1151834%' then 1 else 0 end as brand
+				case when pace_brand like '%1151834%' then 1 else 0 end as brand,
+				p.projectId as projectId1
 				
 				from profile_71993 p
 left join profile_54646 table_54646 on
@@ -25,33 +23,30 @@ table_4227.projectId = table_54646.projid_factory
 				
 left join profile_52810 table_52810 on
 table_52810.projectId = table_4227.projectId
-
+					
 ),
-table2 as (Select sum(target_2020) as target_2020,
-				sum(target_2021) as target_2021,
-				sum(target_2022) as target_2022,
-				sum(goal_2020) as goal_2020,
-				sum(goal_2022) as goal_2022,
-				listagg(distinct(name)) as partner,
-				--listagg(distinct(vp_id)) as vp_id,
-		  -- start_date,num_females, lg_status, select_modules, 
-		   brand,--projectId1,
-		   sum(women_reached) as women_reached
-			from table1 p
-group by --start_date,num_females, lg_status, select_modules, 
-		   brand--,projectId1
+table2 as (Select min(target_2020) as target_2020,
+				min(target_2021) as target_2021,
+				min(target_2022) as target_2022,
+				min(goal_2020) as goal_2020,
+				min(goal_2022) as goal_2022,
+				min(name1) as name,
+		   sum(women_reached) as women_reached,
+		   projectid1,start_date,select_modules, brand
+		   
+		from table1 p
+		   
+group by projectId1,start_date,select_modules, brand
 ),
 table3 as (Select sum(target_2020) as target_2020,
 				sum(target_2021) as target_2021,
 				sum(target_2022) as target_2022,
 				sum(goal_2020) as goal_2020,
 				sum(goal_2022) as goal_2022,
-				listagg(distinct(partner)) as partner,
-		   sum(women_reached) as women_reached--, brand 
-		   
+		   sum(women_reached) as women_reached,
+				min(name) as partner, start_date, projectid1 as projectid, select_modules, brand
 			from table2 p
---group by brand
-
+group by start_date, projectid, select_modules, brand
 )
 
-Select * from table3 p --where brand = 1
+Select target_2020 as target2020,target_2021 as target2021, target_2022 as target2022, goal_2020 as goal2020,goal_2022 as goal2022,women_reached, partner, projectId, start_date, select_modules  from table3 p where brand = 1
