@@ -1,7 +1,11 @@
+
+
 with unwind as (select p.*, sdg_unwind from profile_79656 p, p.sdg as sdg_unwind),
  s1 as(
 select t2.name as projectid,schedule_7, 
-sq.logo, sq.description, sq.fy_timerange,sq.employee_promoter, listagg(distinct p1.sdg_icon , ',') as sdg_icon, t1.name as location,
+sq.logo, sq.description, sq.fy_timerange,sq.employee_promoter, listagg(distinct p1.sdg_icon , ',') as sdg_icon, 
+  rtrim( ltrim( json_serialize(location),'['),']') as location,
+   
    
    concat(start_date,'.000Z') as start1,
 concat(end_date,'.000Z') as end2,
@@ -19,12 +23,11 @@ left join profile_79655 p1
 on sq.sdg_unwind=p1._id
 left join ds_mysql_prod_tagelement t
 ON t.id=p1.sdg_name
-left join ds_mysql_prod_tagelement t1
-ON t1.id=sq.location
+
 left join ds_mysql_prod_project t2
 ON t2.id=sq.projectid
   
-  GROUP BY sq.projectid,sq.start_date, sq.end_date,sq.schedule_7,sq.logo, sq.description, sq.fy_timerange,sq.employee_promoter,t1.name,t2.name,fy_timerange1
+  GROUP BY sq.projectid,sq.start_date, sq.end_date,sq.schedule_7,sq.logo, sq.description, sq.fy_timerange,sq.employee_promoter,t2.name,fy_timerange1, location
 ),
 
 s2 as(
@@ -35,12 +38,11 @@ logo, description, fy_timerange, employee_promoter, sdg_icon, location, start_da
 )
 
 Select projectid, listagg(distinct t4.name, ', ') as focus_area, 
-logo, description, employee_promoter, sdg_icon, location, start_date, end_date, duration,fy_timerange1 as fy_timerange
+logo, description, employee_promoter, sdg_icon, t1.name as location, start_date, end_date, duration,fy_timerange1 as fy_timerange
 From s2
 left join ds_mysql_prod_tagelement t4
 ON t4.id=focus_area
-GROUP BY s2.projectid, logo, description, employee_promoter, sdg_icon, location, start_date, end_date, duration,fy_timerange1
-
-	
-
+left join ds_mysql_prod_tagelement t1
+ON t1.id=s2.location
+GROUP BY s2.projectid, logo, description, employee_promoter, sdg_icon, t1.name, start_date, end_date, duration,fy_timerange1
 
