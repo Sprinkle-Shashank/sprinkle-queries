@@ -1,1 +1,32 @@
-select * from profile_79614
+with table1 as (select p.projectid, p._id, p.name, p.fy_timerange, p2.elephant_name,tsg.name as type_of_food_sg, quantity_of_food_sg, tp.name as type_of_food_p, quantity_of_food_p, tsf.name as type_of_food_sf, quantity_of_food_sf, tw.name as type_of_food_w, quantity_of_food_w, Substring(json_serialize(p.fy_timerange),11,4)::smallint as year,Substring(json_serialize(p.fy_timerange),16,2)::smallint as month from profile_79614 p
+
+
+left join ds_mysql_prod_tagelement tsg
+on p.type_of_food_sg = tsg.id
+
+left join ds_mysql_prod_tagelement tp
+on p.type_of_food_p = tp.id
+
+left join ds_mysql_prod_tagelement tsf
+on p.type_of_food_sf = tsf.id
+
+left join ds_mysql_prod_tagelement tw
+on p.type_of_food_w = tw.id
+
+
+left join profile_79611 p2 on
+p2._id = p.elephant_name ) select projectid, _id,name, fy_timerange, elephant_name,type_of_food_sg, quantity_of_food_sg, type_of_food_p, quantity_of_food_p, type_of_food_sf, quantity_of_food_sf, type_of_food_w, quantity_of_food_w,  case when (year=2021 and month>3) or (year=2022 and month<4) then 'FY 2021-22' 
+	 when (year=2022 and month>3) or (year=2023 and month<4) then 'FY 2022-23'
+	 when (year=2023 and month>3) or (year=2024 and month<4) then 'FY 2023-24'
+	 else 'FY 2024-25' end as year,  case when month = 1 then 'January'
+	 when month = 2 then 'February'
+	 when month = 3 then 'March'
+	 when month = 4 then 'April'
+	 when month = 5 then 'May'
+	 when month = 6 then 'June'
+	 when month = 7 then 'July'
+	 when month = 8 then 'August'
+	 when month = 9 then 'September'
+	 when month = 10 then 'October'
+	 when month = 11 then 'November'
+	when month = 12 then 'December' end as months from table1
