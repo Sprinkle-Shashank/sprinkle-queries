@@ -1,4 +1,4 @@
-select projectid,_id,p.name,fy_timerange, elephant_supported, reason_elephant_not_covered, elephant_name, eg.name as elephant_gender,elephant_age, elephant_weight, case when projectid is not null then 1 end as count, case when elephant_age <11 then 'Age 0-10'
+with table1 as (select projectid,_id,p.name,fy_timerange, elephant_supported, reason_elephant_not_covered, elephant_name, eg.name as elephant_gender,elephant_age, elephant_weight, case when projectid is not null then 1 end as count, case when elephant_age <11 then 'Age 0-10'
 			   when elephant_age <21 then 'Age 11-20'
 			   when elephant_age <31 then 'Age 21-30'
 			   else 'Age 30+' end as age_bracket, 
@@ -8,8 +8,18 @@ select projectid,_id,p.name,fy_timerange, elephant_supported, reason_elephant_no
 			   when elephant_weight <1001 then '2001-3000'
 			   when elephant_weight <4001 then '3001-4000'
 			   else '4000+' end as weight_bracket, 
-			   Substring(json_serialize(p.fy_timerange),11,4) as year,Substring(json_serialize(p.fy_timerange),16,2) as month,
-case when month = '01' then 'January'
+			   Substring(json_serialize(p.fy_timerange),11,4)::smallint as year, Substring(json_serialize(p.fy_timerange),16,2)::smallint as month,
+from profile_79611 p
+
+
+
+left join ds_mysql_prod_tagelement eg
+on p.elephant_gender = eg.id)
+
+select projectid,_id,name,fy_timerange, elephant_supported, reason_elephant_not_covered, elephant_name, elephant_gender,elephant_age, count, age_bracket, weight_bracket case when (year=2021 and month>3) or (year=2022 and month<4) then 'FY 2021-22' 
+	 when (year=2022 and month>3) or (year=2023 and month<4) then 'FY 2022-23'
+	 when (year=2023 and month>3) or (year=2024 and month<4) then 'FY 2023-24'
+	 else 'FY 2024-25' end as year,  case when month = '01' then 'January'
 	 when month = '02' then 'February'
 	 when month = '03' then 'March'
 	 when month = '04' then 'April'
@@ -20,13 +30,4 @@ case when month = '01' then 'January'
 	 when month = '09' then 'September'
 	 when month = '10' then 'October'
 	 when month = '11' then 'November'
-	when month = '12' then 'December' end as month_name 
-
-
-
-from profile_79611 p
-
-
-
-left join ds_mysql_prod_tagelement eg
-on p.elephant_gender = eg.id
+	when month = '12' then 'December' end as months
