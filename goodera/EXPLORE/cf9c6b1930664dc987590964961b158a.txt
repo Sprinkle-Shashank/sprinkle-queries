@@ -1,0 +1,36 @@
+with table1 as (select Substring(json_serialize(fy_timerange),11,4)::smallint as year, Substring(json_serialize(fy_timerange),16,2) as start_month,
+  Substring(json_serialize(fy_timerange),49,2)::smallint as end_month,
+case when start_month = '01' then 'January'
+	 when start_month = '02' then 'February'
+	 when start_month = '03' then 'March'
+	 when start_month = '04' then 'April'
+	 when start_month = '05' then 'May'
+	 when start_month = '06' then 'June'
+	 when start_month = '07' then 'July'
+	 when start_month = '08' then 'August'
+	 when start_month = '09' then 'September'
+	 when start_month = '10' then 'October'
+	 when start_month = '11' then 'November'
+	when start_month = '12' then 'December' end as start_month_name,
+   case when end_month = 02 then 'January'
+	 when end_month = 03 then 'February'
+	 when end_month = 04 then 'March'
+	 when end_month = 05 then 'April'
+	 when end_month = 06 then 'May'
+	 when end_month = 07 then 'June'
+	 when end_month = 08 then 'July'
+	 when end_month = 09 then 'August'
+	 when end_month = 10 then 'September'
+	 when end_month = 11 then 'October'
+	 when end_month = 12 then 'November'
+	when end_month = 1 then 'December' end as end_month_name, 
+case when (year=2019 and ((end_month-1)>3 or (end_month-1)=0)) or (year=2020 and (end_month-1)<4 and (end_month-1)<>0) then 'FY 2019-20' 
+	 when (year=2020 and ((end_month-1)>3 or (end_month-1)=0)) or (year=2021 and (end_month-1)<4 and (end_month-1)<>0) then 'FY 2020-21' 
+	 when (year=2021 and ((end_month-1)>3 or (end_month-1)=0)) or (year=2022 and (end_month-1)<4 and (end_month-1)<>0) then 'FY 2021-22' 
+	 when (year=2022 and ((end_month-1)>3 or (end_month-1)=0)) or (year=2023 and (end_month-1)<4 and (end_month-1)<>0) then 'FY 2022-23'
+	 when (year=2023 and ((end_month-1)>3 or (end_month-1)=0)) or (year=2024 and (end_month-1)<4 and (end_month-1)<>0) then 'FY 2023-24'
+	 else 'FY 2024-25' end as year2, sum(amount_disbursed) as amount_disbursed from profile_79521
+
+where projectid = 64521
+			   group by fy_timerange
+			   ) select year2 as year, concat(concat(start_month_name,' - ' ),end_month_name) as quarter, amount_disbursed from table1
