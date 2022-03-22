@@ -10,7 +10,36 @@ on tt.lookup_port=s.ports_lookup
 ),
 
 s3 as (
-Select t.name as projectId, t1.name as carrier, s2.fy_timerange, s2.shipment_id, t2.name as origin_port, t3.name dest_port, s2.units, t4.name as shipment_type, s2.ports_lookup, s2.start_country, s2.dest_country, s2.start_tradelane, s2.dest_tradelane, s2.km, mm.co2_dry, mm.co2_ref, (mm.co2_dry*s2.km*s2.units) CO2_eff_dry,(mm.co2_ref*s2.km*s2.units) CO2_eff_ref,
+Select t.name as projectId, t1.name as carrier, s2.fy_timerange,extract(MONTH from cast(fy_timerange.start as date)) as month, s2.shipment_id, t2.name as origin_port, t3.name dest_port, s2.units, t4.name as shipment_type, s2.ports_lookup, s2.start_country, s2.dest_country, s2.start_tradelane, s2.dest_tradelane, s2.km, mm.co2_dry, mm.co2_ref, (mm.co2_dry*s2.km*s2.units) CO2_eff_dry,(mm.co2_ref*s2.km*s2.units) CO2_eff_ref,
+  case 
+  when month=01 then '10'
+  when month=02 then '11'
+  when month=03 then '12'
+  when month=04 then '1'
+  when month=05 then '2'
+  when month=06 then '3'
+  when month=07 then '4'
+  when month=08 then '5'
+  when month=09 then '6'
+  when month=10 then '7'
+  when month=11 then '8'
+  when month=12 then '9'
+  end as 'sort_able_month',
+  
+  case
+  when month=01 then 'January'
+  when month=02 then 'February'
+  when month=03 then 'March'
+  when month=04 then 'April'
+  when month=05 then 'May'
+  when month=06 then 'June'
+  when month=07 then 'July'
+  when month=08 then 'August'
+  when month=09 then 'September'
+  when month=10 then 'October'
+  when month=11 then 'November'
+  when month=12 then 'December'
+  end as monthh
 case
 	When s2.shipment_type=1623028 then CO2_eff_dry
 	else CO2_eff_ref
@@ -32,24 +61,10 @@ on mm.lookup_tradelane_carrier=s2.tradelane_carrier_lookup
 where s2.km is not null
 ),
 s4 as (
-Select projectId, fy_timerange ,extract(MONTH from cast(fy_timerange.start as date)) as month, origin_port , dest_port , CO2_eff,
-case 
-  when month=01 then '10'
-  when month=02 then '11'
-  when month=03 then '12'
-  when month=04 then '1'
-  when month=05 then '2'
-  when month=06 then '3'
-  when month=07 then '4'
-  when month=08 then '5'
-  when month=09 then '6'
-  when month=10 then '7'
-  when month=11 then '8'
-  when month=12 then '9'
-  end as 'sort able month'
+Select projectId, units, fy_timerange , monthh as month, sort able month , origin_port , dest_port ,  sum(CO2_eff) co2_eff
 from s3
+  group by 1,2,3,4,5,6,7
+  order by sort_able_month
 )
-Select projectId, fy_timerange , sort able month, origin_port , dest_port , sum(CO2_eff)
+Select projectId, units, fy_timerange , month, origin_port||"-"|| dest_port , (co2_eff/units) as  Emission_per_unit
 from s4
-group by 1,2,3,4,5
-order by sort able month
