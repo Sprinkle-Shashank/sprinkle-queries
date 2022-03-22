@@ -1,12 +1,33 @@
-with sub1 as(
+with temp as(
+  select 'English' as col
+  union all
+  select 'Mathematics' as col
+  union all
+  select 'Kannada' as col
+  union all
+  select 'EVS' as col
+  union all
+  select 'Socio-Emotional Well Being' as col
+  union all
+  select 'Motor Skills' as col),
+sub1 as(
 select fy_timerange, t.name as batch, syllabus_english, syllabus_maths, syllabus_kannada, syllabus_evs, syllabus_emotional, syllabus_motor, extract(month from cast(fy_timerange.start as datetime)) as month from profile_80164
 left join ds_mysql_prod_tagelement t
 on t.id=batch)
-select fy_timerange, batch, syllabus_english, syllabus_maths, syllabus_kannada, syllabus_evs, syllabus_emotional, syllabus_motor, 
+select fy_timerange, batch, 
+--syllabus_english, syllabus_maths, syllabus_kannada, syllabus_evs, syllabus_emotional, syllabus_motor, 
 case when month=1 or month=2 or month=3 then 'Quarter 4'
 when month=4 or month=5 or month=6 then 'Quarter 1'
 when month=7 or month=8 or month=9 then 'Quarter 2'
 when month=10 or month=11 or month=12 then 'Quarter 3'
 else 'Any Other'
-end as quarter
+end as quarter,
+temp.col as subjects,
+case col when 'English' then syllabus_english
+when 'Mathematics' then syllabus_maths
+when 'Kannada' then syllabus_kannada
+when 'EVS' then syllabus_evs
+when 'Motor Skills' then syllabus_motor
+when 'Socio-Emotional Well Being' then syllabus_emotional end as score
 from sub1
+cross join temp
