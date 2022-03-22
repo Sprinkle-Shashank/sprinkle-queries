@@ -1,19 +1,19 @@
 with s1 as(
 Select t.name doc_type, upload,fy_timerange, file_name,p.name as projectid, 
-  substring(cast(fy_timerange.start as date),1,10) as monthtype1,
   extract(month from cast(fy_timerange.start as datetime)) as month1,
   extract(year from cast(fy_timerange.start as datetime)) as year1,
-(month1 ||'-'|| year1) as monthtype,
+  decode(month1,'01','January','02','February','03','March','04','April','05','May','06','June','07','July','08','August','09','September','10','October','11','November','12','December') as monthtype1
+
   
   
-  decode(substring(monthtype1,9,2),'01','January','02','February','03','March','04','April','05','May','06','June','07','July','08','August','09','September','10','October','11','November','12','December')
+  
   
 from profile_79664 sq
    left join ds_mysql_prod_tagelement t
  ON t.id=sq.doc_type
   left join ds_mysql_prod_project p
   ON p.id=sq.projectid
-  GROUP BY 1,2,3,4,p.name,6,7,8,9
+  GROUP BY 1,2,3,4,p.name,6,7,8
 )
- Select CAST(link as VARCHAR) as click_Here,'Click Here'as click,  doc_type, file_name,fy_timerange, projectid, monthtype, month1
+ Select CAST(link as VARCHAR) as click_Here,'Click Here'as click,  doc_type, file_name,fy_timerange, projectid, monthtype1
  from s1 a,a.upload link
