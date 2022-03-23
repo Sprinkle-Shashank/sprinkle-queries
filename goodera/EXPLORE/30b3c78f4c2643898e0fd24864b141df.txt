@@ -1,4 +1,4 @@
-with table1 as (SELECT fy_timerange,no_of_students_math, no_of_students_literacy, gd.name as grade from profile_79767
+with table1 as (SELECT fy_timerange,sum(no_of_students_math) as total_maths_student, sum(no_of_students_literacy) as total_literacy_student,  gd.name as grade from profile_79767
 				
 				
 left join ds_mysql_prod_tagelement gd
@@ -7,7 +7,7 @@ on profile_79767.grade = gd.id
 
 group by gd.name, fy_timerange
 ),table2 as (
-			   select grade, no_of_students_math, no_of_students_literacy, 
+			   select grade, total_maths_student, total_literacy_student, 
   				case when grade = 'Nursery' then 'A'
 				     when grade = 'KG' then 'B'
 					 when grade = 'Grade 1' then 'C'
@@ -41,7 +41,7 @@ case when start_month = 1 then 'January'
 	 when end_month = 12 then 'November'
 	when end_month = 1 then 'December' end as end_month_name from table1)
 	
-	select grade,sort_rule,no_of_students_math, no_of_students_literacy,case when (year=2021 and start_month>3) or (year=2022 and start_month<4) then 'FY 2021-22' 
+	select grade,sort_rule,total_maths_student, total_literacy_student,case when (year=2021 and start_month>3) or (year=2022 and start_month<4) then 'FY 2021-22' 
 	 when (year=2022 and start_month>3) or (year=2023 and start_month<4) then 'FY 2022-23'
 	 when (year=2023 and start_month>3) or (year=2024 and start_month<4) then 'FY 2023-24'
 	 else 'FY 2024-25' end as year, concat(concat(start_month_name,' - ' ),end_month_name) as quarter from table2
