@@ -1,0 +1,24 @@
+with s1 as(
+Select p1.name as projectid, disbursed, sq.fy_timerange, p.schedule_7 as schedule_7
+FROM profile_79660 sq
+Left join profile_79656 p
+ON p.projectid=sq.projectid
+left join ds_mysql_prod_project p1
+ON p1.id=sq.projectid
+  ),
+ 
+s3 as(
+  Select focus_area,projectid, disbursed, fy_timerange
+  from s1 s2,s2.schedule_7 focus_area
+),
+
+s2 as(
+  Select t.name focus_area, projectid, disbursed, fy_timerange
+  FROM s3 
+  left join ds_mysql_prod_tagelement t
+  ON t.id=s3.focus_area
+  )
+  
+Select listagg(DISTINCT CAST(focus_area As INT), ',') as focus_area, projectid, disbursed, fy_timerange
+FROM s2
+GROUP BY projectid, disbursed, fy_timerange
