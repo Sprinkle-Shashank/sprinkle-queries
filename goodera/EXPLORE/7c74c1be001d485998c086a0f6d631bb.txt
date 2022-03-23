@@ -30,24 +30,25 @@ on t4.id=s2.shipment_type
 left join profile_79060 mm
 on mm.lookup_tradelane_carrier=s2.tradelane_carrier_lookup
 where s2.km is not null
-)
-,s4 as (
-Select projectId, fy_timerange ,extract(month from cast(fy_timerange as datetime)) month, origin_port , dest_port , CO2_eff,
-case when month=1 then 'January'
-  when month=2 then 'February'
-  when month=3 then 'March'
-  when month=4 then 'April'
-  when month=5 then 'May'
-  when month=6 then 'June'
-  when month=7 then 'July'
-  when month=8 then 'August'
-  when month=9 then 'September'
+),
+s4 as (
+Select projectId, fy_timerange ,extract(MONTH from cast(fy_timerange.start as date)) as month, origin_port , dest_port , CO2_eff,
+case 
+  when month=01 then 'January'
+  when month=02 then 'February'
+  when month=03 then 'March'
+  when month=04 then 'April'
+  when month=05 then 'May'
+  when month=06 then 'June'
+  when month=07 then 'July'
+  when month=08 then 'August'
+  when month=09 then 'September'
   when month=10 then 'October'
   when month=11 then 'November'
   when month=12 then 'December'
   end as monthh
 from s3
 )
-Select projectId, fy_timerange , monthh as month, origin_port , dest_port , sum(CO2_eff)
+Select projectId, fy_timerange , monthh as month, origin_port , dest_port , sum(CO2_eff) as emission
 from s4
 group by 1,2,3,4,5
