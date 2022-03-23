@@ -1,0 +1,29 @@
+with sub1 as(
+select t.name as CR_Rating_Text, sq.name, sq.factory_name, sq.source_div,
+case when get_array_length(sq.source_div) = 0 then array(0)
+  else COALESCE(sq.source_div,array(0)) end new_source
+  , sq.brands, sq.cr_tier, sq.facility_type, sq.pre_cr_rating, sq.curr_cr_rating, sq.timeperiod_timerange, sq.region_parent as region, sq.factory_id from profile_60928 sq
+left join ds_mysql_prod_tagelement t
+on t.id=sq.curr_cr_rating
+where COALESCE(sq.cr_tier, 0) not in (957760,957759) and t.name is NOT NULL),
+sub2 as
+(
+  SELECT source, s1.curr_cr_rating,  s1.CR_Rating_text, s1.timeperiod_timerange, s1.region, s1.factory_id, s1.new_source from sub1 s1, s1.new_source source),
+  sub3 as
+  (
+	select  s2.CR_Rating_text, s2.timeperiod_timerange, s2.region, s2.factory_id, t.name as source_div,s2.curr_cr_rating
+	from sub2 s2
+	left join ds_mysql_prod_tagelement t
+	on t.id=s2.source
+  where nvl(s2.curr_cr_rating, 0) in (957771, 957772, 957780, 957773, 957768) 
+  ),
+  sub4 as(
+select curr_cr_rating, timeperiod_timerange, region, factory_id as Factory_IDs, source_div, 1 as count
+	from sub3
+	group by curr_cr_rating, timeperiod_timerange, region, source_div, factory_id
+	order by timeperiod_timerange asc),
+	sub5 as(
+	select p.name as curr_cr_rating, timeperiod_timerange, region, Factory_IDs, source_div, count from sub4
+	  left join ds_mysql_prod_tagelement p
+	  on p.id=curr_cr_rating)
+	  select * from sub2
