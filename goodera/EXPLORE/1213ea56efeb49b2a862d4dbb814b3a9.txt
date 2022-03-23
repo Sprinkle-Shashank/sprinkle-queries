@@ -1,7 +1,10 @@
 with sub1 as(
-select projectId, sched7, spoc_name, location, project_duration, logo_image, project_descrip, project_name, spoc_email, project_status, fy_timerange, budget_approved, bene_num, spoc_number, name from profile_41363),
+select projectId, sched7, spoc_name, location, project_duration, 
+  case when get_array_length(location) = 0 then array(0)
+  else COALESCE(location,array(0)) end location11
+  , logo_image, project_descrip, project_name, spoc_email, project_status, fy_timerange, budget_approved, bene_num, spoc_number, name from profile_41363),
 sub2 as(
-  select projectId, sched7, spoc_name, location1, project_duration1, logo_image, project_descrip, project_name, spoc_email, project_status, fy_timerange, budget_approved, bene_num, spoc_number, name from sub1 s1, s1.location location1, s1.project_duration project_duration1 where get_array_length(location)>=0)
+  select projectId, sched7, spoc_name, location1, project_duration1, logo_image, project_descrip, project_name, spoc_email, project_status, fy_timerange, budget_approved, bene_num, spoc_number, name from sub1 s1, s1.location location1, s1.project_duration project_duration1)
   /*,
   sub3 as(
   select t2.name as projectId, sched7, spoc_name, t.name as location, t1.name as project_duration, logo_image, project_descrip, project_name, spoc_email, project_status, fy_timerange, budget_approved, bene_num, spoc_number, a.name from sub2 a
@@ -10,4 +13,4 @@ sub2 as(
   left join ds_mysql_prod_tagelement t2 on t2.id=a.projectId)
   
   select projectId, sched7, spoc_name, location, name, project_duration, logo_image, project_descrip, project_name, spoc_email, project_status, fy_timerange, budget_approved, bene_num, spoc_number, count(*) from sub3 group by projectId, sched7, spoc_name, location, name, project_duration, logo_image, project_descrip, project_name, spoc_email, project_status, fy_timerange, budget_approved, bene_num, spoc_number*/
-  select * from sub2
+  select * from sub1
