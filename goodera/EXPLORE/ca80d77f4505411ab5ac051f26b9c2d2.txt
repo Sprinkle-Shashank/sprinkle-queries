@@ -1,1 +1,30 @@
-select projectid, name, location, fy_timerange, area from profile_79646
+with table1 as (
+  select projectid, name, location, fy_timerange, area, Substring(json_serialize(fy_timerange),11,4)::smallint as year, Substring(json_serialize(fy_timerange),16,2)::smallint as month from profile_79646
+)
+select projectid, name, location, fy_timerange, area, case when month = 1 then 'January'
+	 when month = 2 then 'February'
+	 when month = 3 then 'March'
+	 when month = 4 then 'April'
+	 when month = 5 then 'May'
+	 when month = 6 then 'June'
+	 when month = 7 then 'July'
+	 when month = 8 then 'August'
+	 when month = 9 then 'September'
+	 when month = 10 then 'October'
+	 when month = 11 then 'November'
+	when month = 12 then 'December' end as months, case when (year=2021 and month>3) or (year=2022 and month<4) then 'FY 2021-22' 
+	 when (year=2022 and month>3) or (year=2023 and month<4) then 'FY 2022-23'
+	 when (year=2023 and month>3) or (year=2024 and month<4) then 'FY 2023-24'
+	 else 'FY 2024-25' end as year, 
+case when months = 'January' then 'A'
+	 when months = 'February' then 'B'
+	 when months = 'March' then 'C'
+	 when months = 'April' then 'D'
+	 when months = 'May' then 'E'
+	 when months = 'June' then 'F'
+	 when months = 'July' then 'G'
+	 when months = 'August' then 'H'
+	 when months = 'September' then 'I'
+	 when months =  'October' then 'J'
+	 when months =  'November' then 'K'
+	when months= 'December' then 'L' end as sort_rule from table1
