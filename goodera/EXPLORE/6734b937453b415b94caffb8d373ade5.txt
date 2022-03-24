@@ -1,10 +1,9 @@
 
-with table2 as(select p._id,p.projectId,p.sustainability_rating as rating_2, decode(p.sustainability_rating,null,0,p.sustainability_rating) as rating_1
+with table2 as(select p._id,p.projectId, 0 as rating_2 , decode(p.sustainability_rating,null,0,p.sustainability_rating) as rating_1
  ,  row_number() over 
 (partition by p.projectid
  order by p._id desc) as row,to_char(p.date,'DD-MM-YYYY') as current_date
-			   from profile_17526 p
-	   
+			   from profile_17526 p		
 
 ),
 table6 as 
@@ -22,7 +21,7 @@ then 'South East Asia'
 end as region,case when p2.name_subunit is null or p2.name_subunit=' ' then 'N/A' else p2.name_subunit end  as unit,p2.status,
 		  t6.rating_1,DATEPART('YEAR',p2.date_enrollment) as year_new,
 		  
-		  to_char(p.date,'DD-MM-YYYY') as start_date,t6.rating_2,t6.current_date,abs(rating_1-rating_2) as differential,case when (differential >0) then 'down' 
+		  t6.rating_2,t6.current_date,abs(rating_1-rating_2) as differential,case when (differential >0) then 'down' 
 when (differential < 0)
 		  then 'up'
 when (differential = 0)
