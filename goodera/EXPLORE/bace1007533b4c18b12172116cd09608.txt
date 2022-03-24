@@ -1,10 +1,13 @@
-with table1 as (select projectid, p.name, fy_timerange, Substring(json_serialize(fy_timerange),11,4)::smallint as year, Substring(json_serialize(fy_timerange),16,2)::smallint as month, dt.name as document_type, case when projectid is not null then 'Click Here' end as click_here, document from profile_79508 p
+with table1 as (select projectid, proj.name as project_name, p.name, fy_timerange, Substring(json_serialize(fy_timerange),11,4)::smallint as year, Substring(json_serialize(fy_timerange),16,2)::smallint as month, dt.name as document_type, case when projectid is not null then 'Click Here' end as click_here, document from profile_79508 p
 
   
 left join ds_mysql_prod_tagelement dt
 on p.document_type = dt.id
+				
+left join ds_mysql_prod_project proj
+on p.projectid = proj.id
 )
-select projectid, name, fy_timerange, case when (year=2021 and month>3) or (year=2022 and month<4) then 'FY 2021-22' 
+select projectid, project_name, name, fy_timerange, case when (year=2021 and month>3) or (year=2022 and month<4) then 'FY 2021-22' 
 	 when (year=2022 and month>3) or (year=2023 and month<4) then 'FY 2022-23'
 	 when (year=2023 and month>3) or (year=2024 and month<4) then 'FY 2023-24'
 	 else 'FY 2024-25' end as year, document_type, click_here, document from table1
