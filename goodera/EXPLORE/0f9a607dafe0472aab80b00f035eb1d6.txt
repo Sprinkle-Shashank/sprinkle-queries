@@ -48,16 +48,17 @@ group by  p.projectId,fac.name ,ven.name,vendor,cou.name,region,unit,year_new,p2
 
 ),
 table4 as(SELECT * 
-FROM (SELECT projectId,factory,country,vendor,region,unit,year_new,mr_wr
+FROM (SELECT projectId,factory,country,vendor,region,unit,year_new,mr_wr,count(mr_wr) as total_Sum
 	  
 	  from table2 
 	  
 	  
 
-	 group by projectId,mr_wr,factory,country,vendor,region,unit,year_new)
+	 --group by projectId,mr_wr,factory,country,vendor,region,unit,year_new
+	 )
 
 PIVOT (
-    SUM(mr_wr) FOR mr_wr IN ('Management Representative' as m_r,'Worker Representative' as w_r,'Not answered' as not_answer)
+    SUM(total_Sum) FOR mr_wr IN ('Management Representative' as m_r,'Worker Representative' as w_r,'Not answered' as not_answer)
 )
 ),
 table5 as(select projectId,vendor,country,region,unit,year_new,factory,case when m_r is null then 0 else m_r end as mgmt_count,
