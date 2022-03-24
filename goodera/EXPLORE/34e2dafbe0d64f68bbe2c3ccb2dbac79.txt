@@ -1,20 +1,24 @@
-
-with table1 as(SELECT * 
+with table1 as(select p.projectId,representative.name as mr_wr from profile_18224 p
+			   
+			   left join ds_mysql_prod_tagelement representative
+on p.mr_wr = representative.id
+),
+table2 as(SELECT * 
 FROM (SELECT projectId,mr_wr,count(mr_wr ) as total 
 	  
-	  from profile_18224 p
+	  from table1 
 	  
 	  
 
 	 group by projectId,mr_wr)
 
 PIVOT (
-    SUM(total) FOR mr_wr IN ('338513','338514','493548' )
+    SUM(total) FOR mr_wr IN ("Management Representative","Worker Representative","Not Answered")
 )
 ),
-table2 as(select '338513' as "Management Representative",'338514' as "Worker Representative",'493548' as "Not Answered", "Management Representative"+"Worker Representative"+"Not Answered" as total_sum/*('Management Representative'/total_sum)*100 as percent_mgmt,('Worker Representative'/total_sum)*100 as percent_worker,('Not Answered'/total_sum)*100 as percent_not_answer*/ from table1
+table3 as(select  "Management Representative","Worker Representative", "Not Answered", "Management Representative"+"Worker Representative"+"Not Answered" as total_sum/*('Management Representative'/total_sum)*100 as percent_mgmt,('Worker Representative'/total_sum)*100 as percent_worker,('Not Answered'/total_sum)*100 as percent_not_answer*/ from table2
 		  )
-select * from table2
+select * from table3
 
 
 
