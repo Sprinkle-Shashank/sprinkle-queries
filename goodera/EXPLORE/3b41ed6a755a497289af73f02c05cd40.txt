@@ -8,6 +8,11 @@ with base1 as(
   CAST(MONTHS_BETWEEN(mou_date,valid_date) as INT) as project_duration,disbursement_thru,p.state_district[0] as state_district,
   cast(value.amount_released as float4) as amount_released,cast(value.payment_date as TIMESTAMPTZ) as payment_date from profile_46184 p,unpivot p.disbursement_plan as value at disbursement_plan
 )
-select prop_id,project_title,name_org,approved_amount,yoa,project_duration,tag1.name as disbursement_thru,state_district,amount_released,payment_date from base1 p
+select prop_id,project_title,name_org,approved_amount,yoa,project_duration,tag1.name as disbursement_thru,tag3.name as state_district,
+amount_released,payment_date from base1 p
 left join ds_mysql_prod_tagelement tag1
 on p.disbursement_thru = tag1.id
+left join ds_mysql_prod_tagelement tag2
+on p.state_district = tag2.id
+left join ds_mysql_prod_tagelement tag3
+on tag2.parent = tag3.id
