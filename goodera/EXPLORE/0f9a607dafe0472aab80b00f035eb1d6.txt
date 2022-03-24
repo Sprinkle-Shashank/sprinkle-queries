@@ -1,5 +1,7 @@
 
-with table1 as(Select p.projectId,fac.name as factory,nvl2(SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), ven.name) as vendor_name, case when vendor_name='' then ven.name else vendor_name end as vendor,cou.name as country,case when country in ('India', 'Bangladesh', 'Sri Lanka')
+
+
+with table1 as(select p.projectId,fac.name as factory,nvl2(SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), ven.name) as vendor_name, case when vendor_name='' then ven.name else vendor_name end as vendor,cou.name as country,case when country in ('India', 'Bangladesh', 'Sri Lanka')
 then 'South Asia'
 when country in ('China')
 then 'North Asia'
@@ -7,9 +9,7 @@ when country in ('Guatemala', 'El Salvador', 'Dominican Republic')
 then 'Americas'
 when country in ('Philippines', 'Cambodia',  'Vietnam',  'Indonesia', 'Myanmar')
 then 'South East Asia'
-end as region,representative.name as mr_wr
-from profile_18224 p
-
+end as region,representative.name as mr_wr from profile_18224 p4
 
 left join ds_mysql_prod_project fac
 on p.projectid = fac.id
@@ -17,43 +17,33 @@ left join ds_mysql_prod_project ven
 on fac.parent = ven.id
 left join ds_mysql_prod_project cou
 on ven.parent = cou.id
-		  
-
+			   
 left join ds_mysql_prod_tagelement representative
 on p.mr_wr = representative.id
 
-			
-
-
-
-where  cou.name <> 'Test Country' and   p.projectId ilike '%%' 
-group by  p.projectId,fac.name ,ven.name,vendor,cou.name,region,representative.name
-
-
+where  cou.name <> 'Test Country' and   p.projectId ilike '%%'
 ),
 table2 as(SELECT * 
-FROM (SELECT projectId,factory,country,vendor,region,mr_wr,count(mr_wr) as total_Sum
+FROM (SELECT projectId,factory,vendor,country,region,mr_wr,count(mr_wr ) as total 
 	  
 	  from table1 
 	  
 	  
 
-	 group by projectId,mr_wr,factory,country,vendor,region)
-/*	 )
+	 group by projectId,mr_wr,factory,vendor,country,region)
 
 PIVOT (
-    SUM(total_Sum) FOR mr_wr IN ('Management Representative' as m_r,'Worker Representative' as w_r,'Not answered' as not_answer)
+    SUM(total) FOR mr_wr IN ('Management Representative' as m_r,'Worker Representative' as w_r,'Not answered' as n_a)
 )
 ),
-table3 as(select projectId,vendor,country,region,factory,case when m_r is null then 0 else m_r end as mgmt_count,
-		  case when w_r is null then 0 else w_r end as worker_Count,
-		  case when not_answer is null then 0 else not_answer end as not_answer_count,(mgmt_count+worker_count+not_answer_count) as total_representatives,(mgmt_count/total_representatives)*100 as mgmt_percent,(worker_count/total_representatives)*100 as worker_percent,
-		  (not_answer_count/total_representatives)*100 as not_answer_percent
-		  
+table3 as(select case when m_r is null then 0 else m_r end as mgmt_count,
+		  case when w_r is null then 0 else w_r end as worker_count,
+		  case when n_a is null then 0 else n_a end as not_answer_count,
+		  (mgmt_count+worker_count+not_answer_count) as total_sum 
 		  from table2
-		 
-)*/)
-select * from table2
+		  
+)  
+select * from table3
 /*with table1 as(select p.projectId from profile_16619 p
 
 			   
