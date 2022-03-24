@@ -60,10 +60,35 @@ table6 as
 select p.projectid ,  case when date is not null then total_trained end as total_trained_s1 , case when date_2 is not null then total_trained_2 end as total_trained_s2 , case when date_3 is not null then total_trained_3 end as total_trained_s3 ,case when date_4 is not null then total_trained_4 end as total_trained_s4 ,case when date_5 is not null then total_trained_5 end as total_trained_s5 ,case when date_6 is not null then total_trained_6 end as total_trained_s6 ,case when date_7 is not null then total_trained_7 end as total_trained_s7 , case when date_8 is not null then total_trained_8 end as total_trained_s8 , avg(total_trained_s1 + total_trained_s2 + total_trained_s3 + total_trained_s4 + total_trained_s5 + total_trained_s6 + total_trained_s7 +total_trained_s8) as average_value from profile_16619 as p 
   
   group by p.projectid ,  date, Date_2, Date_3, Date_4, Date_5, Date_6, Date_7, Date_8 , total_trained , total_trained_2 , total_trained_3 , total_trained_4 , total_trained_5 , total_trained_6 , total_trained_7 , total_trained_8
- )
-  
+ ),
  
-select * from table3
+ 
+ table7 as 
+ ( SELECT _id,projectid,mon.creatorid, u.email as cemail, mon.modifierid, m.email as memail
+from ds_mongo_profileinstance mon
+left join ds_mysql_prod_user u on
+mon.creatorid = u.id
+  
+left join ds_mysql_prod_user m  on
+mon.modifierid = m.id
+  
+where mon.profileId='16612' and mon.active = 't' and mon.securitycontextid is not null
+),
+  
+  
+table8 as
+( select p.projectid , p._id , memail , row_number() over 
+(partition by projectid
+ order by _id desc) as row from table7 as p
+ 
+-- where memail='%@goodera.com'
+ ),
+ 
+ 
+ table9 as 
+ ( select * from table8 where row=1)
+ 
+select * from table9
    
    /*
     date, Date_2, Date_3, Date_4, Date_5, Date_6, Date_7, Date_8
