@@ -51,14 +51,12 @@ table4 as(select projectId,factory,vendor,country,region,year_new,unit,case when
 		  case when w_r is null then 0 else w_r end as w_r_count,
 		  case when n_a is null then 0 else n_a end as n_a_count,
 		 (m_r_count+w_r_count+n_a_count) as total,
-		  CAST(w_r_count as FLOAT) as worker_count,CAST(m_r_count as FLOAT) as mgmt_count,CAST(n_a_count as FLOAT) as not_answer_count,CAST(total as FLOAT) as total_representatives,
-(mgmt_count/nullif(total_representatives,0))*100 as mgmt_percent,
-		(worker_count/nullif(total_representatives,0))*100 as worker_percent,
-	(not_answer_count/nullif(total_representatives,0))*100 as not_answer_percent 
+(m_r_count*100.0)/total as mgmt_percent,
+		(w_r_count*100.0)/total as worker_percent,
+	(n_a_count*100.0)/total as not_answer_percent 
 		  from table3
 		  
-)
-select * from table4/*,
+)/*,
 temp as (
   select 'Management Representatives' as dim
   union all
@@ -66,7 +64,7 @@ temp as (
   union all
   select 'Not answered' as dim
 )
-select  projectId,factory,vendor,country,region,year_new,unit,mgmt_count,worker_count,not_answer_count,total_representatives,mgmt_percent,worker_percent,not_answer_percent,temp.dim,case dim
+select  projectId,factory,vendor,country,region,year_new,unit,m_r_count,w_r_count,n_a_count,total,mgmt_percent,worker_percent,not_answer_percent,temp.dim,case dim
 	when 'Management Representatives' then mgmt_percent 
 	when 'Worker Representatives' then worker_percent  
 	when 'Not answered' then not_answer_percent
@@ -76,8 +74,9 @@ select  projectId,factory,vendor,country,region,year_new,unit,mgmt_count,worker_
 	from table4
 	cross join temp
 
-group by projectId,factory,vendor,country,region,year_new,unit,mgmt_count,worker_count,not_answer_count,total_representatives,temp.dim,mgmt_percent,worker_percent,not_answer_percent
-*/
+group by projectId,factory,vendor,country,region,year_new,unit,m_r_count,w_r_count,n_a_count,total,temp.dim,mgmt_percent,worker_percent,not_answer_percent
+*/select * from table4
+
 	  
 	  
 
