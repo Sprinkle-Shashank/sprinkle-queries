@@ -1,20 +1,21 @@
 with lookup as (select
 				JSON_SERIALIZE(table_52810.pace_brands) as pace_brand,
 				case when pace_brand like '%1151834%' then 1 else 0 end as brand,
-				case when table_52810.pace_brands = 1151834 then 1 else 0 end as status,
+				case when pace_status = 182398 then 1 else 0 end as status,
 				table_54646.name_country as country_name,
 				table_54646.name_vendor_filter as vendor,
 				table_54646.name as factory_name,
 				p.cp_id as vendor_vpid,
 				p.cp_location_id as factory_id,
-				listagg( distinct table_4580.batch) as batch,
-				listagg(distinct table_4580.stry_title) as stry_title,
-				listagg(distinct table_4580.date) as date,
+				table_4580.batch as batch,
+				table_4580.stry_title as stry_title,
+				table_4580.date as date,
 				table_4580.impact_story as impact_story,
-				listagg(distinct table_4580._id) as _id,
+				table_4580._id as _id,
 				table_4227.start_date as start_date,
-				listagg( distinct table_4227.name) as batch_name,	
-				taskResponse.submissionLog[0].email as data_user
+				table_4227.name as batch_name,	
+				taskResponse.submissionLog[0].email as data_user,
+				p.projectId as projectId1
 					
 				from profile_4948 p
 						
@@ -32,15 +33,6 @@ table_4227._id=table_4580.batch
 				
 left join ds_mongo_taskresponse taskResponse on
 taskResponse.profileinstanceid=table_4580._id	
-				
-group by table_52810.pace_brands,
-			
-				table_4580.impact_story,
-				table_54646.name_vendor_filter,table_54646.name,p.cp_id,
-				p.projectId,
-				taskresponse.submissionlog,
-				table_54646.name_country,
-				table_4227.start_date,
-				p.cp_location_id
+
 )
-select country_name,vendor,factory_name,vendor_vpid,factory_id,batch,stry_title,date,impact_story,_id,start_date,batch_name,data_user from lookup p where brand = 1 and status =1
+select projectId1 as projectId, country_name,vendor,factory_name,vendor_vpid,factory_id,batch,stry_title,date,impact_story,_id,start_date,batch_name,data_user from lookup p where brand = 1 and status =1
