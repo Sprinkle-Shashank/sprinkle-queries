@@ -1,50 +1,7 @@
+with table1 as 
+( select * from profile_18224 ) ,
 
-with sub as 
-(
-select 
- projectid, p.name, date, other, local_foreign, no_local_foreign, p.location, notes, survey_yn, keyword_1, num_managers, hours, num_middle, num_other, participants,tri.name as training_type, trainer_organization, ven.name as vendor, cou.name as country, nvl2(SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), ven.name) as vendor_name, extract(year from date) as year,
- case when extract(month from date)=1 then (extract(year from date)-1)
-else extract(year from date) end as year_first_update, (extract(month from date)-(extract(month from date)-1)) as count , fac.name as factory
-from profile_61572 as p
- 
- left join ds_mysql_prod_project fac 
-on p.projectId = fac.id
+table2 as 
+( select * from profile_18299 )
 
- left join ds_mysql_prod_project ven 
-on fac.parent = ven.id
-
- left join ds_mysql_prod_project cou 
-on ven.parent = cou.id
-
-left join ds_mysql_prod_tagelement tri 
-on p.training_type = tri.id
-), sub2 as
-(
-select s1.*,c from sub as s1, s1.trainer_organization c
-  
- where country <> 'Test Country'
-)
-
-
-select 
-s2.projectId, s2.name, date, other, local_foreign, no_local_foreign, location, notes, survey_yn, keyword_1, num_managers, hours, num_middle, num_other, participants, training_type, country, vendor, trainer_organization,triorg.name as trainer_organization, 
-year_first_update as year, count , factory
-from sub2 as s2
-
-left join ds_mysql_prod_tagelement triorg 
-on s2.c = triorg.id
-
-where year=2022 and training_type='Awareness Workshop'
-
-group by 
-s2.projectId, s2.name, date, other, local_foreign, no_local_foreign, location, notes, survey_yn, keyword_1, num_managers, hours, num_middle, num_other, participants, training_type, country, vendor, year, triorg.name, s2.trainer_organization, s2.year_first_update, s2.count , factory
-
-
-
-/*
-
-projectId, date, other, local_foreign, no_local_foreign, location, notes, survey_yn, excel_upload, tr_created, keyword_1, num_managers, hours, num_middle, num_other, participants, training_type, trainer_organization, trainer, country, vendor_name, vendor, year, name
-arrow_right_alt
-New Field: countAggregate Function: count-of-rows
-
-*/
+select * from table1
