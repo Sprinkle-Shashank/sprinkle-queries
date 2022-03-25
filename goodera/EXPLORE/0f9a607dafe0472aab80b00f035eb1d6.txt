@@ -57,8 +57,25 @@ table4 as(select projectId,factory,vendor,country,region,year_new,unit,case when
 		(not_answer_count/total_representatives)*100 as not_answer_percent 
 		  from table3
 		  
-)  
-select * from table4
+),
+temp as (
+  select 'Managemnt Representatives' as dim
+  union all
+  select 'Worker Representatives' as dim
+  union all
+  select 'Not answered' as dim
+)
+select  projectId,factory,vendor,country,region,year_new,unit,mgmt_count,worker_count,not_answer_count,mgmt_percent,worker_percent,not_answer_percent,case dim
+	when 'Management Representatives' then mgmt_percent 
+	when 'Worker Representatives' then worker_percent  
+	when 'Not answered' then not_answer_percent
+
+	Else Null
+	End as value1	
+	from table4
+	cross join temp
+
+group by projectId,factory,vendor,country,region,year_new,unit,mgmt_count,worker_count,not_answer_count,temp.dim,mgmt_percent,worker_percent,not_answer_percent
 
 	  
 	  
