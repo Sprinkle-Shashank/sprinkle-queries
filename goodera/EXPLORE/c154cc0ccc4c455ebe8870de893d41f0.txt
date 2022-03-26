@@ -1,12 +1,23 @@
-with s1 as(
-Select sdg_logo, fy_timerange
-from profile_79656 a,a.sdg sdg_logo
+with sub1 as(
+select p.*, concat(concat(concat(concat('{"start":"', proj_start_date),'","end":"'),proj_end_date),'"}') as fy_timerange, t.name as imp_partner, projectId as partner
+from profile_65552 p
+left join ds_mysql_prod_tagelement t
+  on impl_agency=t.id
+),
+sub2 as(
+  select sub1.*, fy_timerange,tt.name as schedule_vii_,tt1.name as target_benf_grp, t1.name as projectId1, imp_partner,aa.name as project_name
+  from sub1
+  left join ds_mysql_prod_project t
+on partner=t.id
+left join ds_mysql_prod_project t1
+on t.parent=t1.id
+left join ds_mysql_prod_tagelement tt
+  on sub1.schedule_vii=tt.id
+left join ds_mysql_prod_tagelement tt1
+  on sub1.target_benf_group=tt1.id
+  left join profile_65602 aa
+  on sub1.proj_name =aa._id
 )
-
-Select sdg_icon as sdg_icon, p1.name as projectid, s1.fy_timerange
-from s1
-left join profile_79655 p
-ON p._id=s1.sdg_logo
-left join ds_mysql_prod_project p1
-ON p1.id=p.projectid
-GROUP BY 1,2,3
+select sub2.*, substring(proj_start_date,1,10) as start_date, substring(proj_end_date,1,10) as end_date  
+from sub2
+where projectId1!='Other Projects - Financial Reporting'
