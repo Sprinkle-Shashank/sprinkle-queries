@@ -14,7 +14,7 @@ when country in ('Guatemala', 'El Salvador', 'Dominican Republic')
 then 'Americas'
 when country in ('Philippines', 'Cambodia',  'Vietnam',  'Indonesia', 'Myanmar')
 then 'South East Asia'
-end as region,case when p2.name_subunit is null or p2.name_subunit=' ' then 'N/A' else p2.name_subunit end  as unit,DATEPART(YEAR,p2.date_enrollment) as year_new,sat.name as satisfaction from profile_18224 p
+end as region,case when p2.name_subunit is null or p2.name_subunit=' ' then 'N/A' else p2.name_subunit end  as unit,DATEPART(YEAR,p2.date_enrollment) as year_new,quality.name as quality_relationship from profile_18224 p
 
 left join ds_mysql_prod_project fac
 on p.projectid = fac.id
@@ -29,49 +29,49 @@ on p.sub_unit = p2._id
 left join table1 t1 on
 p.projectId = t1.projectId
 			   
-left join ds_mysql_prod_tagelement sat
-on p.satisfaction = sat.id
+left join ds_mysql_prod_tagelement quality
+on p.quality_relationship = quality.id
 
 where  (cou.name <> 'Test Country') and (p.projectId ilike '%%') and (t1.projectId is not null) and (p2.status = 1400365 or p2.status is null)
 ),
 table3 as(SELECT * 
-FROM (SELECT projectId,factory,vendor,country,region,year_new,unit,satisfaction,count(satisfaction) as total 
+FROM (SELECT projectId,factory,vendor,country,region,year_new,unit,quality_relationship,count(quality_relationship) as total 
 	  
 	  from table2 
 	  
 	  
 
-	 group by projectId,satisfaction,factory,vendor,country,region,year_new,unit)
+	 group by projectId,quality_relationship,factory,vendor,country,region,year_new,unit)
 
 PIVOT (
-    SUM(total) FOR satisfaction IN ('Very dissatisfied' as very_dis,'Somewhat satisfied' as some_sat,'Very satisfied' as very_sat,'Not answered' as n_a)
+    SUM(total) FOR quality_relationship IN ('Poor' as pr,'Neutral/Cant say' as neu,'Good' as gd,'Not answered' as n_a)
 )
 ),
-table4 as(select projectId,factory,vendor,country,region,year_new,unit,case when very_dis is null then 0 else very_dis end as very_dis_count,
-		  case when some_sat is null then 0 else some_sat end as some_sat_count,
-		  case when very_sat is null then 0 else very_sat end as very_sat_count,
+table4 as(select projectId,factory,vendor,country,region,year_new,unit,case when pr is null then 0 else pr end as pr_count,
+		  case when neu is null then 0 else neu end as neu_count,
+		  case when gd is null then 0 else gd end as gd_count,
 		  case when n_a is null then 0 else n_a end as n_a_count,
-		 (very_dis_count+some_sat_count+very_sat_count+n_a_count) as total,
-(very_dis_count*100.0)/total as very_dis_percent,
-		(some_sat_count*100.0)/total as some_sat_percent,
-	(very_sat_count*100.0)/total as very_sat_percent ,
+		 (pr_count+neu_count+gd_count+n_a_count) as total,
+(pr_count*100.0)/total as pr_percent,
+		(neu_count*100.0)/total as neu_percent,
+	(gd_count*100.0)/total as gd_percent ,
 		  (n_a_count*100.0)/total as n_a_percent 
 		  from table3
 		  
 ),
 temp as (
-  select 'Very dissatisfied' as dim
+  select 'Poor' as dim
   union all
-  select 'Somewhat satisfied' as dim
+  select 'Neutral/Cant say' as dim
   union all
-  select 'Very satisfied' as dim
+  select 'Good' as dim
   union all
   select 'Not answered' as dim
 )
-select  projectId,factory,vendor,country,region,year_new,unit,very_dis_count,some_sat_count,very_sat_count,n_a_count,total,very_dis_percent,some_sat_percent,very_sat_percent,n_a_percent,temp.dim,case dim
-	when 'Very dissatisfied' then very_dis_percent
-	when 'Somewhat satisfied' then some_sat_percent  
-	when 'Very satisfied' then very_sat_percent
+select  projectId,factory,vendor,country,region,year_new,unit,pr_count,neu_count,gd_count,n_a_count,total,pr_percent,neu_percent,gd_percent,n_a_percent,temp.dim,case dim
+	when 'Poor' then pr_percent
+	when 'Neutral/Cant say' then neu_percent  
+	when 'Good' then gd_percent
 	when 'Not answered' then n_a_percent
 
 	Else Null
@@ -79,7 +79,7 @@ select  projectId,factory,vendor,country,region,year_new,unit,very_dis_count,som
 	from table4
 	cross join temp
 
-group by projectId,factory,vendor,country,region,year_new,unit,very_dis_count,some_sat_count,very_sat_count,n_a_count,total,temp.dim,very_dis_percent,some_sat_percent,very_sat_percent,n_a_percent
+group by projectId,factory,vendor,country,region,year_new,unit,pr_count,neu_count,gd_count,n_a_count,total,temp.dim,pr_percent,neu_percent,gd_percent,n_a_percent
 
 
 	  
