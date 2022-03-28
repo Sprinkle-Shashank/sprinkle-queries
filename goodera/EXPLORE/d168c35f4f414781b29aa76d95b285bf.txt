@@ -28,6 +28,17 @@ select p.projectid ,  case when date is not null then total_trained end as total
   group by p.projectid ,  date, Date_2, Date_3, Date_4, Date_5, Date_6, Date_7, Date_8 , total_trained , total_trained_2 , total_trained_3 , total_trained_4 , total_trained_5 , total_trained_6 , total_trained_7 , total_trained_8
  ),
   
+
+table7 as ( SELECT _id,projectid,mon.creatorid, u.email as cemail, mon.modifierid, m.email as memail
+from ds_mongo_profileinstance mon
+left join ds_mysql_prod_user u on
+mon.creatorid = u.id
+left join ds_mysql_prod_user m  on
+mon.modifierid = m.id
+where mon.profileId='16619' and mon.active = 't' and mon.securitycontextid is not null
+),
+
+
 table8 as
 ( select p.projectid , p._id , memail , row_number() over 
 (partition by projectid
@@ -79,7 +90,7 @@ left join table2 t2 on
 left join table1 t1 on
  p.projectid = t1.projectid
  
- ),
+ )
  
  select * from table3
  
