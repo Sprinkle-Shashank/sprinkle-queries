@@ -1,0 +1,60 @@
+with temp as (
+  select 'Estimated number of people empowered to improve their access to drinking water and sanitation (ECO)' as C
+  Union all 
+  select 'Number of people gaining access to basic drinking water services as a result of USG assistance (Total E+A Dist.)' as C
+    Union all 
+  select 'Number of people gaining new access to a basic sanitation service as a result of USG assistance (Total E+A Dist.)' as C
+      Union all 
+  select 'Number of people gaining new access to a basic water & sanitation service as a result of USG assistance (Total E+A Dist.)' as C
+      Union all 
+  select 'Amount of financing disbursed for WSS in target communities' as C
+      Union all 
+  select 'Number of financing (loans) disbursed for WSS in target communities' as C
+  Union all 
+  select 'Amount of capital dedicated to WSS lending portfolios by financial institutions in target communities
+' as C
+  Union all 
+  select 'Number of people participating in trainings implemented to create awareness of WSS financing in target communities' as C
+  Union all 
+  select 'Number of SHG members trained on WSS credit financing' as C
+  Union all 
+  select 'Number of WSS loan proposals prepared and submitted to bank for WSS loan disbursement' as C
+  Union all 
+  select 'Number of SHGs made aware of and applied for WSS loans' as C
+  Union all 
+  select 'Value of new funding (in USD) mobilized for the water and sanitation sector' as C
+  
+  )											--Pivot column names
+
+SELECT projectid,loc.name as geography,state.name as State,year.name as year,			--Select values
+
+SUM(Case C
+	When 'Estimated number of people empowered to improve their access to drinking water and sanitation (ECO)' then p.total_people
+	When 'Number of people gaining access to basic drinking water services as a result of USG assistance (Total E+A Dist.)' then p.drinking_water
+	When 'Number of people gaining new access to a basic sanitation service as a result of USG assistance (Total E+A Dist.)' then p.sanitation
+	When 'Number of people gaining new access to a basic water & sanitation service as a result of USG assistance (Total E+A Dist.)' then p.water_sanitation
+	When 'Amount of financing disbursed for WSS in target communities' then p.amount_of_financing
+	When 'Number of financing (loans) disbursed for WSS in target communities' then p.number_of_loans
+	When 'Amount of capital dedicated to WSS lending portfolios by financial institutions in target communities' then p.capital_dedicated
+	When 'Number of people participating in trainings implemented to create awareness of WSS financing in target communities' then p.number_of_participants
+	When 'Number of SHG members trained on WSS credit financing' then p.wss_credit_financing
+	When 'Number of WSS loan proposals prepared and submitted to bank for WSS loan disbursement' then p.wss_loan_proposals
+	When 'Number of SHGs made aware of and applied for WSS loans' then p.shg_awareness
+	When 'Value of new funding (in USD) mobilized for the water and sanitation sector' then p.funding_value
+	
+	Else Null
+END) as val , temp.C as indicator
+ 
+ from profile_26656 p
+  cross join temp							--pivot cross join
+  
+ left join ds_mysql_prod_tagelement year
+ on p.year = year.id 
+ 
+ left join ds_mysql_prod_tagelement loc
+ on p.geography = loc.id 
+ left join ds_mysql_prod_tagelement state
+on loc.parent = state.id
+			
+ 
+ GROUP BY projectid, year.name,loc.name,state.name,temp.C
