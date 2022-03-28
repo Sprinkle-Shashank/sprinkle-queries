@@ -63,12 +63,14 @@ table2 as (select
 		   sum(dropout_other) as dropout_other,
 		   sum(total_females_completed) as total_females_completed,
 		   status,codeStatus,brand,start_date,projectid1,select_modules1,code_brand,code,
-		   offset_date
+		   offset_date,
+		   JSON_SERIALIZE(select_modules1) as trimmedmod,
+		   
 		   --trim('"' from cast(select_modules1 as varchar)) as trimmedmod
-		   --substring(select_modules1,1,1) as trimmedmod
+		   substring(trimmedmod,1,1) as trimmedmod1
 		   --cast(select_modules1 as varchar(256)) as trimmedmod
 
 	from table1 p
 group by status,codeStatus,brand,start_date,projectid1,select_modules1,code_brand,code, offset_date
 )
-Select cast(total_females as int4),start_date,projectid1 as projectid,cast(select_modules1 as super) as select_modules,code_brand,code  from table2 p where status = 1 and codeStatus = 1 and brand = 1 and start_date >= offset_date
+Select cast(total_females as int4),start_date,projectid1 as projectid,cast(select_modules1 as super) as select_modules,code_brand,code,trimmedmod, trimmedmod1  from table2 p where status = 1 and codeStatus = 1 and brand = 1 and start_date >= offset_date
