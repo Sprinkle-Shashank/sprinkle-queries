@@ -1,1 +1,30 @@
-SELECT year, indicator, prog_target, target21, target22 FROM profile_77047
+WITH temp AS (
+  SELECT 'Program Target' AS C
+  UNION ALL 
+  SELECT 'Target 2021' AS C
+  UNION ALL 
+  SELECT 'Target 2022' AS C
+  
+  )											--Pivot column names
+
+SELECT year.name as year, indi.name as indicator, ngo.name as Partner,			--Select values
+SUM(Case C
+	When 'Program Target' then p.prog_target
+	When 'Target 2021' then p.target21
+	When 'Target 2022' then p.target22
+	Else Null
+END) as val , temp.C as Dim
+
+from profile_26656 p
+  cross join temp							--pivot cross join
+ 
+ SELECT year.name as year, indi.name as indicator, prog_target, target21, target22 FROM profile_77047 p
+left join ds_mysql_prod_tagelement year
+ on p.year = year.id 
+left join ds_mysql_prod_tagelement indi
+ on p.indicator = indi.id 
+left join ds_mysql_prod_tagelement ngo
+ on indi.parent = ngo.id 
+ 
+
+ GROUP BY projectid, year.name,indi.name,ngo.name,temp.C 
