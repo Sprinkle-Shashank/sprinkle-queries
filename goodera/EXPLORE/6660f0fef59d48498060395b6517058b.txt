@@ -1,38 +1,70 @@
-with lookup as (select
-				JSON_SERIALIZE(table_52810.pace_brands) as pace_brand,
-				case when pace_brand like '%1151834%' then 1 else 0 end as brand,
-				case when pace_status = 182398 then 1 else 0 end as status,
-				table_54646.name_country as country_name,
-				table_54646.name_vendor_filter as vendor,
-				table_54646.name as factory_name,
-				p.cp_id as vendor_vpid,
-				p.cp_location_id as factory_id,
-				table_4580.batch as batch,
-				table_4580.stry_title as stry_title,
-				table_4580.date as date,
-				table_4580.impact_story as impact_story,
-				table_4580._id as _id,
-				table_4227.start_date as start_date,
-				table_4227.name as batch_name,	
-				taskResponse.submissionLog[0].email as data_user,
-				p.projectId as projectId1
-					
-				from profile_4948 p
-						
-inner join profile_52810 table_52810 on
-table_52810.projectid=p.projectid
+with table1 as (select
+					case when lg_status = 848008 then 0 else 1 end as status,
+				substring(table_54646.projcode_factory,1,1) as code,
+				reverse(SPLIT_PART(reverse(table_54646.projcode_factory), '-',1)) as code_brand,
+				lg_status as st,
+				case when code = 'F' then 1 else 0 end as codeStatus,
+				JSON_SERIALIZE(table_52810.pace_brands) as pace_brand,	
+				case when pace_brand like '%1151834%' then 1 else 0 end  as brand,
 				
-inner join profile_54646 table_54646 on
-table_54646.projectid=p.projectid
+				sum(num_females) as total_females,
+				sum(num_females_graduated) as total_females_graduated,
+				sum(num_females_dropout) as total_females_dropout,
+				case when end_date_2 is null then sum(num_females) else null end as total_females_ongoing,
+				case when end_date_2 is null then 1 else 0 end as batchOng,
+				sum(batchOng)as total_batches_ongoing,
+				start_date,
 				
-inner join profile_4580 table_4580 on
-table_4580.projectid=p.projectid
+				case when batchOng = 0 then 1 else 0 end as batchComp,
+				sum(batchComp) as total_batches_completed,
+				avg(hours) as average_hours,
+				sum(hours) as total_hours,
+				sum(num_males) as total_males,
+				case when end_date_2 is null then sum(num_males) else 0 end as total_males_ongoing,
+				sum(num_males_graduated) as total_males_graduated,
+				sum(num_males_dropout) as total_males_dropout,
+				sum(reason_pregnancy) as dropout_pregnancy,
+				sum(reason_left) as dropout_left,
+				sum(reason_interest) as dropout_interest,
+				sum(reason_pressure) as dropout_pressure,
+				sum(reason_other) as dropout_other,
+				case when end_date_2 is null then 0 else sum(num_females) end as total_females_completed,p.projectid as projectid1,p.select_modules as select_modules1,
+				case when table_52810.offset_date is null then '2020-02-01T00:00:00.000Z' else table_52810.offset_date end as offset_date
 				
-left join profile_4227 table_4227 on
-table_4227._id=table_4580.batch
-				
-left join ds_mongo_taskresponse taskResponse on
-taskResponse.profileinstanceid=table_4580._id	
 
+				from profile_4227 p
+inner join profile_54646 table_54646 on
+table_54646.projectId = p.projectId
+
+inner join profile_52810 table_52810 on
+table_52810.projectId = p.projectId
+				
+				
+group by lg_status,table_54646.projcode_factory,table_52810.pace_brands,p.end_date_2,p.start_date,projectid1,select_modules1,code_brand,code,table_52810.offset_date 
+),
+table2 as (select
+		   sum(total_females) as total_females,
+		   sum(total_females_graduated) as total_females_graduated,
+		   sum(total_females_dropout) as total_females_dropout,
+		   sum(total_females_ongoing) as total_females_ongoing,
+		   sum(total_batches_ongoing) as total_batches_ongoing,
+		   sum(total_batches_completed) as total_batches_completed,
+		   avg(average_hours) as average_hours,
+		   sum(total_hours) as total_hours,
+		   sum(total_males) as total_males,
+		   sum(total_males_ongoing) as total_males_ongoing,
+		   sum(total_males_graduated) as total_males_graduated,
+		   sum(total_males_dropout) as total_males_dropout,
+		   sum(dropout_pregnancy) as dropout_pregnancy,
+		   sum(dropout_left) as dropout_left,
+		   sum(dropout_interest) as dropout_interest,
+		   sum(dropout_pressure) as dropout_pressure,
+		   sum(dropout_other) as dropout_other,
+		   sum(total_females_completed) as total_females_completed,
+		   status,codeStatus,brand,start_date,projectid1,select_modules1,code_brand,code,
+		   offset_date
+
+	from table1 p
+group by status,codeStatus,brand,start_date,projectid1,select_modules1,code_brand,code, offset_date
 )
-select projectId1 as projectId, country_name,vendor,factory_name,vendor_vpid,factory_id,batch,stry_title,date,impact_story,_id,start_date,batch_name,data_user from lookup p where brand = 1 and status =1
+Select cast(total_females as int4),start_date,projectid1 as projectid,select_modules1 as select_modules,code_brand,code from table2 p where status = 1 and codeStatus = 1 and brand = 1 and start_date >= offset_date
