@@ -14,7 +14,7 @@ when country in ('Guatemala', 'El Salvador', 'Dominican Republic')
 then 'Americas'
 when country in ('Philippines', 'Cambodia',  'Vietnam',  'Indonesia', 'Myanmar')
 then 'South East Asia'
-end as region,case when p2.name_subunit is null or p2.name_subunit=' ' then 'N/A' else p2.name_subunit end  as unit,DATEPART(YEAR,p2.date_enrollment) as year_new,suggest.name as suggestion from profile_18299 p
+end as region,case when p2.name_subunit is null or p2.name_subunit=' ' then 'N/A' else p2.name_subunit end  as unit,DATEPART(YEAR,p2.date_enrollment) as year_new,com.name as complaint from profile_18299 p
 
 left join ds_mysql_prod_project fac
 on p.projectid = fac.id
@@ -29,22 +29,22 @@ on p.sub_unit = p2._id
 left join table1 t1 on
 p.projectId = t1.projectId
 			   
-left join ds_mysql_prod_tagelement suggest
-on p.suggestion = suggest.id
+left join ds_mysql_prod_tagelement com
+on p.complaint = com.id
 
 where  (cou.name <> 'Test Country') and (p.projectId ilike '%%') and (t1.projectId is not null) and (p2.status = 1400365 or p2.status is null)
 ),
 table3 as(SELECT * 
-FROM (SELECT projectId,factory,vendor,country,region,year_new,unit,suggestion,count(suggestion) as total 
+FROM (SELECT projectId,factory,vendor,country,region,year_new,unit,complaint,count(complaint) as total 
 	  
 	  from table2 
 	  
 	  
 
-	 group by projectId,suggestion,factory,vendor,country,region,year_new,unit)
+	 group by projectId,complaint,factory,vendor,country,region,year_new,unit)
 
 PIVOT (
-    SUM(total) FOR suggestion IN ('Yes' as rights,'No' as wrong,'Not answered' as n_a)
+    SUM(total) FOR complaint IN ('Yes' as rights,'No' as wrong,'Not answered' as n_a)
 )
 ),
 table4 as(select projectId,factory,vendor,country,region,year_new,unit,case when rights is null then 0 else rights end as right_count,
