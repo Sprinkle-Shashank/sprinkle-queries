@@ -1,9 +1,37 @@
-with table1 as 
+
+with table1 as
+(select p.projectid , p._id ,  fac.name as factory,  status from profile_16619 as p
+ 
+ left join ds_mysql_prod_project fac 
+on p.projectId = fac.id
+
+where status !=437658 and status!=437659),
+
+
+table5 as 
+(
+select p.projectid , substring(createddate,1,10) as createddate_update_1 , cast(createddate_update_1 as date) as create_1 from profile_18299 as p ),
+
+
+table6 as 
+(
+select p.projectid , substring(createddate,1,10) as createddate_update_2 ,  t5.create_1 , cast(createddate_update_2 as date) as create_2 , datediff(day,create_1, current_date) as f1 ,  datediff(day, create_2 , current_date) as f2 , case when f1>f2 then t5.create_1 else create_2 end as Baseline , row_number() over (partition by p.projectid order by p._id) as row from profile_18224 as p
+
+left join table5 t5 on 
+p.projectid = t5.projectid 
+),
+
+
+table7 as
+(select p.projectid , Baseline from table6 as p where row=1),
+
+
+table2 as 
 (
    select p.projectid , p._id , 
   case when p.name_subunit is null or p.name_subunit=' ' then 'N/A' else p.name_subunit end  as unit , ven.name as vendor , cou.name as country 
   
-  , fac.name as factory , factory_id  ,  case when extract(month from date_enrollment)=1 then (extract(year from date_enrollment)-1) else extract(year from date_enrollment) end as batch  from profile_16619 as p
+  , fac.name as factory ,  case when extract(month from date_enrollment)=1 then (extract(year from date_enrollment)-1) else extract(year from date_enrollment) end as batch , Baseline , t1.factory from profile_16619 as p
   
 left join ds_mysql_prod_project fac 
 on p.projectId = fac.id
@@ -14,10 +42,11 @@ on fac.parent = ven.id
 left join ds_mysql_prod_project cou 
 on ven.parent = cou.id
   
-left join profile_4722 p2 on
- p.projectid = p2.projectid  
- 
-where status != 437658 and status != 437659
+left join table7 t7 on 
+p.projectid = t7.projectid
+  
+left join table1 t1 on 
+p.projectid = t1.projectid
   )
   
-  select * from table1
+  select * from table2
