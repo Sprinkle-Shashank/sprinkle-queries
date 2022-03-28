@@ -64,10 +64,21 @@ table2 as (select
 		   offset_date,
 		   
 		   JSON_SERIALIZE(select_modules1) as trimmedmod--,
+		   --, substring([trimmedmod], PatIndex('%[0-9]%', [trimmedmod], len([trimmedmod]))) as ag
 		   --substring(trimmedmod,2,5) as trimmedmod1
-		   ,PATINDEX('%[^0-9]%',trimmedmod) as ag
+		   --,PATINDEX('%[^0-9]%',trimmedmod) as ag
 		   --,SUBSTRING(trimmedmod, PATINDEX('%[0-9]%', trimmedmod), LEN(trimmedmod)) as ag
+		   DECLARE @string varchar(100)
 
+		SET @string = trimmedmod
+
+-- loop till there are characters left in a string
+		WHILE PATINDEX('%[^0-9]%',@string) <> 0
+			BEGIN
+    -- replace characters with empty space
+    		SET @string = STUFF(@string,PATINDEX('%[^0-9]%',@string),1,'')
+			END
+		SELECT @string
 
 	from table1 p
 group by status,codeStatus,brand,start_date,projectid1,select_modules1,code_brand,code, offset_date
