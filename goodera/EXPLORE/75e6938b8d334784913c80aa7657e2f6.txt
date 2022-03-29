@@ -5,7 +5,7 @@ select project_name, ngo_name, fy_timerange,state_district from profile_80249
   order by project_name, ngo_name, fy_timerange,state_district
 
 ), table1 as (
-select project_name,ngo_name, state_district, Substring(json_serialize(fy_timerange),11,4)::smallint as year, Substring(json_serialize(fy_timerange),16,2)::smallint as start_month,
+select project_name,ngo_name,sd.name as state_district, Substring(json_serialize(fy_timerange),11,4)::smallint as year, Substring(json_serialize(fy_timerange),16,2)::smallint as start_month,
   Substring(json_serialize(fy_timerange),49,2)::smallint as end_month,
 case when start_month = 1 then 'January'
 	 when start_month = 2 then 'February'
@@ -32,6 +32,10 @@ case when start_month = 1 then 'January'
 	 when end_month = 12 then 'November'
 	when end_month = 1 then 'December' end as end_month_name from table0
 
+  
+left join ds_mysql_prod_tagelement sd
+on table1.state_district = sd.id
+  
 ), 
 table2 as (
   select project_name, ngo_name, state_district, case when (year=2019 and start_month>3) or (year=2020 and start_month<4) then 'FY 2019-20'
