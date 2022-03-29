@@ -28,7 +28,7 @@ with table1 as (select
 				sum(reason_interest) as dropout_interest,
 				sum(reason_pressure) as dropout_pressure,
 				sum(reason_other) as dropout_other,
-				case when end_date_2 is null then 0 else sum(num_females) end as total_females_completed,p.projectid as projectid1,p.select_modules as select_modules1
+				case when end_date_2 is null then 0 else sum(num_females) end as total_females_completed,p.projectid as projectid1,select_modules
 				
 
 				from profile_4227 p
@@ -60,9 +60,69 @@ table2 as (select
 		   sum(dropout_pressure) as dropout_pressure,
 		   sum(dropout_other) as dropout_other,
 		   sum(total_females_completed) as total_females_completed,
-		   status,codeStatus,brand,start_date,projectid1,select_modules1,code_brand,code
+		   status,codeStatus,brand,start_date,projectid1,select_modules,code_brand,code
 
 	from table1 p
 group by status,codeStatus,brand,start_date,projectid1,select_modules1,code_brand,code
+),
+
+table3 as(select t2.*,CAST(select_module as int) from table2 t2,t2.select_modules select_module
+),
+table4 as (Select 
+		   select_module,
+		   sum(total_females) as total_females,
+		   sum(total_females_graduated) as total_females_graduated,
+		   sum(total_females_dropout) as total_females_dropout,
+		   sum(total_females_ongoing) as total_females_ongoing,
+		   sum(total_batches_ongoing) as total_batches_ongoing,
+		   sum(total_batches_completed) as total_batches_completed,
+		   avg(average_hours) as average_hours,
+		   sum(total_hours) as total_hours,
+		   sum(total_males) as total_males,
+		   sum(total_males_ongoing) as total_males_ongoing,
+		   sum(total_males_graduated) as total_males_graduated,
+		   sum(total_males_dropout) as total_males_dropout,
+		   sum(dropout_pregnancy) as dropout_pregnancy,
+		   sum(dropout_left) as dropout_left,
+		   sum(dropout_interest) as dropout_interest,
+		   sum(dropout_pressure) as dropout_pressure,
+		   sum(dropout_other) as dropout_other,
+		   sum(total_females_completed) as total_females_completed,
+		   status,codeStatus,brand,start_date,projectid1,code_brand,code
+		   from table3 
+
+where select_module in ('64503','70912','70941','70900','70910','70913','70909','70903','70901','70902','70911','264682','264684','264683') 
 )
-Select cast(total_females as int4),cast(total_females_graduated as int4),cast(total_females_dropout as int4),cast(total_females_ongoing as int4),cast(total_batches_ongoing as int4),cast(total_batches_completed as int4),cast(average_hours as float),cast(total_hours as int4), cast(total_males as int4),cast(total_males_ongoing as int4),cast(total_males_graduated as int4),cast(total_males_dropout as int4),cast(dropout_pregnancy as int4),cast(dropout_left as int4),cast(dropout_interest as int4),cast(dropout_pressure as int4),cast(dropout_other as int4),cast(total_females_completed as int4),start_date,projectid1 as projectid,select_modules1 as select_modules,code_brand,code from table2 p where status = 1 and codeStatus = 1 and brand = 1
+,
+,
+
+table5 as (select 
+		   listagg(select_module,',') as select_module ,
+		   select_module,
+		   sum(total_females) as total_females,
+		   sum(total_females_graduated) as total_females_graduated,
+		   sum(total_females_dropout) as total_females_dropout,
+		   sum(total_females_ongoing) as total_females_ongoing,
+		   sum(total_batches_ongoing) as total_batches_ongoing,
+		   sum(total_batches_completed) as total_batches_completed,
+		   avg(average_hours) as average_hours,
+		   sum(total_hours) as total_hours,
+		   sum(total_males) as total_males,
+		   sum(total_males_ongoing) as total_males_ongoing,
+		   sum(total_males_graduated) as total_males_graduated,
+		   sum(total_males_dropout) as total_males_dropout,
+		   sum(dropout_pregnancy) as dropout_pregnancy,
+		   sum(dropout_left) as dropout_left,
+		   sum(dropout_interest) as dropout_interest,
+		   sum(dropout_pressure) as dropout_pressure,
+		   sum(dropout_other) as dropout_other,
+		   sum(total_females_completed) as total_females_completed,
+		   status,codeStatus,brand,start_date,projectid1,code_brand,code
+ from table4 
+group by status,codeStatus,brand,start_date,projectid1,code_brand,code
+) 
+
+
+
+
+Select cast(total_females as int4),cast(total_females_graduated as int4),cast(total_females_dropout as int4),cast(total_females_ongoing as int4),cast(total_batches_ongoing as int4),cast(total_batches_completed as int4),cast(average_hours as float),cast(total_hours as int4), cast(total_males as int4),cast(total_males_ongoing as int4),cast(total_males_graduated as int4),cast(total_males_dropout as int4),cast(dropout_pregnancy as int4),cast(dropout_left as int4),cast(dropout_interest as int4),cast(dropout_pressure as int4),cast(dropout_other as int4),cast(total_females_completed as int4),start_date,projectid1 as projectid,select_modules1 as select_modules,code_brand,code from table5 p where status = 1 and codeStatus = 1 and brand = 1
