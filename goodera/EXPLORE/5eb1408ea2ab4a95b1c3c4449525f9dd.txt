@@ -1,0 +1,30 @@
+with temp as (
+  select 'Number of SHG members trained on WSS credit financing' as C
+  Union all 
+  select 'Number of WSS loan proposals prepared and submitted to bank for WSS loan disbursement' as C
+  Union all 
+  select 'Number of SHGs made aware of and applied for WSS loans' as C
+  )									
+
+SELECT projectid,/*loc.name as geography,state.name as State,*/year.name as year, 'Water.Org' as partner, '1' as dim,modifieddate,
+
+SUM(Case C
+	When 'Number of SHG members trained on WSS credit financing' then p.wss_credit_financing
+	 When 'Number of WSS loan proposals prepared and submitted to bank for WSS loan disbursement' then p.wss_loan_proposals
+	When 'Number of SHGs made aware of and applied for WSS loans' then p.shg_awareness
+Else Null
+END) as val , temp.C as indicator
+ 
+ from profile_77706 p
+  cross join temp							--pivot cross join
+  
+ left join ds_mysql_prod_tagelement year
+ on p.year = year.id 
+ 
+ left join ds_mysql_prod_tagelement loc
+ on p.geography = loc.id 
+ left join ds_mysql_prod_tagelement state
+on loc.parent = state.id
+			
+ 
+ GROUP BY projectid, year.name,/*loc.name,state.name,*/temp.C,p.modifieddate
