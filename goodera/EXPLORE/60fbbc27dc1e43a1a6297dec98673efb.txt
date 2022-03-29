@@ -1,6 +1,5 @@
 with sub1 as(
 select a.name, p.name as projectId, a.fy_timerange, a.child_status, t2.name as age_group, a.shelter_home_text,  t1.name as location
-  --, t.name as shelter_home_type
 from profile_52387 a 
 left join profile_79953 c on c.name=a.shelter_home_text
 --left join ds_mysql_prod_tagelement t on t.id=c.shelter_home
@@ -8,10 +7,10 @@ left join ds_mysql_prod_tagelement t1 on t1.id=c.location
 left join ds_mysql_prod_tagelement t2 on t2.id=a.age
 left join ds_mysql_prod_project p on p.id=a.projectid),
 sub2 as(
-  select a.name, a.projectId, a.fy_timerange, a.child_status, a.shelter_home_text,  a.location, case when a.shelter_home_text='Rainbow Home' then 'Female' else 'Male' end as gender, age_group from sub1 a),
+  select a.name, a.projectId, a.fy_timerange, a.child_status, a.shelter_home_text,  a.location, age_group, case when age_group='4-7 years' then 1 when age_group='8-12 years' then 2 when age_group='13-18 years' then 3 else 4 end as age_order  from sub1 a),
   sub3 as(
-  select projectId, fy_timerange, location, gender, age_group, count(name) as count from sub2 group by projectId, fy_timerange,  location, gender, age_group, shelter_home_text)
-  select projectId, fy_timerange, location, gender, age_group, count from sub3 a order by age_group asc
+  select projectId, fy_timerange, location, age_group, count(name) as count, age_order from sub2 group by projectId, fy_timerange,  location, age_group, age_order)
+  select projectId, fy_timerange, location, age_group, count, age_order from sub3 a order by age_group asc
 
 
 /*with sub1 as(
