@@ -5,7 +5,7 @@ select project_name, ngo_name, fy_timerange,state_district from profile_80249
   order by project_name, ngo_name, fy_timerange,state_district
 
 ), table1 as (
-select project_name,ngo_name,sd.name as state_district, Substring(json_serialize(fy_timerange),11,4)::smallint as year, Substring(json_serialize(fy_timerange),16,2)::smallint as start_month,
+select project_name,ngo_name,sd.name as state_district, mc.code as map_code, Substring(json_serialize(fy_timerange),11,4)::smallint as year, Substring(json_serialize(fy_timerange),16,2)::smallint as start_month,
   Substring(json_serialize(fy_timerange),49,2)::smallint as end_month,
 case when start_month = 1 then 'January'
 	 when start_month = 2 then 'February'
@@ -35,6 +35,14 @@ case when start_month = 1 then 'January'
   
 left join ds_mysql_prod_tagelement sd
 on table0.state_district = sd.id
+  
+  
+left join ds_mysql_prod_tagelement sn 
+on sd.parent = sn.id
+
+
+left join ds_mongo_reftagelementmetadata mc 
+on sn.reftagelementmetadataid = mc._id
   
 ), 
 table2 as (
