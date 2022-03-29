@@ -22,11 +22,48 @@ table3.projectid =profile_80249.projectid
 
 
 left join ds_mysql_prod_tagelement fa 
-on json_extract_array_element_text(json_serialize(profile_80249.focus_area),0, true) = fa.id)
-
+on json_extract_array_element_text(json_serialize(profile_80249.focus_area),0, true) = fa.id),
+table5 as (
 select projectid, csr_spend_type,fy_timerange, amount_allocated, focus_area from table2
 union 
 select projectid, csr_spend_type,fy_timerange, amount_allocated, focus_area from table4
 order by projectid, csr_spend_type,fy_timerange, amount_allocated, focus_area
+), table6 as (
+select  projectid, csr_spend_type, focus_area, Substring(json_serialize(fy_timerange),11,4)::smallint as year, Substring(json_serialize(fy_timerange),16,2)::smallint as start_month,
+  Substring(json_serialize(fy_timerange),49,2)::smallint as end_month,
+case when start_month = 1 then 'January'
+	 when start_month = 2 then 'February'
+	 when start_month = 3 then 'March'
+	 when start_month = 4 then 'April'
+	 when start_month = 5 then 'May'
+	 when start_month = 6 then 'June'
+	 when start_month = 7 then 'July'
+	 when start_month = 8 then 'August'
+	 when start_month = 9 then 'September'
+	 when start_month = 10 then 'October'
+	 when start_month = 11 then 'November'
+	when start_month = 12 then 'December' end as start_month_name,
+   case when end_month = 2 then 'January'
+	 when end_month = 3 then 'February'
+	 when end_month = 4 then 'March'
+	 when end_month = 5 then 'April'
+	 when end_month = 6 then 'May'
+	 when end_month = 7 then 'June'
+	 when end_month = 8 then 'July'
+	 when end_month = 9 then 'August'
+	 when end_month = 10 then 'September'
+	 when end_month = 11 then 'October'
+	 when end_month = 12 then 'November'
+	when end_month = 1 then 'December' end as end_month_name, sum(amount_allocated) as amount_allocated from table5
+
+  group by projectid, csr_spend_type, focus_area, fy_timerange 
+)
+select projectid,csr_spend_type,
+case when (year=2019 and start_month>3) or (year=2020 and start_month<4) then 'FY 2019-20'
+	 when (year=2020 and start_month>3) or (year=2021 and start_month<4) then 'FY 2020-21'
+	 when (year=2021 and start_month>3) or (year=2022 and start_month<4) then 'FY 2021-22' 
+	 when (year=2022 and start_month>3) or (year=2023 and start_month<4) then 'FY 2022-23'
+	 when (year=2023 and start_month>3) or (year=2024 and start_month<4) then 'FY 2023-24'
+	 else 'FY 2024-25' end as year, focus_area, amount_allocated from table6
 
 
