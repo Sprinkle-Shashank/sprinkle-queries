@@ -1,3 +1,48 @@
+with table0 as (
+select project_name, ngo_name, fy_timerange,state_district from profile_79500
+  union 
+select project_name, ngo_name, fy_timerange,state_district from profile_80249
+  order by project_name, ngo_name, fy_timerange,state_district
+
+), table1 as (
+select project_name,ngo_name, state_district, Substring(json_serialize(fy_timerange),11,4)::smallint as year, Substring(json_serialize(fy_timerange),16,2)::smallint as start_month,
+  Substring(json_serialize(fy_timerange),49,2)::smallint as end_month,
+case when start_month = 1 then 'January'
+	 when start_month = 2 then 'February'
+	 when start_month = 3 then 'March'
+	 when start_month = 4 then 'April'
+	 when start_month = 5 then 'May'
+	 when start_month = 6 then 'June'
+	 when start_month = 7 then 'July'
+	 when start_month = 8 then 'August'
+	 when start_month = 9 then 'September'
+	 when start_month = 10 then 'October'
+	 when start_month = 11 then 'November'
+	when start_month = 12 then 'December' end as start_month_name,
+   case when end_month = 2 then 'January'
+	 when end_month = 3 then 'February'
+	 when end_month = 4 then 'March'
+	 when end_month = 5 then 'April'
+	 when end_month = 6 then 'May'
+	 when end_month = 7 then 'June'
+	 when end_month = 8 then 'July'
+	 when end_month = 9 then 'August'
+	 when end_month = 10 then 'September'
+	 when end_month = 11 then 'October'
+	 when end_month = 12 then 'November'
+	when end_month = 1 then 'December' end as end_month_name from table0
+
+), 
+table2 as (
+  select project_name, ngo_name, state_district, case when (year=2019 and start_month>3) or (year=2020 and start_month<4) then 'FY 2019-20'
+	 when (year=2020 and start_month>3) or (year=2021 and start_month<4) then 'FY 2020-21'
+	 when (year=2021 and start_month>3) or (year=2022 and start_month<4) then 'FY 2021-22' 
+	 when (year=2022 and start_month>3) or (year=2023 and start_month<4) then 'FY 2022-23'
+	 when (year=2023 and start_month>3) or (year=2024 and start_month<4) then 'FY 2023-24'
+	 else 'FY 2024-25' end as year from table1
+  )
+/*
+
 with table1 as (
 select project_name, Substring(json_serialize(fy_timerange),11,4)::smallint as year, Substring(json_serialize(fy_timerange),16,2)::smallint as start_month,
   Substring(json_serialize(fy_timerange),49,2)::smallint as end_month,
@@ -37,3 +82,4 @@ case when start_month = 1 then 'January'
   
   select count(distinct project_name) as total_short_projects,year from table2
   group by year
+*/
