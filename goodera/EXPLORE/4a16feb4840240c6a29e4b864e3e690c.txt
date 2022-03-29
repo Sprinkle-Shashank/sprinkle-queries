@@ -1,4 +1,6 @@
-with table1 as (select projectid,proj.name as project_name,  cst.name as csr_spend_type, Substring(json_serialize(fy_timerange),11,4)::smallint as year, Substring(json_serialize(fy_timerange),16,2)::smallint as start_month,
+with table1 as (select projectid,cst.name as csr_spend_type, 
+				case when cst.name = 'Long Term Projects' then prj.name
+				else project_name end as project_name,  Substring(json_serialize(fy_timerange),11,4)::smallint as year, Substring(json_serialize(fy_timerange),16,2)::smallint as start_month,
   Substring(json_serialize(fy_timerange),49,2)::smallint as end_month,
 case when start_month = 1 then 'January'
 	 when start_month = 2 then 'February'
@@ -25,15 +27,15 @@ case when start_month = 1 then 'January'
 	 when end_month = 12 then 'November'
 	when end_month = 1 then 'December' end as end_month_name, sum(amount_allocated) as amount_allocated from profile_79520
 				
-				
-left join ds_mysql_prod_project proj
-on profile_79520.projectid = proj.id
+						
+left join ds_mysql_prod_tagelement prj
+on profile_79520.csr_project_name = prj.id
 				
 					
 left join ds_mysql_prod_tagelement cst
 on profile_79520.csr_spend_type = cst.id
 
-			   group by projectid,proj.name, fy_timerange, cst.name
+			   group by projectid,project_name,prj.name, fy_timerange, cst.name
 			   ) 
 			   select projectid,csr_spend_type, project_name,
 case when (year=2019 and start_month>3) or (year=2020 and start_month<4) then 'FY 2019-20'
