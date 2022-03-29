@@ -23,6 +23,26 @@ left join ds_mysql_prod_tagelement classTable on
 classTable.id = class_tag[0]
 		   		   	   
 group by cls_time,datastatus,st,code,brand,category,start_date, projectid1,select_modules,code_brand
+),
+
+
+table3 as(select t2.*,CAST(select_module as int) from table2 t2,t2.select_modules select_module
+),
+
+
+table4 as (Select 
+		   select_module,cls_time,participants, datastatus,st,code,brand, category,start_date, projectid1,select_modules,code_brand
+		   from table3 
+
+where select_module in ('64503','70912','70941','70900','70910','70913','70909','70903','70901','70902','70911','264682','264684','264683') 
+)
+,
+
+table5 as (select 
+		   listagg(select_module,',') as select_module 
+		   ,cls_time,participants, datastatus,st,code,brand, category,start_date, projectid1,code_brand
+ from table4 
+group by cls_time,participants, datastatus,st,code,brand, category,start_date, projectid1,code_brand
 )
 
-Select participants,category,start_date, projectid1,select_modules,code, code_brand from table2 p where datastatus = 1 and st = 1 and code = 'F' and brand = 1
+Select participants,category,start_date, projectid1 as projectid,select_module ,code, code_brand from table5 p where datastatus = 1 and st = 1 and code = 'F' and brand = 1
