@@ -1,4 +1,6 @@
-with table1 as (select projectid,proj.name as project_name, Substring(json_serialize(fy_timerange),11,4)::smallint as year, Substring(json_serialize(fy_timerange),16,2)::smallint as start_month,
+with table1 as (select projectid, cst.name as csr_spend_type, 
+				case when cst.name = 'Long Term Projects' then prj.name
+				else project_name end as project_name, Substring(json_serialize(fy_timerange),11,4)::smallint as year, Substring(json_serialize(fy_timerange),16,2)::smallint as start_month,
   Substring(json_serialize(fy_timerange),49,2)::smallint as end_month,
 case when start_month = 1 then 'January'
 	 when start_month = 2 then 'February'
@@ -23,18 +25,69 @@ case when start_month = 1 then 'January'
 	 when end_month = 10 then 'September'
 	 when end_month = 11 then 'October'
 	 when end_month = 12 then 'November'
-	when end_month = 1 then 'December' end as end_month_name, sum(.amt_transferred_to_unspent_csr_accnt) as amount_unspent from profile_80250
+	when end_month = 1 then 'December' end as end_month_name, sum(amt_transferred_to_unspent_csr_accnt) as amount_unspent from profile_80250
 				
+									
+left join ds_mysql_prod_tagelement prj
+on profile_80250.csr_project_name = prj.id
 				
-left join ds_mysql_prod_project proj
-on profile_80250.projectid = proj.id
+					
+left join ds_mysql_prod_tagelement cst
+on profile_80250.csr_spend_type = cst.id
 
-			   group by projectid,proj.name, fy_timerange
+			   group by projectid,proj.name, fy_timerange, cst.name
 			   ) 
-			   select projectid, project_name,
+			   select projectid, csr_spend_type, project_name,
 case when (year=2019 and start_month>3) or (year=2020 and start_month<4) then 'FY 2019-20'
 	 when (year=2020 and start_month>3) or (year=2021 and start_month<4) then 'FY 2020-21'
 	 when (year=2021 and start_month>3) or (year=2022 and start_month<4) then 'FY 2021-22' 
 	 when (year=2022 and start_month>3) or (year=2023 and start_month<4) then 'FY 2022-23'
 	 when (year=2023 and start_month>3) or (year=2024 and start_month<4) then 'FY 2023-24'
 	 else 'FY 2024-25' end as year, concat(concat(start_month_name,' - ' ),end_month_name) as quarter, amount_unspent from table1
+
+
+/*with table1 as (select projectid, proj.name as project_name, cst.name as csr_spend_type, Substring(json_serialize(fy_timerange),11,4)::smallint as year, Substring(json_serialize(fy_timerange),16,2)::smallint as start_month,
+  Substring(json_serialize(fy_timerange),49,2)::smallint as end_month,
+case when start_month = 1 then 'January'
+	 when start_month = 2 then 'February'
+	 when start_month = 3 then 'March'
+	 when start_month = 4 then 'April'
+	 when start_month = 5 then 'May'
+	 when start_month = 6 then 'June'
+	 when start_month = 7 then 'July'
+	 when start_month = 8 then 'August'
+	 when start_month = 9 then 'September'
+	 when start_month = 10 then 'October'
+	 when start_month = 11 then 'November'
+	when start_month = 12 then 'December' end as start_month_name,
+   case when end_month = 2 then 'January'
+	 when end_month = 3 then 'February'
+	 when end_month = 4 then 'March'
+	 when end_month = 5 then 'April'
+	 when end_month = 6 then 'May'
+	 when end_month = 7 then 'June'
+	 when end_month = 8 then 'July'
+	 when end_month = 9 then 'August'
+	 when end_month = 10 then 'September'
+	 when end_month = 11 then 'October'
+	 when end_month = 12 then 'November'
+	when end_month = 1 then 'December' end as end_month_name, sum(amt_transferred_to_unspent_csr_accnt) as amount_unspent from profile_80250
+				
+				
+left join ds_mysql_prod_project proj
+on profile_80250.projectid = proj.id
+				
+					
+left join ds_mysql_prod_tagelement cst
+on profile_79521.csr_spend_type = cst.id
+
+			   group by projectid,proj.name, fy_timerange, cst.name
+			   ) 
+			   select projectid, csr_spend_type, project_name,
+case when (year=2019 and start_month>3) or (year=2020 and start_month<4) then 'FY 2019-20'
+	 when (year=2020 and start_month>3) or (year=2021 and start_month<4) then 'FY 2020-21'
+	 when (year=2021 and start_month>3) or (year=2022 and start_month<4) then 'FY 2021-22' 
+	 when (year=2022 and start_month>3) or (year=2023 and start_month<4) then 'FY 2022-23'
+	 when (year=2023 and start_month>3) or (year=2024 and start_month<4) then 'FY 2023-24'
+	 else 'FY 2024-25' end as year, concat(concat(start_month_name,' - ' ),end_month_name) as quarter, amount_unspent from table1
+*/
