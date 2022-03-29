@@ -1,0 +1,67 @@
+with table1 as(
+  select p.sub_unit, p1.status,p._id,
+  --filters
+cou.name as country , 
+nvl2(SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)),ven.name) as vendor_name, case when vendor_name='' then ven.name else vendor_name end as vendor, fac.name as factory , 
+case when p1.name_subunit is null or p1.name_subunit=' ' then  'N/A' else p1.name_subunit end  as unit,
+cast(DATEPART(YEAR,p1.date_enrollment) as varchar) as year_new ,
+--fy1.name as year_new,  
+quarter1.name as quarter, fy1.name as fy,
+  p.hr_personnel as g1 , p.complaint_box as g2 , p.bc_members as g3, p.production_personnel as g4 , p.worker_surveys as g5 , p.helpline as g6 , p.external_parties g7, p.others as g8
+   from profile_16863 p
+  
+ left join profile_16619  p1  
+on  p.sub_unit =  p1._Id
+left join ds_mysql_prod_project fac
+on p.projectid = fac.id
+left join ds_mysql_prod_project ven
+on fac.parent = ven.id
+left join ds_mysql_prod_project cou
+on ven.parent = cou.id
+  left join ds_mysql_prod_tagelement quarter1 on
+  p.quarter = quarter1.id
+  left join ds_mysql_prod_tagelement fy1 on
+  p.fy = fy1.id
+
+  
+ where p.sub_unit ilike '%%' and country <> 'Test Country'   and (p1.status = 1400365 or p1.status is null) and country <> 'GAP Inc.'
+
+group by p._id,p.sub_unit ,cou.name , fac.name , ven.name , quarter1.name , fy1.name , p1.name_subunit  , p1.status  ,p1.date_enrollment , p.hr_personnel , p.complaint_box ,p.bc_members, p.production_personnel , p.worker_surveys, p.helpline , p.external_parties , p.others 
+),
+temp as (
+  select 'HR personnel' as dim
+  union all
+  select 'Suggestion/complaint box' as dim
+  union all
+  select 'BC members/Union Committee' as dim
+  union all
+  select ' Production personnel' as dim
+  union all
+  select 'Worker surveys' as dim
+  union all
+  select 'Helpline/Hotline/phone app' as dim
+  union all
+  select 'External parties (buyers/ NGOs etc.) ' as dim
+  union all
+  select 'other' as dim
+ 
+)
+
+select _id,country , vendor, factory , region , unit, year_new , quarter, fy,temp.dim,
+case dim
+when 'HR personnel' then g1 
+when 'Suggestion/complaint box' then g2  
+when 'BC members/Union Committee' then g3
+when ' Production personnel' then g4
+when 'Worker surveys' then g5  
+when 'Helpline/Hotline/phone app' then g6
+when 'External parties (buyers/ NGOs etc.) ' then g7 
+when 'other' then g8 
+
+
+	Else Null
+	End as value1	
+from table1
+cross join temp
+
+group by _id,country , vendor, factory, unit, year_new , quarter, fy,temp.dim,g1 ,g2,g3,g4,g5,g6,g7,g8
