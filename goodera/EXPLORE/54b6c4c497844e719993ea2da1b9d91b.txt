@@ -1,0 +1,31 @@
+WITH S1 AS (
+  
+  SELECT *
+
+  FROM profile_79279 AS PD,
+
+PD.focus_area AS focus_area_unwind,
+PD.sdg AS sdg_unwind,
+PD.sdg_photo AS sdg_photo_unwind
+  )
+
+SELECT S1.name, S1.description, S1.logo, S1.funding_entity, S1.partner,
+CONCAT(CONCAT(CONCAT(CONCAT(SUBSTRING(S1.start_date,9,2),'-'),SUBSTRING(S1.start_date,6,2)),'-'),SUBSTRING(S1.start_date,1,4)) AS start_date,CONCAT(CONCAT(CONCAT(CONCAT(SUBSTRING(S1.completion_date,9,2),'-'),SUBSTRING(S1.completion_date,6,2)),'-'),SUBSTRING(S1.completion_date,1,4)) AS completion_date,
+
+T1.name AS focus_area_unwind,
+T2.name AS sdg_unwind,
+LISTAGG(DISTINCT CAST(S1.sdg_photo_unwind AS VARCHAR),',') AS sdg_photo_unwind2,
+P.name AS projectId
+	
+FROM S1
+	
+LEFT JOIN ds_mysql_prod_project AS P
+ON P.id = S1.projectId
+
+LEFT JOIN ds_mysql_prod_tagelement AS T1
+ON T1.id = S1.focus_area_unwind
+
+LEFT JOIN ds_mysql_prod_tagelement AS T2
+ON T2.id = S1.sdg_unwind
+
+GROUP BY S1.name, S1.description, S1.logo, S1.funding_entity, S1.start_date, S1.completion_date, S1.partner, T1.name, T2.name, P.name
