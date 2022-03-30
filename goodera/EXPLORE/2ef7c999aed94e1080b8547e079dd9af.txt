@@ -1,0 +1,88 @@
+with table1 as(select p.projectId,p.status,decode(DATEPART(YEAR,p.date_enrollment),null,0,DATEPART(YEAR,p.date_enrollment)) as year_new from profile_16619 p
+
+			   
+left join profile_20701 p2
+on p.projectId = p2.projectId
+			   
+group by p.projectId
+),
+table2 as(select p.projectId,fac.name as factory,nvl2(SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), ven.name) as vendor_name, case when vendor_name='' then ven.name else vendor_name end as vendor,cou.name as country,case when country in ('India', 'Bangladesh', 'Sri Lanka')
+then 'South Asia'
+when country in ('China')
+then 'North Asia'
+when country in ('Guatemala', 'El Salvador', 'Dominican Republic')
+then 'Americas'
+when country in ('Philippines', 'Cambodia',  'Vietnam',  'Indonesia', 'Myanmar')
+then 'South East Asia'
+end as region,case when p2.name_subunit is null or p2.name_subunit=' ' then 'N/A' else p2.name_subunit end  as unit,t1.year_new,age.name as agenda from profile_20701 p
+
+left join ds_mysql_prod_project fac
+on p.projectid = fac.id
+left join ds_mysql_prod_project ven
+on fac.parent = ven.id
+left join ds_mysql_prod_project cou
+on ven.parent = cou.id
+
+left join profile_16619 p2
+on p.sub_unit = p2._id
+
+left join table1 t1 on
+p.projectId = t1.projectId
+			   
+left join ds_mysql_prod_tagelement age
+on p.agenda = age.id
+
+where  (cou.name <> 'Test Country' and cou.name <> 'GAP Inc.') and (p.projectId ilike '%%') and (t1.projectId is not null) and (t1.status = 1400365 or t1.status is null)
+),
+table3 as(SELECT * 
+FROM (SELECT projectId,factory,vendor,country,region,year_new,unit,agenda,count(agenda) as total 
+	  
+	  from table2 
+	  
+	  
+
+	 group by projectId,agenda,factory,vendor,country,region,year_new,unit)
+
+PIVOT (
+    SUM(total) FOR agenda IN ('No agenda is shared' as no_age,'The agenda is shared in the meeting' as share_agenda,'The agenda is shared 1-3 days in advance of the meeting' as min_days,'The agenda is shared 4 or more days in advance of the meeting' as more_days)
+)
+),
+table4 as(select projectId,factory,vendor,country,region,year_new,unit,case when no_age is null then 0 else no_age end as no_age_count,
+		  case when share_agenda is null then 0 else share_agenda end as share_agenda_count,
+		  case when min_days is null then 0 else min_days end as min_days_count,
+		  case when more_days is null then 0 else more_days end as more_days_count,
+		 (no_age_count+share_agenda_count+min_days_count+more_days_count) as total,
+(no_age_count*100.0)/total as no_age_percent,
+		(share_agenda_count*100.0)/total as share_agenda_percent,
+	(min_days_count*100.0)/total as min_days_percent ,
+		  (more_days_count*100.0)/total as more_days_percent 
+		  from table3
+		  
+),
+temp as (
+  select 'No agenda is shared' as dim
+  union all
+  select 'The agenda is shared in the meeting' as dim
+  union all
+  select 'The agenda is shared 1-3 days in advance of the meeting' as dim
+  union all
+  select 'The agenda is shared 4 or more days in advance of the meeting' as dim
+)
+select  projectId,factory,vendor,country,region,year_new,unit,no_age_count,share_agenda_count,min_days_count,more_days_count,total,no_age_percent,share_agenda_percent,min_days_percent,more_days_percent,temp.dim,case dim
+	when 'No agenda is shared' then no_age_percent 
+	when 'The agenda is shared in the meeting' then share_agenda_percent  
+	when 'The agenda is shared 1-3 days in advance of the meeting' then min_days_percent
+	when 'The agenda is shared 4 or more days in advance of the meeting' then more_days_percent
+
+	Else Null
+	End as value1	
+	from table4
+	cross join temp
+
+group by projectId,factory,vendor,country,region,year_new,unit,no_age_count,share_agenda_count,min_days_count,more_days_count,total,temp.dim,no_age_percent,share_agenda_percent,min_days_percent,more_days_percent
+
+	  
+	  
+
+	 
+
