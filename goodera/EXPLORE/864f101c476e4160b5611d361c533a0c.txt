@@ -1,0 +1,89 @@
+with table1 as(select p.projectId,p.status,decode(DATEPART(YEAR,p.date_enrollment),null,0,DATEPART(YEAR,p.date_enrollment)) as year_new from profile_16619 p
+
+			   
+left join profile_20701 p2
+on p.projectId = p2.projectId
+			   
+group by p.projectId,p.status,year_new
+),
+table2 as(select p.projectId,fac.name as factory,nvl2(SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), ven.name) as vendor_name, case when vendor_name='' then ven.name else vendor_name end as vendor,cou.name as country,case when country in ('India', 'Bangladesh', 'Sri Lanka')
+then 'South Asia'
+when country in ('China')
+then 'North Asia'
+when country in ('Guatemala', 'El Salvador', 'Dominican Republic')
+then 'Americas'
+when country in ('Philippines', 'Cambodia',  'Vietnam',  'Indonesia', 'Myanmar')
+then 'South East Asia'
+end as region,case when p2.name_subunit is null or p2.name_subunit=' ' then 'N/A' else p2.name_subunit end  as unit,t1.year_new,com.name as comfort from profile_20701 p
+
+left join ds_mysql_prod_project fac
+on p.projectid = fac.id
+left join ds_mysql_prod_project ven
+on fac.parent = ven.id
+left join ds_mysql_prod_project cou
+on ven.parent = cou.id
+
+left join profile_16619 p2
+on p.sub_unit = p2._id
+
+left join table1 t1 on
+p.projectId = t1.projectId
+			   
+left join ds_mysql_prod_tagelement com
+on p.comfort = com.id
+
+where  (cou.name <> 'Test Country' and cou.name <> 'GAP Inc.') and (p.projectId ilike '%%') and (t1.projectId is not null) and (t1.status = 1400365 or t1.status is null)
+),
+table3 as(SELECT * 
+FROM (SELECT projectId,factory,vendor,country,region,year_new,unit,comfort,count(comfort) as total 
+	  
+	  from table2 
+	  
+	  
+
+	 group by projectId,comfort,factory,vendor,country,region,year_new,unit)
+
+PIVOT (
+    SUM(total) FOR comfort IN ('Very uncomfortable' as very_un,'Somewhat uncomfortable' as some_un,'Very comfortable' as very_com,'Not answered' as n_a)
+)
+),
+table4 as(select projectId,factory,vendor,country,region,year_new,unit,case when very_un is null then 0 else very_un end as very_un_count,
+		  case when some_un is null then 0 else some_un end as some_un_count,
+		  case when very_com is null then 0 else very_com end as very_com_count,
+		  case when n_a is null then 0 else n_a end as n_a_count,
+		 (very_un_count+some_un_count+very_com_count+n_a_count) as total,
+(very_un_count*100.0)/total as very_un_percent,
+		(some_un_count*100.0)/total as some_un_percent,
+	(very_com_count*100.0)/total as very_com_percent ,
+		  (n_a_count*100.0)/total as n_a_percent 
+		  from table3
+		  
+),
+temp as (
+  select 'Very uncomfortable' as dim
+  union all
+  select 'Somewhat uncomfortable' as dim
+  union all
+  select 'Very comfortable' as dim
+  union all
+  select 'Not answered' as dim
+)
+select  projectId,factory,vendor,country,region,year_new,unit,very_un_count,some_un_count,very_com_count,n_a_count,total,very_un_percent,some_un_percent,very_com_percent,n_a_percent,temp.dim,case dim
+	when 'Very uncomfortable' then very_un_percent 
+	when 'Somewhat uncomfortable' then some_un_percent  
+	when 'Very comfortable' then very_com_percent
+	when 'Not answered' then n_a_percent
+
+	Else Null
+	End as value1	
+	from table4
+	cross join temp
+
+group by projectId,factory,vendor,country,region,year_new,unit,very_un_count,some_un_count,very_com_count,n_a_count,total,temp.dim,very_com_percent,very_un_percent,some_un_percent,n_a_percent
+
+
+	  
+	  
+
+	 
+
