@@ -1,0 +1,94 @@
+with table1 as(select p.projectId,p.status,decode(DATEPART(YEAR,p.date_enrollment),null,0,DATEPART(YEAR,p.date_enrollment)) as year_new from profile_16619 p
+
+			   
+left join profile_20702 p2
+on p.projectId = p2.projectId
+			   
+group by p.projectId,p.status,year_new
+),
+table2 as(select p.projectId,fac.name as factory,nvl2(SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), ven.name) as vendor_name, case when vendor_name='' then ven.name else vendor_name end as vendor,cou.name as country,case when country in ('India', 'Bangladesh', 'Sri Lanka')
+then 'South Asia'
+when country in ('China')
+then 'North Asia'
+when country in ('Guatemala', 'El Salvador', 'Dominican Republic')
+then 'Americas'
+when country in ('Philippines', 'Cambodia',  'Vietnam',  'Indonesia', 'Myanmar')
+then 'South East Asia'
+end as region,case when p2.name_subunit is null or p2.name_subunit=' ' then 'N/A' else p2.name_subunit end  as unit,t1.year_new,isu.name as issue from profile_20702 p
+
+left join ds_mysql_prod_project fac
+on p.projectid = fac.id
+left join ds_mysql_prod_project ven
+on fac.parent = ven.id
+left join ds_mysql_prod_project cou
+on ven.parent = cou.id
+
+left join profile_16619 p2
+on p.sub_unit = p2._id
+
+left join table1 t1 on
+p.projectId = t1.projectId
+			   
+left join ds_mysql_prod_tagelement isu
+on p.issue = isu.id
+
+where  (cou.name <> 'Test Country' and cou.name <> 'GAP Inc.') and (p.projectId ilike '%%') and (t1.projectId is not null) and (t1.status = 1400365 or t1.status is null)
+),
+table3 as(SELECT * 
+FROM (SELECT projectId,factory,vendor,country,region,year_new,unit,issue,count(issue) as total 
+	  
+	  from table2 
+	  
+	  
+
+	 group by projectId,issue,factory,vendor,country,region,year_new,unit)
+
+PIVOT (
+    SUM(total) FOR issue IN ('Supervisor' as supervise,'Human Resources (HR) representative' as hr, 'Bi-Partite Committee representative' as rep, 'Other' as other,'Not answered' as n_a)
+)
+),
+table4 as(select projectId,factory,vendor,country,region,year_new,unit,case when supervise is null then 0 else supervise end as supervise_count,
+		  case when hr is null then 0 else hr end as hr_count,
+		  case when rep is null then 0 else rep end as rep_count,
+		  case when other is null then 0 else other end as other_count,
+		  case when n_a is null then 0 else n_a end as n_a_count,
+		 (supervise_count+hr_count+rep_count+other_count+n_a_count) as total,
+(supervise_count*100.0)/total as supervise_percent,
+		(hr_count*100.0)/total as hr_percent,
+		  (rep_count*100.0)/total as rep_percent,
+		  (other_count*100.0)/total as other_percent,
+	(n_a_count*100.0)/total as not_answer_percent 
+		  from table3
+		  
+),
+temp as (
+  select 'Supervisor' as dim
+  union all
+  select 'Human Resources (HR) representative' as dim
+  union all
+  select 'Bi-Partite Committee representative' as dim
+  union all
+  select 'Other' as dim
+  union all
+  select 'Not answered' as dim
+)
+select  projectId,factory,vendor,country,region,year_new,unit,supervise_count,hr_count,rep_count,other_count,n_a_count,total,supervise_percent,hr_percent,rep_percent,other_percent,not_answer_percent,temp.dim,case dim
+	when 'Supervisor' then supervise_percent 
+	when 'Human Resources (HR) representative' then hr_percent
+	when 'Bi-Partite Committee representative' then rep_percent 
+	when 'Other' then other_percent 
+	when 'Not answered' then not_answer_percent
+
+	Else Null
+	End as value1	
+	from table4
+	cross join temp
+
+group by projectId,factory,vendor,country,region,year_new,unit,supervise_count,hr_count,rep_count,other_count,n_a_count,total,temp.dim,supervise_percent,hr_percent,rep_percent,other_percent,not_answer_percent
+
+
+	  
+	  
+
+	 
+
