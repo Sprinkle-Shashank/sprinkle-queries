@@ -1,39 +1,25 @@
-with table1 as (select p.project_name, p.fy_timerange, p.ngo_name,fa.name as focus_area, sdg_logo, json_extract_path_text(json_serialize(p.fy_timerange), 'start', true) as start_date,json_extract_path_text(json_serialize(p.fy_timerange), 'end', true) as end_date, case when ps.name is null then 'Ongoing' else ps.name end as status  from profile_79500 p
+With tableA as (select p.project_name, p.fy_timerange, p.ngo_name,state_district, benf_impacted from profile_79500 p
 				
-				
-left join ds_mysql_prod_tagelement fa 
-on json_extract_array_element_text(json_serialize(p.focus_area),0) = fa.id
 				
 left join profile_80250 p2 on
 p.projectid = p2.projectid
 				
-left join ds_mysql_prod_tagelement ps 
-on p2.project_status = ps.id
-				
-				
 
 				
-), table2 as (select p.project_name, p.fy_timerange, ngo_name,fa.name as focus_area, sdg_logo, json_extract_path_text(json_serialize(p.fy_timerange), 'start', true) as start_date,json_extract_path_text(json_serialize(p.fy_timerange), 'end', true) as end_date, case when ps.name is null then 'Ongoing' else ps.name end as status from profile_80249 p
+), tableB as (select p.project_name, p.fy_timerange, ngo_name,state_district, benf_impacted from profile_80249 p
 				
-				
-left join ds_mysql_prod_tagelement fa 
-on json_extract_array_element_text(json_serialize(p.focus_area),0,true) = fa.id
-		
-			  		
 left join profile_80250 p2 on
 p.project_name = p2.project_name
 				
-left join ds_mysql_prod_tagelement ps 
-on p2.project_status = ps.id
-			  
 
-),table3 as (
-select project_name, fy_timerange, ngo_name, focus_area, sdg_logo, start_date, end_date, status from table1
-union 
-select project_name, fy_timerange, ngo_name, focus_area, sdg_logo, start_date, end_date, status from table2
-order by project_name, fy_timerange, ngo_name, focus_area, sdg_logo, start_date, end_date, status),table4 as (
-select project_name,  ngo_name, focus_area, sdg_logo, start_date, end_date,status,
-Substring(json_serialize(fy_timerange),11,4)::smallint as year, Substring(json_serialize(fy_timerange),16,2)::smallint as start_month,
+),table0 as (
+select project_name, ngo_name, fy_timerange,state_district, benf_impacted from tableA
+  union 
+select project_name, ngo_name, fy_timerange,state_district, benf_impacted from tableB
+  order by project_name, ngo_name, fy_timerange,state_district, benf_impacted 
+
+), table1 as (
+select project_name,ngo_name,sd.name as state_district, mc.code as map_code, case when benf_impacted is null then 5 else benf_impacted end as benf_impacted, Substring(json_serialize(fy_timerange),11,4)::smallint as year, Substring(json_serialize(fy_timerange),16,2)::smallint as start_month,
   Substring(json_serialize(fy_timerange),49,2)::smallint as end_month,
 case when start_month = 1 then 'January'
 	 when start_month = 2 then 'February'
@@ -58,32 +44,28 @@ case when start_month = 1 then 'January'
 	 when end_month = 10 then 'September'
 	 when end_month = 11 then 'October'
 	 when end_month = 12 then 'November'
-	when end_month = 1 then 'December' end as end_month_name from table3)
-	select project_name,  ngo_name, focus_area, sdg_logo, start_date, end_date, status,case when (year=2019 and start_month>3) or (year=2020 and start_month<4) then 'FY 2019-20'
+	when end_month = 1 then 'December' end as end_month_name from table0
+
+  
+left join ds_mysql_prod_tagelement sd
+on table0.state_district = sd.id
+  
+  
+left join ds_mysql_prod_tagelement sn 
+on sd.parent = sn.id
+
+
+left join ds_mongo_reftagelementmetadata mc 
+on sn.reftagelementmetadataid = mc._id
+  
+), 
+table2 as (
+  select project_name, ngo_name, state_district,map_code,benf_impacted, case when (year=2019 and start_month>3) or (year=2020 and start_month<4) then 'FY 2019-20'
 	 when (year=2020 and start_month>3) or (year=2021 and start_month<4) then 'FY 2020-21'
 	 when (year=2021 and start_month>3) or (year=2022 and start_month<4) then 'FY 2021-22' 
 	 when (year=2022 and start_month>3) or (year=2023 and start_month<4) then 'FY 2022-23'
 	 when (year=2023 and start_month>3) or (year=2024 and start_month<4) then 'FY 2023-24'
-	 else 'FY 2024-25' end as year from table4
-
-
-/*
-with table1 as (
-    select projectid,profile_79500.name,fa.name as focus_area,description,ngo_logo,sdg_logo as photo,fy_timerange,sd.name as state_district,start_date, end_date
-from profile_79500
+	 else 'FY 2024-25' end as year from table1
+  )
   
-left join ds_mysql_prod_tagelement sd
-on profile_79500.state_district= sd.id
-
- 
-left join ds_mysql_prod_tagelement fa
-on profile_79500.focus_area= fa.id
-
-where projectid = 64744
-  
-), table2 as (select projectid,name,focus_area,description,ngo_logo,fy_timerange,state_district, start_date, end_date, cast(sdg_logo as varchar) from table1 t1, t1.photo sdg_logo
-
-group by projectid,name,focus_area,description,ngo_logo,sdg_logo,fy_timerange,state_district, start_date, end_date
-) select projectid,name,focus_area,description,ngo_logo,fy_timerange,state_district, start_date, end_date, LISTAGG( DISTINCT sdg_logo, ', ' ) as sdgs from table2
-
-group by projectid,name,focus_area,description,ngo_logo,fy_timerange,state_district, start_date, end_date*/
+  select year, project_name, ngo_name,benf_impacted, state_district,map_code from table2
