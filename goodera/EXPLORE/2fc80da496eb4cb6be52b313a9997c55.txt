@@ -1,7 +1,9 @@
 with base1 as (
-	select value.comp as comp,value.mandated as mandated,value.till_date as till_date
+	select value.comp as comp,value.mandated as mandated,value.till_date as till_date,t.select_fy
 from profile_29301 as t, unpivot t.summary_18 as value at summary_18
 )
-select comp,decode(mandated,0,0,((till_date/mandated)*100)) as Disbursed,
-decode(mandated,0,0,(((mandated - till_date)/mandated)*100)) as Not_disbursed from base1
+select comp,tag1.name as select_fy,decode(mandated,0,0,((till_date/mandated)*100)) as Disbursed,
+decode(mandated,0,0,(((mandated - till_date)/mandated)*100)) as Not_disbursed from base1 b
+left join ds_mysql_prod_tagelement tag1
+on b.select_fy = tag1.id
 where comp is not null
