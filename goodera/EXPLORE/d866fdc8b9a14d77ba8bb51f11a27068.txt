@@ -22,7 +22,7 @@ with temp as (
   select 'Volume of water harvested in source strengthening structures (Million litres)' as C )
   
   
-  SELECT year.name as year, temp.C as indicator, decode(p3.training_count,null,0,p3.training_count) as training_count,
+  SELECT year.name as year, temp.C as indicator, 
   SUM(Case C
 	When 'Area under Sustainable Cotton Cultivation (in acre)' then p1.m_trained+p1.f_trained
 	When 'Number of farmers adopting more that 50% of the Good Operating Practices on Sustainable Cotton Cultivation' then p2.m_adoption+p2.f_adoption
@@ -34,7 +34,7 @@ with temp as (
 	   When 'Total number of farmers adopting Good Operating Practices on Sustainable Cotton Cultivation' then p1.m_area+p1.f_area
 	  When 'Total number of farmers trained on Good Operating Practices for Sustainable Cotton Cultivation' then p1.f_volume+p1.m_volume
 	  When 'Volume of cotton produced adopting good operating practices (in quintal)' then p3.onboard
-	  when 'Volume of water harvested in source strengthening structures (Million litres)' then training_count
+	  when 'Volume of water harvested in source strengthening structures (Million litres)' then p3.training_count
 	Else Null
 END) as Progress_till_date, '1' as dim
 	  from profile_76781 p1
@@ -47,7 +47,7 @@ END) as Progress_till_date, '1' as dim
 	       cross join temp
 		   left join ds_mysql_prod_tagelement year
           on p1.year = year.id 
-	   GROUP BY  year.name,temp.C, training_count
+	   GROUP BY  year.name,temp.C
  
  
  
