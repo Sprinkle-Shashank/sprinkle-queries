@@ -1,0 +1,44 @@
+with temp as (
+  select 'Percentage of active learning groups against current annual target' as C
+  Union all 
+  select 'Number of women enrolled in P.A.C.E. program' as C
+    Union all 
+  select 'Percentage of women who graduated the P.A.C.E. program' as C
+      Union all 
+  select 'Number of women who graduated the P.A.C.E. program' as C
+      Union all 
+  select 'Number of women trained on P.A.C.E. WASH module' as C
+      Union all 
+  select 'Number of active P.A.C.E. champions' as C
+   Union all 
+  select 'Number of active Male Champions' as C
+ 
+  /* Union all 
+  select 'Number of WSS loan proposals prepared and submitted to bank for WSS loan disbursement' as C
+  Union all 
+  select 'Number of SHGs made aware of and applied for WSS loans' as C
+  Union all 
+  select 'Value of new funding (in USD) mobilized for the water and sanitation sector' as C
+  */
+)									
+
+SELECT projectid, 'Care.Summary' as partner, '1' as dim,modifieddate,
+
+SUM(Case C
+	When 'Number of women enrolled in P.A.C.E. program' then p.enrollment 
+	where lg_status <> 847851
+	When 'Number of women who graduated the P.A.C.E. program' then p.pace_completion
+	where lg_status <> 847851
+	When 'Number of women trained on P.A.C.E. WASH module' then p.module_5
+	where lg_status <> 847851
+	
+	
+	Else Null
+END) as val , temp.C as indicator
+ 
+ from profile_29179 p
+  cross join temp							--pivot cross join
+  
+
+ 
+ GROUP BY projectid, year.name,temp.C,p.modifieddate
