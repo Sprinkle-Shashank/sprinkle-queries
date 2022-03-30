@@ -1,12 +1,13 @@
-with table1 as(select p.projectId,p.status,decode(DATEPART(YEAR,p.date_enrollment),null,0,DATEPART(YEAR,p.date_enrollment)) as year_new from profile_16619 p
+with table1 as(select p.projectId from profile_16619 p
 
 			   
 left join profile_18224 p2
 on p.projectId = p2.projectId
 			   
-group by p.projectId,p.status,year_new
-),
-table2 as(select p.projectId,fac.name as factory,nvl2(SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), ven.name) as vendor_name, case when vendor_name='' then ven.name else vendor_name end as vendor,cou.name as country,case when country in ('India', 'Bangladesh', 'Sri Lanka')
+group by p.projectId
+),	
+
+table2 as(Select p.projectId as project,fac.name as factory,ven.name as vendor1,nvl2(SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), ven.name) as vendor_name, case when vendor_name='' then ven.name else vendor_name end as vendor,cou.name as country,case when country in ('India', 'Bangladesh', 'Sri Lanka')
 then 'South Asia'
 when country in ('China')
 then 'North Asia'
@@ -14,7 +15,18 @@ when country in ('Guatemala', 'El Salvador', 'Dominican Republic')
 then 'Americas'
 when country in ('Philippines', 'Cambodia',  'Vietnam',  'Indonesia', 'Myanmar')
 then 'South East Asia'
-end as region,case when p2.name_subunit is null or p2.name_subunit=' ' then 'N/A' else p2.name_subunit end  as unit,t1.year_new,representative.name as mr_wr from profile_18224 p
+end as region,case when p2.name_subunit is null or p2.name_subunit=' ' then 'N/A' else p2.name_subunit end  as unit,decode(DATEPART(YEAR,p2.date_enrollment),null,0,DATEPART(YEAR,p2.date_enrollment)) as year_new,p2.status,t1.projectId,representative.name as mr_wr,
+count(mr_wr) as total_representatives
+
+from profile_18224 p
+
+
+
+left join profile_16619 p2
+on p.sub_unit = p2._id
+
+left join table1 t1 on
+p.projectId = t1.projectId
 
 left join ds_mysql_prod_project fac
 on p.projectid = fac.id
@@ -22,63 +34,21 @@ left join ds_mysql_prod_project ven
 on fac.parent = ven.id
 left join ds_mysql_prod_project cou
 on ven.parent = cou.id
+		  
 
-left join profile_16619 p2
-on p.sub_unit = p2._id
-
-left join table1 t1 on
-p.projectId = t1.projectId
-			   
 left join ds_mysql_prod_tagelement representative
 on p.mr_wr = representative.id
 
-where  (cou.name <> 'Test Country' and cou.name <> 'GAP Inc.')  and (p.projectId ilike '%%') and (t1.projectId is not null) and (t1.status = 1400365 or t1.status is null)
-),
-table3 as(SELECT * 
-FROM (SELECT projectId,factory,vendor,country,region,year_new,unit,mr_wr,count(mr_wr ) as total 
-	  
-	  from table2 
-	  
-	  
+			
 
-	 group by projectId,mr_wr,factory,vendor,country,region,year_new,unit)
 
-PIVOT (
-    SUM(total) FOR mr_wr IN ('Management Representative' as m_r,'Worker Representative' as w_r,'Not answered' as n_a)
+
+where  (cou.name <> 'Test Country' and cou.name <> 'GAP Inc.') and (p2.status = 1400365 or p2.status is null) and
+t1.projectId is not null
+	    and   project ilike '%%' 
+group by  p.projectId,fac.name ,ven.name,vendor,cou.name,region,unit,year_new,p2.status,t1.projectId,representative.name
+
+
 )
-),
-table4 as(select projectId,factory,vendor,country,region,year_new,unit,case when m_r is null then 0 else m_r end as m_r_count,
-		  case when w_r is null then 0 else w_r end as w_r_count,
-		  case when n_a is null then 0 else n_a end as n_a_count,
-		 (m_r_count+w_r_count+n_a_count) as total,
-(m_r_count*100.0)/total as mgmt_percent,
-		(w_r_count*100.0)/total as worker_percent,
-	(n_a_count*100.0)/total as not_answer_percent 
-		  from table3
-		  
-),
-temp as (
-  select 'Management Representatives' as dim
-  union all
-  select 'Worker Representatives' as dim
-  union all
-  select 'Not answered' as dim
-)
-select  projectId,factory,vendor,country,region,year_new,unit,m_r_count,w_r_count,n_a_count,total,mgmt_percent,worker_percent,not_answer_percent,temp.dim,case dim
-	when 'Management Representatives' then mgmt_percent 
-	when 'Worker Representatives' then worker_percent  
-	when 'Not answered' then not_answer_percent
-
-	Else Null
-	End as value1	
-	from table4
-	cross join temp
-
-group by projectId,factory,vendor,country,region,year_new,unit,m_r_count,w_r_count,n_a_count,total,temp.dim,mgmt_percent,worker_percent,not_answer_percent
-
-
-	  
-	  
-
-	 
+select factory,projectId,country,vendor,unit,year_new,mr_wr,total_representatives,region from table2
 
