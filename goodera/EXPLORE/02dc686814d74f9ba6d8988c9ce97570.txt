@@ -1,44 +1,61 @@
-with table1 as (Select
-				substring(table_54646.projcode_factory,1,1) as code,
-				reverse(SPLIT_PART(reverse(table_54646.projcode_factory), '-',1)) as code_brand,
+with table1 as (Select 
+				p.projid_factory as factory_id,
+				substring(projcode_factory,1,1) as code,
+				reverse(SPLIT_PART(reverse(projcode_factory), '-',1)) as code_brand,
 				case when code = 'F' then 1 else 0 end as codeStatus,
 				JSON_SERIALIZE(table_52810.pace_brands) as pace_brand,	
 				case when pace_brand like '%1151834%' then 1 else 0 end  as brand,
-				case when lg_status = 848007 or lg_status is null then 1 else 0 end as lg,
-				start_year as year,
-				num_females as females,
-				start_date,p.projectid as projectid1,select_modules
+				table_4227.start_date as start_date,
+				table_4227.select_modules as select_modules,
+				case when table_71993.partner_type = 1132937 then 1 else 0 end as type,
+				table_71993.target_2022 as target2022,
+				table_71993.target_2021 as target2021,
+				table_71993.target_2020 as target2020,
+				p.projectId as projectId1
 
-			from profile_4227 p
-				
-inner join profile_54646 table_54646 on
-table_54646.projectId = p.projectId
-		
+				from profile_54646 p
 inner join profile_52810 table_52810 on
 table_52810.projectId = p.projectId
-),
-table2 as (select codeStatus, brand, lg, year ,sum(females) as total_females,start_date,projectid1,select_modules,code,code_brand from table1 p
 
-group by codeStatus, brand, lg, year,start_date,projectid1,select_modules,code,code_brand
+left join profile_4227 table_4227 on
+table_4227.projectId = p.projid_factory
+				
+left join profile_71993 table_71993 on
+table_71993.projectId = p.projectId
 ),
-
+table2 as (select codeStatus,brand,type,projectId1,
+		   sum(target2022) as target2022,
+		   sum(target2021) as target2021,
+		   sum(target2020) as target2020,start_date,select_modules,code, code_brand
+		   
+		   from table1 p
+		   
+group by codeStatus,brand,type,projectId1,start_date,select_modules,code, code_brand
+),
 table3 as(select t2.*,CAST(select_module as int) from table2 t2,t2.select_modules select_module
 ),
 
+
+
 table4 as (Select 
 		   select_module,
-		   codeStatus, brand, lg, year, total_females,start_date,projectid1,code,code_brand
+		    codeStatus,brand,type,projectId1,target2022, target2021, target2020,start_date,code, code_brand
 		   from table3 
 
 where select_module in ('64503','70912','70941','70900','70910','70913','70909','70903','70901','70902','70911','264682','264684','264683') 
 )
 ,
 
+
+
 table5 as (select 
 		   listagg(select_module,',') as select_module ,
-		   codeStatus, brand, lg, year, total_females,start_date,projectid1,code,code_brand
+		   codeStatus,brand,type,projectId1,target2022, target2021, target2020,start_date,code, code_brand
  from table4 
-group by codeStatus, brand, lg, year, total_females,start_date,projectid1,code,code_brand
-)
+group by codeStatus,brand,type,projectId1,target2022, target2021, target2020,start_date,code, code_brand
+),
 
-Select year,total_females,start_date,projectid1 as projectid, select_module,code,code_brand from table5 p where codeStatus = 1 and brand = 1 and lg = 1
+
+
+
+select projectId1 as projectid, target2022,target2021,target2020,start_date,select_module,code, code_brand from table5 p where codeStatus = 1 and brand = 1 and type = 1
