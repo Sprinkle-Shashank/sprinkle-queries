@@ -31,5 +31,25 @@ table2 as (select codeStatus,brand,type,projectId1,
 		   from table1 p
 		   
 group by codeStatus,brand,type,projectId1,start_date,select_modules,code, code_brand
+),
+
+table3 as(select t2.*,CAST(select_module as int) from table2 t2,t2.select_modules select_module
+),
+
+table4 as (Select 
+		   select_module,
+		    codeStatus,brand,type,projectId1,target2022, target2021, target2020,start_date,code, code_brand
+		   from table3 
+
+where select_module in ('64503','70912','70941','70900','70910','70913','70909','70903','70901','70902','70911','264682','264684','264683') 
 )
-select projectId1 as projectId, target2022,target2021,target2020,start_date,select_modules,code, code_brand from table2 p --where codeStatus = 1 and brand = 1 and type = 1
+,
+
+table5 as (select 
+		   listagg(select_module,',') as select_module ,
+		   codeStatus,brand,type,projectId1,min(target2022) as target2022, min(target2021) as target2021, min(target2020) as target2020,start_date,code, code_brand
+ from table4 
+group by codeStatus,brand,type,projectId1,start_date,code, code_brand
+)
+
+select projectId1 as projectid, target2022,target2021,target2020,start_date,select_module,code, code_brand from table5 p where codeStatus = 1 and brand = 1 and type = 1
