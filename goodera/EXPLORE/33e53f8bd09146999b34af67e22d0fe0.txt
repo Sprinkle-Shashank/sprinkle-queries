@@ -8,8 +8,11 @@ p.projectid = p2.projectid
 				
 ), tableB as (select p.project_name, p.fy_timerange, ngo_name,state_district, benf_impacted from profile_80249 p
 				
+			  left join ds_mysql_prod_project pn
+on p.project_name = pn.id
+			  
 left join profile_80250 p2 on
-p.project_name = p2.project_name
+pn.name = p2.project_name
 				
 
 ),table0 as (
@@ -19,7 +22,7 @@ select project_name, ngo_name, fy_timerange,state_district, benf_impacted from t
   order by project_name, ngo_name, fy_timerange,state_district, benf_impacted 
 
 ), table1 as (
-select project_name,ngo_name,sd.name as state_district, mc.code as map_code, case when benf_impacted is null then 5 else benf_impacted end as benf_impacted, Substring(json_serialize(fy_timerange),11,4)::smallint as year, Substring(json_serialize(fy_timerange),16,2)::smallint as start_month,
+select project_name,ngo_name,sd.name as state_district, mc.code as map_code, case when benf_impacted is null then 0 else benf_impacted end as benf_impacted, Substring(json_serialize(fy_timerange),11,4)::smallint as year, Substring(json_serialize(fy_timerange),16,2)::smallint as start_month,
   Substring(json_serialize(fy_timerange),49,2)::smallint as end_month,
 case when start_month = 1 then 'January'
 	 when start_month = 2 then 'February'
