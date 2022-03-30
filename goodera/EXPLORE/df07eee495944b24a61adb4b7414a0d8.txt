@@ -1,24 +1,12 @@
-with table1 as( SELECT projectid, profile_80200.name, ei.name as exp_item, amount_spent, Substring(json_serialize(fy_timerange),11,4)::smallint as year, Substring(json_serialize(fy_timerange),16,2)::smallint as start_month,
-case when start_month = 1 then 'January'
-	 when start_month = 2 then 'February'
-	 when start_month = 3 then 'March'
-	 when start_month = 4 then 'April'
-	 when start_month = 5 then 'May'
-	 when start_month = 6 then 'June'
-	 when start_month = 7 then 'July'
-	 when start_month = 8 then 'August'
-	 when start_month = 9 then 'September'
-	 when start_month = 10 then 'October'
-	 when start_month = 11 then 'November'
-	when start_month = 12 then 'December' end as start_month_name from profile_80200
+SELECT projectid, profile_80200.name,ei.name as exp_item,amount_spent, fy_timerange from profile_80200
   
 left join ds_mysql_prod_tagelement ei
 on profile_80200.exp_item = ei.id
 
-group by projectid, _id,fy_timerange, exp_item,profile_80200.name,ei.name,amount_spent ) 
-select projectid, name, exp_item, amount_spent, case when (year=2019 and start_month>3) or (year=2020 and start_month<4) then 'FY 2019-20'
-	 when (year=2020 and start_month>3) or (year=2021 and start_month<4) then 'FY 2020-21'
-	 when (year=2021 and start_month>3) or (year=2022 and start_month<4) then 'FY 2021-22' 
-	 when (year=2022 and start_month>3) or (year=2023 and start_month<4) then 'FY 2022-23'
-	 when (year=2023 and start_month>3) or (year=2024 and start_month<4) then 'FY 2023-24'
-	 else 'FY 2024-25' end as year, start_month_name as month from table1
+group by projectid, _id,fy_timerange, exp_item,profile_80200.name,ei.name,amount_spent
+
+/*select projectid, exp_item, amount_spent, fy_timerange from profile_80200
+group by projectid, _id, exp_item, amount_spent, fy_timerange*/
+
+
+
