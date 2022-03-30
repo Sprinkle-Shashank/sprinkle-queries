@@ -18,6 +18,14 @@ base51 as(
 base61 as(
 	select grantproposalid,grantflowtaskid,value.amount_released from profile_55851 p1, unpivot p1.disbursement_plan as value at disbursement_plan
 ),
+exp1 as (
+  select t.prop_id,t.focus_area,value.state_district as state_district from profile_55677 as t,
+unpivot t.state_district_budget as value at state_district_budget
+),
+exp2 as(
+	select t.prop_id,t.focus_area,value.state_district as state_district from profile_55825 as t,
+unpivot t.state_district_budget as value at state_district_budget
+),
 base as(
 select t.prop_id,t.focus_area,p1.amount_released,t.state_district from profile_46184 as t
 left join base11 as p1
@@ -35,12 +43,12 @@ select t.prop_id,t.focus_area,p1.amount_released,t.state_district from profile_4
 left join base41 as p1
 on t.grantproposalid = p1.grantproposalid
 union all
-select t.prop_id,t.focus_area,p1.amount_released,t.state_district from profile_55677 as t
+select t.prop_id,t.focus_area,p1.amount_released,t.state_district as state_district from exp1 as t
 left join base51 as p1
 on t.grantproposalid = p1.grantproposalid
 union all
-select t.prop_id,t.focus_area,p1.amount_released,t.state_district from profile_55825 as t
-left join base61 as p1
+select t.prop_id,t.focus_area,p1.amount_released,t.state_district as state_district from exp2 as t
+left join base51 as p1
 on t.grantproposalid = p1.grantproposalid
 ),
 main as (
