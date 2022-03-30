@@ -1,21 +1,25 @@
-with table1 as ( SELECT
+with table1 as (select 
+				photo,photo3,p.projectId,start_date,p._id as _id,
+				case when lg_status = 848007 or lg_status is null then 1 else 0 end as status,
+				case when photo is null or photo3 is null then 0 else 1 end as status1,
+				substring(projcode_factory,1,1) as code,
+				reverse(SPLIT_PART(reverse(table_54646.projcode_factory), '-',1)) as code_brand,
 				JSON_SERIALIZE(table_52810.pace_brands) as pace_brand,	
 				case when pace_brand like '%1151834%' then 1 else 0 end  as brand,
-				case when table_52810.offset_date is null then '2020-02-01T00:00:00.000Z' else table_52810.offset_date end as offset_date,
-				table_4227.start_date as start_date,
-				--case when start_date < offset_date then 1 else 0 end as token,
-				case when pace_status = 182398 or pace_status is null then 1 else 0 end as pace_status ,
-				p.country,
-				case when p.country is null then 0 else 1 end as st,
-				p.projectid as projectid1
+				case when table_52810.offset_date is null then '2020-02-01T00:00:00.000Z' else table_52810.offset_date end as offset_date,select_modules			
 				
-			from profile_4948 p
+		from profile_4227 p
+
+inner join profile_54646 table_54646 on
+table_54646.projectId = p.projectId	
 
 inner join profile_52810 table_52810 on
-table_52810.projectId = p.projectId
-				
-left join profile_4227 table_4227 on
-table_4227.projectId = p.projectId
-group by table_52810.pace_brands,table_52810.offset_date,table_4227.start_date,p.pace_status,projectid1, p.country
+table_52810.projectId = p.projectId					
+),
+table2 as(
+		select _id,projectId,photo3,photo,start_date,offset_date,status,status1,brand,
+  case when start_date >= offset_date then 1 else 0 end as token,select_modules,code
+  from table1 p
 )
-select p.country, projectid1 as projectid from table1 p where start_date>=offset_date and pace_status = 1 and st = 1 and brand = 1
+
+select _id,projectId,photo3,photo,start_date,offset_date,token,select_modules,code,status, status1 from table2 p where  _id = '61e0d3310a318114007290d0'
