@@ -1,4 +1,4 @@
-with table1 as (select projectid, name_benef, count(name_benef) as no_of_benef, pn.name as program, Substring(json_serialize(fy_timerange),11,4)::smallint as year, Substring(json_serialize(fy_timerange),16,2)::smallint as start_month,
+with table1 as (select projectid, name_benef, count(name_benef) as no_of_benef, pn.name as program,gb.name as gender_benef, ab.name as age_benef, Substring(json_serialize(fy_timerange),11,4)::smallint as year, Substring(json_serialize(fy_timerange),16,2)::smallint as start_month,
 case when start_month = 1 then 'January'
 	 when start_month = 2 then 'February'
 	 when start_month = 3 then 'March'
@@ -17,9 +17,16 @@ left join ds_mysql_prod_tagelement pn
 on profile_80198.program = pn.id
 	
 				
-				group by projectid, _id, name_benef,pn.name, fy_timerange
+left join ds_mysql_prod_tagelement gb
+on profile_80198.gender_benef = gb.id
+				
+				
+left join ds_mysql_prod_tagelement ab
+on profile_80198.age_benef = ab.id
+				
+				group by projectid, _id, name_benef,pn.name,gb.name,ab.name, fy_timerange
 			   
-			   ) select projectid, name_benef, no_of_benef,program,  case when (year=2019 and start_month>3) or (year=2020 and start_month<4) then 'FY 2019-20'
+			   ) select projectid, name_benef, no_of_benef,program,gender_benef,age_benef,  case when (year=2019 and start_month>3) or (year=2020 and start_month<4) then 'FY 2019-20'
 	 when (year=2020 and start_month>3) or (year=2021 and start_month<4) then 'FY 2020-21'
 	 when (year=2021 and start_month>3) or (year=2022 and start_month<4) then 'FY 2021-22' 
 	 when (year=2022 and start_month>3) or (year=2023 and start_month<4) then 'FY 2022-23'
