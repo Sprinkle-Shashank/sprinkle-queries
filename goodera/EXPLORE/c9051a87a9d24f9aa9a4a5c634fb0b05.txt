@@ -27,6 +27,27 @@ table2 as (select type,codeStatus,brand,projectId1,start_date,
 			from table1 p
 
 group by type,codeStatus,brand,projectId1,start_date,select_modules,code,code_brand
+),
+
+table3 as(select t2.*,CAST(select_module as int) from table2 t2,t2.select_modules select_module
+),
+
+
+table4 as (Select 
+		   select_module,
+		   type,codeStatus,brand,projectId1,start_date,commitment,code,code_brand
+		   from table3 
+
+where select_module in ('64503','70912','70941','70900','70910','70913','70909','70903','70901','70902','70911','264682','264684','264683') 
+)
+,
+
+
+table5 as (select 
+		   listagg(select_module,',') as select_module ,
+		   type,codeStatus,brand,projectId1,start_date,min(commitment) as commitment,code,code_brand
+ from table4 
+group by type,codeStatus,brand,projectId1,start_date,code,code_brand
 )
 
-Select projectId1 as projectId,commitment,start_date,select_modules,code,code_brand from table2 p where type = 1 and codeStatus = 1 and brand = 1
+Select projectId1 as projectid,commitment,start_date,select_module,code,code_brand from table5 p where type = 1 and codeStatus = 1 and brand = 1
