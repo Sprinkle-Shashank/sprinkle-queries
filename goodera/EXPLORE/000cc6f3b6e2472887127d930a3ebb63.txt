@@ -1,4 +1,13 @@
-select p.projectId, p1.status, cou.name as country , 
+with table1 as
+( 
+  select p4.projectId,p4.status from profile_16619 p4
+left join profile_16862 p3 
+ on p4.projectId = p3.projectId
+ 
+ group by  p4.projectId,p4.status
+ )
+
+  select p.projectId, t1.status, cou.name as country , 
 nvl2(SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)),ven.name) as vendor_name, case when vendor_name='' then ven.name else vendor_name end as vendor, fac.name as factory ,
 case when p1.name_subunit is null or p1.name_subunit=' ' then  'N/A' else p1.name_subunit end  as unit,
 cast(DATEPART(YEAR,p1.date_enrollment) as varchar) as year_new ,
@@ -21,9 +30,11 @@ on p.sub_unit = p1._id
   p.quarter = quarter1.id
   left join ds_mysql_prod_tagelement fy1 on
   p.fy = fy1.id
+left join table1 t1 on
+p.projectId = t1.projectId
   
---where  p.projectId ilike '%%' and cou.name <> 'Test Country' and (p1.status = 1400365 or p1.status is null) and p1.projectId is not null and country <> 'GAP Inc.' 
+where  p.projectId ilike '%%' and cou.name <> 'Test Country' and (t1.status = 1400365 or t1.status is null) and t1.projectId is not null and country <> 'GAP Inc.' 
 
-group by  p.projectId, p1.status, cou.name , ven.name, fac.name , p1.name_subunit , p1.date_enrollment ,
+group by  p.projectId, t1.status, cou.name , ven.name, fac.name , p1.name_subunit , p1.date_enrollment ,
 p.day_1_workers , p.last_day_workers , p.workers_exited , p.absenteeism_rate , p.labor_disputes , p.bc_meetings , p.person_days_lost , quarter1.name , fy1.name ,p.production_efficiency ,p1.worker_rep
-  
+
