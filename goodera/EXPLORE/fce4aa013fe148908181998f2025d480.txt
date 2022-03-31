@@ -1,0 +1,45 @@
+-- 46184, 46299, 46318, 46228, 55677, 55825
+--prop_id, state_district, payment_date
+
+with exp1 as (
+  select t.prop_id,value.state_district as state_district,t.grantproposalid,t.grantflowtaskid from profile_55677 as t,
+unpivot t.state_district_budget as value at state_district_budget
+),
+exp2 as(
+	select t.prop_id,value.state_district as state_district,t.grantproposalid,t.grantflowtaskid from profile_55825 as t,
+unpivot t.state_district_budget as value at state_district_budget
+),
+base as(
+select t.prop_id,p1.payment_date,t.state_district[0] from profile_46184 as t
+left join base11 as p1
+on t.grantproposalid = p1.grantproposalid
+union all
+select t.prop_id,p1.payment_date,t.state_district[0] from profile_46299 as t
+left join base21 as p1
+on t.grantproposalid = p1.grantproposalid
+union all
+select t.prop_id,p1.payment_date,t.state_district[0] from profile_46318 as t
+left join base31 as p1
+on t.grantproposalid = p1.grantproposalid
+union all
+select t.prop_id,p1.payment_date,t.state_district[0] from profile_46228 as t
+left join base41 as p1
+on t.grantproposalid = p1.grantproposalid
+union all
+select t.prop_id,p1.payment_date,t.state_district from exp1 as t
+left join base51 as p1
+on t.grantproposalid = p1.grantproposalid
+union all
+select t.prop_id,p1.payment_date,t.state_district from exp2 as t
+left join base51 as p1
+on t.grantproposalid = p1.grantproposalid
+),
+main as (
+select t.prop_id,t.payment_date,tag2.name as state from base as t
+left join ds_mysql_prod_tagelement tag1
+on t.state_district = tag1.id
+left join ds_mysql_prod_tagelement tag2
+on tag1.parent = tag2.id
+)
+select count(DISTINCT(prop_id)) as prop_id_count,CAST(payment_date as timestamp) as payment_date,state from main m
+group by 2,3;
