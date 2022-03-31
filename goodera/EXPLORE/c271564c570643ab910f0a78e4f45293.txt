@@ -1,0 +1,34 @@
+-- 46184, 46299, 46318, 46228, 55677, 55825
+--state_district, payment_date,ammount_approved,amount_released
+
+with exp1 as (
+  select t.prop_id,t.disbursement_plan,value.state_district as state_district,t.grantproposalid,t.grantflowtaskid from profile_55677 as t,
+unpivot t.state_district_budget as value at state_district_budget
+),
+exp2 as(
+	select t.prop_id,t.disbursement_plan,value.state_district as state_district,t.grantproposalid,t.grantflowtaskid from profile_55825 as t,
+unpivot t.state_district_budget as value at state_district_budget
+),
+base as(
+select t.prop_id,value.payment_date,t.state_district[0] from profile_46184 as t, unpivot t.disbursement_plan as value at disbursement_plan
+union all
+select t.prop_id,value.payment_date,t.state_district[0] from profile_46299 as t, unpivot t.disbursement_plan as value at disbursement_plan
+union all
+select t.prop_id,value.payment_date,t.state_district[0] from profile_46318 as t, unpivot t.disbursement_plan as value at disbursement_plan
+union all
+select t.prop_id,value.payment_date,t.state_district[0] from profile_46228 as t, unpivot t.disbursement_plan as value at disbursement_plan
+union all
+select t.prop_id,value.payment_date,t.state_district from exp1 as t, unpivot t.disbursement_plan as value at disbursement_plan
+union all
+select t.prop_id,value.payment_date,t.state_district from exp2 as t, unpivot t.disbursement_plan as value at disbursement_plan
+),
+main as (
+select t.prop_id,t.payment_date,tag2.name as state from base as t
+left join ds_mysql_prod_tagelement tag1
+on t.state_district = tag1.id
+left join ds_mysql_prod_tagelement tag2
+on tag1.parent = tag2.id
+)
+select count(DISTINCT(prop_id)) as prop_id,count(state) as state_count,CAST(payment_date as timestamp) as payment_date,state 
+from main m
+group by 3,4;
