@@ -1,13 +1,19 @@
-With s1 as(
-Select s.project_type,sg
-from profile_65552 as s,s.sdgs sg
-)
-Select t.name as sdgs,ss.photo
-from s1
-left join ds_mysql_prod_tagelement t
-on s1.sg=t.id
-left join profile_73609 ss
-on ss.sdgs=s1.sg
-where s1.project_type=1276561
-group by t.name,s1.sg,ss.photo
- 
+with temp as (
+  select 'Placed' as c
+  union all
+  select 'Training_Completed' as c
+  )
+select pro.name as projectid,fy_timerange,student_placed_y_n,t1.name as completed_training,
+sum( case c when 'Placed' then p.student_placed_y_n
+	        when 'Training_Completed' then p.completed_training	
+	
+	else null end ) as val, temp.c as dim 
+	
+from profile_79375 p
+left join ds_mysql_prod_tagelement t1
+ON t1.id=p.completed_training
+left join ds_mysql_prod_project pro
+on p.projectid = pro.id
+			cross join temp
+			
+group by projectid,fy_timerange,temp.c,pro.name,student_placed_y_n,t1.name
