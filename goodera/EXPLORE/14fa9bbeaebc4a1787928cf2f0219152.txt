@@ -3,14 +3,16 @@ with temp as (
   union all
   select 'Training_Completed' as c
   )
-select pro.name as projectid,fy_timerange,student_placed_y_n,completed_training,
-sum( case c when 'Placed' then p.student_placed_y_n
-	        when 'Training_Completed' then p.completed_training	
+select pro.name as projectid,t2.name as student_placed_y_n,t1.name as completed_training,
+temp.c as dim 
 	
-	else null end ) as val, temp.c as dim from profile_79375 p
-			
-			left join ds_mysql_prod_project pro
-             on p.projectid = pro.id
+from profile_79375 p
+left join ds_mysql_prod_tagelement t1
+ON t1.id=p.completed_training
+left join ds_mysql_prod_tagelement t2
+ON t2.id=p.student_placed_y_n
+left join ds_mysql_prod_project pro
+on p.projectid = pro.id
 			cross join temp
 			
-group by projectid,fy_timerange,temp.c,pro.name,student_placed_y_n,completed_training		
+group by projectid,fy_timerange,temp.c,pro.name,t2.name,t1.name
