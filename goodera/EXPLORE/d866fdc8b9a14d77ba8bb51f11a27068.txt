@@ -24,17 +24,17 @@ with temp as (
   
   SELECT  temp.C as indicator, 
   SUM(Case C
-	When 'Area under Sustainable Cotton Cultivation (in acre)' then p1.m_trained+p1.f_trained
-	When 'Number of farmers adopting more that 50% of the Good Operating Practices on Sustainable Cotton Cultivation' then p2.m_adoption+p2.f_adoption
-	When 'Number of stakeholders on-boarded on Textile Water Stewardship Platform' then p6.m_adoption+p6.f_adoption
-	When 'Number of trainings/ convenings organized as part of the Textile Water Stewardship Platform' then p1.m_water+p1.f_water
-	When 'Reduction in Greenhouse Gas Emission through reduction of fertilizer use (in %)' then p1.reduce_waterff
-	When 'Reduction in water footprint through efficient water use efficiency practices (in %)' then p1.reduce_gge
-	  When 'Total number of cotton growing farmers trained on Water Literacy for advancing the water stewardship approach' then p1.water_harvest
-	   When 'Total number of farmers adopting Good Operating Practices on Sustainable Cotton Cultivation' then p1.m_area+p1.f_area
-	  When 'Total number of farmers trained on Good Operating Practices for Sustainable Cotton Cultivation' then p1.f_volume+p1.m_volume
-	  When 'Volume of cotton produced adopting good operating practices (in quintal)' then p3.onboard
-	  when 'Volume of water harvested in source strengthening structures (Million litres)' then p3.training_count 
+	When 'Area under Sustainable Cotton Cultivation (in acre)' then p1.m_area+p1.f_area
+	When 'Number of farmers adopting more that 50% of the Good Operating Practices on Sustainable Cotton Cultivation' then p6.m_adoption+p6.f_adoption
+	When 'Number of stakeholders on-boarded on Textile Water Stewardship Platform' then p3.onboard
+	When 'Number of trainings/ convenings organized as part of the Textile Water Stewardship Platform' then p3.training_count
+	When 'Reduction in Greenhouse Gas Emission through reduction of fertilizer use (in %)' then p1.reduce_gge
+	When 'Reduction in water footprint through efficient water use efficiency practices (in %)' then p1.reduce_waterff
+	  When 'Total number of cotton growing farmers trained on Water Literacy for advancing the water stewardship approach' then p1.m_water+p1.f_water
+	   When 'Total number of farmers adopting Good Operating Practices on Sustainable Cotton Cultivation' then p2.m_adoption+p2.f_adoption
+	  When 'Total number of farmers trained on Good Operating Practices for Sustainable Cotton Cultivation' then p1.m_trained+p1.f_trained
+	  When 'Volume of cotton produced adopting good operating practices (in quintal)' then p1.f_volume+p1.m_volume
+	  when 'Volume of water harvested in source strengthening structures (Million litres)' then p1.water_harvest 
 	Else Null
 END) as Progress_till_date, '1' as dim
 	  from profile_76781 p1
@@ -45,6 +45,8 @@ END) as Progress_till_date, '1' as dim
 	    left join   profile_76786 p6
 	  on p6.year=p1.year
 	       cross join temp
+		   left join ds_mysql_prod_tagelement loc
+          on p1.location = loc.id 
 		   
 	   GROUP BY  temp.C
  
@@ -53,8 +55,7 @@ END) as Progress_till_date, '1' as dim
          /*
 		 left join ds_mysql_prod_tagelement year
           on p1.year = year.id 
-		 left join ds_mysql_prod_tagelement loc
-          on p1.geography = loc.id 
+		 
      left join ds_mysql_prod_tagelement state
         on loc.parent = state.id */
   
