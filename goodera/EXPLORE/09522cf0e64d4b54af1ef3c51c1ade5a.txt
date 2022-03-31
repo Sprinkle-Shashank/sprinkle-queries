@@ -1,0 +1,57 @@
+with temp as (
+  select 'Area under Sustainable Cotton Cultivation (in acre)' as C 
+  Union all 
+  select 'Number of farmers adopting more that 50% of the Good Operating Practices on Sustainable Cotton Cultivation' as C 
+    Union all 
+  select 'Number of stakeholders on-boarded on Textile Water Stewardship Platform' as C 
+      Union all 
+  select 'Number of trainings/ convenings organized as part of the Textile Water Stewardship Platform' as C 
+      Union all 
+  select 'Reduction in Greenhouse Gas Emission through reduction of fertilizer use (in %)' as C 
+      Union all 
+  select 'Reduction in water footprint through efficient water use efficiency practices (in %)' as C 
+   Union all 
+  select 'Total number of cotton growing farmers trained on Water Literacy for advancing the water stewardship approach' as C 
+  Union all 
+  select 'Total number of farmers adopting Good Operating Practices on Sustainable Cotton Cultivation' as C 
+  Union all 
+  select 'Total number of farmers trained on Good Operating Practices for Sustainable Cotton Cultivation' as C 
+   Union all 
+  select 'Volume of cotton produced adopting good operating practices (in quintal)' as C 
+   Union all 
+  select 'Volume of water harvested in source strengthening structures (Million litres)' as C )
+  
+  
+  SELECT year.name as year, temp.C as indicator, 
+  SUM(Case C
+	When 'Area under Sustainable Cotton Cultivation (in acre)' then p1.m_area+p1.f_area
+	When 'Reduction in Greenhouse Gas Emission through reduction of fertilizer use (in %)' then p1.reduce_gge
+	When 'Reduction in water footprint through efficient water use efficiency practices (in %)' then p1.reduce_waterff
+	  When 'Total number of cotton growing farmers trained on Water Literacy for advancing the water stewardship approach' then p1.m_water+p1.f_water
+	  When 'Total number of farmers trained on Good Operating Practices for Sustainable Cotton Cultivation' then p1.m_trained+p1.f_trained
+	  When 'Volume of cotton produced adopting good operating practices (in quintal)' then p1.f_volume+p1.m_volume
+	  when 'Volume of water harvested in source strengthening structures (Million litres)' then p1.water_harvest 
+	Else Null
+END) as val, 'ISC' as partner, '1' as dim
+	  from profile_76781 p1
+	       cross join temp
+		   left join ds_mysql_prod_tagelement year
+          on p1.year = year.id 
+		   
+		   
+	   GROUP BY  year.name,temp.C
+ 
+ 
+ 
+         /*
+		 left join ds_mysql_prod_tagelement loc
+          on p1.location = loc.id 
+		 
+     left join ds_mysql_prod_tagelement state
+        on loc.parent = state.id */
+  
+  
+  
+  
+  
+  	
