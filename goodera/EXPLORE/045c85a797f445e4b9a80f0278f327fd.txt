@@ -1,32 +1,20 @@
-with table1 as 
-(
-select p.projectid , substring(createddate,1,10) as createddate_update_1 , cast(createddate_update_1 as date) as create_1 from profile_18299 as p ),
 
-table2 as 
+ with table15 as 
 (
-select p.projectid , substring(createddate,1,10) as createddate_update_2 ,  t1.create_1 , cast(createddate_update_2 as date) as create_2 , datediff(day,create_1, current_date) as f1 ,  datediff(day, create_2 , current_date) as f2 , case when f1>f2 then create_1 else create_2 end as oldest_submission_date , row_number() over (partition by p.projectid order by p._id) as row from profile_18224 as p
+select p.projectid , substring(createddate,1,10) as createddate_update_1 , cast(createddate_update_1 as date) as create_1 from profile_20703 as p ),
 
-left join table1 t1 on 
-p.projectid = t1.projectid 
+
+table16 as 
+(
+select p.projectid , substring(createddate,1,10) as createddate_update_2 ,  t5.create_1 , cast(createddate_update_2 as date) as create_2 , datediff(day,create_1, current_date) as f1 ,  datediff(day, create_2 , current_date) as f2 , case when f1>f2 then t5.create_1 else create_2 end as Endline , row_number() over (partition by p.projectid order by p._id) as row from profile_20704 as p
+
+left join table15 t5 on 
+p.projectid = t5.projectid 
 ),
 
-table3 as
-( select p.projectid , fac.name as factory , ven.name as vendor , cou.name as country , s1.name_subunit ,  case when s1.name_subunit is not null then count(s1.projectid) else count(p.projectid) end as h1 from profile_18224 as p 
- 
-left join profile_16619 s1 on 
-p.sub_unit = s1._id
- 
-left join ds_mysql_prod_project fac 
-on p.projectId = fac.id
 
-left join ds_mysql_prod_project ven 
-on fac.parent = ven.id
-
-left join ds_mysql_prod_project cou 
-on ven.parent = cou.id
- 
-group by  p.projectid , s1.name_subunit , s1.projectid, fac.name , ven.name , cou.name  
-),
+table17 as
+(select p.projectid , Endline from table16 as p where row=1),
 
 
 table4 as 
@@ -47,4 +35,4 @@ on ven.parent = cou.id
  group by  p.projectid , p.name_subunit , p2.projectid, fac.name , ven.name , cou.name 
  )
  
-select * from table4
+select * from table7
