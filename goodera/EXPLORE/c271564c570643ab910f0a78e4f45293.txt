@@ -2,31 +2,31 @@
 --state_district, payment_date,ammount_approved,amount_released
 
 with exp1 as (
-  select t.prop_id,t.disbursement_plan,t.approved_amount_mou,value.state_district as state_district,t.grantproposalid,t.grantflowtaskid from profile_55677 as t,
+  select t.prop_id,t.disbursement_plan,t.approved_amount_project,value.state_district as state_district,t.grantproposalid,t.grantflowtaskid from profile_55677 as t,
 unpivot t.state_district_budget as value at state_district_budget
 ),
 exp2 as(
-	select t.prop_id,t.disbursement_plan,t.approved_amount_mou,value.state_district as state_district,t.grantproposalid,t.grantflowtaskid from profile_55825 as t,
+	select t.prop_id,t.disbursement_plan,t.approved_amount_project,value.state_district as state_district,t.grantproposalid,t.grantflowtaskid from profile_55825 as t,
 unpivot t.state_district_budget as value at state_district_budget
 ),
 base as(
-select t.prop_id,value.payment_date,value.amount_released,t.approved_amount_mou,t.state_district[0] from profile_46184 as t, unpivot t.disbursement_plan as value at disbursement_plan
+select t.prop_id,value.payment_date,value.amount_released,t.approved_amount_project,t.state_district[0] from profile_46184 as t, unpivot t.disbursement_plan as value at disbursement_plan
 union all
-select t.prop_id,value.payment_date,value.amount_released,t.approved_amount_mou,t.state_district[0] from profile_46299 as t, unpivot t.disbursement_plan as value at disbursement_plan
+select t.prop_id,value.payment_date,value.amount_released,t.approved_amount_project,t.state_district[0] from profile_46299 as t, unpivot t.disbursement_plan as value at disbursement_plan
 union all
-select t.prop_id,value.payment_date,value.amount_released,t.approved_amount_mou,t.state_district[0] from profile_46318 as t, unpivot t.disbursement_plan as value at disbursement_plan
+select t.prop_id,value.payment_date,value.amount_released,t.approved_amount_project,t.state_district[0] from profile_46318 as t, unpivot t.disbursement_plan as value at disbursement_plan
 union all
-select t.prop_id,value.payment_date,value.amount_released,t.approved_amount_mou,t.state_district[0] from profile_46228 as t, unpivot t.disbursement_plan as value at disbursement_plan
+select t.prop_id,value.payment_date,value.amount_released,t.approved_amount_project,t.state_district[0] from profile_46228 as t, unpivot t.disbursement_plan as value at disbursement_plan
 union all
-select t.prop_id,value.payment_date,value.amount_released,t.approved_amount_mou,t.state_district from exp1 as t, unpivot t.disbursement_plan as value at disbursement_plan
+select t.prop_id,value.payment_date,value.amount_released,t.approved_amount_project,t.state_district from exp1 as t, unpivot t.disbursement_plan as value at disbursement_plan
 union all
-select t.prop_id,value.payment_date,value.amount_released,t.approved_amount_mou,t.state_district from exp2 as t, unpivot t.disbursement_plan as value at disbursement_plan
+select t.prop_id,value.payment_date,value.amount_released,t.approved_amount_project,t.state_district from exp2 as t, unpivot t.disbursement_plan as value at disbursement_plan
 ),
 main as (
-select t.prop_id,t.payment_date,t.amount_released,t.approved_amount_mou,tag1.name as state from base as t
+select t.prop_id,t.payment_date,t.amount_released,t.approved_amount_project,tag1.name as state from base as t
 left join ds_mysql_prod_tagelement tag1
 on t.state_district = tag1.id
 )
-select SUM(amount_released) as amount_disbursed,approved_amount_mou as amount_allocated,CAST(payment_date as timestamp) as payment_date,state 
+select SUM(amount_released) as amount_disbursed,approved_amount_project as amount_allocated,CAST(payment_date as timestamp) as payment_date,state 
 from main m
 group by 2,3,4;
