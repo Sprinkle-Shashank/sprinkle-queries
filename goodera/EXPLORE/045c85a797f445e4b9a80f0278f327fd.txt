@@ -11,7 +11,7 @@ p.projectid = t1.projectid
 ),
 
 table3 as
-( select p.projectid , fac.name as factory , ven.name as vendor , cou.name as country , s1.name_subunit ,  case when s1.name_subunit is not null then count(p.projectid) else count(s1.projectid) end as h1 from profile_18224 as p 
+( select p.projectid , fac.name as factory , ven.name as vendor , cou.name as country , s1.name_subunit ,  case when s1.name_subunit is not null then count(s1.projectid) else count(p.projectid) end as h1 from profile_18224 as p 
  
 left join profile_16619 s1 on 
 p.sub_unit = s1._id
@@ -25,16 +25,15 @@ on fac.parent = ven.id
 left join ds_mysql_prod_project cou 
 on ven.parent = cou.id
  
-where sub_unit_pro_9 = s1.name_subunit
- 
 group by  p.projectid , s1.name_subunit , s1.projectid, fac.name , ven.name , cou.name  
 ),
 
+
 table4 as 
-( select p.projectid , fac.name as factory , ven.name as vendor , cou.name as country , name_subunit , case when name_subunit is not null then count(p.projectid) else count(t3.projectid) end as h1 from profile_16619 as p 
+( select p.projectid , fac.name as factory , ven.name as vendor , cou.name as country , p.name_subunit , case when p.name_subunit is not null then count(p.projectid) else count(p2.projectid) end as h1 from profile_16619 as p 
  
-  left join table3 t3 on 
-  p.projectid = t3.projectid
+  left join profile_18224 p2 on 
+  p.projectid = p2.projectid
  
 left join ds_mysql_prod_project fac 
 on p.projectId = fac.id
@@ -44,19 +43,8 @@ on fac.parent = ven.id
 
 left join ds_mysql_prod_project cou 
 on ven.parent = cou.id
- 
- where name_subunit = t3.sub_unit_pro_9 
- 
- group by  p.projectid , name_subunit , t3.projectid, fac.name , ven.name , cou.name 
+
+ group by  p.projectid , p.name_subunit , p2.projectid, fac.name , ven.name , cou.name 
  )
  
-select * from table3
-union all 
 select * from table4
-
-
- 
-  /*
- 
-  
-  */
