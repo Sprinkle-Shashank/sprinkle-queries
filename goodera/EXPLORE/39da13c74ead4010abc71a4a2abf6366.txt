@@ -29,6 +29,21 @@ p.projectid = t5.projectid
 table7 as
 (select p.projectid , Baseline from table6 as p where row=1),
 
+table15 as 
+(
+select p.projectid , substring(createddate,1,10) as createddate_update_1 , cast(createddate_update_1 as date) as create_1 from profile_20703 as p ),
+
+table16 as 
+(
+select p.projectid , substring(createddate,1,10) as createddate_update_2 ,  t5.create_1 , cast(createddate_update_2 as date) as create_2 , datediff(day,create_1, current_date) as f1 ,  datediff(day, create_2 , current_date) as f2 , case when f1>f2 then t5.create_1 else create_2 end as Endline , row_number() over (partition by p.projectid order by p._id) as row from profile_20704 as p
+
+left join table15 t5 on 
+p.projectid = t5.projectid 
+),
+
+table17 as
+(select p.projectid , Endline from table16 as p where row=1),
+
 
 table9 as 
 ( select p.projectid , fac.name as factory , ven.name as vendor , cou.name as country , p.name_subunit , case when p.name_subunit is not null then count(p.projectid) else count(p2.projectid) end as Baseline_BC_Respondents from profile_16619 as p 
@@ -72,7 +87,7 @@ table2 as
    select ROW_NUMBER() over (order by p.projectid ) as serial_number  , p.projectid , p._id , 
   case when p.name_subunit is null or p.name_subunit=' ' then 'N/A' else p.name_subunit end  as unit , ven.name as vendor , cou.name as country 
   
- ,  case when extract(month from date_enrollment)=1 then (extract(year from date_enrollment)-1) else extract(year from date_enrollment) end as batch , t7.Baseline , t1.factory , t11.factory_id , t9.Baseline_BC_Respondents , t10.Baseline_Non_BC_Respondents from profile_16619 as p
+ ,  case when extract(month from date_enrollment)=1 then (extract(year from date_enrollment)-1) else extract(year from date_enrollment) end as batch , t7.Baseline , t1.factory , t11.factory_id , t9.Baseline_BC_Respondents , t10.Baseline_Non_BC_Respondents , t17.endline from profile_16619 as p
   
 left join ds_mysql_prod_project fac 
 on p.projectId = fac.id
@@ -86,6 +101,9 @@ on ven.parent = cou.id
 left join table7 t7 on 
 p.projectid = t7.projectid
   
+left join table17 t17 on 
+p.projectid = t17.projectid
+  
 left join table1 t1 on 
 p.projectid = t1.projectid
  
@@ -98,7 +116,7 @@ p.projectid = t9.projectid
 left join table10 t10 on 
 p.projectid = t10.projectid
  
-where country != 'Test Country' and country !='GAP Inc.'
+where p.country != 'Test Country' and p.country !='GAP Inc.'
 )
   
   select * from table2
