@@ -49,12 +49,30 @@ on ven.parent = cou.id
 ),
 
 
+table10 as 
+( select p.projectid , fac.name as factory , ven.name as vendor , cou.name as country , p.name_subunit , case when p.name_subunit is not null then count(p.projectid) else count(p2.projectid) end as Baseline_Non_BC_Respondents from profile_16619 as p 
+ 
+  left join profile_18229 p2 on 
+  p.projectid = p2.projectid
+ 
+left join ds_mysql_prod_project fac 
+on p.projectId = fac.id
+
+left join ds_mysql_prod_project ven 
+on fac.parent = ven.id
+
+left join ds_mysql_prod_project cou 
+on ven.parent = cou.id
+
+ group by  p.projectid , p.name_subunit , p2.projectid, fac.name , ven.name , cou.name 
+),
+
 table2 as 
 (
    select ROW_NUMBER() over (order by p.projectid ) as serial_number  , p.projectid , p._id , 
   case when p.name_subunit is null or p.name_subunit=' ' then 'N/A' else p.name_subunit end  as unit , ven.name as vendor , cou.name as country 
   
- ,  case when extract(month from date_enrollment)=1 then (extract(year from date_enrollment)-1) else extract(year from date_enrollment) end as batch , t7.Baseline , t1.factory , t11.factory_id , t9.Baseline_BC_Respondents from profile_16619 as p
+ ,  case when extract(month from date_enrollment)=1 then (extract(year from date_enrollment)-1) else extract(year from date_enrollment) end as batch , t7.Baseline , t1.factory , t11.factory_id , t9.Baseline_BC_Respondents , t10.Baseline_Non_BC_Respondents from profile_16619 as p
   
 left join ds_mysql_prod_project fac 
 on p.projectId = fac.id
@@ -76,6 +94,9 @@ p.projectid = t11.projectid
   
 left join table9 t9 on 
 p.projectid = t9.projectid
+  
+left join table10 t10 on 
+p.projectid = t10.projectid
  
 where country != 'Test Country' and country !='GAP Inc.'
 )
