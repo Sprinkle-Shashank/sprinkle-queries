@@ -1,7 +1,7 @@
 with sub1 as(
 select projectId, name, background, date_of_admission as fy_timerange, fg_learner, age, class,count(*) from profile_52387 group by projectId, name, background, fg_learner, age, class, date_of_admission),
 sub2 as(
-select a.projectId, a.name, a.background, a.fg_learner, a.age, t.name as class, fy_timerange, count,
+select p.name as projectId, a.name, a.background, a.fg_learner, a.age, t.name as class, fy_timerange, count,
 case when class=836952 then 1 else
  (case when a.class=1436238 then 2 else
 ( case when a.class=836953 then 3 else
@@ -17,6 +17,8 @@ case when class=836952 then 1 else
 		  ( case when class=836963 then 13 else 
 		   (case when class=1436239 then 14 else 
 			(case when class=836965 then 15 else 16 end) end) end) end) end) end) end) end) end) end) end) end) end) end) end as class_rank from sub1 a
-		  left join ds_mysql_prod_tagelement t on t.id=a.class)
+		  left join ds_mysql_prod_tagelement t on t.id=a.class
+  left join ds_mysql_prod_project p
+on p.id=a.projectid)
 		  select a.projectId, a.name, a.background, a.fg_learner, a.age, a.class, a.fy_timerange, a.count, a.class_rank from sub2 a
 		  order by a.class_rank asc
