@@ -1,6 +1,29 @@
-select p.enrollmet, p.pace_completion , p.date_of_completion , p.date_of_formation , p.lg_status , p2.target_ind16, p2.year_3, p2.reporting_period_3
+with table1 as ( select p.enrollment, p.pace_completion , p.date_of_completion , p.date_of_formation , p.lg_status , p2.target_ind16, p2.year_3, p2.reporting_period_3 , p2.target_ind16 / 2 as target , sum(p.enrollment) as enrollment , sum(p.pace_completion) as graduation
 from profile_29179 p
 
 left join profile_23116 p2 on
 p.projectId = p2.projectId
 
+group by p.enrollment, p.pace_completion , p.date_of_completion , p.date_of_formation , p.lg_status , p2.target_ind16, p2.year_3, p2.reporting_period_3 
+) , 
+
+temp as(
+select 'target' as dim
+union all
+select 'enrollment' as dim
+union all
+select 'graduation' as dim
+
+)
+select t1.enrollment, t1.pace_completion , t1.date_of_completion , t1.date_of_formation , t1.lg_status , t1.target_ind16, t1.year_3, t1.reporting_period_3 , temp.dim ,case dim 
+when 'target' then t1.target
+when 'enrollment' then t1.enrollment
+when 'graduation' then t1.graduation
+else null
+end as value1
+
+from table1 t1
+cross join temp
+
+
+group by  t1.enrollment, t1.pace_completion , t1.date_of_completion , t1.date_of_formation , t1.lg_status , t1.target_ind16, t1.year_3, t1.reporting_period_3 , temp.dim 
