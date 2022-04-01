@@ -123,12 +123,21 @@ table_union_all_cre_mail as
  group by p.projectid ),
 
 
+table_year as 
+(
+Select tagid,id, name as year_new  from ds_mysql_prod_tagelement
+where 
+tagid = '22221' and id in (331420,331421,331637,331638,331639,1437343,1437344) 
+order by year_new
+),
+
+
 table2 as 
 (
  select ROW_NUMBER() over (order by p.projectid ) as serial_number  , p._id, p.projectid , 
   case when p.name_subunit is null or p.name_subunit=' ' then 'N/A' else p.name_subunit end  as unit , ven.name as vendor , cou.name as country 
   
-, t1.factory , t1.factory_id  ,  case when extract(month from date_enrollment)=1 then (extract(year from date_enrollment)-1) else extract(year from date_enrollment) end as batch , m_mail.modified_email , c_mail.creator_email from profile_16619 p
+, t1.factory , t1.factory_id  ,  case when extract(month from date_enrollment)=1 then (extract(year from date_enrollment)-1) else extract(year from date_enrollment) end as batch , m_mail.modified_email , c_mail.creator_email , t_y.year_new from profile_16619 p
   
 left join ds_mysql_prod_project fac 
 on p.projectId = fac.id
@@ -148,7 +157,10 @@ p.projectid = m_mail.projectid
 left join table_all_c_mail c_mail on 
 p.projectid = c_mail.projectid
   
-where cou.name != 'Test Country' and cou.name !='GAP Inc.' and cou.name != 'India'
+left join table_year t_y on 
+p._id = t_y._id
+  
+where cou.name != 'Test Country' and cou.name !='GAP Inc.'
   )
 
 
