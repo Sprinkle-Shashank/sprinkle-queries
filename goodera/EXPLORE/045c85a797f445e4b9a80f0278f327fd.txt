@@ -1,12 +1,12 @@
- -- profile 18224
-with table_a1 as ( SELECT _id,projectid, mon.modifierid, m.email as memail
+ -- profile 16862
+with table_a1 as ( SELECT _id,projectid,mon.creatorid, u.email as cemail, mon.modifierid, m.email as memail
 				
 from ds_mongo_profileinstance mon
 left join ds_mysql_prod_user u on
 mon.creatorid = u.id
 left join ds_mysql_prod_user m  on
 mon.modifierid = m.id
-where mon.profileId='18224' and mon.active = 't' and mon.securitycontextid is not null
+where mon.profileId='16862' and mon.active = 't' and mon.securitycontextid is not null
 ),
 
 
@@ -21,17 +21,18 @@ table_a2 as
  ),
  
  table_a3 as 
- ( select p.projectid , p._id , memail from table_a2  p where row=1),
+ ( select distinct memail , p.projectid , p._id  from table_a2  p where row=1),
  
  
- -- profile 18299
- table_a11 as ( SELECT _id,projectid, mon.modifierid, m.email as memail			
+ -- profile 16863
+ table_a11 as (  SELECT _id,projectid,mon.creatorid, u.email as cemail, mon.modifierid, m.email as memail
+			   
 from ds_mongo_profileinstance mon
 left join ds_mysql_prod_user u on
 mon.creatorid = u.id
 left join ds_mysql_prod_user m  on
 mon.modifierid = m.id
-where mon.profileId='18299' and mon.active = 't' and mon.securitycontextid is not null
+where mon.profileId='16863' and mon.active = 't' and mon.securitycontextid is not null
 ),
 
 
@@ -46,67 +47,14 @@ where p0=0 and p1=0 and p2=0 and p3=0 and p4=0
  ),
  
  table_a13 as 
- ( select p.projectid , p._id , memail from table_a12 p where row=1),
+ ( select distinct memail , p.projectid , p._id from table_a12 p where row=1),
  
- 
-  -- profile 20703
- table_a111 as ( SELECT _id,projectid, mon.modifierid, m.email as memail
-from ds_mongo_profileinstance mon
-left join ds_mysql_prod_user u on
-mon.creatorid = u.id
-left join ds_mysql_prod_user m  on
-mon.modifierid = m.id
-where mon.profileId='20703' and mon.active = 't' and mon.securitycontextid is not null
-),
 
-
-table_a112 as
-( select p.projectid , p._id , memail , row_number() over 
-(partition by projectid
- order by _id desc) as row
-, POSITION('@gap.com' IN memail ) as p0 , POSITION('gaptable1@gmail.com' IN memail ) as p1 ,  POSITION('gaptable2@gmail.com' IN memail ) as p2 , POSITION('gaptable3@gmail.com' IN memail ) as p3 , POSITION('gaptable4@gmail.com' IN memail ) as p4
- from table_a111 as p
- 
-where p0=0 and p1=0 and p2=0 and p3=0 and p4=0
-),
- 
- table_a113 as 
- ( select p.projectid , p._id , memail  from table_a112 p where row=1),
- 
- 
-  -- profile 20704
- table_a1111 as ( SELECT _id,projectid, mon.modifierid, m.email as memail
-from ds_mongo_profileinstance mon
-left join ds_mysql_prod_user u on
-mon.creatorid = u.id
-left join ds_mysql_prod_user m  on
-mon.modifierid = m.id
-where mon.profileId='20704' and mon.active = 't' and mon.securitycontextid is not null
-),
-
-
-table_a1112 as
-( select p.projectid , p._id , memail , row_number() over 
-(partition by projectid
- order by _id desc) as row
-, POSITION('@gap.com' IN memail ) as p0 , POSITION('gaptable1@gmail.com' IN memail ) as p1 ,  POSITION('gaptable2@gmail.com' IN memail ) as p2 , POSITION('gaptable3@gmail.com' IN memail ) as p3 , POSITION('gaptable4@gmail.com' IN memail ) as p4
- from table_a1111 as p
- 
-where p0=0 and p1=0 and p2=0 and p3=0 and p4=0
-),
- 
- table_a1113 as 
- ( select p.projectid , p._id , memail from table_a1112 p where row=1),
- 
 table_union_all_memail as
 (
 select * from table_a3
 union all
 select * from table_a13
-union all
-select * from table_a113
-union all
-select * from table_a1113
  ),
  
 table_all_mail as
@@ -115,6 +63,7 @@ table_all_mail as
  
  group by p.projectid  
 )
+
 
 select * from table_all_mail
  
