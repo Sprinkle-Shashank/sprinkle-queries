@@ -1,10 +1,14 @@
+with table1 as (
 select p.projectid, cou.name as country,p1.status,p2.total_workers,
 nvl2(SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)),ven.name) as vendor_name, case when vendor_name='' then ven.name else vendor_name end as vendor, fac.name as factory ,
 case when p3.name_subunit is null or p3.name_subunit=' ' then  'N/A' else p3.name_subunit end  as unit,
 p.day_1_workers , p.last_day_workers , p.workers_exited , p.absenteeism_rate , p.labor_disputes , p.bc_meetings ,
 p.person_days_lost ,p.production_efficiency ,fy1.name as fy, quarter1.name as quarter,
 cast(DATEPART(YEAR,p1.date_enrollment) as varchar) as year_new 
-,((last_day_workers - day_1_workers)/nullif(p2.total_workers,0))*100 as workersexited
+,((last_day_workers - day_1_workers)/nullif(p2.total_workers,0))*100 as workersexited,
+row_number() over 
+(partition by projectid
+ order by _id desc) as row
 from profile_16862 p
 
 left join ds_mysql_prod_project fac
@@ -30,3 +34,6 @@ left join ds_mysql_prod_tagelement fy1 on
   group by  p.projectid, cou.name ,p1.status,ven.name, fac.name , p3.name_subunit ,
 p.day_1_workers , p.last_day_workers , p.workers_exited , p.absenteeism_rate , p.labor_disputes , p.bc_meetings ,
 p.person_days_lost ,p.production_efficiency ,fy1.name , quarter1.name,p1.date_enrollment,p2.total_workers
+  )
+  select * from table1
+  where row=1
