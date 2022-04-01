@@ -1,9 +1,10 @@
-with sub1 as( select fy_timerange, extract(month from cast(fy_timerange.start as date)) as month, admissions, education_support, next_academic, lifeskill_session, children_lifeskills, ccp_formed, cpc_meetings, no_orientations, health_camps, people_health_camps,  additional_nutrition, no_id_cards from profile_80261)
-select fy_timerange, sum(admissions) as admissions, sum(education_support) as education_support, sum(next_academic) as next_academic,
+with sub1 as( select fy_timerange, extract(month from cast(fy_timerange.start as date)) as month, admissions, education_support, next_academic, lifeskill_session, children_lifeskills, ccp_formed, cpc_meetings, no_orientations, health_camps, people_health_camps,  additional_nutrition, no_id_cards, p.name as projectid from profile_80261
+			left join ds_mysql_prod_profile p on p.id=projectid)
+select fy_timerange,projectid, sum(admissions) as admissions, sum(education_support) as education_support, sum(next_academic) as next_academic,
 sum(lifeskill_session) as lifeskill_session, sum(children_lifeskills) as children_lifeskills, sum(ccp_formed) as ccp_formed, sum(cpc_meetings) as cpc_meetings, sum(no_orientations) as no_orientations, sum(health_camps) as health_camps, sum(people_health_camps) as people_health_camps, sum(additional_nutrition) as additional_nutrition, sum(no_id_cards) as no_id_cards,
 case when month=4 or month=5 or month=6 then 'Quarter 1'
 when month=7 or month=8 or month=9 then 'Quarter 2'
 when month=10 or month=11 or month=12 then 'Quarter 3'
 when month=1 or month=2 or month=3 then 'Quarter 4'
 end as quarter
-from sub1 group by fy_timerange, month
+from sub1 group by fy_timerange, month, projectid
