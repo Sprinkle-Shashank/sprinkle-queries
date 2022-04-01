@@ -1,1 +1,6 @@
-select projectId, date, activity_type, number_ben_child, days_visit, awareness_hours, shelter_home_text from profile_79960
+with sub1 as(
+select p.name as projectId, a.date as fy_timerange, a.activity_type, a.number_ben_child, a.days_visit, a.awareness_hours, a.shelter_home_text, b.location from profile_79960 a left join profile_79953 b on a.shelter_home_text=b.name 
+  left join ds_mysql_prod_project p
+on p.id=a.projectid
+  where a.activity_type=1678415)
+select a.projectId, a.fy_timerange, a.number_ben_child, a.awareness_hours, a.shelter_home_text, a.location, count(*) from sub1 a group by a.projectId, a.fy_timerange, a.number_ben_child, a.awareness_hours, a.shelter_home_text, a.location
