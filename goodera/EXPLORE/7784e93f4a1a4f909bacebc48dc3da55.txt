@@ -15,7 +15,7 @@ when country in ('Guatemala', 'El Salvador', 'Dominican Republic')
 then 'Americas'
 when country in ('Philippines', 'Cambodia',  'Vietnam',  'Indonesia', 'Myanmar')
 then 'South East Asia'
-end as region,case when p2.name_subunit is null or p2.name_subunit=' ' then 'N/A' else p2.name_subunit end  as unit,decode(DATEPART(YEAR,p2.date_enrollment),null,0,DATEPART(YEAR,p2.date_enrollment)) as year_new,p2.status,t1.projectId,representative.name as mr_wr,
+end as region,case when p2.name_subunit is null or p2.name_subunit=' ' then 'N/A' else p2.name_subunit end  as unit,decode(DATEPART(YEAR,p2.date_enrollment),null,0,DATEPART(YEAR,p2.date_enrollment)) as year_new,p2.status,representative.name as mr_wr,
 count(mr_wr) as total_representatives
 
 from profile_18224 p
@@ -43,13 +43,13 @@ on p.mr_wr = representative.id
 
 
 
-where  (cou.name <> 'Test Country' and cou.name <> 'GAP Inc.') and (p2.status = 1400365 or p2.status is null)
+where  (cou.name <> 'Test Country' ) and (p2.status = 1400365 or p2.status is null)
 and		  
-t1.projectId is not null
+p2.projectId is not null
 	    and   project ilike '%%' 
 group by  p.projectId,fac.name ,ven.name,vendor,cou.name,region,unit,year_new,p2.status,t1.projectId,representative.name
 
 
 )
-select factory,projectId,country,vendor,unit,year_new,mr_wr,total_representatives,region from table2
+select factory,project,country,vendor,unit,year_new,mr_wr,total_representatives,region from table2
 
