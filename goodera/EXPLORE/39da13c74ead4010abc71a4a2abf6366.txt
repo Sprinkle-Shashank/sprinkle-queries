@@ -101,6 +101,49 @@ on ven.parent = cou.id
 ),
 
 
+
+table19 as 
+( select p.projectid , p._id , fac.name as factory , ven.name as vendor , cou.name as country , p.name_subunit , case when p.name_subunit is not null then count(p.projectid) else count(p2.projectid) end as Endline_BC_Respondents from profile_16619 as p 
+ 
+  left join profile_20703 p2 on 
+  p.projectid = p2.projectid
+ 
+left join ds_mysql_prod_project fac 
+on p.projectId = fac.id
+
+left join ds_mysql_prod_project ven 
+on fac.parent = ven.id
+
+left join ds_mysql_prod_project cou 
+on ven.parent = cou.id
+ 
+ where cou.name != 'Test Country' and cou.name !='GAP Inc.'
+
+ group by  p.projectid , p.name_subunit , p2.projectid, fac.name , ven.name , cou.name , p._id
+),
+
+
+table100 as 
+( select p.projectid , p._id , fac.name as factory , ven.name as vendor , cou.name as country , p.name_subunit , case when p.name_subunit is not null then count(p.projectid) else count(p2.projectid) end as Endline_Non_BC_Respondents from profile_16619 as p 
+ 
+  left join profile_20704 p2 on 
+  p.projectid = p2.projectid
+ 
+left join ds_mysql_prod_project fac 
+on p.projectId = fac.id
+
+left join ds_mysql_prod_project ven 
+on fac.parent = ven.id
+
+left join ds_mysql_prod_project cou 
+on ven.parent = cou.id
+
+ where cou.name != 'Test Country' and cou.name !='GAP Inc.'
+ 
+ group by  p.projectid , p.name_subunit , p2.projectid, fac.name , ven.name , cou.name , p._id
+),
+
+
 table2 as 
 (
    select ROW_NUMBER() over (order by p.projectid ) as serial_number  , p._id, p.projectid , 
@@ -109,7 +152,7 @@ table2 as
   , t1.factory , t1.factory_id
  ,  case when extract(month from date_enrollment)=1 then (extract(year from date_enrollment)-1) else extract(year from date_enrollment) end as batch 
   , t7.Baseline
-  , t9.Baseline_BC_Respondents , t10.Baseline_Non_BC_Respondents , t17.endline
+  , t9.Baseline_BC_Respondents , t10.Baseline_Non_BC_Respondents , t17.endline , t19.Endline_BC_Respondents , t100.Endline_Non_BC_Respondents
   
   from profile_16619 as p
   
@@ -135,6 +178,12 @@ left join table9 t9 on
 p._id = t9._id
   
 left join table10 t10 on 
+p._id = t10._id
+  
+left join table19 t19 on 
+p._id = t9._id
+  
+left join table100 t100 on 
 p._id = t10._id
 
 where cou.name != 'Test Country' and cou.name !='GAP Inc.'
