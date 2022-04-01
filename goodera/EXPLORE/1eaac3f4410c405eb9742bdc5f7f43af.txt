@@ -1,10 +1,13 @@
-with table1 as ( select p.enrollment, p.pace_completion , p.date_of_completion , p.date_of_formation , p.lg_status , p2.target_ind16, p2.year_3, p2.reporting_period_3 , p2.target_ind16 / 2 as trgt , sum(p.enrollment) as enroll , sum(p.pace_completion) as graduat
+with 
+table0 as (select p2.target_ind16, p2.year_3, p2.reporting_period_3 , p2.target_ind16 / 2 as trgt , sum(p.enrollment) as enroll , sum(p.pace_completion) as graduat from profile_23116 as p2) , 
+
+table1 as ( select p.enrollment, p.pace_completion , p.date_of_completion , p.date_of_formation , p.lg_status , t0.target_ind16 , t0.year_3 , t0.reporting_period_3 , t0.trgt , t0.enroll , t0.graduat
 from profile_29179 p
 
-left join profile_23116 p2 on
-p.projectId = p2.projectId
+left join table0 t0 on
+p.projectId = t0.projectId
 
-group by p.enrollment, p.pace_completion , p.date_of_completion , p.date_of_formation , p.lg_status , p2.target_ind16, p2.year_3, p2.reporting_period_3 
+group by p.enrollment, p.pace_completion , p.date_of_completion , p.date_of_formation , p.lg_status , t0.target_ind16, t0.year_3, t0.reporting_period_3 
 ) , 
 
 temp as(
@@ -25,5 +28,5 @@ end as value1
 from table1 t1
 cross join temp
 
-
+where lg_status <> 847851
 group by  t1.enrollment, t1.pace_completion , t1.date_of_completion , t1.date_of_formation , t1.lg_status , t1.target_ind16, t1.year_3, t1.reporting_period_3 , temp.dim , t1.trgt , t1.enroll , t1.graduat
