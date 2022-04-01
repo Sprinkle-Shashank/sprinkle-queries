@@ -1,1 +1,7 @@
-select projectId, date, shelter_home_text, number_ben_child, external_ben_number from profile_79959
+with sub1 as(
+select p.name as projectId, a.date as fy_timerange, a.shelter_home_text, a.number_ben_child, b.location, case when a.external_ben_number is NULL then 0 else a.external_ben_number end as external_ben_number,
+(a.number_ben_child+a.external_ben_number) as total_benef
+from profile_79959 a left join profile_79953 b on b.name=a.shelter_home_text
+left join ds_mysql_prod_project p
+on p.id=a.projectid)
+select a.projectId, a.fy_timerange, a.shelter_home_text, a.number_ben_child, a.external_ben_number, a.location, a.total_benef, count(*) from sub1 a group by a.projectId, a.fy_timerange, a.shelter_home_text, a.number_ben_child, a.external_ben_number, a.location, a.total_benef
