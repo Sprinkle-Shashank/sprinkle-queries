@@ -2,13 +2,23 @@ with
 table0 as (select p2.target_ind16, p2.year_3, p2.reporting_period_3 , p2.target_ind16 / 2 as trgt , p2.projectId from profile_23116 as p2
 		  group by p2.target_ind16, p2.year_3, p2.reporting_period_3 , p2.projectId ) , 
 
-table1 as ( select p.enrollment, p.pace_completion , p.date_of_completion , p.date_of_formation , p.lg_status , t0.target_ind16 , t0.year_3 , t0.reporting_period_3 , t0.trgt , sum(p.enrollment) as enroll , sum(p.pace_completion) as graduat
+table1 as ( select p.enrollment, p.pace_completion , p.date_of_completion , p.date_of_formation , p.lg_status , t0.target_ind16 , t0.year_3 , t0.reporting_period_3 , t0.trgt , sum(p.enrollment) as enroll , sum(p.pace_completion) as graduat , yr.name as year_new , sum(enrollment) , datepart(month,p.date_of_formation) as month , case when month in ('2', '3', '4')
+then '1st(Feb-Apr)'
+when month in ('5','6','7')
+then '2nd(May-Jul)'
+when month in ('8', '9', '10')
+then '3rd(Aug-Oct)'
+when month in ('11', '12',  '1')
+then '4th(Nov-Jan)'
+end as quarter 
 from profile_29179 p
 
 left join table0 t0 on
 p.projectId = t0.projectId
+left join ds_mysql_prod_tagelement yr
+on p.year = yr.id
 
-group by p.enrollment, p.pace_completion , p.date_of_completion , p.date_of_formation , p.lg_status , t0.target_ind16, t0.year_3, t0.reporting_period_3 , t0.trgt 
+group by p.enrollment, p.pace_completion , p.date_of_completion , p.date_of_formation , p.lg_status , t0.target_ind16, t0.year_3, t0.reporting_period_3 , t0.trgt , quarter , year_new 
 ) , 
 
 temp as(
@@ -19,7 +29,7 @@ union all
 select 'Graduation' as dim
 
 )
-select t1.enrollment, t1.pace_completion , t1.date_of_completion , t1.date_of_formation , t1.lg_status , t1.target_ind16, t1.year_3, t1.reporting_period_3 , temp.dim ,case dim 
+select t1.enrollment, t1.pace_completion , t1.date_of_completion , t1.date_of_formation , t1.lg_status , t1.target_ind16, t1.year_3, t1.reporting_period_3 , t1.quarter , t1.year_new , temp.dim ,case dim 
 when 'Target' then t1.trgt
 when 'Enrollment' then t1.enroll
 when 'Graduation' then t1.graduat
@@ -30,4 +40,4 @@ from table1 t1
 cross join temp
 
 where lg_status <> 847851
-group by  t1.enrollment, t1.pace_completion , t1.date_of_completion , t1.date_of_formation , t1.lg_status , t1.target_ind16, t1.year_3, t1.reporting_period_3 , temp.dim , t1.trgt , t1.enroll , t1.graduat
+group by  t1.enrollment, t1.pace_completion , t1.date_of_completion , t1.date_of_formation , t1.lg_status , t1.target_ind16, t1.year_3, t1.reporting_period_3 , temp.dim , t1.trgt , t1.enroll , t1.graduat , t1.quarter , t1.year_new
