@@ -24,6 +24,16 @@ table_a2 as
  ( select * from table_a2  p where row=1),
  
  
+ table_a4 as 
+ (  select p.projectid , p._id , cemail ,  row_number() over 
+(partition by projectid
+ order by _id desc) as row from table_a1 p
+  ),
+  
+  table_a5 as 
+  ( select * from table_a4 where row=1 ),
+ 
+ 
  -- profile 16863
  table_a11 as (  SELECT _id,projectid,mon.creatorid, u.email as cemail, mon.modifierid, m.email as memail
 			   
@@ -56,6 +66,17 @@ union all
 select * from table_a13
  ),
  
+ 
+ table_a14 as 
+ (  select p.projectid , p._id , cemail ,  row_number() over 
+(partition by projectid
+ order by _id desc) as row from table_a11 p
+  ),
+  
+  table_a15 as 
+  ( select * from table_a14 where row=1 ),
+  
+ 
 table_all_m_mail as
 (
  select p.projectid , listagg(memail,',') as modified_email from table_union_all_memail p
@@ -65,9 +86,9 @@ table_all_m_mail as
 
 table_union_all_cre_mail as
 (
-  select p.projectid , cemail from table_a1 p
+  select * from table_a5 
   union all
-  select p.projectid , cemail from table_a11 p
+  select * from table_a15
  )
 
 
