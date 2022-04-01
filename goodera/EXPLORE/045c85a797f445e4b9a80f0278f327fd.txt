@@ -1,38 +1,52 @@
 
- with table15 as 
-(
-select p.projectid , substring(createddate,1,10) as createddate_update_1 , cast(createddate_update_1 as date) as create_1 from profile_20703 as p ),
-
-
-table16 as 
-(
-select p.projectid , substring(createddate,1,10) as createddate_update_2 ,  t5.create_1 , cast(createddate_update_2 as date) as create_2 , datediff(day,create_1, current_date) as f1 ,  datediff(day, create_2 , current_date) as f2 , case when f1>f2 then t5.create_1 else create_2 end as Endline , row_number() over (partition by p.projectid order by p._id) as row from profile_20704 as p
-
-left join table15 t5 on 
-p.projectid = t5.projectid 
+with table7 as ( SELECT _id,projectid, mon.modifierid, m.email as memail
+				
+from ds_mongo_profileinstance mon
+left join ds_mysql_prod_user u on
+mon.creatorid = u.id
+left join ds_mysql_prod_user m  on
+mon.modifierid = m.id
+where mon.profileId='18224' and mon.active = 't' and mon.securitycontextid is not null
 ),
 
 
-table17 as
-(select p.projectid , Endline from table16 as p where row=1),
-
-
-table4 as 
-( select p.projectid , fac.name as factory , ven.name as vendor , cou.name as country , p.name_subunit , case when p.name_subunit is not null then count(p.projectid) else count(p2.projectid) end as h1 from profile_16619 as p 
+table8 as
+( select p.projectid , p._id , memail , row_number() over 
+(partition by projectid
+ order by _id desc) as row
+ --, POSITION('@goodera.com' IN memail ) as p1 
+ from table7 as p
  
-  left join profile_18224 p2 on 
-  p.projectid = p2.projectid
+-- where  p1=0
+ ),
  
-left join ds_mysql_prod_project fac 
-on p.projectId = fac.id
-
-left join ds_mysql_prod_project ven 
-on fac.parent = ven.id
-
-left join ds_mysql_prod_project cou 
-on ven.parent = cou.id
-
- group by  p.projectid , p.name_subunit , p2.projectid, fac.name , ven.name , cou.name 
- )
+ table9 as 
+ ( select * from table8 where row=1),
  
-select * from table17
+ 
+ table70 as ( SELECT _id,projectid, mon.modifierid, m.email as memail
+				
+from ds_mongo_profileinstance mon
+left join ds_mysql_prod_user u on
+mon.creatorid = u.id
+left join ds_mysql_prod_user m  on
+mon.modifierid = m.id
+where mon.profileId='18299' and mon.active = 't' and mon.securitycontextid is not null
+),
+
+
+table80 as
+( select p.projectid , p._id , memail , row_number() over 
+(partition by projectid
+ order by _id desc) as row
+ --, POSITION('@goodera.com' IN memail ) as p1 
+ from table7 as p
+ 
+-- where  p1=0
+ ),
+ 
+ table90 as 
+ ( select * from table8 where row=1),
+ 
+ select * from table90
+ 
