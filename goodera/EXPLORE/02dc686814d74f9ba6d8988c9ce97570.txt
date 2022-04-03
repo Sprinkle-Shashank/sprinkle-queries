@@ -50,28 +50,30 @@ table3 as (select brand, lg, tab, sum(total_females_graduation_rate) as total_fe
 group by brand, lg, tab, start_date1,projectId1,select_modules
 ),
 
-table4 as (select t3.*,CAST(select_module as int) from table3 t3,t3.select_modules select_module
+table4 as (select t3.*,CAST(select_module as int) from table2 t2,t2.select_modules select_module
 ),
 
 table4_1 as (select 
 			 brand, lg, tab,total_females_graduation_rate, total_females, total_females_dropout, total_females_graduated,total_females_completed,total_females_ongoing,
 			 total_batches_ongoing,total_batches_completed,average_hours, total_males_graduated,total_hours,total_males, total_males_ongoing, total_males_dropout,dropout_pregnancy, dropout_left,dropout_interest,dropout_pressure,dropout_other, start_date1,projectId1,
-			 select_module, t1.parent as m_parent
+			 select_module--, t1.parent as m_parent
 		from table4 p
-left join ds_mysql_prod_tagelement t1 on t1.id = p.select_module
+--left join ds_mysql_prod_tagelement t1 on t1.id = p.select_module
+			 
+where select_module in ('64503','70912','70941','70900','70910','70913','70909','70903','70901','70902','70911','264682','264684','264683')
 ),
 
-table4_2 as (select brand, lg, tab,total_females_graduation_rate, total_females, total_females_dropout, total_females_graduated,total_females_completed,total_females_ongoing,
+/*table4_2 as (select brand, lg, tab,total_females_graduation_rate, total_females, total_females_dropout, total_females_graduated,total_females_completed,total_females_ongoing,
 			 total_batches_ongoing,total_batches_completed,average_hours, total_males_graduated,total_hours,total_males, total_males_ongoing, total_males_dropout,dropout_pregnancy, dropout_left,dropout_interest,dropout_pressure,dropout_other, start_date1,projectId1
-			 , select_module, m_parent from table4_1
+			 , select_module, m_parent from table4_1 p
 			 
 where m_parent in ('64503') 
 
-),
+),*/
 table5 as(select brand, lg, tab,min(total_females_graduation_rate), min(total_females), min(total_females_dropout), min(total_females_graduated),min(total_females_completed),min(total_females_ongoing),
 			 min(total_batches_ongoing),min(total_batches_completed),min(average_hours), min(total_males_graduated),min(total_hours),min(total_males), min(total_males_ongoing), min(total_males_dropout),min(dropout_pregnancy), min(dropout_left),min(dropout_interest),min(dropout_pressure),min(dropout_other), start_date1,projectId1
-			 , listagg(distinct select_module, ',') as select_module,listagg( distinct m_parent,',') as m_parent
-		  from table4_2 p
+			 , listagg(distinct select_module, ',') as select_module--,listagg( distinct m_parent,',') as m_parent
+		  from table4_1 p
 
 group by brand, lg, tab,start_date1,projectId1
 )
