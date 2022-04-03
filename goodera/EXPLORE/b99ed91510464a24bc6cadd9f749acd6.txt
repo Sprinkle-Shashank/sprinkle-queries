@@ -16,8 +16,36 @@ table_52810.projectId = p.projectId
 left join profile_54646 table_54646 on
 table_54646.projectId = p.projectId
 ),
-table2 as (select brand,status,tablestatus,start_year as year, sum(num_females) as total_females,start_date,projectid,  select_modules
+table2 as (select brand,status,tablestatus,start_year as _year, sum(num_females) as total_females,start_date,projectid,  select_modules
 		from table1 p
 group by brand,status,tablestatus,start_year,start_date,projectid, select_modules
+),
+
+table3 as(select t2.*,CAST(select_module1 as int) from table2 t2,t2.select_modules select_module1
+),
+
+table3 as(select t2.*,CAST(select_module1 as int) from table2 t2,t2.select_modules select_module1
+),
+
+table4 as (Select 
+		   brand,status,tablestatus,_year,total_females,start_date,projectid
+		   select_module1,
+		   case when select_module1 in ('64503','70912','70941','70900','70910','70913','70909','70903','70901','70902','70911','264682','264684','264683') then '64503' else '60504' end as parent
+		   from table3 
+
+where select_module1 in ('64503','70912','70941','70900','70910','70913','70909','70903','70901','70902','70911','264682','264684','264683','64504','60914', '70905', '70906', '70916', '70946', '70915', '70917', '70933', '70949', '70947', '70899', '459391', '459394', '459395') 
 )
-select year, total_females,start_date,projectid,  select_modules from table2 p where brand = 1 and status = 1 and tablestatus = 1
+,
+
+table5 as (select 
+		   listagg(select_module1,',') as select_module1 ,
+		   brand,status,tablestatus,_year,min(total_females) as total_females ,start_date,projectid
+		   ,parent
+ from table4 
+group by  brand,status,tablestatus,_year, start_date,projectid
+		   ,parent
+)
+
+
+
+select _year as year, cast(total_females as int4),start_date,projectid,  select_module1, cast(parent as int4) as select_modules from table5 p where brand = 1 and status = 1 and tablestatus = 1
