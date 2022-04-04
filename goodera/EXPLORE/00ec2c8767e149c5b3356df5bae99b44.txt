@@ -1,13 +1,50 @@
 Select projectid,
 fy_timerange,
-school,
+sch.name as school,
+dis.name as district,
 student_name,
 roll_number,
 age_student,
-gender,
-baseline_endline,
+gd.name as grade,
+gen.name as gender,
+bs.name as baseline_endline,
 baseline_score,
 endline_score,
-student_transition
+st.name as student_transition,
+sum(1) as count
 
-from profile_80352
+from profile_80352 p
+
+LEFT JOIN ds_mysql_prod_tagelement sch
+on p.school = sch.id
+
+LEFT JOIN ds_mysql_prod_tagelement dis
+on sch.parent = dis.id
+
+LEFT JOIN ds_mysql_prod_tagelement gen
+on p.gender = gen.id
+
+LEFT JOIN ds_mysql_prod_tagelement bs
+on p.baseline_endline = bs.id
+
+LEFT JOIN ds_mysql_prod_tagelement st
+on p.student_transition = st.id
+
+LEFT JOIN ds_mysql_prod_tagelement gd
+on p.grade = gd.id
+
+
+GROUP BY
+projectid,
+fy_timerange,
+sch.name,
+dis.name,
+student_name,
+roll_number,
+age_student,
+gen.name,
+bs.name,
+baseline_score,
+endline_score,
+st.name,
+gd.name
