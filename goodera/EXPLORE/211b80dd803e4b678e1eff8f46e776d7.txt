@@ -31,9 +31,9 @@ table_z01 as
   ),
 
 table_z1 as
-( select p.projectid , p._id , quarter , fy , qua.name as quarter_update , f.name as fy_update , concat( quarter_update, ' , ') as quarter_update_new , concat(quarter_update_new,fy_update) as Latest_Impact_Data , p2.name_subunit , row_number() over 
+( select p.projectid , p._id , quarter , fy , qua.name as quarter_update , f.name as fy_update , concat( quarter_update, ' , ') as quarter_update_new , concat(quarter_update_new,fy_update) as Latest_Grievance_Data , p2.name_subunit , row_number() over 
 (partition by p.projectid
- order by p._id desc) as row , case when Latest_Impact_Data is null then 'N/A' else Latest_Impact_Data end as Latest_Impact_Data_update from profile_16863 as p
+ order by p._id desc) as row , case when Latest_Grievance_Data is null then 'N/A' else Latest_Grievance_Data end as Latest_Grievance_Data_update from profile_16863 as p
  
 left join ds_mysql_prod_tagelement qua 
 on p.quarter = qua.id
@@ -59,7 +59,7 @@ where cou.name != 'Test Country' and cou.name !='GAP Inc'
  
 table_z11 as 
 (
- select * from table_z1 where row=1
+ select p.projectid , p._id , quarter_update , fy_update , Latest_Grievance_Data from table_z1 as p where row=1
   )
   
-  select * from table_z11 where fy_update = max(fy_update)
+  select p.* , case when max(fy_update) and max(quarter_update) then 'Up to Date' else 'Pending' end as grievance_filter from table_z11 as p
