@@ -16,7 +16,8 @@ on p1.material = mt.id
 group by fy_timerange, br.name, bn.name, mt.name, fkey),
 
 table2 as (
-select t1.fy_timerange, t1.brand, t1.business, t1.material,ct.name as cotton_type, sum((volume/1000)) as bciweight,first(weight) as weight2 from table1 t1
+select t1.fy_timerange, t1.brand, t1.business, t1.material,ct.name as cotton_type, sum((volume/1000)) as bciweight,first_value(weight ignore nulls) over(partition by t1.fy_timerange, t1.brand, t1.business, t1.material, ct.name order by weight) as weight2
+from table1 t1
 
 left join profile_62947 t2 on 
 t1.fkey = t2.name
@@ -26,5 +27,5 @@ on t2.cotton_type = ct.id
 
 group by  t1.fy_timerange, t1.brand, t1.business, t1.material, ct.name
 )
-select * from table1;
+select * from table2
 
