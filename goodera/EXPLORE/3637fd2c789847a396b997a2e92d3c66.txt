@@ -21,7 +21,7 @@ on xprojectid=t.id
 where keyword='occ_health_and_safety_incidents'
 ),
 s2 as (
-Select  projectid , year , month, coun.incident_type,coun.employment,coun.injury_ill_health,coun.degree_of_injury_ill_health,coun,age
+Select  projectid , year , month, coun.incident_type,coun.employment,coun.injury_ill_health,coun.degree_of_injury_ill_health,coun.age
 from s as p, unpivot p.datatablebase as coun at xyz
 ),
 s3 as (
@@ -36,6 +36,12 @@ case
 from s2
 where employment=1629572 and injury_ill_health= 1630011
 )
-Select projectid,year,month,incident_type,age_bucket,employment,injury_ill_health,count(*)
+Select projectid,year,month,age_bucket,t.name as incident_type,t1.name as employment,t2.name as injury_ill_health,count(*)
 from s3
-group by projectid,year,month,incident_type,employment,age_bucket,injury_ill_health
+left join ds_mysql_prod_tagelement t 
+on t.id=incident_type
+left join ds_mysql_prod_tagelement t1 
+on t1.id=employment
+left join ds_mysql_prod_tagelement t2 
+on t2.id=injury_ill_health
+group by projectid,year,month,t.name ,t1.name,t2.name,
