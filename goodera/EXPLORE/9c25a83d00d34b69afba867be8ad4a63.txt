@@ -21,14 +21,21 @@ on xprojectid=t.id
 where keyword='occ_health_and_safety_incidents'
 ),
 s2 as (
-Select  projectid , year , month, coun.incident_type,coun.employment,coun.injury_ill_health,coun.degree_of_injury_ill_health
+Select  projectid , year , month, coun.incident_type,coun.employment,coun.injury_ill_health,coun.degree_of_injury_ill_health,coun.age
 from s as p, unpivot p.datatablebase as coun at xyz
 ),
 s3 as (
-Select projectid,year,month,incident_type,employment,injury_ill_health,degree_of_injury_ill_health
+Select projectid,year,month,incident_type,employment,injury_ill_health,degree_of_injury_ill_health,
+    case
+  	when age>=18 and age <25 then '18 to 25'
+    when age>=25 and age <30 then '25 to 30'
+    when age>=30 and age <=35 then '30 to 35'
+    when age > 35 then 'Others'
+  else null
+  end as age_bucket
 from s2
 where employment=1629572 and injury_ill_health= 1630012
 )
-Select projectid,year,month,incident_type,employment,injury_ill_health,count(*)
+Select projectid,year,month,incident_type,age_bucket,employment,injury_ill_health,count(*)
 from s3
-group by projectid,year,month,incident_type,employment,injury_ill_health
+group by projectid,year,month,incident_type,age_bucket,employment,injury_ill_health
