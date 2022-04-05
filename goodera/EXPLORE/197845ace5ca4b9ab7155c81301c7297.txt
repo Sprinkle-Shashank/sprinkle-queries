@@ -1,0 +1,26 @@
+with temp as (
+  
+  Select 'online classes' as C
+  UNION ALL
+  Select 'online assessments' as C
+  )
+  
+  Select projectid,fy_timerange,sch.name as school , dis.name as district ,
+  SUM(
+  Case C
+  When 'online classes' then p.online_classes
+  When 'online assessments' then p.online_assessments
+  ELSE
+  NULL
+  End) as val, temp.C as dimensions
+  from profile_80374 p
+  
+  
+	LEFT JOIN ds_mysql_prod_tagelement sch
+	on p.school = sch.id
+
+	LEFT JOIN ds_mysql_prod_tagelement dis
+	on sch.parent = dis.id
+  CROSS JOIN temp
+  
+  Group By projectid,fy_timerange,sch.name,dis.name
