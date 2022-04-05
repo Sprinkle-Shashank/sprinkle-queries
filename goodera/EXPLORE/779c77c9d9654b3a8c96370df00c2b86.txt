@@ -7,7 +7,8 @@ WITH S1 AS (
 PD.focus_area AS focus_area_unwind,
 PD.sdg AS sdg_unwind,
 PD.sdg_photo AS sdg_photo_unwind,
-PD.schedule_7 as schedule_7_unwind  
+PD.schedule_7 as schedule_7_unwind,
+PD.location as locat   
   )
 
 SELECT S1.name, S1.description, S1.logo, S1.funding_entity, S1.partner,
@@ -16,7 +17,7 @@ CONCAT(CONCAT(CONCAT(CONCAT(SUBSTRING(S1.start_date,9,2),'-'),SUBSTRING(S1.start
 T1.name AS focus_area_unwind,
 T2.name AS sdg_unwind,
 LISTAGG(DISTINCT CAST(S1.sdg_photo_unwind AS VARCHAR),',') AS sdg_photo_unwind2,
-P.name AS projectId,Project_id,schedule.name as schedule_7,location
+P.name AS projectId,Project_id,schedule.name as schedule_7,location.name as district 
 	
 FROM S1
 	
@@ -31,5 +32,8 @@ ON T2.id = S1.sdg_unwind
 
 LEFT JOIN ds_mysql_prod_tagelement AS schedule
 ON s1.schedule_7_unwind = schedule.id
+
+LEFT JOIN ds_mysql_prod_tagelement AS loaction
+ON s1.locat = location.id
 
 GROUP BY S1.name, S1.description, S1.logo, S1.funding_entity, S1.start_date, S1.completion_date, S1.partner, T1.name, T2.name, P.name,project_id,schedule.name,location
