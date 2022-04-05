@@ -3,11 +3,13 @@ with temp as (
   select 'Percentage of women who graduated the P.A.C.E. program' as C
     
   
-)									
+)	,
 
-SELECT projectid, 'Care.Summary' as partner, '1' as dim, year.name as year_new,
+table1 as ( select p1.projectid ,  (p1.pace_completion / p1.enrollment) as div from profile_29179 p1 ) , 
+
+SELECT projectid, 'Care.Summary' as partner, '1' as dim, year.name as year_new, 
 Case C
-	When 'Percentage of women who graduated the P.A.C.E. program' then ( p.pace_completion / p.enrollment)
+	When 'Percentage of women who graduated the P.A.C.E. program' then t1.div
 	end as val , 
  temp.C as indicator
  
@@ -18,7 +20,8 @@ Case C
  --pivot cross join
  left join ds_mysql_prod_tagelement year
  on p.year = year.id 
- 
+ left join table1 t1 
+ on p.projectid = t1.projectid
  where lg_status <> 847851
  
  
