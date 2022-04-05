@@ -1,17 +1,28 @@
+with temp as (
+  
+  Select 'workshops' as C
+  UNION ALL
+  Select 'participants' as C
+  )
+
 Select projectid,
 fy_timerange,
 sch.name as school,
 dis.name as district,
-Sum(workshops) as workshops,
-sum(participant) as participants
-
+SUM(
+  Case C
+  When 'online classes' then p.online_classes
+  When 'online assessments' then p.online_assessments
+  ELSE
+  NULL
+  End) as val, temp.C as dimensions
 from profile_80377 p
-
+cross join temp
 LEFT JOIN ds_mysql_prod_tagelement sch
 	on p.school = sch.id
 
 	LEFT JOIN ds_mysql_prod_tagelement dis
 	on sch.parent = dis.id
 	
-GROUP BY projectid,fy_timerange,sch.name,dis.name
+GROUP BY projectid,fy_timerange,sch.name,dis.name , temp.C
 
