@@ -17,7 +17,9 @@ CONCAT(CONCAT(CONCAT(CONCAT(SUBSTRING(S1.start_date,9,2),'-'),SUBSTRING(S1.start
 T1.name AS focus_area_unwind,
 T2.name AS sdg_unwind,
 LISTAGG(DISTINCT CAST(S1.sdg_photo_unwind AS VARCHAR),',') AS sdg_photo_unwind2,
-P.name AS projectId,Project_id,schedule.name as schedule_7/*,LISTAGG(DISTINCT CAST(district.name AS VARCHAR),',') AS district */,state.name as state
+P.name AS projectId,Project_id,schedule.name as schedule_7/*,LISTAGG(DISTINCT CAST(district.name AS VARCHAR),',') AS district */, case when state.name in ('South','North','East','West') then district.name 
+else state.name end
+as state
 	
 FROM S1
 	
@@ -39,4 +41,4 @@ ON s1.locat = district.id
 LEFT JOIN ds_mysql_prod_tagelement AS state
 ON district.parent = state.id
 
-GROUP BY S1.name, S1.description, S1.logo, S1.funding_entity, S1.start_date, S1.completion_date, S1.partner, T1.name, T2.name, P.name,project_id,schedule.name,state.name
+GROUP BY S1.name, S1.description, S1.logo, S1.funding_entity, S1.start_date, S1.completion_date, S1.partner, T1.name, T2.name, P.name,project_id,schedule.name,state.name,district.name
