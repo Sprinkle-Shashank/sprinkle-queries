@@ -1,142 +1,22 @@
-with temp as(
-  select 'male_first_15_17' as col
-  union all
-  select 'female_first_15_17' as col
-  union all
-  select 'other_first_15_17' as col
-  union all
-  select 'male_second_15_17' as col
-  union all
-  select 'female_second_15_17' as col
-  union all
-  select 'other_second_15_17' as col
-  union all
-  select 'male_first_18_44' as col
-  union all
-  select 'female_first_18_44' as col
-  union all
-  select 'other_first_18_44' as col
-  union all
-  select 'male_second_18_44' as col
-  union all
-  select 'female_second_18_44' as col
-  union all
-  select 'other_second_18_44' as col
-  union all
-  select 'male_first_45_59' as col
-  union all
-  select 'female_first_45_59' as col
-  union all
-  select 'other_first_45_59' as col
-  union all
-  select 'male_second_45_59' as col
-  union all
-  select 'female_second_45_59' as col
-  union all
-  select 'other_second_45_59' as col
-  union all
-  select 'male_first_60' as col
-  union all
-  select 'female_first_60' as col
-  union all
-  select 'other_first_60' as col
-  union all
-  select 'male_second_60' as col
-  union all
-  select 'female_second_60' as col
-  union all
-  select 'other_second_60' as col
-  union all
-  select 'male_booster_60' as col
-  union all
-  select 'female_booster_60' as col
-  union all
-  select 'other_booster_60' as col
-  union all
-  select 'male_booster_frontline' as col
-  union all
-  select 'female_booster_frontline' as col
-  union all
-  select 'other_booster_frontline' as col),
-  
-sub1 as(
-  select p3.name as project_parent, p2.name as projectid, p1.name as site, t1.name as district, t2.name as state,(p.date||'|'||p.date) as fy_timerange, temp.col as Dimensions, p.date,
-to_char(p.date, 'DD/MM/YYYY')  as x_date,
-sum(case col
-		when 'male_first_15_17' then p.male_first_15_17
-  		when 'female_first_15_17' then p.female_first_15_17
-  		when 'other_first_15_17' then p.other_first_15_17
-  		
-  		when 'male_second_15_17' then p.male_second_15_17
-  		when 'female_second_15_17' then p.female_second_15_17
- 		when 'other_second_15_17' then p.other_second_15_17
-  		
-		when 'male_first_18_44' then p.male_first_18_44
-  		when 'female_first_18_44' then p.female_first_18_44
-  		when 'other_first_18_44' then p.other_first_18_44
-  		
-  		when 'male_second_18_44' then p.male_second_18_44
-  		when 'female_second_18_44' then p.female_second_18_44
- 		when 'other_second_18_44' then p.other_second_18_44
-	
-		when 'male_first_45_59' then p.male_first_45_59
-  		when 'female_first_45_59' then p.female_first_45_59
-  		when 'other_first_45_59' then p.other_first_45_59
-  		
-  		when 'male_second_45_59' then p.male_second_45_59
-  		when 'female_second_45_59' then p.female_second_45_59
- 		when 'other_second_45_59' then p.other_second_45_59
-  		
-		when 'male_first_60' then p.male_first_60
-  		when 'female_first_60' then p.female_first_60
-  		when 'other_first_60' then p.other_first_60
-  		
-  		when 'male_second_60' then p.male_second_60
-  		when 'female_second_60' then p.female_second_60
- 		when 'other_second_60' then p.other_second_60
-  		
-		when 'male_booster_60' then p.male_booster_60
-  		when 'female_booster_60' then p.female_booster_60
- 		when 'other_booster_60' then p.other_booster_60
-  		
-		when 'male_booster_frontline' then p.male_booster_frontline
-  		when 'female_booster_frontline' then p.female_booster_frontline
- 		when 'other_booster_frontline' then p.other_booster_frontline
-	
-   	else NULL
-   	end) as values,
-		
-case
-	when(temp.col) like '%first%' then 'First Dose'
-	when(temp.col) like '%second%' then 'Second Dose'
-	else 'Booster Dose'
-end as dose,
-
-case
-	when(temp.col) like 'male%' then 'Male'
-	when(temp.col) like 'female%' then 'Female'
-	when(temp.col) like 'other%' then 'Third Gender'
-	else null
-end as beneficiary_type,
-
-case
-	when(temp.col) like '%15_17' then '15-17'
-	when(temp.col) like '%18_44' then '18-44'
-	when(temp.col) like '%45_59' then '45-59'
-	when(temp.col) like '%60' then '60+'
-	else 'Frontline Workers'
-end as age_group
-
-from profile_78081 p
-	cross join temp
-	left join profile_78079 p1 on p1._id = p.site
-	left join ds_mysql_prod_project p2 on p2.id = p.projectid
-	left join ds_mysql_prod_project p3 on p3.id = p2.parent	
-	left join ds_mysql_prod_tagelement t1 on t1.id = p1.location
-	left join ds_mysql_prod_tagelement t2 on t2.id = p1.state
-	group by p1.name, fy_timerange, dimensions, dose, beneficiary_type, age_group, x_date, p.date, p2.name, p3.name, t1.name, t2.name)
-	
-select project_parent, projectid, site, district, state, fy_timerange, date, x_date, dose, age_group, sum(values) as total
-from sub1
-where values is not null
-group by project_parent, projectid, site, district, state, fy_timerange, date, x_date, dose, age_group
+select st.xprojectid, p.name, st.financialperiod, t.name as finPeriod, t.start. t.end,
+				concat(concat(substring(cast(timestamp 'epoch' + CAST(t.start AS BIGINT)/1000 * interval '1 second' as varchar), 1, 10),'T'), concat(split_part(cast(timestamp 'epoch' + CAST(t.start AS BIGINT)/1000 * interval '1 second' as varchar), ' ',2),'.000Z')) as startdate,
+				concat(concat(substring(cast(timestamp 'epoch' + CAST(t.end AS BIGINT)/1000 * interval '1 second' as varchar), 1, 10),'T'), concat(split_part(cast(timestamp 'epoch' + CAST(t.end AS BIGINT)/1000 * interval '1 second' as varchar), ' ',2),'.000Z')) as enddate,
+				concat(concat(startdate,'|'),enddate) as fy_timerange,
+				-- concat(concat(t.start,'|'),t.end) as fy_timerange,
+				st.xquestionid,
+				q.questiontype,
+				q.keyword,
+				q.questiontext,
+				cast(st.datanum as float),
+				cast(st.dataNumBase as float),
+				st.datatext,
+				st.datatagref as dataselect,
+				st.datatable,
+				st.dataTableBase,
+				st.measureunit
+				from ds_mongo_sustainabilityTask st
+				left join ds_mysql_prod_question q on st.xquestionid = q.id
+				left join ds_mysql_prod_project p on st.xprojectid = p.id
+				left join ds_mysql_prod_tagelement t on st.financialperiod = t.id
+				where xprofileId='79923' and status = 'APPROVED' and st.active = 't'
+				and keyword in ('reduction_target_2019','current_recycled_material','reduction_target_2022','renewable_energy_2025','recycled_material_2025','reduction_target_2023','reduction_target_2024','reduction_target_2025','reduction_target_2026','reduction_target_2027','reduction_target_2030','current_renewable_energy')
