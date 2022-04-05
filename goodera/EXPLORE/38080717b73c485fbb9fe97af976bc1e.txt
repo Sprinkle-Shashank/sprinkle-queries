@@ -22,35 +22,36 @@ where strategic_yn = 'Yes'
 
 group by t0._id,t0.projectId,fac.name ,t0.pace,t0.strategic_yn,t0.facility_type,t0.year_timerange, t0.country ,ven.name,vendor, t0.director_region , p1.pace_introduced,p1.certified_trainers, p1.certified_mts
 ),
-test2 as (select t1.vendor,t1.country,SUM(t1.certified_mts) as certified_masters,SUM(t1.certified_trainers) as total_trainers,certified_masters*100 AS a1,
+test4 as(select * from test1),
+test2 as (select t4.vendor,t4.country,SUM(t4.certified_mts) as certified_masters,SUM(t4.certified_trainers) as total_trainers,certified_masters*100 AS a1,
 a1/nullif(total_trainers,0) AS master
 		  --t1.certified_trainers,t1.certified_mts
 		  ,case when (master>=30) then 'Yes'
-		  else 'No' end as result_2,concat(vendor,t1.country) as unique
+		  else 'No' end as result_2,concat(vendor,t4.country) as unique
 		  
-from test1 t1
+from test4 t4
 		  
 		  
 group by vendor,country
 )
 ,
-test3 as (Select t1._id,project,projectId, t1.pace,t1.facility_type, t1.strategic_yn, t1.year_timerange, t1.country , t1.director_region ,
+test3 as (Select t4._id,t4.project,t4.projectId, t4.pace,t4.facility_type, t4.strategic_yn, t4.year_timerange, t4.country , t4.director_region ,
 		 t2.result_2,
-		  t1.result_1,t1.vendor,t1.pace_introduced,
-count(project) as count
-from test1 t1
+		  t4.result_1,t4.vendor,t4.pace_introduced,
+count(t4.project) as count
+from test4 t4
 
 
 
 left join test2 t2 on
-t1.unique = t2.unique
+t4.unique = t2.unique
 
 
 where   project ilike '%%'
 		  
-group by t1._id,project,projectId, t1.pace,t1.facility_type, t1.strategic_yn, t1.year_timerange, t1.country , t1.director_region ,
+group by t4._id,t4.project,t4.projectId, t4.pace,t4.facility_type, t4.strategic_yn, t4.year_timerange, t4.country , t4.director_region ,
 		  t2.result_2,
-		  t1.result_1,t1.vendor,t1.pace_introduced
+		  t4.result_1,t4.vendor,t4.pace_introduced
 
 		  --and result_1 = 'Yes' and result_2 = 'Yes'
 )
