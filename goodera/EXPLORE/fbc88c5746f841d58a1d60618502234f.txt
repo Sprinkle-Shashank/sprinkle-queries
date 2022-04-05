@@ -1,15 +1,22 @@
 with table1 as 
 (
-select distinct fac.name as factory , p.projectid , p1.facility_status , p.* from profile_61572 as p
-
-left join ds_mysql_prod_project fac 
-on p.projectId = fac.id
-
-left join profile_68161 p1 on
-p.projectid = p1.projectid 
+select p.projectid , p.name , goodera_facility_name_text, facility_status , facility.name as facility_status_update from profile_68161 as p
+  
+left join ds_mysql_prod_tagelement facility 
+on p.facility_status = facility.id
 ),
 
 table2 as 
-( select p.* from profile_68161 as p )
+(
+ select distinct fac.name as factory , p.projectid from profile_61572 as p
+  
+left join ds_mysql_prod_project fac 
+on p.projectId = fac.id
+  
+left join table1 t1 on 
+fac.name = t1.goodera_facility_name_text
+  
+ where t1.facility_status = 'Active'
+ )
 
-select * from table2
+select * from table1
