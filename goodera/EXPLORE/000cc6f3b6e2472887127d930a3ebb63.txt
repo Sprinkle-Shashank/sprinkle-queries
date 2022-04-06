@@ -1,9 +1,13 @@
-with 
-table1 as
-( select p.projectid , p._id , name_subunit , case when name_subunit is null or name_subunit=' ' then 'N/A' else name_subunit end as unit , status from profile_16619  as p
+with table1 as
+( select p.projectid , p._id , name_subunit , case when name_subunit is null or name_subunit=' ' then 'N/A' else name_subunit end as unit , status_update.name as status_1 from profile_16619  as p
   
 left join ds_mysql_prod_tagelement name_subunit_update 
-on p.name_subunit = name_subunit_update.id),
+on p.name_subunit = name_subunit_update.id  
+ 
+left join ds_mysql_prod_tagelement status_update 
+on p.status = status_update.id
+
+where status_1 <> 'on hold'),
 
 table2 as 
 ( 
@@ -30,9 +34,9 @@ p.fy = fy1.id
 left join table1 t1 on 
 p.projectid = t1.projectid
   
-where p.projectId ilike '%%' and cou.name <> 'Test Country' and country <> 'GAP Inc.'
+where p.projectId ilike '%%' and cou.name <> 'Test Country' and country <> 'GAP Inc.'  
   
- group by p.projectid , day_1_workers , last_day_workers , p1.total_workers , ven.name , fac.name , cou.name , fy1.name , t1.unit
+ group by p.projectid , day_1_workers , last_day_workers , p1.total_workers , ven.name , fac.name , cou.name , fy1.name , t1.unit 
 )
 
   
