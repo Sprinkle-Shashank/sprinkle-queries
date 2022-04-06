@@ -2,7 +2,7 @@ with table1 as
 ( 
  select p.projectid , sum(day_1_workers) as day_1_workers_update , sum(last_day_workers) as last_day_workers1_update , sum(p1.total_workers) as total_workers_update 
 
-, fac.name as factory , cou.name as country ,ven.name as vendor
+, fac.name as factory , cou.name as country ,ven.name as vendor , fy1.name as fy
  from profile_16862 p
   
   left join profile_17526 p1
@@ -17,9 +17,12 @@ on fac.parent = ven.id
 left join ds_mysql_prod_project cou
 on ven.parent = cou.id
   
-  where p.projectId ilike '%%' and p.projectid is not null
+left join ds_mysql_prod_tagelement fy1 on
+p.fy = fy1.id
   
-  group by p.projectid , day_1_workers , last_day_workers , p1.total_workers , ven.name , fac.name , cou.name
+  where p.projectId ilike '%%' and cou.name <> 'Test Country' and country <> 'GAP Inc.'
+  
+  group by p.projectid , day_1_workers , last_day_workers , p1.total_workers , ven.name , fac.name , cou.name , fy
   )
   
   select * from table1
@@ -38,7 +41,7 @@ on fac.parent = ven.id
 left join ds_mysql_prod_project cou
 on ven.parent = cou.id
   
-  
+
   left join ds_mysql_prod_tagelement fy1 on
   p.fy = fy1.id
  
