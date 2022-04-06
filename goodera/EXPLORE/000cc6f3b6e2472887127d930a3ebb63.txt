@@ -1,14 +1,25 @@
 with table1 as 
 ( 
  select p.projectid , sum(day_1_workers) as day_1_workers_update , sum(last_day_workers) as last_day_workers1_update , sum(p1.total_workers) as total_workers_update 
+
+, fac.name as factory , cou.name as country ,ven.name as vendor
  from profile_16862 p
   
   left join profile_17526 p1
   on p.projectid =p1.projectid
   
-  where  p.projectId ilike '%%' 
+left join ds_mysql_prod_project fac
+on p.projectid = fac.id
   
-  group by p.projectid , day_1_workers , last_day_workers , total_workers
+left join ds_mysql_prod_project ven
+on fac.parent = ven.id
+  
+left join ds_mysql_prod_project cou
+on ven.parent = cou.id
+  
+  where p.projectId ilike '%%' and p.projectid is not null
+  
+  group by p.projectid , day_1_workers , last_day_workers , p1.total_workers , ven.name , fac.name , cou.name
   )
   
   select * from table1
