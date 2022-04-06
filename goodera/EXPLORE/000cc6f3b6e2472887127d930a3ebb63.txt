@@ -1,11 +1,32 @@
 with table1 as 
 ( 
- select p.projectid , sum(day_1_workers) as day_1_workers_update , sum(last_day_workers) as last_day_workers1_update , sum(total_workers) as total_workers_update from profile_16862 p
+ select p.projectid , sum(day_1_workers) as day_1_workers_update , sum(last_day_workers) as last_day_workers1_update , sum(total_workers) as total_workers_update ,
+cou.name as country , 
+nvl2(SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)),ven.name) as vendor_name, case when vendor_name='' then ven.name else vendor_name end as vendor, fac.name as factory ,
+fy1.name as fy, quarter1.name as quarter_fy,
+case when p.sub_unit is null or p.sub_unit=' ' then  'N/A' else p.sub_unit end  as unit   from profile_16862 p
   
   left join profile_17526 p1
   on p.projectid =p1.projectid
   
-  group by p.projectid 
+ left join ds_mysql_prod_project fac
+on p.projectid = fac.id
+  
+left join ds_mysql_prod_project ven
+on fac.parent = ven.id
+  
+left join ds_mysql_prod_project cou
+on ven.parent = cou.id
+  
+  left join ds_mysql_prod_tagelement quarter1 on
+  p.quarter = quarter1.id
+  
+  left join ds_mysql_prod_tagelement fy1 on
+  p.fy = fy1.id
+  
+  where  p.projectId ilike '%%' and cou.name <> 'Test Country'  and p1.projectId is not null and country <> 'GAP Inc.' --and (p1.status = 1400365 or p1.status is null)
+  
+  group by p.projectid , day_1_workers , last_day_workers , total_workers, ven.name ,cou.name ,fac.name ,fy1.name, quarter1.name
   )
   
   select * from table1
