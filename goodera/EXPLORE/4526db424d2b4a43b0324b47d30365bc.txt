@@ -1,16 +1,18 @@
 with temp as
 (
-select fy_timerange, cou.name as country, ben.name as beneficiary,
+select fy_timerange, country, ben.name as beneficiary,
 sum(beneficiary_reach) as ben_reach
 from profile_64651 t1
-left join ds_mysql_prod_tagelement cou
-on t1.country = cou.id
 left join ds_mysql_prod_tagelement ben
 on t1.beneficiary = ben.id
 where ben.name is not null
 group by fy_timerange, cou.name, ben.name
 )
-select fy_timerange,temp.country,t2.beneficiary,t2.target_reach
+select temp.fy_timerange,cou.name as country,t2.beneficiary,t2.target_reach
 from temp
 left join profile_64654 t2 on
 temp.country = t2.country
+left join ds_mysql_prod_tagelement cou
+on temp.country = cou.id
+left join ds_mysql_prod_tagelement ben
+on t2.beneficiary = ben.id
