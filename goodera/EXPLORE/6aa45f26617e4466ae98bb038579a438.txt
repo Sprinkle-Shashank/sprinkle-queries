@@ -1,22 +1,15 @@
-with s as (Select 
+with s as (Select  name, fy_timerange, 
 		   attachments,dataselect,datatext,keyword
 from sus_79338
 where keyword in ('system_internally_audited','occ_health_and_safety_management','system_audited_external_party')
 )
-Select  cast(attach.name as varchar) as doc_name,cast(attach.url as varchar) as doc_url,dataselect,keyword,datatext
+,
+S2 As (
+Select  name, fy_timerange,cast(attach.name as varchar) as doc_name,cast(attach.url as varchar) as doc_url,dataselect,keyword,datatext
 from s as p, p.attachments attach
-/*Select
-  (CASE 
-             WHEN keyword = 'occ_health_and_safety_management' THEN datatext
-             ELSE null 
-           END) AS occ_health_and_safety_management,
-  (CASE 
-             WHEN keyword = 'system_internally_audited' THEN datanumBase
-             ELSE 0 
-           END) AS system_internally_audited,
-  (CASE 
-             WHEN keyword = 'system_audited_external_party' THEN datanumBase
-             ELSE 0 
-           END) AS system_audited_external_party
-from sus_79338
-where keyword in ('occ_health_and_safety_management','system_internally_audited','system_audited_external_party')*/
+
+)
+Select name, fy_timerange, doc_name, doc_url,t.name as dataselect,keyword,datatext
+from s2
+left join ds_mysql_prod_tagelement t
+on t.id=dataselect
