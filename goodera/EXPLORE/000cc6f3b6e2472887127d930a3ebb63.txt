@@ -1,8 +1,15 @@
-with table1 as 
+with 
+table2 as
+( select p.projectid , p._id , name_subunit , case when name_subunit is null or name_subunit=' ' then 'N/A' else name_subunit end as unit from profile_16619  as p
+  
+left join ds_mysql_prod_tagelement name_subunit_update 
+on p.name_subunit = name_subunit_update.id),
+
+table1 as 
 ( 
  select p.projectid , sum(day_1_workers) as day_1_workers_update , sum(last_day_workers) as last_day_workers1_update , sum(p1.total_workers) as total_workers_update 
 
-, fac.name as factory , cou.name as country ,ven.name as vendor , fy1.name as fy
+, fac.name as factory , cou.name as country ,ven.name as vendor , fy1.name as fy , t1.unit
  from profile_16862 p
   
   left join profile_17526 p1
@@ -20,16 +27,14 @@ on ven.parent = cou.id
 left join ds_mysql_prod_tagelement fy1 on
 p.fy = fy1.id
   
-  where p.projectId ilike '%%' and cou.name <> 'Test Country' and country <> 'GAP Inc.'
+left join table1 t1 on 
+p.projectid = t1.projectid
   
-  group by p.projectid , day_1_workers , last_day_workers , p1.total_workers , ven.name , fac.name , cou.name , fy1.name
-  ), 
+where p.projectId ilike '%%' and cou.name <> 'Test Country' and country <> 'GAP Inc.'
   
-table2 as
-( select p.projectid , p._id , name_subunit from profile_16619  as p
-  
-left join ds_mysql_prod_tagelement name_subunit_update 
-on p.name_subunit = name_subunit_update.id)
+ group by p.projectid , day_1_workers , last_day_workers , p1.total_workers , ven.name , fac.name , cou.name , fy1.name , t1.unit
+)
+
   
   select * from table2
 
