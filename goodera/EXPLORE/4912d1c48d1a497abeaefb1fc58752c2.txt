@@ -1,12 +1,26 @@
-with table1 as 
-( select p.projectid , training_type , train.name from profile_61572 as p
+with table3 as
+(
+select p.projectid , p.name , goodera_facility_name_text, facility_status , facility.name as facility_status_update from profile_68161 as p
+  
+left join ds_mysql_prod_tagelement facility 
+on p.facility_status = facility.id
+),
+
+table1 as 
+( select p.projectid , training_type , train.name as train_update ,  from profile_61572 as p
  
  left join ds_mysql_prod_tagelement train 
  on p.training_type = train.id
  
+ left join table3 t3 on
+ p.projectid = t3.projectid
+ 
+where (training_type=1094383 or training_type=1094382) and  t3.facility_status_update = 'Active' and p.projectid ilike '%%'
+ 
 ), 
 
 table2 as 
-( select distinct training_type from profile_61572 as p)
+( select distinct training_type from profile_61572 as p),
 
-select * from table2
+
+select * from table1
