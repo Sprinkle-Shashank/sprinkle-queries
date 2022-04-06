@@ -1,31 +1,15 @@
-with s as (
-Select sq._id, t.name as year, sq.month, tt.name as partner_reference, sq.cash_disbursed, sq.products_disbursed_cogs, sq.services_provided_cogs, t2.name as Region,ttt.name as partner_name,(nvl(sq.cash_disbursed,0)+nvl(sq.products_disbursed_cogs,0)+nvl(sq.services_provided_cogs,0)) total,cast(t.name as INT)+2 as fy_str,'FY'||substring(fy_str,3,2) as fy
-from dell_profile_063523 sq
-left join dell_profile_63522 ss
-on ss._id=partner_reference
-left join ds_mysql_prod_tagelement t
-on t.id=sq.year
-left join ds_mysql_prod_tagelement tt
-on tt.id=sq.partner_reference
-  left join ds_mysql_prod_tagelement ttt
-on ttt.id=ss.partner_name
-left join ds_mysql_prod_project as t2 
- on sq.projectId = t2.id
-),
-s2 as (
-Select  year, FY, region ,
-  listagg(distinct partner_name  ,'|') as pn, sum(total) as Total_disbursed
-from s
- 
-group by year, FY, region 
-),s33 as  (
-Select year, FY, region ,SPLIT_TO_ARRAY(pn,'|') as pn,Total_disbursed
-  from s2),
-s3 as (
-Select year, FY, region,Total_disbursed,cast(pnn as varchar) pnm
-from s33 a,a.pn pnn
-)
-Select year, FY, region,Total_disbursed,  pnm
-from s3
-
- 
+Select
+  (CASE 
+             WHEN keyword = 'occ_health_and_safety_management' THEN datatext
+             ELSE null 
+           END) AS occ_health_and_safety_management,
+  (CASE 
+             WHEN keyword = 'system_internally_audited' THEN datanumBase
+             ELSE 0 
+           END) AS system_internally_audited,
+  (CASE 
+             WHEN keyword = 'system_audited_external_party' THEN datanumBase
+             ELSE 0 
+           END) AS system_audited_external_party
+from sus_79338
+where keyword in ('occ_health_and_safety_management','system_internally_audited','system_audited_external_party')
