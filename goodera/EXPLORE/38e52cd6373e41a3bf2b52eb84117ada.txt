@@ -1,8 +1,31 @@
-select p1.name as projectid,
-case
-when travel_mode='Train' then 'Train'
-when travel_mode='Cars' then 'Cars'
-when travel_mode='Air' then 'Air'
-else 0
-end as a
-from sus_62370 p1
+with sub1 as (
+Select 'Air' as col
+union all
+Select 'Cars' as col
+union all
+Select 'Train' as col
+),
+sub2 as(select 
+datanumbase as 'Air', datanumbase as 'Cars', datanumbase as 'Train'
+from sus_62370
+where keyword='headcount')
+
+select 
+sum(
+ case col
+  when col='Air' then sub2.Air
+  when col='Cars' then sub2.Cars
+  when col='Train' then sub2.Train
+  else null
+  end
+) as headcount1,
+sub1.col as travel_mode from sub2
+cross join sub1
+group by sub1.col
+
+
+
+
+
+
+
