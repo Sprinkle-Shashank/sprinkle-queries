@@ -1,0 +1,89 @@
+with table0 as(select p.projectId,mth.name as month_3,case when month_3 in ('February','March','April') then '1st(Feb-Apr)'
+when month_3 in ('May','June','July') then  '2nd(May-Jul)'
+when month_3 in ('August','September','October') then '3rd(Aug-Oct)'
+when month_3 in ('November','December','January') then '4th(Nov-Jan)' end as quarter,count(p.projectId) as total1 from profile_29179 p
+
+left join ds_mysql_prod_tagelement mth
+on p.month_3 = mth.id
+
+where month_3 is not null
+
+group by p.projectId,month_3,quarter
+
+),
+
+table1 as(select p.projectId,mth.name as month,case when month in ('February','March','April') then '1st(Feb-Apr)'
+when month in ('May','June','July') then  '2nd(May-Jul)'
+when month in ('August','September','October') then '3rd(Aug-Oct)'
+when month in ('November','December','January') then '4th(Nov-Jan)' end as quarter,count(p.projectId) as total2 from profile_29530 p
+
+left join ds_mysql_prod_tagelement mth
+on p.month = mth.id
+
+
+where month is not null
+
+group by p.projectId,month,quarter
+),
+table2 as(select projectId,quarter from table0
+union all
+select projectId,quarter from table1
+),
+ table3 as(
+select p.projectId,
+loc_parent.name as state,loc_child.name as district, p2.name as block,stat.name as lg_status,yr.name as year_new,t2.quarter,t0.total1,t1.total2 from profile_29179 p
+
+
+left join ds_mysql_prod_tagelement yr
+on p.year_2 = yr.id
+
+
+
+left join ds_mysql_prod_tagelement loc_child
+on p.location = loc_child.id
+
+left join ds_mysql_prod_tagelement loc_parent
+on loc_child.parent = loc_parent.id
+
+
+left join ds_mysql_prod_tagelement stat
+on p.lg_status = stat.id
+
+
+left join profile_30450 p2
+on p.block = p2._id
+
+left join table0 t0
+on p.projectId = t0.projectId
+
+left join table1 t1
+on p.projectId = t1.projectId
+
+left join table2 t2
+on p.projectId = t2.projectId
+
+
+where (stat.name = 'Active' or  stat.name is null) 
+
+group by p.projectId,t2.quarter,year_new,state,district,p2.name,stat.name,t0.total1,t1.total2
+),
+temp as(
+select 'Active Male Champion' as champion_identified
+union all
+select 'Active P.A.C.E. Champion' as champion_identified
+
+)
+select t3.projectId,
+t3.state,t3.district,t3.block,t3.lg_status,t3.year_new,temp.champion_identified,case champion_identified
+when  'Active Male Champion' then t0.total1
+when 'Active P.A.C.E. Champion' then t1.total2
+
+else null
+end as value1
+
+from table3 t3
+cross join temp
+
+group by t3.projectId,
+t3.state,t3.district,t3.block,t3.lg_status,t3.year_new,temp.champion_identified
+t0.total1,t1.total2
