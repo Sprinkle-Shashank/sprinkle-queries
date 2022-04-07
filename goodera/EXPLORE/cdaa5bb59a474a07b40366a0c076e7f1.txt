@@ -27,16 +27,23 @@ p.day_1_workers , p.last_day_workers , quarter1.name , fy1.name
 ),
 
 table2 as (
-  select p2.projectId, p1.status , p2.total_workers    
+  select p2.projectId, p1.status , p2.total_workers ,cou.name as country , 
+nvl2(SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)),ven.name) as vendor_name, case when vendor_name='' then ven.name else vendor_name end as vendor, fac.name as factory   
 from profile_17526 p2
   
-
+left join ds_mysql_prod_project fac
+on p2.projectid = fac.id
+left join ds_mysql_prod_project ven
+on fac.parent = ven.id
+left join ds_mysql_prod_project cou
+on ven.parent = cou.id
+  
 left join profile_16619 p1
 on p2.projectId = p1.projectid
   
-where (p1.status = 1400365 or p1.status is null)
+where cou.name <> 'Test Country' and country <> 'GAP Inc.' and (p1.status = 1400365 or p1.status is null)
 
-group by  p2.projectId, p1.status, p2.total_workers
+group by  p2.projectId, p1.status, p2.total_workers ,cou.name , ven.name, fac.name
   )
   select * from table2
  -- ((last_day_workers - day_1_workers)/nullif(p2.total_workers,0) )*100 as workersexited
