@@ -1,6 +1,7 @@
 with sub1 as(
-select a._id, a.projectId, a.name as batch_info, a.center, a.start, a.end, a.fy_timerange, a.zone_db as zone, a.partner_db as partner_name, a.no_of_trainees, a.training_hrs, a.training_days, a.budget, a.amnt_install_1, a.amnt_install_2, a.amnt_install_3, a.donor, a.name as batch_id, b.placed, b.trainee_name from profile_36904 a 
-left join profile_36901 b on b.batch_id=a._id
+select a._id, a.projectId, a.name as batch_info, a.center, a.start, a.end, a.fy_timerange, a.zone_db as zone, a.partner_db as partner_name, a.no_of_trainees, a.training_hrs, a.training_days, a.budget, a.amnt_install_1, a.amnt_install_2, a.amnt_install_3, a.donor, case length(batch_id) = 0 then 0
+  else COALESCE(batch_id,0) end new_batch, a.name as batch_id, b.placed, b.trainee_name from profile_36904 a 
+left join profile_36901 b on new_batch=a._id
 ),
 sub2 as(
   select _id, projectId, center, a.start, a.end, batch_info, donor, fy_timerange, zone, partner_name, no_of_trainees, training_hrs, training_days, budget, amnt_install_1, amnt_install_2, amnt_install_3, batch_id, placed,count(*) as benef from sub1 a group by _id, projectId, center, a.start, a.end, batch_info, donor, fy_timerange, zone, partner_name, no_of_trainees, training_hrs, training_days, budget, amnt_install_1, amnt_install_2, amnt_install_3, batch_id, placed),
@@ -18,4 +19,4 @@ select  _id, t1.name as projectId, center,  batch_info, donor, fy_timerange, zon
  disbursed, disbursement, today, status, start1, end1, dropouts, benef-dropouts as trainee_count from sub4
 Left Join ds_mysql_prod_tagelement t on t.id=placed
 Left Join ds_mysql_prod_project t1 on t1.id=projectid
- where batch_id!='RAR122'
+ --where batch_id!='RAR122'
