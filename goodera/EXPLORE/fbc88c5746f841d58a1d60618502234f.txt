@@ -8,15 +8,21 @@ on p.facility_status = facility.id
 
 table2 as 
 (
- select distinct fac.name as factory , p.projectid from profile_61572 as p
+ select distinct fac.name as factory , ven.name as vendor , cou.name as country , p.projectid from profile_61572 as p
   
 left join ds_mysql_prod_project fac 
 on p.projectId = fac.id
+
+ left join ds_mysql_prod_project ven 
+on fac.parent = ven.id
+
+ left join ds_mysql_prod_project cou 
+on ven.parent = cou.id
   
 left join table1 t1 on 
 fac.name = t1.goodera_facility_name_text
   
- where t1.facility_status_update = 'Active'
+ where t1.facility_status_update = 'Active' and p.projectid ilike '%%'
  )
 
 select * from table2
