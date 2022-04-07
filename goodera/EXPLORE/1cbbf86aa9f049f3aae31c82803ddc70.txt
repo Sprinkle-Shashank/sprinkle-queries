@@ -1,5 +1,4 @@
-with 
-table3 as
+with table3 as
 (
 select p.projectid, p.facility_status , facility.name as facility_status_update , case when facility_status_update='Active' then 'Active' else 'Deactive' end as Active_Filter , goodera_facility_name_text from profile_68161 as p
   
@@ -7,35 +6,10 @@ left join ds_mysql_prod_tagelement facility
 on p.facility_status = facility.id
 ),
 
-
 test0 as(Select p.* ,(gbv_goals)from  profile_76755 p
 , p.gbv_goals_arr gbv_goals union all
  select p.*,NULL as gbv_goals from profile_76755 p where gbv_goals_arr IS NULL
 ),
-  
- table1 as 
-( select p.projectid , p._id , indepth_workers, indepth_managers , fac.name as factory , ven.name as vendor , cou.name as country , t3.Active_Filter  from profile_76894 as p
-
-left join ds_mysql_prod_project fac 
-on p.projectId = fac.id
-
- left join ds_mysql_prod_project ven 
-on fac.parent = ven.id
-
- left join ds_mysql_prod_project cou 
-on ven.parent = cou.id
-
-left join table3 t3 on 
-fac.name = t3.goodera_facility_name_text
- 
---left join profile_76755 p2
---on p._id = p2.gbv_goals
-
-where country <> 'Test Country' ),
-
-table4 as 
-( select * from profile_76755 as p ),
-
 
  test1 as (Select p._id,p.projectId , fac.name as factory , p.year_timerange, p.country as country , ven.name as vendor1,nvl2(SUBSTRING(vendor1, 1, POSITION(' (' in vendor1)), SUBSTRING(vendor1, 1, POSITION(' (' in vendor1)), vendor1) as vendor_name, case when vendor_name='' then vendor1 else vendor_name end as vendor , p1.indepth_workers, p1.indepth_managers , t3.Active_Filter
 
@@ -51,9 +25,9 @@ left join ds_mysql_prod_project ven
 on fac.parent = ven.id
 		   
 left join table3 t3 on 
-fac.name = t4.goodera_facility_name_text
+fac.name = t3.goodera_facility_name_text
 
-where p.projectid ilike '%%'
+where p.projectid ilike '%%' and country <> 'Test Country'
 			   
 ---Group by p._id,project,fac.name,p.year_timerange,p.country,vendor,ven.name			   
 )
