@@ -1,10 +1,7 @@
 select p.projectId, p1.status, cou.name as country , 
 nvl2(SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)),ven.name) as vendor_name, case when vendor_name='' then ven.name else vendor_name end as vendor, fac.name as factory ,
 case when p.sub_unit is null or p.sub_unit=' ' then  'N/A' else p.sub_unit end  as unit,
---cast(DATEPART(YEAR,p1.date_enrollment) as varchar) as year_new ,
-fy1.name as fy,
-p.day_1_workers , p.last_day_workers , p.workers_exited , p.absenteeism_rate , p.labor_disputes , p.bc_meetings ,
-p.person_days_lost ,p.production_efficiency , 1 as count, quarter1.name as quarter_fy,  
+fy1.name as fy, p.day_1_workers , p.last_day_workers ,p2.total_workers,  quarter1.name as quarter_fy,  
 ((last_day_workers - day_1_workers)/nullif(p2.total_workers,0) )*100 as workersexited   
 from profile_16862 p
   
@@ -16,7 +13,7 @@ on fac.parent = ven.id
 left join ds_mysql_prod_project cou
 on ven.parent = cou.id
 left join profile_16619 p1
-on p.projectId = p1.projectid
+on p.sub_unit = p1._id
 left join profile_17526 p2
 on p.projectId =p2.projectid
   left join ds_mysql_prod_tagelement quarter1 on
@@ -26,10 +23,5 @@ on p.projectId =p2.projectid
   
 where  p.projectId ilike '%%' and cou.name <> 'Test Country'  and p1.projectId is not null and country <> 'GAP Inc.' and (p1.status = 1400365 or p1.status is null)
 
-group by  p.projectId, p1.status, cou.name , ven.name, fac.name , p.sub_unit ,-- p1.date_enrollment ,
-p.day_1_workers , p.last_day_workers , p.workers_exited , p.absenteeism_rate , p.labor_disputes , p.bc_meetings , p.person_days_lost , quarter1.name , fy1.name ,p.production_efficiency ,p2.total_workers
-
-
--- test country 7 rec
---satus 43 less record
---total 2119
+group by  p.projectId, p1.status, cou.name , ven.name, fac.name , p.sub_unit ,
+p.day_1_workers , p.last_day_workers , quarter1.name , fy1.name ,p2.total_workers
