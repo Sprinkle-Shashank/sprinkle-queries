@@ -1,8 +1,23 @@
-with table1 as 
-( select p.projectid , p._id , indepth_workers, p1.projectid from profile_76894 as p 
+with table2 as 
+(
+   select p.projectid , fac.name as factory , ven.name as vendor , cou.name as country , case when extract(month from date)=1 then extract(year from date)-1 
+else extract(year from date) end as year from profile_61572 as p
+  
+left join ds_mysql_prod_project fac 
+on p.projectId = fac.id
+
+ left join ds_mysql_prod_project ven 
+on fac.parent = ven.id
+
+ left join ds_mysql_prod_project cou 
+on ven.parent = cou.id 
+ ),
+  
+ table1 as 
+( select p.projectid , p._id , indepth_workers, t2.factory , t2.vendor , t2.country , t2.year from profile_76894 as p 
  
- left join profile_61572 p1 on 
- p.projectid = p1.projectid 
+ left join table2 t2 on 
+ p.projectid = t2.projectid 
  )
  
  select * from table1
