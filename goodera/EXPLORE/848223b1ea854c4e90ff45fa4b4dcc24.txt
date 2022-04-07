@@ -1,11 +1,11 @@
 with table1 as 
 ( 
- select p.projectid , p.day_1_workers , p.last_day_workers , p2.total_workers , p1.status,
+ select p.projectid , p.day_1_workers , p.last_day_workers , /*p2.total_workers ,*/ p1.status,
  nvl2(SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)),ven.name) as vendor_name, case when vendor_name='' then ven.name else vendor_name end as vendor, cou.name as country , fac.name as factory ,
 case when p.sub_unit is null or p.sub_unit=' ' then  'N/A' else p.sub_unit end  as unit,
 --cast(DATEPART(YEAR,p1.date_enrollment) as varchar) as year_new ,
-fy1.name as fy, quarter1.name as quarter,  
-((last_day_workers - day_1_workers)/nullif(p2.total_workers,0) )*100 as AnualTurnOver  
+fy1.name as fy, quarter1.name as quarter  
+--((last_day_workers - day_1_workers)/nullif(p2.total_workers,0) )*100 as AnualTurnOver  
   from profile_16862 p
   
 left join ds_mysql_prod_project fac
@@ -16,8 +16,8 @@ left join ds_mysql_prod_project cou
 on ven.parent = cou.id
 left join profile_16619 p1
 on p.projectId = p1.projectid
-left join profile_17526 p2
-on p1.projectId =p2.projectid
+--left join profile_17526 p2
+--on p1.projectId =p2.projectid
   left join ds_mysql_prod_tagelement quarter1 on
   p.quarter = quarter1.id
   left join ds_mysql_prod_tagelement fy1 on
@@ -26,7 +26,7 @@ on p1.projectId =p2.projectid
 where  p.projectId ilike '%%' and cou.name <> 'Test Country'  and country <> 'GAP Inc.' and (p1.status = 1400365 or p1.status is null)
 
 group by  p.projectId, p1.status, cou.name , ven.name, fac.name , p.sub_unit ,-- p1.date_enrollment ,
-p.day_1_workers , p.last_day_workers ,  quarter1.name , fy1.name , p2.total_workers
+p.day_1_workers , p.last_day_workers ,  quarter1.name , fy1.name --, p2.total_workers
   )
   
   select * from table1
