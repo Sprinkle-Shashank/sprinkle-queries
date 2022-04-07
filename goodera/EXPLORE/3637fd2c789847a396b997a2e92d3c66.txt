@@ -27,6 +27,7 @@ from s as p, unpivot p.datatablebase as coun at xyz
 s3 as (
 Select projectid,year,month,incident_type,employment,injury_ill_health,degree_of_injury_ill_health,
 case
+    when age < 18 then 'Less than 18'
   	when age>=18 and age <25 then '18 to 25'
     when age>=25 and age <30 then '25 to 30'
     when age>=30 and age <=35 then '30 to 35'
@@ -36,7 +37,16 @@ case
 from s2
 where employment=1629572 and injury_ill_health= 1630011
 )
-Select projectid,year,month,age_bucket,t.name as incident_type,t1.name as employment,t2.name as injury_ill_health,count(*)
+Select projectid,year,month,age_bucket,t.name as incident_type,t1.name as employment,t2.name as injury_ill_health,
+case 
+ when age_bucket='Less than 18' then 1
+when age_bucket = '18 to 25' then 2
+    when age_bucket = '25 to 30' then 3
+    when age_bucket= '30 to 35' then 4
+    when age_bucket= 'Others' then 5
+	else 0
+	end as sort_order,
+count(*)
 from s3
 left join ds_mysql_prod_tagelement t 
 on t.id=incident_type
