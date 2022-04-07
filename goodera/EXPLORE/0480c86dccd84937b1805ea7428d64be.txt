@@ -1,9 +1,20 @@
 with table1 as 
 (
-select p.projectid , p.name , goodera_facility_name_text, facility_status , facility.name as facility_status_update from profile_68161 as p
+select p.projectid , p._id , facility_status , facility.name as facility_status_update from profile_68161 as p
   
 left join ds_mysql_prod_tagelement facility 
 on p.facility_status = facility.id
+),
+
+table2 as 
+(
+select p.projectid, p.facility_status , facility.name as facility_status_update , case when facility_status_update='Active' then facility_status_update else t1.facility_status_update end as Active_Filter from profile_68161 as p
+  
+left join ds_mysql_prod_tagelement facility 
+on p.facility_status = facility.id
+  
+left join table1 t1 on 
+p._id = t1._id
 )
 
-select * from table1
+select p.projectid , facility_status_update , Active_Filter from table1
