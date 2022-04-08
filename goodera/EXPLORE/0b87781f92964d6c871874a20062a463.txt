@@ -1,4 +1,20 @@
-Select projectid,p1.status,sub_unit,(last_day_workers- day_1_workers) from profile_16862 p
+with table1 as(Select p.projectid,p1.status,p.sub_unit,(last_day_workers- day_1_workers) as subtract from profile_16862 p
 
-LEFT JOIN profile_16619 p1
+
+LEFT JOIN profile_16619 p1 on
 p.sub_unit = p1._id
+
+WHERE p1.status = 1400365 or p1.status is NULL
+
+),
+table2 as(Select table1.projectid,SUM(subtract) AS numerator,SUM(p3.total_workers) as denominator , numerator/denominator*100 as final_ans from table1 
+		
+		LEFT JOIN profile_17526 p3 on
+		table1.projectid = p3.projectid 
+		WHERE p3.total_workers is not NULL
+		GROUP BY table1.projectid)
+		
+	Select * from table2
+		
+	
+
