@@ -33,7 +33,8 @@ table3 as(select t2.*,CAST(select_module as int) from table2 t2,t2.select_module
 ),
 
 table3_1 as (select type,codeStatus,brand,projectId1,start_date,commitment,select_modules,code,code_brand,
-			 select_module, t1.parent as m_parent
+			 select_module, t1.parent as m_parent1,
+			 case when m_parent1 is null then select_module else m_parent1 end as m_parent
 		from table3 p
 left join ds_mysql_prod_tagelement t1 on t1.id = p.select_module
 ),
@@ -42,7 +43,7 @@ table4 as (Select
 		   select_module,
 		   type,codeStatus,brand,projectId1,start_date,commitment,code,code_brand, m_parent
 		   from table3_1 
-where m_parent in ('64503') or m_parent is null
+where m_parent in ('64503')
 ),
 
 table5 as (select 
@@ -52,4 +53,4 @@ table5 as (select
 group by type,codeStatus,brand,projectId1,start_date,code,code_brand,m_parent
 )
 
-Select projectId1 as projectid,commitment,start_date,select_module,code,code_brand,m_parent from table5 p --where type = 1 and codeStatus = 1 and brand = 1
+Select projectId1 as projectid,commitment,start_date,select_module,code,code_brand,m_parent from table5 p where type = 1 and codeStatus = 1 and brand = 1
