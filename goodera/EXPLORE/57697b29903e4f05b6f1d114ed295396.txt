@@ -1,1 +1,31 @@
-select * from profile_80408
+Select t.name as projectid, fy_timerange, extract(year from cast(startdate as DATETIME)) as year,  Sum(CASE 
+             WHEN keyword = 'non_renewable_fuel_consumed_petrol' THEN datanumBase
+             ELSE 0 
+           END) AS fuel_petrol,
+ Sum(CASE 
+             WHEN keyword = 'non_renewable_fuel_consumed_diesel' THEN datanumBase
+             ELSE 0 
+           END) AS fuel_diesel,
+ Sum(CASE 
+             WHEN keyword = 'non_renewable_fuel_consumed_cng' THEN datanumBase
+             ELSE 0 
+           END) AS fuel_cng,
+ Sum(CASE 
+             WHEN keyword = 'non_renewable_fuel_consumed_png' THEN datanumBase
+             ELSE 0 
+           END) AS fuel_png,
+ Sum(CASE 
+             WHEN keyword = 'non_renewable_fuel_consumed_lpg' THEN datanumBase
+             ELSE 0 
+           END) AS fuel_lpg,
+		   row_number() as s_no
+ 
+ 
+from sus_79029
+
+left join ds_mysql_prod_project t
+on xprojectid=t.id
+
+where keyword in ('non_renewable_fuel_consumed_petrol','non_renewable_fuel_consumed_cng','non_renewable_fuel_consumed_lpg','non_renewable_fuel_consumed_png','non_renewable_fuel_consumed_diesel')
+
+group by t.name, fy_timerange, year, s_no
