@@ -25,20 +25,34 @@ group by codeStatus, brand, lg, year,start_date,projectid1,select_modules,code,c
 table3 as(select t2.*,CAST(select_module as int) from table2 t2,t2.select_modules select_module
 ),
 
+
+
+table3_1 as (select  t1.parent as m_parent1,
+			 case when m_parent1 is null then select_module else m_parent1 end as m_parent,
+			 year, 
+			 codeStatus, brand, lg,total_females,start_date,projectid1,select_module,code,code_brand
+			 
+		from table3 p
+left join ds_mysql_prod_tagelement t1 on t1.id = p.select_module
+),
+
+
+
+
 table4 as (Select 
 		   select_module,
-		   codeStatus, brand, lg, year, total_females,start_date,projectid1,code,code_brand
-		   from table3 
+		   codeStatus, brand, lg, year, total_females,start_date,projectid1,code,code_brand,m_parent
+		   from table3_1 
 
-where select_module in ('64503','70912','70941','70900','70910','70913','70909','70903','70901','70902','70911','264682','264684','264683') 
+where m_parent in ('64503') 
 )
 ,
 
 table5 as (select 
 		   listagg(select_module,',') as select_module ,
-		   codeStatus, brand, lg, year, total_females,start_date,projectid1,code,code_brand
+		   codeStatus, brand, lg, year, total_females,start_date,projectid1,code,code_brand,m_parent
  from table4 
-group by codeStatus, brand, lg, year, total_females,start_date,projectid1,code,code_brand
+group by codeStatus, brand, lg, year, total_females,start_date,projectid1,code,code_brand,m_parent
 )
 
-Select year,total_females,start_date,projectid1 as projectid, select_module,code,code_brand from table5 p where codeStatus = 1 and brand = 1 and lg = 1
+Select year,total_females,start_date,projectid1 as projectid, select_module,code,code_brand ,m_parent from table5 p where codeStatus = 1 and brand = 1 and lg = 1
