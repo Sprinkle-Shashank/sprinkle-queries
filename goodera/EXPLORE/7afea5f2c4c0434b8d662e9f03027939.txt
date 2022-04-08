@@ -17,7 +17,8 @@ with table1 as (Select t.name as projectid, fy_timerange, extract(year from cast
  Sum(CASE 
              WHEN keyword = 'non_renewable_fuel_consumed_lpg' THEN datanumBase
              ELSE 0 
-           END) AS fuel_lpg
+           END) AS fuel_lpg, 
+				row_number() over (order by fy_timerange) as sno
  
  
 from sus_79029
@@ -37,10 +38,10 @@ on profile_80408.energy_source = es.id
 
 ),
 petrol0 as (
-	select projectid,fy_timerange, fuel_petrol, case when projectid is not null then 'Petrol' end as energy_source from table1
+	select projectid,sno, fuel_petrol, case when projectid is not null then 'Petrol' end as energy_source from table1
   
 ),petrol as (
-	select projectid,petrol0.fy_timerange, fuel_petrol, petrol0.energy_source, conversion_factor, fuel_petrol * conversion_factor as petrol_consumed from petrol0
+	select projectid,petrol0.sno, fuel_petrol, petrol0.energy_source, conversion_factor, fuel_petrol * conversion_factor as petrol_consumed from petrol0
   
   left join energy_conversion on
   petrol0.energy_source = energy_conversion.energy_source
@@ -94,21 +95,21 @@ lpg0 as (
 
 )
 
-select table1.projectid, year, table1.fy_timerange, petrol.petrol_consumed, diesel.diesel_consumed, png.png_consumed,cng.cng_consumed,lpg.lpg_consumed from table1
+select table1.projectid, year, table1.fy_timerange, petrol.petrol_consumed
+--, diesel.diesel_consumed, png.png_consumed,cng.cng_consumed,lpg.lpg_consumed 
+from table1
 
-left join petrol on
-  table1.fy_timerange = petrol.fy_timerange
+  left join petrol on
+  table1.sno = petrol.sno
 
-left join diesel on
-  table1.fy_timerange = diesel.fy_timerange
+  --left join diesel on table1.fy_timerange = diesel.fy_timerange
   
-  left join png on
-  table1.fy_timerange = png.fy_timerange
+  --left join png on table1.fy_timerange = png.fy_timerange
   
-  left join lpg on
-  table1.fy_timerange = lpg.fy_timerange
+  --left join lpg on table1.fy_timerange = lpg.fy_timerange
   
-  left join cng on
-  table1.fy_timerange = cng.fy_timerange
+  --left join cng on table1.fy_timerange = cng.fy_timerange
 
-group by  table1.projectid, year, table1.fy_timerange, petrol.petrol_consumed, diesel.diesel_consumed, png.png_consumed,cng.cng_consumed,lpg.lpg_consumed
+--group by  table1.projectid, year, table1.fy_timerange, petrol.petrol_consumed, diesel.diesel_consumed, png.png_consumed,cng.cng_consumed,lpg.lpg_consumed
+
+group by table1.projectid, year, table1.fy_timerange, petrol.petrol_consumed
