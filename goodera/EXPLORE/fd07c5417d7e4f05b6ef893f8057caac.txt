@@ -1,0 +1,70 @@
+with table0 as(select p.projectId,yr.name as year_new,mth.name as month,case when mth.name in ('February','March','April') then '1st(Feb-Apr)'
+when mth.name in ('May','June','July') then  '2nd(May-Jul)'
+when mth.name in ('August','September','October') then '3rd(Aug-Oct)'
+when mth.name in ('November','December','January') then '4th(Nov-Jan)' end as quarter,loc_parent.name as state,loc_child.name as district, p2.name as block,stat.name as lg_status,'Active Male Champion' as champion_identified,count(p.projectId) as total1 from profile_29179 p
+
+left join ds_mysql_prod_tagelement mth
+on p.month_3 = mth.id
+
+left join ds_mysql_prod_tagelement yr
+on p.year_2 = yr.id
+
+
+left join ds_mysql_prod_tagelement loc_child
+on p.location = loc_child.id
+
+left join ds_mysql_prod_tagelement loc_parent
+on loc_child.parent = loc_parent.id
+
+
+left join ds_mysql_prod_tagelement stat
+on p.lg_status = stat.id
+
+
+left join profile_30450 p2
+on p.block = p2._id
+
+
+where (mth.name is not null) and (stat.name = 'Active' or  stat.name is null) 
+
+group by p.projectId,mth.name,quarter,year_new,champion_identified,loc_parent.name ,loc_child.name , p2.name ,stat.name 
+),
+
+table1 as(select p.projectId,yr.name as year_new,mth.name as month,
+case when mth.name in ('February','March','April') then '1st(Feb-Apr)'
+when mth.name in ('May','June','July') then  '2nd(May-Jul)'
+when mth.name in ('August','September','October') then '3rd(Aug-Oct)'
+when mth.name in ('November','December','January') then '4th(Nov-Jan)' end as quarter,loc_parent.name as state,loc_child.name as district, p2.name as block,stat.name as lg_status,'Active P.A.C.E. Champion' as champion_identified,count(p.projectId) as total1 from profile_29530 p
+
+left join ds_mysql_prod_tagelement mth
+on p.month = mth.id
+
+left join ds_mysql_prod_tagelement yr
+on p.year = yr.id
+
+
+left join ds_mysql_prod_tagelement loc_child
+on p.location = loc_child.id
+
+left join ds_mysql_prod_tagelement loc_parent
+on loc_child.parent = loc_parent.id
+
+
+left join ds_mysql_prod_tagelement stat
+on p.lg_status = stat.id
+
+
+left join profile_30450 p2
+on p.block = p2._id
+
+
+where (mth.name is not null) and  (stat.name = 'Active' or  stat.name is null) 
+
+group by p.projectId,mth.name,quarter,year_new,champion_identified,loc_parent.name ,loc_child.name , p2.name ,stat.name 
+),
+table3 as(select projectId,quarter,year_new,champion_identified,total1 from table0
+union all
+select projectId,quarter,year_new,champion_identified,total1 from table1
+)
+
+select * from table3
