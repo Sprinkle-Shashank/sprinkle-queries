@@ -56,7 +56,7 @@ left join ds_mysql_prod_tagelement t1 on t1.id = p.select_module
 
 
 table4 as (Select 
-		   select_module ,start_date,projectid1,code_brand, code, brand,total_females,status,codeStatus,offset_date
+		   select_module ,start_date,projectid1,code_brand, code, brand,total_females,status,codeStatus,offset_date,m_parent
 		   from table3_1 
 
 where m_parent in ('64503')  --or m_parent is null
@@ -65,12 +65,12 @@ where m_parent in ('64503')  --or m_parent is null
 
 table5 as (select 
 		   listagg(select_module,',') as select_module ,
-		   projectid1,code_brand, code, min(total_females) as total_females,status,codeStatus,offset_date,start_date,brand
+		   projectid1,code_brand, code, min(total_females) as total_females,status,codeStatus,offset_date,start_date,brand,m_parent
  from table4 
-group by projectid1,code_brand,brand, code, total_females,status,codeStatus,offset_date,start_date
+group by projectid1,code_brand,brand, code, total_females,status,codeStatus,offset_date,start_date,m_parent
 )  
 
 Select 
 cast(total_females as int4),start_date,projectid1 as projectid,code_brand,code
-,select_module 
+,select_module ,m_parent
 from table5 p where status = 1 and codeStatus = 1 and brand = 1 and start_date >= offset_date
