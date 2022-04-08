@@ -37,13 +37,78 @@ on profile_80408.energy_source = es.id
 
 ),
 petrol0 as (
-	select projectid, fuel_petrol, case when projectid is not null then 'Petrol' end as energy_source from table1
+	select projectid,fy_timerange, fuel_petrol, case when projectid is not null then 'Petrol' end as energy_source from table1
   
 ),petrol as (
-	select projectid, fuel_petrol, petrol0.energy_source, conversion_factor from petrol0
+	select projectid,fy_timerange, fuel_petrol, petrol0.energy_source, conversion_factor, fuel_petrol * conversion_factor as petrol_consumed from petrol0
   
   left join energy_conversion on
   petrol0.energy_source = energy_conversion.energy_source
 
+),
+
+diesel0 as (
+	select projectid,fy_timerange, fuel_diesel, case when projectid is not null then 'Diesel' end as energy_source from table1
+  
+),diesel as (
+	select projectid,fy_timerange, fuel_diesel, diesel0.energy_source, conversion_factor, fuel_diesel * conversion_factor as diesel_consumed from diesel0
+  
+  left join energy_conversion on
+  diesel0.energy_source = energy_conversion.energy_source
+
+),
+
+
+cng0 as (
+	select projectid,fy_timerange, fuel_cng, case when projectid is not null then 'CNG' end as energy_source from table1
+  
+),cng as (
+	select projectid,fy_timerange, fuel_cng, cng0.energy_source, conversion_factor, fuel_cng * conversion_factor as cng_consumed from cng0
+  
+  left join energy_conversion on
+  cng0.energy_source = energy_conversion.energy_source
+
+),
+
+
+png0 as (
+	select projectid,fy_timerange, fuel_png, case when projectid is not null then 'PNG' end as energy_source from table1
+  
+),png as (
+	select projectid,fy_timerange, fuel_png, png0.energy_source, conversion_factor, fuel_png * conversion_factor as png_consumed from png0
+  
+  left join energy_conversion on
+  png0.energy_source = energy_conversion.energy_source
+
+),
+
+
+lpg0 as (
+	select projectid,fy_timerange, fuel_lpg, case when projectid is not null then 'LPG' end as energy_source from table1
+  
+),lpg as (
+	select projectid,fy_timerange, fuel_lpg, lpg0.energy_source, conversion_factor, fuel_lpg * conversion_factor as lpg_consumed from lpg0
+  
+  left join energy_conversion on
+  lpg0.energy_source = energy_conversion.energy_source
+
 )
-select * from petrol
+
+select year, fy_timerange, petrol.petrol_consumed, diesel.diesel_consumed, png.png_consumed,cng.cng_consumed,lpg.lpg_consumed from table1
+
+left join petrol on
+  table1.fy_timerange = petrol.fy_timerange
+
+left join diesel on
+  table1.fy_timerange = diesel.fy_timerange
+  
+  left join png on
+  table1.fy_timerange = png.fy_timerange
+  
+  left join lpg on
+  table1.fy_timerange = lpg.fy_timerange
+  
+  left join cng on
+  table1.fy_timerange = cng.fy_timerange
+
+
