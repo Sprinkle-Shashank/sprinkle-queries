@@ -1,5 +1,4 @@
-with s as 
-(Select t.name as projectid,fy_timerange, extract(year from cast(startdate as DATETIME)) as year,  Sum(CASE 
+with table1 as (Select t.name as projectid, fy_timerange, extract(year from cast(startdate as DATETIME)) as year,  Sum(CASE 
              WHEN keyword = 'non_renewable_fuel_consumed_petrol' THEN datanumBase
              ELSE 0 
            END) AS fuel_petrol,
@@ -18,11 +17,7 @@ with s as
  Sum(CASE 
              WHEN keyword = 'non_renewable_fuel_consumed_lpg' THEN datanumBase
              ELSE 0 
-           END) AS fuel_lpg,
- Sum(CASE 
-             WHEN keyword = 'electricity_purchased' THEN datanumBase
-             ELSE 0 
-           END) AS fuel_electricity
+           END) AS fuel_lpg
  
  
 from sus_79029
@@ -30,7 +25,22 @@ from sus_79029
 left join ds_mysql_prod_project t
 on xprojectid=t.id
 
-where keyword in ('electricity_purchased','non_renewable_fuel_consumed_petrol','non_renewable_fuel_consumed_cng','non_renewable_fuel_consumed_lpg','non_renewable_fuel_consumed_png','non_renewable_fuel_consumed_diesel')
-)
+where keyword in ('non_renewable_fuel_consumed_petrol','non_renewable_fuel_consumed_cng','non_renewable_fuel_consumed_lpg','non_renewable_fuel_consumed_png','non_renewable_fuel_consumed_diesel')
 
-group by t.name, fy_timerange, year
+group by t.name, fy_timerange, year ),
+energy_conversion as (
+	select fy_timerange, es.name as energy_source, conversion_factor from profile_80408
+  
+  left join ds_mysql_prod_tagelement es
+on profile_80408.energy_source = es.id
+  
+
+),
+petrol as (
+	select projectid, fuel_petrol, case when projectid is not null then 'Petrol' end as energy_source, conversion_factor from table1
+  
+  left join energy_conversion on
+  energy_conversion.energy_source = energy_source
+
+)
+select * from petrol
