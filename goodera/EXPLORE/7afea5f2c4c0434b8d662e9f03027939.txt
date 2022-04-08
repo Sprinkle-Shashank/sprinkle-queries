@@ -93,7 +93,8 @@ lpg0 as (
   left join energy_conversion on
   lpg0.energy_source = energy_conversion.energy_source
 
-)
+),
+convertedTable as (
 
 select table1.projectid, year, table1.fy_timerange, petrol.petrol_consumed
 , diesel.diesel_consumed, png.png_consumed,cng.cng_consumed,lpg.lpg_consumed 
@@ -109,3 +110,32 @@ from table1
   left join lpg on table1.sno = lpg.sno
   
   left join cng on table1.sno = cng.sno
+  ),
+  temp as (
+  	select 'petrol_consumed' as col
+		union all
+  	select 'diesel_consumed' as col
+		union all
+  	select 'png_consumed' as col
+  		union all
+  	select 'lpg_consumed' as col
+  		union all
+  	select 'cng_consumed' as col
+	
+  
+  
+  )
+  select projectid, year,fy_timerange, temp.col as Dimensions, 
+	sum( case col when 'petrol_consumed' then petrol_consumed
+				when 'diesel_consumed' then diesel_consumed
+		when 'png_consumed' then png_consumed
+		when 'lpg_consumed' then lpg_consumed
+		when 'cng_consumed' then cng_consumed
+	   		else Null
+  end) as Values
+  from convertedTable
+	cross join temp
+  
+  
+  
+  
