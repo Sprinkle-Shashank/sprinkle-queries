@@ -10,8 +10,20 @@ left join ds_mysql_prod_project t
 on xprojectid=t.id
 where keyword ='renewable_energy_consumed_solar'
 group by t.name,startdate,fy_timerange
-)
-Select projectid,year,fy_timerange,renewable_energy_consumed_solar,ss.net_sales_revenue
-from s 
-left join sus_79269 ss
-on s.year=ss.financial_year
+), s2 as (
+Select 
+  (CASE 
+             WHEN keyword = 'financial_year' THEN datanumBase
+             ELSE 0 
+           END) AS f_year,
+  Sum(CASE 
+             WHEN keyword = 'net_sales_revenue' THEN datanumBase
+             ELSE 0 
+           END) AS net_sales_revenue
+from sus_79269 ss
+where keyword in ('financial_year','net_sales_revenue')
+  )
+  Select projectid, year, fy_timerange,renewable_energy_consumed_solar,s2.net_sales_revenue
+  from s
+  left join s2 on 
+  s.year=s2.f_year
