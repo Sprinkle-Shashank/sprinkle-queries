@@ -13,7 +13,9 @@ select p.projectId,p.date_of_formation,DATEPART(Month,p.date_of_formation) as mo
 end as month,case when month in ('February','March','April') then '1st(Feb-Apr)'
                   when month in ('May','June','July') then  '2nd(May-Jul)'
 				  when month in ('August','September','October') then '3rd(Aug-Oct)'
-				  when month in ('November','December','January') then '4th(Nov-Jan)' end as quarter,yr.name as year_new,loc_parent.name as state,loc_child.name as district, p2.name as block,last_day(p.date_of_formation) as last,count(p.projectId) as column2,sum(total_participants) as column1 from profile_29179 p
+				  when month in ('November','December','January') then '4th(Nov-Jan)' end as quarter,yr.name as year_new,loc_parent.name as state,loc_child.name as district, p2.name as block,row_number() over 
+(partition by projectid
+ order by p._id desc) as row,count(p.projectId) as column2,sum(total_participants) as column1 from profile_29179 p
 
 
 left join ds_mysql_prod_tagelement loc_child
@@ -28,6 +30,6 @@ on p.year = yr.id
 left join profile_30450 p2
 on p.block = p2._id
 
-where p.date_of_formation<last 
+where (row<>1) and (lg_status = 847850 or lg_status is null)
 			  
 group by p.projectId,month,quarter,p.date_of_formation,year_new,loc_parent.name,loc_child.name,p2.name,last
