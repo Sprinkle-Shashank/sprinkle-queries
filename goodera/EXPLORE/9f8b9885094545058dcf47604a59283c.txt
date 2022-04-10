@@ -17,6 +17,8 @@ end as month,case when month in ('February','March','April') then '1st(Feb-Apr)'
 (partition by p.projectid
  order by p._id desc) as row,count(p.projectId) as column2,sum(total_participants) as column1 from profile_29179 p
 
+left join ds_mysql_prod_tagelement yr
+on p.year = yr.id
 
 left join ds_mysql_prod_tagelement loc_child
 on p.location = loc_child.id
@@ -24,15 +26,13 @@ on p.location = loc_child.id
 left join ds_mysql_prod_tagelement loc_parent
 on loc_child.parent = loc_parent.id
 
-left join ds_mysql_prod_tagelement yr
-on p.year = yr.id
 
 left join profile_30450 p2
 on p.block = p2._id
 
 where (lg_status = 847850 or lg_status is null)
 			  
-group by p.projectId,month,quarter,p.date_of_formation,year_new,loc_parent.name,loc_child.name,p2.name,p._id
+group by p.projectId,month,month1,quarter,p.date_of_formation,year_new,loc_parent.name,loc_child.name,p2.name,p._id
 			   ),
 			   table2 as(select * from table1 where row<>1)
 			   select * from table2
