@@ -45,13 +45,14 @@ p.batch_id = y._id
 		 
 
   )
-,Base2 as(select Base1.Project,Base1.fy_timerange,Base1.batch_id,Base1.center_id,Base1.zone,Base1.loc,Base1.center_status,Base1.partner_name,Base1.placed ,sum( 
+,Base2 as(select Base1.Project,Base1.fy_timerange,Base1.batch_id,Base1.center_id,Base1.zone,Base1.loc,Base1.center_status,Base1.partner_name,Base1.placed /*,sum( 
 case col
 		  when 'completed_training'  then Base1.completed_training
 		   when 'ongoing_training'  then Base1.ongoing_training
 		   when 'placed_trainee'  then Base1.placed_trainee else null end)  as count_trainee,temp.col as status
 		   from Base1 cross join
-		  temp
-		   group by Base1.Project,Base1.fy_timerange,temp.col,Base1.center_id,Base1.partner_name,Base1.placed,Base1.zone,Base1.loc,Base1.center_status,Base1.batch_id
+		  temp*/
+		  from Base1
+		   group by Base1.Project,Base1.fy_timerange,Base1.center_id,Base1.partner_name,Base1.placed,Base1.zone,Base1.loc,Base1.center_status,Base1.batch_id
 		  ),Base3 as(select *,count(*) as value from Base2 group by center_id, fy_timerange, partner_name, zone, loc, center_status, Project, center_status , batch_id,count_trainee,placed,status,batch_id)
 select center_id,fy_timerange,partner_name,zone,loc,center_status,Project,sum(value) as count_batch from Base3 group by center_id,fy_timerange,partner_name,zone,loc,center_status,Project
