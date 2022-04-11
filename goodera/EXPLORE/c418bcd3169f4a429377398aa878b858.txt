@@ -1,3 +1,5 @@
+(
+
 Select a.fy_timerange,t.name as projectid,
 a.new_brnch_syllabus_map_complete,
 EXTRACT(MONTH FROM CAST(a.fy_timerange.start as DATE)) as month_num,
@@ -15,9 +17,15 @@ EXTRACT(MONTH FROM CAST(a.fy_timerange.start as DATE)) as month_num,
     when month_num = '11' then 'November'
     when month_num = '12' then 'December'
 	else NULL
-end) as Months
+end) as Months 
 
 from profile_80040 a
 left join ds_mysql_prod_project t 
-on t.id = a.projectid
-group by a.fy_timerange,t.name,a.new_brnch_syllabus_map_complete
+on t.id = a.projectid) as sub1
+
+Select fy_timerange,projectid,
+new_brnch_syllabus_map_complete,Months 
+from sub1
+
+group by fy_timerange,projectid,
+new_brnch_syllabus_map_complete,Months 
