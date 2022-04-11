@@ -8,16 +8,22 @@ LEFT JOIN ds_mysql_prod_project t on l.projectId=t.id
 LEFT JOIN ds_mysql_prod_project t1 on t.parent=t1.id
 LEFT JOIN ds_mysql_prod_project t2 on t1.parent=t2.id),
 
-Base2 as(select p.ProjectId,p.fy_timerange,p.center,l.name as center_name,p.batch_info,p.Project,l.partner_name as p_pankh, l.name as center_id from Base1 p left join profile_141 l on p.center=l._id),
+Base2 as(select p.ProjectId,p.fy_timerange,p.center,l.name as center_name,p.batch_info,p.Project,l.partner_name as p_pankh, l.name as center_id, z.name as zone, w.name as loc,c.name as center_status from Base1 p left join profile_141 l on p.center=l._id
+		LEFT JOIN ds_mysql_prod_tagelement z on
+l.zone=z.id
+		LEFT JOIN ds_mysql_prod_tagelement w on
+l.loc=w.id
+LEFT JOIN ds_mysql_prod_tagelement c on
+l.center_status=c.id),
 
-Base3 as(select p.ProjectId,p.fy_timerange,case when p.center_name is not null then p.center_name else l.name end as center_name, p.center_id, p.batch_info,p.Project,p.p_pankh,l.partner_name as p_trrain from Base2 p left join profile_36872 l on
+Base3 as(select p.ProjectId,p.fy_timerange,case when p.center_name is not null then p.center_name else l.name end as center_name, p.zone, p.center_id, p.batch_info,p.Project,p.p_pankh,l.partner_name as p_trrain, p.loc, p.center_status from Base2 p left join profile_36872 l on
 p.center=l._id),
 
-Base4 as(select p.ProjectId,p.fy_timerange,p.center_name,p.batch_info,p.Project,case when p.p_pankh is not null then p.p_pankh else p.p_trrain end as partner_name, p.center_id from Base3 p)
+Base4 as(select p.ProjectId,p.fy_timerange,p.center_name,p.batch_info,p.Project,case when p.p_pankh is not null then p.p_pankh else p.p_trrain end as partner_name, p.zone, p.center_id,  p.loc, p.center_status from Base3 p)
 
 
-select p.ProjectId,p.fy_timerange,p.center_name,p.center_id,p.batch_info,p.Project,k.name as partner_name,count(*) as Count from Base4 p
+select p.ProjectId,p.fy_timerange,p.center_name,p.center_id,p.batch_info,p.Project,k.name as partner_name,count(*) as Count,p.zone,  p.loc, p.center_status from Base4 p
 left join ds_mysql_prod_tagelement k on
 p.partner_name=k.id
 where p.center_name!='RAR121'
-group by p.ProjectId,p.fy_timerange,p.center_name,p.batch_info,p.Project,k.name, p.center_id
+group by p.ProjectId,p.fy_timerange,p.center_name,p.batch_info,p.Project,k.name, p.center_id, p.zone,  p.loc, p.center_status
