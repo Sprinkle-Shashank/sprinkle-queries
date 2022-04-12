@@ -1,5 +1,5 @@
 with table1 as(
-select yr.name as year1 , sum(total_participants) as s1, datepart(month,p1.date_of_formation) as month1 , case when month1 in ('2', '3', '4')
+select yr.name as year1 , total_participants as s1, datepart(month,p1.date_of_formation) as month1 , case when month1 in ('2', '3', '4')
 then '1st(Feb-Apr)'
 when month1 in ('5','6','7')
 then '2nd(May-Jul)'
@@ -15,7 +15,7 @@ on p1.year = yr.id
 
 group by yr.name , p1.date_of_formation , quarter1 , p1.projectid
   ),
-table2 as (select yr.name as year2 , sum(pace_completion) as s2 , p2.projectid as project2 , datepart(month,p2.date_of_formation) as month2 , case when month2 in ('2', '3', '4')
+table2 as (select yr.name as year2 , pace_completion as s2 , enrollment,  p2.projectid as project2 , datepart(month,p2.date_of_formation) as month2 , case when month2 in ('2', '3', '4')
 then '1st(Feb-Apr)'
 when month2 in ('5','6','7')
 then '2nd(May-Jul)'
@@ -32,30 +32,12 @@ on p2.year = yr.id
 where lg_status = 847850 or lg_status is null
 group by p2.projectid , yr.name , quarter2 , p2.date_of_formation
 		   ),
-table3 as ( select yr.name as year3   , sum(enrollment) as s3 , p3.projectid as project3 , datepart(month,p3.date_of_formation) as month3 , case when month3 in ('2', '3', '4')
-then '1st(Feb-Apr)'
-when month3 in ('5','6','7')
-then '2nd(May-Jul)'
-when month3 in ('8', '9', '10')
-then '3rd(Aug-Oct)'
-when month3 in ('11', '12',  '1')
-then '4th(Nov-Jan)'
-end as quarter3
- 
-from profile_29179 p3
-left join ds_mysql_prod_tagelement yr
-on p3.year = yr.id
 
-where lg_status = 847850 or lg_status is null 
-
-group by p3.projectid , yr.name , quarter3 , p3.date_of_formation
-		   ),
-table4 as ( select t1.year1 as year , t1.quarter1 as quarter , t1.s1 as summ1 , t2.s2 as summ2, t3.s3 as summ3
+table4 as ( select t1.year1 as year , t1.quarter1 as quarter , sum(t1.s1) as summ1 , sum(t2.s2) as summ2, sum(t2.s3) as summ3
 					  from table1 t1
 left join table2 t2
 on t1.project1 = t2.project2
-left join table3 t3
-on t1.project1 = t3.project3
+
 ),
 
 temp as(
@@ -75,6 +57,6 @@ end as value1
 from table4 t4
 cross join temp
 
-group by t4.year , t4.quarter , temp.dim , t4.summ1, t4.summ2 , t4.summ3
+group by t4.year , t4.quarter , temp.dim 
 
 
