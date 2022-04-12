@@ -11,20 +11,6 @@ test0 as(Select p.* ,(gbv_goals)from  profile_76755 p
  select p.*,NULL as gbv_goals from profile_76755 p where gbv_goals_arr IS NULL
 ),
 
- test1 as (Select p._id,p.projectId , fac.name as factory , p.year_timerange, p.country as country , ven.name as vendor1,nvl2(SUBSTRING(vendor1, 1, POSITION(' (' in vendor1)), SUBSTRING(vendor1, 1, POSITION(' (' in vendor1)), vendor1) as vendor_name, case when vendor_name='' then vendor1 else vendor_name end as vendor , p1.indepth_workers, p1.indepth_managers , t3.Active_Filter
-
-from test0 p
-		    
-left join profile_76894 p1 on 
-p.gbv_goals = p1._id
-	
-left join table3 t3 on 
-fac.name = t3.goodera_facility_name_text
-
-where p.projectid ilike '%%' and country <> 'Test Country'			   
-), 
-
-
 test11 as 
 ( select p.projectid , p._id , sum(indepth_workers) as indepth_workers, sum(indepth_managers) as indepth_managers , fac.name as factory , ven.name as vendor , cou.name as country , p1.year_timerange , cast(substring(cast(year_timerange.start as varchar),1,4) as int) as yearint , cast(substring(cast(year_timerange.start as varchar),6,2) as int) as monthint , case when monthint=1 then (yearint-1) else yearint end as year
  , p2.Active_Filter
@@ -45,7 +31,8 @@ p._id = p1.gbv_goals
 left join table3 p2 on 
 fac.name = p2.goodera_facility_name_text
 
-where p.projectid ilike '%%' and country <> 'Test Country' 
+where p.projectid ilike '%%' 
+ --and country <> 'Test Country' 
 
 group by p.projectid , p._id ,fac.name , ven.name , cou.name, p1.year_timerange , yearint , monthint , year
  , p2.Active_Filter)
