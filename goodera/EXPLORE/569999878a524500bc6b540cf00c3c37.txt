@@ -1,8 +1,18 @@
-select p4.name as theme,  p3.name as partner, p2.name as projectid, t1.name as file_type1, t2.name as file_type2, p1.remarks, p1.file
+with sub1 as(
+  select p4.name as theme,  p3.name as partner, p2.name as projectid, t1.name as file_type1, t2.name as file_type2, p1.remarks, p1.file
 from profile_74392 p1
 left join ds_mysql_prod_project p2 on p2.id = p1.projectid
 left join ds_mysql_prod_project p3 on p3.id = p2.parent
 left join ds_mysql_prod_project p4 on p4.id = p3.parent
 
-left join ds_mysql_prod_tagelement t1 on t1.id = p1.file_type
-left join ds_mysql_prod_tagelement t2 on t2.id = t1.parent
+left join ds_mysql_prod_tagelement t1 on t1.id = p1.type
+left join ds_mysql_prod_tagelement t2 on t2.id = t1.parent),
+
+sub2 as(
+  select *, cast(file_unwind as varchar) from sub1 s1, s1.file file_unwind)
+  
+select theme, partner, projectid, file_type1, file_type2, remarks, listagg(distinct file_unwind, ', ') as file,
+'Download' as file_download
+from sub2
+group by theme, partner, projectid, file_type1, file_type2, remarks
+  
