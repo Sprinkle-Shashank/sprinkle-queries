@@ -1,12 +1,31 @@
-select p4.name as theme, p3.name as project_parent, p2.name as projectid, p1.fy_timerange, t1.name as plant, t4.name as state, p1.awareness_sessions
+select p4.name as theme, p3.name as partner, p2.name as projectid, p1.fy_timerange, t1.name as plant, t4.name as state, sum(p1.awareness_sessions) as awareness_sessions, 
+extract(month from cast(p1.fy_timerange.start as date)) as mon,
+
+case mon
+	when 1 then 'Jan'
+	when 2 then 'Feb'
+	when 3 then 'Mar'
+	when 4 then 'Apr'
+	when 5 then 'May'
+	when 6 then 'Jun'
+	when 7 then 'Jul'
+	when 8 then 'Aug'
+	when 9 then 'Sep'
+	when 10 then 'Oct'
+	when 11 then 'Nov'
+	else 'Dec'
+end as month
+
 from profile_74125 p1
 left join ds_mysql_prod_project p2 on p2.id = p1.projectid
 left join ds_mysql_prod_project p3 on p3.id = p2.parent
 left join ds_mysql_prod_project p4 on p4.id = p3.parent
 
-left join profile_74124 p5 on p5.id = p1.school_or_village_name
+left join profile_74124 p5 on p5._id = p1.school_or_village_name
 
 left join ds_mysql_prod_tagelement t1 on t1.id = p5.plant
 left join ds_mysql_prod_tagelement t2 on t2.id = p5.location
 left join ds_mysql_prod_tagelement t3 on t3.id = t2.parent
 left join ds_mysql_prod_tagelement t4 on t4.id = t3.parent
+
+group by p4.name, p3.name, p2.name, t1.name, t4.name, p1.fy_timerange
