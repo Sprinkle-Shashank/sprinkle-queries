@@ -1,106 +1,14 @@
- -- profile 16862
-with table_a1 as ( SELECT _id,projectid,mon.creatorid, u.email as cemail, mon.modifierid, m.email as memail
-				
-from ds_mongo_profileinstance mon
-left join ds_mysql_prod_user u on
-mon.creatorid = u.id
-left join ds_mysql_prod_user m  on
-mon.modifierid = m.id
-where mon.profileId='16862' and mon.active = 't' and mon.securitycontextid is not null
-),
 
+with table1 as 
+( select distinct fac.name as factory from profile_61572 as p
+ 
+left join ds_mysql_prod_project fac 
+on p.projectId = fac.id),
 
-table_a2 as
-( select p.projectid , p._id , memail , row_number() over 
-(partition by projectid
- order by _id desc) as row
- , POSITION('@gap.com' IN memail ) as p0 , POSITION('gaptable1@gmail.com' IN memail ) as p1 ,  POSITION('gaptable2@gmail.com' IN memail ) as p2 , POSITION('gaptable3@gmail.com' IN memail ) as p3 , POSITION('gaptable4@gmail.com' IN memail ) as p4
- from table_a1 as p
+table2 as 
+( select distinct  fac.name as factory from profile_52644 as p
  
- where p0=0 and p1=0 and p2=0 and p3=0 and p4=0
- ),
- 
- table_a3 as 
- ( select * from table_a2  p where row=1),
- 
- 
- table_a4 as 
- (  select p.projectid , p._id , cemail ,  row_number() over 
-(partition by projectid
- order by _id desc) as row from table_a1 p
-  ),
-  
-  table_a5 as 
-  ( select * from table_a4 where row=1 ),
- 
- 
- -- profile 16863
- table_a11 as (  SELECT _id,projectid,mon.creatorid, u.email as cemail, mon.modifierid, m.email as memail
-			   
-from ds_mongo_profileinstance mon
-left join ds_mysql_prod_user u on
-mon.creatorid = u.id
-left join ds_mysql_prod_user m  on
-mon.modifierid = m.id
-where mon.profileId='16863' and mon.active = 't' and mon.securitycontextid is not null
-),
+left join ds_mysql_prod_project fac 
+on p.projectId = fac.id)
 
-
-table_a12 as
-( select p.projectid , p._id , memail , row_number() over 
-(partition by projectid
- order by _id desc) as row
-, POSITION('@gap.com' IN memail ) as p0 , POSITION('gaptable1@gmail.com' IN memail ) as p1 ,  POSITION('gaptable2@gmail.com' IN memail ) as p2 , POSITION('gaptable3@gmail.com' IN memail ) as p3 , POSITION('gaptable4@gmail.com' IN memail ) as p4
- from table_a11 as p
- 
-where p0=0 and p1=0 and p2=0 and p3=0 and p4=0
- ),
- 
- table_a13 as 
- ( select * from table_a12 p where row=1),
-
-table_union_all_memail as
-(
-select * from table_a3
-union all
-select * from table_a13
- ),
- 
- 
- table_a14 as 
- (  select p.projectid , p._id , cemail ,  row_number() over 
-(partition by projectid
- order by _id desc) as row from table_a11 p
-  ),
-  
-  table_a15 as 
-  ( select * from table_a14 where row=1 ),
-  
- 
-table_all_m_mail as
-(
- select p.projectid , listagg(memail,',') as modified_email from table_union_all_memail p
- 
- group by p.projectid  
-),
-
-table_union_all_cre_mail as
-(
-  select * from table_a5 
-  union all
-  select * from table_a15
- ),
- 
- table_all_c_mail as 
-( select p.projectid , list(cemail,',') as creator_mail from table_union_all_cre_mail p
- 
- group by p.projectid )
-
-
-select * from table_all_c_mail 
- 
- /*
- gaptable1@gmail.com AND gaptable2@gmail.com AND gaptable3@gmail.com AND gaptable4@gmail.com
- @gap.com
- */
- 
+select * from table1
