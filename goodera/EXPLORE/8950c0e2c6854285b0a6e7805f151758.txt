@@ -1,2 +1,25 @@
-select p1.projectid, p1.fy_timerange, p1.plant, p1.location, p1.direct_beneficiaries, p1.indirect_beneficiaries
-from profile_74124
+with temp as(
+  select 'Direct Beneficiaries' as col
+  union all
+  select 'Indirect Beneficiaries' as col)
+  
+select p4.name as theme, p3.name as partner, p2.name as projectid, p1.fy_timerange, t1.name as plant, t4.name as state, temp.col as dimensions,
+
+sum(case temp.col 
+		when 'Direct Beneficiaries' then p1.direct_beneficiaries
+	else p1.indirect_beneficiaries
+end) as values
+
+from profile_74124 p1
+cross join temp
+
+left join ds_mysql_prod_project p2 on p2.id = p1.projectid
+left join ds_mysql_prod_project p3 on p3.id = p2.parent
+left join ds_mysql_prod_project p4 on p4.id = p3.parent
+
+left join ds_mysql_prod_tagelement t1 on t1.id = p1.plant
+left join ds_mysql_prod_tagelement t2 on t2.id = p1.location
+left join ds_mysql_prod_tagelement t3 on t3.id = t2.parent
+left join ds_mysql_prod_tagelement t4 on t4.id = t3.parent
+
+group by p4.name, p3.name, p2.name, p1.fy_timerange, t1.name, t4.name, temp.col
