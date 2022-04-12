@@ -1,10 +1,10 @@
 with 
-/*temp as(select 'completed_training' as col
+temp as(select 'completed_training' as col
 union all
 select 		'ongoing_training' as col
 union all
 select 'placed_count' as col)
-,*/
+,
 Base1 as(
 select y.name as batch_id,t2.name as Project,p.fy_timerange,l.name as center_id,
 		  
@@ -56,9 +56,15 @@ Base3 as
 (select Base1.Project,Base1.fy_timerange,Base1.center_id,Base1.zone,Base1.loc,Base1.center_status,Base1.partner_name,Base1.placed,Base1.completed_training, Base1.ongoing_training, Base1.placed_count, Base1.batch_id
 		  from Base1
 		   union
- select Base1.Project,Base1.fy_timerange,Base1.center_id,Base1.zone,Base1.loc,Base1.center_status,Base1.partner_name,Base1.placed,Base1.completed_training, Base1.ongoing_training, Base1.placed_count, Base1.batch_id
-		  from Base2 Base1
+ select Base1.Project,Base1.fy_timerange,Base1.center_id,Base1.zone,Base1.loc,Base1.center_status,Base1.partner_name,Base1.placed, Base1.batch_id
+		  from Base2 Base1 
+ --group by Base1.Project,Base1.fy_timerange,Base1.center_id,temp.col,Base1.partner_name,Base1.placed,Base1.zone,Base1.loc,Base1.center_status,Base1.batch_id
 		  ),
-Base4 as(select center_id, fy_timerange, partner_name, zone, loc, center_status, Project, placed,completed_training,ongoing_training, placed_count,batch_id,count(*) as value from Base3 group by center_id, fy_timerange, partner_name, zone, loc, center_status, Project, placed,completed_training,ongoing_training, placed_count, batch_id)
---select * from Base4
-select center_id,fy_timerange,partner_name,zone,loc,center_status,Project,sum(value) as count_batch, batch_id ,completed_training,ongoing_training, placed_count from Base4 group by center_id,fy_timerange,partner_name,zone,loc,center_status,Project,completed_training,ongoing_training, placed_count, batch_id
+Base4 as(select center_id, fy_timerange, partner_name, zone, loc, center_status, Project, placed,, temp.col as Dimensions
+ , 
+sum(case col
+		  when 'completed_training'  then Base1.completed_training
+		   when 'ongoing_training'  then Base1.ongoing_training
+		   when 'placed_count'  then Base1.placed_count else null end)  as count_trainee,temp.col as status,batch_id,count(*) as value,count_trainee from Base3 cross join temp group by center_id, fy_timerange, partner_name, zone, loc, center_status, Project, placed, batch_id,count_trainee, temp.col)
+
+select center_id,fy_timerange,partner_name,zone,loc,center_status,Project,sum(value) as count_batch, batch_id , sum,count_trainee from Base4 group by center_id,fy_timerange,partner_name,zone,loc,center_status,Project, batch_id, sum,count_trainee
