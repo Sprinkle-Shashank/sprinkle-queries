@@ -7,20 +7,22 @@ WITH temp AS (
   
   )											--Pivot column names
 
-SELECT year.name as year, 'Estimated number of people empowered to improve their access to drinking water and sanitation' as indicator, '' as Partner,			--Select values
+SELECT year.name as year, indi.name as indicator, '' as Partner,			--Select values
 SUM(Case C
 	When 'Program Target' then p.prog_target
 	When 'Target 2021' then p.target21
 	When 'Target 2022' then p.target22
 	Else Null
 END) as val , temp.C as Dim
-
+where indicator='Estimated number of people empowered to improve their access to drinking water and sanitation'
 from profile_77047 p
   cross join temp							--pivot cross join
  
 left join ds_mysql_prod_tagelement year
  on p.year = year.id 
+left join ds_mysql_prod_tagelement indi
+ on p.indicator = indi.id 
 
  
 
- GROUP BY year.name,temp.C 
+ GROUP BY  year.name,indi.name,temp.C 
