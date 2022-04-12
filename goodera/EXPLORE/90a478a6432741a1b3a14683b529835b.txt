@@ -1,5 +1,5 @@
 with table1 as(
-select yr.name as year , sum(total_participants) as s1, datepart(month,p.date_of_formation) as month , case when month in ('2', '3', '4')
+select yr.name as year , sum(total_participants) as s1, datepart(month,p1.date_of_formation) as month , case when month in ('2', '3', '4')
 then '1st(Feb-Apr)'
 when month in ('5','6','7')
 then '2nd(May-Jul)'
@@ -15,7 +15,7 @@ on p1.year = yr.id
 
 group by yr.name , p1.date_of_formation , month , p1.projectid
   ),
-table2 as (select yr.name as year , sum(pace_completion) as s2 , datepart(month,p.date_of_formation) as month , case when month in ('2', '3', '4')
+table2 as (select yr.name as year , sum(pace_completion) as s2 , datepart(month,p2.date_of_formation) as month , case when month in ('2', '3', '4')
 then '1st(Feb-Apr)'
 when month in ('5','6','7')
 then '2nd(May-Jul)'
@@ -27,12 +27,12 @@ end as quarter , p2.projectid as project2
  
 from profile_29179 p2
 left join ds_mysql_prod_tagelement yr
-on p.year = yr.id
+on p2.year = yr.id
 
 where lg_status = 847850 or lg_status is null
-group by yr.name , p.date_of_formation , month , p2.projectid
+group by yr.name , p2.date_of_formation , month , p2.projectid
 		   ),
-table3 as ( select yr.name as year , sum(enrollment) as s3 , datepart(month,p.date_of_formation) as month , case when month in ('2', '3', '4')
+table3 as ( select yr.name as year , sum(enrollment) as s3 , datepart(month,p3.date_of_formation) as month , case when month in ('2', '3', '4')
 then '1st(Feb-Apr)'
 when month in ('5','6','7')
 then '2nd(May-Jul)'
@@ -44,11 +44,11 @@ end as quarter , p3.projectid as project3
  
 from profile_29179 p3
 left join ds_mysql_prod_tagelement yr
-on p.year = yr.id
+on p3.year = yr.id
 
 where lg_status = 847850 or lg_status is null 
 
-group by yr.name , p.date_of_formation , month , p3.projectid
+group by yr.name , p3.date_of_formation , month , p3.projectid
 		   ),
 table4 as ( select t1.year as year , t1.month as month , t1.quarter as quarter , t1.s1 as summ1 , t2.s2 as summ2, t3.s3 as summ3
 					  from table1 t1
@@ -71,7 +71,7 @@ when 'Total Enrollment' then t4.summ2
 when 'Total Graduated' then t4.summ3
 
 else null
-end as value1,
+end as value1
 from table4 t4
 cross join temp
 
