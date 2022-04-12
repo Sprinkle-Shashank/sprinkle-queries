@@ -1,0 +1,29 @@
+with temp as(
+  select 'Surface Water Stored (KL)' as col
+  union all
+  select 'Water Recharged (KL)' as col
+  union all
+  select 'Agricultural Water Savings (KL)' as col)
+  
+select p4.name as theme, p3.name as partner, p2.name as projectid, p1.fy_timerange, t1.name as plant, t4.name as state, temp.col as dimensions,
+
+sum(case temp.col
+		when 'Surface Water Stored (KL)' then p1.surface_water_stored
+		when 'Water Recharged (KL)' then p1.water_recharged
+		when 'Agricultural Water Savings (KL)' then p1.agricultural_water_savings
+	else NULL
+end) as values
+
+from profile_74125 p1
+left join ds_mysql_prod_project p2 on p2.id = p1.projectid
+left join ds_mysql_prod_project p3 on p3.id = p2.parent
+left join ds_mysql_prod_project p4 on p4.id = p3.parent
+
+left join profile_74124 p5 on p5._id = p1.school_or_village_name
+
+left join ds_mysql_prod_tagelement t1 on t1.id = p5.plant
+left join ds_mysql_prod_tagelement t2 on t2.id = p5.location
+left join ds_mysql_prod_tagelement t3 on t3.id = t2.parent
+left join ds_mysql_prod_tagelement t4 on t4.id = t3.parent
+
+group by p4.name, p3.name, p2.name, t1.name, t4.name, p1.fy_timerange, temp.col
