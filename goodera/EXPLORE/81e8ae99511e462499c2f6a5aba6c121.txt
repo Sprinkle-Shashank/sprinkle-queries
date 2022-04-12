@@ -1,4 +1,5 @@
-select p.projectid,  cou.name as country , fac.name as factory , ven.name as vendor 
+with table1 as 
+(select p.projectid,  cou.name as country , fac.name as factory , ven.name as vendor 
 from profile_61572 as p
 
 left join ds_mysql_prod_project fac 
@@ -13,3 +14,30 @@ on ven.parent = cou.id
 where country <> 'Test Country'
 
 order by country asc , factory asc , vendor asc
+ ),
+ 
+ table2 as 
+ (select p.projectid,  cou.name as country , fac.name as factory , ven.name as vendor 
+from profile_76894 as p
+
+left join ds_mysql_prod_project fac 
+on p.projectId = fac.id
+
+ left join ds_mysql_prod_project ven 
+on fac.parent = ven.id
+
+ left join ds_mysql_prod_project cou 
+on ven.parent = cou.id
+
+where country <> 'Test Country')
+ 
+ table3 as 
+ (
+select factory ,country , vendor from table1
+union all 
+select factory ,country ,vendor from table2 
+ )
+ 
+ select * from table3
+   
+   
