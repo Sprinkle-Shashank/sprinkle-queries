@@ -1,4 +1,10 @@
-with sub1 as(
+with temp as (
+  select 'completed_training' as col
+  union all
+  select 'ongoing_training' as col
+  union all
+  select 'placed_count' as col),
+sub1 as(
   select projectId, placed, fy_timerange, zone_db, partner_db, center_name_db, center_id_db, batch_id_db, batch_end_db, center_location from profile_145
   union all
   select projectId, placed, center_location, fy_timerange, zone_db, partner_db, center_name_db, center_id_db, batch_end_db, batch_id_db from profile_36901),
@@ -10,5 +16,12 @@ LEFT JOIN ds_mysql_prod_project t2 on t1.parent=t2.id),
 sub3 as(
 select project, p.projectId, placed, center_location, fy_timerange, zone_db, partner_db, center_name_db, center_id_db, batch_end_db, batch_id_db, case when today>batch_end_db and placed!=3608 then 1 else 0 end as completed_training,
   case when today<batch_end_db and placed!=3608 then 1 else 0 end as ongoing_training, case when placed=3606 or placed=288903 then 1 else 0 end as placed_count
-  from sub2 p)
-select * from sub3
+  from sub2 p),
+  sub4 as (
+select project, p.projectId, placed, center_location, fy_timerange, zone_db, partner_db, center_name_db, center_id_db, batch_end_db, batch_id_db, temp.col as training_status, 
+	case when 'completed_training' then p.completed_training
+	when 'ongoing_training' then p.ongoing_training
+	when 'placed_count' then p.placed_count
+	else NULL end as count
+	from sub3 cross join temp)
+select * from sub4
