@@ -1,5 +1,14 @@
-with table1 as (select fy_timerange, br.name as brand,bn.name as business,mt.name as material, sum(weight) as weight, fkey from profile_63455 p1
-
+with temp as 
+(
+  select 'material_type'  as col
+  union all
+  select 'cotton_type' as col
+)
+,
+table1 as 
+(
+select fy_timerange, br.name as brand,bn.name as business,mt.name as material, sum(weight) as weight, fkey
+from profile_63455 p1
 
 left join ds_mysql_prod_tagelement br
 on p1.brand = br.id
@@ -26,5 +35,19 @@ left join ds_mysql_prod_tagelement ct
 on t2.cotton_type = ct.id
 
 group by  t1.fy_timerange, t1.brand, t1.business, t1.material, ct.name
+),
+table3 as 
+(
+  select t2.fy_timerange, t2.brand, t2.business,
+  case 
+      when t2.material = 'Conventional Cotton' then
+      case
+          when t2.cotton_type = 'BCI Cotton' then t2.weight2-t2.bciweight end as weight
+          else
+              t2.weight2 end as weight
+      else t2.weight2 end as weight,
+from table2 as t2
 )
-select * from table2
+select * from table3
+
+  
