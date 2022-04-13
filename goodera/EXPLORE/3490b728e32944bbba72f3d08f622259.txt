@@ -1,4 +1,4 @@
-select yr.name as year , p.month as month , case when month in ('2', '3', '4')
+select yr.name as year , datepart(month,p.month) as month , case when month in ('2', '3', '4')
 then '1st(Feb-Apr)'
 when month in ('5','6','7')
 then '2nd(May-Jul)'
@@ -7,7 +7,7 @@ then '3rd(Aug-Oct)'
 when month in ('11', '12',  '1')
 then '4th(Nov-Jan)'
 end as quarter , loc_parent.name as state,loc_child.name as district , count(p.projectid) as count 
-from profile_29291 p
+from profile_29179 p
 left join ds_mysql_prod_tagelement yr
 on p.year = yr.id
 left join ds_mysql_prod_tagelement loc_child
@@ -15,7 +15,8 @@ on p.location = loc_child.id
 
 left join ds_mysql_prod_tagelement loc_parent
 on loc_child.parent = loc_parent.id
+left join profile_29291 p1
+on p.projectid = p1.projectid
+where district <> block and lg_status = 847850 or lg_status is null 
 
-where district <> block
-
-group by yr.name ,  month , state , district
+group by yr.name , p.date_of_formation , month , state , district
