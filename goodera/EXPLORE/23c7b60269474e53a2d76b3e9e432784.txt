@@ -1,38 +1,41 @@
-with s as (Select tt.name as projectid,tt2.name as imp_partner,tt3.name as sdg,s.beneficiary_type,tt4.name as business_unit,
-p2.allocated,
-p3.tot_disbursed,
-s.tar_bene,s.ach_bene,s.fy_timerange, p1.name as proj
-from profile_76974 s
-
---left join profile_65557 t1 on
---t1.projectid=s.projectid
---left join profile_65556 t2 on
---t2.projectid=s.projectid
-left join ds_mysql_prod_project tt
-on tt.id=s.projectid
-left join ds_mysql_prod_project tt2
-on tt2.id=tt.parent
-left join ds_mysql_prod_tagelement tt3
-on tt3.id=s.sdg
-left join ds_mysql_prod_tagelement tt4
-on tt4.id=s.business_unit
-left join profile_65552 p1
-on p1.projectid=tt2.id
-left join profile_65557 p2 on
-p1._id=p2.project_name
-left join profile_65556 p3 on
-p1._id=p3.project_name
+with temp as (
+Select 'School Level' as col
+  union all
+ Select 'Location Level' as col
+  union all
+ Select 'State Level' as col
+  union all
+  select 'National Level' as col
+  
 )
-,
-s2 as (
 
-Select a.projectid,a.imp_partner,a.sdg,bene_type,a.business_unit,a.allocated,a.tot_disbursed,a.tar_bene,a.ach_bene,a.fy_timerange, a.proj
-from s a, a.beneficiary_type  bene_type
+, s1 as (
+  Select * from profile_77534
+  )
+  select t.name as projectid, s1._id,s1.name ,
+s1.fy_timerange,ss.school_name as school_name ,ss1.batch_name as batch_name ,s1.no_of_cent_trainings ,(s1.no_of_school_online_trainings
++s1.no_of_school_offline_trainings) as offline_online ,s1.no_of_school_onsite_support,s1.nos_participate_sch_level as School_Level,s1.nos_participate_loc_level as Location_Level,s1.nos_participate_st_it_level as State_Level,s1.nos_participate_nat_level as National_Level,temp.col as dimensions,
 
-)
-Select s2.projectid "Project Name",s2.imp_partner "Implementation Partner",cast(s2.fy_timerange.start as varchar) "Start Date",t.name as "Beneficiary Type", s2.sdg,s2.business_unit,s2.allocated as "Amount Allocated",
-s2.tot_disbursed  as "Amount Disbursed",s2.tar_bene "No of Target Beneficiaries",s2.ach_bene "No of Achieved Beneficiaries", s2.proj as "proj"
-from s2
-left join ds_mysql_prod_tagelement t
-on t.id=s2.bene_type
-			
+sum(case col
+when 'School Level' then s1.nos_participate_sch_level
+when 'Location Level' then s1.nos_participate_loc_level
+when 'State Level' then s1.nos_participate_st_it_level
+when 'National Level' then s1.nos_participate_nat_level
+	
+else null end) as values
+
+
+
+from s1
+cross join temp
+  left join profile_77524 ss
+  on s1.school_name=ss._id
+  left join profile_77526 ss1
+  on s1.batch_name=ss1._id
+  left join ds_mysql_prod_project t
+  on s1.projectid=t.id
+    left join ds_mysql_prod_tagelement t2
+  on ss.state_district=t2.id
+  group by 
+  t.name, s1._id,s1.name ,
+s1.fy_timerange,ss.school_name,ss1.batch_name ,s1.no_of_cent_trainings ,s1.no_of_school_online_trainings,s1.no_of_school_offline_trainings ,s1.no_of_school_onsite_support,s1.nos_participate_sch_level,s1.nos_participate_loc_level,s1.nos_participate_st_it_level,s1.nos_participate_nat_level,dimensions
