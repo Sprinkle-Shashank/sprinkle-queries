@@ -1,5 +1,5 @@
 with sub1 as (
-  select p1._id,p1.name as projectid,p1.year_timerange as Timerange, p1.distance_car, p1.distance_public_transport, p1.distance_motorbike, p1.distance_walking, p1.distance_others,p1.name_location from profile_73046 p1),
+  select p1._id,p1.year_timerange as Timerange, p1.distance_car, p1.distance_public_transport, p1.distance_motorbike, p1.distance_walking, p1.distance_others,p1.name_location from profile_73046 p1),
 
 sub2 as(select 'Car' as col
 union all
@@ -11,7 +11,7 @@ select 'Walking/ Bike/E-Scooter/ E-Bike' as col
 union all
 select 'Others' as col),
 
-sub3 as(select p1._id,p1.projectId,p1.name_location, Timerange,sub2.col as commute_type, 
+sub3 as(select p1._id,p1.name_location as projectId, Timerange,sub2.col as commute_type, 
 sum(
   case col
 	when 'Car' then p1.distance_car
@@ -29,9 +29,8 @@ end as commute
 
 from sub1 p1
 cross join sub2
-group by 1,2,3,4,5
+group by 1,2,3,4
 )
  
-select _id,projectId,Timerange,commute,1 as count from sub3
-where commute_mileage is not null
-group by 1,2,3,4
+select _id,projectId,Timerange,commute_type,commute_mileage , listagg(commute_mileage,',') as commute_mileage
+from 
