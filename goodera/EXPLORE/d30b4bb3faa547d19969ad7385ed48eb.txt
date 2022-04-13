@@ -1,0 +1,47 @@
+
+with sub as 
+(
+select 
+ projectid, p.name, date, other, local_foreign, no_local_foreign, p.location, notes, survey_yn,  excel_upload, tr_created, keyword_1, num_managers, hours, num_middle, num_other, participants,tri.name as training_type, trainer_organization, trainer, ven.name as vendor, cou.name as country, nvl2(SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), ven.name) as vendor_name, 
+  case when vendor_name='' then vendor else vendor_name end as vendor_first_update  from profile_61572 as p
+ 
+ left join ds_mysql_prod_project fac 
+on p.projectId = fac.id
+
+ left join ds_mysql_prod_project ven 
+on fac.parent = ven.id
+
+ left join ds_mysql_prod_project cou 
+on ven.parent = cou.id
+
+left join ds_mysql_prod_tagelement tri 
+on p.training_type = tri.id
+),
+
+ table3 as
+(
+select p.projectid, p.facility_status , facility.name as facility_status_update , case when facility_status_update='Active' then 'Active' else 'Deactive' end as Active_Filter , goodera_facility_name_text from profile_68161 as p
+  
+left join ds_mysql_prod_tagelement facility 
+on p.facility_status = facility.id
+)
+
+select 
+pro.name as factory, s2.name, date, other, local_foreign, no_local_foreign, location, notes,  excel_upload, tr_created, survey_yn, keyword_1, num_managers, sum(hours/1.0) as hours, num_middle, num_other, sum(participants) as participants, training_type, country, vendor_first_update as vendor, vendor_name,
+case when extract(month from date)=1 then extract(year from date)-1 
+else extract(year from date) end as year, trainer , Active_Filter
+from sub as s2
+
+
+left join ds_mysql_prod_project pro 
+on s2.projectId = pro.id
+
+left join table3 t3 on 
+pro.name = t3.goodera_facility_name_text
+
+where country <> 'Test Country'
+
+group by 
+factory , s2.name, date, other, local_foreign, no_local_foreign, location, notes, survey_yn, excel_upload, tr_created, keyword_1, num_managers, num_middle, num_other, training_type, country,vendor_name, year, pro.name, trainer, s2.vendor_first_update ,t3.active_filter
+
+order by hours asc
