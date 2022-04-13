@@ -1,4 +1,41 @@
-with table1 as(
+with table1 as(select yr.name as year,sum(pace_completion) as Total_graduated,sum(enrollment) as Total_enrolled,(datepart(month,p.date_of_formation) as month1 , case when month1 in ('2', '3', '4')
+then '1st(Feb-Apr)'
+when month1 in ('5','6','7')
+then '2nd(May-Jul)'
+when month1 in ('8', '9', '10')
+then '3rd(Aug-Oct)'
+when month1 in ('11', '12',  '1')
+then '4th(Nov-Jan)'
+end as quarter
+
+from profile_29179 p
+
+left join ds_mysql_prod_tagelement yr
+on p.year = yr.id 
+																								  
+																							
+																							
+																							where lg_status = 847850 or lg_status is null
+																								  
+																							group by year, month1, quarter
+																							),
+	temp as(
+select 'Total Graduated' as dim
+union all
+select 'Total Enrollment' as dim
+)
+select t1.year,t1.quarter,temp.dim ,case dim 
+
+when 'Total Graduated' then t1.Total_graduated
+when 'Total Enrollment' then t1.Total_enrolled
+
+else null
+end as value1
+from table1 t1
+cross join temp
+
+group by t1.year , t1.quarter , temp.dim ,t1.Total_graduated,t1.Total_enrolled
+/*with table1 as(
 select yr.name as year1 , total_participants as s1, datepart(month,p1.date_of_formation) as month1 , case when month1 in ('2', '3', '4')
 then '1st(Feb-Apr)'
 when month1 in ('5','6','7')
@@ -58,5 +95,5 @@ from table4 t4
 cross join temp
 
 group by t4.year , t4.quarter , temp.dim , t4.summ1 , t4.summ2 , t4.summ3
-
+*/
 
