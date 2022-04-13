@@ -1,4 +1,4 @@
-with table1 as(select yr.name as year,sum(pace_completion) as Total_graduated,sum(enrollment) as Total_enrolled,datepart(month,p.date_of_formation) as month1 , case when month1 in ('2', '3', '4')
+with table1 as(select p.projectId,yr.name as year,sum(pace_completion) as Total_graduated,sum(enrollment) as Total_enrolled,datepart(month,p.date_of_formation) as month1 , case when month1 in ('2', '3', '4')
 then '1st(Feb-Apr)'
 when month1 in ('5','6','7')
 then '2nd(May-Jul)'
@@ -18,23 +18,51 @@ on p.year = yr.id
 																							where lg_status = 847850 or lg_status is null
 																								  
 																							group by yr.name, month1, quarter
-																							),
+																							),table2 as(select p.projectId,yr.name as year,sum(total_participants) as Total_Participants,datepart(month,p.date_of_formation) as month1 , case when month1 in ('2', '3', '4')
+then '1st(Feb-Apr)'
+when month1 in ('5','6','7')
+then '2nd(May-Jul)'
+when month1 in ('8', '9', '10')
+then '3rd(Aug-Oct)'
+when month1 in ('11', '12',  '1')
+then '4th(Nov-Jan)'
+end as quarter
+
+from profile_29179 p
+
+left join ds_mysql_prod_tagelement yr
+on p.year = yr.id 
+																								  
+																							
+																							
+																															  
+																							group by yr.name, month1, quarter),
+																						table3 as(select t1.year,t1.quarter,t1.Total_graduated,t1.Total_enrolled,t2.Total_Participants from table1 t1
+
+																						left join table2 t2 on
+on t1.projectId = t2.projectId 
+group by t1.year,t1.quarter,t1.Total_graduated,t1.Total_enrolled,t2.Total_Participants
+																						
+),																							  
 	temp as(
 select 'Total Graduated' as dim
 union all
 select 'Total Enrollment' as dim
+union all
+select 'Total Participants' as dim
 )
-select t1.year,t1.quarter,t1.month1,temp.dim ,case dim 
+select t3.year,t3.quarter,t3.month1,temp.dim ,case dim 
 
-when 'Total Graduated' then t1.Total_graduated
-when 'Total Enrollment' then t1.Total_enrolled
+when 'Total Graduated' then t3.Total_graduated
+when 'Total Enrollment' then t3.Total_enrolled
+when 'Total Participants' then t3.Total_participants
 
 else null
 end as value1
-from table1 t1
+from table3 t3
 cross join temp
 
-group by t1.year , t1.quarter ,t1.month1, temp.dim ,t1.Total_graduated,t1.Total_enrolled
+group by t3.year , t3.quarter ,t3.month1, temp.dim ,t3.Total_graduated,t3.Total_enrolled,t3.Total_participants
 /*with table1 as(
 select yr.name as year1 , total_participants as s1, datepart(month,p1.date_of_formation) as month1 , case when month1 in ('2', '3', '4')
 then '1st(Feb-Apr)'
