@@ -1,8 +1,8 @@
 with table1 as
 (
-select projectid, cou.name as country, ven.name as vendor, extract(year from date) as year, nvl2(SUBSTRING(vendor, 1, POSITION(' (' in vendor)), SUBSTRING(vendor, 1, POSITION(' (' in vendor)), vendor) as vendor_name, case when vendor_name='' then vendor else vendor_name end as vendor_first_update,
+select projectid, cou.name as country, ven.name as vendor, nvl2(SUBSTRING(vendor, 1, POSITION(' (' in vendor)), SUBSTRING(vendor, 1, POSITION(' (' in vendor)), vendor) as vendor_name, case when vendor_name='' then vendor else vendor_name end as vendor_first_update,
 case when extract(month from date)=1 then (extract(year from date)-1)
-else extract(year from date) end as year_first_update, p.name, other, trainer_organization, notes, photo, file, trainer, historical, keyword_1, num_female, num_male, num_middle, hours, total_participants, num_other, date, fac.name as factory  
+else extract(year from date) end as year, p.name, other, trainer_organization, notes, photo, file, trainer, historical, keyword_1, num_female, num_male, num_middle, hours, total_participants, num_other, date, fac.name as factory  
 from profile_64801 as p
 
 left join ds_mysql_prod_project fac 
@@ -24,16 +24,17 @@ on p.facility_status = facility.id
 )
 
 
-select tab1.projectId, country, vendor_name, vendor_first_update as vendor, year_first_update as year,tab1.name, other, trainer_organization, notes, photo, file, trainer, historical, keyword_1, num_female , num_male,num_middle,  hours, total_participants,  num_other , sum(num_female + num_male) as total_workers , date , factory , t3.active_Filter from table1 as tab1
+select tab1.projectId, country, vendor_name, vendor_first_update as vendor, year,tab1.name, other, trainer_organization, notes, photo, file, trainer, historical, keyword_1, num_female , num_male,num_middle,  hours, total_participants,  num_other , sum(num_female + num_male) as total_workers , date , factory , t3.active_Filter from table1 as tab1
 
 left join table3 t3 on 
 tab1.factory = t3.goodera_facility_name_text
 
-where tab1.projectid ilike '%%' and (year <> 2021 or year <> 2022)
+where (year <> 2021 or year <> 2022)
+-- tab1.projectid ilike '%%' and
 
 group by
 
-tab1.projectId, country, vendor_name, vendor_first_update , vendor, year_first_update , year,tab1.name, other, trainer_organization, notes, photo, file, trainer, historical, keyword_1, date , factory , t3.active_Filter ,  num_female , num_male,num_middle,  hours, total_participants,  num_other 
+tab1.projectId, country, vendor_name, vendor_first_update , vendor, year,tab1.name, other, trainer_organization, notes, photo, file, trainer, historical, keyword_1, date , factory , t3.active_Filter ,  num_female , num_male,num_middle,  hours, total_participants,  num_other 
 
 
 
