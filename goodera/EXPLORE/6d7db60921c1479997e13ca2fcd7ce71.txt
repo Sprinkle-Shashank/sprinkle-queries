@@ -21,9 +21,10 @@ from profile_73154 p1),
 
 sub2 as(
   select s1.*, sdgs_unwind, schedule_7_unwind, plants_unwind
-from sub1 s1, s1.sdgs_new sdgs_unwind, s1.schedule_7_new schedule_7_unwind, s1.plants_new plants_unwind)
+from sub1 s1, s1.sdgs_new sdgs_unwind, s1.schedule_7_new schedule_7_unwind, s1.plants_new plants_unwind),
 
-select p2.name as projectid, t1.name as theme, t3.name as partner, t2.name as projects, t5.name as plant, s2.description, s2.start_date_new as start_date, s2.end_date_new as end_date, t4.name as schedule_7, s2.mou_date_new as mou_date, s2.duration, s2.logo, s2.fy_timerange, (s2.start_date_new || ' to ' || s2.end_date_new) as project_period, t6.name as sdgs, p3.sdg_icon
+sub3 as(
+  select s2._id as id, p2.name as projectid, t1.name as theme, t3.name as partner, t2.name as projects, t5.name as plant, s2.description, s2.start_date_new as start_date, s2.end_date_new as end_date, t4.name as schedule_7, s2.mou_date_new as mou_date, s2.duration, s2.logo, s2.fy_timerange, (s2.start_date_new || ' to ' || s2.end_date_new) as project_period, t6.name as sdgs, p3.sdg_icon
 from sub2 s2
 
 left join ds_mysql_prod_project p2 on p2.id = s2.projectid
@@ -36,4 +37,10 @@ left join ds_mysql_prod_tagelement t4 on t4.id = s2.schedule_7_unwind
 left join ds_mysql_prod_tagelement t5 on t5.id = s2.plants_unwind
 left join ds_mysql_prod_tagelement t6 on t6.id = p3.sdg
 
-where s2.projectid like '%%'
+where s2.projectid like '%%')
+
+select s3.id, s3.projectid, s3.theme, s3.partner, s3.projects, s3.description, s3.start_date, s3.end_date, s3.mou_date, s3.duration, s3.logo, s3.fy_timerange, s3.project_period,
+listagg(distinct s3.plant, ', ') as plants, listagg(distinct s3.sdgs, ', ') as sdgs, 
+listagg(distinct s3.schedule_7, ', ') as schedule_7, listagg(distinct s3.sdg_icon, ', ') as sdgs_photo
+from sub3 s3
+group by s3.id, s3.projectid, s3.theme, s3.partner, s3.projects, s3.description, s3.start_date, s3.end_date, s3.mou_date, s3.duration, s3.logo, s3.fy_timerange, s3.project_period
