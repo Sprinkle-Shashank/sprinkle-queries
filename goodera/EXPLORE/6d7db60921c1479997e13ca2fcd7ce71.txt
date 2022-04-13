@@ -1,22 +1,13 @@
 with sub1 as(
-  select (p1.date_visit || '|' || p1.date_visit) as fy_timerange, p1.trucker_id, t1.name as plant,
+  select p1.*, sdgs_new, cast(sdgs_photos as varchar)
+from profile_73154 p1, p1.sdgs sdgs_new, p1.sdgs_photo sdgs_photos),
 
-case
-	when p1.age <= 20 then '18-20'
-	when p1.age > 20 and p1.age <= 30 then '21-30'
-	when p1.age > 30 and p1.age <= 40 then '31-40'
-	else 'Above 40'
-end as age_group, 
-case
-	when age_group = '18-20' then 1
-	when age_group = '21-30' then 2
-	when age_group = '31-40' then 3
-	else 4
-end as age_sort 
+sub2 as(
+  select substring(t1.name, 4, len(t1.name)-3) as sdgs, sdgs_photos, s1.start_date,
+row_number () over (partition by t1.name order by s1.start_date asc) as row_num
+from sub1 s1
+left join ds_mysql_prod_tagelement t1 on t1.id = s1.sdgs_new)
 
-from profile_73096 p1	
-left join ds_mysql_prod_tagelement t1 on t1.id = p1.plant
-group by p1.age, p1.date_visit, p1.trucker_id, t1.name)
-
-select trucker_id, count(*) from sub1
-group by truckre_id
+select sdgs, sdgs_photos
+from sub2
+where row_num = 1
