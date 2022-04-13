@@ -11,19 +11,23 @@ end as schedule_7_new,
 case
   when is_array(p1.sdg_new) = false or get_array_length(p1.sdg_new) = 0 then array(p1.sdg_new)
   else p1.sdg_new
-end as sdgs_new
+end as sdgs_new,
+case
+  when is_array(p1.plants) = false or get_array_length(p1.plants) = 0 then array(p1.plants)
+  else p1.plants
+end as plants_new
   
 from profile_73154 p1),
 
 sub2 as(
   select s1.*, sdgs_unwind, schedule_7_unwind, plants_unwind
-from sub1 s1, s1.sdgs_new sdgs_unwind, s1.schedule_7_new schedule_7_unwind, s1.plants plants_unwind)
+from sub1 s1, s1.sdgs_new sdgs_unwind, s1.schedule_7_new schedule_7_unwind, s1.plants_new plants_unwind)
 
 select p2.name as projectid, t1.name as theme, t3.name as partner, t2.name as projects, t5.name as plant, s2.description, s2.start_date_new as start_date, s2.end_date_new as end_date, t4.name as schedule_7, s2.mou_date_new as mou_date, s2.duration, s2.logo, s2.fy_timerange, (s2.start_date_new || ' to ' || s2.end_date_new) as project_period, t6.name as sdgs, p3.sdg_icon
 from sub2 s2
 
 left join ds_mysql_prod_project p2 on p2.id = s2.projectid
-left join profile_80456 p3 on p3._id = p1.sdgs_new
+left join profile_80456 p3 on p3._id = s2.sdgs_new
 
 left join ds_mysql_prod_tagelement t1 on t1.id = s2.theme
 left join ds_mysql_prod_tagelement t2 on t2.id = s2.projects
