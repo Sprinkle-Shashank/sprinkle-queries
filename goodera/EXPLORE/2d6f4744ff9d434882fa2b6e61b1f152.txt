@@ -17,7 +17,8 @@ from s3 as r ,r.sasb_topic as sasb_top
 s5 as (
 Select fy_timerange ,kpi_name ,  gri_topic, sasb_top as sasb_topic ,cast(sdg_nam as INT) as sdg_nam ,sdg_logo ,description ,company_policy
 from s4 as t,t.sdg_name as sdg_nam
-)
+),
+s6 as (
 Select fy_timerange ,kpi_name ,  t2.name as gri_topic,t3.name as sasb_topic ,t4.name as  sdg_name,t5.name as sdg_logo ,description ,company_policy
 from s5
 left join ds_mysql_prod_tagelement t2
@@ -28,3 +29,7 @@ left join ds_mysql_prod_tagelement t4
 on sdg_nam=t4.id
 left join ds_mysql_prod_tagelement t5
 on sdg_logo=t5.id
+)
+Select fy_timerange ,kpi_name ,  listagg(distinct (gri_topic) ,','),listagg(distinct (sasb_topic) ,','),listagg(distinct (sdg_name) ,','),listagg(distinct (sdg_logo) ,',') ,description ,company_policy
+from s6
+group by fy_timerange ,kpi_name,description ,company_policy
