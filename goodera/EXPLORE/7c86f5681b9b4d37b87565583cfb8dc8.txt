@@ -6,13 +6,13 @@ sub2 as(
   select projectId, center_location, fy_timerange, zone_db, partner_db, center_name_db, center_id_db, batch_id_db from sub1
   group by projectId, center_location, fy_timerange, zone_db, partner_db, center_name_db, center_id_db, batch_id_db),
   sub3 as(
-	select projectId, center_location, fy_timerange, a.zone_db, partner_db, center_name_db, center_id_db, batch_id_db, 1 as count, t2.name as project 
+	select projectId, center_location, fy_timerange, p.zone_db, partner_db, center_name_db, center_id_db, batch_id_db, 1 as count, t2.name as project 
 	from sub2 p
 	LEFT JOIN ds_mysql_prod_project t on p.projectId=t.id
 LEFT JOIN ds_mysql_prod_project t1 on t.parent=t1.id
 LEFT JOIN ds_mysql_prod_project t2 on t1.parent=t2.id),
 sub4 as(
-  select a.projectId, center_location, fy_timerange, zone_db, partner_db, center_name_db, center_id_db, batch_id_db, count,project, b.center_status, t.name as cen_status_p 
+  select a.projectId, center_location, fy_timerange, a.zone_db, partner_db, center_name_db, center_id_db, batch_id_db, count,project, b.center_status, t.name as cen_status_p 
 	from sub3 a left join profile_141 b on b.center_id=a.center_id_db
 left join ds_mysql_prod_tagelement t on t.id=b.center_status)
 select * from sub4
