@@ -12,10 +12,27 @@ with table1 as(Select projectid , status , date_enrollment ,
 				
 				from profile_16619 p ),
 				
-		table2 as (Select * from table1 Where row =1 ) 
+		table2 as (Select * from table1 Where row =1 ) ,
+		
+		table3 as ( Select p.projectid, p.total_workers, extract(year from p2.date_enrollment)as s_year, extract(month from p2.date_enrollment)as month,
+case when month = 1 then s_year-1
+ELSE s_year END AS year_new,
+s.name as status
+ from profile_17526 p
+  
+LEFT JOIN table2 p2 ON
+p.projectid = p2.projectid
+			   
+ LEFT JOIN ds_mysql_prod_tagelement AS S ON
+p2.status = s.id
+
+
+where status is not null and total_workers != 0 )
+				   
+	Select * from table3
 		
 
-Select * from table2
+
 
 
 
