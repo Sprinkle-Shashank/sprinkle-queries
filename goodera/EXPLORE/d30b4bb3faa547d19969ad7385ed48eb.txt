@@ -2,8 +2,8 @@
 with sub as 
 (
 select 
- projectid, p.name, date, other, local_foreign, no_local_foreign, p.location, notes, survey_yn,  excel_upload, tr_created, keyword_1, num_managers, hours, num_middle, num_other, participants,tri.name as training_type, trainer_organization, trainer, ven.name as vendor, cou.name as country, nvl2(SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), ven.name) as vendor_name, 
-  case when vendor_name='' then vendor else vendor_name end as vendor_first_update  from profile_61572 as p
+ projectid, p.name, date, other, local_foreign, no_local_foreign, p.location, notes, survey_yn,  excel_upload, tr_created, keyword_1, num_managers, hours, num_middle, num_other, participants,tri.name as training_type, trainer_organization, trainer, cou.name as country, 
+ case when nvl2(SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), ven.name)='' then ven.name else nvl2(SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), ven.name) end as vendor from profile_61572 as p
  
  left join ds_mysql_prod_project fac 
 on p.projectId = fac.id
@@ -27,7 +27,7 @@ on p.facility_status = facility.id
 )
 
 select 
-pro.name as factory, s2.name, date, other, local_foreign, no_local_foreign, location, notes,  excel_upload, tr_created, survey_yn, keyword_1, num_managers, sum(hours/1.0) as hours, num_middle, num_other, sum(participants) as participants, training_type, country, vendor_first_update as vendor, vendor_name,
+pro.name as factory, s2.name, date, other, local_foreign, no_local_foreign, location, notes,  excel_upload, tr_created, survey_yn, keyword_1, num_managers, sum(hours/1.0) as hours, num_middle, num_other, sum(participants) as participants, training_type, country, vendor ,
 case when extract(month from date)=1 then extract(year from date)-1 
 else extract(year from date) end as year, trainer , t3.Active_Filter
 from sub as s2
@@ -42,6 +42,6 @@ pro.name = t3.goodera_facility_name_text
 ---where country <> 'Test Country' and s2.projectid ilike '%%'
 
 group by 
-factory , s2.name, date, other, local_foreign, no_local_foreign, location, notes, survey_yn, excel_upload, tr_created, keyword_1, num_managers, num_middle, num_other, training_type, country,vendor_name, year, pro.name, trainer, s2.vendor_first_update ,t3.active_filter
+factory , s2.name, date, other, local_foreign, no_local_foreign, location, notes, survey_yn, excel_upload, tr_created, keyword_1, num_managers, num_middle, num_other, training_type, country, year, pro.name, trainer, vendor ,t3.active_filter
 
 order by hours asc
