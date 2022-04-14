@@ -1,4 +1,4 @@
-with test2 as(select p.projectId,DATEPART(Month,p.date_of_formation) as month1,case when month1 = 1 then 'January' 
+with test2 as(select p.projectId,concat(extract(year from date_of_formation),concat('-',RIGHT(extract(year from date_of_formation)+1,2)))  as year_new,DATEPART(Month,p.date_of_formation) as month1,case when month1 = 1 then 'January' 
      when month1 = 2 then 'February'
 	 when month1 = 3 then 'March'
 	 when month1 = 4 then 'April'
@@ -13,7 +13,10 @@ with test2 as(select p.projectId,DATEPART(Month,p.date_of_formation) as month1,c
 end as month,case when month in ('February','March','April') then '1st(Feb-Apr)'
                   when month in ('May','June','July') then  '2nd(May-Jul)'
 				  when month in ('August','September','October') then '3rd(Aug-Oct)'
-				  when month in ('November','December','January') then '4th(Nov-Jan)' end as quarter,yr.name as year_new,'Learning Group Created' as Learning_group,loc_parent.name as state,loc_child.name as district, p2.name as block,stat.name as lg_status,count(p.projectId) as total1 from profile_29179 p
+				  when month in ('November','December','January') then '4th(Nov-Jan)' end as quarter,case when quarter = '1st(Feb-Apr)'then 'Q1'
+when quarter = '2nd(May-Jul)' then 'Q2'
+when quarter =  '3rd(Aug-Oct)' then 'Q3'
+when quarter = '4th(Nov-Jan)' then 'Q4' end as quarter_new,concat(year_new,concat(' ',quarter_new)) as final_year,'Learning Group Created' as Learning_group,loc_parent.name as state,loc_child.name as district, p2.name as block,stat.name as lg_status,count(p.projectId) as total1 from profile_29179 p
 
 
 left join ds_mysql_prod_tagelement loc_child
@@ -22,8 +25,6 @@ on p.location = loc_child.id
 left join ds_mysql_prod_tagelement loc_parent
 on loc_child.parent = loc_parent.id
 
-left join ds_mysql_prod_tagelement yr
-on p.year = yr.id
 
 left join ds_mysql_prod_tagelement stat
 on p.lg_status = stat.id
@@ -33,9 +34,9 @@ on p.block = p2._id
 
 where (date_of_formation is not null) and  (stat.name = 'Active' or  stat.name is null)
 			  
-group by p.projectId,month,quarter,p.date_of_formation,year_new,loc_parent.name,loc_child.name,p2.name,stat.name),
+group by p.projectId,month,quarter,quarter_new,p.date_of_formation,year_new,final_year,loc_parent.name,loc_child.name,p2.name,stat.name),
 
- test3 as(select p.projectId,DATEPART(Month,p.date_of_completion) as month1,case when month1 = 1 then 'January' 
+ test3 as(select p.projectId,concat(extract(year from date_of_formation),concat('-',RIGHT(extract(year from date_of_formation)+1,2)))  as year_new,DATEPART(Month,p.date_of_completion) as month1,case when month1 = 1 then 'January' 
      when month1 = 2 then 'February'
 	 when month1 = 3 then 'March'
 	 when month1 = 4 then 'April'
@@ -50,7 +51,10 @@ group by p.projectId,month,quarter,p.date_of_formation,year_new,loc_parent.name,
 end as month,case when month in ('February','March','April') then '1st(Feb-Apr)'
                   when month in ('May','June','July') then  '2nd(May-Jul)'
 				  when month in ('August','September','October') then '3rd(Aug-Oct)'
-				  when month in ('November','December','January') then '4th(Nov-Jan)' end as quarter,yr.name as year_new,'Learning Group Completed' as Learning_group,loc_parent.name as state,loc_child.name as district, p2.name as block,stat.name as lg_status,count(p.projectId) as total1 from profile_29179 p
+				  when month in ('November','December','January') then '4th(Nov-Jan)' end as quarter,case when quarter = '1st(Feb-Apr)'then 'Q1'
+when quarter = '2nd(May-Jul)' then 'Q2'
+when quarter =  '3rd(Aug-Oct)' then 'Q3'
+when quarter = '4th(Nov-Jan)' then 'Q4' end as quarter_new,concat(year_new,concat(' ',quarter_new)) as final_year,'Learning Group Completed' as Learning_group,loc_parent.name as state,loc_child.name as district, p2.name as block,stat.name as lg_status,count(p.projectId) as total1 from profile_29179 p
 
 
 left join ds_mysql_prod_tagelement loc_child
@@ -59,8 +63,7 @@ on p.location = loc_child.id
 left join ds_mysql_prod_tagelement loc_parent
 on loc_child.parent = loc_parent.id
 
-left join ds_mysql_prod_tagelement yr
-on p.year = yr.id
+
 
 left join ds_mysql_prod_tagelement stat
 on p.lg_status = stat.id
@@ -70,9 +73,9 @@ on p.block = p2._id
 
 where (date_of_completion is not null) and  (stat.name = 'Active' or  stat.name is null)
 			  
-group by p.projectId,month,quarter,p.date_of_completion,year_new,loc_parent.name,loc_child.name,p2.name,stat.name),
+group by p.projectId,month,quarter,quarter_new,p.date_of_completion,year_new,final_year,loc_parent.name,loc_child.name,p2.name,stat.name),
 test4 as(
-select projectId,quarter,year_new,state,total1,Learning_group from test2
+select projectId,quarter,quarter_new,year_new,final_year,state,total1,Learning_group from test2
 union all
-select projectId,quarter,year_new,state,total1,Learning_group from test3)
+select projectId,quarter,quarter_new,year_new,final_year,state,total1,Learning_group from test3)
 select * from test4
