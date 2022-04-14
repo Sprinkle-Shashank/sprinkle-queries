@@ -1,6 +1,6 @@
 with table1 as
 (
-  select nvl2(SUBSTRING(diagnosis.name, 1, POSITION(' -' in diagnosis.name)), SUBSTRING(diagnosis.name, 1, POSITION(' -' in diagnosis.name)),diagnosis.name) as disease ,p.referred_yn ,
+  select p.projectid,p.name, nvl2(SUBSTRING(diagnosis.name, 1, POSITION(' -' in diagnosis.name)), SUBSTRING(diagnosis.name, 1, POSITION(' -' in diagnosis.name)),diagnosis.name) as disease , referred_yn1.name as referred_yn ,
 p1.age,gender1.name as gender,cast(DATEPART(YEAR,p1.createddate) as varchar) as created_year , cast(DATEPART(YEAR,current_date) as varchar) as current_year ,
 (current_year - created_year)+ age as current_age, 1 as count ,
 case when current_age>= 0 and current_age<=5 then '0-5y'    
@@ -11,16 +11,19 @@ case when current_age>= 0 and current_age<=5 then '0-5y'
 from profile_58474 p
 left join profile_58473 p1
 on p.patient = p1._id
+  
 left join ds_mysql_prod_tagelement diagnosis
 on p.diagnosis1 = diagnosis.id
-   left join ds_mysql_prod_tagelement gender1
-  on p1.gender = gender1.id 
+left join ds_mysql_prod_tagelement gender1
+on p1.gender = gender1.id 
+left join ds_mysql_prod_tagelement referred_yn1
+on p.referred_yn = referred_yn1.id
  ),
  
  
  table2 as
 (
-select nvl2(SUBSTRING(diagnosis.name, 1, POSITION(' -' in diagnosis.name)), SUBSTRING(diagnosis.name, 1, POSITION(' -' in diagnosis.name)),diagnosis.name) as disease ,p.referred_yn ,
+select p.projectid,p.name, nvl2(SUBSTRING(diagnosis.name, 1, POSITION(' -' in diagnosis.name)), SUBSTRING(diagnosis.name, 1, POSITION(' -' in diagnosis.name)),diagnosis.name) as disease ,referred_yn1.name as referred_yn ,
   p1.age,gender1.name as gender,cast(DATEPART(YEAR,p1.createddate) as varchar) as created_year , cast(DATEPART(YEAR,current_date) as varchar) as current_year ,
 (current_year - created_year)+ age as current_age, 1 as count ,
 case when current_age>= 0 and current_age<=5 then '0-5y'    
@@ -36,6 +39,8 @@ on p.patient = p1._id
   on p.diagnosis2 = diagnosis.id
  left join ds_mysql_prod_tagelement gender1
   on p1.gender = gender1.id 
+ left join ds_mysql_prod_tagelement referred_yn1
+  on p.referred_yn = referred_yn1.id
  )
  select * from table1
  union
