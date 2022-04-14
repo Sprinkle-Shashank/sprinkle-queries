@@ -1,8 +1,9 @@
-select p1._id as id, p2.name as projectid, t1.name as partner, t2.name as theme,
+select p1._id as id, p2.name as projectid, t1.name as partner, t2.name as theme, 1 as count,
+(p1.start_date || '|' || p1.end_date) as fy_timerange
 
 case
-	when p1.end_date <= getdate() then 'Completed'
-	when p1.end_date > getdate() then 'Ongoing'
+	when cast(p1.end_date as date) <= current_date then 'Completed'
+	when cast(p1.end_date as date) > current_date then 'Ongoing'
 	else '-'
 end as status
 
@@ -13,4 +14,4 @@ left join ds_mysql_prod_project p2 on p2.id = p1.projectid
 left join ds_mysql_prod_tagelement t1 on t1.id = p1.partner
 left join ds_mysql_prod_tagelement t2 on t2.id = p1.theme
 
-group by p1._id, t1.name, t2.name, p2.name, p1.end_date
+group by p1._id, t1.name, t2.name, p2.name, p1.end_date, p1.start_date
