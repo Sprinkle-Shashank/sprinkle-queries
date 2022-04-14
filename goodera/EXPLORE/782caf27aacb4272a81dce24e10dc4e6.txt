@@ -13,7 +13,8 @@ test0 as(Select p.* ,(gbv_goals)from  profile_76755 p
 
 
 test11 as 
-( select p.projectid , p._id , indepth_workers, indepth_managers , fac.name as factory , ven.name as vendor , cou.name as country , p1.year_timerange , cast(substring(cast(year_timerange.start as varchar),1,4) as int) as yearint , cast(substring(cast(year_timerange.start as varchar),6,2) as int) as monthint , case when monthint=1 then (yearint-1) else yearint end as year
+( select p.projectid , p._id , indepth_workers, indepth_managers , fac.name as factory ,case when nvl2(SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), ven.name)='' then ven.name else nvl2(SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), ven.name) end as vendor
+ , cou.name as country , p1.year_timerange , cast(substring(cast(year_timerange.start as varchar),1,4) as int) as yearint , cast(substring(cast(year_timerange.start as varchar),6,2) as int) as monthint , case when monthint=1 then (yearint-1) else yearint end as year
  , p2.Active_Filter
  from profile_76894 as p
  	   
@@ -32,6 +33,6 @@ p._id = p1.gbv_goals
 left join table3 p2 on 
 fac.name = p2.goodera_facility_name_text
 
-where indepth_workers=0 )
+where indepth_workers=0 and p.projectid ilike '%%' and country <> 'Test Country' and p2.Active_Filter is not null )
 
 Select * from test11
