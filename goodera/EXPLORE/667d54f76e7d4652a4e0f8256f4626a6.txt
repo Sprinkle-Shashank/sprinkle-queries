@@ -1,4 +1,4 @@
-with test2 as(select p.projectId,concat(extract(year from date_of_formation),concat('-',RIGHT(extract(year from date_of_formation)+1,2)))  as year_new,DATEPART(Month,p.date_of_formation) as month1,case when month1 = 1 then 'January' 
+with test2 as(select p.projectId,date_of_formation,case when extract(month from date_of_formation)=1 then extract(year from date_of_formation)-1 else extract(year from date_of_formation) end as year1,concat(year1,concat( ' - ' ,  RIGHT(year1+1,2))) as year_new,DATEPART(Month,p.date_of_formation) as month1,case when month1 = 1 then 'January' 
      when month1 = 2 then 'February'
 	 when month1 = 3 then 'March'
 	 when month1 = 4 then 'April'
@@ -32,11 +32,11 @@ on p.lg_status = stat.id
 left join profile_30450 p2
 on p.block = p2._id
 
-where (date_of_formation is not null) and  (stat.name = 'Active' or  stat.name is null)
+where (date_of_formation is not null) and  (stat.name = 'Active' or  stat.name is null) 
 			  
 group by p.projectId,month,quarter,quarter_new,p.date_of_formation,year_new,final_year,loc_parent.name,loc_child.name,p2.name,stat.name),
 
- test3 as(select p.projectId,concat(extract(year from date_of_completion),concat('-',RIGHT(extract(year from date_of_completion)+1,2)))  as year_new,DATEPART(Month,p.date_of_completion) as month1,case when month1 = 1 then 'January' 
+ test3 as(select p.projectId,date_of_formation,case when extract(month from date_of_formation)=1 then extract(year from date_of_formation)-1 else extract(year from date_of_formation) end as year1,concat(year1,concat( ' - ' ,  RIGHT(year1+1,2))) as year_new,DATEPART(Month,p.date_of_completion) as month1,case when month1 = 1 then 'January' 
      when month1 = 2 then 'February'
 	 when month1 = 3 then 'March'
 	 when month1 = 4 then 'April'
@@ -73,7 +73,7 @@ on p.block = p2._id
 
 where (date_of_completion is not null) and  (stat.name = 'Active' or  stat.name is null)
 			  
-group by p.projectId,month,quarter,quarter_new,p.date_of_completion,year_new,final_year,loc_parent.name,loc_child.name,p2.name,stat.name),
+group by p.projectId,month,quarter,quarter_new,p.date_of_completion,year_new,final_year,loc_parent.name,loc_child.name,p2.name,stat.name,p.date_of_formation),
 test4 as(
 select projectId,quarter,quarter_new,year_new,final_year,state,district,block,total1,Learning_group from test2
 union all
