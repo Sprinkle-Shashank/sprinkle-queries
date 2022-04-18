@@ -1,6 +1,10 @@
 with table1 as
 (
-  select diagnosis.name,p1.age,cast(DATEPART(YEAR,p1.createddate) as varchar) as created_year , cast(DATEPART(YEAR,current_date) as varchar) as current_year ,
+select fac.name as van,                   --van
+cast(substring(d1.req_date,1,10) as date) as date_update_1 , cast(substring(d1.date_n,1,10) as date) as date_update_2 ,
+case when d1.date_yn = 28005 then date_update_2 else date_update_1 end as date1,    --date
+diagnosis.name,p1.age,cast(DATEPART(YEAR,p1.createddate) as varchar) as created_year ,
+cast(DATEPART(YEAR,current_date) as varchar) as current_year ,
 (current_year - created_year)+ age as current_age, 1 as count ,
 case when current_age>= 0 and current_age<=5 then '0-5'    
 	 when current_age>= 6 and current_age<=18 then '6-18'
@@ -10,6 +14,11 @@ case when current_age>= 0 and current_age<=5 then '0-5'
 from profile_58474 p
 left join profile_58473 p1
 on p.patient = p1._id
+  left join profile_58511 d1
+on p.sel_camp = d1._id
+  
+left join ds_mysql_prod_project fac
+on p.projectid = fac.id
 left join ds_mysql_prod_tagelement diagnosis
 on p.diagnosis1 = diagnosis.id
  ),
@@ -17,19 +26,27 @@ on p.diagnosis1 = diagnosis.id
  
  table2 as
 (
-  select diagnosis.name, p1.age,cast(DATEPART(YEAR,p1.createddate) as varchar) as created_year , cast(DATEPART(YEAR,current_date) as varchar) as current_year ,
+  select fac.name as van,                   --van
+  cast(substring(d1.req_date,1,10) as date) as date_update_1 , cast(substring(d1.date_n,1,10) as date) as date_update_2 ,
+  case when d1.date_yn = 28005 then date_update_2 else date_update_1 end as date1,    --date
+  diagnosis.name, p1.age,cast(DATEPART(YEAR,p1.createddate) as varchar) as created_year , 
+  cast(DATEPART(YEAR,current_date) as varchar) as current_year ,
 (current_year - created_year)+ age as current_age, 1 as count ,
 case when current_age>= 0 and current_age<=5 then '0-5y'    
 	 when current_age>= 6 and current_age<=18 then '6-18y'
      when current_age>=19 and current_age<=40 then '19-40y'
      when current_age>=41 and current_age<=60 then '41-60y'
-     when current_age > 60  then '60+y' else null end as category	   
+     when current_age > 60  then '60+' else null end as category	   
 from profile_58474 p
 left join profile_58473 p1
 on p.patient = p1._id
+  left join profile_58511 d1
+on p.sel_camp = d1._id
   
- left join ds_mysql_prod_tagelement diagnosis
-  on p.diagnosis2 = diagnosis.id
+left join ds_mysql_prod_tagelement diagnosis
+on p.diagnosis2 = diagnosis.id
+left join ds_mysql_prod_project fac
+on p.projectid = fac.id
   
  ),
  table3 as
@@ -46,7 +63,7 @@ on p.patient = p1._id
    count( case when category = '0-5y' then 1 end) as "0-5 yrs"  ,
    count( case when category = '6-18y' then 1 end) as "6-18 yrs" ,
    count( case when category = '19-40y' then 1 end) as "19-40 yrs" ,
-   count( case when category = '40-60y' then 1 end) as "40-60 yrs" ,
-   count( case when category = '61+' then 1 end) as "Above 60 yrs", count(category) as "total patients"
+   count( case when category = '41-60y' then 1 end) as "41-60 yrs" ,
+   count( case when category = '60+' then 1 end) as "Above 60 yrs", count(category) as "total patients"
    from table4
    group by disease
