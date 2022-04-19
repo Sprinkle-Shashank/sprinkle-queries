@@ -1,43 +1,32 @@
-with table1 as (select
-				case when pre_post_yn = 57472 then 1 else 0 end as yn,
-				substring(projcode_factory,1,1) as code,
-				reverse(SPLIT_PART(reverse(table_54646.projcode_factory), '-',1)) as code_brand,
-				JSON_SERIALIZE(table_52810.pace_brands) as pace_brand,	
-				case when pace_brand like '%1151834%' then 1 else 0 end  as brand,
-				module_name as select_modules,
-				table_4227.start_date as start_date,
-				case when table_52810.offset_date is null then '2020-02-01T00:00:00.000Z' else table_52810.offset_date end as offset_date,
-				p.projectid as projectid1,
-				score,
-				score2
+with lookup as (select 
+				task.approvallog, 
+				p.subcat_output, 
+				task.status, 
+				split_part(split_part(prod.name,'|',1),'.',1) as ProjectCode,
+				f.name as fy_timerange,
+				m.name as Month,
+				concat(ProjectCode,fy_timerange) as CODE, 
+				split_part(prod.name,'|',3) as census, 
+				p._id, 
+				p.flag_deviation_delay,
+				case when p.subcat_output is not NULL and p.flag_deviation_delay='1' then 1 else null end  as devreported, 
+				--case when task.status='PENDING_APPROVAL' then null else 1 end as datacheck, 
 				
-			from profile_4228 p
+				case when task.status like '%SUB%' and task.approvallog is null or task.status='PENDING_APPROVAL' then null else 1 end as datacheck,
 				
-inner join profile_54646 table_54646 on
-table_54646.projectId = p.projectId
+				case when p.subcat_output is NULL or p.subcat_output = 0 or dataCheck=0 then null else 1 end  as manager1, 
+				case when dataCheck=1 and p.subcat_output = 0 then 1 else manager1 end  as manager2, 
+				case when p.subcat_output is not NULL or datacheck is null or task.status like '%SUB%' then 1 else null end as tasksReported, 
+				case when task.status like '%SUB%' then 1 else null end  as firstLevelApproval, 
+				cast(task.approvallog."approvalStatus" as super) as status1 from profile_54963 p
+left join taskresp_54963 task on
+task.profileinstanceid=p._id
+left join ds_mysql_prod_project prod on
+prod.id=p.projectid
+left join ds_mysql_prod_tagelement f on
+p.fy=f.id
+left join ds_mysql_prod_tagelement m on
+p.month=m.id)
 
-inner join profile_52810 table_52810 on
-table_52810.projectId = p.projectId	
-
-inner join profile_4227 table_4227 on
-table_4227._id = p.class
-),
-table2 as (select 
-		   yn,brand,case when start_date >= offset_date then 1 else 0 end as token,select_modules,
-		   avg(score) as pre_score,
-		   avg(score2) as post_score,
-		   moduleTable.name as module,
-		   case when module is null then 0 else 1 end as st,start_date,projectid1,code
-		   
-			
-		   from table1 p
-
-left join ds_mysql_prod_tagelement moduleTable on
-moduleTable.Id = select_modules
-
-group by yn,brand,token,select_modules,module,st,moduleTable.sortOrder ,start_date,projectid1,p.code
-order by moduleTable.sortOrder 
-)
-
-
-select pre_score, post_score, select_modules, module, start_date, projectid1 as projectid, code from table2 p where yn = 1 and brand = 1 and token = 1 and st =1 and select_modules in (    '64504','70914','70905','70906','70916','70946','70915','70917','70933','70949','70947','70899','459391','459394','459395','64506','70928','70920','70898','70908','70907','70942','70936','70904','70918','70924','70923','459392','459393','459397','64507','70937','70944','70930','70931','70950','70929','70921','70932','70934','70948','70938','459396','459398','459399','64509','70925','70927','70943','70939','70940','64508','70317','70919','70922','70926','70935','70945') 
+--select count(p.devreported) as no_of_deviations, count(p.tasksReported) as no_of_activities_reported, count(p._id) as total_no_of_activities, count(p.firstLevelApproval) as approved_1st_manager, count(p.manager2) as approved_2nd_manager from lookup p where ((p.projectcode='P0288')) and ((p.fy_timerange='2021-2022'))
+select distinct (p._id), p.fy_timerange, p.Month, p.devreported, p.datacheck, p.manager2, p.status1, p.tasksReported, p.firstLevelApproval, p.status, p.subcat_output, p.approvallog, p.ProjectCode,p.flag_deviation_delay from lookup p where ((p.projectcode='P0012')) and ((p.fy_timerange='2020-2021')) --and (p._id = '5f552b13dad2057405dc650f')
