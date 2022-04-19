@@ -9,9 +9,11 @@ a1/nullif(b1,0) AS f1,
 p.female_managers*100 AS c, (p.female_managers+p.male_managers) AS d,
 CAST (c AS FLOAT) as c1,
 CAST (d as FLOAT) as d1,
-Case when p.country IN ('Cambodia','Vietnam')
+Case when p.country IN ('Cambodia')
 THEN 
-c1/nullif(d1,0) 
+c1/nullif(d1,0)
+else
+(p.female_managers+p.female_supervisors)/(p.female_managers+p.female_supervisors+p.male_managers+p.male_supervisors)*100.0
 
 END as f2,
 p.female_reps_worker*100 AS e, (p.female_reps_worker + p.male_reps_workers) AS g,
@@ -22,9 +24,12 @@ e1/nullif(g1,0) AS f3,
 (p.female_workers+p.female_supervisors)*100 AS h, (p.female_workers + p.female_supervisors+p.male_workers+p.male_supervisors) AS i,
 CAST (h AS FLOAT) as h1,
 CAST (i as FLOAT) as i1,
-Case when p.country IN ('Cambodia','Vietnam')
+Case when p.country IN ('Cambodia')
 THEN
 h1/nullif(i1,0)
+else
+(p.female_workers)/
+(p.female_workers+p.male_workers)*100.0
 
 end as f4,
 count(p.projectId) as count,
@@ -45,5 +50,5 @@ left join ds_mysql_prod_project ven
 on fac.parent = ven.id
 
 
-WHERE p.strategic_yn ='Yes' and project ilike '%%'
+WHERE p.strategic_yn ='Yes' and project like '%%'
 Group by  p._id,project,fac.name,factory,p.director_region,p.facility_type, p.strategic_yn, p.year_timerange,p.country,ven.name,f1, f3, f4, result, vendor, f2,p.female_workers, p.male_workers,p.female_managers, p.male_managers, p.female_reps_worker, p.male_reps_workers, p.female_reps_management, p.male_reps_management, p.female_supervisors, p.male_supervisors
