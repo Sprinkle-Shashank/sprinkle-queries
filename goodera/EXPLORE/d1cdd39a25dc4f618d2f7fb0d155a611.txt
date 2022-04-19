@@ -3,7 +3,9 @@ with table1 as
 select fac.name as van, d2.name as partner,                  --van
 cast(substring(d1.req_date,1,10) as date) as date_update_1 , cast(substring(d1.date_n,1,10) as date) as date_update_2 ,
 case when d1.date_yn = 28005 then date_update_2 else date_update_1 end as date,    --date
-diagnosis.name,p1.age,cast(DATEPART(YEAR,p1.createddate) as varchar) as created_year ,
+  case when referred_yn = 28005 then diagnosis1.name 
+       when referred_yn = 42693 then diagnosis2.name end as name
+,p1.age,cast(DATEPART(YEAR,p1.createddate) as varchar) as created_year ,
 cast(DATEPART(YEAR,current_date) as varchar) as current_year ,
 (current_year - created_year)+ age as current_age, 1 as count ,
 case when current_age>= 0 and current_age<=5 then '0-5'    
@@ -21,14 +23,16 @@ on d1.imple_partner = d2._id
   
 left join ds_mysql_prod_project fac
 on p.projectid = fac.id
-left join ds_mysql_prod_tagelement diagnosis
-on p.diagnosis1 = diagnosis.id
+left join ds_mysql_prod_tagelement diagnosis1
+on p.diagnosis1 = diagnosis1.id
+ left join ds_mysql_prod_tagelement diagnosis2
+on p.diagnosis2 = diagnosis2.id
   
-  group by fac.name,d2.name,d1.req_date,d1.date_n,d1.date_yn,diagnosis.name,p1.createddate,p1.age
+  group by fac.name,d2.name,d1.req_date,d1.date_n,d1.date_yn,diagnosis1.name,diagnosi2.name,p1.createddate,p1.age
  ),
  
  
- table2 as
+/* table2 as
 (
   select fac.name as van,d2.name as partner,                   --van
   cast(substring(d1.req_date,1,10) as date) as date_update_1 , cast(substring(d1.date_n,1,10) as date) as date_update_2 ,
@@ -62,7 +66,7 @@ on p.projectid = fac.id
  select * from table1
  union
  select * from table2
-   ),
+   ),*/
    table4 as(
    select t.category,t.date,t.van ,t.partner,
    nvl2(SUBSTRING(t.name, 1, POSITION(' -' in t.name)), SUBSTRING(t.name, 1, POSITION(' -' in t.name)),t.name) as diagnosis, case when diagnosis='' then t.name else diagnosis end as disease from table3 t
