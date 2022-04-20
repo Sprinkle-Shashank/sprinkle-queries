@@ -1,1 +1,61 @@
-select * from profile_71993
+with lookup as (select 
+				task.approvallog,
+				JSON_SERIALIZE(task.approvallog) as applog,
+				p.subcat_output, 
+				task.status, 
+				split_part(split_part(prod.name,'|',1),'.',1) as ProjectCode,
+				f.name as fy_timerange,
+				m.name as Month,
+				concat(ProjectCode,fy_timerange) as CODE, 
+				split_part(prod.name,'|',3) as census, 
+				p._id, 
+				p.flag_deviation_delay,
+				case when p.subcat_output is not NULL and p.flag_deviation_delay='1' then 1 else null end  as devreported, 
+				--case when task.status='PENDING_APPROVAL' then null else 1 end as datacheck, 
+				
+				case when task.status like '%SUB%' and task.approvallog is null or task.status='PENDING_APPROVAL' then null else 1 end as datacheck,
+				
+				case when p.subcat_output is NULL or p.subcat_output = 0 or dataCheck=0 then null else 1 end  as manager1, 
+				case when dataCheck=1 and p.subcat_output = 0 then 1 else manager1 end  as manager2, 
+				case when p.subcat_output is not NULL or datacheck is null or task.status like '%SUB%' then 1 else null end as tasksReported, 
+				case when task.status like '%SUB%' OR applog like '%APPROVED%'  then 1 else null end  as firstLevelApproval, 
+				cast(task.approvallog as super) as status1 from profile_54963 p
+left join taskresp_54963 task on
+task.profileinstanceid=p._id
+left join ds_mysql_prod_project prod on
+prod.id=p.projectid
+left join ds_mysql_prod_tagelement f on
+p.fy=f.id
+left join ds_mysql_prod_tagelement m on
+p.month=m.id)
+
+
+, lookup2 as (select max(p.fy_timerange) as fy_timerange1, p._id,
+			  max(p.Month) as Month, (p.devreported) as devreported, max(p.datacheck) as datacheck, max(p.manager2) as manager2,
+			  listagg(distinct cast(p.status1 as varchar(65535)),',') as status1, 
+			  (p.tasksReported) as tasksReported, max(p.firstLevelApproval) as firstLevelApproval, listagg(distinct p.status,',') as status, p.subcat_output as subcat_output, --listagg(distinct cast(p.applog as varchar(65535))) as approvalLog1, 
+			  LISTAGG(p.applog) as approvallog
+			  ,(p.flag_deviation_delay) as flag_deviation_delay, p.projectcode as projectcode1,
+			  data27396.project_manager as a,
+			  data27396._id as recordId,
+			  data27396.fy as fy27396
+
+
+		from lookup p
+			  
+left join profile_27396 data27396 on
+data27396.name = p.ProjectCode
+			  
+group by p._id, p.projectcode, p.fy_timerange,subcat_output,devreported,flag_deviation_delay,tasksReported,recordId,fy27396,data27396.project_manager
+
+
+
+)
+
+
+select  count(_id) as total_no_of_activities,count(tasksReported) as no_of_activities_reported, count(firstLevelApproval) as approved_1st_manager, count(manager2) as approved_2nd_manager,count(devreported) as no_of_deviations,a from lookup2 p where ((projectcode1='P0099')) and ((fy_timerange1='2020-2021'))
+
+--select distinct (_id), fy_timerange1, Month, devreported, datacheck, manager2,  tasksReported, firstLevelApproval, status, subcat_output,status1, approvallog, ProjectCode1,flag_deviation_delay from lookup2 p where ((projectcode1='P0433')) and ((fy_timerange1='2022-2023')) --and (p._id = '5f552b13dad2057405dc650f')
+
+
+--select * from lookup2 p where ((projectcode1='P0117')) and ((fy_timerange1='2021-2022'))
