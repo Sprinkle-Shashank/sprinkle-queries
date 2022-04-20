@@ -14,7 +14,7 @@ select p.projectid, p.facility_status , facility.name as facility_status_update 
   
 left join ds_mysql_prod_tagelement facility 
 on p.facility_status = facility.id
-)
+),
 
 table31 as 
 (
@@ -43,6 +43,22 @@ where p.projectId NOT IN ('54835','54832','31299','31303') and trainer_organizat
   ),
   
   table4 as 
-  ( select * from profile_76755 as p )
+  ( select case when nvl2(SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), ven.name)='' then ven.name else nvl2(SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), ven.name) end as vendor , cou.name as country , t21.Active_Filter , SUBSTRING(to_char(p2.date_1, 'DD/MM-YYYY'), POSITION('-' in to_char(p2.date_1, 'DD/MM-YYYY'))+1,4 ) as year ,  p2.trainer_org as trainer_organization , t21.active_filter ,  p.* from profile_76755 as p 
+  
+left join ds_mysql_prod_project fac
+on p.projectid = fac.id
+
+left join ds_mysql_prod_project ven
+on fac.parent = ven.id
+
+left join ds_mysql_prod_project cou
+on ven.parent = cou.id
+
+left join table21 t21 on 
+fac.name = t21.goodera_facility_name_text
+   
+left join profile_64075 p2
+on p.projectId = p2.projectId 
+  )
   
   select * from table4
