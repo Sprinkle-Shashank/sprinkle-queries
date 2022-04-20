@@ -1,7 +1,15 @@
-select ven.name as vendor, profile_52810.projectId, profile_52810.programs_run, cou.name as country, profile_52810.vendor_ngo, profile_52810.vendor_ngo_id, so.name as sourcing,
+with table2 as 
+(
+select p.projectid, p.facility_status , facility.name as facility_status_update , case when facility_status_update='Active' then 'Active' else 'Deactive' end as Active_Filter , goodera_facility_name_text from profile_68161 as p
+  
+left join ds_mysql_prod_tagelement facility 
+on p.facility_status = facility.id
+)
+
+  select ven.name as vendor, profile_52810.projectId, profile_52810.programs_run, cou.name as country, profile_52810.vendor_ngo, profile_52810.vendor_ngo_id, so.name as sourcing,
 profile_61498.name, profile_61498.single_multi, profile_61498.trainer_2, profile_61498.trainer_name_2,torg.name as trainer_organization , profile_61498.date, profile_61498.training_shadowed, profile_61498.training_yn,
 SUBSTRING(to_char(profile_64075.date_1, 'DD/MM-YYYY'), POSITION('-' in to_char(profile_64075.date_1, 'DD/MM-YYYY'))+1,4 ) as year,
-num_female, num_male, prospect_female,  total_supervisors, total_other_participants, prospect_total, prospect_male, programs_run
+num_female, num_male, prospect_female,  total_supervisors, total_other_participants, prospect_total, prospect_male, programs_run , Active_Filter
 from profile_64075
 
 left join profile_52810
@@ -12,8 +20,10 @@ on profile_64075.training_id = profile_61498._id
 
 left join ds_mysql_prod_project fac
 on profile_52810.projectid = fac.id
+
 left join ds_mysql_prod_project ven
 on fac.parent = ven.id
+
 left join ds_mysql_prod_project cou
 on ven.parent = cou.id
 
@@ -23,6 +33,8 @@ on profile_52810.sourcing = so.id
 left join ds_mysql_prod_tagelement torg
 on profile_61498.trainer_organization = torg.id
 
+left join table2 t2 on 
+fac.name = t2.goodera_facility_name_text
 
 where profile_52810.projectId not in (54835,54832,31299, 31303)
 
