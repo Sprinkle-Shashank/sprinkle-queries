@@ -1,12 +1,17 @@
-with table1 as (select projectid,diagnosis1,sel_camp from profile_58474
-group by  projectid,diagnosis1,sel_camp),
+with table1 as (select projectid,diagnosis1,sel_camp,patient from profile_58474
+group by  projectid,diagnosis1,sel_camp,patient),
 
-table2 as (select projectid,diagnosis2,sel_camp from profile_58474
-group by  projectid,diagnosis2,sel_camp),
+table2 as (select projectid,diagnosis2,sel_camp,patient from profile_58474
+group by  projectid,diagnosis2,sel_camp,patient),
 
 table3 as ( select * from table1 union select * from table2)
 
-select nvl2(SUBSTRING(diagnosis.name, 1, POSITION(' -' in diagnosis.name)), SUBSTRING(diagnosis.name, 1, POSITION(' -' in diagnosis.name)),diagnosis.name) as disease  from table3 t
+select nvl2(SUBSTRING(diagnosis.name, 1, POSITION(' -' in diagnosis.name)), SUBSTRING(diagnosis.name, 1, POSITION(' -' in diagnosis.name)),diagnosis.name) as disease ,   -- diease
+cast(DATEPART(YEAR,p1.createddate) as varchar) as created_year ,cast(DATEPART(YEAR,current_date) as varchar) as current_year --year
+
+from table3 t
 
 left join ds_mysql_prod_tagelement diagnosis
 on t.diagnosis1 = diagnosis.id
+left join profile_58473 p1
+on t.patient = p1._id
