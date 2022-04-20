@@ -1,8 +1,9 @@
 with table1 as
-( select * from profile_64075 as p),
+(
+select p._id , p.projectid , training_id , profile_61498.name as trainingID from profile_64075 as p
 
-table2 as 
-( select * from profile_68161 as p),
+left join profile_61498
+on p.training_id = profile_61498._id),
 
 table3 as 
 ( select * from profile_52810 as p),
@@ -16,7 +17,7 @@ on p.facility_status = facility.id
 )
 
 
-select p.projectid ,case when nvl2(SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), ven.name)='' then ven.name else nvl2(SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), ven.name) end as vendor , cou.name as country , t21.Active_Filter , SUBSTRING(to_char(p2.date_1, 'DD/MM-YYYY'), POSITION('-' in to_char(p2.date_1, 'DD/MM-YYYY'))+1,4 ) as year ,  p2.trainer_org as trainer_organization from table3 as p
+select p.projectid ,case when nvl2(SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), ven.name)='' then ven.name else nvl2(SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), ven.name) end as vendor , cou.name as country , t21.Active_Filter , SUBSTRING(to_char(p2.date_1, 'DD/MM-YYYY'), POSITION('-' in to_char(p2.date_1, 'DD/MM-YYYY'))+1,4 ) as year ,  p2.trainer_org as trainer_organization , t1.trainingID from table3 as p
 
 
 left join ds_mysql_prod_project fac
@@ -34,4 +35,7 @@ fac.name = t21.goodera_facility_name_text
 left join profile_64075 p2
 on p.projectId = p2.projectId 
 
-where  trainer_organization is not null and t21.active_filter is not null and year is not null and country != "Test Country"
+left join table1 t1 on
+p.projectid = t1.projectid
+
+where  p.projectId NOT IN ('54835','54832','31299','31303') and trainer_organization is not null and t21.active_filter is not null and year is not null 
