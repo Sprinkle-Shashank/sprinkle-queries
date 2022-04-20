@@ -20,7 +20,7 @@ with lookup as (select
 				case when p.subcat_output is not NULL or datacheck is null or task.status like '%SUB%' then 1 else null end as tasksReported, 
 				case when task.status like '%SUB%' OR applog like '%APPROVED%'  then 1 else null end  as firstLevelApproval, 
 				cast(task.approvallog as super) as status1 from profile_54963 p
-left join taskresp_54963 task on
+left join ds_mongo_prod_taskresponse task on
 task.profileinstanceid=p._id
 left join ds_mysql_prod_project prod on
 prod.id=p.projectid
@@ -37,10 +37,13 @@ p.month=m.id)
 			  LISTAGG(p.applog) as approvallog
 			  ,(p.flag_deviation_delay) as flag_deviation_delay, p.projectcode as projectcode1,
 			  data27396.project_manager as project_manager27396,
-			  data27396._id as recordId,
-			  data27396.fy as fy27396,
+			  MAX(data27396._id) as recordId,
+			  MAX(data27396.fy) as fy27396,
 			  data27420.project_manager as project_manager27420,
-			  data27420.fy as fy27420
+			  MAX(data27420.fy) as fy27420,
+			  Case when fy27420 is null or fy_timerange1 < fy27420 then fy27396 else fy27420 end as _fy27420,
+			  case when project_manager27420 is null then project_manager27396 else project_manager27420 end as _project_manager27420,
+			  case when _fy27420 <= fy_timerange1 or fy27396 <= fy_timerange1 then 1 else 0 end as flag
 
 
 		from lookup p
@@ -51,14 +54,16 @@ data27396.name = p.ProjectCode
 left join profile_27420 data27420 on
 data27420.project_code = data27396._id
 			  
-group by p._id, p.projectcode, p.fy_timerange,subcat_output,devreported,flag_deviation_delay,tasksReported,recordId,fy27396,data27396.project_manager,project_manager27420,fy27420
+group by p._id, p.projectcode, p.fy_timerange,subcat_output,devreported,flag_deviation_delay,tasksReported,data27396.project_manager,project_manager27420
 
 
 
 )
 
 
-select  max(projectcode1) as projectcode, max(fy_timerange1) as fy_timerange, max(Month) as Month, count(_id) as total_no_of_activities,count(tasksReported) as no_of_activities_reported, count(firstLevelApproval) as approved_1st_manager, count(manager2) as approved_2nd_manager,count(devreported) as no_of_deviations,max(project_manager27396) as project_manager27396, max(project_manager27420) as project_manager27420 from lookup2 p where ((projectcode1='P0118')) and ((fy_timerange1='2021-2022'))
+select  max(projectcode1) as projectcode, max(fy_timerange1) as fy_timerange, max(Month) as Month, count(_id) as total_no_of_activities,count(tasksReported) as no_of_activities_reported, count(firstLevelApproval) as approved_1st_manager, count(manager2) as approved_2nd_manager,count(devreported) as no_of_deviations
+,max(project_manager27396) as project_manager27396, max(_project_manager27420) as project_manager27420
+from lookup2 p where flag = 1 and ((projectcode1='P0118')) and ((fy_timerange1='2021-2022'))
 
 --select distinct (_id), fy_timerange1, Month, devreported, datacheck, manager2,  tasksReported, firstLevelApproval, status, subcat_output,status1, approvallog, ProjectCode1,flag_deviation_delay from lookup2 p where ((projectcode1='P0433')) and ((fy_timerange1='2022-2023')) --and (p._id = '5f552b13dad2057405dc650f')
 
