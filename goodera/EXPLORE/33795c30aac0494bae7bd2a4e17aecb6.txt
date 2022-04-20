@@ -1,5 +1,6 @@
 with lookup as (select 
 				task.approvallog,
+				JSON_SERIALIZE(task1.approvallog) as applog1,
 				JSON_SERIALIZE(task.approvallog) as applog,
 				p.subcat_output, 
 				task.status, 
@@ -25,12 +26,16 @@ case when  task.status like '%SUB%' OR applog like '%PENDING%' then 1 else null 
 				
 				--case when task.status like '%SUB%' and applog like '%APPROVED%' or task.status like '%PENDING%' and applog like '%APPROVED%'  then 1 else null end  as tasksReported, 
 				
-				case when task.status='PENDING_APPROVAL' and applog like '%APPROVED%' then 1 else null end  as firstLevelApproval,
+				case when task1.status='PENDING_APPROVAL' and applog1 like '%APPROVED%' then 1 else null end  as firstLevelApproval,
 				
 				
 				cast(task.approvallog as super) as status1 from profile_54963 p
 left join ds_mongo_taskresponse task on
 task.profileinstanceid=p._id
+				
+left join ds_mongo_prod_taskresponse task1 on
+task1.profileinstanceid=p._id
+				
 left join ds_mysql_prod_project prod on
 prod.id=p.projectid
 left join ds_mysql_prod_tagelement f on
@@ -43,7 +48,7 @@ p.month=m.id)
 			  max(p.Month) as Month, (p.devreported) as devreported, max(p.datacheck) as datacheck, max(p.manager2) as manager2,
 			  listagg(distinct cast(p.status1 as varchar(65535)),',') as status1, 
 			  max(p.tasksReported) as tasksReported, max(p.firstLevelApproval) as firstLevelApproval, listagg(distinct p.status,',') as status, p.subcat_output as subcat_output, --listagg(distinct cast(p.applog as varchar(65535))) as approvalLog1, 
-			  LISTAGG(p.applog) as approvallog
+			  LISTAGG(p.applog) as approvallog, listagg(p.applog1) as approvallog1
 			  ,(p.flag_deviation_delay) as flag_deviation_delay, p.projectcode as projectcode1,
 			  data27396.project_manager as project_manager27396,
 			  MAX(data27396._id) as recordId,
@@ -93,4 +98,4 @@ group by fy_timerange1, _id1,Month,devreported, datacheck,manager2,tasksReported
 --((fy_timerange1='2022-2023')) --and (_id1 = '61d74b2676add8cd020c1040')
 
 
-select * from lookup3 p where (fy_timerange1='2022-2023') 
+select * from lookup4 p where (fy_timerange1='2022-2023') 
