@@ -57,13 +57,22 @@ on mm.lookup_tradelane_carrier=s2.tradelane_carrier_lookup
 where s2.km is not null
 )
 , s4 as (
-Select projectId, carrier,client,(EXTRACT(YEAR FROM(CAST(s3.fy_timerange.start AS datetime)))) as year, shipment_id,  origin_port,dest_port,units, shipment_type,start_country,dest_country, tradelane , km,  sum(CO2_eff) as emission,monthh as month
+Select projectId, carrier,client,(EXTRACT(YEAR FROM(CAST(s3.fy_timerange.start AS datetime)))) as year, shipment_id,  origin_port,dest_port,units, shipment_type,start_country,dest_country, tradelane , km,  sum(CO2_eff) as emission,monthh as month,month as month1
 from s3
 group by projectId, carrier,fy_timerange, shipment_id,  origin_port,dest_port,units, shipment_type,start_country,dest_country, tradelane , km,monthh,client
 order by emission desc
 ),
 s5 as (
-Select projectId, carrier,client, year, shipment_id,  origin_port,dest_port,units, shipment_type,start_country,dest_country, tradelane , km,  emission,
+Select projectId, carrier,client, 
+   case 
+         when (year=2018 and month1>3) or (year=2019 and month1<4) then 'FY 2018-19' 
+        when (year=2019 and month1>3) or (year=2020 and month1<4) then 'FY 2019-20' 
+	 when (year=2020 and month1>3) or (year=2021 and month1<4) then 'FY 2020-21' 
+        when (year=2021 and month1>3) or (year=2022 and month1<4) then 'FY 2021-22' 
+	 when (year=2022 and month1>3) or (year=2023 and month1<4) then 'FY 2022-23'
+	 when (year=2023 and month1>3) or (year=2024 and month1<4) then 'FY 2023-24'
+	 end as year
+  , shipment_id,  origin_port,dest_port,units, shipment_type,start_country,dest_country, tradelane , km,  emission,
 case 
   when s4.month='December' then 'February'
   when s4.month='January' then 'March'
