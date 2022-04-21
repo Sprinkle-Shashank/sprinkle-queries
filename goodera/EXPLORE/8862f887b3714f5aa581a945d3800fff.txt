@@ -1,103 +1,94 @@
-with table1 as ( select
-			JSON_SERIALIZE(table_52810.pace_brands) as pace_brand,	
-			case when pace_brand like '%1151834%' then 1 else 0 end  as brand,
-				p.lg_status as lg_status,
-  			case when lg_status=848008 then 0 else 1 end as status,
-			case when table_54646.projectId is null then 0 else 1 end as status1,
-			substring(table_54646.projcode_factory,1,1) as code,
-			
-			case when table_52810.offset_date is null then '2020-02-01T00:00:00.000Z' else table_52810.offset_date end as offset_date,
-			p.start_date as start_date1,
-			sum(num_females) as total_females,
-			sum(num_females_graduated) as total_females_graduated,
-			sum(num_females_dropout) as total_females_dropout,
-			case when end_date_2 is null  then num_females else 0 end as ongoing,
-			case when end_date_2 is null then 1 else 0 end as batchongoing,
-			
-			case when (end_date_2) is null then 0 else 1 end as batchcomp,
+with lookup as (select 
+				task.approvallog,
+				task.data.subcat_output as suboutput,
+				JSON_SERIALIZE(task.approvallog) as applog,
+				p.subcat_output, 
+				task.status, 
+				split_part(split_part(prod.name,'|',1),'.',1) as ProjectCode,
+				f.name as fy_timerange,
+				m.name as Month,
+				concat(ProjectCode,fy_timerange) as CODE, 
+				split_part(prod.name,'|',3) as census, 
+				p._id, 
+				concat(concat(substring(cast(timestamp 'epoch' + CAST(task.modified AS BIGINT)/1000 * interval '1 second' as varchar), 1, 10),'T'), concat(split_part(cast(timestamp 'epoch' + CAST(task.modified AS BIGINT)/1000 * interval '1 second' as varchar), ' ',2),'.000Z')) as startdate,
+				--cast(task.modified as timestamp),
+				p.flag_deviation_delay,
+				case when p.subcat_output is not NULL and p.flag_deviation_delay='1' then 1 else null end  as devreported, 
+				case when (task.status like '%SUB%' and task.approvallog is null) or task.status='PENDING_APPROVAL' then null else 1 end as datacheck, 
+				case when p.subcat_output is NULL or p.subcat_output = 0 or datacheck is null or datacheck = 0 then null else 1 end  as manager1, 
+			case when dataCheck=1 and p.subcat_output = 0 then 1 else manager1 end  as manager2, 
+				case when (task.status = 'SUBMITTED' or task.status = 'PENDING_APPROVAL' ) and suboutput is not NULL then 1 else null end as tasksReported,  
+				case when ( task.status='PENDING_APPROVAL') and applog like '%APPROVED%' then 1 else null end  as firstLevelApproval,
+				cast(task.approvallog as super) as status1 
 				
-			avg(hours) as average_hours,
-			sum(hours) as total_hours,
-			sum(num_males) as total_males,
-			case when end_date_2 is null then num_males else 0 end as mongoing,	
-			sum(num_males_graduated) as total_males_graduated,
-			sum(num_males_dropout) as total_males_dropout,
-			sum(reason_pregnancy) as dropout_pregnancy,
-			sum(reason_left) as dropout_left,
-			sum(reason_interest) as dropout_interest,
-			sum(reason_pressure) as dropout_pressure,
-			sum(reason_other) as dropout_other,
-			case when end_date_2 is null  then 0 else num_females end as fcomp, p.projectid as projectid1, select_modules
-				
-			from profile_4227 p
-  	
-				
-join profile_54646 table_54646 on
-table_54646.projectId = p.projectId		
+				from profile_54963 p
+left join ds_mongo_taskresponse task on
+task.profileinstanceid=p._id
+left join ds_mysql_prod_project prod on
+prod.id=p.projectid
+left join ds_mysql_prod_tagelement f on
+p.fy=f.id
+left join ds_mysql_prod_tagelement m on
+p.month=m.id
+			   order by datacheck)
 
-inner join profile_52810 table_52810 on
-table_52810.projectId = p.projectId
 
-group by p.lg_status,table_54646.projectId,table_52810.pace_brands,table_54646.projcode_factory,table_52810.offset_date,p.start_date,p.end_date_2,p.num_females,p.num_males,projectid1,select_modules,code
+
+
+, lookup2 as (select max(p.fy_timerange) as fy_timerange1, p._id as _id1,
+			  max(p.Month) as Month, (p.devreported) as devreported, max(p.datacheck) as datacheck, max(p.manager2) as manager2,
+			  listagg(distinct cast(p.status1 as varchar(65535)),',') as status1, 
+			  max(p.tasksReported) as tasksReported, max(p.firstLevelApproval) as firstLevelApproval, listagg(distinct p.status,',') as status, p.subcat_output as subcat_output, --listagg(distinct cast(p.applog as varchar(65535))) as approvalLog1, 
+			  LISTAGG(p.applog) as approvallog
+			  ,(p.flag_deviation_delay) as flag_deviation_delay, p.projectcode as projectcode1,
+			  data27396.project_manager as project_manager27396,
+			  MAX(data27396._id) as recordId,
+			  MAX(data27396.fy) as fy27396,
+			  data27420.project_manager as project_manager27420,
+			  MAX(data27420.fy) as fy27420,
+			  --p.suboutput as suboutput1,
+			  Case when fy27420 is null or fy_timerange1 < fy27420 then fy27396 else fy27420 end as _fy27420,
+			  case when project_manager27420 is null then project_manager27396 else project_manager27420 end as _project_manager27420,
+			  case when _fy27420 <= fy_timerange1 or fy27396 <= fy_timerange1 then 1 else 0 end as flag
+
+		from lookup p
+			  
+left join profile_27396 data27396 on
+data27396.name = p.ProjectCode
+			  
+left join profile_27420 data27420 on
+data27420.project_code = data27396._id
+			  
+group by p._id, p.projectcode, p.fy_timerange,subcat_output,devreported,flag_deviation_delay,data27396.project_manager,project_manager27420--,p.suboutput
+
+order by _fy27420 desc 
+
 ),
-table2 as ( select
-		   status,
-		   brand,start_date1,
-		   sum(total_females_dropout) as total_females_dropout,
-		   status1,
-		   sum(total_females) as total_females,
-		   sum(total_females_graduated) as total_females_graduated,
-		   sum(ongoing) as total_females_ongoing,
-		   sum(batchongoing) as total_batches_ongoing,
-		   avg(average_hours) as average_hours ,
-		   sum(total_hours) as total_hours,
-		   sum(total_males) as total_males,
-		   sum(mongoing) as total_males_ongoing,
-		   sum(total_males_graduated) as total_males_graduated,
-		   sum(total_males_dropout) as total_males_dropout,
-		   sum(dropout_pregnancy) as dropout_pregnancy,
-		   sum(dropout_left) as dropout_left,
-		   sum(dropout_interest) as dropout_interest,
-		   sum(dropout_pressure) as dropout_pressure,
-		   sum(dropout_other) as dropout_other,
-		   sum(fcomp) as total_females_completed,
-		   lg_status,
-		   sum(batchcomp) as total_batches_completed,
+
+lookup3 as ( Select fy_timerange1, _id1,Month,devreported, datacheck,manager2,tasksReported,firstLevelApproval,status,subcat_output,approvallog,flag_deviation_delay,projectcode1,project_manager27396,recordId,fy27396,_project_manager27420,project_manager27420,fy27420,_fy27420,--,suboutput1,
+			case when _fy27420 <= fy_timerange1 then _project_manager27420 else project_manager27396 end as projectManager
+
+		from lookup2 p
 			
-		   case when start_date1 >= offset_date then 1 else 0 end as token,
-		   pace_brand,projectid1,select_modules,code
+group by _id1,Month,devreported, datacheck,manager2,tasksReported,firstLevelApproval,status,subcat_output,approvallog,flag_deviation_delay,projectcode1,project_manager27396,recordId,fy27396,_project_manager27420,project_manager27420,fy27420,_fy27420,fy_timerange1--,suboutput1
+)
+,
 
-		from table1 p
-group by status,brand,status1,token,lg_status
-		   ,p.pace_brand,start_date1,projectid1,select_modules,code
-),
-table3 as(select t2.*,CAST(select_module as int) from table2 t2,t2.select_modules select_module
-),
-
-table3_1 as (select total_females, total_females_graduated, total_females_dropout, total_females_ongoing, total_batches_ongoing, total_batches_completed, average_hours, total_hours, total_males, total_males_ongoing, total_males_graduated, total_males_dropout, dropout_pregnancy, dropout_left, dropout_interest, dropout_pressure, dropout_other, total_females_completed, start_date1, projectid1, select_module, code, status, status1, brand, token, t1.parent as m_parent
-		from table3 p
-left join ds_mysql_prod_tagelement t1 on t1.id = p.select_module
-),
-
-table4 as (Select 
-		total_females, total_females_graduated, total_females_dropout, total_females_ongoing, total_batches_ongoing, total_batches_completed, average_hours, total_hours, total_males, total_males_ongoing, total_males_graduated, total_males_dropout, dropout_pregnancy, dropout_left, dropout_interest, dropout_pressure, dropout_other, total_females_completed, start_date1, projectid1, select_module, code, status, status1, brand, token, m_parent
-		from table3_1 
-
-where m_parent in (    '64504','64506','64507','64509','64508','70317') 
-),
-
-table5 as (Select 		   listagg(select_module,',') as select_module ,
-		total_females, total_females_graduated, total_females_dropout, total_females_ongoing, total_batches_ongoing, total_batches_completed, average_hours, total_hours, total_males, total_males_ongoing, total_males_graduated, total_males_dropout, dropout_pregnancy, dropout_left, dropout_interest, dropout_pressure, dropout_other, total_females_completed, start_date1, projectid1, code, status, status1, brand, token from table4
-		   group by  
-		total_females, total_females_graduated, total_females_dropout, total_females_ongoing, total_batches_ongoing, total_batches_completed, average_hours, total_hours, total_males, total_males_ongoing, total_males_graduated, total_males_dropout, dropout_pregnancy, dropout_left, dropout_interest, dropout_pressure, dropout_other, total_females_completed, start_date1, projectid1, code, status, status1, brand, token
-),
-
-table6 as (Select 		   listagg(select_module,',') as select_module ,
-		sum(total_females) as total_females, sum(total_females_graduated) as total_females_graduated, sum(total_females_dropout) as total_females_dropout, sum(total_females_ongoing) as total_females_ongoing, sum(total_batches_ongoing) as total_batches_ongoing, sum(total_batches_completed) as total_batches_completed, avg(average_hours) as average_hours, sum(total_hours) as total_hours, sum(total_males) as total_males, sum(total_males_ongoing) as total_males_ongoing, sum(total_males_graduated) as total_males_graduated, sum(total_males_dropout) as total_males_dropout, sum(dropout_pregnancy) as dropout_pregnancy, sum(dropout_left) as dropout_left, sum(dropout_interest) as dropout_interest, sum(dropout_pressure) as dropout_pressure, sum(dropout_other) as dropout_other, sum(total_females_completed) as total_females_completed, start_date1, projectid1, code, status, status1, brand, token from table5
-		   group by  
-		    start_date1, projectid1, code, status, status1, brand, token
+lookup4 as (Select fy_timerange1, _id1,Month,devreported, datacheck,manager2,tasksReported,firstLevelApproval,status,subcat_output,
+			listagg(distinct approvallog,',') as approvallog,
+			flag_deviation_delay,projectcode1,listagg(distinct projectManager,',') as projectManager1--,suboutput1
+	from lookup3 p
+			
+group by fy_timerange1, _id1,Month,devreported, datacheck,manager2,tasksReported,firstLevelApproval,status,subcat_output,flag_deviation_delay,projectcode1
 )
 
-select total_females,total_females_graduated,total_females_dropout,total_females_ongoing,total_batches_ongoing
-,total_batches_completed
-,average_hours,total_hours,total_males,total_males_ongoing,total_males_graduated,total_males_dropout,dropout_pregnancy,dropout_left,dropout_interest,dropout_pressure,dropout_other,total_females_completed, start_date1 as start_date, projectid1 as projectid,select_module,code from table6 p where status = 1 and status1 = 1 and brand = 1 and token = 1
+--select  count(distinct _id1) as total_no_of_activities,count(tasksReported) as no_of_activities_reported, (count(firstLevelApproval)) as approved_1st_manager, count(manager2) as approved_2nd_manager,count(devreported) as no_of_deviations from lookup4 p where ((fy_timerange1='2020-2021')) AND ((projectcode1='P0256'))
+ 
+
+select distinct(_id1) as _id, fy_timerange1 as fy, Month, devreported, datacheck, manager2,  tasksReported, firstLevelApproval, status, subcat_output, approvallog, ProjectCode1,flag_deviation_delay,( projectManager1) as project_Manager,subcat_output from lookup4 p where 
+((projectcode1='P0256')) and 
+--((fy_timerange1='2021-2022')) --and (_id1 = '5fa4ce05bc9a8e7505b8956b')--((projectcode1='CM001')) and 
+((fy_timerange1='2020-2021')) and firstLevelApproval = 1 and (_id1 = '5fa4ce05bc9a8e7505b8956b')
+
+
+--select * from lookup p where (fy_timerange='2022-2023') AND ((projectcode='CM001'))
