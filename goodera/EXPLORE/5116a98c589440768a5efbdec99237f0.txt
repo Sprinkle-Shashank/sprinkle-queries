@@ -1,20 +1,15 @@
-with table1 as 
-( select * , SUBSTRING(to_char(date, 'DD/MM-YYYY'), POSITION('-' in to_char(date, 'DD/MM-YYYY'))+1,4 ) as year  from profile_60620 as p  where p._id='5fce00c48c85427405d50b68') ,
+select t.*,loc.name as location_name,decode(sta.name,null,loc.name,sta.name) as state_1,reftag.name as code
+from profile_55622 t
 
-table2 as 
-( select *  from profile_65254 as p ) ,
+left join ds_mysql_prod_tagelement loc
+on t.location=loc.id
 
-table3 as 
-( select p.projectid , t1.projectid from table2  as p
- 
- left join table1 t1 on 
- p.projectid = t1.projectid
- ),
- 
- table5 as 
- ( select p.projectid , p2.projectid from profile_65254 as p 
-  
-  left join profile_60620 p2 on 
-  p.projectid = p2.projectid )
+left join ds_mysql_prod_tagelement sta
+on loc.parent=sta.id
 
-select * from table5
+left join ds_mysql_prod_tagelement reftag
+on sta.parent = reftag.id
+
+--where code is not null
+
+
