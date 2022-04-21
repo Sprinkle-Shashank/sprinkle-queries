@@ -1,0 +1,42 @@
+with table1 as
+(
+select projectid, cou.name as country
+  
+  , case when nvl2(SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), ven.name)='' then ven.name else nvl2(SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), ven.name) end as vendor,
+  
+case when extract(month from date)=1 then (extract(year from date)-1)
+else extract(year from date) end as year, p.name, other, trainer_organization, notes, photo, file, trainer, historical, keyword_1, num_female, num_male, num_middle, hours, total_participants, num_other, date, fac.name as factory  
+from profile_64801 as p
+
+left join ds_mysql_prod_project fac 
+on p.projectId = fac.id
+
+ left join ds_mysql_prod_project ven 
+on fac.parent = ven.id
+
+ left join ds_mysql_prod_project cou 
+on ven.parent = cou.id
+),
+
+ table3 as
+(
+select p.projectid, p.facility_status , facility.name as facility_status_update , case when facility_status_update='Active' then 'Active' when facility_status_update='Deactivated' then 'Deactive' end as Active_Filter , goodera_facility_name_text from profile_68161 as p
+  
+left join ds_mysql_prod_tagelement facility 
+on p.facility_status = facility.id
+)
+
+
+select tab1.projectId, country, vendor, year,tab1.name, hours, total_participants,  num_other , sum(num_female + num_male + num_middle +num_other) as total_workers , date , factory , t3.active_Filter from table1 as tab1
+
+left join table3 t3 on 
+tab1.factory = t3.goodera_facility_name_text
+
+where year != 2021 and year != 2022 and tab1.projectid like '%%' and country <> 'Test Country' and t3.active_Filter is not null
+
+group by
+
+tab1.projectId, country , vendor, year,tab1.name, date , factory , t3.active_Filter, hours, total_participants
+
+
+
