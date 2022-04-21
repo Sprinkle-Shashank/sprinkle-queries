@@ -1,3 +1,12 @@
+
+with table21 as 
+(
+select p.projectid, p.facility_status , facility.name as facility_status_update , case when facility_status_update='Active' then 'Active' else 'Deactive' end as Active_Filter, goodera_facility_name_text from profile_68161 as p
+  
+left join ds_mysql_prod_tagelement facility 
+on p.facility_status = facility.id
+)
+
 select p.projectId,p.name,p.employee_id,cou.name as country,p.trainer_organization as trainer_organization,p._id, ven.name as vendor,p.production_efficiency,p1.production_efficiency_pre,p1.employee_id_pre,p2.fac_cl_vpid, p2.vendor_ngo_id,(p.production_efficiency-p1.production_efficiency_pre) as difference,case when difference>0
 then
 1
@@ -19,7 +28,7 @@ then
 1 
 else
 0 
-end as major_change
+end as major_change , t21.active_filter
 from profile_65282 p
 
 
@@ -31,12 +40,17 @@ on p.projectId = p2.projectId
 
 left join ds_mysql_prod_project fac
 on  p.projectid = fac.id
+
 left join ds_mysql_prod_project ven
 on fac.parent = ven.id
+
 left join ds_mysql_prod_project cou
 on ven.parent = cou.id
 
+left join table21 t21 on 
+fac.name = t21.goodera_facility_name_text
+
+where p.projectid like '%%' and country <> 'Test Country'
 
 
-
-group by p.projectId, cou.name, ven.name,p1.production_efficiency_pre,p1.employee_id_pre,difference,count_increase,production_efficiency,p.name,no_change,major_change,minor_change,p2.fac_cl_vpid, p2.vendor_ngo_id,p.trainer_organization,p.employee_id,p._id
+group by p.projectId, cou.name, ven.name,p1.production_efficiency_pre,p1.employee_id_pre,difference,count_increase,production_efficiency,p.name,no_change,major_change,minor_change,p2.fac_cl_vpid, p2.vendor_ngo_id,p.trainer_organization,p.employee_id,p._id , t21.active_filter
