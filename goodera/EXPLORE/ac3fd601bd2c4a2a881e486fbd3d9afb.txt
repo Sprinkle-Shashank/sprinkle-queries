@@ -13,12 +13,15 @@ then
 1
 else 
 0 
-end as count_increase , t21.active_filter
+end as count_increase , t21.active_filter ,  SUBSTRING(to_char(p2.date_1, 'DD/MM-YYYY'), POSITION('-' in to_char(p2.date_1, 'DD/MM-YYYY'))+1,4 ) as year 
 from profile_65282 p
 
 
 left join profile_60669 p1
 on p.employee_id = p1.employee_id_pre
+
+left join profile_64075 p2
+on p.projectId = p2.projectId 
 
 left join ds_mysql_prod_project fac
 on  p.projectid = fac.id
@@ -32,6 +35,6 @@ on ven.parent = cou.id
 left join table21 t21 on 
 fac.name = t21.goodera_facility_name_text
 
-where p.projectid like '%%' and t21.active_filter is not null 
+where p.projectid like '%%' and t21.active_filter is not null  and year is not null
 
-group by p.projectId, cou.name,p1.production_efficiency_pre,p1.employee_id_pre,difference,count_increase,production_efficiency,p.employee_id,p.name,p.trainer_organization,p._id , t21.active_filter , vendor
+group by p.projectId, cou.name,p1.production_efficiency_pre,p1.employee_id_pre,difference,count_increase,production_efficiency,p.employee_id,p.name,p.trainer_organization,p._id , t21.active_filter , vendor , year
