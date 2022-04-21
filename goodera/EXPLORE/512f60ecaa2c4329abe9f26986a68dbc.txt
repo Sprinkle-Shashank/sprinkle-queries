@@ -10,7 +10,8 @@ with lookup as (select
 				concat(ProjectCode,fy_timerange) as CODE, 
 				split_part(prod.name,'|',3) as census, 
 				p._id, 
-				task.modified,
+				concat(concat(substring(cast(timestamp 'epoch' + CAST(task.modified AS BIGINT)/1000 * interval '1 second' as varchar), 1, 10),'T'), concat(split_part(cast(timestamp 'epoch' + CAST(task.modified AS BIGINT)/1000 * interval '1 second' as varchar), ' ',2),'.000Z')) as startdate,
+				--cast(task.modified as timestamp),
 				p.flag_deviation_delay,
 				case when p.subcat_output is not NULL and p.flag_deviation_delay='1' then 1 else null end  as devreported, 
 				case when task.status like '%SUB%' and task.approvallog is null or task.status='PENDING_APPROVAL' then null else 1 end as datacheck, 
@@ -29,7 +30,7 @@ left join ds_mysql_prod_tagelement f on
 p.fy=f.id
 left join ds_mysql_prod_tagelement m on
 p.month=m.id
-			   order by task.modified)
+			   order by startdate)
 
 
 
