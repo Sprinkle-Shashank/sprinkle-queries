@@ -31,14 +31,17 @@ select projectId,
   fcra, trust_deed, address_proof, doc_80_g, self_declaration, pan_card, doc_12_a, 
   case when get_array_length(annual_reports_ngo) = 0 then array(0)
   else COALESCE(annual_reports_ngo,array(0)) end annual_reports_ngo2,
-   doc_35_ac, itr_filed, registration, moa_by_laws, name, fy_timerange, spoc_name, spoc_mail, spoc_number from profile_41361),
+   doc_35_ac, 
+  case when get_array_length(itr_filed) = 0 then array(0)
+  else COALESCE(itr_filed,array(0)) end itr_filed2,
+   registration, moa_by_laws, name, fy_timerange, spoc_name, spoc_mail, spoc_number from profile_41361),
 sub2 as(
   select projectId, 
   --audited_financials1,
   rtrim(ltrim(json_serialize(audited_financials1),'"'),'"') as audited_financials11, 
   rtrim(ltrim(json_serialize(annual_reports_ngo1),'"'),'"') as annual_reports_ngo11,
   rtrim(ltrim(json_serialize(itr_filed1),'"'),'"') as itr_filed11,
-  fcra, trust_deed, address_proof, doc_80_g, self_declaration, pan_card, doc_12_a, annual_reports_ngo1, doc_35_ac, itr_filed1, registration, moa_by_laws, name, fy_timerange, spoc_name, spoc_mail, spoc_number from sub1 a, a.audited_financials2 audited_financials1, a.annual_reports_ngo annual_reports_ngo1, a.itr_filed itr_filed1), 
+  fcra, trust_deed, address_proof, doc_80_g, self_declaration, pan_card, doc_12_a, annual_reports_ngo1, doc_35_ac, itr_filed1, registration, moa_by_laws, name, fy_timerange, spoc_name, spoc_mail, spoc_number from sub1 a, a.audited_financials2 audited_financials1, a.annual_reports_ngo2 annual_reports_ngo1, a.itr_filed2 itr_filed1), 
   sub3 as
   (select p.name as projectId, a.name, fy_timerange, spoc_name, spoc_mail, spoc_number, 
   case col when 'audited_financials' then audited_financials11
