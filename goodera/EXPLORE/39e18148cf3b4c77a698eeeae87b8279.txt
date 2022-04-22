@@ -3,7 +3,7 @@ Select projectid,fy_timerange,gsk_entity,name_patient,unique_id,age_patient,gend
 
 table2 as ( Select t1.*, type_op from table1 t1 , t1.type_operation type_op),
 
-table3 as (Select projectid,fy_timerange,gsk.name as gsk_entity,name_patient,unique_id,age_patient,gen.name as gender,cat.name as catchment_location,date_operation,op.name as type_op,hos.name as hospital,cit.name as city,ack.name as acknowledgement_patient,financial_criteria ,
+table3 as (Select projectid,fy_timerange,gsk.name as gsk_entity,name_patient,unique_id,age_patient,gen.name as gender,cat.name as catchment_location,to_char(date_operation,'DD-MM-YYYY') as date_operation,LISTAGG(op.name,',') as type_op,hos.name as hospital,cit.name as city,ack.name as acknowledgement_patient,fin.name as financial_criteria ,
 		   1 as count 
 		    from table2 p
 		   
@@ -31,6 +31,10 @@ p.acknowledgement_patient = ack.id
 		   
 LEFT JOIN ds_mysql_prod_tagelement as fin on
 p.financial_criteria = fin.id
+		   
+		   
+	GROUP BY projectid,fy_timerange,gsk.name,name_patient,unique_id,age_patient,gen.name,cat.name,date_operation,hos.name,cit.name,ack.name,fin.name	   
+		   
 	)
 	
 	Select * from table3
