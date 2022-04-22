@@ -1,13 +1,17 @@
+with sub1 as(
 select projectId, concat(concat(extract( year from cast(fy_timerange.start as date)),'-'), extract( year from cast(fy_timerange.end as date))) as year
---, document_type
-, doc
+, doc, 'Document' as type
 , fy_timerange from profile_41431
 union all
 select projectId, concat(concat(extract( year from cast(fy_timerange.start as date)),'-'), extract( year from cast(fy_timerange.end as date))) as year
-, signed_mou
---, name_mou_1
+, signed_mou, 'MOU' as type
 , fy_timerange from profile_41363
 union all
-select projectId, concat(concat(extract( year from cast(fy_timerange.start as date)),'-'), extract( year from cast(fy_timerange.end as date))) as year, proposal_file, fy_timerange from profile_41363
+select projectId, concat(concat(extract( year from cast(fy_timerange.start as date)),'-'), extract( year from cast(fy_timerange.end as date))) as year, 'Board Approval PPT' as type,
+  proposal_file, fy_timerange from profile_41363
 union all
-select projectId, concat(concat(extract( year from cast(fy_timerange.start as date)),'-'), extract( year from cast(fy_timerange.end as date))) as year, utilization_certificate, fy_timerange from profile_79977
+select projectId, concat(concat(extract( year from cast(fy_timerange.start as date)),'-'), extract( year from cast(fy_timerange.end as date))) as year, 'Project Proposal' as type,
+  utilization_certificate, fy_timerange from profile_79977)
+select t.name as projectId, year, type, doc, fy_timerange from sub1
+left join ds_mysql_prod_tagelement t 
+on t.id=projectId
