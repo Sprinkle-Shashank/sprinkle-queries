@@ -25,14 +25,20 @@ with temp as (
   union all
   select 'moa_by_laws' as col),
 sub1 as(
-select projectId, audited_financials, fcra, trust_deed, address_proof, doc_80_g, self_declaration, pan_card, doc_12_a, annual_reports_ngo, doc_35_ac, itr_filed, registration, moa_by_laws, name, fy_timerange, spoc_name, spoc_mail, spoc_number from profile_41361),
+select projectId, 
+  case when get_array_length(audited_financials) = 0 then array(0)
+  else COALESCE(audited_financials,array(0)) end audited_financials2,
+  fcra, trust_deed, address_proof, doc_80_g, self_declaration, pan_card, doc_12_a, 
+  case when get_array_length(annual_reports_ngo) = 0 then array(0)
+  else COALESCE(annual_reports_ngo,array(0)) end annual_reports_ngo2,
+   doc_35_ac, itr_filed, registration, moa_by_laws, name, fy_timerange, spoc_name, spoc_mail, spoc_number from profile_41361),
 sub2 as(
   select projectId, 
   --audited_financials1,
   rtrim(ltrim(json_serialize(audited_financials1),'"'),'"') as audited_financials11, 
   rtrim(ltrim(json_serialize(annual_reports_ngo1),'"'),'"') as annual_reports_ngo11,
   rtrim(ltrim(json_serialize(itr_filed1),'"'),'"') as itr_filed11,
-  fcra, trust_deed, address_proof, doc_80_g, self_declaration, pan_card, doc_12_a, annual_reports_ngo1, doc_35_ac, itr_filed1, registration, moa_by_laws, name, fy_timerange, spoc_name, spoc_mail, spoc_number from sub1 a, a.audited_financials audited_financials1, a.annual_reports_ngo annual_reports_ngo1, a.itr_filed itr_filed1), 
+  fcra, trust_deed, address_proof, doc_80_g, self_declaration, pan_card, doc_12_a, annual_reports_ngo1, doc_35_ac, itr_filed1, registration, moa_by_laws, name, fy_timerange, spoc_name, spoc_mail, spoc_number from sub1 a, a.audited_financials2 audited_financials1, a.annual_reports_ngo annual_reports_ngo1, a.itr_filed itr_filed1), 
   sub3 as
   (select p.name as projectId, a.name, fy_timerange, spoc_name, spoc_mail, spoc_number, 
   case col when 'audited_financials' then audited_financials11
@@ -61,4 +67,4 @@ where link is not NULL
   sub5 as(
   select fy, name, fy_timerange, spoc_name, spoc_mail, spoc_number, listagg(distinct link, ', ') as link, 'Download' as download from sub4
   group by fy, name, fy_timerange, spoc_name, spoc_mail, spoc_number)
-  select * from sub2
+  select * from sub1
