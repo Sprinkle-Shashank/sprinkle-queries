@@ -27,7 +27,7 @@ on p.facility_status = facility.id
 )
 
 
-select tab1.projectId, country, vendor, year,tab1.name, hours, total_participants,  num_other , sum(num_female + num_male + num_middle +num_other) as total_workers , date , factory , t3.active_Filter from table1 as tab1
+select tab1.projectId, country, vendor, year , case when num_female is null then 0 else num_female end as num_female_update , case when num_male is null then 0 else num_male end as num_male_update , case when num_middle is null then 0 else num_middle end as num_middle_update  , (num_female_update + num_male_update + num_middle_update) as total_workers , factory , t3.active_Filter from table1 as tab1
 
 left join table3 t3 on 
 tab1.factory = t3.goodera_facility_name_text
@@ -36,7 +36,4 @@ where year != 2021 and year != 2022 and tab1.projectid like '%%' and country <> 
 
 group by
 
-tab1.projectId, country , vendor, year,tab1.name, date , factory , t3.active_Filter, hours, total_participants
-
-
-
+tab1.projectId, country, vendor, year ,  factory , t3.active_Filter , num_female , num_male , num_middle , num_other , num_female_update , num_male_update , num_middle_update , num_other_update
