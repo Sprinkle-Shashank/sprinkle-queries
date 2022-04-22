@@ -25,16 +25,16 @@ with temp as (
   union all
   select 'moa_by_laws' as col),
 sub1 as(
-select projectId, audited_financials, fcra, trust_deed, address_proof, doc_80_g, self_declaration, pan_card, doc_12_a, fy, annual_reports_ngo, doc_35_ac, itr_filed, registration, moa_by_laws, name, fy_timerange, spoc_name, spoc_mail, spoc_number from profile_41361),
+select projectId, audited_financials, fcra, trust_deed, address_proof, doc_80_g, self_declaration, pan_card, doc_12_a, annual_reports_ngo, doc_35_ac, itr_filed, registration, moa_by_laws, name, fy_timerange, spoc_name, spoc_mail, spoc_number from profile_41361),
 sub2 as(
   select projectId, 
   --audited_financials1,
   rtrim(ltrim(json_serialize(audited_financials1),'"'),'"') as audited_financials11, 
   rtrim(ltrim(json_serialize(annual_reports_ngo1),'"'),'"') as annual_reports_ngo11,
   rtrim(ltrim(json_serialize(itr_filed1),'"'),'"') as itr_filed11,
-  fcra, trust_deed, address_proof, doc_80_g, self_declaration, pan_card, doc_12_a, fy, annual_reports_ngo1, doc_35_ac, itr_filed1, registration, moa_by_laws, name, fy_timerange, spoc_name, spoc_mail, spoc_number from sub1 a, a.audited_financials audited_financials1, a.annual_reports_ngo annual_reports_ngo1, a.itr_filed itr_filed1), 
+  fcra, trust_deed, address_proof, doc_80_g, self_declaration, pan_card, doc_12_a, annual_reports_ngo1, doc_35_ac, itr_filed1, registration, moa_by_laws, name, fy_timerange, spoc_name, spoc_mail, spoc_number from sub1 a, a.audited_financials audited_financials1, a.annual_reports_ngo annual_reports_ngo1, a.itr_filed itr_filed1), 
   sub3 as
-  (select p.name as projectId, a.name, fy_timerange, spoc_name, spoc_mail, spoc_number, fy,
+  (select p.name as projectId, a.name, fy_timerange, spoc_name, spoc_mail, spoc_number, 
   case col when 'audited_financials' then audited_financials11
   when 'fcra' then fcra
   when 'trust_deed' then trust_deed
@@ -55,9 +55,7 @@ sub2 as(
   on p.id=projectid
   cross join temp),
   sub4 as(
-  select projectId, a.name, fy_timerange, spoc_name, spoc_mail, spoc_number, link, t.name as fy, type from sub3 a
-	left join ds_mysql_prod_tagelement t
-	on t.id=fy
+  select projectId, a.name, fy_timerange, spoc_name, spoc_mail, spoc_number, link, concat(concat(extract( year from cast(fy_timerange.start as date)),'-'), extract( year from cast(fy_timerange.end as date))) as fy, type from sub3 a
 	where link is not NULL)
   select fy, name, fy_timerange, spoc_name, spoc_mail, spoc_number, listagg(distinct link, ',') as link from sub4
   group by fy, name, fy_timerange, spoc_name, spoc_mail, spoc_number
