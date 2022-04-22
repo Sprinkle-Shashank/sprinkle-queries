@@ -1,30 +1,35 @@
-with table1 as (select projectid,diagnosis1,sel_camp,patient,referred_yn from profile_58474
-group by  projectid,diagnosis1,sel_camp,patient,referred_yn ),
+with table1 as (select projectid,_id,name,diagnosis1,sel_camp,patient,referred_yn from profile_58474
+group by  projectid,_id,name,diagnosis1,sel_camp,patient,referred_yn),
 
-table2 as (select t.* , diagnosis from table1 t ,t.diagnosis1 as diagnosis ),
+table2 as (select t.* , diagnosis from table1 t ,t.diagnosis1 as diagnosis),
 
-table3 as (select projectid,diagnosis2,sel_camp,patient,referred_yn from profile_58474
-group by  projectid,diagnosis2,sel_camp,patient,referred_yn ),
+table3 as (select projectid,_id,name,diagnosis2,sel_camp,patient,referred_yn from profile_58474
+group by  projectid,_id,name,diagnosis2,sel_camp,patient,referred_yn),
 
-table4 as (select t.* , diagnosis from table3 t ,t.diagnosis2 as diagnosis ),
+table4 as (select t.* , diagnosis from table3 t ,t.diagnosis2 as diagnosis),
 
-table5 as ( select * from table2 union select * from table4 ),
-
-table6 as(
-select nvl2(SUBSTRING(diagnosis.name, 1, POSITION(' -' in diagnosis.name)), SUBSTRING(diagnosis.name, 1, POSITION(' -' in diagnosis.name)),diagnosis.name) as disease ,   -- disease
+table5 as ( select * from table2 union select * from table4)
+--select * from table2
+table6 as (
+select t._id,t.name,nvl2(SUBSTRING(diagnosis.name, 1, POSITION(' -' in diagnosis.name)), SUBSTRING(diagnosis.name, 1, POSITION(' -' in diagnosis.name)),diagnosis.name) as disease ,   -- disease
 ((cast(DATEPART(YEAR,current_date) as varchar)) - (cast(DATEPART(YEAR,p1.createddate) as varchar)))+ p1.age as current_age, --c_age
-case when current_age >= 0 and current_age <=5  then '0-5'    
-	 when current_age >= 6 and current_age <=18 then '6-18'
-     when current_age >=19 and current_age <=40 then '19-40'
-     when current_age >=41 and current_age <=60 then '41-60'
-     when current_age > 60 then '60+' else null end as category,
-gender1.name as gender ,fac.name as van, d2.name as partner,referred_yn1.name as referred_yn,
-cast(substring(d1.req_date,1,10) as date) as date_update_1 ,cast(substring(d1.date_n,1,10) as date) as date_update_2 , 
+location.name as location,loc.name as sublocation,
+case when current_age>= 0 and current_age<=5 then '0-5y'    
+	 when current_age>= 6 and current_age<=18 then '6-18y'
+     when current_age>=19 and current_age<=40 then '19-40y'
+     when current_age>=41 and current_age<=60 then '41-60y'
+     when current_age > 60  then '60+y' else null end as category,
+fac.name as van, d2.name as partner,referred_yn1.name as referred_yn,gender1.name as gender ,
+
+cast(substring(d1.req_date,1,10) as date) as date_update_1 , cast(substring(d1.date_n,1,10) as date) as date_update_2 , 
 case when d1.date_yn = 28005 then date_update_2 else date_update_1 end as date,    --date
-1 as count from table5 t
+
+  1 as count from table5 t
 
 left join profile_58473 p1
 on t.patient = p1._id
+left join profile_55793 p2
+on t.projectid = p2.projectid
 left join profile_58511 d1
 on t.sel_camp = d1._id
 left join profile_51990 d2
@@ -32,16 +37,20 @@ on d1.imple_partner = d2._id
 
 left join ds_mysql_prod_tagelement diagnosis
 on t.diagnosis = diagnosis.id
+left join ds_mysql_prod_tagelement location
+on p2.location = location.id
 left join ds_mysql_prod_tagelement gender1
 on p1.gender = gender1.id
 left join ds_mysql_prod_tagelement referred_yn1
 on t.referred_yn = referred_yn1.id
 left join ds_mysql_prod_project fac
 on t.projectid = fac.id
+left join ds_mysql_prod_project loc
+on d1.projectid = loc.id
 
-where t.projectid like '%%'
+where t.projectid like '%%' and location.name is not null and gender1.name is not null
+group by diagnosis.name ,t._id,t.name,p1.createddate ,p1.age,gender1.name,fac.name , d2.name ,referred_yn1.name,d1.date_yn,d1.date_n,d1.req_date,location.name,loc.name
 
-group by diagnosis.name ,p1.createddate ,p1.age,gender1.name,fac.name , d2.name ,referred_yn1.name,d1.date_yn,d1.date_n,d1.req_date
    )
    select disease , date , van , partner,
    count( case when category = '0-5' then 1 end) as "0-5 yrs"  ,
