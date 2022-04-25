@@ -2,15 +2,8 @@ with sub1 as (
 select  rtrim(ltrim(json_serialize(sched7),'['),']') as sched7, bene_num, fy_timerange from profile_41363 
   where bene_num is not null),
 sub2 as (
-  select fy_timerange, bene_num, array(listagg(distinct sched7, ', ')) as Schedule_7 from sub1 group by fy_timerange, bene_num),
-  sub3 as(
-  select fy_timerange, bene_num, rtrim(ltrim(json_serialize(Schedule_7_1),'"'),'"') as Schedule_7 from sub2 a, a.Schedule_7 Schedule_7_1),
-  sub4 as (
-  select fy_timerange, bene_num, t.name as 
-  Schedule_7 from sub3
-   left join ds_mysql_prod_tagelement t 
-   on t.id=Schedule_7)
-	select t.name as sched7, bene_num, fy_timerange from sub1
+  select fy_timerange, bene_num, sched7 from sub1 where sched7 is not null)
+	select t.name as sched7, bene_num, fy_timerange from sub2
    left join ds_mysql_prod_tagelement t 
    on t.id=sched7
-	where sched7 is not null
+	
