@@ -1,16 +1,16 @@
 with s as (
-Select ss.projectId, ss.carrier, ss.fy_timerange, ss.shipment_id,ss.client, ss.origin_port, ss.dest_port, ss.units, ss.shipment_type, (ss.origin_port || ss.dest_port) as ports_lookup
+Select ss.projectId, ss.carrier, ss.fy_timerange, ss.shipment_id,ss.client, ss.origin_port, ss.dest_port, ss.units, ss.shipment_type, (ss.origin_port || ss.dest_port) as ports_lookup,ss.teu
 from profile_79048 ss
 ),
 s2 as (
-Select s.projectId, s.carrier,s.client, s.fy_timerange, s.shipment_id, s.origin_port, s.dest_port, s.units, s.shipment_type, s.ports_lookup, tt.start_country, tt.dest_country, tt.start_tradelane, tt.dest_tradelane, tt.km,(tt.start_tradelane || tt.dest_tradelane || s.carrier) tradelane_carrier_lookup
+Select s.projectId, s.carrier,s.client, s.fy_timerange, s.shipment_id, s.origin_port, s.dest_port, s.units, s.shipment_type, s.ports_lookup, tt.start_country, tt.dest_country, tt.start_tradelane, tt.dest_tradelane, tt.km,(tt.start_tradelane || tt.dest_tradelane || s.carrier) tradelane_carrier_lookup,s.teu
   from s
   left join profile_79053 tt
 on tt.lookup_port=s.ports_lookup
 ),
 s3 as (
 
-Select t.name as projectId, t1.name as carrier, t9.name as client,s2.fy_timerange, s2.shipment_id, t2.name as origin_port, t3.name dest_port, s2.units, t4.name as shipment_type, s2.ports_lookup, t7.name as start_country,t8.name as dest_country, (t5.name  ||'-' || t6.name ) tradelane , s2.km, mm.co2_dry, mm.co2_ref, (mm.co2_dry*s2.km*s2.units) CO2_eff_dry,(mm.co2_ref*s2.km*s2.units) CO2_eff_ref,
+Select t.name as projectId, t1.name as carrier, t9.name as client,s2.fy_timerange, s2.shipment_id, t2.name as origin_port, t3.name dest_port, s2.units, t4.name as shipment_type, s2.ports_lookup, t7.name as start_country,t8.name as dest_country, (t5.name  ||'-' || t6.name ) tradelane , s2.km, mm.co2_dry, mm.co2_ref, (mm.co2_dry*s2.km*s2.units*s2.teu) CO2_eff_dry,(mm.co2_ref*s2.km*s2.units*s2.teu) CO2_eff_ref,
 extract(MONTH from cast(fy_timerange.start as date)) as month,
 case
 	When s2.shipment_type=1623028 then CO2_eff_dry
