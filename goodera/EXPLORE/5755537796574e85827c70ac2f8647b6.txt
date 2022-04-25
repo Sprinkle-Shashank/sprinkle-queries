@@ -1,5 +1,5 @@
 with s as (
-Select ss.projectId, ss.carrier, ss.fy_timerange,(EXTRACT(YEAR FROM(CAST(ss.fy_timerange.start AS datetime)))) as year ,ss.client,ss.shipment_id, ss.origin_port, ss.dest_port, ss.units, ss.shipment_type, (ss.origin_port || ss.dest_port) as ports_lookup,extract(Month from cast(ss.fy_timerange.start as datetime) )as Monthh,
+Select ss.projectId, ss.carrier, ss.fy_timerange,(EXTRACT(YEAR FROM(CAST(ss.fy_timerange.start AS datetime)))) as year ,ss.client,ss.shipment_id, ss.origin_port, ss.dest_port, ss.units, ss.shipment_type, (ss.origin_port || ss.dest_port) as ports_lookup,extract(Month from cast(ss.fy_timerange.start as datetime) )as Monthh,ss.teu,
   case 
   when monthh=01 then 'January'
   when monthh=02 then 'February'
@@ -17,7 +17,7 @@ Select ss.projectId, ss.carrier, ss.fy_timerange,(EXTRACT(YEAR FROM(CAST(ss.fy_t
 from profile_79048 ss
 ),
 s2 as (
-Select s.projectId,s.month,s.monthh as month1, s.carrier,s.year, s.client,s.fy_timerange, s.shipment_id, s.origin_port, s.dest_port, s.units, s.shipment_type, s.ports_lookup, tt.start_country, tt.dest_country, tt.start_tradelane, tt.dest_tradelane, tt.km,(tt.start_tradelane || tt.dest_tradelane || s.carrier) as tradelane_carrier_lookup
+Select s.projectId,s.month,s.monthh as month1, s.carrier,s.year, s.client,s.fy_timerange, s.shipment_id, s.origin_port, s.dest_port, s.units, s.shipment_type, s.ports_lookup, tt.start_country, tt.dest_country, tt.start_tradelane, tt.dest_tradelane, tt.km,(tt.start_tradelane || tt.dest_tradelane || s.carrier) as tradelane_carrier_lookup,s.teu
   from s
   left join profile_79053 tt
 on tt.lookup_port=s.ports_lookup
@@ -32,7 +32,7 @@ Select t.name as projectId, t1.name as carrier,t5.name as client ,
 	 when (year=2022 and month1>3) or (year=2023 and month1<4) then 'FY 2022-23'
 	 when (year=2023 and month1>3) or (year=2024 and month1<4) then 'FY 2023-24'
 	 end as year
-,s2.month,s2.fy_timerange, s2.shipment_id, t2.name as origin_port, t3.name dest_port, s2.units, t4.name as shipment_type, s2.ports_lookup, s2.start_country, s2.dest_country, s2.start_tradelane, s2.dest_tradelane, s2.km, mm.co2_dry, mm.co2_ref, (mm.co2_dry*s2.km*s2.units) CO2_eff_dry,(mm.co2_ref*s2.km*s2.units) CO2_eff_ref,
+,s2.month,s2.fy_timerange, s2.shipment_id, t2.name as origin_port, t3.name dest_port, s2.units, t4.name as shipment_type, s2.ports_lookup, s2.start_country, s2.dest_country, s2.start_tradelane, s2.dest_tradelane, s2.km, mm.co2_dry, mm.co2_ref, (mm.co2_dry*s2.km*s2.units*s2.teu) CO2_eff_dry,(mm.co2_ref*s2.km*s2.units*s2.teu) CO2_eff_ref,
 case
 	When s2.shipment_type=1623028 then CO2_eff_dry
 	else CO2_eff_ref
