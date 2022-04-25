@@ -1,4 +1,23 @@
-SELECT proj.name as projectid, fy_timerange, household, beneficiary FROM profile_80546
+WITH table1 AS (
+  SELECT 'HOUSEHOLD' AS C
+  UNION ALL
+  SELECT 'BENEFICIARY' AS C
+ )
+
+SELECT proj.name as projectid, p.fy_timerange,
+SUM(
+ 	CASE C
+	WHEN 'HOUSEHOLD' THEN p.household
+	WHEN 'BENEFICIARY' THEN p.beneficiary
+	ELSE NULL
+	END) AS val, table1.c AS dim
+
+FROM profile_80546 P
+
+CROSS JOIN table1
 
 LEFT JOIN ds_mysql_prod_project proj
-ON profile_80546.projectid = proj.id
+ON p.projectid = proj.id
+
+
+GROUP BY proj.name,p.fy_timerange,table1.C
