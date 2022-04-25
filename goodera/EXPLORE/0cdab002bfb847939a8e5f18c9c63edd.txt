@@ -1,0 +1,22 @@
+with temp as ( 
+select 'mid_day_meal_benef' as c
+  Union all 
+select 'relief_kits' as c
+  Union all 
+select 'dry_ration_kit' as c 
+ Union all
+select 'families_benefited' as c ) 
+  
+select pro.name as projectid,fy_timerange
+sum( case c when 'women_entre_onboarded' then p.women_entre_onboarded
+	        when 'trainings_conducted' then p.trainings_conducted
+	        when 'session_with_experts' then p.session_with_experts
+	        when 'kiosks_set_up' then p.kiosks_set_up
+	
+	        else null end ) as val, temp.c as dim from profile_80461 p
+			
+			left join ds_mysql_prod_project pro
+             on p.projectid = pro.id
+			cross join temp
+			
+group by projectid,fy_timerange,temp.c,pro.name			
