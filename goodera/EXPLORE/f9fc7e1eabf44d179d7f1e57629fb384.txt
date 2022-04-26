@@ -1,5 +1,13 @@
-Select p.
-_id,text.name as GOAL,p.pillar,p.timerange_timerange,SUBSTRING(p2.last_updated,1,10) as "LAST UPDATED",p2.current_progress as "CURRENT PROGRESS"  from profile_61092 p
+with table1 as(select xprojectId,time.name as Time_period,sum(sus.num_women_girls_fp2020_contracep) as percent_69fp_2020_contraceptive from sus_60316 sus
+
+Left join ds_mysql_prod_tagelement time
+on sus.financialperiod = time.id
+
+group by xprojectId,time.name 
+)
+
+select p.projectId,text.name as GOAL,p.pillar,p.timerange_timerange,SUBSTRING(p2.last_updated,1,10) as "LAST UPDATED",p2.current_progress as "CURRENT PROGRESS",t1.percent_69fp_2020_contraceptive
+  from profile_61092 p
 
 
 left join ds_mysql_prod_tagelement text
@@ -8,5 +16,7 @@ on p.goal_text = text.id
 left join profile_61093 p2
 on p2.reference = p._id
 
+left join table1 t1
+on p.projectId = t1.xprojectId
 
 where pillar = 1009930
