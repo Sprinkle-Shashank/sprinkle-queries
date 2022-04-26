@@ -5,9 +5,10 @@ select projectid,substring(cast(p.start_date as varchar),1,10)||'T00:00:00.000Z'
   )
   
   , s2 as (
-  select DISTINCT(cast(beneficiaries as varchar)) , proj.name as projectid, fy_timerange, fy, type, 1 as count from base1 p
+  select cast(beneficiaries as varchar) as beneficiaries , proj.name as projectid, fy_timerange, fy, type, 1 as count
+	from base1 p
 left join ds_mysql_prod_project proj on p.projectId=proj.id where beneficiaries is not null group by 1,2,3,4,5,6)
-Select * from s2
-/*
-Select  DISTINCT(beneficiaries) AS ben ,projectid, fy_timerange, fy, type
-FROM s2 */
+,
+
+Select  ROW_NUMBER() over(partition by projectid, type order by beneficieries DESC) AS row_number 
+FROM s2 
