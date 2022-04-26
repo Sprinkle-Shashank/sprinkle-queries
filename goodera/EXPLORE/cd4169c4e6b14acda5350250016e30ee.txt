@@ -13,7 +13,8 @@ union all
 select projectId, concat(concat(extract( year from cast(fy_timerange.start as date)),'-'), extract( year from cast(fy_timerange.end as date))) as year, 
   utilization_certificate, 'Project Proposal' as type, fy_timerange from profile_79977)
   --,sub2 as (
-select t.name as projectId, year, type, doc, fy_timerange, 'Download' as download  from sub1
+select t.name as projectId, year, type, listagg(doc,', ') as doc, fy_timerange, 'Download' as download  from sub1
 left join ds_mysql_prod_project t 
 on t.id=projectId
 	where doc is not null
+	group by t.name, year, type, doc, fy_timerange, download  
