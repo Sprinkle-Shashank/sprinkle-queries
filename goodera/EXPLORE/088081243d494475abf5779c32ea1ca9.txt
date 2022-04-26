@@ -10,9 +10,9 @@ select projectid,substring(cast(p.start_date as varchar),1,10)||'T00:00:00.000Z'
 left join ds_mysql_prod_project proj on p.projectId=proj.id where beneficiaries is not null group by 1,2,3,4,5,6)
 
 ,s3 as (
-Select  beneficiaries,ROW_NUMBER() over(partition by beneficiaries ) AS row_number ,projectid, type
+Select  beneficiaries,ROW_NUMBER() over(partition by beneficiaries ) AS row_number ,projectid,fy_timerange,fy,type
 FROM s2 
 )
-Select beneficiaries,row_number ,projectid, type 
+Select projectid,fy_timerange, fy,type ,  beneficiaries,row_number as count
 from s3
 where row_number=1
