@@ -1,0 +1,42 @@
+
+with temp as ( 
+select 'tanks_renovated' as c
+  Union all 
+select 'check_dams_contructed' as c
+  Union all 
+select 'ponds_deepened' as c 
+ Union all
+select 'saplings_planted' as c
+  Union all 
+select 'self_help_groups_created' as c
+  Union all 
+select 'farmers_trained' as c
+  Union all 
+select 'vermicompost_units_build' as c
+  Union all 
+select 'trainings_held_for_shg' as c
+  Union all
+select 'farm_bunds_build' as c
+  Union all   
+select 'gully_plugging' as c ) 
+  
+select pro.name as projectid,fy_timerange,
+sum( case c when 'tanks_renovated' then p.tanks_renovated	
+	        when 'check_dams_contructed' then p.check_dams_contructed
+	        when 'ponds_deepened' then p.ponds_deepened
+	        when 'saplings_planted' then p.saplings_planted
+	        when 'self_help_groups_created' then p.self_help_groups_created
+	        when 'farmers_trained' then p.farmers_trained
+	        when 'vermicompost_units_build' then p.vermicompost_units_build
+	        when 'trainings_held_for_shg' then p.trainings_held_for_shg
+	        when 'farm_bunds_build' then p.farm_bunds_build
+	        when 'gully_plugging' then p.gully_plugging
+	
+	
+	        else null end ) as val, temp.c as dim from profile_80840 p
+			
+			left join ds_mysql_prod_project pro
+             on p.projectid = pro.id
+			cross join temp
+			
+group by projectid,fy_timerange,temp.c,pro.name			
