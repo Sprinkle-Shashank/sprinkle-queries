@@ -7,13 +7,20 @@ Select 'shg_non_member_training' as col
 base1 as(
   select projectid, substring(cast(p.start_date as varchar),1,10)||'T00:00:00.000Z'||'|'||substring(cast(current_date as varchar),1,10)||'T00:00:00.000Z' as fy_timerange, extract(year from p.start_date) as fy, shg1 as beneficiaries1, shg2 as beneficiaries2 from profile_58864 p,p.shg_member_train shg1 , p.shg_non_member_training shg2
   )
+  
+ ,
+ s2 as (
+ Select  projectid, fy_timerange ,fy, shg1 as shg_member_train,shg2 as shg_non_member_training
+   from base1
+ 
+ )
   Select  projectid, fy_timerange ,fy,temp.col as type,
   Count(case col
-  when shg_member_train then base1.shg1
-  when shg_non_member_training then base1.shg2
+  when shg_member_train then s2.shg_member_train
+  when shg_non_member_training then s2.shg_non_member_training
   else 0
   end )as Count
   
-  from base1
+  from s2
   cross join temp
   
