@@ -1,0 +1,36 @@
+WITH table1 AS (
+  SELECT 'UTILIZED' AS C
+  UNION ALL
+  SELECT 'BENEFICIARY' AS C
+ )
+ 
+ SELECT projectid, proj.name as project_name, p.fy_timerange, p.partner, the.name AS theme, sdg.name AS SDG, p.activity, p.desc, goal.name AS Goals, sch.name as Schedule7
+ SUM(
+ 	CASE C
+	WHEN 'UTILIZED' THEN p.fund
+	WHEN 'BENEFICIARY' THEN p.beneficiary
+	ELSE NULL
+	END) AS val, table1.c AS dim
+
+FROM profile_80486 P
+
+CROSS JOIN table1
+
+
+LEFT JOIN ds_mysql_prod_project proj
+ON p.projectid = proj.id
+
+LEFT JOIN ds_mysql_prod_tagelement AS the
+ON p.theme = the.id
+
+LEFT JOIN ds_mysql_prod_tagelement AS sch
+ON p.schedule_7 = sch.id
+
+LEFT JOIN ds_mysql_prod_tagelement AS sdg
+ON p.sdg = sdg.id
+
+
+LEFT JOIN ds_mysql_prod_tagelement AS goal
+ON p.goals_target = goal.id
+
+GROUP BY proj.name,p.fy_timerange,table1.C, projectid, p.partner, the.name , sdg.name , p.activity, p.desc, goal.name, sch.name
