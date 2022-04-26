@@ -1,37 +1,27 @@
-drop table if exists profile_60316;
- create table profile_60316 as
- SELECT projectid, _id,
- CAST(data.name as VARCHAR),
- CAST(data.doses as INT),
- CAST(data.revenue as INT),
- CAST(data.prod_who_list as INT),
- CAST(data.tot_revenue as INT),
- CAST(data.average_price_dose as INT),
- CAST(data.license_med_patent_pool as INT),
- CAST(data.revenue_by_region as SUPER),
- CAST(data.percentage_mid_low_countries as INT),
- CAST(data.tot_inv_rnd as INT),
- CAST(data.revenue_by_prod_type as SUPER),
- CAST(data.doses_mid_low_income_countries as INT),
- CAST(data.regulatory_filings as INT),
- CAST(data.therapeutic_categories as INT),
- CAST(data.patents_filed_to_date as INT),
- CAST(data.percent_69fp_2020_contraceptive as INT),
- CAST(data.number_of_clinical_trials as INT),
- CAST(data.fp2020_contracep_method as SUPER),
- CAST(data.products_globally as INT),
- CAST(data.num_women_girls_fp2020_contracep as INT),
- CAST(data.manufacturing_facilities as INT),
- CAST(data.global_cause_death_mylan_treat as INT),
- CAST(data.per_top_cause_death_mid_low_inc as INT),
- CAST(data.types_products as INT),
- CAST(data.rnd_centers as INT),
- CAST(data.countries_territories_reached as INT),
- CAST(data.products_awaiting_approval_development as INT),
- CAST(data.participation_patient_assistance_programs as INT),
- CAST(data.number_technology_focused_development_sites as INT),
- CAST(data.cust_service_level as SUPER),
- CAST(data.num_prod_who_pre_qual as SUPER),
- CAST(data.org_collab_worldwide_public_health as INT),
- CAST(data.countries_acc_med_found as INT)
-from ds_mongo_profileinstance where profileId='60316' and active = 't' and securitycontextid is not null
+drop table if exists sus_60316;
+ create table sus_60316 as
+				select st.xprojectid, p.name, st.financialperiod, t.name as finPeriod,
+				concat(concat(substring(cast(timestamp 'epoch' + CAST(t.start AS BIGINT)/1000 * interval '1 second' as varchar), 1, 10),'T'), concat(split_part(cast(timestamp 'epoch' + CAST(t.start AS BIGINT)/1000 * interval '1 second' as varchar), ' ',2),'.000Z')) as startdate,
+				concat(concat(substring(cast(timestamp 'epoch' + CAST(t.end AS BIGINT)/1000 * interval '1 second' as varchar), 1, 10),'T'), concat(split_part(cast(timestamp 'epoch' + CAST(t.end AS BIGINT)/1000 * interval '1 second' as varchar), ' ',2),'.000Z')) as enddate,
+				concat(concat(startdate,'|'),enddate) as fy_timerange,
+				-- concat(concat(t.start,'|'),t.end) as fy_timerange,
+				st.xquestionid,
+				q.questiontype,
+				q.keyword,
+				q.questiontext,
+				cast(st.datanum as float),
+				cast(st.dataNumBase as float),
+				st.datatext,
+				st.datatagref as dataselect,
+				st.datatable,
+				st.dataTableBase,
+				st.measureunit,
+				st.measureunitBase,
+				st.tableSettings
+				from ds_mongo_sustainabilityTask st
+				left join ds_mysql_prod_question q on st.xquestionid = q.id
+				left join ds_mysql_prod_project p on st.xprojectid = p.id
+				left join ds_mysql_prod_tagelement t on st.financialperiod = t.id
+				where xprofileId='60316' and status = 'APPROVED' and st.active='t'
+				and keyword in ('name','doses','revenue','prod_who_list','tot_revenue','average_price_dose','license_med_patent_pool','revenue_by_prod_type','percentage_mid_low_countries','tot_inv_rnd','revenue_by_region','doses_mid_low_income_countries','regulatory_filings','therapeutic_categories','patents_filed_to_date','percent_69fp_2020_contraceptive','number_of_clinical_trials','fp2020_contracep_method','products_globally','num_women_girls_fp2020_contracep','manufacturing_facilities','global_cause_death_mylan_treat','per_top_cause_death_mid_low_inc','types_products','rnd_centers','countries_territories_reached','products_awaiting_approval_development','participation_patient_assistance_programs','number_technology_focused_development_sites','cust_service_level','num_prod_who_pre_qual','org_collab_worldwide_public_health','countries_acc_med_found')
+				
