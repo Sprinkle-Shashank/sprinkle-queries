@@ -1,6 +1,42 @@
-select pro.name as projectid, fy_timerange, count(projectid) from profile_79639 p
+with table1 as (select pro.name as projectid, p.fy_timerange, count(p.projectid),detail.schedule_7,startup.state_district from profile_79639 p
+
+LEFT JOIN ds_mysql_prod_project AS pro
+ON  p.projectid= pro.id
+left join profile_79637 startup
+on p.projectid= startup.projectid
+
+left join profile_79279 detail
+on pro.parent= detail.projectid
+
+
+group by pro.name, p.fy_timerange,detail.schedule_7,startup.state_district),
+table2 as (
+select projectid,fy_timerange,count,schedule,state_district from table1 tab1, tab1.schedule_7 schedule)
+
+select projectid, fy_timerange, count,sche.name as schedule_7,dist.name as district,sta.name as state,reftag.code 
+from table2 tab2
+
+LEFT JOIN ds_mysql_prod_tagelement AS sche
+ON tab2.schedule = sche.id
+
+LEFT JOIN ds_mysql_prod_tagelement AS city
+ON tab2.state_district = city.id
+LEFT JOIN ds_mysql_prod_tagelement AS dist
+ON city.parent = dist.id
+
+LEFT JOIN ds_mysql_prod_tagelement AS sta
+ON dist.parent = sta.id
+
+left join ds_mongo_reftagelementmetadata reftag on
+sta.name = reftag.name
+
+--group by projectid, fy_timerange,count,sche.name,sta.name,reftag.code
+
+
+
+/*select pro.name as projectid, fy_timerange, count(projectid) from profile_79639 p
 
 LEFT JOIN ds_mysql_prod_project AS pro
 ON  p.projectid= pro.id
 
-group by pro.name, fy_timerange
+group by pro.name, fy_timerange*/
