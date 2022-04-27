@@ -86,10 +86,10 @@ table4 as (Select
 			listagg(subcat_output,',') as subcat_output,
 			listagg(flag_deviation_delay,',') as flag_deviation_delay,
 			listagg(dataCheck,',') as dataCheck,
-			_id1,flag,fy_timerange1, month1
+			_id1,flag,fy_timerange1, month1,projectCode
 		from table3 p
 
-group by _id1,flag,fy_timerange1, month1
+group by _id1,flag,fy_timerange1, month1,projectCode
 ),
 
 table5 as (Select
@@ -105,26 +105,26 @@ table5 as (Select
 		   case when fy27420_2 <= fy_1 then project_manager27420_1 else project_manager27396 end as projectManager,
 		   case when subcat_output is not null and flag_deviation_delay = '1' then 1 else 0 end as deviations, /* Check for deviation */
 		   case when subcat_output is null or dataCheck = 0 then 0 else 1 end as manager2,
-		   case when dataCheck = 1 and subcat_output = 0 then 1 else manager2 end as manager2_1, fy_timerange1, month1
+		   case when dataCheck = 1 and subcat_output = 0 then 1 else manager2 end as manager2_1, fy_timerange1, month1,projectCode
 		   		   
 		   from table4 p
 ),
 
 table6 as (Select listagg(manager2_1,',') as manager2_1,
-		   sum(deviations) as deviations, _id1,flag,projectManager,fy_timerange1, month1					 
+		   sum(deviations) as deviations, _id1,flag,projectManager,fy_timerange1, month1,projectCode					 
 						 from table5 p						 					
-group by _id1, flag,projectManager,fy_timerange1, month1
+group by _id1, flag,projectManager,fy_timerange1, month1,projectCode
 
 ),
 table6_1 as (select 
 			reverse(reverse(SPLIT_PART((manager2_1), ',',1))) as manager2_1,
-			 _id1, deviations,flag,projectManager ,fy_timerange1, month1
+			 _id1, deviations,flag,projectManager ,fy_timerange1, month1,projectCode
 			from table6 p
 ),
 
-table7 as (Select count(distinct _id1) as actDone, sum(manager2_1) as actReported, sum(deviations) as devReported,flag,projectManager,fy_timerange1, month1
+table7 as (Select count(distinct _id1) as actDone, sum(manager2_1) as actReported, sum(deviations) as devReported,flag,projectManager,fy_timerange1, month1,projectCode
 		   from table6_1 p
-group by flag,projectManager,fy_timerange1, month1
+group by flag,projectManager,fy_timerange1, month1,projectCode
 )
 
-Select fy_timerange1 as fy_timerange, month1 as month, actdone,actReported,devReported,projectManager  from table7 p where flag = 1 and fy_timerange='2021-2022'
+Select projectCode, fy_timerange1 as fy_timerange, month1 as month, actdone,actReported,devReported,projectManager  from table7 p where flag = 1 and fy_timerange='2021-2022'
