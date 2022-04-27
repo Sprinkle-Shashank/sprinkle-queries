@@ -55,7 +55,8 @@ table3 as ( select parent1, censusCode, subcat_output,focus_area1, projectId1, f
 		   tags2.name as fy27420_1,
 		   case when fy27420_1 is null or fy_1 < fy27420_1 then fy27396_1 else fy27420_1 end as fy27420_2,
 		   case when project_manager27420 is null then project_manager27396 else project_manager27420 end as project_manager27420_1,
-		   case when fy27420_2 <= fy_1 or fy27396_1 <= fy_1 then 1 else 0 end as flag 
+		   case when fy27420_2 <= fy_1 or fy27396_1 <= fy_1 then 1 else 0 end as flag,
+		   case when subcat_output is not null and flag_deviation_delay = '1' then 1 else 0 end as deviations
 		   
 		   from table2 p
 
@@ -86,14 +87,14 @@ table4 as (Select
 			listagg(subcat_output,',') as subcat_output,
 			listagg(flag_deviation_delay,',') as flag_deviation_delay,
 			listagg(dataCheck,',') as dataCheck,
-			_id1,flag,fy_timerange1, month1,projectCode
+			_id1,flag,fy_timerange1, month1,projectCode,deviations
 		from table3 p
 
-group by _id1,flag,fy_timerange1, month1,projectCode
+group by _id1,flag,fy_timerange1, month1,projectCode,deviations
 ),
 
 table5 as (Select
-		   case when subcat_output is not null and flag_deviation_delay = '1' then 1 else 0 end as deviations,
+		   
 		   reverse(reverse(SPLIT_PART((fy27420_2), ',',1))) as fy27420_2,
 		   reverse(reverse(SPLIT_PART((fy27396_1), ',',1))) as fy27396_1,
 		   reverse(reverse(SPLIT_PART((project_manager27396), ',',1))) as project_manager27396,
@@ -106,7 +107,7 @@ table5 as (Select
 		   reverse(reverse(SPLIT_PART((dataCheck), ',',1))) as dataCheck,
 		   _id1, flag,
 		   case when fy27420_2 <= fy_1 then project_manager27420_1 else project_manager27396 end as projectManager,
-		   /* Check for deviation */
+		   deviations,
 		    
 		   case when subcat_output is null or dataCheck = 0 then 0 else 1 end as manager2,
 		   case when dataCheck = 1 and subcat_output = 0 then 1 else manager2 end as manager2_1, fy_timerange1, month1,projectCode
