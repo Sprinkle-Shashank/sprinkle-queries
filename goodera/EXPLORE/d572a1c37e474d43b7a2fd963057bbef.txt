@@ -1,4 +1,4 @@
-SELECT proj.name AS projectid, s.fy_timerange, phc_detail.name as PHC, sum(beneficiary) as count,phc_detail.state,detail.schedule_7 FROM  profile_80544 s
+with table1 as (SELECT proj.name AS projectid, s.fy_timerange, phc_detail.name as PHC, sum(beneficiary) as count,phc_detail.state,detail.schedule_7 FROM  profile_80544 s
 
 
 LEFT JOIN ds_mysql_prod_project proj
@@ -11,4 +11,23 @@ left join profile_79279 detail
 on s.projectid= detail.projectid
 
 group by proj.name,s.fy_timerange,phc_detail.name,phc_detail.state,detail.schedule_7
+),
+
+table2 as (
+select projectid,fy_timerange,count,schedule,state from table1 tab1, tab1.schedule_7 schedule)
+
+select projectid, fy_timerange, count,sche.name as schedule_7,dist.name as district,sta.name as state,reftag.code 
+from table2 tab2
+
+LEFT JOIN ds_mysql_prod_tagelement AS sche
+ON tab2.schedule = sche.id
+
+LEFT JOIN ds_mysql_prod_tagelement AS dist
+ON tab2.state = dist.id
+
+LEFT JOIN ds_mysql_prod_tagelement AS sta
+ON dist.parent = sta.id
+
+left join ds_mongo_reftagelementmetadata reftag on
+sta.name = reftag.name
 
