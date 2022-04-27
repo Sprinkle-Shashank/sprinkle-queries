@@ -1,13 +1,13 @@
-with table1 as(select xprojectId,time.name as Time_period,SUM(datanum) as total from sus_60529 sus
+with table1 as(select xprojectId,time.name as Time_period,SUM(datanum),CAST(SUBSTRING(enddate,1,4) as INT) as end_date_2,(end_date_2+1) as end_final,concat(SUBSTRING(startdate,1,4),concat(' - ' ,end_final)) as time as total from sus_60529 sus
 
 Left join ds_mysql_prod_tagelement time
 on sus.financialperiod = time.id
 
 where keyword in ('percentage_employees_fair_competition_policy')
 
-group by xprojectId,time.name 
+group by xprojectId,time.name,startdate,enddate
 )
-select p.projectId,text.name as GOAL,p.pillar,p.timerange_timerange,SUBSTRING(p2.last_updated,1,10) as "LAST UPDATED",p2.current_progress as "CURRENT PROGRESS",t1.total
+select p.projectId,text.name as GOAL,p.pillar,p.timerange_timerange,SUBSTRING(p2.last_updated,1,10) as "LAST UPDATED",p2.current_progress as "CURRENT PROGRESS",t1.total,t1.time
   from profile_61092 p
 
 
@@ -22,4 +22,4 @@ on p.projectId = t1.xprojectId
 
 where pillar = 1009933 and text.name like '%Fair Competition%'
 
-group by p.projectId,GOAL,p.pillar,p.timerange_timerange,p2.last_updated,p2.current_progress,t1.total
+group by p.projectId,GOAL,p.pillar,p.timerange_timerange,p2.last_updated,p2.current_progress,t1.total,t1.time
