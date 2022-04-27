@@ -1,4 +1,4 @@
-select pro.name as projectid, s.fy_timerange,sum( households) as count,detail.location,detail.schedule_7 from profile_79704 s
+with table1 as (select pro.name as projectid, s.fy_timerange,sum( households) as count,detail.location,detail.schedule_7 from profile_79704 s
 
 LEFT JOIN ds_mysql_prod_project AS pro
 ON s.projectid = pro.id
@@ -6,4 +6,21 @@ ON s.projectid = pro.id
 left join profile_79279 detail
 on s.projectid= detail.projectid
 
-group by pro.name ,s.fy_timerange,detail.location,detail.schedule_7
+group by pro.name ,s.fy_timerange,detail.location,detail.schedule_7) ,
+
+table2 as ( select projectid,fy_timerange,schedule,locate,count from table1 tab1, tab1.schedule_7 schedule, tab1.location locate)
+
+select projectid, fy_timerange, count,sche.name as schedule_7,dist.name as district,sta.name as state,reftag.code 
+from table2 tab2
+
+LEFT JOIN ds_mysql_prod_tagelement AS sche
+ON tab2.schedule = sche.id
+
+LEFT JOIN ds_mysql_prod_tagelement AS dist
+ON tab2.locate = dist.id
+
+LEFT JOIN ds_mysql_prod_tagelement AS sta
+ON dist.parent = sta.id
+
+left join ds_mongo_reftagelementmetadata reftag on
+sta.name = reftag.name
