@@ -38,7 +38,7 @@ CASE
 	THEN t1.name 
 	
 	ELSE NULL
-END AS district,reftag.code 
+END AS district
 
 FROM profile_77915 AS S
 
@@ -56,8 +56,7 @@ ON t2.parent = t3.id
 
 LEFT JOIN ds_mysql_prod_tagelement AS t4
 ON t3.parent = t4.id
-left join ds_mongo_reftagelementmetadata reftag on
-t3.name = reftag.name				
+				
 
 LEFT JOIN ds_mysql_prod_project AS pro
 ON S.projectid = pro.id
@@ -65,11 +64,13 @@ ON S.projectid = pro.id
 LEFT JOIN profile_79279 detail on
 s.projectid = detail.projectid
 
-GROUP BY pro.name, t.name, S.name, S.date, trained, certified, state, district,detail.schedule_7,reftag.code),
+GROUP BY pro.name, t.name, S.name, S.date, trained, certified, state, district,detail.schedule_7),
 table2 as (
-select projectid, gender, name, fy_timerange,count, trained, certified, state, district,schedule,code  from table1 tab1, tab1.schedule_7 schedule )
+select projectid, gender, name, fy_timerange,count, trained, certified, state, district,schedule  from table1 tab1, tab1.schedule_7 schedule )
 
-select projectid, gender, tab2.name, fy_timerange,count, trained, certified, state, district,sche.name as schedule_7,code  from table2 tab2
+select projectid, gender, tab2.name, fy_timerange,count, trained, certified, state, district,sche.name as schedule_7,reftag.code  from table2 tab2
 LEFT JOIN ds_mysql_prod_tagelement AS sche
 ON tab2.schedule = sche.id
 
+left join ds_mongo_reftagelementmetadata reftag on
+tab2.state = reftag.name
