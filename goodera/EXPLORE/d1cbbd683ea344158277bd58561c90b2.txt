@@ -1,5 +1,5 @@
 with table1 as (Select p.subcat_output, p._id, p.focus_area, p.fy, p.projectId, p.flag_deviation_delay,
-				(reverse(SPLIT_PART((data.name), '|',3))) as censusCode1,
+				reverse(reverse(SPLIT_PART((data.name), '|',3))) as censusCode1,
 				case when data.parent = 18943 then data.id else data.parent end as parent,
 				case when data.parent = 18943 then 'Cluster' else censusCode1 end as censusCode
 
@@ -11,13 +11,17 @@ data.id = p.projectId
 ),
 
 
-table2 as (select p.parent,p.censusCode,p.subcat_output,p.focus_area,p.projectId , p.flag_deviation_delay,
-		   (reverse(SPLIT_PART((data1.name), '|',0))) as projectCode
+table2 as (select p.parent,p.censusCode,p.subcat_output,p.focus_area,p.projectId , p.flag_deviation_delay,p._id,
+		   reverse(reverse(SPLIT_PART((data1.name), '|',1))) as projectCode,
+		   data1.name
 		   
 		   from table1 p
 
 left join ds_mysql_prod_project data1 on
 data1.id = p.parent
+		   
+left join ds_mongo_taskresponse responseData on
+responseData.profileinstanceid = p._id
 
 )
 
