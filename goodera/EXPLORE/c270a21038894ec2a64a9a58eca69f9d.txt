@@ -1,6 +1,21 @@
 with table1 as (
-  select fy_timerange, brand, cotton_type, business ,sum(volume) as weight 
-  from profile_62947
-  group by fy_timerange, brand, cotton_type, business 
-  )
-  select * from table1
+select fy_timerange, br.name as brand, ct2.name as material, bn.name as business ,sum(volume/1000) as weight
+from profile_62947 p1
+left join ds_mysql_prod_tagelement br
+on p1.brand = br.id
+
+left join ds_mysql_prod_tagelement bn
+on p1.business = bn.id
+			
+left join ds_mysql_prod_tagelement ct
+on p1.cotton_type = ct.id
+
+left join ds_mysql_prod_tagelement ct1
+on ct.parent = ct1.id
+
+left join ds_mysql_prod_tagelement ct2
+on ct1.parent = ct2.id
+  
+group by fy_timerange, br.name, bn.name, ct2.name
+)
+select * from table1
