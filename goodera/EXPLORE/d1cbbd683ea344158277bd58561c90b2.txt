@@ -13,7 +13,7 @@ data.id = p.projectId
 
 table2 as (select p.parent,p.censusCode,p.subcat_output,p.focus_area,p.projectId , p.flag_deviation_delay,p._id,
 		   reverse(reverse(SPLIT_PART((data1.name), '|',1))) as projectCode,
-		   data1.name
+		   case when responseData.status like 'PENDING_APPROVAL' or (responseData.status like 'SUBMITTED' AND responseData.approvalLog IS NULL) THEN 0 ELSE 1 END AS  dataCheck
 		   
 		   from table1 p
 
@@ -23,6 +23,10 @@ data1.id = p.parent
 left join ds_mongo_taskresponse responseData on
 responseData.profileinstanceid = p._id
 
+left join profile_27489 data27489 on 
+data27489.name = p.censusCode
+	
+order by dataCheck desc
 )
 
 
