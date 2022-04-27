@@ -7,49 +7,21 @@ with temp as
 ,
 table1 as 
 (
-select fy_timerange, br.name as brand,bn.name as business,mt.name as material, sum(weight) as weight, fkey
+select fy_timerange, brand, business, division, material,sum(weight) as weight, fkey
 from profile_63455 p1
-
-left join ds_mysql_prod_tagelement br
-on p1.brand = br.id
-
-
-left join ds_mysql_prod_tagelement bn
-on p1.business = bn.id
 			
-
-left join ds_mysql_prod_tagelement mt
-on p1.material = mt.id
-			
-				
 group by fy_timerange, br.name, bn.name, mt.name, fkey),
 
 table2 as (
-select t1.fy_timerange, t1.brand, t1.business, t1.material,ct.name as cotton_type,sum((volume/1000)) as bciweight,any_value(all weight) as weight2
+select fy_timerange, brand, business, material, t2.cotton_type,sum((volume/1000)) as bciweight,first_value(weight) over()
 from table1 t1
 
 left join profile_62947 t2 on 
 t1.fkey = t2.name
 
-left join ds_mysql_prod_tagelement ct
-on t2.cotton_type = ct.id
-
-group by  t1.fy_timerange, t1.brand, t1.business, t1.material, ct.name
-),
-table3 as 
-(
-  select t2.fy_timerange, t2.brand, t2.business,t2.material,t2.cotton_type,
-  case 
-      when t2.material = 'Conventional Cotton' then
-      case
-          when t2.cotton_type = 'BCI Cotton' then t2.weight2-t2.bciweight
-          else  t2.weight2
-      else t2.weight2 
-  end 
-  as
-  weight
-from table2 t2
+group by fy_timerange, brand, business, material, t2.cotton_type
 )
-select * from table3
+
+select * from table2
 
   
