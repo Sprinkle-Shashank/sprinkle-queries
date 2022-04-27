@@ -1,4 +1,4 @@
-with s as 
+with table1 as 
 (Select t.name as projectid,fy_timerange, extract(year from cast(startdate as DATETIME)) as year, datatablebase, questiontext
 
 from sus_78882
@@ -6,7 +6,17 @@ left join ds_mysql_prod_project t
 on xprojectid=t.id
 where keyword='scope_2_electricity'
 ),
-s2 as (
+table2 as (
 Select projectid ,fy_timerange, year,  coun.consumption_electricity
-from s as p, unpivot p.datatablebase as coun at xyz
-)Select projectid , fy_timerange, year::varchar, consumption_electricity from s2
+from table1 as p, unpivot p.datatablebase as coun at xyz
+),emission_conversion as (
+	select fy_timerange, es.name as emission_source, conversion_factor, emission_factor from profile_80607
+  
+  left join ds_mysql_prod_tagelement es
+on profile_80607.emission_source = es.id
+  
+
+)
+
+
+Select projectid , fy_timerange, year::varchar, consumption_electricity from table2
