@@ -4,23 +4,34 @@ with table1 as (Select p.profileid as pid1, p.status ,
 				case when p.data.subcat_output is null then 0 else 1 end as output,
 				data54963.fy as fy,
 				data54963.month as month,
-				json_serialize(approvalLog) as approvalStatus,
-				p.data.subcat_output as subcat_output,
-				reverse(reverse(SPLIT_PART((data.name), '|',3))) as censusCode1,
-				case when data.parent = 18943 then data.id else data.parent end as parent,
-				case when data.parent = 18943 then 'Cluster' else censusCode1 end as censusCode
+				json_serialize(approvalLog) as approvalStatus1,
+				p.data.subcat_output as subcat_output1,
+				reverse(reverse(SPLIT_PART((dataproj.name), '|',3))) as censusCode1,
+				case when dataproj.parent = 18943 then dataproj.id else dataproj.parent end as parent1,
+				case when dataproj.parent = 18943 then 'Cluster' else censusCode1 end as censusCode,
+				f.name as fy_timerange1,
+				m.name as Month1
 				
-	
-
 			from ds_mongo_taskresponse p
 				
 left join profile_54963 data54963 on 
 data54963._id = p.profileInstanceId
 				
-left join ds_mysql_prod_project data on
-data.id = p.projectId
-				
-				
-				
+left join ds_mysql_prod_project dataproj on
+dataproj.id = p.projectId
+							
+left join ds_mysql_prod_tagelement f on
+p.fy=f.id
+left join ds_mysql_prod_tagelement m on
+p.month=m.id
+),
+
+table2 as (Select pid1, status1, output, fy, month, approvalStatus1, subcat_output1, parent1,censusCode, fy_timerange1, month1 
+		   
+		   from table1 p
 )
-Select * from table1 p where pid1 = '54963' and status1 = 1 and output = 1
+
+
+
+
+Select * from table2 p where pid1 = '54963' and status1 = 1 and output = 1
