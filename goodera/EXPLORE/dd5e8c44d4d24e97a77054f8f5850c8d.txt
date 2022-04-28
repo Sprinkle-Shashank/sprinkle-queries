@@ -1,8 +1,8 @@
 with sub1 as (
-select _id from profile_36901
+select _id, projectid from profile_36901
 union all
-select _id from profile_145)
-select status, split_part(split_part(json_serialize(approvallog[0]),',',3),'"',4) as emailid, 
+select _id, projectid from profile_145)
+select p.name as projectid, status, split_part(split_part(json_serialize(approvallog[0]),',',3),'"',4) as emailid, 
 split_part(split_part(json_serialize(approvallog[0]),',',4),'"',4) as name,
 split_part(split_part(json_serialize(approvallog[0]),',',5),'"',4) as comments,
 substring(split_part(split_part(json_serialize(approvallog[0]),',',6),'"',4),1,10) as timestamp,
@@ -10,5 +10,5 @@ approvallog[0] from sub1 a
 left join ds_mongo_taskresponse t
 on t.profileinstanceid=a._id
 left join ds_mysql_prod_tagelement p
-on t.creatorid=p.id
+on a.projectid=p.id
 where status='REJECTED'
