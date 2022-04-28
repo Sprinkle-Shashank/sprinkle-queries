@@ -1,0 +1,58 @@
+with temp as 
+(
+  select 'material'  as col
+  union all
+  select 'cotton_type' as col
+)
+,
+table1 as 
+(
+select fy_timerange, brand, business, division, material,sum(weight) as weight, fkey
+from profile_63455 
+			
+group by fy_timerange,brand, business, division,material, fkey),
+
+table2 as 
+(
+select t1.fy_timerange, t1.brand, t1.business, t1.material, t2.cotton_type,sum((t2.volume/1000)) as bciweight,any_value(t1.weight) as weight2
+from table1 t1
+  
+left join profile_62947 t2 on 
+t1.fkey = t2.name
+
+group by t1.fy_timerange, t1.brand, t1.business, t1.material, t2.cotton_type
+)
+,
+table3 as 
+(
+ select t3.fy_timerange, t3.brand, t3.business,t3.bciweight,
+  case 
+      when (t3.material = 965103)  and (t3.cotton_type = 964909) then (t3.weight2-t3.bciweight)
+      else
+            t3.weight2 end as weight,
+  
+  temp.col as test1,
+  
+  case col
+      when 'material' then  t3.material
+      when 'cotton_type' then t3.cotton_type
+      else null
+      end as test2
+  from table2 t3
+  cross join temp
+  ),
+  table4 as
+  ( 
+	select t4.fy_timerange, t4.brand, t4.business,
+	case 
+	    when test2 <> 964909 then t4.weight
+	    else t4.bciweight
+	end as weight2,test2 as material_tag
+	from table3 t4
+  ),
+  select t5.fy_timerange, t5.brand, t5.business,mt.name as material,any_value(t5.weight2) as weight
+  from table4 t5
+  left join ds_mysql_prod_tagelement mt
+  on t5.test2 = mt.id
+  where mt.name is not null
+  group by t5.fy_timerange, t5.brand, t5.business,mt.name
