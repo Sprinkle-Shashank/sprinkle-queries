@@ -14,7 +14,7 @@ group by fy_timerange,brand, business, division,material, fkey),
 
 table2 as 
 (
-select t1.fy_timerange, t1.brand, t1.business, t1.material, t2.cotton_type,sum((t2.volume/1000)) as bciweight,any_value(t1.weight)
+select t1.fy_timerange, t1.brand, t1.business, t1.material, t2.cotton_type,sum((t2.volume/1000)) as bciweight,any_value(t1.weight) as weight2
 from table1 t1
   
 left join profile_62947 t2 on 
@@ -22,7 +22,27 @@ t1.fkey = t2.name
 
 group by t1.fy_timerange, t1.brand, t1.business, t1.material, t2.cotton_type
 )
+,
+table3 as 
+(
+ select t3.fy_timerange, t3.brand, t3.business,
+  case 
+      when (t3.material = 965103)  and (t3.cotton_type = 964909) then (t3.weight2-t3.bciweight)
+      else
+            t3.weight2 end as weight,
+  
+  temp.col as test1,
+  
+  case 
+      when temp.col = 'material' then t3.material
+      when temp.col = 'cotton type' then t3.cotton_type
+      else null
+      end as test2
+  from table2 t3
+  cross join temp
+  )
+  select * from table3
 
-select * from table2
+
 
   
