@@ -1,5 +1,6 @@
 with table1 as (Select p.profileid as pid1, p.status ,
 				p.status as statusfinal,
+				case when pid1 = '54963' then 1 else 0 end as idstatus,
 				case when p.status = 'SUBMITTED'  or p.status = 'PENDING_APPROVAL' then 1 else 0 end as status1,
 				case when p.data.subcat_output is null then 0 else 1 end as output,
 				data54963.fy as fy1,
@@ -28,7 +29,7 @@ left join ds_mysql_prod_tagelement m on
 data54963.month=m.id
 ),
 
-table2 as (Select pid1, status1, output, fy1, month, approvalStatus1, subcat_output1, parent1,censusCode, fy_timerange1, month1 ,idd,
+table2 as (Select idstatus, status1, output, fy1, month, approvalStatus1, subcat_output1, parent1,censusCode, fy_timerange1, month1 ,idd,
 		   reverse(reverse(SPLIT_PART((data1.name), '|',1))) as projectCode,
 	
 		   case when approvalStatus1 is null then '[]' else approvalStatus1 end as approvalStatus12,statusfinal,
@@ -41,7 +42,7 @@ data1.id = parent1
 ),
 
 
-table3 as (Select pid1, status1, output, fy1, month, approvalStatus1, subcat_output1, parent1,censusCode, fy_timerange1, month1 ,projectCode, firstLevelApproval,statusfinal, approvalStatus12,idd,
+table3 as (Select idstatus, status1, output, fy1, month, approvalStatus1, subcat_output1, parent1,censusCode, fy_timerange1, month1 ,projectCode, firstLevelApproval,statusfinal, approvalStatus12,idd,
 		   data27396.project_manager as project_manager27396,
 		   data27396._id as recordId,
 		   data27396.fy as fy27396,
@@ -82,11 +83,11 @@ table4 as (Select
 			listagg(cast(subcat_output1 as int),',') as subcat_output1,
 		
 		   listagg(cast(firstLevelApproval as int),',') as firstLevelApproval,
-			pid1, status1, output,flag,fy_timerange1, month1,projectCode,
-		   case when pid1 = '54963' then 1 else 0 end as idstatus,idd
+			 status1, output,flag,fy_timerange1, month1,projectCode,
+		   ,idstatus,idd
 		from table3 p
 
-group by pid1,flag,fy_timerange1, month1,projectCode,status1, output,idd
+group by idstatus,flag,fy_timerange1, month1,projectCode,status1, output,idd
 ),
 
 table5 as (Select
@@ -100,7 +101,7 @@ table5 as (Select
 		   reverse(reverse(SPLIT_PART((firstLevelApproval), ',',1))) as firstLevelApproval,
 		   idstatus,idd,
 		   
-		   pid1, status1, output,flag,fy_timerange1, month1,projectCode,
+		    status1, output,flag,fy_timerange1, month1,projectCode,
 		   case when fy27420_2 <= fy_1 then project_manager27420_1 else project_manager27396 end as projectManager
 		   		   
 		   from table4 p
