@@ -2,7 +2,7 @@ with table1 as (Select p.profileid as pid1, p.status ,
 				p.status as statusfinal,
 				case when p.status = 'SUBMITTED' or p.status = 'PENDING_APPROVAL' then 1 else 0 end as status1,
 				case when p.data.subcat_output is null then 0 else 1 end as output,
-				data54963.fy as fy,
+				data54963.fy as fy1,
 				data54963.month as month,
 				json_serialize(approvalLog) as approvalStatus1,
 				p.data.subcat_output as subcat_output1,
@@ -26,7 +26,7 @@ left join ds_mysql_prod_tagelement m on
 data54963.month=m.id
 ),
 
-table2 as (Select pid1, status1, output, fy, month, approvalStatus1, subcat_output1, parent1,censusCode, fy_timerange1, month1 ,
+table2 as (Select pid1, status1, output, fy1, month, approvalStatus1, subcat_output1, parent1,censusCode, fy_timerange1, month1 ,
 		   reverse(reverse(SPLIT_PART((data1.name), '|',1))) as projectCode,
 		   reverse(reverse(SPLIT_PART((dataParent.name), '|',1))) as parentCode,
 		   case when approvalStatus1 is null then '[]' else approvalStatus1 end as approvalStatus12,statusfinal,
@@ -41,12 +41,35 @@ dataParent.id = parent1
 ),
 
 
-table3 as (Select pid1, status1, output, fy, month, approvalStatus1, subcat_output1, parent1,censusCode, fy_timerange1, month1 ,projectCode, parentCode, firstLevelApproval,statusfinal, approvalStatus12
+table3 as (Select pid1, status1, output, fy1, month, approvalStatus1, subcat_output1, parent1,censusCode, fy_timerange1, month1 ,projectCode, parentCode, firstLevelApproval,statusfinal, approvalStatus12,
+		   data27396.project_manager as project_manager27396,
+		   data27396.id as recordId,
+		   data27396.fy as fy27396,
+		   data27420.project_manager as project_manager27420,
+		   data27420.fy as fy27420,
+		   tags.name as fy27396_1,
+		   tags1.name as fy_1,
+		   tags2.name as fy27420_1,
+		   case when fy27420_1 is null or fy_1 < fy27420_1 then fy27396_1 else fy27420_1 end as fy27420_2,
+		   case when project_manager27420 is null then project_manager27396 else project_manager27420 end as project_manager27420_1,case when fy27420_2 <= fy_1 or fy27396_1 <= fy_1 then 1 else 0 end as flag,
+		   
 		   
 		   from table2 p
 
-
-
+left join profile_27396 data27396 on
+data27396.name = projectCode
+		   
+left join profile_27420 data27420 on
+data27420.project_code = data27396.id 
+		   
+left join ds_mysql_prod_tagelement tags on
+tags.id = data27396.fy
+		   
+left join ds_mysql_prod_tagelement tags1 on
+tags1.id = fy1
+		   
+left join ds_mysql_prod_tagelement tags2 on
+tags2.id = data27420.fy
 )
 
 
@@ -54,4 +77,4 @@ table3 as (Select pid1, status1, output, fy, month, approvalStatus1, subcat_outp
 
 
 
-Select * from table3 p where pid1 = '54963' and status1 = 1 and output = 1
+Select * from table3 p where pid1 = '54963' and status1 = 1 and output = 1 and flag = 1
