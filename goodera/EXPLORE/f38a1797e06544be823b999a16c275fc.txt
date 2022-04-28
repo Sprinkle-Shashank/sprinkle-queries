@@ -1,10 +1,11 @@
-with table1 as (
+with table1 as (select t.* , cast(photos as varchar)  from table1 t ,t.photo as photos),
+table2 as (
 select d1.patient_count , d1.photo,
 fac.name as van, d2.name as partner,
 cast(substring(d1.req_date,1,10) as date) as date_update_1 , cast(substring(d1.date_n,1,10) as date) as date_update_2 , 
 case when d1.date_yn = 28005 then date_update_2 else date_update_1 end as date ,
   partner + ',' + date +','+ location.name + ','+ d1.patient_count +' Beneficery' as title
- from profile_58474 t
+ from table1 t
 
 left join profile_55793 p2
 on t.projectid = p2.projectid
@@ -19,7 +20,8 @@ left join ds_mysql_prod_project fac
 on t.projectid = fac.id
 left join ds_mysql_prod_project loc
 on d1.projectid = loc.id
+  group by  d1.patient_count , d1.photo,fac.name , d2.name, d1.req_date,d1.date_n, d1.date_yn  
   
-  ),
-  table2 as (select t.* , cast(photos as varchar)  from table1 t ,t.photo as photos)
+  )
+  
   select * from table2
