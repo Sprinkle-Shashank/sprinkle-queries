@@ -85,11 +85,29 @@ table4 as (Select
 		from table3 p
 
 group by pid1,flag,fy_timerange1, month1,projectCode,status1, output
+),
+
+table5 as (Select
+		   
+		   reverse(reverse(SPLIT_PART((fy27420_2), ',',1))) as fy27420_2,
+		   reverse(reverse(SPLIT_PART((fy27396_1), ',',1))) as fy27396_1,
+		   reverse(reverse(SPLIT_PART((project_manager27396), ',',1))) as project_manager27396,
+		   reverse(reverse(SPLIT_PART((project_manager27420_1), ',',1))) as project_manager27420_1,
+		   reverse(reverse(SPLIT_PART((fy_1), ',',1))) as fy_1,
+		   reverse(reverse(SPLIT_PART((subcat_output1), ',',1))) as subcat_output1,
+		   reverse(reverse(SPLIT_PART((firstLevelApproval), ',',1))) as firstLevelApproval,
+		   
+		   pid1, status1, output,flag,fy_timerange1, month1,projectCode,
+		   case when fy27420_2 <= fy_1 then project_manager27420_1 else project_manager27396 end as projectManager
+		   		   
+		   from table4 p
+),
+table6 as (Select count(distinct pid1) as Totaltasks, sum(firstLevelApproval) as manager1, pid1, status1, output,flag,fy_timerange1, month1,projectCode,projectManager
+		   
+		   from table5 p
+group by pid1, status1, output,flag,fy_timerange1, month1,projectCode,projectManager
+
+
 )
 
-
-
-
-
-
-Select * from table4 p where pid1 = '54963' and status1 = 1 and output = 1 and flag = 1
+Select projectCode, fy_timerange1 as fy_timerange, month1 as month,Totaltasks,manager1,projectManager from table6 p where pid1 = '54963' and status1 = 1 and output = 1 and flag = 1
