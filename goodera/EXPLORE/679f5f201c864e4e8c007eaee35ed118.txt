@@ -5,7 +5,10 @@ with table1 as (Select p.profileid as pid1, p.status ,
 				data54963.fy as fy,
 				data54963.month as month,
 				json_serialize(approvalLog) as approvalStatus,
-				data.subcat_output as subcat_output
+				data.subcat_output as subcat_output,
+				reverse(reverse(SPLIT_PART((data.name), '|',3))) as censusCode1,
+				case when data.parent = 18943 then data.id else data.parent end as parent,
+				case when data.parent = 18943 then 'Cluster' else censusCode1 end as censusCode
 				
 	
 
@@ -13,5 +16,11 @@ with table1 as (Select p.profileid as pid1, p.status ,
 				
 left join profile_54963 data54963 on 
 data54963._id = p.profileInstanceId
+				
+left join ds_mysql_prod_project data on
+data.id = p.projectId
+				
+				
+				
 )
 Select * from table1 p where pid1 = '54963' and status1 = 1 and output = 1
