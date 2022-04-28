@@ -1,1 +1,17 @@
-select * from profile_54963
+with tab as (select p.profileid as pid1, 
+				case when pid1 = '54963' then 1 else 0 end as idstatus,
+				p.status as statusfinal,
+				case when p.status = 'SUBMITTED'  or p.status = 'PENDING_APPROVAL' then 1 else 0 end as status1,
+			 f.name as fy_timerange,
+			 case when p.data.subcat_output is null then 0 else 1 end as output
+
+		from ds_mongo_taskresponse p
+			 
+left join profile_54963 data54963 on 
+data54963._id = p.profileInstanceId
+			 
+left join ds_mysql_prod_tagelement f on
+data54963.fy=f.id
+)
+
+select * from tab p where fy_timerange = '2022-2023' and idstatus = 1 and status1 = 1 and output = 1
