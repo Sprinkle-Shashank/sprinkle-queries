@@ -1,80 +1,17 @@
-with table1 as
-(
-select p._id , p.projectid , training_id , profile_61498.name as trainingID from profile_64075 as p
 
-left join profile_61498
-on p.training_id = profile_61498._id),
+with table2 as 
+( select p.*, cast(c as varchar) as image_updated from profile_77700 p, p.image as c ),
 
 table3 as 
-( select * from profile_52810 as p),
+( select p.* , pro.name as program_id, substring(date,1,11) as date_updated from table2 as p 
 
-table21 as 
-(
-select p.projectid, p.facility_status , facility.name as facility_status_update , case when facility_status_update='Active' then 'Active' else 'Deactive' end as Active_Filter, goodera_facility_name_text from profile_68161 as p
-  
-left join ds_mysql_prod_tagelement facility 
-on p.facility_status = facility.id
-),
+left join ds_mysql_prod_tagelement pro
+on p.program = pro.id),
 
-table31 as 
-(
-select p.projectid ,case when nvl2(SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), ven.name)='' then ven.name else nvl2(SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), ven.name) end as vendor , cou.name as country , t21.Active_Filter , SUBSTRING(to_char(p2.date_1, 'DD/MM-YYYY'), POSITION('-' in to_char(p2.date_1, 'DD/MM-YYYY'))+1,4 ) as year ,  p2.trainer_org as trainer_organization , t1.trainingID from table3 as p
+table4 as 
+( select * , p2.projectid from profile_76755 as p
 
+left join profile_77700 p2 on 
+p.projectid = p2.projectid)
 
-left join ds_mysql_prod_project fac
-on p.projectid = fac.id
-
-left join ds_mysql_prod_project ven
-on fac.parent = ven.id
-
-left join ds_mysql_prod_project cou
-on ven.parent = cou.id
-
-left join table21 t21 on 
-fac.name = t21.goodera_facility_name_text
-
-left join profile_64075 p2
-on p.projectId = p2.projectId 
-
-left join table1 t1 on
-p.projectid = t1.projectid
-
-where p.projectId NOT IN ('54835','54832','31299','31303') and trainer_organization is not null and t21.active_filter is not null and year is not null 
-  ),
-  
-  table4 as 
-  ( select case when nvl2(SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), ven.name)='' then ven.name else nvl2(SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), ven.name) end as vendor , cou.name as country , t21.Active_Filter , SUBSTRING(to_char(p2.date_1, 'DD/MM-YYYY'), POSITION('-' in to_char(p2.date_1, 'DD/MM-YYYY'))+1,4 ) as year ,  p.projectid , p._id , female_supervisors , male_supervisors, p3.num_supervisors  , row_number() over 
-(partition by p.projectid
- order by p._id desc) as row from profile_76755 as p 
-  
-left join ds_mysql_prod_project fac
-on p.projectid = fac.id
-
-left join ds_mysql_prod_project ven
-on fac.parent = ven.id
-
-left join ds_mysql_prod_project cou
-on ven.parent = cou.id
-
-left join table21 t21 on 
-fac.name = t21.goodera_facility_name_text
-   
-left join profile_64075 p2
-on p.projectId = p2.projectId 
-   
-left join profile_76896 p3
-on p.projectId = p3.projectId 
-  ), 
-  
-  table5 as 
-  ( select p.* from profile_76896 as p ),
-  
-  table6 as 
-  (select * from table4 where row=1
-   )
-   
-   select  p.projectid , p._id , vendor , year , active_filter , country , cast(((num_supervisors)/(male_supervisors+female_supervisors ))*100 as int) as perentage_check, num_supervisors , (male_supervisors+female_supervisors ) as d1 , case when perentage_check <=30 then '30%' when perentage_check>=31 and perentage_check<=50 then '31-50%' when perentage_check>=51 and perentage_check<=70  then '50-71%' when perentage_check>=71 and perentage_check<=90 then '71-90%' when perentage_check is not null then 'more than 90%' end as saturation_level  from table6 as p
-   
-   -- Vendor: YAKJIN TRADING CORP 
---Cambodia
---2022
+select * from table4
