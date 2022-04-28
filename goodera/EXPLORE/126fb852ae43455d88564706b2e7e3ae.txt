@@ -1,1 +1,28 @@
-Select * from profile_80542
+
+with temp as (
+  select 'Total Calls Received' as C
+  Union all 
+  select 'New Patients' as C
+  Union all 
+  select 'Returning Patients' as C
+  Union all 
+  select 'General Queries' as C
+   Union all 
+  select 'Issue/Activity Specific Queries' as C
+)
+Select projectid,fy_timerange,
+SUM(
+  CASE C
+  When 'Total Calls Received' 				  then p.total_calls
+  When 'New Patients'		  				  then p.new_patients
+  When 'Returning Patients'	  				  then p.returning_patients
+  When 'General Queries'	         		  then p.gen_queries
+  When 'Issue/Activity Specific Queries'	  then p.issue_queries
+  ELSE NULL
+  
+  END) as val,
+  temp.C as dimension
+
+  from profile_80542 p 
+  
+   GROUP BY projectid,fy_timerange,temp.C
