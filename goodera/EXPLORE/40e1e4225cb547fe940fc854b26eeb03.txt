@@ -2,7 +2,7 @@ with table1 as(select projectid, location,focus_area,amount_allocated,_id from p
 
 table2 as (select t1.*, loca from table1 t1 , t1.location loca)
 
-select focus_area, decode(sta.name,null,loc.name,sta.name) as state_1, case when sta.name is null then null else loc.name end as location_1 from table2 p
+select nam.name as partner, decode(sta.name,null,loc.name,sta.name) as state_1, case when sta.name is null then null else loc.name end as location_1 from table2 p
 --select loc.parent from table2 p
 
 
@@ -11,6 +11,8 @@ left join ds_mysql_prod_tagelement loc
 on p.loca=loc.id
 left join ds_mysql_prod_tagelement sta
 on loc.parent=sta.id
+left join ds_mysql_prod_tagelement nam
+on p.focus_area=nam.id
 where amount_allocated is not null and state_1 is not null
 
 group by state_1,location_1,p.focus_area
