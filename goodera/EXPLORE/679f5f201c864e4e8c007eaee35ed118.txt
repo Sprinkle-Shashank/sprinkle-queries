@@ -3,6 +3,8 @@ with table1 as (Select p.profileid as pid1,
 				p.status as statusfinal,
 				case when p.status = 'SUBMITTED'  or p.status = 'PENDING_APPROVAL' then 1 else 0 end as status1,
 				case when p.data.subcat_output is null then 0 else 1 end as output,
+				
+				
 				data54963.fy as fy1,
 				data54963.month as month,
 				json_serialize(approvalLog) as approvalStatus1,
@@ -32,8 +34,8 @@ data54963.month=m.id
 table2 as (Select idstatus, status1, output, fy1, month, approvalStatus1, subcat_output1, parent1,censusCode, fy_timerange1, month1 ,idd,
 		   reverse(reverse(SPLIT_PART((data1.name), '|',1))) as projectCode,
 	
-		   case when approvalStatus1 is null then '[]' else approvalStatus1 end as approvalStatus12,statusfinal,
-		   case when approvalStatus12 like '%APPROVED%' and statusfinal = 'PENDING_APPROVAL' then 1 else 0 end as  firstLevelApproval
+		   statusfinal,
+		   case when approvalStatus1 like '%APPROVED%' and statusfinal = 'PENDING_APPROVAL' then 1 else 0 end as  firstLevelApproval
 		   
 		   from table1 p
 left join ds_mysql_prod_project data1 on
@@ -42,7 +44,7 @@ data1.id = parent1
 ),
 
 
-table3 as (Select idstatus, status1, output, fy1, month, approvalStatus1, subcat_output1, parent1,censusCode, fy_timerange1, month1 ,projectCode, firstLevelApproval,statusfinal, approvalStatus12,idd,
+table3 as (Select idstatus, status1, output, fy1, month, approvalStatus1, subcat_output1, parent1,censusCode, fy_timerange1, month1 ,projectCode, firstLevelApproval,statusfinal,idd,
 		   data27396.project_manager as project_manager27396,
 		   data27396._id as recordId,
 		   data27396.fy as fy27396,
@@ -83,7 +85,7 @@ table4 as (Select
 			listagg(cast(subcat_output1 as int),',') as subcat_output1,
 		
 		   listagg(cast(firstLevelApproval as int),',') as firstLevelApproval,
-			 status1, output,flag,fy_timerange1, month1,projectCode,
+			 status1, output,flag,fy_timerange1, month1,projectCode
 		   ,idstatus,idd
 		from table3 p
 
@@ -113,5 +115,5 @@ group by  status1, output,flag,fy_timerange1, month1,projectCode,projectManager,
 
 )
 
-Select projectCode, fy_timerange1 as fy_timerange, month1 as month,Totaltasks,manager1,projectManager from table6 p where idstatus = 1 and status1 = 1  and flag = 1 and output = 1 and fy_timerange = '2021-2022'--and projectcode = 'P0240/1'
---select * from table2 p where pid1 = '54963' and status1 = 1  and output = 1 and fy_timerange1 = '2021-2022'
+--Select projectCode, fy_timerange1 as fy_timerange, month1 as month,Totaltasks,manager1,projectManager from table6 p where idstatus = 1 and status1 = 1  and flag = 1 and output = 1 and fy_timerange = '2021-2022'--and projectcode = 'P0240/1'
+select * from table2 p where idstatus = 1 and status1 = 1  and output = 1 and fy_timerange1 = '2021-2022'
