@@ -1,1 +1,57 @@
-Select * from profile_80621
+With temp as (
+  
+Select 'Total Patients' as C
+UNION ALL
+Select 'Dropout Patients' as C
+UNION ALL
+Select 'Patients Not Consulted Yet' as C
+UNION ALL
+Select 'Patients Not Ready/Eligible' as C
+UNION ALL
+Select 'Patients Not Reachable' as C
+UNION ALL
+Select 'Patients whose Primary Surgery is Completed, Secondary Surgery Pending' as C
+UNION ALL
+Select 'Patients whose Surgery will be performed later' as C
+UNION ALL
+Select 'Patients whose Treatment was Completed' as C
+UNION ALL
+Select 'Patients not covered under Smile-Train' as C
+ )
+ 
+ Select projectid,fy_timerange, 
+ SUM(
+   CASE C
+   
+when 'Total Patients'								then p.total_patients
+   
+when 'Dropout Patients'								then p.dropout_patients
+   
+when 'Patients Not Consulted Yet'					then p.not_consulted_patients
+   
+when 'Patients Not Ready/Eligible'					then p.not_eligible_patients
+   
+when 'Patients Not Reachable'						then p.not_reachable
+   
+when 'Patients whose Primary Surgery is Completed, Secondary Surgery Pending'
+   													then p.secondary_surgery_required
+   
+when 'Patients whose Surgery will be performed later'
+   													then p.later_surgery
+   
+when 'Patients whose Treatment was Completed'		then p.treatment_completed
+   
+when 'Patients not covered under Smile-Train'		then p.not_covered
+ 
+ELSE NULL
+END)
+as val,
+temp.C as dimension
+
+
+ from profile_80621 p
+ 
+ 
+ CROSS JOIN TEMP
+ GROUP BY projectid,fy_timerange,temp.C
+ 
