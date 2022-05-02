@@ -3,13 +3,24 @@ select _id, projectid, fy_timerange, zone_db, partner_db, center_name_db, batch_
 union all
 select _id, projectid, fy_timerange, zone_db, partner_db, center_name_db, batch_id_db from profile_145)
 select p.name as projectid, zone_db, partner_db, center_name_db, batch_id_db, fy_timerange, status, split_part(split_part(json_serialize(approvallog[0]),',',3),'"',4) as emailid, 
-split_part(split_part(json_serialize(approvallog[0]),',',4),'"',4) as name,
-split_part(split_part(json_serialize(approvallog[0]),',',5),'"',4) as comments,
+case when split_part(json_serialize(approvallog[0]),',',4) like '%approverName%' 
+then split_part(split_part(json_serialize(approvallog[0]),',',4),'"',4) 
+when split_part(json_serialize(approvallog[0]),',',5) like '%approverName%' 
+then split_part(split_part(json_serialize(approvallog[0]),',',5),'"',4) 
+when split_part(json_serialize(approvallog[0]),',',3) like '%approverName%' 
+then split_part(split_part(json_serialize(approvallog[0]),',',3),'"',4) 
+end as name,
+case when split_part(json_serialize(approvallog[0]),',',4) like '%approverComments%' then
+split_part(split_part(json_serialize(approvallog[0]),',',4),'"',4) 
+when split_part(json_serialize(approvallog[0]),',',5) like '%approverComments%' then
+split_part(split_part(json_serialize(approvallog[0]),',',5),'"',4) 
+when split_part(json_serialize(approvallog[0]),',',3) like '%approverComments%' then
+split_part(split_part(json_serialize(approvallog[0]),',',3),'"',4) 
+end as comments,
 case when split_part(json_serialize(approvallog[0]),',',6) like '%timestamp%' then substring(split_part(split_part(json_serialize(approvallog[0]),',',6),'"',4),1,10) 
 when split_part(json_serialize(approvallog[0]),',',5) like '%timestamp%' then substring(split_part(split_part(json_serialize(approvallog[0]),',',5),'"',4),1,10) 
 when split_part(json_serialize(approvallog[0]),',',4) like '%timestamp%' then substring(split_part(split_part(json_serialize(approvallog[0]),',',4),'"',4),1,10) 
-end as timestamp,
-approvallog[0]
+end as timestamp
 from sub1 a
 left join ds_mongo_taskresponse t
 on t.profileinstanceid=a._id
