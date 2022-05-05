@@ -9,14 +9,15 @@ case when setoff_succeed<0 or setoff_succeed=0 then 0
        
 	   else setoff_succeed
 	   
-	  end as new_setoff_succeed	  
+	  end as new_setoff_succeed , ent.name as entity	  
 	  
 
 from profile_80648
-
 		   
+left join ds_mysql_prod_tagelement ent 
+on p.entity = ent.id
 
-group by parent1, fy_timerange, netprofit, twopc, overhead_expenses, setoff_amount, setoff_amount_preceeding, surplus_previousfy, actual_csr, unspent_account, impact_assessment, total_csr_obligation, total_amount_current, new_excess_current, new_setoff_succeed),
+group by parent1, fy_timerange, netprofit, twopc, overhead_expenses, setoff_amount, setoff_amount_preceeding, surplus_previousfy, actual_csr, unspent_account, impact_assessment, total_csr_obligation, total_amount_current, new_excess_current, new_setoff_succeed , entity),
 
 temp as (
   select 'twopc' as C
@@ -71,7 +72,7 @@ Sum(Case C
 	
 	Else Null
 	
-END) as values , temp.C as dimensions
+END) as values , temp.C as dimensions , entity
 from table1 as tab1 
 
 cross join temp
@@ -80,7 +81,7 @@ left join ds_mysql_prod_project as pro
   on tab1.parent1 = pro.id	
 
 
-group by pro.name,tab1.fy_timerange ,temp.C  
+group by pro.name,tab1.fy_timerange ,temp.C  , entity
 
 order by tab1.fy_timerange desc
 
