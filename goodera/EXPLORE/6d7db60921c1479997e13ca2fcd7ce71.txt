@@ -22,13 +22,32 @@ where extract(year from start_date) >= 2020 and start_date >= nvl(offset_date,'2
 and nvl(p1.lg_status,0) != 1105812 and p2.pvh_id is not NULL),
 
 sub2 as(
-  select *,
-case
-  	when GET_ARRAY_LENGTH(s1.brands) = 0 then ARRAY(s1.brands)
-  	else s1.brands
-end as brands_new  
-  from sub1 where row = 1)
+  select s1.*,
   
-select s2.id, s2.project_name, s2.program_type, s2.fy_timerange, s2.num_females, s2.batch_status, s2.region, s2.source_div, s2.brands_new
-from sub2 s2
+case
+  	when IS_ARRAY(s1.brands) = false or GET_ARRAY_LENGTH(s1.brands) = 0 then ARRAY(s1.brands)
+  	else s1.brands
+end as brands_new,
+  
+case
+  	when IS_ARRAY(s1.source_div) = false or GET_ARRAY_LENGTH(s1.source_div) = 0 then ARRAY(s1.source_div)
+  	else s1.source_div
+end as source_div_new
+  
+  from sub1 s1 where row = 1),
+  
+sub3 as(
+  select s2.*, country_unwind, brands_unwind, source_div_unwind
+from sub2 s2, s2.region country_unwind, s2.brands_new brands_unwind, s2.source_div_new source_div_unwind)
+
+select s3.id, s3.project_name, s3.program_type, s3.fy_timerange, s3.num_females, s3.batch_status, t1.name as country, t2.name as region, nvl(t3.name, 'All Brands') as brands, t4.name as source_div, t5.name as bus_div
+from sub3 s3
+
+left join ds_mysql_prod_tagelement t1 on t1.id = s3.country_unwind
+left join ds_mysql_prod_tagelement t2 on t2.id = t1.parent
+
+left join ds_mysql_prod_tagelement t3 on t3.id = s3.brands_unwind
+
+left join ds_mysql_prod_tagelement t4 on t4.id = s3.source_div_unwind
+left join ds_mysql_prod_tagelement t5 on t5.id = t4.parent
 
