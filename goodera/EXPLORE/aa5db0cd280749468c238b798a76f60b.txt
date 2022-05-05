@@ -1,4 +1,35 @@
-select _id,mobilised,enrolled,fy_timerange, t.name phase from profile_80465 p
+select fy_timerange, t.name phase 
+
+with temp as ( 
+select 'mobilised' as c
+  Union all 
+select 'enrolled' as c
+  Union all 
+select 'age_18_21' as c 
+ Union all
+select 'age_22_25	' as c
+  Union all 
+select 'completed_training' as c
+  Union all 
+select 'placed' as c  ) 
+  
+select pro.name as projectid,fy_timerange,
+sum( case c when 'mobilised' then p.mobilised
+	        when 'enrolled' then p.enrolled
+	        when 'age_18_21' then p.age_18_21
+	        when 'age_22_25	' then p.age_22_25	
+	        when 'completed_training' then p.completed_training
+	        when 'placed' then p.placed
+	
+	
+	        else null end ) as val, temp.c as dim from profile_80465 p
+			
+			left join ds_mysql_prod_project pro
+             on p.projectid = pro.id
+			cross join temp
+			
+group by projectid,fy_timerange,temp.c,pro.name			
+from profile_80465 p
 left join ds_mysql_prod_tagelement t
 on p.phase = t.id
 group by 1,2,3,4,5;
