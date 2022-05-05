@@ -1,4 +1,3 @@
-
 with temp as ( 
 select 'mobilised' as c
   Union all 
@@ -6,28 +5,28 @@ select 'enrolled' as c
   Union all 
 select 'age_18_21' as c 
  Union all
-select 'age_22_25	' as c
+select 'age_22_25' as c
   Union all 
 select 'completed_training' as c
   Union all 
 select 'placed' as c  ) 
   
-select _id,projectid,fy_timerange,pro.name as phase,
+select pro.name as projectid,fy_timerange,t.name phase
 sum( case c when 'mobilised' then p.mobilised
 	        when 'enrolled' then p.enrolled
 	        when 'age_18_21' then p.age_18_21
-	        when 'age_22_25	' then p.age_22_25	
+	        when 'age_22_25' then p.age_22_25
 	        when 'completed_training' then p.completed_training
 	        when 'placed' then p.placed
-	
 	
 	        else null end ) as val, temp.c as dim from profile_80465 p
 			
 			left join ds_mysql_prod_project pro
-             on p.phase = pro.id
+             on p.projectid = pro.id
+			 left join ds_mysql_prod_project pro
+             on p.phase = t.id
 			cross join temp
 			
-group by projectid,fy_timerange,temp.c,pro.name,p.id
-
+group by projectid,fy_timerange,temp.c,pro.name,t.name		
 
 
