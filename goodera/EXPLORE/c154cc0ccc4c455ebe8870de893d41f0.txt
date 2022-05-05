@@ -6,7 +6,6 @@ with temp as (
     Select 'REVISIT' as col
 ),
 
-test2 as( 
 Select p.fy_timerange,p.projectid, tag2.name as clinic_type,g_total_new as final_sum, tag1.name as s_clinic_type,temp.col as Dimensions,p1.f_category,
 (case col
     when 'NEW' then 'NEW'
@@ -23,20 +22,4 @@ on tag1.id = p1.s_clinic_type
 left join ds_mysql_prod_tagelement tag2
 on tag2.id = p.clinic_type
 where tag2.name = 'OPD'
-  GROUP BY 1,2,3,4,5,6,7,8
-),
-
-final as (
-      select fy_timerange, projectid, Search_status,clinic_type,s_clinic_type, final_sum
-      from test2 
-      group by 1,2,3,4,5,6
-
-)
-
-select fy_timerange, project.name as projectid, search_status,final_sum,clinic_type,s_clinic_type
-from final 
-left join ds_mysql_prod_project project
-on project.id = final.projectid 
-where projectid like '%%' and final_sum is not null
-
-group by 1,2,3,4,5,6
+GROUP BY 1,2,3,4,5,6,7,8
