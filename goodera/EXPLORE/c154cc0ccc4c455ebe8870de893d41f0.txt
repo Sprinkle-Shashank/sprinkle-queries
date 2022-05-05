@@ -7,7 +7,7 @@ with temp as (
 ),
 
 test2 as( 
-Select fy_timerange,projectid, tag2.name as clinic_type,g_total_new as final_sum, tag1.name as s_clinic_type,temp.col as Dimensions,
+Select p.fy_timerange,p.projectid, tag2.name as clinic_type,g_total_new as final_sum, tag1.name as s_clinic_type,temp.col as Dimensions,p1.f_category
 sum(case col
     when 'NEW' then p.NEW
 	when 'RENEW' then p.RENEW
@@ -16,12 +16,12 @@ sum(case col
    end)as Search_status
 from profile_63885 p
 left join profile_59462 p1
+ ON p1.s_clinic_type=p.clinic_type
 left join ds_mysql_prod_tagelement tag1
 on tag1.id = p1.s_clinic_type
 left join ds_mysql_prod_tagelement tag2
 on tag2.id = p.clinic_type
-where tag2.name != 'OPD'
-         
+where tag2.name = 'OPD'       
 ),
 
 final as (
@@ -36,6 +36,6 @@ select fy_timerange, project.name as projectid, search_status,final_sum,clinic_t
 from final 
 left join ds_mysql_prod_project project
 on project.id = final.projectid 
-
+where projectid like '%%' and final_sum is not null
 
 group by 1,2,3
