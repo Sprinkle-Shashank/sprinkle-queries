@@ -13,6 +13,37 @@ sub2 as(
 row_number () over (partition by s1.id order by p2.timeperiod_timerange.start desc) as row
 
 from sub1 s1
-left join profile_60928 p2 on p2.factory_id = s1.factory_id)
+left join profile_60928 p2 on p2.factory_id = s1.factory_id),
 
-select * from sub2 where row = 1
+sub3 as(
+  select * from sub2 where row = 1)
+  
+sub4 as(
+  select s3.*,
+  
+case 
+  when IS_ARRAY(s3.region) or GET_ARRAY_LENGTH(s3.region) = 0 then ARRAY(S3.region)
+  else s3.region
+end as region_new,
+  
+case 
+  when IS_ARRAY(s3.source_div) or GET_ARRAY_LENGTH(s3.source_div) = 0 then ARRAY(S3.source_div)
+  else s3.source_div
+end as source_div_new
+
+from sub3 s3),
+
+sub5 as(
+  select s4.*, region_unwind, source_div_unwind
+from sub s4, s4.region_new region_unwind, s4.source_div_new source_div_unwind)
+
+select s5.factory_id, s5.fy_timerange, t2.name as region, nvl(t4.name, t3.name) as bus_div, 1 as count
+from sub5 s5
+
+left join ds_mysql_prod_tagelement t1 on t1.id = s4.region_unwind
+left join ds_mysql_prod_tagelement t2 on t2.id = t1.parent
+
+left join ds_mysql_prod_tagelement t3 on t3.id = s4.source_div_unwind
+left join ds_mysql_prod_tagelement t4 on t4.id = t3.parent
+
+group by s5.factory_id, s5.fy_timerange, t2.name, t3.name, t4.name
