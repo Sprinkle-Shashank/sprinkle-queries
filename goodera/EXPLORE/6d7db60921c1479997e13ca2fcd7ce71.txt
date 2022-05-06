@@ -1,1 +1,18 @@
-select * from profile_62948
+with sub1 as(
+  select p1._id as id, p1.timeperiod_timerange as fy_timerange, p1.factory_id, p1.factory_name, t1.name as cr_tier, t2.name as curr_cr_rating
+from profile_60928 p1
+
+left join ds_mysql_prod_tagelement t1 on t1.id = p1.cr_tier
+left join ds_mysql_prod_tagelement t2 on t2.id = p1.curr_cr_rating
+
+where t1.name not in ('Exit','Deactivated') and t2.name in ('Blue', 'Gold', 'Green', 'Gray', 'Yellow')),
+
+sub2 as(
+  select s1.id, s1.fy_timerange, s1.factory_id, s1.factory_name, p2.region, p2.brands, p2.source_div,
+row_number () over (partition by s1.id order by s1.fy_timerange.start desc) as row
+
+from sub1 s1
+left join profile_60928 p2 on p2.factory_id = s1.factory_id)
+
+select * from sub2 where row = 1
+
