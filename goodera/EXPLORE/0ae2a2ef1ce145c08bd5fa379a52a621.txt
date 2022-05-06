@@ -1,42 +1,32 @@
-with test1 as (
-    select fy_timerange, projectid, 'NEW' as search_status, tag1.name as clinic_type,g_total_new as final_sum from profile_63885 
-      left join ds_mysql_prod_tagelement tag1
-    on tag1.id = profile_63885.clinic_type
-      where tag1.name != 'OPD'
-          union all
-      select fy_timerange, projectid, 'RENEW' as search_status, tag1.name as clinic_type,g_total_renew as final_sum from profile_63885
-      left join ds_mysql_prod_tagelement tag1
-    on tag1.id = profile_63885.clinic_type
-      where tag1.name != 'OPD'
-          union all
-      select fy_timerange, projectid, 'REVISIT' as search_status, tag1.name as clinic_type,g_total_repeat as final_sum from         
-      profile_63885
-      left join ds_mysql_prod_tagelement tag1
-    on tag1.id = profile_63885.clinic_type
-      where tag1.name != 'OPD'
-),
-test2 as (
-    select concat(p.f_reg_date,concat('|',p.f_reg_date)) as fy_timerange, projectid, f_category,
-      tag1.name as s_clinic_type,search_status
-      from profile_59462 p
-      left join ds_mysql_prod_tagelement tag1
-    on tag1.id = p.s_clinic_type
-),
-final as (
-      select concat(cast(fy_timerange.start as varchar), concat('|', cast(fy_timerange.end as varchar))) as fy_timerange, projectid, search_status,clinic_type,
-    sum(final_sum) as final_sum
-      from test1 where final_sum is not null
-      group by 1,2,3,4
+with temp as (
+  Select 'NEW' as col
+  union all
+    Select 'RENEW' as col
+  union all
+    Select 'REVISIT' as col
+), 
+
+level1 as (Select p.fy_timerange,p.projectid,g_total_new as final_sum, clinic_type, temp.col as Dimensions,
+(case col
+    when 'NEW' then 'NEW'
+	when 'RENEW' then 'RENEW'
+	when 'REVISIT' then 'REVISIT'
+	else NULL
+   end)as Search_status
+from profile_63885 p
+  cross join temp
   
-      union all
-  
-      select fy_timerange, projectid, s_clinic_type,search_status, 
-      count(*) as final_sum
-      from test2 where search_status in ('NEW','RENEW','REVISIT')
-      group by 1,2,3,4
+--left join profile_59462 p1 ON p1.s_clinic_type=p.clinic_type
+--left join ds_mysql_prod_tagelement tag1 on tag1.id = p1.s_clinic_type
+
+left join ds_mysql_prod_tagelement tag2
+on tag2.id = p.clinic_type
+where tag2.name != 'OPD'
+--GROUP BY 1,2,3,4,5
 )
--- select * from test2
-select fy_timerange, project.name as projectid, search_status,sum(final_sum) as final_sum
-from final left join ds_mysql_prod_project as project
-on project.id = final.projectid where projectid like '%%'
-group by 1,2,3
+
+select * from level1 p
+left join profile_59462 p1 ON p1.s_clinic_type=p.clinic_type
+--left join ds_mysql_prod_tagelement tag1 on tag1.id = p1.s_clinic_type
+
+
