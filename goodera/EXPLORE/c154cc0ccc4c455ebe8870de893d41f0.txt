@@ -1,23 +1,15 @@
-with temp as (
-  Select 'NEW' as col
-  union all
-    Select 'RENEW' as col
-  union all
-    Select 'REVISIT' as col
-)
-
-Select p.fy_timerange,p.projectid,g_total_new as final_sum, temp.col as Dimensions,
-(case col
-    when 'NEW' then 'NEW'
-	when 'RENEW' then 'RENEW'
-	when 'REVISIT' then 'REVISIT'
-	else NULL
-   end)as Search_status
-from profile_63885 p cross join temp
-left join profile_59462 p1 ON p1.s_clinic_type=p.clinic_type
--- left join ds_mysql_prod_tagelement tag1 on tag1.id = p1.s_clinic_type
-left join ds_mysql_prod_tagelement tag2
-on tag2.id = p.clinic_type where tag2.name != 'OPD'
-GROUP BY 1,2,3,4,5
-
-
+    select fy_timerange, projectid, 'NEW' as search_status, tag1.name as clinic_type,g_total_new as final_sum from profile_63885 
+      left join ds_mysql_prod_tagelement tag1
+    on tag1.id = profile_63885.clinic_type
+      where tag1.name != 'OPD'
+          union all
+      select fy_timerange, projectid, 'RENEW' as search_status, tag1.name as clinic_type,g_total_renew as final_sum from profile_63885
+      left join ds_mysql_prod_tagelement tag1
+    on tag1.id = profile_63885.clinic_type
+      where tag1.name != 'OPD'
+          union all
+      select fy_timerange, projectid, 'REVISIT' as search_status, tag1.name as clinic_type,g_total_repeat as final_sum from         
+      profile_63885
+      left join ds_mysql_prod_tagelement tag1
+    on tag1.id = profile_63885.clinic_type
+      where tag1.name != 'OPD'
