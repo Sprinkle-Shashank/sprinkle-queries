@@ -1,0 +1,29 @@
+with table1 as(select datatable,xprojectId,time.name as Time_period,split_part(split_part(fy_timerange,'|',1),'-',1) as time
+
+  from sus_60317 sus
+
+Left join ds_mysql_prod_tagelement time
+on sus.financialperiod = time.id
+
+where keyword in ('products_current_under_dev')
+),table3 as(
+select xprojectId,t1.Time_period,t1.time,table2.prod_type,table2.status,table2.count as total from table1 t1, unpivot t1.datatable  table2
+
+
+group  by xprojectId,t1.Time_period,t1.time,table2.prod_type,table2.status,table2.count
+),
+
+table4 as (select t3.*,CAST(product as INT) from table3 t3,t3.prod_type product	
+
+),
+table5 as (select t4.*,CAST(stat as INT) from table4 t4,t4.status stat	
+
+)
+SELECT prod.name as product,xprojectId,t5.Time_period,t5.time,sta.name as stat,total from table5 t5
+
+LEFT JOIN ds_mysql_prod_tagelement prod on
+t5.product = prod.id
+
+LEFT JOIN ds_mysql_prod_tagelement sta on
+t5.stat = sta.id
+
