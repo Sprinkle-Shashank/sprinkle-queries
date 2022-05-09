@@ -1,0 +1,19 @@
+with table1 as(select datatable,xprojectId,time.name as Time_period,split_part(split_part(fy_timerange,'|',1),'-',1) as time
+
+  from sus_60317 sus
+
+Left join ds_mysql_prod_tagelement time
+on sus.financialperiod = time.id
+
+where keyword in ('products_current_under_dev')
+),table3 as(
+select xprojectId,Time_period,time,table2.prod_type,table2.status,table2.count as total from table1, unpivot table1.datatable as table2
+
+
+group  by xprojectId,Time_period,time,prod_type,status,total
+)
+select xprojectId,Time_period,time,pro.name as type,status,total from table3 t3 
+		  
+Left join ds_mysql_prod_tagelement pro
+on t3.prod_type = pro.id
+		  
