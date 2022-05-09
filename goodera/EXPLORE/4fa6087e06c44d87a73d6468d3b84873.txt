@@ -1,7 +1,7 @@
 with table1 as (SELECT *
 FROM (
-select cou.name as country,p.name,p.fy_timerange,keyword,datanum,datanumbase
-/*lag(datanum,1) over (order by  p.fy_timerange) as prev_qty,
+select cou.name as country,p.name,p.fy_timerange,keyword,datanum/*,datanumbase
+lag(datanum,1) over (order by  p.fy_timerange) as prev_qty,
 (prev_qty-datanum)*100.0/prev_qty as per */
 
 from sus_80478 p
@@ -17,12 +17,11 @@ where keyword in ('total_renew_consum', 'total_energy_auto')
 order by fy_timerange asc
   
 ) PIVOT (
-   sum(datanum)/*,sum(datanumbase)*/  FOR keyword IN ('total_renew_consum', 'total_energy_auto')
-)
-)
-select * from table1
-/*select country,name,fy_timerange,sum(total_renew_consum) as total_energy,sum(total_energy_auto) as total_renew from table1
+   sum(datanum) FOR keyword IN ('total_renew_consum', 'total_energy_auto')
+) 
+				)
+				
+select country, name,fy_timerange,	total_renew_consum,total_energy_auto, 	total_renew_consum*100.0/total_energy_auto as perc		
 
-group by country,name,fy_timerange,datanumbase*/
 
 
