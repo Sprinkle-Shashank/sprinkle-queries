@@ -1,14 +1,20 @@
 with test1 as(
-select q.name as batch_id, p.name as center, q.center as center_id, fy_timerange, q.partner_db, p.zone_db as zone from profile_196 q 
+select t2.name as project, q.name as batch_id, p.name as center, q.center as center_id, fy_timerange, q.partner_db, p.zone_db as zone from profile_196 q 
 left join profile_141 p on p._id = q.center
+  LEFT JOIN ds_mysql_prod_project t on p.projectId=t.id
+LEFT JOIN ds_mysql_prod_project t1 on t.parent=t1.id
+LEFT JOIN ds_mysql_prod_project t2 on t1.parent=t2.id
 
 union all
-select q.name as batch_id, p.name as center, q.center as center_id, fy_timerange, q.partner_db, p.zone_db as zone from profile_36904 q 
+select t2.name as project, q.name as batch_id, p.name as center, q.center as center_id, fy_timerange, q.partner_db, p.zone_db as zone from profile_36904 q 
 left join profile_36872 p on p._id =q.center
+  LEFT JOIN ds_mysql_prod_project t on p.projectId=t.id
+LEFT JOIN ds_mysql_prod_project t1 on t.parent=t1.id
+LEFT JOIN ds_mysql_prod_project t2 on t1.parent=t2.id
 )
 
 
-select q.batch_id, q.center, decode(p.name,null,r.name,p.name) as center_id, fy_timerange, q.partner_db as partner_name, q.zone from test1 q
+select project, q.batch_id, q.center, decode(p.name,null,r.name,p.name) as center_id, fy_timerange, q.partner_db as partner_name, q.zone from test1 q
 left join profile_141 p on p._id = q.center_id
 left join profile_36872 r on r._id = q.center_id
-group by 1,2,3,4,q.partner_db, q.zone order by q.batch_id
+group by 1,2,3,4,5,q.partner_db, q.zone order by q.batch_id
