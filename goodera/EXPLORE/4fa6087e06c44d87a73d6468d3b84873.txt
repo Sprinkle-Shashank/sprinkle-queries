@@ -19,9 +19,22 @@ order by fy_timerange asc
 ) PIVOT (
    sum(datanum) FOR keyword IN ('total_renew_consum', 'total_energy_auto')
 ) 
-				)
+				), 
 				
-select country, name,fy_timerange,	total_renew_consum,total_energy_auto, 	total_energy_auto - total_renew_consum as non_renew	from table1	
+temp as (  select 'Renewable' as c
+		    Union all 
+		    select 'Non-Renewable' as c 
+          
+)				
+				
+select country, name,fy_timerange,	
+sum(case c 
+	when 'Renewable' then tab1.total_renew_consum
+	when 'Non-Renewable' then tab1.total_energy_auto - tab1.total_renew_consum
+	else null end ) as val, temp.c as dim 
+from table1	tab1
 
+cross join temp
 
+group by country, name, fy_timerange,temp.c
 
