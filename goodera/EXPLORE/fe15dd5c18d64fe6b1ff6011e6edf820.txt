@@ -1,0 +1,18 @@
+select p1.name as projectid,a.timerange_timerange as fy_timerange, a.dob, a.kali_name, a.kali_id, 
+CAST(a.timerange_timerange.start as DATE) as start_date, CAST(current_timestamp as DATE) as present_date, CAST(a.dob as DATE) as birth_date,
+DATEDIFF(year, birth_date, present_date) as age, count(*) as count,
+case
+  when DATEDIFF(year, birth_date, present_date) = 7 then '7-8'
+  when DATEDIFF(year, birth_date, present_date) = 8 then '7-8'
+  when DATEDIFF(year, birth_date, present_date) = 9 then '9-10'
+  when DATEDIFF(year, birth_date, present_date) = 10 then '9-10'
+  when DATEDIFF(year, birth_date, present_date) = 11 then '11-12'
+  when DATEDIFF(year, birth_date, present_date) = 12 then '11-12'
+  when DATEDIFF(year, birth_date, present_date) > 12 then 'Above 12'
+  else NULL
+  end as age_bucket
+  
+from profile_54071 a
+left join ds_mysql_prod_project p1 on p1.id = a.projectid
+
+group by fy_timerange, age, kali_name, kali_id,  start_date, present_date, birth_date, age_bucket, dob, p1.name
