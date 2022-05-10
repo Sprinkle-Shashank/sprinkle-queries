@@ -1,10 +1,24 @@
-select pro.name as projectId, fy_timerange, description ,  ent.name as entity , logo , sdg from profile_80648 p
+with table1 as 
+(select pro.name as projectId, fy_timerange, description ,  ent.name as entity , logo , sdg from profile_80648 p
  
  left join ds_mysql_prod_project pro 
 on p.projectId = pro.id
 
 left join ds_mysql_prod_tagelement ent 
 on p.entity = ent.id
+ ),
+ 
+ table2 as 
+ ( select p.*, cast(c as varchar) as image_updated from table1 p, p.sdg as c ),
+ 
+table3 as 
+( select p.* , pro.name as program_idfrom table2 as p 
+
+left join ds_mysql_prod_tagelement pro
+on p.program = pro.id
+)
+
+select * from table3
 
  
  
