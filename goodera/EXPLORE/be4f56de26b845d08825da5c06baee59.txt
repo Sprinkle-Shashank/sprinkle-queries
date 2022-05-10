@@ -1,10 +1,13 @@
 with table1 as(
-	select t.name as reason,i.name as partner
+	select t.name as reason,count(t.name) as count
     from 
   	profile_58511 p left join ds_mysql_prod_tagelement t
   	on p.reason_camp_n = t.id 
   	left join profile_51990 i
   	on p.imple_partner = i._id
+), table2 as(
+  	select sum(count) as sum
+  	from table1
 )
-select reason,partner, 1 as count
-from table1
+select reason,count *100.0 / sum 
+from table1,table2
