@@ -5,21 +5,21 @@ with table1 as(select datatable,xprojectId,time.name as Time_period,split_part(s
 Left join ds_mysql_prod_tagelement time
 on sus.financialperiod = time.id
 
-where keyword in ('products_in_pipeline')
+where keyword in ('malaria_patient_countrywise')
 ),table3 as(
-select xprojectId,t1.Time_period,t1.time,table2.region,SUM(table2.prod_count) as total from table1 t1, unpivot t1.datatable  table2
+select xprojectId,t1.Time_period,t1.time,table2.country,SUM(table2.patients) as total from table1 t1, unpivot t1.datatable  table2
 
 
-group  by xprojectId,t1.Time_period,t1.time,table2.region
+group  by xprojectId,t1.Time_period,t1.time,table2.country
 ),
 
-table4 as (select t3.*,CAST(reg as INT) from table3 t3,t3.region reg	
+table4 as (select t3.*,CAST(cou as varchar) from table3 t3,t3.country cou	
 
 )
 
-SELECT re.name as reg,xprojectId,t4.Time_period,t4.time,total from table4 t4
+SELECT con.name as country,xprojectId,t4.Time_period,t4.time,total,'Malaria Patients' as patient_type from table4 t4
 
-LEFT JOIN ds_mysql_prod_tagelement re on
-t4.reg = re.id
+LEFT JOIN ds_mysql_prod_tagelement con on
+t4.cou = con.id
 
 
