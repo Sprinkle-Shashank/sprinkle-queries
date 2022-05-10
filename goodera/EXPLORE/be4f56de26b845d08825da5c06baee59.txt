@@ -1,13 +1,11 @@
 with table1 as(
-	select t.name as reason,count(t.name) as count
+	select t.name as reason,i.name as partner
     from 
-  	profile_58511 p left join ds_mysql_prod_tagelement t
-  	on p.reason_camp_n = t.id 
-  	group by t.name
-), table2 as(
-  	select sum(count) as sum
-  	from table1
+  	profile_58511 p
+  	left join ds_mysql_prod_tagelement t
+  	on p.reason_camp_n = t.id
+  	left join profile_51990 i
+  	on i._id = p.imple_partner
 )
-select top 5 reason,count,count *100.0 / sum as percentage
-from table1,table2
-order by count desc
+select reason,partner
+from table1
