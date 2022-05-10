@@ -1,0 +1,21 @@
+SELECT *
+FROM (
+select cou.name as country,p.name,p.fy_timerange,keyword,datanum/*,datanumbase
+lag(datanum,1) over (order by  p.fy_timerange) as prev_qty,
+(prev_qty-datanum)*100.0/prev_qty as per */
+
+from sus_80478 p
+
+left join ds_mysql_prod_project pro on 
+p.xprojectid = pro.id
+
+left join ds_mysql_prod_project cou on 
+pro.parent = cou.id
+
+where keyword in ('total_renew_consum', 'total_energy_auto') 
+
+order by fy_timerange asc
+  
+) PIVOT (
+   sum(datanum) FOR keyword IN ('total_renew_consum', 'total_energy_auto')
+) 
