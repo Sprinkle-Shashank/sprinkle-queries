@@ -1,0 +1,25 @@
+with table1 as(select datatable,xprojectId,time.name as Time_period,split_part(split_part(fy_timerange,'|',1),'-',1) as time
+
+  from sus_60317 sus
+
+Left join ds_mysql_prod_tagelement time
+on sus.financialperiod = time.id
+
+where keyword in ('malaria_patient_countrywise')
+),table3 as(
+select xprojectId,t1.Time_period,t1.time,table2.country,table2.patients as total,lag(total,1) over (order by  t1.time) as prev_year_total,case when prev_year_total>0
+then (prev_year_total-total)*100.0/prev_year_total 
+end as percentage from table1 t1, unpivot t1.datatable  table2
+
+
+group  by xprojectId,t1.Time_period,t1.time,table2.country,table2.patients
+),
+
+table4 as (select t3.*,CAST(cou as varchar) from table3 t3,t3.country cou	
+
+)
+
+select con.name as country,xprojectId,t4.Time_period,t4.time,total,prev_year_total,percentage,'Malaria Patients' as patient_type from table4 t4
+
+left join ds_mysql_prod_tagelement con on
+t4.cou = con.id
