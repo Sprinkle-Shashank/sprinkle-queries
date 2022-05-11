@@ -1,17 +1,97 @@
-with table1 as
+ with table1 as
+( select pro.name as projectId,ngo.name as ngo ,schedule.name as schedule_7, local.name as local_yn,impdir.name as imp_direct, project_start_date  , csr_reg_num , ong.name as ongoing, project_end_date, sum(p1.prescribed_csr) as allocated ,sum(p2.amount) as disbursed,sum(p3.amount) as utilized , p.fy_timerange  ,
+concat(
+  
+	concat(concat(extract (day from project_start_date ),'-'), 
+ 			concat(extract (month from  project_start_date ),'-')),
+	concat(concat(concat(extract( year from project_start_date ),
+						    concat(' ',concat('to',' '))),
+				  concat(extract (day from project_end_date),'-')),
+		   concat(concat(extract(month from project_end_date),'-'),
+                  extract (year from project_end_date )))) 
+				  
+	as duration , 
+	disbursed - utilized as unspent , projectid_dkl , INITCAP(ent.name) as entity , cumulative , cumulative_allocated 
+  
+  
+  
+  from profile_80433  p
+  
+left join ds_mysql_prod_tagelement ent 
+on p.entity = ent.id
+
+left join profile_80428 p1
+on p.projectid = p1.projectid
+
+left join profile_80429  p2
+on p.projectid = p2.projectid
+
+left join profile_80430 p3
+on p.projectid = p3.projectid
+
+
+left join ds_mysql_prod_tagelement schedule
+on p.schedule_7 = schedule.id
+
+left join ds_mysql_prod_tagelement local
+on p.local_yn = local.id
+left join ds_mysql_prod_tagelement impdir
+on p.imp_direct = impdir.id
+left join ds_mysql_prod_tagelement ong 
+on p.ongoing = ong.id
+
+left join ds_mysql_prod_project pro 
+on p.projectId = pro.id
+
+left join ds_mysql_prod_project ngo 
+on pro.parent = ngo.id
+
+
+where ongoing  is not null
+group by pro.name,ngo.name, schedule.name,local.name,impdir.name,ong.name, local_yn, imp_direct, project_start_date , csr_reg_num, ongoing , project_end_date , p.projectid_dkl
+, p.fy_timerange , ent.name , cumulative , cumulative_allocated 
+
+order by p.fy_timerange desc
+	 ),
+	 
+	
+
+-- not coming value of state 
+/*
+left join ds_mysql_prod_tagelement loc 
+on p.d1 = loc.id
+	  
+	  loc.name as state_district, state.name as state
+	  
+	  
+	  
+	 table2 as
+	 (
+	 select * from table1 as p , p.location d1
+	   )
+	   
+	    cast(d1 as varchar) as g1 
+	  */
+ 
+table11 as
 (
-  select p.projectid , location  from profile_80433 as p
+  select p.projectid , p._id , location  from profile_80433 as p
   ),
   
-  table2 as
+  table21 as
   (
   select * from table1 as p , p.location as d1
-	)
+	),
 	
-	select p.* , loc.name as location_update , dis.name as district from table2 as p
+table31 as
+( select loc.name as state_district , sta.name as state from table2 as p
 	
 left join ds_mysql_prod_tagelement loc 
 on p.d1 = loc.id
 
-left join ds_mysql_prod_tagelement dis 
-on loc.name = dis.id
+left join ds_mysql_prod_tagelement sta 
+on loc.id = sta.id
+ 
+ )
+ 
+ select * from table31
