@@ -12,8 +12,8 @@ to_char(a.end_date, 'DD-MM-YYYY') as end_date,
 a.project_desc as Project_description,
 t1.name as focus_area,
 listagg(distinct t2.name, ', ') as schedule_vii,
-listagg(distinct d.name, ', ') as sdg,
-listagg(distinct t5.name, ', ') as donor,
+listagg(distinct d1.name, ', ') as sdg,
+listagg(distinct d2.name, ', ') as donor,
 t4.name as state,
 t3.name as city
 
@@ -25,14 +25,12 @@ from  sub1 a
 left join ds_mysql_prod_project p on p.id = a.projectid
 left join ds_mysql_prod_project p1 on p1.id = p.parent
 
+left join ds_mysql_prod_tagelement t1 on t1.id=a.focus_area
+left join ds_mysql_prod_tagelement t2 on t2.id=a.unwind_schedule_vii
 left join ds_mysql_prod_tagelement t3 on t3.id=a.state
 left join ds_mysql_prod_tagelement t4 on t4.id=t3.parent
 
-left join  profile_80635 t5 on t5._id=a.donor
+left join  profile_80500 d1 on d1._id = a.unwind_sdg
+left join  profile_80635 d2 on d2._id=a.donor
 
-
-left join ds_mysql_prod_tagelement t1 on t1.id=a.focus_area
-left join ds_mysql_prod_tagelement t2 on t2.id=a.unwind_schedule_vii
-left join  profile_80500 d on d._id = a.unwind_sdg
-
-group by a.fy_timerange,a.project_name,p.name,a.photo,p1.name,a.start_date,a.end_date,a.project_desc,t1.name,t4.name,t3.name,t5.name,a.duration
+group by a.fy_timerange,a.project_name,p.name,a.photo,p1.name,a.start_date,a.end_date,a.project_desc,t1.name,t4.name,t3.name,a.duration
