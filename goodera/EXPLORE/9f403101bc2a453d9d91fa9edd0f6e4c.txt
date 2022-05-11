@@ -1,0 +1,20 @@
+with sub1 as(
+select projectId, concat(concat(extract( year from cast(fy_timerange.start as date)),'-'), extract( year from cast(fy_timerange.end as date))) as year
+, doc, 'Document' as type
+, fy_timerange from profile_41431
+union all
+select projectId, concat(concat(extract( year from cast(fy_timerange.start as date)),'-'), extract( year from cast(fy_timerange.end as date))) as year
+, signed_mou, 'MOU' as type
+, fy_timerange from profile_41363
+union all
+select projectId, concat(concat(extract( year from cast(fy_timerange.start as date)),'-'), extract( year from cast(fy_timerange.end as date))) as year, 
+  proposal_file, 'Board Approval PPT' as type, fy_timerange from profile_41363
+union all
+select projectId, concat(concat(extract( year from cast(fy_timerange.start as date)),'-'), extract( year from cast(fy_timerange.end as date))) as year, 
+  utilization_certificate, 'Project Proposal' as type, fy_timerange from profile_79977)
+  --,sub2 as (
+select t.name as projectId, year, type, listagg(doc,', ') as doc, fy_timerange, case when len(doc)>0 then 'Download' else NULL end as download  from sub1
+left join ds_mysql_prod_project t 
+on t.id=projectId
+	where len(doc)>0
+	group by t.name, year, type, fy_timerange, download  
