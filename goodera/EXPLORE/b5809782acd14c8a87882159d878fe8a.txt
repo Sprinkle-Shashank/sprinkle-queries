@@ -7,19 +7,15 @@ on sus.financialperiod = time.id
 
 where keyword in ('arv_patient_countrywise')
 ),table3 as(
-select xprojectId,t1.Time_period,t1.time,table2.country,SUM(table2.patients) as total,CAST(total AS INT) AS total1,lag(total1,1) over (order by  t1.time) as prev_total from table1 t1, unpivot t1.datatable  table2
+select xprojectId,t1.Time_period,t1.time,SUM(table2.patients) as total,CAST(total AS INT) AS total1,lag(total1,1) over (order by  t1.time) as prev_total1,decode(prev_total1,null,0,prev_total1) as prev_total,(total1-prev_total) as difference,case when prev_total > 0
+  then (cast(difference as float)/cast(prev_total as float))*100 
+  end as percentage from table1 t1, unpivot t1.datatable  table2
 
 
-group  by xprojectId,t1.Time_period,t1.time,table2.country
-),
-
-table4 as (select t3.*,CAST(cou as varchar) from table3 t3,t3.country cou	
-
+group  by xprojectId,t1.Time_period,t1.time
 )
 
-SELECT con.name as country,xprojectId,t4.Time_period,t4.time,total1,prev_total,'ARV Patients' as patient_type from table4 t4
+SELECT xprojectId,t3.Time_period,t3.time,total1,prev_total,difference,'ARV Patients' as patient_type,percentage from table3 t3
 
-LEFT JOIN ds_mysql_prod_tagelement con on
-t4.cou = con.id
 
 
