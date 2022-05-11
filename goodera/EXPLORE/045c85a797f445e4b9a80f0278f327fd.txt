@@ -11,7 +11,7 @@ concat(
                   extract (year from project_end_date )))) 
 				  
 	as duration , 
-	disbursed - utilized as unspent , projectid_dkl , INITCAP(ent.name) as entity , cumulative , cumulative_allocated 
+	disbursed - utilized as unspent , projectid_dkl , INITCAP(ent.name) as entity , cumulative , cumulative_allocated , location
   
   
   
@@ -45,12 +45,12 @@ on pro.parent = ngo.id
 
 where ongoing  is not null
 group by pro.name,ngo.name, schedule_7,local.name,impdir.name,ong.name, local_yn, imp_direct, project_start_date , csr_reg_num, ongoing , project_end_date , p.projectid_dkl
-, p.fy_timerange , ent.name , cumulative , cumulative_allocated , p._id
+, p.fy_timerange , ent.name , cumulative , cumulative_allocated , p._id , location
 
 order by p.fy_timerange desc
-	 ),
+	 )
 	 
-	
+	select * from table1
 
 -- not coming value of state 
 /*
@@ -69,41 +69,3 @@ on p.d1 = loc.id
 	    cast(d1 as varchar) as g1 
 	  */
  
-table11 as
-(
-  select p.projectid , p._id , location , schedule_7  from profile_80433 as p
-  ),
-  
-  table21 as
-  (
-  select * from table11 as p , p.location as d1, p.schedule_7 as d2
-	),
-	
-table31 as
-( select schedule.name as schedule_7, loc.name as state_district , sta.name as state , t1._id , t1.projectId, t1.ngo , t1.local_yn, t1.imp_direct, t1.project_start_date  , t1.csr_reg_num , t1.ongoing, t1.project_end_date, t1.allocated ,t1.disbursed,t1.utilized , t1.fy_timerange  ,
- t1.duration , t1.unspent , t1.projectid_dkl ,  t1.entity , t1.cumulative , t1.cumulative_allocated 
-   from table21 as p
-	
-left join ds_mysql_prod_tagelement loc 
-on p.d1 = loc.id
-
-left join ds_mysql_prod_tagelement sta 
-on loc.id = sta.id
- 
- left join table1 t1 on
- p._id = t1._id
- 
-left join ds_mysql_prod_tagelement schedule 
-on p.schedule_7 = schedule.id
- 
- ),
-   
-   table7 as ( select p.projectid , p._id from profile_80428 as p ),
-   
-    table8 as ( select p.projectid , p._id from profile_80429 as p ),
-	
-	 table9 as ( select p.projectid , p._id from profile_80430 as p ),
-	 
-	  table10 as ( select p.projectid , p._id  from profile_80433 as p )
-	 
-	 select * from table31
