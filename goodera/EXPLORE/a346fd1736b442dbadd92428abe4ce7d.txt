@@ -7,9 +7,35 @@ on p.facility_status = facility.id
 ),
 
 table3 as
-( select p.projectid , sum(score) from from profile_65254 p
+( select p.projectid , sum(score) , cou.name as country, fac.name as factory ,
+case when nvl2(SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), ven.name)='' then ven.name else nvl2(SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), ven.name) end as vendor from profile_65254 p
  
- group by p.projectid ),
+ 
+left join ds_mysql_prod_project fac
+on p.projectid = fac.id
+
+left join ds_mysql_prod_project ven
+on fac.parent = ven.id
+
+left join ds_mysql_prod_project cou
+on ven.parent = cou.id
+ 
+ group by p.projectid , cou.name , ven.name  ),
+ 
+ table5 as
+ ( 
+   select p.* , profile_60620.date, profile_60620.trainer_organization,SUBSTRING(profile_60620.date,0,5) as year,
+Count(p.projectId) as randl_respondents , t2.active_filter from table3 as p
+   
+left join profile_60620 on
+p.projectid = profile_60620.projectid
+   
+left join table2 t2 on 
+factory = t2.goodera_facility_name_text
+   
+   
+where country <> 'Test Country' and p.projectid like '%%'
+   ),
  
  table4 as
  (
@@ -44,4 +70,4 @@ group by p.projectId, score, cou.name, ven.name, profile_60620.trainer_organizat
 ,p._id , t2.active_filter
    )
    
-   select * from table3
+   select * from table5
