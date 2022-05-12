@@ -1,38 +1,40 @@
-select projectid,fy_timerange,date_admission,stat.name as state_centre ,name_child,unique_id,gen.name as gender,age,med.name as medical_checkup,others,long_term.name as child_longterm,exit.name as child_exit , 
-case
-when age>0 and age<=5 then '0-5 Years'
-       when age>5 and age<=10 then '6-10 Years'
-	   when age>10 and age<=15 then '11-15 Years'
-	   when age>15 and age<=18 then '16-18 Years'
-	   when age>18  then '18+ Years'
-	   else 'Less than 0 years (In months)'
+SELECT 	projectid,
+	   	fy_timerange,
+		date_admission,
+		stat.name AS state_centre ,
+		name_child,
+		unique_id,
+		gen.name AS gender,
+		age,
+		med.name AS medical_checkup,
+		others,
+		long_term.name AS child_longterm,
+		exit.name AS child_exit , 
+		CASE
+			WHEN age>0 	AND age <=5  THEN '0-5 Years'
+       		wHEN age>5 	AND age <=10 THEN '6-10 Years'
+	   		when age>10 AND age <=15 THEN '11-15 Years'
+	   		when age>15 AND age <=18 THEN '16-18 Years'
+	   		when age>18 AND '18+ Years'
+	   		else 'Less than 0 years (In months)'
+		end as age_range , 
+		sum(1) as count 
+		
+FROM 	profile_79466 p
 
-	   
-	   end as age_range , 
+LEFT JOIN ds_mysql_prod_tagelement AS stat 
+ON p.state_centre = stat.id
 
+LEFT JOIN ds_mysql_prod_tagelement AS gen 
+ON p.gender = gen.id
 
+LEFT JOIN ds_mysql_prod_tagelement AS med 
+ON p.medical_checkup = med.id
 
+LEFT JOIN ds_mysql_prod_tagelement AS long_term 
+ON p.child_longterm = long_term.id
 
+LEFT JOIN ds_mysql_prod_tagelement AS exit 
+ON p.child_exit = exit.id
 
-1 as count 
-
-
-
-
-
-from profile_79466 p
-
-left join ds_mysql_prod_tagelement as stat 
-on p.state_centre = stat.id
-
-left join ds_mysql_prod_tagelement as gen 
-on p.gender = gen.id
-
-left join ds_mysql_prod_tagelement as med 
-on p.medical_checkup = med.id
-
-left join ds_mysql_prod_tagelement as long_term 
-on p.child_longterm = long_term.id
-
-left join ds_mysql_prod_tagelement as exit 
-on p.child_exit = exit.id
+GROUP BY projectid,fy_timerange,date_admission,stat.name,name_child,unique_id,gen.name,med.name,others,long_term.name,exit.name,
