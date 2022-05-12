@@ -1,8 +1,31 @@
-select p.name as ProjectCode,f.name as fy_timerange,p.name_project as Project_Name,l.name as NGO,(min(p.start_date) - max(p.end_date)) as duration,m.name  as Project_Manager,p.state as State from profile_27396 p
+with Lookup as
+(select p.name as ProjectCode,f.name as fy_timerange,p.name_project as Project_Name,l.name as NGO,concat(p.start_date,concat('-',p.end_date)) as Start_End_Date,m.name  as Project_Manager,p.state as State from profile_27396 p
 left join profile_80183 l on
 p.ngo_partner=l._id
 left join ds_mysql_prod_tagelement m on
 p.project_manager=m.id
 left join ds_mysql_prod_tagelement f on
 p.fy=f.id 
-group by ProjectCode,fy_timerange,Project_Name,NGO,m.name,State
+union 
+select p.name as ProjectCode,f.name as fy_timerange,p.name_project as Project_Name,l.name as NGO,concat(p.start_date,concat('-',p.end_date)) as Start_End_Date,m.name  as Project_Manager,p.state as State from profile_27396 p
+left join profile_27395 l on
+p.ngo_partner=l._id
+left join ds_mysql_prod_tagelement m on
+p.project_manager=m.id
+left join ds_mysql_prod_tagelement f on
+p.fy=f.id 
+),Base1 as(select b.ProjectCode,b.fy_timerange,b.Project_Name,b.NGO,b.start_End_Date,b.Project_Manager ,State from lookup b ,b.State State
+)
+, Base2 as(select l.name as ProjectCode,f.name as fy_timerange,p.name_project Project_Name,p.ngo as NGO,concat(p.start_date,concat('-',p.end_date)) as Start_End_Date ,m.name as Project_Manager
+from profile_27420 p
+left join profile_27396 l on
+p.project_code=l._id
+left join ds_mysql_prod_tagelement m on
+p.project_manager=m.id
+left join ds_mysql_prod_tagelement f on
+p.fy=f.id)
+,Base3 as(select p.ProjectCode,p.fy_timerange,p.Project_Name,p.NGO,p.Start_End_Date,p.Project_Manager,l.State as State from Base2 p left join Base1 l on p.ProjectCode=l.ProjectCode)																						   
+select trim(p.ProjectCode) as ProjectCode,p.fy_timerange,p.Project_Manager,p.NGO,p.Project_Name,p.Start_End_Date,t1.name as State from Base3 p
+left join ds_mysql_prod_tagelement t1 on 
+t1.id=p.State 
+group by  trim(p.ProjectCode),p.fy_timerange,p.Project_Manager,p.NGO,p.Project_Name,p.Start_End_Date,t1.name 
