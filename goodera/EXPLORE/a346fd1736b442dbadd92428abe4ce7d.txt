@@ -6,50 +6,23 @@ left join ds_mysql_prod_tagelement facility
 on p.facility_status = facility.id
 ),
 
-table3 as
-( select p.projectid , sum(score) , cou.name as country, fac.name as factory ,
-case when nvl2(SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), ven.name)='' then ven.name else nvl2(SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), ven.name) end as vendor , p._id from profile_65254 p
- 
- 
-left join ds_mysql_prod_project fac
-on p.projectid = fac.id
-
-left join ds_mysql_prod_project ven
-on fac.parent = ven.id
-
-left join ds_mysql_prod_project cou
-on ven.parent = cou.id
- 
- group by p.projectid , cou.name , ven.name , fac.name , p._id ),
- 
- table5 as
- ( 
-   select p.* , profile_60620.date, profile_60620.trainer_organization,SUBSTRING(profile_60620.date,0,5) as year,
---Count(p.projectId) as randl_respondents ,
-   t2.active_filter from table3 as p
+ table12 as
+   ( select p.*, cast(d1 as varchar) as g1 from profile_60620 as p, p.survey as d1),
    
-left join profile_60620 on
-p._id = profile_60620.survey
+ table13 as
+   ( select g1 , date , trainer_organization from table12 ) 
    
-left join table2 t2 on 
-factory = t2.goodera_facility_name_text
    
-where country <> 'Test Country' and p.projectid like '%%'
-   
-   ),
- 
- table4 as
- (
 select p.projectId, score, cou.name as country,
 case when nvl2(SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), ven.name)='' then ven.name else nvl2(SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), ven.name) end as vendor
  ,p._id,
-profile_60620.date, profile_60620.trainer_organization,SUBSTRING(profile_60620.date,0,5) as year,
+t13.date, t13.trainer_organization,SUBSTRING(t13.date,0,5) as year,
 Count(p.projectId) as randl_respondents , t2.active_filter
 from profile_65254 p
 
 
-left join profile_60620 on
-p._id = profile_60620.survey
+left join table13 t13 on
+p._id = t13.survey
 
 left join ds_mysql_prod_project fac
 on p.projectid = fac.id
@@ -66,18 +39,6 @@ fac.name = t2.goodera_facility_name_text
 
 where country <> 'Test Country' and p.projectid like '%%'
 
-group by p.projectId, score, cou.name, ven.name, profile_60620.trainer_organization
+group by p.projectId, score, cou.name, ven.name, t13.trainer_organization
 , profile_60620.date 
 ,p._id , t2.active_filter
-   ),
-   
-   table11 as
-   ( select p.projectid , p._id from profile_65254 as p),
-   
-   table12 as
-   ( select p.*, cast(d1 as varchar) as g1 from profile_60620 as p, p.survey as d1),
-   
-   table13 as
-   ( select survey from table12 )
-   
-   select * from table13
