@@ -26,13 +26,16 @@ base4 as(
   	select grantproposalid,grantflowtaskid,value.amount_released,value.payment_date from profile_55825 p1, unpivot p1.disbursement_plan as value at disbursement_plan
 ),
 submain as (
-select name,schedule_seven,local_area,state,district,duration,b2.appr_amount_2,'No' as mode,b3.impname,b3.csr_no ,b4.amount_released,b4.payment_date from base1 b1
+select name,schedule_seven,local_area,state,district,duration,b2.appr_amount_2,'No' as mode,b3.impname,b3.csr_no ,b4.amount_released,b4.payment_date,date_cmp(cast(substring(end_date,1,10) as date),CURRENT_DATE) as datedif from base1 b1
 left join base2 b2
 on b1.grantproposalid = b2.grantproposalid
 left join base3 b3
 on b1.grantproposalid = b3.grantproposalid
 left join base4 b4
 on b1.grantproposalid = b4.grantproposalid
-group by 1,2,3,4,5,6,7,8,9,10,11,12
+group by 1,2,3,4,5,6,7,8,9,10,11,12,13
 )
-select name,schedule_seven,local_area,state,district,duration,appr_amount_2,mode,impname,csr_no,amount_released,payment_date
+select name,schedule_seven,local_area,state,district,duration,appr_amount_2,mode,impname,csr_no,amount_released,payment_date,case when datedif <0 then 'completed'
+when datedif >0 then 'pending'
+else ' '
+end from submain
