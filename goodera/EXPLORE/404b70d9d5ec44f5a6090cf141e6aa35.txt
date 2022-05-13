@@ -6,11 +6,24 @@ select * , temp1.quality, temp1.importance_local, (NVL(temp1.consumption,0)) as 
 
 select projectid,t1.name as financialperiod , fy_timerange,cast (quality as varchar) as  gri_water_withdrawal_details_quality , cast (importance_local as varchar) as gri_water_withdrawal_details_importance_local , sum (consumption) as 
   gri_water_withdrawal_details_consumption,(initcap(split_part(row,'_',1)) || ' ' || split_part(row,'_',2)) as source_text, row as source, 
- CONCAT ( 'FY ', split_part(t1.name,' ',2) )  as fin period ayear , split_part(t1.name,' ',1) as amonth
+ CONCAT ( 'FY ', split_part(t1.name,' ',2) )  as finperiodyear , split_part(t1.name,' ',1) as amonth
 from temp2  
-left join ds_mysql_prod_tagelement t1 on t1.id = financialperiod where fin period ayear not in( 'FY 2020-21', 'FY 2021-22', 'FY 2019-20'),
-if(eq($month,January),1,if(eq($month,February),2,if(eq($month,March),3,if(eq($month,April),4,if(eq($month,May),5,if(eq($month,June),6,if(eq($month,July),7,if(eq($month,August),8,if(eq($month,September),9,if(eq($month,October),10,if(eq($month,November),11,12))))))))))) as amonth name
+left join ds_mysql_prod_tagelement t1 on t1.id = financialperiod where finperiodyear not in( 'FY 2020-21', 'FY 2021-22', 'FY 2019-20'),
+CASE amonth
+WHEN 'January' THEN 1
+WHEN 'February' THEN 2
+WHEN 'March' THEN 3
+WHEN 'April' THEN 4
+WHEN 'May' THEN 5
+WHEN 'June' THEN 6
+WHEN 'July' THEN 7
+WHEN 'August' THEN 8
+WHEN 'September' THEN 9
+WHEN 'October' THEN 10
+WHEN 'November' THEN 11
+ELSE 12
+as amonth_name
 group by
-projectid,t1.name, fy_timerange,quality,importance_local,row, fin period ayear, amonth, amonth name
+projectid,t1.name, fy_timerange,quality,importance_local,row, finperiodyear, amonth, amonth_name
 
-order by fin period ayear asc, financialperiod asc
+order by finperiodyear asc, financialperiod asc
