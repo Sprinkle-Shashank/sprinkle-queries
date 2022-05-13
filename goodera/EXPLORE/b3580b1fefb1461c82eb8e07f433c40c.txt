@@ -1,1 +1,26 @@
-select * from 55793
+-- select * from profile_55793
+-- select * from profile_49219
+with table1 as(
+	(
+		select *, 1 as camp_yn_yes ,0 as camp_yn_no
+		from profile_58511	
+		where camp_yn = '28005'
+	)
+	union all
+	(
+  		select *, 0 as camp_yn_yes ,1 as camp_yn_no
+		from profile_58511
+		where camp_yn = '28006'  
+	)
+), table2 as(
+	select i.name as name, camp_yn_yes,camp_yn_no,
+  	p.req_date as date
+  	,t1.name as van from 
+  	table1 p
+  	left join profile_51990 i
+  	on i._id = p.imple_partner
+  	left join ds_mysql_prod_project t1
+  	on p.projectid = t1.id
+)
+
+select *,1 as count from table2
