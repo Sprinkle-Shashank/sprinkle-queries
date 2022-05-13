@@ -1,12 +1,18 @@
 with table1 as(
-	select t.name as reason, i.name as imple_partner, fy1_timerange
+  	select p1.*,cast(a1 as varchar) as a
+	from profile_58511 p1,p1.awareness_topic a1
+), 
+
+table2 as(
+	select t.name as reason, i.name as name, fy1_timerange,req_date as date,t1.name as van
     from 
-  	profile_58511 p
+  	table1 p
   	left join ds_mysql_prod_tagelement t
-  	on p.reason_camp_n = t.id
+  	on p.a = t.id
   	left join profile_51990 i
   	on i._id = p.imple_partner
-  	where reason <> ''
+  	left join ds_mysql_prod_project t1
+  	on p.projectid = t1.id
 )
-select reason,imple_partner as name,fy1_timerange, 1 as count
-from table1
+select reason,name,fy1_timerange,date,van, 1 as count
+from table2
