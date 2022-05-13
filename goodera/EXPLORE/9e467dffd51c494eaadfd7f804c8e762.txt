@@ -1,6 +1,10 @@
-with base1 as(
-select substring(end_date,1,10) as end_date,CURRENT_DATE,date_cmp(cast(substring(end_date,1,10) as date),CURRENT_DATE) as datedif from profile_12743)
-select end_date,CURRENT_DATE,case when datedif <0 then 'completed'
-when datedif >0 then 'pending'
-else ' '
-end from base1
+select ps.name as projectscopename, pr.name as projectname, ps.grantproposalid
+from profile_46226 p 
+left join ds_mysql_prod_grantflowtask gft  on
+p.grantflowtaskid = gft.id
+left join ds_mysql_prod_grantapplication gapp on
+gft.grantflowid = gapp.grantflowid
+left join ds_mongo_projectscope ps on 
+gapp.projectscopeid = ps._id
+left join ds_mysql_prod_project pr on 
+ps.projectid = pr.id
