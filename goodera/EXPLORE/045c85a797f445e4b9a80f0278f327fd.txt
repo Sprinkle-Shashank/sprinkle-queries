@@ -35,7 +35,24 @@ on pro.parent = ngo.id
   ),
   
 table2 as 
- ( select *, cast(d1 as varchar) as p2, cast(d2 as varchar) as p3 from table1 as p , p.location as d1 , p.schedule_7 as d2)
+ ( select * , location_update.name as location_update_name , sche.name as schedule_name from table1 as p , p.location as d1 , p.schedule_7 as d2
+ 
+left join ds_mysql_prod_tagelement location_update
+on d1 = location_update.id
+  
+left join ds_mysql_prod_tagelement sche
+on d2 = sche.id
+ ),
+ 
+ table3 as 
+ ( select *, location_update.name as location , sche.name as schedule_7 from table2 as p
+  
+left join ds_mysql_prod_tagelement location_update
+on p.d1 = location_update.id
+  
+left join ds_mysql_prod_tagelement sche
+on p.d2 = sche.id
+  )
   
   
   select * from table2
