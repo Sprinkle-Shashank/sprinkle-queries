@@ -1,4 +1,4 @@
-select s.state, s.school_name, s.fy_timerange,p.gender, p.grade, p.age, p.student_name,p.name,
+with L as(select s.state, s.school_name, s.fy_timerange,p.gender, p.grade, p.age, p.student_name,p.name,
 case
 	when p.age<=10 then 'Less than 10'
 	when p.age>10 and p.age<=15 then 'Between 10-15'
@@ -8,4 +8,12 @@ case
 	
 from profile_80730 s
 left join profile_80731 p
-on s.school_name=p._id
+on s.school_name=p._id)
+
+select t.name as state,L.name as school_name, student_name,t2.name as gender, grade, Age Bucket, fy_timerange,count(*)
+from L
+left join ds_mysql_prod_tagelement t
+on t.id=state
+left join ds_mysql_prod_tagelement t2
+on t2.id=gender
+group by t.name,L.name, student_name,t2.name,grade,Age_Bucket, fy_timerange
