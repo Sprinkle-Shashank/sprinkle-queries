@@ -1,1 +1,21 @@
 --46184, 46299, 46318, 46228, 55677, 55825
+with prof1 as(
+	select grantproposalid,cast('954881' as varchar) as disbursement_thru,cast(value.payment_date as TIMESTAMPTZ) as payment_date from profile_55677 p,unpivot p.disbursement_plan as value at disbursement_plan
+),
+prof2 as(
+	select grantproposalid,cast('954881' as varchar) as disbursement_thru,cast(value.payment_date as TIMESTAMPTZ) as payment_date from profile_55825 p,unpivot p.disbursement_plan as value at disbursement_plan
+),
+base1 as(
+  select disbursement_thru,cast(value.payment_date as TIMESTAMPTZ) as payment_date from profile_46184 p,unpivot p.disbursement_plan as value at disbursement_plan
+  union all
+  select cast(disbursement_thru[0] as Int) as disbursement_thru,cast(value.payment_date as TIMESTAMPTZ) as payment_date from profile_46299 p,unpivot p.disbursement_plan as value at disbursement_plan
+  union all
+  select disbursement_thru,cast(value.payment_date as TIMESTAMPTZ) as payment_date from profile_46318 p,unpivot p.disbursement_plan as value at disbursement_plan
+  union all
+  select disbursement_thru,cast(value.payment_date as TIMESTAMPTZ) as payment_date from profile_46228 p,unpivot p.disbursement_plan as value at disbursement_plan
+  union all
+  select cast(disbursement_thru as Int4) as disbursement_thru,payment_date from prof1 p
+  union all
+  select cast(disbursement_thru as Int4) as disbursement_thru,payment_date from prof2 p
+)
+select * from base1
