@@ -6,16 +6,39 @@ temp2 as (
 select * ,temp1.gri_total_water_consumed
   from x as temp, unpivot temp.datatablebase as temp1 at row)
 
-select projectid,  temp1.gri_total_water_consumed as consumption,t1.name as financialperiod , fy_timerange , sum (temp1.gri_total_water_consumed) as 
-  gri_consumption_pattern_consumption, split_part(t1.name,' ',1) as month,  row as consumptiontype
- 
+select projectid, t1.name as financialperiod , fy_timerange , sum (temp1.gri_total_water_consumed) as 
+  gri_consumption_pattern_consumption, split_part(fy_timerange,'-',1)as year, row as consumptiontype,
+  CASE(split_part(fy_timerange,'-',2)
+	  
+WHEN '01' THEN 'Jan'
+WHEN '02' THEN 'Feb'
+WHEN '03' THEN 'Mar'
+WHEN '04' THEN 'Apr'
+WHEN '05' THEN 'May'
+WHEN '06' THEN 'Jun'
+WHEN '07' THEN 'Jul'
+WHEN '08' THEN 'Aug'
+WHEN '09' THEN 'Sep'
+WHEN '10' THEN 'Oct'
+WHEN '11' THEN 'Nov'
+
+ Else 'Dec'
+end) as Month,
+
+Case row
+WHEN 'water_process' THEN 'Water Process'
+WHEN 'water_domestic' THEN 'Water Domestic'
+WHEN 'coolant' THEN 'Coolant'
+
+ Else null
+end) as type_text,
 
 
 from temp2  
 left join ds_mysql_prod_tagelement t1 on t1.id = financialperiod 
 
 group by
-projectid,t1.name,  temp1.gri_total_water_consumed, temp1.consumption, month ,financialPeriod, fy_timerange, row
+projectid,t1.name, month ,year,financialPeriod, fy_timerange, row, type_text
 
 /*select * from sus_56551 where keyword in ('gri_total_water_consumed','gri_consumption_pattern')*/
 
