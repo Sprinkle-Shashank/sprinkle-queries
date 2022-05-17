@@ -1,1 +1,32 @@
-select * from profile_58474
+with table1 as(
+	select i.name as name, t1.name as van,
+    case 
+  		when (reg_date_yn = 28005) 
+  			then 
+  				p1.date_y
+  		else p1.createddate
+  	end as date
+  	,
+  	case 
+  		when (p1.age <=5)
+  			then '0-5 yrs'
+  		when (p1.age>=6 and p1.age<=18)
+  			then '6-18 yrs'
+  		when (p1.age>=19 and p1.age<=40)
+  			then '19-40 yrs'
+  		when (p1.age>=41 and p1.age<=60)
+  			then '41-60 yrs'
+  		when(p1.age>=61) 
+  			then 'More than 60 yrs'
+  	end as age
+  	from profile_58474 p 
+  	left join profile_58473 p1
+  	on p.patient = p1._id
+  	left join profile_58511 p2
+  	on p.sel_camp = p2._id
+  	left join profile_51990 i
+  	on p2.imple_partner = i.name
+  	left join ds_mysql_prod_project t1
+  	on p.projectid = t1.id
+)
+select *, 1 as count from table1
