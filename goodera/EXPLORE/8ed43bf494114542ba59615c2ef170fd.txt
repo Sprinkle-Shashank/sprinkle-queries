@@ -1,4 +1,16 @@
-Select s.state, s.school_name, s.fy_timerange , p.gender, p.grade, p.age, p.student_name,p.name
+with s as (Select s.state, s.school_name, s.fy_timerange , p.gender, p.grade, p.age, p.student_name,p.name,
+case
+	when p.age<=10 then 'Less than Equal to 10'
+	when p.age>10 and p.age<=15 then 'Between 10-15'
+	when p.age>15 'Other'
+	else null
+	end as Age_Bucket
+
 from profile_80730 s
 left join profile_80731 p
 on s.school_name=p._id
+)
+
+Select state, school_name, student_name, gender, grade, Age Bucket, fy_timerange, count(*)
+from s
+group by  state, school_name, student_name, gender, grade, Age Bucket, fy_timerange
