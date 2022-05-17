@@ -1,1 +1,22 @@
-select * from profile_61498 as p
+with table21 as 
+(
+select p.projectid, p.facility_status , facility.name as facility_status_update , case when facility_status_update='Active' then 'Active' else 'Deactive' end as Active_Filter, goodera_facility_name_text from profile_68161 as p
+  
+left join ds_mysql_prod_tagelement facility 
+on p.facility_status = facility.id
+),
+
+table1 as
+( select *, fac.name as factory , ven.name as vendor , cou.name as country from profile_61498 as p 
+
+left join ds_mysql_prod_project fac
+on p.projectid = fac.id
+
+left join ds_mysql_prod_project ven
+on fac.parent = ven.id
+
+left join ds_mysql_prod_project cou
+on ven.parent = cou.id
+)
+
+select * from table1
