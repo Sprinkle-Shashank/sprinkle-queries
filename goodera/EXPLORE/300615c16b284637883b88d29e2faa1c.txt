@@ -4,18 +4,25 @@ select p.projectid, p.facility_status , facility.name as facility_status_update 
   
 left join ds_mysql_prod_tagelement facility 
 on p.facility_status = facility.id
-)
+),
 
+ table12 as
+   ( select p.*, cast(d1 as varchar) as g1 from profile_60620 as p, p.survey_arr as d1),
+   
+ table13 as
+   ( select g1 , date , trainer_organization from table12 ) 
+   
+   
 select p.projectId, score, cou.name as country,
 case when nvl2(SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), ven.name)='' then ven.name else nvl2(SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), ven.name) end as vendor
  ,p._id,
-profile_60620.date, profile_60620.trainer_organization,SUBSTRING(profile_60620.date,0,5) as year,
+t13.date, t13.trainer_organization,SUBSTRING(t13.date,0,5) as year,
 Count(p.projectId) as randl_respondents , t2.active_filter
 from profile_65254 p
 
 
-left join profile_60620 on
-p._id = profile_60620.survey
+left join table13 t13 on
+p._id = t13.g1
 
 left join ds_mysql_prod_project fac
 on p.projectid = fac.id
@@ -29,10 +36,7 @@ on ven.parent = cou.id
 left join table2 t2 on 
 fac.name = t2.goodera_facility_name_text
 
---left join ds_mysql_prod_tagelement torg on profile_60620.trainer_organization = torg.id
 
 where country <> 'Test Country' and p.projectid like '%%'
 
-group by p.projectId, score, cou.name, ven.name, profile_60620.trainer_organization
-, profile_60620.date 
-,p._id , t2.active_filter
+group by p.projectId, score, country, vendor , p._id , t13.date, t13.trainer_organization, year  , t2.active_filter
