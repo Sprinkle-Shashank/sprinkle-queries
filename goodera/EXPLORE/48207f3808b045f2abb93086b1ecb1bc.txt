@@ -9,19 +9,13 @@ where keyword='scope_1_own_vehicles'
 			   ),
 
 table1 as (
-  Select projectid ,fy_timerange, year, Substring(fy_timerange,16,2)::smallint as month, coun.vehicle_type_own_vehicles as vehicle_type, coun.vehicle_fuel_type_own_vehicles as fuel_type,
+  Select projectid ,fy_timerange, year,  coun.vehicle_type_own_vehicles as vehicle_type, coun.vehicle_fuel_type_own_vehicles as fuel_type,
   coun.fuel_consumed_ownvehicles as fuel_consumed, coun.fuel_unit_ownvehicles as fuel_units, coun.distance_ownvehicles as distance_travelled, row_number() over (order by fy_timerange) as sno
 from table0 as p, unpivot p.datatablebase as coun at xyz
   
   
 ), table2 as (
-select projectid ,fy_timerange, vt.name as vehicle_type, ft.name as fuel_type, fuel_consumed, fuel_units, distance_travelled, sno, case when (year=2019 and month>3) or (year=2020 and month<4) then 'FY 2019-20'
-	 when (year=2020 and month>3) or (year=2021 and month<4) then 'FY 2020-21'
-	 when (year=2021 and month>3) or (year=2022 and month<4) then 'FY 2021-22' 
-	 when (year=2022 and month>3) or (year=2023 and month<4) then 'FY 2022-23'
-	 when (year=2023 and month>3) or (year=2024 and month<4) then 'FY 2023-24'
-	 else 'FY 2024-25' end as year
- from table1
+select projectid ,fy_timerange, year, vt.name as vehicle_type, ft.name as fuel_type, fuel_consumed, fuel_units, distance_travelled, sno from table1
   
   
   left join ds_mysql_prod_tagelement ft
@@ -43,7 +37,7 @@ on profile_80610.emission_source = es.id
 
 ), table3 as (
 
-select projectid ,table2.fy_timerange, year, month,  vehicle_type, fuel_type, fuel_consumed, fuel_units, distance_travelled, sno, litre_to_kg,
+select projectid ,table2.fy_timerange, year,  vehicle_type, fuel_type, fuel_consumed, fuel_units, distance_travelled, sno, litre_to_kg,
  kg_to_gg,
  calorific_value,
 emission_factor  from table2
@@ -51,5 +45,5 @@ emission_factor  from table2
 left join emission_conversion on
 emission_conversion.emission_source = table2.fuel_type
 )
-select projectid ,table3.fy_timerange, year, month vehicle_type, fuel_type, fuel_consumed, fuel_units, distance_travelled, fuel_consumed * litre_to_kg * kg_to_gg * calorific_value * emission_factor / 1000 as emission from table3
+select projectid ,table3.fy_timerange, year, vehicle_type, fuel_type, fuel_consumed, fuel_units, distance_travelled, fuel_consumed * litre_to_kg * kg_to_gg * calorific_value * emission_factor / 1000 as emission from table3
 
