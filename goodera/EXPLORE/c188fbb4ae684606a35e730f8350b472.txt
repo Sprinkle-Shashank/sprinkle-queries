@@ -5,7 +5,12 @@ with table1 as(
   			then 
   				p2.date_n
   		else p2.createddate
-  	end as date,t.name as referral
+  	end as date,
+  	case 
+  	when t2.name is not null 
+  		then t2.name as referral
+  	else t.name
+  	end as referral
 	from profile_58474 p
 	left join profile_58511 p2
 	on p.sel_camp = p2._id 
@@ -14,11 +19,11 @@ with table1 as(
 	on p2.imple_partner = i._id
 	left join ds_mysql_prod_tagelement t
 	on p.referral_destination = t.id
-  	--left join ds_mysql_prod_tagelement t2
-  	--on t2.id = t.parent
+  	left join ds_mysql_prod_tagelement t2
+  	on t2.id = t.parent
 	left join 
 	ds_mysql_prod_project t1
 	on i.projectid = t1.id
-  	where t.name <> ''
+  	where t2.name <> ''
 )
 select *, 1 as count from table1
