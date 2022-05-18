@@ -1,0 +1,32 @@
+select p._id, age, createddate,SUBSTRING(p3.name,1,CHARINDEX('-',p3.name)) as diagnosis1 ,SUBSTRING(p4.name,1,CHARINDEX('-',p4.name)) as diagnosis2,  DATEDIFF(year,createddate,GETDATE())+age as final_age,
+CASE 
+when final_age >=0 and final_age<=0 then '0-5'
+when final_age >=6 and final_age<=18 then '6-18'
+when final_age >=19 and final_age<=40 then '19-40'
+when final_age >=41 and final_age<=60 then '41-60'
+when final_age >60  then 'more than 60'
+end as age_category,
+CASE
+When SUBSTRING(p3.name,1,CHARINDEX('-',p3.name)) = SUBSTRING(p4.name,1,CHARINDEX('-',p4.name)) then '' else SUBSTRING(p4.name,1,CHARINDEX('-',p4.name)) end as disease,
+case when diagnosis1 is not null then 1 else 0 end as count1,
+case when diagnosis2e ='' OR  diagnosis2e is null then 0 else 1 end as count
+from profile_58473 p
+left join profile_58474 p2
+on p._id=p2.patient
+left join ds_mysql_prod_tagelement p3
+on p2.diagnosis1=p3.id
+left join ds_mysql_prod_tagelement p4
+on p2.diagnosis2=p4.id
+group by p3.name,p4.name,p.createddate,p._id,p.age,p2.diagnosis1,p2.diagnosis2
+
+
+
+
+/*select p2.name,p3.name from profile_58474 p
+left join ds_mysql_prod_tagelement p2
+on p.diagnosis1=p2.id
+left join ds_mysql_prod_tagelement p3
+on p.diagnosis2=p3.id
+LEFT JOIN Profile_*/
+
+
