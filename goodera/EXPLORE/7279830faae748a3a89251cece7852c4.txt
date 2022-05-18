@@ -1,1 +1,40 @@
-select diagnosis1, diagnosis2 from profile_58474
+with test as(select p._id, age, createddate,SUBSTRING(p3.name,1,CHARINDEX('-',p3.name)) as diagnosis1 ,SUBSTRING(p4.name,1,CHARINDEX('-',p4.name)) as diagnosis2,  DATEDIFF(year,createddate,GETDATE())+age as final_age,COUNT(p._id) as total_count,
+CASE 
+when final_age >=0 and final_age<=0 then '0-5'
+when final_age >=6 and final_age<=18 then '6-18'
+when final_age >=19 and final_age<=40 then '19-40'
+when final_age >=41 and final_age<=60 then '41-60'
+when final_age >60  then 'more than 60'
+end as age_category
+
+from profile_58473 p
+left join profile_58474 p2
+on p._id=p2.patient
+left join ds_mysql_prod_tagelement p3
+on p2.diagnosis1=p3.id
+left join ds_mysql_prod_tagelement p4
+on p2.diagnosis2=p4.id
+
+),
+temp as (
+  select 'CVS' as dim
+  union all
+  select 'ENDOCRINE' as dim
+  union all
+  select 'CNS' as dim
+)
+
+select p._id, age, createddate, diagnosis1 , diagnosis2, final_age,
+ age_category.temp.dim,
+	case dim
+	when 'CVS' then total_count 
+	when 'ENDOCRINE' then total_count 
+	when 'CNS' then total_count 
+
+	Else Null
+	End as value	
+from test t1
+cross join temp
+group by p3.name,p4.name,p.createddate,p._id,p.age,temp.dim,total_count
+
+
