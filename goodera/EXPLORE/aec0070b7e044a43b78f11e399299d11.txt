@@ -9,13 +9,11 @@ on p.facility_status = facility.id
 
 
 select fac.name as projectId,case when nvl2(SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), ven.name)='' then ven.name else nvl2(SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), ven.name) end as vendor
-, cou.name as country, production_efficiency , profile_60669.production_efficiency_pre ,
+, cou.name as country, production_efficiency , 
+/*profile_60669.production_efficiency_pre ,
 case 
 when production_efficiency - profile_60669.production_efficiency_pre > 0 then 1 
 else 0 end as count_increase ,
---count(p._id)  as responses_total,
---production_efficiency,  profile_60669.production_efficiency_pre
---,pe.name, pep.name
 
 case when (production_efficiency - profile_60669.production_efficiency_pre) <= 0
 then 1
@@ -33,11 +31,13 @@ then
 else
 0 
 end as major_change ,
-count(p.projectId) as responses_total , p.trainer_organization , t21.active_filter , p2.fac_cl_vpid, p2.vendor_ngo_id ,  SUBSTRING(to_char(p.createddate, 'DD/MM-YYYY'), POSITION('-' in to_char(p.createddate, 'DD/MM-YYYY'))+1,4 ) as year
+count(p.projectId) as responses_total ,
+*/
+p.trainer_organization , t21.active_filter , p2.fac_cl_vpid, p2.vendor_ngo_id ,  SUBSTRING(to_char(p.createddate, 'DD/MM-YYYY'), POSITION('-' in to_char(p.createddate, 'DD/MM-YYYY'))+1,4 ) as year
 from profile_65282 p
 
-left join profile_60669
-on p.employee_id = profile_60669.employee_id_pre
+--left join profile_60669
+--on p.employee_id = profile_60669.employee_id_pre
 
 left join ds_mysql_prod_project fac
 on p.projectid = fac.id
@@ -52,11 +52,11 @@ left join table21 t21 on
 fac.name = t21.goodera_facility_name_text
 
 left join profile_52810 p2
-on p.projectId = p2.projectId
+ p.projectId = p2.projectId
 
 where cou.name != 'Test Country'
 
-group by p.projectId, cou.name, ven.name, count_increase ,fac.name ,  p.trainer_organization , t21.active_filter , no_change , minor_change , major_change , p2.fac_cl_vpid, p2.vendor_ngo_id ,  production_efficiency , profile_60669.production_efficiency_pre , year
+group by p.projectId, cou.name, ven.name,  ,fac.name ,  p.trainer_organization , t21.active_filter ,  p2.fac_cl_vpid, p2.vendor_ngo_id ,  production_efficiency , --profile_60669.production_efficiency_pre ,year , , no_change , minor_change , major_change , count_increase
 
 /*
 with table21 as 
