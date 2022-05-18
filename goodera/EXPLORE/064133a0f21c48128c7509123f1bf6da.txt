@@ -1,20 +1,33 @@
-with table2 as 
+with 
+table21 as 
 (
 select p.projectid, p.facility_status , facility.name as facility_status_update , case when facility_status_update='Active' then 'Active' else 'Deactive' end as Active_Filter, goodera_facility_name_text from profile_68161 as p
   
 left join ds_mysql_prod_tagelement facility 
 on p.facility_status = facility.id
-)
+),
 
-select p.project_name, ven.name as vendor,p.projectId, sm.name as single_multi, profile_61498.trainer_2, profile_61498.trainer_name_2,torg.name as trainer_organization , profile_61498.date, ts.name as training_shadowed, ty.name as training_yn, p.remarks,num_female, num_male, prospect_female, total_supervisors, total_other_participants, prospect_total, prospect_male,profile_61498.name as trainingID,
-SUBSTRING(to_char(profile_61498.date, 'DD/MM-YYYY'), POSITION('-' in to_char(profile_61498.date, 'DD/MM-YYYY'))+1,4 ) as year,cou.name as country , t2.active_filter , profile_52810.projectid as projectid_new
-from profile_64075 p
+table6 as
+(
+select p.projectId,  p._id , cou.name as country,p.employee_id,p.name,p.trainer_organization as trainer_organization,  case when nvl2(SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), ven.name)='' then ven.name else nvl2(SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), ven.name) end as vendor
+  
+,case when p.production_efficiency>0 then  p.production_efficiency else 0 end as production_efficiency_1 , 
+  
+  case when p1.production_efficiency_pre>0 then  p1.production_efficiency_pre else 0 end as  production_efficiency_pre_1 ,
+  p1.employee_id_pre,(production_efficiency_1-production_efficiency_pre_1) as difference,case when difference>0
+then
+1
+else 
+0 
+end as count_increase , t21.active_filter ,  SUBSTRING(to_char(p.createddate, 'DD/MM-YYYY'), POSITION('-' in to_char(p.createddate, 'DD/MM-YYYY'))+1,4 ) as year
+from profile_65282 p
 
-left join profile_61498
-on p.training_id = profile_61498._id
+
+left join profile_60669 p1
+on p.employee_id = p1.employee_id_pre
 
 left join ds_mysql_prod_project fac
-on p.projectid = fac.id
+on  p.projectid = fac.id
 
 left join ds_mysql_prod_project ven
 on fac.parent = ven.id
@@ -22,23 +35,12 @@ on fac.parent = ven.id
 left join ds_mysql_prod_project cou
 on ven.parent = cou.id
 
-left join ds_mysql_prod_tagelement torg
-on profile_61498.trainer_organization = torg.id
+left join table21 t21 on 
+fac.name = t21.goodera_facility_name_text
 
-left join ds_mysql_prod_tagelement sm
-on profile_61498.single_multi = sm.id
+where p.projectid like '%%' and country != 'Test Country'
 
-left join ds_mysql_prod_tagelement ts
-on profile_61498.training_shadowed = ts.id
+--  group by p.projectId, p._id , cou.name, production_efficiency_pre ,p1.employee_id_pre,difference,count_increase,production_efficiency,p.employee_id,p.name,p.trainer_organization , t21.active_filter , vendor , year , p._id 
+)
 
-left join ds_mysql_prod_tagelement ty
-on profile_61498.training_yn = ty.id
-
-left join table2 t2 on 
-fac.name =t2.goodera_facility_name_text
-
-
-where p.projectId NOT IN ('54835','54832','31299','31303') and t2.active_filter is not null
-
-group by p.projectId,p.project_name, profile_61498.date, p.remarks, num_female, num_male, prospect_female, total_supervisors, total_other_participants, prospect_total, prospect_male,  sm.name, trainer_2, trainer_name_2, ts.name, ty.name, year, ven.name, cou.name, torg.name, p.trainer_org,trainingID , t2.active_filter
-
+select * from table6
