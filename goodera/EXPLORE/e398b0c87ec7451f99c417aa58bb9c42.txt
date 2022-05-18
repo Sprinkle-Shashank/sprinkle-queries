@@ -5,19 +5,19 @@ select p.projectid, p.facility_status , facility.name as facility_status_update 
   
 left join ds_mysql_prod_tagelement facility 
 on p.facility_status = facility.id
-),
+)
 
 
 select fac.name as projectId,case when nvl2(SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), ven.name)='' then ven.name else nvl2(SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), ven.name) end as vendor
 , cou.name as country,
 case 
 when production_efficiency - profile_60669.production_efficiency_pre > 0 then 1 
-else 0 end as count_increase
+else 0 end as count_increase 
 ,
 --count(p._id)  as responses_total,
 --production_efficiency,  profile_60669.production_efficiency_pre
 --,pe.name, pep.name
-count(p.projectId) as responses_total , p.trainer_organization , t21.active_filter
+count(p.projectId) as responses_total , p.trainer_organization , t21.active_filter , SUBSTRING(to_char(p.createddate, 'DD/MM-YYYY'), POSITION('-' in to_char(p.createddate, 'DD/MM-YYYY'))+1,4 ) as year
 from profile_65282 p
 
 left join profile_60669
@@ -37,4 +37,4 @@ fac.name = t21.goodera_facility_name_text
 
 where country != 'Test Country'
 
-group by p.projectId, cou.name, ven.name, count_increase ,fac.name ,  p.trainer_organization
+group by p.projectId, cou.name, ven.name, count_increase ,fac.name ,  p.trainer_organization , t21.active_filter , year
