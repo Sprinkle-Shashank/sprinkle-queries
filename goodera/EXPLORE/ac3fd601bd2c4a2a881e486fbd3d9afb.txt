@@ -8,22 +8,24 @@ on p.facility_status = facility.id
 ), 
 
 table2 as
-( select p.projectid , p._id  , avg(cast(production_efficiency as float)) as  production_efficiency, row_number() over 
+( select p.projectid , p._id  , production_efficiency, row_number() over 
 (partition by p.projectid
- order by p._id desc) as row , p.employee_id,p.name,p.trainer_organization from profile_65282 as p
+ order by p._id desc) as row , p.employee_id,p.name,p.trainer_organization , createddate from profile_65282 as p
  
- group by p.projectid , p._id , p.employee_id,p.name,p.trainer_organization),
+ group by p.projectid , p._id , p.employee_id,p.name,p.trainer_organization , createddate , production_efficiency
+),
 
 table3 as
 ( select * from table2 where row=1 ),
 
 
 table4 as
-( select p.projectid , p._id  , avg(cast(production_efficiency_pre  as float)) as production_efficiency_pre , row_number() over 
+( select p.projectid , p._id  , production_efficiency_pre , row_number() over 
 (partition by p.projectid
  order by p._id desc) as row , p.employee_id_pre from profile_60669 as p
 
-group by p.projectid , p._id, p.employee_id_pre),
+group by p.projectid , p._id, p.employee_id_pre , production_efficiency_pre
+),
 
 table5 as
 ( select * from table4 where row=1 ),
@@ -41,15 +43,12 @@ then
 1
 else 
 0 
-end as count_increase , t21.active_filter ,  SUBSTRING(to_char(p2.date_1, 'DD/MM-YYYY'), POSITION('-' in to_char(p2.date_1, 'DD/MM-YYYY'))+1,4 ) as year
+end as count_increase , t21.active_filter ,  SUBSTRING(to_char(p.createddate, 'DD/MM-YYYY'), POSITION('-' in to_char(p.createddate, 'DD/MM-YYYY'))+1,4 ) as year
 from table3 p
 
 
 left join table5 p1
 on p.employee_id = p1.employee_id_pre
-
-left join profile_64075 p2
-on p.projectId = p2.projectId 
 
 left join ds_mysql_prod_project fac
 on  p.projectid = fac.id
@@ -65,7 +64,7 @@ fac.name = t21.goodera_facility_name_text
 
 where p.projectid like '%%' and country != 'Test Country'
 
-group by p.projectId, p._id , cou.name, production_efficiency_pre ,p1.employee_id_pre,difference,count_increase,production_efficiency,p.employee_id,p.name,p.trainer_organization , t21.active_filter , vendor , year , p._id 
+  group by p.projectId, p._id , cou.name, production_efficiency_pre ,p1.employee_id_pre,difference,count_increase,production_efficiency,p.employee_id,p.name,p.trainer_organization , t21.active_filter , vendor , year , p._id 
 )
 
 select * from table6
