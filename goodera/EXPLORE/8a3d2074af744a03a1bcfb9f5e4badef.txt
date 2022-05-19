@@ -1,52 +1,65 @@
-Select  p._id,p.projectId as project,fac.name as projectId,p2.name as factory,p2.facility_vpid,p.director_region as director_region , p.facility_type, p.strategic_yn, p.year_timerange, p.country as country,ven.name as vendor1,nvl2(SUBSTRING(vendor1, 1, POSITION(' (' in vendor1)), SUBSTRING(vendor1, 1, POSITION(' (' in vendor1)), vendor1) as vendor_name, case when vendor_name='' then vendor1 else vendor_name end as vendor, p.female_workers, p.male_workers, p.female_managers, p.male_managers, p.female_reps_worker, p.male_reps_workers, p.female_reps_management, p.male_reps_management, p.female_supervisors, p.male_supervisors, 
-p.female_reps_management*100 AS a,(p.female_reps_management + p.male_reps_management) AS b,
-CAST (a AS FLOAT) as a1,
-CAST (b as FLOAT) as b1,
-a1/nullif(b1,0) AS f1,
+with test0 as(Select p.* ,CAST(pace_goals as VARCHAR)from profile_76755 p
+, p.pace_goals_arr pace_goals
+),
 
-p.female_managers*100 AS c, (p.female_managers+p.male_managers) AS d,
-CAST (c AS FLOAT) as c1,
-CAST (d as FLOAT) as d1,
-Case when p.country IN ('Cambodia')
-THEN 
-c1/nullif(d1,0)
-else
-(p.female_managers+p.female_supervisors)/(p.female_managers+p.female_supervisors+p.male_managers+p.male_supervisors)*100.0
+ test1 as(
+Select t0._id,t0.projectId as project,fac.name as projectId, p2.facility_name as facility,t0.pace,t0.strategic_yn,t0.facility_type,t0.year_timerange, t0.country as country,ven.name as vendor1,nvl2(SUBSTRING(vendor1, 1, POSITION(' (' in vendor1)), SUBSTRING(vendor1, 1, POSITION(' (' in vendor1)), vendor1) as vendor_name, case when vendor_name='' then vendor1 else vendor_name end as vendor, t0.director_region as director_region, p1.pace_introduced,p1.certified_trainers, p1.certified_mts,case when  p1.pace_introduced = 57472 then 'Yes' else 'No' end as result_1,concat(vendor,t0.country) as unique
 
-END as f2,
-p.female_reps_worker*100 AS e, (p.female_reps_worker + p.male_reps_workers) AS g,
-CAST (e AS FLOAT) as e1,
-CAST (g as FLOAT) as g1,
-e1/nullif(g1,0) AS f3,
 
-(p.female_workers+p.female_supervisors)*100 AS h, (p.female_workers + p.female_supervisors+p.male_workers+p.male_supervisors) AS i,
-CAST (h AS FLOAT) as h1,
-CAST (i as FLOAT) as i1,
-Case when p.country IN ('Cambodia')
-THEN
-h1/nullif(i1,0)
-else
-p.female_workers*100.0/
-(p.female_workers+p.male_workers)
 
-end as f4,
+from test0 t0
+   
+left join profile_76895 p1
+on t0.pace_goals = p1._id
 
-CASE WHEN(f1>=f2 AND f3>=f4) THEN 'YES'
-ELSE
-'NO'
-END AS result
-
-from profile_76755 p
 
 left join profile_76770 p2 on
-p.facility_name = p2._id
-
-
+t0.facility_name = p2._id
+		   
 left join ds_mysql_prod_project fac
-on p.projectid = fac.id
+on t0.projectid = fac.id
 left join ds_mysql_prod_project ven
 on fac.parent = ven.id
 
 
-WHERE p.strategic_yn ='Yes'  and project like '%%'
-Group by  p._id,project,fac.name,factory,p2.facility_vpid,p.director_region,p.facility_type, p.strategic_yn, p.year_timerange,p.country,ven.name,f1, f3, f4, result, vendor, f2,p.female_workers, p.male_workers,p.female_managers, p.male_managers, p.female_reps_worker, p.male_reps_workers, p.female_reps_management, p.male_reps_management, p.female_supervisors, p.male_supervisors
+   
+
+
+),
+test2 as (select t1.vendor,t1.country,Sum(t1.certified_mts) as certified_masters,Sum(t1.certified_trainers) as total_trainers,certified_masters*100 AS a1,
+a1/nullif(total_trainers,0) AS master
+		  --t1.certified_trainers,t1.certified_mts
+		  ,case when (master>=30) then 'Yes'
+		  else 'No' end as result_2,concat(vendor,t1.country) as unique
+		  
+from test1 t1
+		  
+		  
+group by vendor,country
+
+)
+
+,
+test3 as (Select t1._id,t1.project,t1.projectId,t1.facility, t1.pace,t1.facility_type, t1.strategic_yn, t1.year_timerange, t1.country , t1.director_region as director_region,t2.master
+		  ,t2.result_2,t1.result_1,t1.vendor,t1.pace_introduced,t2.total_trainers,t2.certified_masters,case when (t2.result_2 = 'Yes' and t1.result_1 = 'Yes')
+		  then 'Yes'
+		  else 'No'
+		  end as KPI4_MET
+from test1 t1
+
+
+
+left join test2 t2 on
+t1.unique = t2.unique
+
+
+where t1.strategic_yn = 'Yes' and project like '%%' 
+		  
+group by t1._id,t1.project,t1.projectId,t1.facility, t1.pace,t1.facility_type, t1.strategic_yn, t1.year_timerange, t1.country , t1.director_region ,t2.master
+		  ,t2.result_2,t1.result_1,t1.vendor,t1.pace_introduced,t2.total_trainers,t2.certified_masters
+
+		  
+)
+
+select * from test3
+
