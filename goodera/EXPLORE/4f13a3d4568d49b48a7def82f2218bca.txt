@@ -1,7 +1,7 @@
 select p._id,p.projectId as project,fac.name as projectId,p.strategic_yn ,p2.name as factory,p.year_timerange,p.country as country,ven.name as vendor1,nvl2(SUBSTRING(vendor1, 1, POSITION(' (' in vendor1)), SUBSTRING(vendor1, 1, POSITION(' (' in vendor1)), vendor1) as vendor_name, case when vendor_name='' then vendor1 else vendor_name end as vendor,p.director_region as director_region,p.facility_type,p.female_workers,p.pace_enrolled,(p.pace_enrolled*100) AS p1, p1/nullif(p.female_workers,0) AS percentage
 ,
 count(p.projectId) as count,
-CASE WHEN (percentage>=50) THEN 'YES'
+CASE WHEN (percentage>=50 and pace_enrolled is not null and pace_enrolled <> 0) THEN 'YES'
 ELSE
 'NO'
 END AS result
@@ -20,7 +20,7 @@ left join ds_mysql_prod_project ven
 on fac.parent = ven.id
 
 
-WHERE p.strategic_yn ='Yes' and project like '%%' --and (pace_enrolled is not null and pace_enrolled <> 0) 
+WHERE p.strategic_yn ='Yes' and project like '%%' 
 
 Group by  p._id,p.projectId,fac.name,factory,p.facility_type,ven.name,p.year_timerange, p.country, vendor, result,p.director_region, 
 p.female_workers,p.pace_enrolled,p.strategic_yn
