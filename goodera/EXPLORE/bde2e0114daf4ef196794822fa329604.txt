@@ -1,23 +1,36 @@
-Select t.name as projectid, fy_timerange, extract(year from cast(startdate as DATETIME)) as year,  Sum(CASE 
+with   temp as (
+  	select 'petrol_consumed' as col
+		union all
+  	select 'diesel_consumed' as col
+		union all
+  	select 'png_consumed' as col
+  		union all
+  	select 'lpg_consumed' as col
+  		union all
+  	select 'cng_consumed' as col
+	
+  ),
+  s as (
+  Select t.name as projectid, fy_timerange, extract(year from cast(startdate as DATETIME)) as year,  Sum(CASE 
              WHEN keyword = 'non_renewable_fuel_consumed_petrol' THEN datanumBase
              ELSE 0 
-           END) AS fuel_petrol,
+           END) AS petrol_consumed,
  Sum(CASE 
              WHEN keyword = 'non_renewable_fuel_consumed_diesel' THEN datanumBase
              ELSE 0 
-           END) AS fuel_diesel,
+           END) AS diesel_consumed,
  Sum(CASE 
              WHEN keyword = 'non_renewable_fuel_consumed_cng' THEN datanumBase
              ELSE 0 
-           END) AS fuel_cng,
+           END) AS cng_consumed,
  Sum(CASE 
              WHEN keyword = 'non_renewable_fuel_consumed_png' THEN datanumBase
              ELSE 0 
-           END) AS fuel_png,
+           END) AS png_consumed,
  Sum(CASE 
              WHEN keyword = 'non_renewable_fuel_consumed_lpg' THEN datanumBase
              ELSE 0 
-           END) AS fuel_lpg
+           END) AS lpg_consumed
 		   from sus_79029
 
 left join ds_mysql_prod_project t
@@ -25,4 +38,16 @@ on xprojectid=t.id
 
 where keyword in ('non_renewable_fuel_consumed_petrol','non_renewable_fuel_consumed_cng','non_renewable_fuel_consumed_lpg','non_renewable_fuel_consumed_png','non_renewable_fuel_consumed_diesel')
 
-group by t.name, fy_timerange, year
+group by t.name, fy_timerange, year)
+
+select projectid, year,fy_timerange, temp.col as energy, 
+	sum( case col 
+		when 'petrol_consumed' then petrol_consumed
+		when 'diesel_consumed' then diesel_consumed
+		when 'png_consumed' then png_consumed
+		when 'lpg_consumed' then lpg_consumed
+		when 'cng_consumed' then cng_consumed
+	   		else 0
+  end) as consumed
+from s
+  group by projectid, year,fy_timerange, temp.col
