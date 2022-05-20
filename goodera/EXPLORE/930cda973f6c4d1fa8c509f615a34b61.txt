@@ -1,26 +1,13 @@
-with table1 as(select p1.name as projectId, representative.name as mr_wr 
+select tablesettings,
+case
+when source='ground_water' then tablesettings."gound_water"."consumption"."measureunitbase"
+when source='purchased_water' then tablesettings."purchased_water"."consumption"."measureunitbase"
+when source='surface_water' then tablesettings."surface_water"."consumption"."measureunitbase"
+when source='rain_water' then tablesettings."rain_water"."consumption"."measureunitbase"
+when source='sea_water' then tablesettings."sea_water"."consumption"."measureunitbase"
+when source='river_water' then tablesettings."river_water"."consumption"."measureunitbase"
+when source='municipal_water' then tablesettings."municipal_water"."consumption"."measureunitbase"
+else null
+end as units
 
-from profile_18224 p
-left join ds_mysql_prod_tagelement representative on representative.id=p.mr_wr 
-left join ds_mysql_prod_project p1 on p1.id= p.projectid
-),
-
-table2 as (SELECT projectId,mr_wr,count(mr_wr) as total 	  
-from table1 
-group by projectId,mr_wr),
-
-table3 as(SELECT * FROM table2 
-PIVOT (
-    SUM(total) FOR mr_wr IN ('Management Representative' as m_r,'Worker Representative' as w_r,'Not answered' as n_a)
-)
-),
-		  
-table4 as(select nvl(m_r,0) as m_r,nvl(w_r,0) as w_r,nvl(n_a,0) as n_a
-		  --case when n_a = 0 then m_r+w_r
-		  --else n_a + m_r + w_r as 
-		  --end as 
-		  from table3
-		  
-)  
-select *, m_r + w_r+n_a as total_sum1 from table4
---select * from profile_73046
+from sus_56551
