@@ -3,7 +3,9 @@ with table1 as(select * from profile_58474),
 table2 as (select t1.*, diagno1 from table1 t1 , t1.diagnosis1 as diagno1 )
 
 
-select p._id,p5.name as gender,p6.name as referred_yn, age, Decode(reg_date_yn,28005,CONVERT(timestamp,SUBSTRING(date_y,1,10)),Convert(timestamp,SUBSTRING(reg_date,1,10))) as date,createddate,SUBSTRING(p3.name,1,CHARINDEX('-',p3.name)) as disease, SUBSTRING(p4.name,1,CHARINDEX('-',p4.name)) as diagnosis2,  DATEDIFF(year,createddate,GETDATE())+age as final_age,
+select p._id,p5.name as gender,p6.name as referred_yn, age, Decode(reg_date_yn,28005,CONVERT(timestamp,SUBSTRING(date_y,1,10)),Convert(timestamp,SUBSTRING(reg_date,1,10))) as date,createddate,SUBSTRING(p3.name,1,CHARINDEX('-',p3.name)) as disease,
+--SUBSTRING(p4.name,1,CHARINDEX('-',p4.name)) as diagnosis2, 
+DATEDIFF(year,createddate,GETDATE())+age as final_age,
 CASE 
 when final_age >=0 and final_age<=5 then '0-5'
 when final_age >=6 and final_age<=18 then '6-18'
@@ -11,12 +13,13 @@ when final_age >=19 and final_age<=40 then '19-40'
 when final_age >=41 and final_age<=60 then '41-60'
 when final_age >60  then 'more than 60'
 end as age_category,
-CASE
+/*CASE
 When SUBSTRING(p3.name,1,CHARINDEX('-',p3.name)) = SUBSTRING(p4.name,1,CHARINDEX('-',p4.name)) then '' else SUBSTRING(p4.name,1,CHARINDEX('-',p4.name)) end as diagnosis2e,
-case when disease is  null or disease = '' then 0 else 1 end as count,
-case when diagnosis2e ='' OR  diagnosis2e is null then 0 else 1 end as count2
+*/
+case when disease is  null or disease = '' then 0 else 1 end as count
+--case when diagnosis2 ='' OR  diagnosis2 is null then 0 else 1 end as count2
 from profile_58473 p
-left join profile_58474 p2
+left join table2 p2
 on p._id=p2.patient
 left join ds_mysql_prod_tagelement p3
 on p2.diagno1=p3.id
