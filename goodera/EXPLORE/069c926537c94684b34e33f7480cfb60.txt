@@ -1,7 +1,19 @@
-select *,fa.name as focus_area from profile_79500
 
+with table1 as (
+    select p1.name as projectid,profile_79500.name, focus_area, description, ngo_logo, sdg_logo as photo,fy_timerange,sd.name as state_district, start_date, end_date
+from profile_79500
+  
+left join ds_mysql_prod_tagelement sd
+on profile_79500.state_district= sd.id
 
-left join ds_mysql_prod_tagelement fa
-on profile_79500.focus_area= fa.id
+left join ds_mysql_prod_project p1 on p1.id = projectid
+  
+), 
+table2 as (select projectid, name, focus_area_unwind, description, ngo_logo, fy_timerange, state_district, start_date, end_date, cast(sdg_logo as varchar) 
+from table1 t1, t1.photo sdg_logo, t1.focus_area as focus_area_unwind)
 
-where projectid = 64521
+select projectid, name, description, ngo_logo, fy_timerange, state_district, start_date, end_date, LISTAGG( DISTINCT sdg_logo, ', ' ) as sdgs, LISTAGG( DISTINCT t1.name, ', ' ) as focus_area  from table2
+
+left join ds_mysql_prod_tagelement t1 on t1.id = focus_area_unwind
+
+group by projectid, name, description, ngo_logo, fy_timerange, state_district, start_date, end_date
