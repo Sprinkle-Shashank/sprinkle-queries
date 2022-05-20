@@ -37,7 +37,12 @@ case
 	When s2.shipment_type=1623028 then CO2_eff_dry
 	else CO2_eff_ref
 	end 
-	as CO2_eff
+	as CO2_eff,
+  case
+	When s2.shipment_type=1623028 then mm.co2_dry
+	else mm.co2_ref
+	end 
+	as emission_factor
 from s2
 left join ds_mysql_prod_project t
 on t.id=s2.projectid
@@ -57,5 +62,5 @@ where s2.km is not null
 )
 Select projectId, carrier, client , year
 ,month,fy_timerange,shipment_id,origin_port,dest_port, units,shipment_type,ports_lookup,start_country, dest_country,start_tradelane,dest_tradelane, TO_char(km,'999,999,999.999') as km,co2_dry,co2_ref, CO2_eff_dry, CO2_eff_ref,weight,
-TO_char(CO2_eff,'999,999,999,999,999,999.999') as co2_eff
+TO_char(CO2_eff,'999,999,999,999,999,999.999') as co2_eff,emission_factor
 from s3
