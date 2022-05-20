@@ -6,7 +6,17 @@ where keyword='gri_water_withdrawal_details'),
 
 sub2 as (select *,temp.consumption,cast(temp.quality as varchar),cast(temp.importance_local as varchar) from sub1 s1,unpivot s1.datatablebase as temp at source)
 
-select * ,(Initcap(split_part(source, '_', 1)) || ' ' || split_part(source, '_', 2)) as source_text
+select * ,(Initcap(split_part(source, '_', 1)) || ' ' || split_part(source, '_', 2)) as source_text,
+case
+when source='ground_water' then tablesettings."gound_water"."consumption"."measureunitbase"
+when source='purchased_water' then tablesettings."purchased_water"."consumption"."measureunitbase"
+when source='surface_water' then tablesettings."surface_water"."consumption"."measureunitbase"
+when source='rain_water' then tablesettings."rain_water"."consumption"."measureunitbase"
+when source='sea_water' then tablesettings."sea_water"."consumption"."measureunitbase"
+when source='river_water' then tablesettings."river_water"."consumption"."measureunitbase"
+when source='municipal_water' then tablesettings."municipal_water"."consumption"."measureunitbase"
+else null
+end as units
 from sub2
 
 --switch(month(dateFromString($fy_timerange.start)),case(1,January),case(2,February),case(3,March),case(4,April),case(5,May),case(6,June),case(7,July),case(8,August),case(9,September),case(10,October),case(11,November),case(12,December) )
