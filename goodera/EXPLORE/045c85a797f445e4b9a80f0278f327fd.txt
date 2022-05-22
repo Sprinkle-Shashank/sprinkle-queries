@@ -1,5 +1,5 @@
-with 
-table21 as 
+
+with table21 as 
 (
 select p.projectid, p.facility_status , facility.name as facility_status_update , case when facility_status_update='Active' then 'Active' else 'Deactive' end as Active_Filter, goodera_facility_name_text from profile_68161 as p
   
@@ -7,26 +7,13 @@ left join ds_mysql_prod_tagelement facility
 on p.facility_status = facility.id
 ),
 
-table6 as
-(
-select p.projectId, cou.name as country ,p.name,p.trainer_organization as trainer_organization,  case when nvl2(SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), ven.name)='' then ven.name else nvl2(SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), ven.name) end as vendor
+  table4 as 
+  ( select case when nvl2(SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), ven.name)='' then ven.name else nvl2(SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), ven.name) end as vendor , cou.name as country , t21.Active_Filter , substring(cast(year_timerange.start as varchar), 0,5) as year ,  p.projectid , p._id , female_supervisors , male_supervisors, p3.num_supervisors  , row_number() over 
+(partition by p.projectid
+ order by p._id desc) as row from profile_76755 as p 
   
-,case when p.production_efficiency>0 then  p.production_efficiency else 0 end as production_efficiency_1 , 
-  
-  case when p1.production_efficiency_pre>0 then  p1.production_efficiency_pre else 0 end as  production_efficiency_pre_1 ,(production_efficiency_1-production_efficiency_pre_1) as difference,case when difference>0
-then
-1
-else 
-0 
-end as count_increase , t21.active_filter ,  SUBSTRING(to_char(p.createddate, 'DD/MM-YYYY'), POSITION('-' in to_char(p.createddate, 'DD/MM-YYYY'))+1,4 ) as year
-from profile_65282 p
-
-
-left join profile_60669 p1
-on p.employee_id = p1.employee_id_pre
-
 left join ds_mysql_prod_project fac
-on  p.projectid = fac.id
+on p.projectid = fac.id
 
 left join ds_mysql_prod_project ven
 on fac.parent = ven.id
@@ -36,10 +23,20 @@ on ven.parent = cou.id
 
 left join table21 t21 on 
 fac.name = t21.goodera_facility_name_text
-
-where p.projectid like '%%' and country != 'Test Country'
-
---  group by p.projectId, p._id , cou.name, production_efficiency_pre ,p1.employee_id_pre,difference,count_increase,production_efficiency,p.employee_id,p.name,p.trainer_organization , t21.active_filter , vendor , year , p._id 
-)
-
-select * from table6
+   
+left join profile_76896 p3
+on p.projectId = p3.projectId 
+  ), 
+  
+  table6 as 
+  (select * from table4 where row=1
+   ),
+   
+   table5 as
+   (
+  select  p.projectid , p._id , vendor , year , active_filter , country , cast(((num_supervisors)/(male_supervisors+female_supervisors ))*100 as int) as percentage_check, num_supervisors , (male_supervisors+female_supervisors ) as d1 , case when percentage_check <=30 then '30%' when percentage_check>=31 and percentage_check<=50 then '31-50%' when percentage_check>=51 and percentage_check<=70  then '50-71%' when percentage_check>=71 and percentage_check<=90 then '71-90%' when percentage_check is not null then 'more than 90%' end as saturation_level  from table6 as p
+   
+   where p.projectid like '%%' and percentage_check is not null and percentage_check>=90 
+	 )
+	 
+	 select * from table4
