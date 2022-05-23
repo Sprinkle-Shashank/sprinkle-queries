@@ -25,13 +25,14 @@ ON t.id=p1.sdg_name
 left join ds_mysql_prod_project t2
 ON t2.id=sq.projectid
   
-  GROUP BY sq.projectid,sq.start_date, sq.end_date,sq.schedule_7,sq.logo, sq.description, sq.fy_timerange,sq.employee_promoter,t2.name,fy_timerange1, location1, p1.sdg_icon
+  GROUP BY t2.name,sq.start_date, sq.end_date,sq.schedule_7,sq.logo, sq.description, sq.fy_timerange,sq.employee_promoter,t2.name,fy_timerange1, location1, p1.sdg_icon
 ),
 
 s2 as(
   Select projectid, focus_area, 
 logo, description, fy_timerange, employee_promoter,listagg(sdg_icon, ', ') as sdg_icon, location, start_date, end_date, duration,fy_timerange1
   FROM s1 as s4,s4.schedule_7 focus_area 
+  group by projectid, focus_area, logo, description, fy_timerange, employee_promoter, location, start_date, end_date, duration,fy_timerange1
 )
 
 Select projectid, listagg(distinct t4.name, ', ') as focus_area, 
@@ -41,5 +42,5 @@ left join ds_mysql_prod_tagelement t4
 ON t4.id=focus_area
 left join ds_mysql_prod_tagelement t1
 ON t1.id=s2.location
-GROUP BY s2.projectid, logo, description, employee_promoter, t1.name, start_date, end_date,sdg_icon, duration,fy_timerange1
+GROUP BY projectid, logo, description, employee_promoter, t1.name, start_date, end_date, duration,fy_timerange1,sdg_icon
 
