@@ -1,8 +1,23 @@
-select p1.name as projectid,a.timerange_timerange as fy_timerange, t1.name as grade, a.kali_name, a.kali_id,
-CAST(a.timerange_timerange.start as DATE) as start_date, count(*) as count
+select p1.name as projectid,a.timerange_timerange as fy_timerange, t1.name as grade, a.kali_id,
+row_number() over (partition by a.kali_id order by a.timerange_timerange.start desc) as row, count(*) as count,
+
+case
+	when t1.name = 'Class I' then 1
+	when t1.name = 'Class II' then 2
+	when t1.name = 'Class III' then 3
+	when t1.name = 'Class IV' then 4
+	when t1.name = 'Class V' then 5
+	when t1.name = 'Class VI' then 6
+	when t1.name = 'Class VII' then 7
+	when t1.name = 'Class VIII' then 8
+	when t1.name = 'Class IX' then 9
+	when t1.name = 'Class X' then 10
+	else NULL
+end as age_sort
   
 from profile_54071 a
+where row=1
 left join ds_mysql_prod_tagelement t1 on t1.id = a.class
 left join ds_mysql_prod_project p1 on p1.id = a.projectid
 
-group by fy_timerange, t1.name, age, kali_name, kali_id, start_date, p1.name
+group by fy_timerange, t1.name, kali_id, p1.name
