@@ -1,12 +1,24 @@
-select p1.name as projectid,a.timerange_timerange as fy_timerange, a.kali_id, t2.name as father_occupation, t3.name as mother_occupation,
-row_number() over (partition by a.kali_id order by a.timerange_timerange.start desc) as row, count(*) as count
-
+with sub1 as(
+  select p1.name as projectid, a.timerange_timerange as fy_timerange,t2.name as father_occupation, t3.name as mother_occupation, a.kali_id,   
+row_number() over (partition by a.kali_id order by a.timerange_timerange.start desc) as row
   
 from profile_54071 a
-left join ds_mysql_prod_tagelement t2 on t2.id = a.father_occupation
-left join ds_mysql_prod_tagelement t3 on t3.id = a.mother_occupation
+
 left join ds_mysql_prod_project p1 on p1.id = a.projectid
+left join ds_mysql_prod_tagelement t2 on t2.id = a.father_occupation
+left join ds_mysql_prod_tagelement t3 on t3.id = a.mother_occupation),
 
---where row = 1
+sub2 as(
+	select s1.projectid, s1.fy_timerange, s1.father_occupation, s1.mother_occupation, s1.kali_id, count(*)
 
-group by fy_timerange, kali_id, t2.name, t3.name, p1.name
+from sub1 s1
+
+where row = 1
+
+group by s1.projectid, s1.fy_timerange, s1.kali_id, s1.father_occupation, s1.mother_occupation )
+
+select projectid, fy_timerange, kali_id, count, father_occupation, mother_occupation
+
+from sub2
+
+
