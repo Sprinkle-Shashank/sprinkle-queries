@@ -1,6 +1,9 @@
 
 with table1 as (
-    select p1.name as projectid,profile_79500.name, focus_area, description, ngo_logo, sdg_logo as photo,fy_timerange,sd.name as state_district, start_date, end_date
+    select p1.name as projectid,profile_79500.name, description, ngo_logo, sdg_logo as photo,fy_timerange,sd.name as state_district, start_date, end_date,
+  case when is_array(focus_area)= false or get_array_length(focus_area)=0 then array(focus_area)
+  else focus_area
+  end as focus_area_new
 from profile_79500
   
 left join ds_mysql_prod_tagelement sd
@@ -10,7 +13,7 @@ left join ds_mysql_prod_project p1 on p1.id = projectid
   
 ), 
 table2 as (select projectid, name, focus_area_unwind, description, ngo_logo, fy_timerange, state_district, start_date, end_date, cast(sdg_logo as varchar) 
-from table1 t1, t1.photo sdg_logo, t1.focus_area as focus_area_unwind)
+from table1 t1, t1.photo sdg_logo, t1.focus_area_new as focus_area_unwind)
 
 select s2.projectid, s2.name, s2.description, s2.ngo_logo, s2.fy_timerange, s2.state_district, s2.start_date, s2.end_date, LISTAGG( DISTINCT s2.sdg_logo, ', ' ) as sdgs, LISTAGG( DISTINCT t1.name, ', ' ) as focus_area  from table2 s2
 
