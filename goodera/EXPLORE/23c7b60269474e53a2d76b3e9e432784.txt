@@ -1,35 +1,19 @@
-with temp as (
-Select 'School Level' as col
-  union all
- Select 'Location Level' as col
-  union all
- Select 'State Level' as col
-  union all
-  select 'National Level' as col
-)
+select p1.name as projectid, a.timerange_timerange as fy_timerange, t1.name as class, a.kali_id, 
+  
+case
+--  when a.attend_days_1 = 0 or a.tot_days_1 =0 or a.tot_days_2 = 0 or a.tot_days_3 = 0 or a.attend_days_2 = 0 or a.attend_days_3 = 0 then 0
+  when a.attend_days_1 = 0 or a.tot_days_1 =0 then 0
+  when a.attend_days_1 > 0 or a.tot_days_1 >0 then (a.attend_days_1/a.tot_days_1)*100
+  else NULL
+  
+  end as attend_1
+  
+from profile_54071 a
 
-select t.name as projectid, s1._id,s1.name ,
-s1.fy_timerange,ss.school_name as school_name ,ss1.batch_name as batch_name ,s1.nos_participate_sch_level as School_Level,s1.nos_participate_loc_level as Location_Level,s1.nos_participate_st_it_level as State_Level,s1.nos_participate_nat_level as National_Level,temp.col as dimensions ,
+left join ds_mysql_prod_project p1 on p1.id = a.projectid
+left join ds_mysql_prod_tagelement t1 on t1.id = a.class),
 
-sum(case col
-when 'School Level' then s1.nos_participate_sch_level
-when 'Location Level' then s1.nos_participate_loc_level
-when 'State Level' then s1.nos_participate_st_it_level
-when 'National Level' then s1.nos_participate_nat_level
-	
-else null end) as val
 
-from profile_77534 s1
+group by s1.projectid, s1.fy_timerange, s1.class, s1.kali_id
 
-cross join temp
-  left join profile_77524 ss
-  on s1.school_name=ss._id
-  left join profile_77526 ss1
-  on s1.batch_name=ss1._id
-  left join ds_mysql_prod_project t
-  on s1.projectid=t.id
-    left join ds_mysql_prod_tagelement t2
-  on ss.state_district=t2.id
-  group by 
-  t.name, s1._id,s1.name ,
-s1.fy_timerange,ss.school_name,ss1.batch_name ,s1.nos_participate_sch_level,s1.nos_participate_loc_level,s1.nos_participate_st_it_level,s1.nos_participate_nat_level,dimensions
+
