@@ -4,7 +4,7 @@ row_number() over (partition by a.kali_id order by a.timerange_timerange.start d
   
 case
 --  when a.attend_days_1 = 0 or a.tot_days_1 =0 or a.tot_days_2 = 0 or a.tot_days_3 = 0 or a.attend_days_2 = 0 or a.attend_days_3 = 0 then 0
-  when a.attend_days_1 = 0 or a.tot_days_1 =0
+  when a.attend_days_1 = 0 or a.tot_days_1 =0 then 0
   else
   (a.attend_days_1/a.tot_days_1)*100
   end as attend_1
@@ -14,29 +14,12 @@ from profile_54071 a
 left join ds_mysql_prod_project p1 on p1.id = a.projectid
 left join ds_mysql_prod_tagelement t1 on t1.id = a.class),
 
-sub2 as(
-	select s1.projectid, s1.fy_timerange, s1.class, s1.kali_id, count(*)
+select s1.projectid, s1.fy_timerange, s1.class, s1.kali_id, count(*), s1.attend_1
 
 from sub1 s1
 
 where row = 1
 
-group by s1.projectid, s1.fy_timerange, s1.class, s1.kali_id, s1.current_year, s1.birth_year)
+group by s1.projectid, s1.fy_timerange, s1.class, s1.kali_id, s1.attend_1
 
-select projectid, fy_timerange, kali_id, class, count, 
 
-case
-	when class = 'Class I' then 1
-	when class = 'Class II' then 2
-	when class = 'Class III' then 3
-	when class = 'Class IV' then 4
-	when class = 'Class V' then 5
-	when class = 'Class VI' then 6
-	when class = 'Class VII' then 7
-	when class = 'Class VIII' then 8
-	when class = 'Class IX' then 9
-	when class = 'Class X' then 10
-	else NULL
-end as grade_sort
-
-from sub2
