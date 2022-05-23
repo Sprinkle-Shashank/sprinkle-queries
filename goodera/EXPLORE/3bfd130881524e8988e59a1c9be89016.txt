@@ -4,7 +4,7 @@ from sus_56551 p1
 left join ds_mysql_prod_tagelement t1 on t1.id=p1.financialperiod
 where keyword='gri_consumption_pattern'),
 
-sub2 as (select *,temp.consumption from sub1 s1,unpivot s1.datatablebase as temp at consumption_type)
+sub2 as (select *,temp.consumption from sub1 s1,unpivot s1.datatablebase as temp at consumption_type,type_text)
 
 select projectid, financial_period,consumption_type,consumption, fy_timerange,questiontext,('FY' || ' ' || split_part(financial_period, ' ', 2)) as FY,type_text,
 case 
@@ -14,6 +14,6 @@ when consumption_type='coolant' then cast(tablesettings."coolant"."consumption".
 else null
 end as units
 
-from sub2, sub1
+from sub2
 where datatablebase is not null
 group by projectid, financial_period, consumption, fy_timerange,units,questiontext,consumption_type,consumption,type_text
