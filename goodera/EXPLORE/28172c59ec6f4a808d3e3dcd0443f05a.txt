@@ -3,7 +3,7 @@ with sub1 as(select p1.name as projectid,p1.timerange_timerange as fy_timerange,
 from profile_54071 p1
 ),
 
-sub2 as(select *, (math_1/tot_math_1) * 100 as math_1,(math_2/tot_math_2) * 100 as math_2,(math_3/tot_math_3) * 100 as math_3, (marathi_1/tot_marathi_1) * 100 as mar_1, (marathi_2/tot_marathi_2) * 100 as mar_2,(marathi_3/tot_marathi_3) * 100 as mar_3 from sub1),
+sub2 as(select * ,(math_1/tot_math_1) * 100 as math_1,(math_2/tot_math_2) * 100 as math_2,(math_3/tot_math_3) * 100 as math_3, (marathi_1/tot_marathi_1) * 100 as mar_1, (marathi_2/tot_marathi_2) * 100 as mar_2,(marathi_3/tot_marathi_3) * 100 as mar_3 from sub1),
 
 sub3 as(select math_1 as col
 union all
@@ -36,19 +36,19 @@ group by p1.name
 
 select *,
 case
-	when subject = math_1 or subject= math_2 or subject= math_3 then "Maths"
-	when subject= mar_1 or subject= mar_2 or subject= mar_3 then "Marathi"
+	when math_1 or math_2 or math_3 then "Maths"
+	when mar_1 or mar_2 or mar_3 then "Marathi"
 	else null
-	end,
+	end as subject,
 case 
-	when dim=math_1 then "First Term"
-	when dim=math_2 then "Second Term"
-	when dim=math_3 then "Third Term"
-	when dim=mar_1 then "First Term"
-	when dim=mar_2 then "Second Term"
-	when dim=mar_3 then "Third Term"
+	when math_1 then "First Term"
+	when math_2 then "Second Term"
+	when math_3 then "Third Term"
+	when mar_1 then "First Term"
+	when mar_2 then "Second Term"
+	when mar_3 then "Third Term"
 	else null
-	end,
+	end as dim,
 
 case
 	when val < 21 then "0-20%"
@@ -61,4 +61,4 @@ case
 		 
 from sub4
 where bucket is not null
-group by p1.name, p1.class, fy_timerange, val, p1.subject, dim, bucket
+group by sub1.projectid, sub1.class, sub1.fy_timerange, sub4.val, subject, dim, bucket
