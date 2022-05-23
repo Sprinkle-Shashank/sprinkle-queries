@@ -6,13 +6,14 @@ where keyword='gri_consumption_pattern'),
 
 sub2 as (select *,temp.consumption from sub1 s1,unpivot s1.datatablebase as temp at consumption_type)
 
-select projectid, financial_period,consumption_type,consumption, fy_timerange,questiontext,('FY' || ' ' || split_part(financial_period, ' ', 2)) as FY,
+select projectid, financial_period,consumption_type,consumption, fy_timerange,questiontext,('FY' || ' ' || split_part(financial_period, ' ', 2)) as FY,type_text,
 case 
-when consumption_type='water_process' then cast(tablesettings."water_process"."consumption"."measureUnitBase" as VARCHAR)
-when consumption_type='water_domestic' then cast(tablesettings."water_domestic"."consumption"."measureUnitBase" as VARCHAR)
-when consumption_type='coolant' then cast(tablesettings."coolant"."consumption"."measureUnitBase" as VARCHAR)
+when consumption_type='water_process' then cast(tablesettings."water_process"."consumption"."measureUnitBase" as VARCHAR) and type_text='Water Process'
+when consumption_type='water_domestic' then cast(tablesettings."water_domestic"."consumption"."measureUnitBase" as VARCHAR) and type_text='Water Domestic'
+when consumption_type='coolant' then cast(tablesettings."coolant"."consumption"."measureUnitBase" as VARCHAR) and type_text='Coolant'
 else null
-end as units
+end as units,
+
 from sub2
 where datatablebase is not null
 group by projectid, financial_period, consumption, fy_timerange,units,questiontext,consumption_type,consumption
