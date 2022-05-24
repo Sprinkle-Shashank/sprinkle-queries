@@ -1,0 +1,32 @@
+with x as (select name as projectid, financialperiod,fy_timerange, datatablebase from sus_56551 where keyword='gri_water_withdrawal_details' and xprojectid not in (44880, 44881) group by name, financialPeriod, fy_timerange, datatablebase ), 
+temp2 as (
+
+select * , temp1.quality, temp1.importance_local, (NVL(temp1.consumption,0)) as consumption
+  from x as temp, unpivot temp.datatablebase as temp1 at row)
+
+select projectid, temp1.gri_water_withdrawal_details, temp1.consumption as consumption,t1.name as financialperiod , fy_timerange,cast (quality as varchar) as  gri_water_withdrawal_details_quality , cast (importance_local as varchar) as gri_water_withdrawal_details_importance_local , sum (consumption) as 
+  gri_water_withdrawal_details_consumption,(initcap(split_part(row,'_',1)) || ' ' || split_part(row,'_',2)) as source_text, row as source, 
+ CONCAT ( 'FY ', split_part(t1.name,' ',2) )  as finperiodyear , split_part(t1.name,' ',1) as month,
+ 
+ Concat((CASE month
+WHEN 'January' THEN '1'
+WHEN 'February' THEN '2'
+WHEN 'March' THEN '3'
+WHEN 'April' THEN '4'
+WHEN 'May' THEN '5'
+WHEN 'June' THEN '6'
+WHEN 'July' THEN '7'
+WHEN 'August' THEN '8'
+WHEN 'September' THEN '9'
+WHEN 'October' THEN '10'
+WHEN 'November' THEN '11'
+ELSE '12'
+end), split_part(fy_timerange,'|',1))
+as monthname
+
+from temp2  
+left join ds_mysql_prod_tagelement t1 on t1.id = financialperiod where finperiodyear not in( 'FY 2020-21', 'FY 2021-22', 'FY 2019-20')
+
+group by
+projectid,t1.name,  temp1.gri_water_withdrawal_details, temp1.consumption, financialPeriod, fy_timerange,quality,importance_local,row, finperiodyear, month,  monthname,source_text
+order by finperiodyear asc, financialperiod asc, monthname asc
