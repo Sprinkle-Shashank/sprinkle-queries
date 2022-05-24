@@ -1,0 +1,33 @@
+with table1 as(
+	select *, cast(a as varchar) as location1
+  	from profile_55624 pi,pi.location as a
+)
+
+select t1.name as focus_area,t3.name as state,p.amount_disbursed as amount,t.name as fy, "Disbursed" as allocated
+from profile_55625 p
+left join table1 p1
+on p.partner_allocated = p1._id
+left join ds_mysql_prod_tagelement t2
+on p1.location1 = t2.id
+left join ds_mysql_prod_tagelement t3
+on  t2.parent = t3.id
+left join ds_mysql_prod_tagelement t1
+on p.focus_area_auto = t1.id
+left join ds_mysql_prod_tagelement t
+on p.fy = t.id
+left join ds_mysql_prod_tagelement t4
+on p.quarter = t4.id
+
+
+union all
+
+select t.name as fy,t1.name as focus_area,p.amount_allocated as amount,"Allocated" as allocated,t3.name as state
+from table1 p
+left join ds_mysql_prod_tagelement t
+on p.fy = t.id
+left join ds_mysql_prod_tagelement t1
+on p.focus_area = t1.id 
+left join ds_mysql_prod_tagelement t2
+on p.location1 = t2.id
+left join ds_mysql_prod_tagelement t3
+on t2.parent = t3.id
