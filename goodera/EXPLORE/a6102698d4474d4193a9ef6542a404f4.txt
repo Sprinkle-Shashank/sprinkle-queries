@@ -1,1 +1,10 @@
-select projectid, fy_timerange, donor, sum(proj_budget) from profile_80633
+with sub1  as(
+  select b.*, unwind_donor
+  from profile_80633 b ,b.donor as unwind_donor )
+
+select p.name as projectid, fy_timerange, sum(proj_budget) 
+
+listagg(distinct d2.name, ', ') as donor
+from sub1
+left join ds_mysql_prod_project p on p.id = a.projectid
+left join  profile_80635 d2 on d2._id=a.donor
