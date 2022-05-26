@@ -1,20 +1,18 @@
-with sub1 as (select p1.name as projectid,t1.name as financial_period, datatablebase, tablesettings, questiontext, fy_timerange
+with sub1 as (select p1.name as projectid,t1.name as financial_period, datatablebase, tablesettings, questiontext, fy_timerange,datanumbase as cdp_cc_c5_2_emissions_methodology_1
 
 from sus_56551 p1
 left join ds_mysql_prod_tagelement t1 on t1.id=p1.financialperiod
-where keyword='cdp_cc_8_consumed'),
+where keyword in ('gri_scope_1_emission','cdp_cc_c5_2_emissions_methodology_1'),
 
-sub2 as (select *,temp.cdp_cc_8_1_heat,cast(temp.cdp_cc_8_1_country as varchar),temp.cdp_cc_8_1_steam,temp.cdp_cc_8_1_cooling,temp.cdp_cc_8_1_electricity from sub1 s1,unpivot s1.datatablebase as temp at rows)
+sub2 as (select *,temp.source,temp.scope_1_figure
+from sub1 s1,unpivot s1.datatablebase as temp at row_id)
 
-select projectid, financial_period, cdp_cc_8_1_heat,cdp_cc_8_1_country, cdp_cc_8_1_steam, cdp_cc_8_1_cooling, cdp_cc_8_1_electricity, questiontext, fy_timerange,('FY' || ' ' || split_part(financial_period, ' ', 2)) as FY,rows,
-case rows
-when 'cdp_cc_8_1_heat' then cast(tablesettings."cdp_cc_8_1_heat"."0"."measureUnitBase" as VARCHAR)
-when 'cdp_cc_8_1_country' then cast(tablesettings."0"."cdp_cc_8_1_country"."measureUnitBase" as VARCHAR) 
-when 'cdp_cc_8_1_steam' then cast(tablesettings."cdp_cc_8_1_steam"."0"."measureUnitBase" as VARCHAR)
-when 'cdp_cc_8_1_cooling' then cast(tablesettings."cdp_cc_8_1_steam"."0"."measureUnitBase" as VARCHAR) 
-when 'cdp_cc_8_1_electricity' then cast(tablesettings."cdp_cc_8_1_steam"."0"."measureUnitBase" as VARCHAR) 
+select projectid, financial_period, source, scope_1_figure,questiontext, fy_timerange,('FY' || ' ' || split_part(financial_period, ' ', 2)) as FY,row_id,
+case row_id
+when 'source' then cast(tablesettings."0"."source"."measureUnitBase" as VARCHAR)
+when 'scope_1_figure' then cast(tablesettings."0"."scope_1_figure"."measureUnitBase" as VARCHAR) 
 else null
 end as units
 from sub2
-where rows is not null
-group by projectid, financial_period, cdp_cc_8_1_heat,cdp_cc_8_1_country, cdp_cc_8_1_steam, cdp_cc_8_1_cooling, cdp_cc_8_1_electricity, questiontext,fy_timerange,rows,units
+where row_id is not null
+group by projectid,source, scope_1_figure, financial_period, questiontext,fy_timerange,rows,units, row_id, fy_timerange
