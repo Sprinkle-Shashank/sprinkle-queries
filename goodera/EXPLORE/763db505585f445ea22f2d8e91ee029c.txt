@@ -6,16 +6,8 @@ where keyword='cdp_cc_8_consumed'),
 
 sub2 as (select *,temp.cdp_cc_8_1_heat,temp.cdp_cc_8_1_steam,temp.cdp_cc_8_1_cooling,temp.cdp_cc_8_1_electricity from sub1 s1,unpivot s1.datatablebase as temp at rows),
 
-sub3 as(select projectid, financial_period, cdp_cc_8_1_heat, cdp_cc_8_1_steam, cdp_cc_8_1_cooling, cdp_cc_8_1_electricity, questiontext, fy_timerange,('FY' || ' ' || split_part(financial_period, ' ', 2)) as FY,rows,
-case rows
-when 'cdp_cc_8_1_heat' then cast(tablesettings."0"."cdp_cc_8_1_heat"."measureUnitBase" as VARCHAR)
-when 'cdp_cc_8_1_steam' then cast(tablesettings."0"."cdp_cc_8_1_steam"."measureUnitBase" as VARCHAR)
-when 'cdp_cc_8_1_cooling' then cast(tablesettings."0"."cdp_cc_8_1_cooling"."measureUnitBase" as VARCHAR) 
-when 'cdp_cc_8_1_electricity' then cast(tablesettings."0"."cdp_cc_8_1_electricity"."measureUnitBase" as VARCHAR) 
-else null
-end as units
+sub3 as(select projectid, financial_period, cdp_cc_8_1_heat, cdp_cc_8_1_steam, cdp_cc_8_1_cooling, cdp_cc_8_1_electricity, questiontext, fy_timerange,('FY' || ' ' || split_part(financial_period, ' ', 2)) as FY
 from sub2
-where rows is not null
 ),
 
 
@@ -40,7 +32,14 @@ sum
  when 'cc8_Electricity' then cdp_cc_8_1_electricity
  else null
  end
- )as values
+ )as values,
+case consumption_type
+when 'cc8_Heat' then cast(tablesettings."0"."cdp_cc_8_1_heat"."measureUnitBase" as VARCHAR)
+when 'cc8_Steam' then cast(tablesettings."0"."cdp_cc_8_1_steam"."measureUnitBase" as VARCHAR)
+when 'cc8_Cooling' then cast(tablesettings."0"."cdp_cc_8_1_cooling"."measureUnitBase" as VARCHAR) 
+when 'cc8_Electricity' then cast(tablesettings."0"."cdp_cc_8_1_electricity"."measureUnitBase" as VARCHAR) 
+else null
+end as units
  
 from sub3
 cross join sub4
