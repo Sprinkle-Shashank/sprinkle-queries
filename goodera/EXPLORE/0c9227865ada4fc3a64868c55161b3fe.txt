@@ -1,24 +1,59 @@
-with sub1 as(
-select a._id, a.projectId, a.name as batch_info, a.center, a.start, a.end, a.fy_timerange, a.zone_db as zone, a.partner_db as partner_name, a.no_of_trainees, a.training_hrs, a.training_days, a.budget, a.amnt_install_1, a.amnt_install_2, a.amnt_install_3, a.donor, a.name as batch_id, b.placed, b.trainee_name,b.batch_id as id1 from profile_36904 a 
-left join profile_36901 b on b.batch_id=a._id
-),
-sub2 as(
-  select _id, projectId, center, a.start, a.end, batch_info, donor, fy_timerange, zone, partner_name, no_of_trainees, training_hrs, training_days, budget, amnt_install_1, amnt_install_2, amnt_install_3, batch_id, placed, id1, count(*) as benef from sub1 a group by _id, projectId, center, a.start, a.end, batch_info, donor, fy_timerange, zone, partner_name, no_of_trainees, training_hrs, training_days, budget, amnt_install_1, amnt_install_2, amnt_install_3, batch_id, placed,id1),
-  sub3 as(
-  select _id, projectId, center, a.start, a.end, batch_info, donor, fy_timerange, zone, partner_name, no_of_trainees, training_hrs, training_days, budget, case when amnt_install_1 is NOT null then amnt_install_1 else 0 end as amnt_install_1, case when amnt_install_2 is NOT null then amnt_install_2 else 0 end as amnt_install_2, case when amnt_install_3 is NOT null then amnt_install_3 else 0 end as amnt_install_3, batch_id, id1, placed,benef, t2.name as project from sub2 a
-  LEFT JOIN ds_mysql_prod_project t on a.projectId=t.id
-LEFT JOIN ds_mysql_prod_project t1 on t.parent=t1.id
-LEFT JOIN ds_mysql_prod_project t2 on t1.parent=t2.id	),
-sub4 as(
-select _id, id1, projectId, center,  batch_info, donor, fy_timerange, zone, partner_name, no_of_trainees, training_hrs, training_days, budget, amnt_install_1, amnt_install_2, amnt_install_3, batch_id, placed,benef,  project, 
-case when amnt_install_1 is NULL and amnt_install_2 is NULL and amnt_install_3 is NULL then 0 else
-(amnt_install_1+amnt_install_2+amnt_install_3) end as disbursed, case when id1 is null then 'Upcoming' else 'Disbursement' end as disbursement, current_timestamp as today, case when a.end>=today then 'Active' else 'Inactive' end as status, substring(a.start,1,10) as start1, substring(a.end, 1, 10) as end1, case when placed=3608 then benef else 0 end as dropouts
-from sub3 a),
-sub5 as (
-select  _id, id1, t1.name as projectId, center,  batch_info, donor, fy_timerange, zone, partner_name, no_of_trainees, training_hrs, training_days, budget, amnt_install_1, amnt_install_2, amnt_install_3, batch_id, t.name as placed,benef,  project, 
- disbursed, disbursement, today, status, substring(start1,9,10) as start_date, substring(substring(start1,6,7),1,2) as start_month, substring(start1,1,4) as start_year, substring(end1,1,4) as end_year,substring(substring(end1,6,7),1,2) as end_month, substring(end1,9,10) as end_date, dropouts, benef-dropouts as trainee_count from sub4
-Left Join ds_mysql_prod_tagelement t on t.id=placed
-Left Join ds_mysql_prod_project t1 on t1.id=projectid
-where batch_id!='RAR122')
-select  _id, id1, disbursement, today, status, concat(concat(concat(concat(start_date,'-'),start_month),'-'),start_year) as start1, concat(concat(concat(concat(end_date,'-'),end_month),'-'),end_year) as end1, dropouts, benef-dropouts as trainee_count from sub5
---select * from sub5
+
+With table1 as (
+  
+  Select * 
+  
+  from profile_80433 as p1,
+  
+  p1.schedule_7 as schedule_7_unwind,
+  p1.sdg as sdg_unwind,
+  p1.sdg_icon as sdg_icon_unwind,
+  p1.location as location_unwind
+  ),
+
+ table2 as ( 
+  Select table1._id, table1.name , table1.projectid , table1.fy_timerange , table1.status ,table1.location, table1.title , table1.type , ng.name as ngo , table1.proj_img, table1.s_date, table1.e_date,table1.desc,table1.spoc_name,table1.spoc_email,table1.spoc_contact,table1.budget , table1.outcome,to_char(table1.s_date, 'MM-YYYY') as start_final , to_char(table1.e_date, 'MM-YYYY') as end_final , concat(concat(start_final,' to  '),end_final) as new_dur,
+  
+ listagg(distinct cast(foc.name as varchar),',') AS schedule_7_unwind,	
+ listagg(distinct cast(sg.name as varchar),',') AS sdg_unwind,
+  listagg(distinct cast(st.name as varchar),',') AS location_unwind,
+ -- listagg(distinct cast(st.name as varchar),',') AS location_unwind
+ listagg(DISTINCT CAST(table1.sdg_icon_unwind AS VARCHAR),',') AS sdg_photo_unwind2,
+   listagg(distinct cast(st1.name as varchar),',') AS locationstate_unwind
+ 
+ 
+  from table1
+  
+  LEFT JOIN ds_mysql_prod_tagelement AS foc
+  ON foc.id = table1.schedule_7_unwind
+  
+   LEFT JOIN ds_mysql_prod_tagelement AS sg
+  ON sg.id = table1.sdg_unwind
+  
+     LEFT JOIN ds_mysql_prod_tagelement AS st
+  ON st.id = table1.location_unwind
+   
+    LEFT JOIN ds_mysql_prod_tagelement AS st1
+  ON st.parent = st1.id
+   
+  
+      LEFT JOIN ds_mysql_prod_tagelement AS ng
+  ON ng.id = table1.ngo
+  
+  
+  GROUP BY 
+   table1._id,
+  table1.name , table1.projectid , table1.fy_timerange , table1.status , table1.title , table1.type , table1.ngo , table1.proj_img, table1.s_date, table1.e_date,table1.desc,table1.spoc_name,table1.spoc_email,table1.spoc_contact,table1.budget , table1.outcome , ng.name , table1.location),
+  
+ table3 as ( Select _id, count (distinct  st1.name) as count_state from table1
+			  LEFT JOIN ds_mysql_prod_tagelement AS st
+  ON st.id = table1.location_unwind
+   
+    LEFT JOIN ds_mysql_prod_tagelement AS st1
+  ON st.parent = st1.id
+		GROUP BY _id )
+	Select *  from table2 
+	
+	LEFT JOIN table3 as tob3
+	on tob3._id = table2._id
+			
