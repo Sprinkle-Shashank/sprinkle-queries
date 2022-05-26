@@ -4,6 +4,7 @@ With x as(select name as projectid, financialperiod,fy_timerange,datatablebase f
 		  temp2 as
 		  (select projectid, financialperiod,fy_timerange, temp1.location, temp1.market
 		    from x as temp, unpivot temp.datatablebase as temp1 at row),
+			
 			temp3 as (select 'Location Based' as col union all 'Market Based' as col)
 		   
 select  projectid ,t1.name as financialperiod,fy_timerange,CASE split_part(fy_timerange,'-',2)
@@ -26,20 +27,20 @@ end as Month,
 split_part(fy_timerange,'-',1) as year,
 
 
-Sum(case col
+Sum(case temp3.col
 when 'Location Based' then temp2.location
 when 'Market Based' then temp2.market
 else null
-end ) as  emission, col as Dimension
+end ) as  emission, temp3.col as Dimension
 
 
  
 
 from temp2  
 left join ds_mysql_prod_tagelement t1 on t1.id = financialperiod 
-cross join temp2
+cross join temp3
 
-group by projectid ,t1.name,fy_timerange,col
+group by projectid ,t1.name,fy_timerange,temp3.col
 		   
 
 
