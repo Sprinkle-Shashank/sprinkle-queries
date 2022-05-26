@@ -1,12 +1,17 @@
   
   
-select  p2.name as projectid ,t1.name as financialperiod,fy_timerange, sum(datanumbase) as Emission,
-Case datanumbase
-when 'gri_scope_3_inbound_logistics' then 'Outbound Logistics'
-when 'gri_scope_3_outbound_logistics' then 'Inbound Logistics'
-when 'gri_scope_3_business_travel' then 'Business Travel'
-else null
-end as dimension,
+select  p2.name as projectid ,t1.name as financialperiod,fy_timerange,
+
+
+sum(case datanumbase
+   when 'gri_scope_3_inbound_logistics' then p1.gri_scope_3_inbound_logistics
+   when 'gri_scope_3_outbound_logistics' then p1.gri_scope_3_outbound_logistics
+   when 'gri_scope_3_business_travel' then p1.gri_scope_3_business_travel 
+   
+   else null
+   end) as emission
+
+
 
 CASE split_part(fy_timerange,'-',2)
 	  
@@ -42,4 +47,4 @@ left join ds_mysql_prod_project as p2 on p2.id=p1.xprojectid
 left join ds_mysql_prod_tagelement t1 on t1.id = financialperiod where  keyword in ('gri_scope_3_business_travel', 'gri_scope_3_inbound_logistics', 'gri_scope_3_outbound_logistics')
 and datanumbase is not null
 		   
-group by t1.name,p2.name,fy_timerange, year, financial_year,month,dimension
+group by t1.name,p2.name,fy_timerange, year, financial_year,month
