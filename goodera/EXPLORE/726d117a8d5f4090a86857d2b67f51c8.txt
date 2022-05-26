@@ -1,6 +1,6 @@
-select * from sus_56551 where keyword='gri_scope_2_emissions'
 
-/*With x as(select name as projectid, financialperiod,fy_timerange,datatablebase from sus_56551 where keyword='cdp_cc_c6_3_scope_2_emissions_data'),
+
+With x as(select name as projectid, financialperiod,fy_timerange,datatablebase from sus_56551 where keyword='cdp_cc_c6_3_scope_2_emissions_data'),
 		  temp2 as
 		  (select *, temp1.gri_scope_2_emissions
 		    from x as temp, unpivot temp.datatablebase as temp1 at row)
@@ -21,8 +21,14 @@ WHEN '11' THEN 'Nov'
 
  Else 'Dec'
 end as Month,
-split_part(fy_timerange,'-',1) as year,datatablebase, sum(temp1.location +  temp1.market) as emission temp1.location, temp1.market
- /*case data
+split_part(fy_timerange,'-',1) as year,
+case row
+when 'location' then sum(temp1.location)
+when 'market' then sum(temp1.market) 
+else null
+end as  emission
+
+/* case row
  when 'cdp_cc_c6_3_scope_2_emissions_data_location' then  'Location Based'
  when 'cdp_cc_c6_3_scope_2_emissions_data_market' then  'Market Based'
  else null 
@@ -32,7 +38,7 @@ split_part(fy_timerange,'-',1) as year,datatablebase, sum(temp1.location +  temp
 from temp2  
 left join ds_mysql_prod_tagelement t1 on t1.id = financialperiod 
 
-group by */
+group by projectid ,t1.name,fy_timerange,Month, year
 		   
 
 
