@@ -4,33 +4,44 @@ from sus_56551 p1
 left join ds_mysql_prod_tagelement t1 on t1.id=p1.financialperiod
 where keyword='cdp_cc_8_consumed'),
 
-sub2 as (select *,temp.cdp_cc_8_1_heat,cast(temp.cdp_cc_8_1_country as varchar),temp.cdp_cc_8_1_steam,temp.cdp_cc_8_1_cooling,temp.cdp_cc_8_1_electricity from sub1 s1,unpivot s1.datatablebase as temp at rows),
+sub2 as (select *,temp.cdp_cc_8_1_heat,temp.cdp_cc_8_1_steam,temp.cdp_cc_8_1_cooling,temp.cdp_cc_8_1_electricity from sub1 s1,unpivot s1.datatablebase as temp at rows),
 
-sub3 as(select projectid, financial_period, cdp_cc_8_1_heat,cdp_cc_8_1_country, cdp_cc_8_1_steam, cdp_cc_8_1_cooling, cdp_cc_8_1_electricity, questiontext, fy_timerange,('FY' || ' ' || split_part(financial_period, ' ', 2)) as FY,rows,
+sub3 as(select projectid, financial_period, cdp_cc_8_1_heat, cdp_cc_8_1_steam, cdp_cc_8_1_cooling, cdp_cc_8_1_electricity, questiontext, fy_timerange,('FY' || ' ' || split_part(financial_period, ' ', 2)) as FY,rows,
 case rows
-when 'cdp_cc_8_1_heat' then cast(tablesettings."cdp_cc_8_1_heat"."0"."measureUnitBase" as VARCHAR)
-when 'cdp_cc_8_1_country' then cast(tablesettings."0"."cdp_cc_8_1_country"."measureUnitBase" as VARCHAR) 
-when 'cdp_cc_8_1_steam' then cast(tablesettings."cdp_cc_8_1_steam"."measureUnitBase" as VARCHAR)
-when 'cdp_cc_8_1_cooling' then cast(tablesettings."cdp_cc_8_1_steam"."measureUnitBase" as VARCHAR) 
-when 'cdp_cc_8_1_electricity' then cast(tablesettings."cdp_cc_8_1_steam"."measureUnitBase" as VARCHAR) 
+when 'cdp_cc_8_1_heat' then cast(tablesettings."0"."cdp_cc_8_1_heat"."measureUnitBase" as VARCHAR)
+when 'cdp_cc_8_1_steam' then cast(tablesettings."0"."cdp_cc_8_1_steam"."measureUnitBase" as VARCHAR)
+when 'cdp_cc_8_1_cooling' then cast(tablesettings."0"."cdp_cc_8_1_steam"."measureUnitBase" as VARCHAR) 
+when 'cdp_cc_8_1_electricity' then cast(tablesettings."0"."cdp_cc_8_1_steam"."measureUnitBase" as VARCHAR) 
 else null
 end as units
 from sub2
 where rows is not null
 ),
 
---pivot
-sub4 as(select *,
-case rows
-when 'cdp_cc_8_consumed_cdp_cc_8_1_heat' then 'cc8_Heat'
-when 'cdp_cc_8_consumed_cdp_cc_8_1_steam' then 'cc8_Steam'
-when 'cdp_cc_8_consumed_cdp_cc_8_1_cooling' then 'cc8_Cooling'
-when 'cdp_cc_8_consumed_cdp_cc_8_1_electricity' then 'cc8_Electricity'
-else null
-end as consumption_type
 
-from sub3)
+sub4 as(
+select 'cc8_Heat' as consumption_type
+union all
+select 'cc8_Steam' as consumption_type
+union all
+select 'cc8_Cooling' as consumption_type
+union all
+select 'cc8_Electricity' as consumption_type
 
-select *,sum(consumption_type) as values 
-from sub4
-group by projectid, financial_period, cdp_cc_8_1_heat,cdp_cc_8_1_country, cdp_cc_8_1_steam, cdp_cc_8_1_cooling, cdp_cc_8_1_electricity, questiontext,fy_timerange,rows,units,consumption_type,FY
+)
+
+select projectid, financial_period,questiontext,fy_timerange,FY,consumption_type,units,
+sum
+( 
+  case consumption_type
+ when 'cc8_Heat' then cdp_cc_8_1_heat
+ when 'cc8_Steam' then cdp_cc_8_1_steam
+ when 'cc8_Cooling' then cdp_cc_8_1_cooling
+ when 'cc8_Electricity' then cdp_cc_8_1_electricity
+ else null
+ end
+ )as values
+ 
+from sub3
+cross join sub4
+group by projectid, financial_period,questiontext,fy_timerange,units,consumption_type,FY
