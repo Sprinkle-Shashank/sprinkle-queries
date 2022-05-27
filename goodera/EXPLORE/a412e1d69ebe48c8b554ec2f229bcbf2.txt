@@ -1,14 +1,8 @@
-  
-  
- With  temp3 as (
-  select 'Inbound Logistics' as col
-  Union all select 'Outbound Logistics' as col
-  Union all select 'Business Travel' as col) 
 
-  
+
 select p2.name as projectid ,t1.name as financialperiod,fy_timerange, sum(datanumbase) as emission,
   
-   temp3.col as dimension,
+   /*temp3.col as dimension,*/
 
 CASE split_part(fy_timerange,'-',2)
 	  
@@ -37,9 +31,9 @@ Case Concat('FY ',split_part(t1.name,' ',2))
  as financial_year
 
 from sus_56551 as p1
-cross join temp3
+
 left join
 ds_mysql_prod_project as p2 on p2.id=p1.xprojectid
 left join ds_mysql_prod_tagelement t1 on t1.id = financialperiod
 where keyword in ('gri_scope_3_business_travel', 'gri_scope_3_inbound_logistics', 'gri_scope_3_outbound_logistics') and datanumbase is not null
-group by t1.name,projectid,fy_timerange, year, financial_year,month,dimension
+group by t1.name,projectid,fy_timerange, year, financial_year,month
