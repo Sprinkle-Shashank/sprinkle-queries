@@ -4,9 +4,9 @@ from sus_56551 p1
 left join ds_mysql_prod_tagelement t1 on t1.id=p1.financialperiod
 where keyword='cdp_cc_c8_2a_energyrelated_activities' and datatablebase is not null),
 
-sub2 as (select *,temp.cdp_cc_c8_2a_energyrelated_activities_renewable,temp.cdp_cc_c8_2a_energyrelated_activities_non_renewable from sub1 s1,unpivot s1.datatablebase as temp at rows),
+sub2 as (select *,temp.renewable,temp.non_renewable from sub1 s1,unpivot s1.datatablebase as temp at rows),
 
-sub3 as(select projectid, financial_period, cdp_cc_c8_2a_energyrelated_activities_renewable, cdp_cc_c8_2a_energyrelated_activities_non_renewable, questiontext, fy_timerange,('FY' || ' ' || split_part(financial_period, ' ', 2)) as FY,tablesettings
+sub3 as(select projectid, financial_period, renewable, non_renewable, questiontext, fy_timerange,('FY' || ' ' || split_part(financial_period, ' ', 2)) as FY,tablesettings
 from sub2
 ),
 
@@ -21,15 +21,14 @@ select projectid, financial_period,questiontext,fy_timerange,FY,consumption_type
 sum
 ( 
  case consumption_type
- when 'Energy Related Activity-Renewable Sources' then cdp_cc_c8_2a_energyrelated_activities_renewable
- when 'Energy Related Activity-Non-Renewable Sources' then cdp_cc_c8_2a_energyrelated_activities_non_renewable
+ when 'Energy Related Activity-Renewable Sources' then renewable
+ when 'Energy Related Activity-Non-Renewable Sources' then non_renewable
  else null
  end
  )as values,
  
 case consumption_type
 when 'Energy Related Activity-Renewable Sources' then cast (tablesettings."fuel"."renewable"."measureUnitBase" as VARCHAR)
-
 when 'Energy Related Activity-Non-Renewable Sources' then cast(tablesettings."fuel"."non_renewable"."measureUnitBase" as VARCHAR)
 else null
 end as units
