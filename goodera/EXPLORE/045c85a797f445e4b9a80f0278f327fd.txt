@@ -1,42 +1,81 @@
 
-with table21 as 
+with table1 as
 (
-select p.projectid, p.facility_status , facility.name as facility_status_update , case when facility_status_update='Active' then 'Active' else 'Deactive' end as Active_Filter, goodera_facility_name_text from profile_68161 as p
+  select pro.name as projectId,ngo.name as ngo ,schedule_7, location , local.name as local_yn,impdir.name as imp_direct, project_start_date  , csr_reg_num , ong.name as ongoing, project_end_date, p.fy_timerange  ,
+concat(
   
-left join ds_mysql_prod_tagelement facility 
-on p.facility_status = facility.id
-),
+	concat(concat(extract (day from project_start_date ),'-'), 
+ 			concat(extract (month from  project_start_date ),'-')),
+	concat(concat(concat(extract( year from project_start_date ),
+						    concat(' ',concat('to',' '))),
+				  concat(extract (day from project_end_date),'-')),
+		   concat(concat(extract(month from project_end_date),'-'),
+                  extract (year from project_end_date )))) 
+				  
+as duration ,  projectid_dkl , INITCAP(ent.name) as entity , cumulative , cumulative_allocated 
+from profile_80433  p
+ 
+left join ds_mysql_prod_tagelement ent 
+on p.entity = ent.id
 
-  table4 as 
-  ( select case when nvl2(SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), ven.name)='' then ven.name else nvl2(SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), ven.name) end as vendor , cou.name as country , t21.Active_Filter , substring(cast(year_timerange.start as varchar), 0,5) as year ,  p.projectid , p._id , female_supervisors , male_supervisors, p3.num_supervisors  , row_number() over 
-(partition by p.projectid
- order by p._id desc) as row from profile_76755 as p 
+left join ds_mysql_prod_tagelement local
+on p.local_yn = local.id
+
+left join ds_mysql_prod_tagelement impdir
+on p.imp_direct = impdir.id
+
+left join ds_mysql_prod_tagelement ong 
+on p.ongoing = ong.id
+
+left join ds_mysql_prod_project pro 
+on p.projectId = pro.id
+
+left join ds_mysql_prod_project ngo 
+on pro.parent = ngo.id
+  ),
   
-left join ds_mysql_prod_project fac
-on p.projectid = fac.id
-
-left join ds_mysql_prod_project ven
-on fac.parent = ven.id
-
-left join ds_mysql_prod_project cou
-on ven.parent = cou.id
-
-left join table21 t21 on 
-fac.name = t21.goodera_facility_name_text
-   
-left join profile_76896 p3
-on p.projectId = p3.projectId 
-  ), 
   
-  table6 as 
-  (select * from table4 where row=1
-   ),
-   
-   table5 as
-   (
-  select  p.projectid , p._id , vendor , year , active_filter , country , cast(((num_supervisors)/(male_supervisors+female_supervisors ))*100 as int) as percentage_check, num_supervisors , (male_supervisors+female_supervisors ) as d1 , case when percentage_check <=30 then '30%' when percentage_check>=31 and percentage_check<=50 then '31-50%' when percentage_check>=51 and percentage_check<=70  then '50-71%' when percentage_check>=71 and percentage_check<=90 then '71-90%' when percentage_check is not null then 'more than 90%' end as saturation_level  from table6 as p
-   
-   where p.projectid like '%%' and percentage_check is not null and percentage_check>=90 
-	 )
-	 
-	 select * from table4
+table2 as 
+ ( select *  from table1 as p , p.location as d1 , p.schedule_7 as d2 ),
+ 
+ table3 as 
+ ( select projectId , ngo , local_yn , imp_direct , project_start_date , csr_reg_num , ongoing , project_end_date , fy_timerange , duration , projectid_dkl , entity , cumulative , cumulative_allocated 
+  ,  sche.name as schedule_7_update , listagg(state.name) as state_update , city.name as city_update
+  from table2 as p
+  
+left join ds_mysql_prod_tagelement sche
+on p.d2 = sche.id
+  
+left join ds_mysql_prod_tagelement city
+on  p.d1 = city.id
+  
+left join ds_mysql_prod_tagelement state
+on city.parent = state.id
+  
+  
+  group by rojectId , ngo , local_yn , imp_direct , project_start_date , csr_reg_num , ongoing , project_end_date , fy_timerange , duration , projectid_dkl , entity , cumulative , cumulative_allocated  , schedule_7_update , city_update
+  )
+  
+  
+ select * from table3 where ongoing='No'  order by fy_timerange desc
+ 
+ /*
+  projectId , ngo , local_yn , imp_direct , project_start_date , csr_reg_num , ongoing , project_end_date , fy_timerange , duration , projectid_dkl , entity , cumulative , cumulative_allocated 
+ 
+ 
+ 
+ 
+ pro.name as projectId,ngo.name as ngo ,schedule_7, location , local.name as local_yn,impdir.name as imp_direct, project_start_date  , csr_reg_num , ong.name as ongoing, project_end_date, p.fy_timerange  ,
+concat(
+  
+	concat(concat(extract (day from project_start_date ),'-'), 
+ 			concat(extract (month from  project_start_date ),'-')),
+	concat(concat(concat(extract( year from project_start_date ),
+						    concat(' ',concat('to',' '))),
+				  concat(extract (day from project_end_date),'-')),
+		   concat(concat(extract(month from project_end_date),'-'),
+                  extract (year from project_end_date )))) 
+				  
+as duration ,  projectid_dkl , INITCAP(ent.name) as entity , cumulative , cumulative_allocated 
+
+*/
