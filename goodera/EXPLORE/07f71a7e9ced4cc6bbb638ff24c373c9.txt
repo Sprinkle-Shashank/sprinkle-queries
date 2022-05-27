@@ -41,10 +41,22 @@ when 'FY 2019-20 ' then 'FY (2019-20)'
 when 'FY 2020-21' then'FY (2020-21)'
 when 'FY 2021-22' then 'FY (2021-22)'
 else t1.name
-end  as financialyear
+end  as financialyear,
 
-from temp2 
+case row
+when  'fuel' then 'Fuel'
+when 'electricity_purchased' then 'Purchased/Acquired Electricity'
+when 'heat' then 'Purchased/Acquired Heat'
+when 'steam' then 'Purchased/Acquired Steam'
+when 'cooling' then 'Purchased/Acquired Cooling'
+when 'non_fuel_renewable' then 'Self-Generated Non-Fuel Renewable Energy'
+else null 
+end as row
+
+
+
+from temp2  
 left join ds_mysql_prod_tagelement t1 on t1.id = financialperiod
-	 cross join temp3
-group by projectid, fy_timerange, t1.name, year, month, Consumptiontype, financialyear
+	 cross join temp3 where row is not 'total'
+group by projectid, fy_timerange, t1.name, year, month, Consumptiontype, financialyear, row
 /*select * from sus_56551 where keyword ='cdp_cc_8_consumed'*/
