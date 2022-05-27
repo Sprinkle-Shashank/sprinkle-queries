@@ -6,7 +6,7 @@ where keyword='cdp_cc_c8_2a_energyrelated_activities' and datatablebase is not n
 
 sub2 as (select *,temp.renewable,temp.non_renewable from sub1 s1,unpivot s1.datatablebase as temp at rows),
 
-sub3 as(select projectid, financial_period, renewable, non_renewable, questiontext, fy_timerange,('FY' || ' ' || split_part(financial_period, ' ', 2)) as FY,tablesettings
+sub3 as(select projectid, financial_period, renewable, non_renewable, questiontext, fy_timerange,('FY' || ' ' || split_part(financial_period, ' ', 2)) as FY,tablesettings,rows
 from sub2
 ),
 
@@ -17,7 +17,7 @@ union all
 select 'Energy Related Activity-Non-Renewable Sources' as consumption_type
 )
 
-select projectid, financial_period,questiontext,fy_timerange,FY,consumption_type,
+select projectid, financial_period,questiontext,fy_timerange,FY,consumption_type,rows,
 sum
 ( 
  case consumption_type
@@ -35,4 +35,4 @@ end as units
  
 from sub3
 cross join sub4
-group by projectid, financial_period,questiontext,fy_timerange,units,consumption_type,FY
+group by projectid, financial_period,questiontext,fy_timerange,units,consumption_type,FY,rows
