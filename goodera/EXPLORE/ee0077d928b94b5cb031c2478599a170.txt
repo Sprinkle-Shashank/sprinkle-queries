@@ -1,0 +1,45 @@
+with x as (select name as projectid, fy_timerange, financialperiod,datatablebase from sus_56551 where keyword='cdp_cc_12_consumed'),
+temp2 as (
+
+select * ,temp1.cdp_cc_12_1_heat, temp1.cdp_cc_12_1_steam, temp1.cdp_cc_12_1_cooling,temp1.cdp_cc_12_1_electricity from x as temp, 
+  unpivot temp.datatablebase as temp1 at row) ,
+
+temp3 as (select 'cc12_Steam' as col 
+union all  
+select 'cc12_Heat' as col 
+union all 
+select 'cc8_Cooling' as col
+union all select  'cc12_Low Carbon Electricity' as col )
+
+select  projectid, fy_timerange, t1.name as financialperiod ,
+
+sum (case temp3.col
+ when 'cc12_Heat' then  temp2.cdp_cc_12_1_heat 
+when  'cc12_Steam' then temp2.cdp_cc_12_1_steam 
+when 'cc12_Cooling' then  temp2.cdp_cc_12_1_cooling 
+when 'cc12_Low Carbon Electricity' then  temp2.cdp_cc_12_1_electricity
+	 else null
+	 end) as values,
+	 
+	 temp3.col as Consumptiontype, split_part(fy_timerange,'-',1) as year,
+	 CASE split_part(fy_timerange,'-',2)
+	  
+WHEN '01' THEN 'Jan'
+WHEN '02' THEN 'Feb'
+WHEN '03' THEN 'Mar'
+WHEN '04' THEN 'Apr'
+WHEN '05' THEN 'May'
+WHEN '06' THEN 'Jun'
+WHEN '07' THEN 'Jul'
+WHEN '08' THEN 'Aug'
+WHEN '09' THEN 'Sep'
+WHEN '10' THEN 'Oct'
+WHEN '11' THEN 'Nov'
+
+ Else 'Dec'
+end  as Month
+from temp2 
+left join ds_mysql_prod_tagelement t1 on t1.id = financialperiod
+	 cross join temp3
+group by projectid, fy_timerange, t1.name, year, month, Consumptiontype
+/*select * from sus_56551 where keyword ='cdp_cc_12_consumed'*/
