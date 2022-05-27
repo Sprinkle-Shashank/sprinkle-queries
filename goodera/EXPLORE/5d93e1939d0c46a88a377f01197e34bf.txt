@@ -5,7 +5,7 @@
 
 
 
-with table1 as(select datatable,xprojectId, fy_timerange ,time.name as Time_period,split_part(split_part(fy_timerange,'|',1),'-',1) as time
+with table1 as(select datatable,xprojectId, fy_timerange ,time.name as Time_period,split_part(split_part(fy_timerange,'|',1),'-',1) as time , Substring(finPeriod,1,1) as finPeriod
 
   from sus_59938 sus
 
@@ -14,9 +14,9 @@ on sus.financialperiod = time.id
 
 where keyword in ('workforce')
 ),table3 as(
-select xprojectId,t1.fy_timerange,t1.Time_period,t1.time,table2.workforce_type,SUM(table2.count) as total from table1 t1, unpivot t1.datatable  table2
+select xprojectId,t1.fy_timerange,t1.Time_period, t1.finPeriod , t1.time,table2.workforce_type,SUM(table2.count) as total from table1 t1, unpivot t1.datatable  table2
 
-group  by xprojectId,t1.Time_period,t1.time,table2.workforce_type , t1.fy_timerange
+group  by xprojectId,t1.Time_period,t1.time,table2.workforce_type , t1.fy_timerange , t1.finPeriod
   
 ),
 
@@ -24,7 +24,7 @@ table4 as (select t3.*,CAST(wt as varchar) from table3 t3,t3.workforce_type wt
 
 )
 
-SELECT wtype.name as wt,xprojectId,t4.Time_period,t4.time,total , t4.fy_timerange from table4 t4
+SELECT wtype.name as wt,xprojectId,t4.Time_period,t4.time,total , t4.fy_timerange , t4.finPeriod from table4 t4
 
 LEFT JOIN ds_mysql_prod_tagelement wtype on
 t4.wt = wtype.id
