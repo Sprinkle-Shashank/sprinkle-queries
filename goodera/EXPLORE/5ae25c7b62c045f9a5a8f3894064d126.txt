@@ -6,6 +6,13 @@ where keyword in ('gri_scope_1_emission')),
 sub2 as (select *,cast(temp.source as varchar),temp.scope_1_figure
 from sub1 s1,unpivot s1.datatablebase as temp at row_id)
 
-select projectid, financial_period, source, scope_1_figure,questiontext, fy_timerange,('FY' || ' ' || split_part(financial_period, ' ', 2)) as FY, sum(scope_1_figure) as gri_scope_1_emission_scope_1_figure, cast(tablesettings."0"."scope_1_figure"."measureUnitBase" as VARCHAR) as units
+select projectid, financial_period, source, scope_1_figure,questiontext, fy_timerange,('FY' || ' ' || split_part(financial_period, ' ', 2)) as FY, sum(scope_1_figure) as gri_scope_1_emission_scope_1_figure, cast(tablesettings."0"."scope_1_figure"."measureUnitBase" as VARCHAR) as units,
+case FY
+when like '%2019-20%' then 'FY (2019-20)'
+when like '%2020-21%' then 'FY (2020-21)'
+when like '%2021-22%' then 'FY (2021-22)'
+when like '%2022-23%' then 'FY (2022-23)'
+else null
+end as financial_year
 from sub2
 group by projectid,source, scope_1_figure, financial_period, questiontext,fy_timerange,units
