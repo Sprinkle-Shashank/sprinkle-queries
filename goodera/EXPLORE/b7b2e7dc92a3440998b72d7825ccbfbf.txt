@@ -7,12 +7,19 @@ when 'gri_deemed_hazardous_exported' then 'Deemed Hazardous Exported'
 when 'gri_deemed_hazardous_treated' then 'Deemed Hazardous Treated'--
 when 'gri_deemed_hazardous_shipped' then 'Deemed Hazardous Shipped'
 else null
-end as waste_type
+end as waste_type,
+case FY
+when 'FY 2019-20' then 'FY (2019-20)'
+when 'FY 2020-21' then 'FY (2020-21)'
+when 'FY 2021-22' then 'FY (2021-22)'
+when 'FY 2022-23' then 'FY (2022-23)'
+else null
+end as financial_year
 
 
 from sus_56551 p1
 left join ds_mysql_prod_tagelement t1 on t1.id=p1.financialperiod
 where keyword in('gri_deemed_hazardous_generated','gri_deemed_hazardous_transported','gri_deemed_hazardous_imported','gri_deemed_hazardous_exported','gri_deemed_hazardous_treated','gri_deemed_hazardous_shipped') and datanumbase is not null
-group by p1.name,t1.name,p1.fy_timerange,questiontext,unit,waste_type
+group by p1.name,t1.name,p1.fy_timerange,questiontext,unit,waste_type,financial_year
 
 --, sum(sub1.datanumbase) as value projectid,financial_period,fy_timerange,questiontext,FY,unit,waste_type,value select * from sub1
