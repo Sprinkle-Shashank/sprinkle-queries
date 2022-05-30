@@ -1,20 +1,61 @@
-with sub1 as (select p1.name as projectid,t1.name as financial_period, datatablebase, tablesettings, questiontext, fy_timerange
-
+with sub1 as(
+  select p1.name as projectid,t1.name as financial_period,p1.fy_timerange,p1.datatablebase,p1.tablesettings,p1.questiontext
 from sus_56551 p1
-left join ds_mysql_prod_tagelement t1 on t1.id=p1.financialperiod
-where keyword='cdp_cc_8_consumed'),
+  
+left join ds_mysql_prod_tagelement t1 on t1.id=p1.financialPeriod
+  
+where keyword='gri_hazardouswaste' and datatablebase is not null),
 
-sub2 as (select *,temp.cdp_cc_8_1_heat,temp.cdp_cc_8_1_steam,temp.cdp_cc_8_1_cooling,temp.cdp_cc_8_1_electricity from sub1 s1,unpivot s1.datatablebase as temp at rows),
+sub2 as(
+  select s1.projectid, s1.financial_period, s1.fy_timerange, s1.questiontext, s1.tablesettings, ('FY' || ' ' || split_part(s1.financial_period, ' ', 2)) as FY,
+		
+temp.gri_biomedicalwaste, temp.gri_ewaste, temp.gri_phosphatedischarge, temp.gri_oil_greasedischarge, temp.gri_ammonia_nitrogen_discharge, temp.gri_spentoil, temp.gri_fusedash, temp.gri_discardedcontainers, temp.gri_batteries, temp.gri_spentcatalyst, temp.gri_oilresidue, temp.gri_chemicalsludge_etp
+		
+from sub1 s1, unpivot s1.datatablebase as temp at rows),
 
-sub3 as(select projectid, financial_period, cdp_cc_8_1_heat, cdp_cc_8_1_steam, cdp_cc_8_1_cooling, cdp_cc_8_1_electricity, questiontext, fy_timerange,('FY' || ' ' || split_part(financial_period, ' ', 2)) as FY,rows,
-case
-when 'cdp_cc_8_1_heat' then cast(tablesettings."0"."cdp_cc_8_1_heat"."measureUnitBase" as VARCHAR)
-when 'cdp_cc_8_1_steam' then cast(tablesettings."0"."cdp_cc_8_1_steam"."measureUnitBase" as VARCHAR)
-when 'cdp_cc_8_1_cooling' then cast(tablesettings."0"."cdp_cc_8_1_cooling"."measureUnitBase" as VARCHAR) 
-when 'cdp_cc_8_1_electricity' then cast(tablesettings."0"."cdp_cc_8_1_electricity"."measureUnitBase" as VARCHAR) 
-else null
-end as units
-from sub2
-)
+sub3 as(
+select 'Biomedical Waste' as waste_type
+union all
+select 'Phosphate Discharge' as waste_type
+union all
+select 'Oil and Grease Discharge' as waste_type
+union all
+select 'Ammonia & Nitrogen Discharges' as waste_type
+union all
+select 'Spent Oil' as waste_type
+union all
+select 'Fused Ash' as waste_type
+union all
+select 'Discarded containers' as waste_type
+union all
+select 'Used Lead-Acid Batteries / Any batteries' as waste_type
+union all
+select 'Spent Catalyst' as waste_type
+union all
+select 'Residue containing oil' as waste_type
+union all
+select 'Chemical sludge from ETPs' as waste_type
+union all
+select 'E-Waste' as waste_type)
 
-select * from sub2
+select s2.projectid, s2.fy_timerange, s2.financial_period, s2.questiontext, s2.fy, sub3.waste_type,
+
+sum(case sub3.waste_type
+	when 'Biomedical Waste' then s2.gri_biomedicalwaste
+	when 'Phosphate Discharge' then s2.gri_phosphatedischarge
+	when 'Oil and Grease Discharge' then s2.gri_oil_greasedischarge
+	when 'Ammonia & Nitrogen Discharges' then s2.gri_ammonia_nitrogen_discharge
+	when 'Spent Oil' then s2.gri_spentoil
+	when 'Fused Ash' then s2.gri_fusedash
+	when 'Discarded containers' then s2.gri_discardedcontainers
+	when 'Used Lead-Acid Batteries / Any batteries' then s2.gri_batteries
+	when 'Spent Catalyst' then s2.gri_spentcatalyst
+	when 'Residue containing oil' then s2.gri_oilresidue
+	when 'Chemical sludge from ETPs' then s2.gri_chemicalsludge_etp
+	when 'E-Waste' then s2.gri_ewaste
+	else NULL
+end) as values
+
+group by s2.projectid, s2.fy_timerange, s2.financial_period, s2.questiontext, s2.fy, sub3.waste_type
+
+cross join sub3
