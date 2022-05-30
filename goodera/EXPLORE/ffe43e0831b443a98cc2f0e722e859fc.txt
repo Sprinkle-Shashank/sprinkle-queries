@@ -1,36 +1,34 @@
 --46184, 46299, 46318, 46228, 55677, 55825
 with base11 as(
-	select grantproposalid,grantflowtaskid,value.amount_released,value.payment_date,disbursement_thru,approved_amount_project	 from profile_46184 p1, unpivot p1.disbursement_plan as value at disbursement_plan
+	select grantproposalid,grantflowtaskid,name_org,value.amount_released,value.payment_date,approved_amount_project from profile_46184 p1, unpivot p1.disbursement_plan as value at disbursement_plan
 ),
 base21 as(
-	select grantproposalid,grantflowtaskid,value.amount_released,value.payment_date,cast(disbursement_thru[0] as INT4),approved_amount_project from profile_46299 p1, unpivot p1.disbursement_plan as value at disbursement_plan
+	selectgrantproposalid,grantflowtaskid,name_org,value.amount_released,value.payment_date,approved_amount_project from profile_46299 p1, unpivot p1.disbursement_plan as value at disbursement_plan
 ),
 base31 as(
-	select grantproposalid,grantflowtaskid,value.amount_released,value.payment_date,disbursement_thru,approved_amount_project from profile_46318 p1, unpivot p1.disbursement_plan as value at disbursement_plan
+	select grantproposalid,grantflowtaskid,name_org,value.amount_released,value.payment_date,approved_amount_project from profile_46318 p1, unpivot p1.disbursement_plan as value at disbursement_plan
 ),
 base41 as(
-	select grantproposalid,grantflowtaskid,value.amount_released,value.payment_date,disbursement_thru,approved_amount_project from profile_46228 p1, unpivot p1.disbursement_plan as value at disbursement_plan
+	select grantproposalid,grantflowtaskid,name_org,value.amount_released,value.payment_date,approved_amount_project from profile_46228 p1, unpivot p1.disbursement_plan as value at disbursement_plan
 ),
 base51 as(
-	select grantproposalid,grantflowtaskid,value.amount_released,value.payment_date,cast(disbursement_thru as INT4),approved_amount_project from profile_55677 p1, unpivot p1.disbursement_plan as value at disbursement_plan
+	select grantproposalid,grantflowtaskid,name as name_org,value.amount_released,value.payment_date,approved_amount_project from profile_55677 p1, unpivot p1.disbursement_plan as value at disbursement_plan
 ),
 base61 as(
-	select grantproposalid,grantflowtaskid,value.amount_released,value.payment_date,cast(disbursement_thru as INT4),approved_amount_project from profile_55825 p1, unpivot p1.disbursement_plan as value at disbursement_plan
+	select grantproposalid,grantflowtaskid,name as name_org,value.amount_released,value.payment_date,approved_amount_project from profile_55825 p1, unpivot p1.disbursement_plan as value at disbursement_plan
 ),
 base as (
-select name_org,amount_released,disbursement_thru,payment_date from base11
+select name_org,amount_released,payment_date from base11
 union all
-select name_org,amount_released,disbursement_thru,payment_date from base21
+select name_org,amount_released,payment_date from base21
 union all
-select name_org,amount_released,disbursement_thru,payment_date from base31
+select name_org,amount_released,payment_date from base31
 union all
-select name_org,amount_released,disbursement_thru,payment_date from base41
+select name_org,amount_released,payment_date from base41
 union all
-select name_org,amount_released,disbursement_thru,payment_date from base51
+select name_org,amount_released,payment_date from base51
 union all
-select name_org,amount_released,disbursement_thru,payment_date from base61
+select name_org,amount_released,payment_date from base61
 )
-select b.name_org,cast(b.payment_date as TIMESTAMPTZ) as payment_date,SUM(cast(b.amount_released as float4)) as amount_released,tag1.name as disbursement_thru from base b
-left join ds_mysql_prod_tagelement tag1
-on b.disbursement_thru = tag1.id
-group by 1,2,3
+select b.name_org,cast(b.payment_date as TIMESTAMPTZ) as payment_date,SUM(cast(b.amount_released as float4)) as amount_released from base b
+group by 1,2
