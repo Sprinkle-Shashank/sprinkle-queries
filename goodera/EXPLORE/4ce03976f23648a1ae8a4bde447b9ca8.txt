@@ -1,26 +1,19 @@
-select * from sus_56551 where keyword ='gri_hazardouswaste'
+/*select * from sus_56551 where keyword ='gri_hazardouswaste'*/
 
-/*with x as (select name as projectid, fy_timerange, financialperiod,datatablebase from sus_56551 where keyword='cdp_cc_c8_2a_energyrelated_activities' and datatablebase is not null),
+with x as (select name as projectid, fy_timerange, financialperiod,datatablebase from sus_56551 where keyword='gri_hazardouswaste' and datatablebase is not null),
 temp2 as (
 
-select * ,temp1.renewable, temp1.non_renewable from x as temp, 
-  unpivot temp.datatablebase as temp1 at row) ,
+select * ,from x as temp, 
+  unpivot temp.datatablebase as temp1 at row) 
 
-temp3 as (select 'Energy Related Activity-Renewable Sources' as col 
-union all  
-select 'Energy Related Activity-Non-Renewable Sources' as col 
- )
+
 
 select  projectid, fy_timerange, t1.name as financialperiod ,
 
-sum (case temp3.col
- when 'Energy Related Activity-Renewable Sources' then  temp2.renewable 
-when  'Energy Related Activity-Non-Renewable Sources' then temp2.non_renewable 
-
-	 else null
-	 end) as values,
+sum (case datatablebase)
+ as values,
 	 
-	 temp3.col as Consumptiontype, split_part(fy_timerange,'-',1) as year,
+	 split_part(fy_timerange,'-',1) as year,
 	 CASE split_part(fy_timerange,'-',2)
 	  
 WHEN '01' THEN 'Jan'
@@ -46,20 +39,27 @@ else t1.name
 end  as financialyear,
 
 case row
-when  'fuel' then 'Fuel'
-when 'electricity_purchased' then 'Purchased/Acquired Electricity'
-when 'heat' then 'Purchased/Acquired Heat'
-when 'steam' then 'Purchased/Acquired Steam'
-when 'cooling' then 'Purchased/Acquired Cooling'
-when 'non_fuel_renewable' then 'Self-Generated Non-Fuel Renewable Energy'
+when  'gri_hazardouswaste_gri_biomedicalwaste' then 'Biomedical Waste'
+when 'gri_hazardouswaste_gri_phosphatedischarge' then 'Phosphate Discharge'
+when 'gri_hazardouswaste_gri_oil_greasedischarge' then 'Oil and Grease Discharge'
+when 'gri_hazardouswaste_gri_ammonia_nitrogen_discharge' then 'Ammonia & Nitrogen Discharges'
+when 'gri_hazardouswaste_gri_spentoil' then 'Spent Oil'
+when 'gri_hazardouswaste_gri_fusedash' then 'Fused Ash'
+when 'gri_hazardouswaste_gri_discardedcontainers' then 'Discarded containers'
+when 'gri_hazardouswaste_gri_batteries' then 'Used Lead-Acid Batteries / Any batteries'
+when 'gri_hazardouswaste_gri_spentcatalyst' then 'Spent Catalyst'
+when 'gri_hazardouswaste_gri_oilresidue' then 'Residue containing oil'
+when 'gri_hazardouswaste_gri_chemicalsludge_etp' then 'Chemical sludge from ETP'
+when 'gri_hazardouswaste_gri_ewaste' then 'E-Waste'
+
 else null 
-end as row
+end as waste_type
 
 
 
 from temp2  
 left join ds_mysql_prod_tagelement t1 on t1.id = financialperiod
-	 cross join temp3 where row not in ('total')
-group by projectid, fy_timerange, t1.name, year, month, Consumptiontype, financialyear, row*/
+	 
+group by projectid, fy_timerange, t1.name, year, month, financialyear, waste_type
 
 	
