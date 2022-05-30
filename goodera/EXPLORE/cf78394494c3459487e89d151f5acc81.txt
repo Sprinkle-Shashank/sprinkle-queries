@@ -7,9 +7,12 @@ on sus.financialperiod = time.id
 
 where keyword in ('emp_turnover')
 ),table3 as(
-select xprojectId,t1.Time_period,t1.time,table2.turnover_type, table2.gender, SUM(table2.value) as total from table1 t1, unpivot t1.datatable  table2
+select xprojectId,t1.Time_period,t1.time,table2.turnover_type, table2.gender, SUM(table2.value) as total , case when Time_period like 'F%' then 'Yearly' 
+ when Time_period like 'Q%' then 'Quarterly' 
+  
+ end as timerange from table1 t1, unpivot t1.datatable  table2
 
-group  by xprojectId,t1.Time_period,t1.time,table2.turnover_type , table2.gender
+group  by xprojectId,t1.Time_period,t1.time,table2.turnover_type , table2.gender , timerange
   
 ),
 
@@ -17,7 +20,7 @@ table4 as (select t3.*,CAST(wt as varchar) from table3 t3,t3.turnover_type wt
 ) , 
 table5 as (select t4.*,CAST(gn as varchar)from table4 t4,t4.gender gn )
 
-SELECT wtype.name as wt, gtype.name as gn , xprojectId,t5.Time_period,t5.time,total  
+SELECT wtype.name as wt, gtype.name as gn , xprojectId,t5.Time_period,t5.time,total  , t5.timerange
 
 from table5 t5
 
