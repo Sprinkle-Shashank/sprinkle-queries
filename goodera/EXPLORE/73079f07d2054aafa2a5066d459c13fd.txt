@@ -6,7 +6,11 @@ where keyword= 'cdp_cc_7_purchased'),
 
 sub2 as (select *,temp.cdp_cc_7_1_heat,temp.cdp_cc_7_1_steam,temp.cdp_cc_7_1_cooling,temp.cdp_cc_7_1_electricity from sub1 s1, unpivot s1.datatablebase as temp at rows),
 
-sub3 as(
+
+sub3 as(select projectid, financial_period, cdp_cc_7_1_heat,cdp_cc_7_1_steam,cdp_cc_7_1_cooling,cdp_cc_7_1_electricity, questiontext, fy_timerange,('FY' || ' ' || split_part(financial_period, ' ', 2)) as FY,tablesettings
+from sub2),
+--group by projectid,financial_period,fy_timerange,cdp_cc_7_1_heat,cdp_cc_7_1_steam,cdp_cc_7_1_cooling,cdp_cc_7_1_electricity,FY,questiontext),
+sub4 as(
 select 'Heat' as consumption_type
 union all
 select 'Steam' as consumption_type 
@@ -14,10 +18,6 @@ union all
 select 'Cooling' as consumption_type 
 union all
 select 'Electricity' as consumption_type),
-
-sub4 as(select projectid, financial_period, cdp_cc_7_1_heat,cdp_cc_7_1_steam,cdp_cc_7_1_cooling,cdp_cc_7_1_electricity, questiontext, fy_timerange,('FY' || ' ' || split_part(financial_period, ' ', 2)) as FY,tablesettings
-from sub2),
---group by projectid,financial_period,fy_timerange,cdp_cc_7_1_heat,cdp_cc_7_1_steam,cdp_cc_7_1_cooling,cdp_cc_7_1_electricity,FY,questiontext),
 
 sub5 as(select projectid, financial_period,questiontext,fy_timerange,FY,consumption_type,
 case consumption_type
@@ -44,8 +44,8 @@ when FY='FY 2022-23' or FY='FY (2022-23)' then 'FY (2022-23)'
 else null
 end as financial_year
 
-from sub4
-cross join sub3
+from sub3
+cross join sub4
 group by projectid,financial_period,fy_timerange,questiontext,financial_year,fy,consumption_type)
 
 select projectid, financial_period,questiontext,fy_timerange,FY,consumption_type,values,units,financial_year
