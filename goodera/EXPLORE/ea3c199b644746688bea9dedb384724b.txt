@@ -33,9 +33,9 @@ select 'Residue containing oil' as waste_type
 union all
 select 'Chemical sludge from ETPs' as waste_type
 union all
-select 'E-Waste' as waste_type)
+select 'E-Waste' as waste_type),
 
-select projectid, financial_period,questiontext,fy_timerange,FY,waste_type,questiontext,
+sub5 as (select projectid, financial_period,questiontext,fy_timerange,FY,waste_type,questiontext,
 sum(
 case waste_type
 when 'Biomedical Waste' then gri_biomedicalwaste
@@ -53,7 +53,7 @@ when 'E-Waste' then gri_ewaste
 else null
 end)
 as values
-/*
+
 case waste_type
 when 'Biomedical Waste' then cast(tablesettings."0"."gri_biomedicalwaste"."measureUnitBase" as VARCHAR)
 when 'E-Waste' then cast(tablesettings."0"."gri_ewaste"."measureUnitBase" as VARCHAR)
@@ -68,11 +68,22 @@ when 'Spent Catalyst' then cast(tablesettings."0"."gri_spentcatalyst"."measureUn
 when 'Residue containing oil' then cast(tablesettings."0"."gri_oilresidue"."measureUnitBase" as VARCHAR)
 when 'Chemical sludge from ETPs' then cast(tablesettings."0"."gri_chemicalsludge_etp"."measureUnitBase" as VARCHAR)
 else null
-end as units
-*/
+end as units,
+case 
+when FY='FY 2019-20' or FY='FY (2019-20)' then 'FY (2019-20)'
+when FY='FY 2020-21' or FY='FY (2020-21)' then 'FY (2020-21)'
+when FY='FY 2021-22' or FY='FY (2021-22)' then 'FY (2021-22)'
+when FY='FY 2022-23' or FY='FY (2022-23)' then 'FY (2022-23)'
+else null
+end as financial_year
+
 from sub3
 cross join sub4
-group by projectid,financial_period,questiontext,fy_timerange,waste_type,FY
+group by projectid,financial_period,questiontext,fy_timerange,waste_type,FY)
+
+select projectid, financial_period,questiontext,fy_timerange,FY,waste_type,values,nvl(units,'NUMBER') as units,financial_year
+from sub5
+group by projectid, financial_period,questiontext,fy_timerange,units,consumption_type,FY,values,financial_year
 
 
 
