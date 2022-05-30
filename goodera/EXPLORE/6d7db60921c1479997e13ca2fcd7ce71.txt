@@ -38,24 +38,53 @@ select 'Chemical sludge from ETPs' as waste_type
 union all
 select 'E-Waste' as waste_type)
 
-select s2.projectid, s2.fy_timerange, s2.financial_period, s2.questiontext, s2.fy, sub3.waste_type,
+select projectid, fy_timerange, financial_period, questiontext, fy, sub3.waste_type,
 
 sum(case sub3.waste_type
-	when 'Biomedical Waste' then s2.gri_biomedicalwaste
-	when 'Phosphate Discharge' then s2.gri_phosphatedischarge
-	when 'Oil and Grease Discharge' then s2.gri_oil_greasedischarge
-	when 'Ammonia & Nitrogen Discharges' then s2.gri_ammonia_nitrogen_discharge
-	when 'Spent Oil' then s2.gri_spentoil
-	when 'Fused Ash' then s2.gri_fusedash
-	when 'Discarded containers' then s2.gri_discardedcontainers
-	when 'Used Lead-Acid Batteries / Any batteries' then s2.gri_batteries
-	when 'Spent Catalyst' then s2.gri_spentcatalyst
-	when 'Residue containing oil' then s2.gri_oilresidue
-	when 'Chemical sludge from ETPs' then s2.gri_chemicalsludge_etp
-	when 'E-Waste' then s2.gri_ewaste
+	when 'Biomedical Waste' then gri_biomedicalwaste
+	when 'Phosphate Discharge' then gri_phosphatedischarge
+	when 'Oil and Grease Discharge' then gri_oil_greasedischarge
+	when 'Ammonia & Nitrogen Discharges' then gri_ammonia_nitrogen_discharge
+	when 'Spent Oil' then gri_spentoil
+	when 'Fused Ash' then gri_fusedash
+	when 'Discarded containers' then gri_discardedcontainers
+	when 'Used Lead-Acid Batteries / Any batteries' then gri_batteries
+	when 'Spent Catalyst' then gri_spentcatalyst
+	when 'Residue containing oil' then gri_oilresidue
+	when 'Chemical sludge from ETPs' then gri_chemicalsludge_etp
+	when 'E-Waste' then gri_ewaste
 	else NULL
-end) as values
+end) as values,
 
-group by s2.projectid, s2.fy_timerange, s2.financial_period, s2.questiontext, s2.fy, sub3.waste_type
+case(sub3.waste_type
+	when 'Biomedical Waste' then 
+	 	cast(tablesettings."0"."gri_biomedicalwaste"."measureUnitBase")
+	when 'Phosphate Discharge' then
+	 	cast(tablesettings."0"."gri_phosphatedischarge"."measureUnitBase")
+	when 'Oil and Grease Discharge' then
+	 	cast(tablesettings."0"."gri_oil_greasedischarge"."measureUnitBase")
+	when 'Ammonia & Nitrogen Discharges' then
+	 	cast(tablesettings."0"."gri_ammonia_nitrogen_discharge"."measureUnitBase")
+	when 'Spent Oil' then
+	 	cast(tablesettings."0"."gri_spentoil"."measureUnitBase")
+	when 'Fused Ash' then
+	 	cast(tablesettings."0"."gri_fusedash"."measureUnitBase")
+	when 'Discarded containers' then
+	 	cast(tablesettings."0"."gri_discardedcontainers"."measureUnitBase")
+	when 'Used Lead-Acid Batteries / Any batteries' then
+	 	cast(tablesettings."0"."gri_batteries"."measureUnitBase")
+	when 'Spent Catalyst' then
+	 	cast(tablesettings."0"."gri_spentcatalyst"."measureUnitBase")
+	when 'Residue containing oil' then 
+	 	cast(tablesettings."0"."gri_oilresidue"."measureUnitBase")
+	when 'Chemical sludge from ETPs' then
+	 	cast(tablesettings."0"."gri_chemicalsludge_etp"."measureUnitBase")
+	when 'E-Waste' then
+	 	cast(tablesettings."0"."gri_ewaste"."measureUnitBase")
+	else NULL
+end) as units
 
+from sub2
 cross join sub3
+
+group by projectid, fy_timerange, financial_period, questiontext, fy, sub3.waste_type
