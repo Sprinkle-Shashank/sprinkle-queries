@@ -1,20 +1,24 @@
 
-
-with x as (select name as projectid, fy_timerange, financialperiod,datatablebase from sus_56551 where keyword='gri_hazardouswaste' and datatablebase is not null),
-temp2 as (
-
-select * from x as temp, 
-  unpivot temp.datatablebase as temp1 at row) 
-
-
-
-select  projectid, fy_timerange, t1.name as financialperiod ,
-
-sum (datatablebase)
- as values,
-	 
-	 split_part(fy_timerange,'-',1) as year,
-	 CASE split_part(fy_timerange,'-',2)
+With x as(select name as projectid, financialperiod,fy_timerange,datatablebase from sus_56551 where keyword='gri_hazardouswaste'),
+		  temp2 as
+		  (select projectid, financialperiod,fy_timerange, temp1.gri_hazardouswaste_gri_biomedicalwaste, temp1.gri_hazardouswaste_gri_phosphatedischarge,temp1.gri_hazardouswaste_gri_oil_greasedischarge, temp1.gri_hazardouswaste_gri_ammonia_nitrogen_discharge, temp1.gri_hazardouswaste_gri_spentoil, temp1.gri_hazardouswaste_gri_fusedash,temp1.gri_hazardouswaste_gri_discardedcontainers,temp1.gri_hazardouswaste_gri_batteries,temp1.gri_hazardouswaste_gri_spentcatalyst,temp1.gri_hazardouswaste_gri_oilresidue,temp1.gri_hazardouswaste_gri_chemicalsludge_etp, temp1.gri_hazardouswaste_gri_ewaste
+		    from x as temp, unpivot temp.datatablebase as temp1 at row),
+			
+			temp3 as (select 'Biomedical Waste' as col
+					 union all  select 'Phosphate Discharge' as col
+					 union all  select 'Oil and Grease Discharge' as col
+					 union all  select 'Ammonia & Nitrogen Discharges' as col
+					 union all  select 'Spent Oil' as col
+					 union all  select 'Fused Ash' as col
+					 union all  select 'Discarded containers' as col
+					 union all  select 'Used Lead-Acid Batteries / Any batteries' as col
+					 union all  select 'Spent Catalyst' as col
+					 union all  select 'Residue containing oil' as col
+					 union all  select 'Chemical sludge from ETP' as col
+					 union all  select 'E-Waste' as col
+					 )
+		   
+select  projectid ,t1.name as financialperiod,fy_timerange,CASE split_part(fy_timerange,'-',2)
 	  
 WHEN '01' THEN 'Jan'
 WHEN '02' THEN 'Feb'
@@ -29,16 +33,40 @@ WHEN '10' THEN 'Oct'
 WHEN '11' THEN 'Nov'
 
  Else 'Dec'
-end  as Month,
+end as Month,
 
-case t1.name
-when 'FY 2019-20 ' then 'FY (2019-20)'
-when 'FY 2020-21' then'FY (2020-21)'
-when 'FY 2021-22' then 'FY (2021-22)'
-else t1.name
-end  as financialyear,
+split_part(fy_timerange,'-',1) as year,
 
-case row
+
+Sum(case temp3.col
+when 'Biomedical Waste' then temp2.gri_hazardouswaste_gri_biomedicalwaste
+when 'Phosphate Discharge' then temp2.gri_hazardouswaste_gri_phosphatedischarge
+	when 'Oil and Grease Discharge' then temp2.gri_hazardouswaste_gri_oil_greasedischarge
+	when 'Ammonia & Nitrogen Discharges' then temp2.gri_hazardouswaste_gri_ammonia_nitrogen_discharge
+	when 'Spent Oil' then temp2.gri_hazardouswaste_gri_spentoil
+	when 'Fused Ash' then temp2.gri_hazardouswaste_gri_fusedash
+	when 'Discarded containers' then temp2.gri_hazardouswaste_gri_discardedcontainers
+	when 'Used Lead-Acid Batteries / Any batteries' then temp2.gri_hazardouswaste_gri_batteries
+	when 'Spent Catalyst' then temp2.gri_hazardouswaste_gri_spentcatalyst
+	when 'Residue containing oil' then temp2.gri_hazardouswaste_gri_oilresidue
+	when 'Chemical sludge from ETP' then temp2.gri_hazardouswaste_gri_chemicalsludge_etp
+	when 'E-Waste' then temp2.gri_hazardouswaste_gri_ewaste
+else null
+end ) as  values, temp3.col as waste_type
+
+
+ 
+
+from temp2  
+left join ds_mysql_prod_tagelement t1 on t1.id = financialperiod 
+cross join temp3
+
+group by projectid ,t1.name,fy_timerange,temp3.col,year,month, waste_type
+		   
+
+/*select * from sus_56551 where keyword ='gri_hazardouswaste'*/
+
+/*case row
 when  'gri_hazardouswaste_gri_biomedicalwaste' then 'Biomedical Waste'
 when 'gri_hazardouswaste_gri_phosphatedischarge' then 'Phosphate Discharge'
 when 'gri_hazardouswaste_gri_oil_greasedischarge' then 'Oil and Grease Discharge'
@@ -53,13 +81,6 @@ when 'gri_hazardouswaste_gri_chemicalsludge_etp' then 'Chemical sludge from ETP'
 when 'gri_hazardouswaste_gri_ewaste' then 'E-Waste'
 
 else null 
-end as waste_type
+end as waste_type*/
 
-
-
-from temp2  
-left join ds_mysql_prod_tagelement t1 on t1.id = financialperiod
-	 
-group by projectid, fy_timerange, t1.name, year, month, financialyear, waste_type
-
-	/*select * from sus_56551 where keyword ='gri_hazardouswaste'*/
+	
