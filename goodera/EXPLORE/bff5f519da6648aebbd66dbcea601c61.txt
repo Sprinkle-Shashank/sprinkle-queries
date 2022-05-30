@@ -7,7 +7,10 @@ on sus.financialperiod = time.id
 
 where keyword in ('workforce')
 ),table3 as(
-select xprojectId,t1.Time_period,t1.time,table2.workforce_type,SUM(table2.count) as total from table1 t1, unpivot t1.datatable  table2
+select xprojectId,t1.Time_period,t1.time,table2.workforce_type,SUM(table2.count) as total , case when Time_period like 'F%' then 'Yearly' 
+ when Time_period like 'Q%' then 'Quarterly' 
+  
+ end as timerange from table1 t1, unpivot t1.datatable  table2
 
 group  by xprojectId,t1.Time_period,t1.time,table2.workforce_type
   
@@ -17,7 +20,7 @@ table4 as (select t3.*,CAST(wt as varchar) from table3 t3,t3.workforce_type wt
 
 )
 
-SELECT wtype.name as wt,xprojectId,t4.Time_period,t4.time,total from table4 t4
+SELECT wtype.name as wt,xprojectId,t4.Time_period,t4.time,total  , t4.timerange from table4 t4
 
 LEFT JOIN ds_mysql_prod_tagelement wtype on
 t4.wt = wtype.id
