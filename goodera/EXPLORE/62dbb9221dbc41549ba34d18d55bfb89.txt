@@ -3,13 +3,29 @@
 --14738(proj_title_bm)
 
 with base as(
-select p1.org_name_1,p1.appr_amount_2,tag1.name as focus_area,p2.target_geog,p3.proj_title_bm from profile_14579 p1
+select p1.grantproposalid,p1.org_name_1,p1.appr_amount_2,tag1.name as focus_area,p2.target_geog,p3.proj_title_bm from profile_14579 p1
 left join profile_12743 p2
 on p2.grantproposalid = p1.grantproposalid
 left join profile_14738 p3
 on p3.grantproposalid = p1.grantproposalid
 left join ds_mysql_prod_tagelement tag1
 on p2.focus_area[0] = tag1.id
+), base4 as(
+	select grantproposalid,grantflowtaskid,disbursement_thru,value.amount_released,value.payment_date from profile_46184 p1, unpivot p1.disbursement_plan as value at disbursement_plan
+  	union all
+  	select grantproposalid,grantflowtaskid,cast(disbursement_thru[0] as INT4),value.amount_released,value.payment_date from profile_46299 p1, unpivot p1.disbursement_plan as value at disbursement_plan
+ 	union all
+  	select grantproposalid,grantflowtaskid,disbursement_thru,value.amount_released,value.payment_date from profile_46318 p1, unpivot p1.disbursement_plan as value at disbursement_plan
+  	union all
+  	select grantproposalid,grantflowtaskid,disbursement_thru,value.amount_released,value.payment_date from profile_46228 p1, unpivot p1.disbursement_plan as value at disbursement_plan
+  	union all
+  	select grantproposalid,grantflowtaskid,cast(disbursement_thru as INT4),value.amount_released,value.payment_date from profile_55677 p1, unpivot p1.disbursement_plan as value at disbursement_plan
+  	union all
+  	select grantproposalid,grantflowtaskid,cast(disbursement_thru as INT4),value.amount_released,value.payment_date from profile_55825 p1, unpivot p1.disbursement_plan as value at disbursement_plan
+), submain as (
+select grantproposalid,org_name_1,appr_amount_2,cast(value.state as varchar),cast(value.district as varchar),focus_area,proj_title_bm from base b,unpivot b.target_geog as value at target_geog
 )
-select org_name_1,appr_amount_2,cast(value.state as varchar),cast(value.district as varchar),focus_area,proj_title_bm from base b,unpivot b.target_geog as value at target_geog
-  
+select org_name_1,appr_amount_2,state,district,focus_area,proj_title_bm,b2.disbursement_thru,b2.payment_date
+from submain b1
+left join base4 b2
+on b1.grantproposalid = b2.grantproposalid
