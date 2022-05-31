@@ -1,25 +1,20 @@
-select * from sus_56551 where keyword ='gri_deemed'
 
-/*With x as(select name as projectid, financialperiod,fy_timerange,datatablebase from sus_56551 where keyword='gri_hazardouswaste' and datatablebase is not null),
-		  temp2 as
-		  (select projectid, financialperiod,fy_timerange, temp1.gri_biomedicalwaste, temp1.gri_phosphatedischarge,temp1.gri_oil_greasedischarge, temp1.gri_ammonia_nitrogen_discharge, temp1.gri_spentoil, temp1.gri_fusedash,temp1.gri_discardedcontainers,temp1.gri_batteries,temp1.gri_spentcatalyst,temp1.gri_oilresidue,temp1.gri_chemicalsludge_etp, temp1.gri_ewaste
-		    from x as temp, unpivot temp.datatablebase as temp1 at row),
-			
-			temp3 as (select 'Biomedical Waste' as col
-					 union all  select 'Phosphate Discharge' as col
-					 union all  select 'Oil and Grease Discharge' as col
-					 union all  select 'Ammonia & Nitrogen Discharges' as col
-					 union all  select 'Spent Oil' as col
-					 union all  select 'Fused Ash' as col
-					 union all  select 'Discarded containers' as col
-					 union all  select 'Used Lead-Acid Batteries / Any batteries' as col
-					 union all  select 'Spent Catalyst' as col
-					 union all  select 'Residue containing oil' as col
-					 union all  select 'Chemical sludge from ETP' as col
-					 union all  select 'E-Waste' as col
-					 )
-		   
-select  projectid ,t1.name as financialperiod,fy_timerange,CASE split_part(fy_timerange,'-',2)
+
+select p2.name as xprojectid,t1.name as financialperiod, fy_timerange,
+sum (datanumbase)
+	as values,
+	
+	case keyword
+	when 'gri_deemed_hazardous_generated' then 'Deemed Hazardous Generated'
+	when 'gri_deemed_hazardous_transported' then 'Deemed Hazardous Transported'
+	when 'gri_deemed_hazardous_imported' then 'Deemed Hazardous Imported'
+	when 'gri_deemed_hazardous_exported' then 'Deemed Hazardous Exported'
+	when 'gri_deemed_hazardous_treated' then ' Deemed Hazardous Treated'
+	when 'gri_deemed_hazardous_shipped' then 'Deemed Hazardous Shipped'
+	else null 
+	end as wastetype,
+
+	 CASE split_part(fy_timerange,'-',2)
 	  
 WHEN '01' THEN 'Jan'
 WHEN '02' THEN 'Feb'
@@ -32,43 +27,19 @@ WHEN '08' THEN 'Aug'
 WHEN '09' THEN 'Sep'
 WHEN '10' THEN 'Oct'
 WHEN '11' THEN 'Nov'
-
- Else 'Dec'
-end as Month,
-
-split_part(fy_timerange,'-',1) as year,
-
-
-Sum(case temp3.col
-when 'Biomedical Waste' then temp2.gri_biomedicalwaste
-when 'Phosphate Discharge' then temp2.gri_phosphatedischarge
-when 'Oil and Grease Discharge' then temp2.gri_oil_greasedischarge
-when 'Ammonia & Nitrogen Discharges' then temp2.gri_ammonia_nitrogen_discharge
-when 'Spent Oil' then temp2.gri_spentoil
-when 'Fused Ash' then temp2.gri_fusedash
-when 'Discarded containers' then temp2.gri_discardedcontainers
-when 'Used Lead-Acid Batteries / Any batteries' then temp2.gri_batteries
-when 'Spent Catalyst' then temp2.gri_spentcatalyst
-when 'Residue containing oil' then temp2.gri_oilresidue
-when 'Chemical sludge from ETP' then temp2.gri_chemicalsludge_etp
-when 'E-Waste' then temp2.gri_ewaste
-else null
-end ) as  values, temp3.col as waste_type,
-
+Else 'Dec'
+end  as Month,split_part(fy_timerange,'-',1) as year,
 case t1.name
 when 'FY 2019-20 ' then 'FY (2019-20)'
 when 'FY 2020-21' then'FY (2020-21)'
 when 'FY 2021-22' then 'FY (2021-22)'
 else t1.name
 end  as financialyear
+from sus_56551 as p1
+left join ds_mysql_prod_project p2 on p2.id=xprojectid
+left join ds_mysql_prod_tagelement t1 on t1.id = financialperiod
+where keyword in('gri_deemed_hazardous_generated', 'gri_deemed_hazardous_transported','gri_deemed_hazardous_imported','gri_deemed_hazardous_exported','gri_deemed_hazardous_treated','gri_deemed_hazardous_shipped') and datanumbase is not null
+group by p2.name, t1.name,fy_timerange, datanumbase, month,year, wastetype,financialyear
 
-
- 
-
-from temp2  
-left join ds_mysql_prod_tagelement t1 on t1.id = financialperiod 
-cross join temp3
-
-group by projectid ,t1.name,fy_timerange,temp3.col,year,month, waste_type,financialyear*/
-		   
+		   /*select * from sus_56551 where keyword ='gri_deemed'*/
 
