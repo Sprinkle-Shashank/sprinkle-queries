@@ -1,8 +1,8 @@
-with sub1 as(select p1.name as projectid,t1.name as financial_period,p1.fy_timerange,datanumbase
+with sub1 as(select p1.name as projectid,t1.name as financial_period,p1.fy_timerange,sum(datanumbase) as values,measureunitbase as units
 
 from sus_56551 p1
 left join ds_mysql_prod_tagelement t1 on t1.id=p1.financialPeriod
-where keyword= 'gri_energy_upstream_inbound', 'gri_energy_downstream_outbound', 'gri_energy_business_travel', 'gri_consumed_purchased'),
+where keyword in('gri_energy_upstream_inbound', 'gri_energy_downstream_outbound', 'gri_energy_business_travel', 'gri_consumed_purchased') and datanumbase is not null,
 
 sub2 as(
 select 'Upstram-Inbound' as consumption_type
@@ -22,5 +22,11 @@ when 'Business Travel' then gri_energy_business_travel
 when 'Electricity Purchased Outside Tata Chemicals' then gri_consumed_purchased
 else null
 end ) as values,
-case consumption_type
-
+case 
+when FY='FY 2019-20' or FY='FY (2019-20)' then 'FY (2019-20)'
+when FY='FY 2020-21' or FY='FY (2020-21)' then 'FY (2020-21)'
+when FY='FY 2021-22' or FY='FY (2021-22)' then 'FY (2021-22)'
+when FY='FY 2022-23' or FY='FY (2022-23)' then 'FY (2022-23)'
+else null
+end as financial_year
+group by projectid,financial_period,fy_timerange,consumption_type,values,financial_year
