@@ -1,8 +1,9 @@
-with sub1 as(select p1.name as projectid,t1.name as financial_period,p1.fy_timerange,sum(datanumbase) as values,measureunitbase as units,('FY' || ' ' || split_part(financial_period, ' ', 2)) as FY
+with sub1 as(select p1.name as projectid,t1.name as financial_period,p1.fy_timerange,sum(datanumbase) as values,measureunitbase as units,('FY' || ' ' || split_part(financial_period, ' ', 2)) as FY,questiontext
 
 from sus_56551 p1
 left join ds_mysql_prod_tagelement t1 on t1.id=p1.financialPeriod
-where keyword in('gri_energy_upstream_inbound', 'gri_energy_downstream_outbound', 'gri_energy_business_travel', 'gri_consumed_purchased') and datanumbase is not null),
+where keyword in('gri_energy_upstream_inbound', 'gri_energy_downstream_outbound', 'gri_energy_business_travel', 'gri_consumed_purchased') and datanumbase is not null
+group by p1.name,t1.name,unit,questiontext),
 
 sub2 as(
 select 'Upstram-Inbound' as consumption_type
@@ -13,7 +14,7 @@ select 'Business Travel' as consumption_type
 union all
 select 'Electricity Purchased Outside Tata Chemicals' as consumption_type)
 
-select projectid,financial_period,fy_timerange,consumption_type,units,FY,
+select projectid,financial_period,fy_timerange,consumption_type,units,FY,questiontext,
 sum(
 case consumption_type
 when 'Upstram-Inbound' then gri_energy_upstream_inbound
