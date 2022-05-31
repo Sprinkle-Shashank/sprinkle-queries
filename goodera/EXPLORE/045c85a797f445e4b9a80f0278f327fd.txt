@@ -4,7 +4,7 @@ table2 as (select t1.*, diagno1 from table1 t1 , t1.diagnosis1 as diagno1 ),
 
 table3 as
 (
-select p._id,p5.name as gender,p6.name as referred_yn, age, Decode(reg_date_yn,28005,CONVERT(timestamp,SUBSTRING(date_y,1,10)),Convert(timestamp,SUBSTRING(reg_date,1,10))) as date,createddate,SUBSTRING(p3.name,1,CHARINDEX('-',p3.name)) as disease,p3.name as full_disease_name,
+select p._id,p5.name as gender,p6.name as referred_yn, age, Decode(reg_date_yn,28005,CONVERT(timestamp,SUBSTRING(date_y,1,10)),Convert(timestamp,SUBSTRING(reg_date,1,10))) as date,createddate,SUBSTRING(p3.name,0,CHARINDEX('-',p3.name)) as disease,p3.name as full_disease_name,
 CAST(DATEDIFF(year,createddate,GETDATE())+age AS FLOAT) as final_age,
 CASE 
 when final_age >=0 and final_age<=5 then '0-5'
@@ -13,7 +13,9 @@ when final_age >=19 and final_age<=40 then '19-40'
 when final_age >=41 and final_age<=60 then '41-60'
 when final_age >60  then 'more than 60'
 end as age_category,
-case when disease is  null or disease = '' then 0 else 1 end as count
+case when disease is  null or disease = '' then 0 else 1 end as count ,  row_number() over 
+(partition by p.projectid
+ order by p._id desc) as row
 
 from profile_58473 p
 left join table2 p2
@@ -31,7 +33,7 @@ where disease is not null
 
 )
 
-select * from table3
+select * from table3 where row=1
 
 --where date between '2022-04-01' and '2022-05-19'
 --group by p3.name,p4.name,p.createddate,p._id,p.age,p2.diagnosis1,p2.diagnosis2
