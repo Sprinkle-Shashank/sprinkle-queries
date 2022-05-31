@@ -5,7 +5,12 @@ table3 as( select _id,projectid,fy,month, facility_rating,fac_vpid,row_number() 
 		  
 		  
 		   ),
-table2 as(select projectid,fy,month, facility_rating,fac_vpid, row from table3	
+table2 as(select projectid,t3.name as factory,fy,month, facility_rating,fac_vpid, row from table3	t3
+		  
+		  left join ds_mysql_prod_project pro
+          on t3.projectId = pro.id
+
+		  
 where  row = 1),
 table1 as(Select p.projectid,f_y.name as fy,mth.name as month,p._id,p.pace_status_1,pro.name as factory,p.sourcing_yn,t2.facility_rating,t2.fac_vpid,profile_54646.name_vendor_filter as vendor,profile_54646.name_country as country,cast(concat('FY ' ,profile_4227.start_year) as varchar) as start_year ,case when profile_4227.start_quarter=1 then '1st (Feb-Apr)'
  when profile_4227.start_quarter=2 then '2nd (May-Jul)'
@@ -23,7 +28,7 @@ left join table2 t2 on
 p.projectId = t2.projectId
 left join ds_mysql_prod_project pro
 on p.projectId = pro.id
-	left join ds_mysql_prod_tagelement f_y
+left join ds_mysql_prod_tagelement f_y
 on t2.fy = f_y.id
 left join ds_mysql_prod_tagelement mth
 on t2.month = mth.id
