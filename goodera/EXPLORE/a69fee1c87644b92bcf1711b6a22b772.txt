@@ -4,8 +4,7 @@ t as (select t1.*, diagno1 from table1 t1 , t1.diagnosis1 as diagno1 ),
 
 x as (select projectid, name,row_number() over 
 (partition by projectid
- order by projectid desc) as r from profile_51990 
- where r=1),
+ order by projectid desc) as row from profile_51990 ),
 
 
 
@@ -19,7 +18,7 @@ when final_age >=41 and final_age<=60 then '41-60'
 when final_age >60  then 'more than 60'
 end as age_category,
 
-case when disease is  null or disease = '' then 0 else 1 end as count, p7.name as partner, 
+case when disease is  null or disease = '' then 0 else 1 end as count, x.name as partner,x.row
 from  t
 
 left join profile_58473 p
@@ -37,5 +36,5 @@ on p.projectid=x.projectid
 
 where disease is not null 
 
-group by t._id,p5.name,p6.name, p.age,p.reg_date_yn,p.date_y,p.reg_date,p.createddate,p3.name,p7.name)
- SELECT * from table3
+group by t._id,p5.name,p6.name, p.age,p.reg_date_yn,p.date_y,p.reg_date,p.createddate,p3.name,x.name,x.row)
+ SELECT * from table3 where x.row=1
