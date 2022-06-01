@@ -1,18 +1,18 @@
-Select a.fy_timerange,p1.name as projectid,d1.name as donor,
+Select a.fy_timerange,p1.name as projectid,p2.name as donor,
 a.bene_name,t1.name as gender,t2.name as city, t3.name as state,a.income,a.tenth_per,a.after_scholarship_percentage,a.total_scholarships,a.total_amt,
 t4.name as eligibility,t5.name as tablet_recieved,count(*)
 
 from profile_80493 a
 
 left join ds_mysql_prod_project p1 on p1.id = a.projectid
-left join  profile_80635 d1 on d1._id=a.donor
+left join ds_mysql_prod_project p2 on p2.id = p1.parent
 
 left join ds_mysql_prod_tagelement t1 on t1.id=a.gender
-left join ds_mysql_prod_tagelement t2 on t2.id=a.city
+left join ds_mysql_prod_tagelement t2 on t2.id=a.loc
 left join ds_mysql_prod_tagelement t3 on t3.id=t2.parent
 left join ds_mysql_prod_tagelement t4 on t4.id=a.is_eligible
 left join ds_mysql_prod_tagelement t5 on t5.id=a.tablet_received
+where a.projectid like '%%'
 
 group by a.fy_timerange,p1.name ,d1.name ,
-a.bene_name,t1.name ,t2.name , t3.name ,a.income,a.tenth_per,a.after_scholarship_percentage,a.total_scholarships,a.total_amt,
-t4.name ,t5.name 
+a.bene_name,t1.name ,t2.name , t3.name ,a.income,a.tenth_per,a.after_scholarship_percentage,a.total_scholarships,a.total_amt, t4.name ,t5.name, p2.name
