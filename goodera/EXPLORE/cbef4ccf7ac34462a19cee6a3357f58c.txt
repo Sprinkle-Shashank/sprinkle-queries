@@ -1,9 +1,13 @@
+
+
+
+
 with table1 as(select * from profile_58474),
 
-table2 as (select t1.*, diagno2 from table1 t1 , t1.diagnosis2 as diagno2 )
+t as (select t1.*, diagno2 from table1 t1 , t1.diagnosis2 as diagno2 )
 
 
-select p._id,p5.name as gender,p6.name as referred_yn, age, Decode(reg_date_yn,28005,CONVERT(timestamp,SUBSTRING(date_y,1,10)),Convert(timestamp,SUBSTRING(reg_date,1,10))) as date, createddate,/*SUBSTRING(p3.name,1,CHARINDEX('-',p3.name)) as diagnosis1,*/ SUBSTRING(p4.name,1,CHARINDEX('-',p4.name)) as disease,p4.name as full_disease_name,  CAST((DATEDIFF(day,createddate,GETDATE())/365.0)+age as FLOAT) AS final_age,
+select t._id,p5.name as gender,p6.name as referred_yn, p.age, Decode(p.reg_date_yn,28005,CONVERT(timestamp,SUBSTRING(p.date_y,1,10)),Convert(timestamp,SUBSTRING(p.reg_date,1,10))) as date, p.createddate, SUBSTRING(p4.name,1,CHARINDEX('-',p4.name)) as disease,p4.name as full_disease_name,  CAST((DATEDIFF(day,p.createddate,GETDATE())/365.0)+p.age as FLOAT) AS final_age,
 CASE 
 when final_age >=0 and final_age<=5 then '0-5'
 when final_age >=6 and final_age<=18 then '6-18'
@@ -13,35 +17,19 @@ when final_age >60  then 'more than 60'
 end as age_category,
 
 case when disease is  null or disease = '' then 0 else 1 end as count, p7.name as partner
-from profile_58473 p
-left join table2 p2
-on p._id=p2.patient
+from t
+left join profile_58473 p
+on t.patient=p._id
 left join ds_mysql_prod_tagelement p3
-on p2.diagnosis1=p3.id
+on t.diagnosis1=p3.id
 left join ds_mysql_prod_tagelement p4
-on p2.diagno2=p4.id
+on t.diagno2=p4.id
 left join ds_mysql_prod_tagelement p5
 on p.gender=p5.id
 left join ds_mysql_prod_tagelement p6
-on p2.referred_yn=p6.id
+on t.referred_yn=p6.id
 left join profile_51990 p7
 on p.projectid=p7.projectid
-/*left join profile_55793 p8
-on p.projectid=p8.projectid
-left join ds_mysql_prod_project fac
-on p8.projectid = fac.id*/
 where disease is not null
---where date between '2022-04-01' and '2022-05-19'
---group by p3.name,p4.name,p.createddate,p._id,p.age,p2.diagnosis1,p2.diagnosis2
-
-
-
-
-/*select p2.name,p3.name from profile_58474 p
-left join ds_mysql_prod_tagelement p2
-on p.diagnosis1=p2.id
-left join ds_mysql_prod_tagelement p3
-on p.diagnosis2=p3.id
-LEFT JOIN Profile_*/
 
 
