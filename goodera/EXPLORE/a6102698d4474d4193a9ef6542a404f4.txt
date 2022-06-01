@@ -1,11 +1,12 @@
 with sub1  as(
-  select b.*, unwind_donor
-  from profile_80633 b ,b.donor as unwind_donor )
+  select b.*
+  from profile_80633 b )
 
-select p.name as projectid, fy_timerange, proj_budget, 
+select p.name as projectid, fy_timerange, proj_budget, p2.name as donor
 
-listagg(distinct d2.name, ', ') as donor
+
 from sub1
 left join ds_mysql_prod_project p on p.id = sub1.projectid
-left join  profile_80635 d2 on d2._id=sub1.unwind_donor
-group by p.name, fy_timerange, proj_budget
+left join ds_mysql_prod_project p2 on p2.id = p.parent
+where sub1.projectid like '%%'
+group by p.name, fy_timerange, proj_budget, p2.name
