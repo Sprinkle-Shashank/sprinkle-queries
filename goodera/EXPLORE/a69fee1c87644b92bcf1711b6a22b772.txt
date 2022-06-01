@@ -1,9 +1,9 @@
 with table1 as(select * from profile_58474),
 
-t as (select t1.*, diagno1 from table1 t1 , t1.diagnosis1 as diagno1 ) 
+t as (select t1.*, diagno1 from table1 t1 , t1.diagnosis1 as diagno1 ),
 
 
-select t._id,p5.name as gender,p6.name as referred_yn, p.age, Decode(p.reg_date_yn,28005,CONVERT(timestamp,SUBSTRING(p.date_y,1,10)),Convert(timestamp,SUBSTRING(p.reg_date,1,10))) as date,p.createddate,SUBSTRING(p3.name,1,CHARINDEX('-',p3.name)) as disease,p3.name as full_disease_name,
+table3 as (select t._id,p5.name as gender,p6.name as referred_yn, p.age, Decode(p.reg_date_yn,28005,CONVERT(timestamp,SUBSTRING(p.date_y,1,10)),Convert(timestamp,SUBSTRING(p.reg_date,1,10))) as date,p.createddate,SUBSTRING(p3.name,1,CHARINDEX('-',p3.name)) as disease,p3.name as full_disease_name,
 CAST((DATEDIFF(day,createddate,GETDATE())/365.0)+age AS FLOAT) as final_age,
 CASE 
 when final_age >=0 and final_age<=5 then '0-5'
@@ -13,7 +13,9 @@ when final_age >=41 and final_age<=60 then '41-60'
 when final_age >60  then 'more than 60'
 end as age_category,
 
-case when disease is  null or disease = '' then 0 else 1 end as count, p7.name as partner
+case when disease is  null or disease = '' then 0 else 1 end as count, p7.name as partner, row_number() over 
+(partition by t._id
+ order by t._id desc) as row
 from  t
 
 left join profile_58473 p
@@ -29,17 +31,7 @@ on t.referred_yn=p6.id
 left join profile_51990 p7
 on p.projectid=p7.projectid
 
-where disease is not null
-group by t._id,p5.name,p6.name, p.age,p.reg_date_yn,p.date_y,p.reg_date,p.createddate,p3.name,p7.name
+where disease is not null 
 
-
-
-
-/*select p2.name,p3.name from profile_58474 p
-left join ds_mysql_prod_tagelement p2
-on p.diagnosis1=p2.id
-left join ds_mysql_prod_tagelement p3
-on p.diagnosis2=p3.id
-LEFT JOIN Profile_*/
-
-
+group by t._id,p5.name,p6.name, p.age,p.reg_date_yn,p.date_y,p.reg_date,p.createddate,p3.name,p7.name)
+ SELECT * from table3 where row=1
