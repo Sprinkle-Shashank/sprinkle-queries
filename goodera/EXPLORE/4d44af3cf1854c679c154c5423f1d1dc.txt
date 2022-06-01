@@ -1,10 +1,9 @@
 with table1 as(select * from profile_58474),
 
-t as (select t1.*, diagno1 from table1 t1 , t1.diagnosis1 as diagno1 ),
+t as (select t1.*, diagno2 from table1 t1 , t1.diagnosis2 as diagno2 ),
 
 
-table3 as (select t._id,p5.name as gender,p6.name as referred_yn, p.age, Decode(p.reg_date_yn,28005,CONVERT(timestamp,SUBSTRING(p.date_y,1,10)),Convert(timestamp,SUBSTRING(p.reg_date,1,10))) as date,p.createddate,SUBSTRING(p3.name,1,CHARINDEX('-',p3.name)) as disease,p3.name as full_disease_name,
-CAST((DATEDIFF(day,createddate,GETDATE())/365.0)+age AS FLOAT) as final_age,
+table3 as (select t._id,p5.name as gender,p6.name as referred_yn, p.age, Decode(p.reg_date_yn,28005,CONVERT(timestamp,SUBSTRING(p.date_y,1,10)),Convert(timestamp,SUBSTRING(p.reg_date,1,10))) as date, p.createddate, SUBSTRING(p4.name,1,CHARINDEX('-',p4.name)) as disease,p4.name as full_disease_name,  CAST((DATEDIFF(day,p.createddate,GETDATE())/365.0)+p.age as FLOAT) AS final_age,
 CASE 
 when final_age >=0 and final_age<=5 then '0-5'
 when final_age >=6 and final_age<=18 then '6-18'
@@ -19,30 +18,17 @@ case when disease is  null or disease = '' then 0 else 1 end as count, p7.name a
 from  t
 
 left join profile_58473 p
-on t.patient = p._id
+on t.patient=p._id
 left join ds_mysql_prod_tagelement p3
-on t.diagno1=p3.id
+on t.diagnosis1=p3.id
 left join ds_mysql_prod_tagelement p4
-on t.diagnosis2=p4.id
+on t.diagno2=p4.id
 left join ds_mysql_prod_tagelement p5
 on p.gender=p5.id
 left join ds_mysql_prod_tagelement p6
 on t.referred_yn=p6.id
 left join profile_51990 p7
 on p.projectid=p7.projectid
-
 where disease is not null
-group by t._id,p5.name,p6.name, p.age,p.reg_date_yn,p.date_y,p.reg_date,p.createddate,p3.name,p7.name)
+group by t._id,p5.name,p6.name, p.age,p.reg_date_yn,p.date_y,p.reg_date,p.createddate,p4.name,p7.name)
  SELECT * from table3 where row=1
-
-
-
-
-/*select p2.name,p3.name from profile_58474 p
-left join ds_mysql_prod_tagelement p2
-on p.diagnosis1=p2.id
-left join ds_mysql_prod_tagelement p3
-on p.diagnosis2=p3.id
-LEFT JOIN Profile_*/
-
-
