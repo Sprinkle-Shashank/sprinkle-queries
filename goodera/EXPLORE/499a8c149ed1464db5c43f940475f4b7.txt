@@ -1,16 +1,15 @@
 with sub1  as(
-  select b.*,unwind_schedule_vii,unwind_sdg,unwind_donor, unwind_city
+  select b.*,unwind_schedule_vii,unwind_sdg, unwind_city
   from profile_80499 b , b.schedule_vii as unwind_schedule_vii,
-  b.sdg as unwind_sdg,b.donor as unwind_donor, b.state as unwind_city )
+  b.sdg as unwind_sdg, b.state as unwind_city )
 
-Select a.fy_timerange, p.name as projectid,a.project_name as project_name, p1.name as Implementation_partner,a.photo,a.duration,
+Select a.fy_timerange, p.name as projectid,a.project_name as project_name, p1.name as Implementation_partner, p2.name as donor,a.photo,a.duration,
 to_char(a.start_date, 'DD-MM-YYYY') as start_date,
 to_char(a.end_date, 'DD-MM-YYYY') as end_date,
 a.project_desc as Project_description,
 t1.name as focus_area,
 listagg(distinct t2.name, ', ') as schedule_vii,
 listagg(distinct d1.name, ', ') as sdg,
-listagg(distinct d2.name, ', ') as donor,
 listagg(distinct t3.name, ', ') as city,
 t4.name as state
 
@@ -26,8 +25,7 @@ left join ds_mysql_prod_tagelement t3 on t3.id=a.unwind_city
 left join ds_mysql_prod_tagelement t4 on t4.id=t3.parent
 
 left join  profile_80500 d1 on d1._id = a.unwind_sdg
-left join  profile_80635 d2 on d2._id=a.unwind_donor
+left join ds_mysql_prod_project p2 on p2.id = p1.parent
+where p1.projectid like '%%'
 
-group by a.fy_timerange,a.project_name,p.name,a.photo,p1.name,a.start_date,a.end_date,a.project_desc,t1.name,
-t4.name,
-t3.name,a.duration
+group by a.fy_timerange,a.project_name,p.name,a.photo,p1.name,a.start_date,a.end_date,a.project_desc,t1.name,t4.name,t3.name,a.duration, p2.name
