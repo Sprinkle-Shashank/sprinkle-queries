@@ -2,7 +2,7 @@ with table1 as(select * from profile_58474),
 
 t as (select t1.*, diagno1 from table1 t1 , t1.diagnosis1 as diagno1 ),
 
-x as (select projectid, name,row_number() over 
+tx as (select projectid, name,row_number() over 
 (partition by projectid
  order by projectid desc) as row from profile_51990 ),
 
@@ -18,7 +18,7 @@ when final_age >=41 and final_age<=60 then '41-60'
 when final_age >60  then 'more than 60'
 end as age_category,
 
-case when disease is  null or disease = '' then 0 else 1 end as count, x.name as partner,x.row
+case when disease is  null or disease = '' then 0 else 1 end as count, tx.name as partner,tx.row
 from  t
 
 left join profile_58473 p
@@ -31,10 +31,10 @@ left join ds_mysql_prod_tagelement p5
 on p.gender=p5.id
 left join ds_mysql_prod_tagelement p6
 on t.referred_yn=p6.id
-left join x
-on p.projectid=x.projectid
+left join tx
+on p.projectid=tx.projectid
 
 where disease is not null 
 
-group by t._id,p5.name,p6.name, p.age,p.reg_date_yn,p.date_y,p.reg_date,p.createddate,p3.name,x.name,x.row)
- SELECT * from table3 where x.row=1
+group by t._id,p5.name,p6.name, p.age,p.reg_date_yn,p.date_y,p.reg_date,p.createddate,p3.name,tx.name,tx.row)
+ SELECT * from table3 where row=1
