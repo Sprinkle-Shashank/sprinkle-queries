@@ -1,0 +1,28 @@
+with table1 as(
+	select i.name as name, t1.name as van,
+    case 
+  		when (p2.date_yn = 28005) 
+  			then 
+  				p2.date_n
+  		else p2.createddate
+  	end as date
+  	,
+  CAST((DATEDIFF(day,p1.createddate,GETDATE())/365.0)+age AS FLOAT) as final_age,
+	CASE 
+		when final_age >=0 and final_age<=5 then '0-5 Yrs'
+		when final_age >=6 and final_age<=18 then '6-18 Yrs'
+		when final_age >=19 and final_age<=40 then '19-40 Yrs'
+		when final_age >=41 and final_age<=60 then '41-60 Yrs'
+		when final_age >60  then 'Above 60 Yrs'
+	end as age,
+  	from profile_58474 p 
+    left join profile_58511 p2
+  	on p.sel_camp = p2._id
+  	left join profile_58473 p1
+  	on p.patient = p1._id
+  	left join profile_51990 i
+  	on p2.imple_partner = i._id
+  	left join ds_mysql_prod_project t1
+  	on p2.projectid = t1.id
+)
+select name,van,date,age, 1 as count from table1
