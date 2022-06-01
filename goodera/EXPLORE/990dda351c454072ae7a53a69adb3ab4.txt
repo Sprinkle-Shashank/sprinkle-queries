@@ -2,6 +2,49 @@ with table1 as(select * from profile_58474),
 
 t as (select t1.*, diagno1 from table1 t1 , t1.diagnosis1 as diagno1 ),
 
+tx as (select projectid, name,row_number() over 
+(partition by projectid
+ order by projectid desc) as row from profile_51990 ),
+
+
+
+table3 as (select t._id,p5.name as gender,p6.name as referred_yn, p.age, Decode(p.reg_date_yn,28005,CONVERT(timestamp,SUBSTRING(p.date_y,1,10)),Convert(timestamp,SUBSTRING(p.reg_date,1,10))) as date,p.createddate,SUBSTRING(p3.name,1,CHARINDEX('-',p3.name)) as disease,p3.name as full_disease_name,
+CAST((DATEDIFF(day,createddate,GETDATE())/365.0)+age AS FLOAT) as final_age,
+CASE 
+when final_age >=0 and final_age<=5 then '0-5'
+when final_age >=6 and final_age<=18 then '6-18'
+when final_age >=19 and final_age<=40 then '19-40'
+when final_age >=41 and final_age<=60 then '41-60'
+when final_age >60  then 'more than 60'
+end as age_category,
+
+case when disease is  null or disease = '' then 0 else 1 end as count, tx.name as partner,tx.row
+from  t
+
+left join profile_58473 p
+on t.patient = p._id
+left join ds_mysql_prod_tagelement p3
+on t.diagno1=p3.id
+left join ds_mysql_prod_tagelement p4
+on t.diagnosis2=p4.id
+left join ds_mysql_prod_tagelement p5
+on p.gender=p5.id
+left join ds_mysql_prod_tagelement p6
+on t.referred_yn=p6.id
+left join tx
+on p.projectid=tx.projectid
+
+where disease is not null 
+
+group by t._id,p5.name,p6.name, p.age,p.reg_date_yn,p.date_y,p.reg_date,p.createddate,p3.name,tx.name,tx.row)
+ SELECT distinct * from table3 where row=1
+
+
+
+/*with table1 as(select * from profile_58474),
+
+t as (select t1.*, diagno1 from table1 t1 , t1.diagnosis1 as diagno1 ),
+
 
 table3 as (select t._id,p5.name as gender,p6.name as referred_yn, p.age, Decode(p.reg_date_yn,28005,CONVERT(timestamp,SUBSTRING(p.date_y,1,10)),Convert(timestamp,SUBSTRING(p.reg_date,1,10))) as date,p.createddate,SUBSTRING(p3.name,1,CHARINDEX('-',p3.name)) as disease,p3.name as full_disease_name,
 CAST((DATEDIFF(day,createddate,GETDATE())/365.0)+age AS FLOAT) as final_age,
@@ -35,42 +78,4 @@ where disease is not null
 
 group by t._id,p5.name,p6.name, p.age,p.reg_date_yn,p.date_y,p.reg_date,p.createddate,p3.name,p7.name)
  SELECT * from table3 where row=1
-
-
-
-
-/*with table1 as(select * from profile_58474),
-
-table2 as (select t1.*, diagno1 from table1 t1 , t1.diagnosis1 as diagno1 )
-
-
-select p._id,p5.name as gender,p6.name as referred_yn, age, Decode(reg_date_yn,28005,CONVERT(timestamp,SUBSTRING(date_y,1,10)),Convert(timestamp,SUBSTRING(reg_date,1,10))) as date,createddate,SUBSTRING(p3.name,1,CHARINDEX('-',p3.name)) as disease,p3.name as full_disease_name,
-
-CAST((DATEDIFF(day,createddate,GETDATE())/365.0)+age AS FLOAT) as final_age,
-CASE 
-when final_age >=0 and final_age<=5 then '0-5'
-when final_age >=6 and final_age<=18 then '6-18'
-when final_age >=19 and final_age<=40 then '19-40'
-when final_age >=41 and final_age<=60 then '41-60'
-when final_age >60  then 'more than 60'
-end as age_category,
-
-case when disease is  null or disease = '' then 0 else 1 end as count, p7.name as partner
-
-from profile_58473 p
-left join table2 p2
-on p._id=p2.patient
-left join ds_mysql_prod_tagelement p3
-on p2.diagno1=p3.id
-left join ds_mysql_prod_tagelement p4
-on p2.diagnosis2=p4.id
-left join ds_mysql_prod_tagelement p5
-on p.gender=p5.id
-left join ds_mysql_prod_tagelement p6
-on p2.referred_yn=p6.id
-left join profile_51990 p7
-on p.projectid=p7.projectid
-where disease is not null
 */
-
-
