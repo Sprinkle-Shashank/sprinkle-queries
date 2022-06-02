@@ -1,12 +1,54 @@
-select p.id, pro.name from ds_mysql_prod_project p
-left join ds_mysql_prod_project pro 
-on p.id = pro.id
+with table1 as(Select p._id,projectid, p.fac_vpid,f_y.name as fy,mth.name as month,rating.name as facility_rating,profile_54646.name_country as country,profile_54646.name_vendor_filter as vendor,SUBSTRING(mth.name, 1, 3 ) as month2,SUBSTRING(f_y.name, 3, 4 ) as year2,
 
-/*left join ds_mysql_prod_project cou 
-on pro.parent = cou.id
+concat(month2,year2) as temp,
+profile_52713.factory_vpid_1,status.name as pace_status,src.name as sourcing_yn,count(*) as cou,case when mth.name = 'January' then 1
+when mth.name = 'February' then 2
+when mth.name = 'March' then 3
+when mth.name = 'April' then 4
+when mth.name = 'May' then 5
+when mth.name = 'June' then 6
+when mth.name = 'July' then 7
+when mth.name = 'August' then 8
+when mth.name = 'September' then 9
+when mth.name = 'October' then 10
+when mth.name = 'November' then 11
+when mth.name = 'December' then 12
+else
+null
+			   end as xe
+from profile_54267 p
 
-left join ds_mysql_prod_project org
-on cou.parent = org.id*/
 
-where pro.name ilike '%Elango Garments%'
 
+left join profile_52713 on 
+p.projectId= profile_52713.projectId
+
+left join profile_54646 on 
+p.projectId= profile_54646.projectId
+left join ds_mysql_prod_tagelement f_y
+on p.fy = f_y.id
+left join ds_mysql_prod_tagelement mth
+on p.month = mth.id
+left join ds_mysql_prod_tagelement status
+on p.pace_status = status.id
+left join ds_mysql_prod_tagelement rating
+on p.facility_rating = rating.id
+left join ds_mysql_prod_tagelement src
+on profile_52713.sourcing_yn = src.id
+
+where pace_status = 845114 and sourcing_yn = 57472
+
+
+group by p.fac_vpid,f_y.name ,mth.name ,rating.name,
+profile_52713.factory_vpid_1,status.name ,src.name,profile_54646.name_country,profile_54646.name_vendor_filter,p._id,p.fy,p.month,projectid
+ ),
+ 
+table2 as  (Select sum(cou) as cou1,pro.name as factory ,temp,facility_rating,fy,xe,vendor,country from table1
+			
+left join ds_mysql_prod_project pro
+on table1.projectid = pro.id
+			
+where fy = (select max(fy) from table1)
+group by temp,facility_rating,fy,xe,vendor,country,pro.name
+			)
+			Select * from table2
