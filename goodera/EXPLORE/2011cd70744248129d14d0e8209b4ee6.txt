@@ -3,8 +3,8 @@ test0 as(Select p.* ,(gbv_goals)from  profile_76755 p
 , p.gbv_goals_arr gbv_goals union all
  select p.*,NULL as gbv_goals from profile_76755 p where gbv_goals_arr IS NULL
 ),
- test1 as (Select p._id,p.projectId as project,fac.name as projectId,p2.name as factory,p.year_timerange,p.country as country ,p.director_region as director_region,ven.name as vendor1,nvl2(SUBSTRING(vendor1, 1, POSITION(' (' in vendor1)), SUBSTRING(vendor1, 1, POSITION(' (' in vendor1)), vendor1) as vendor_name, case when vendor_name='' then vendor1 else vendor_name end as vendor,p.facility_type,p1.gbv_policy,p1.channels_more, p1.anonymous_channel, p1.third_party_channel, p1.response_provided, p1.issues_resolved,
-CASE WHEN (p1.gbv_policy = 57472) and (p1.anonymous_channel=57472) and (p1.third_party_channel=57472) and (p1.response_provided = 1678551 or p1.response_provided = 1678553 ) and (p1.issues_resolved = 1678554 or p1.response_provided = 1678556) and (p1.channels_more=1538190 or p1.channels_more = 1538189) Then 'YES'
+ test1 as (Select p._id,p.projectId as project,fac.name as projectId,p2.name as factory,p2.facility_vpid,p.year_timerange,p.country as country ,p.director_region as director_region,ven.name as vendor1,nvl2(SUBSTRING(vendor1, 1, POSITION(' (' in vendor1)), SUBSTRING(vendor1, 1, POSITION(' (' in vendor1)), vendor1) as vendor_name, case when vendor_name='' then vendor1 else vendor_name end as vendor,p.facility_type,policy.name as gbv_policy,more.name as channels_more,channel.name as anonymous_channel, third_party.name as third_party_channel,response.name as response_provided, issues.name as issues_resolved,
+CASE WHEN (policy.name = 57472) and (channel.name = 57472) and (third_party.name = 57472) and (response.name  = 1678551 or response.name  = 1678553 ) and (issues.name = 1678554 or issues.name = 1678556) and (more.name =1538190 or more.name  = 1538189) Then 'YES'
 ELSE 
 'NO'
 END AS result
@@ -20,9 +20,27 @@ left join ds_mysql_prod_project fac
 on p.projectid = fac.id
 left join ds_mysql_prod_project ven
 on fac.parent = ven.id
+		   
+left join ds_mysql_prod_tagelement policy
+on p1.gbv_policy = policy._id
+		   
+left join ds_mysql_prod_tagelement more
+on p1.channels_more = more._id
+		   
+left join ds_mysql_prod_tagelement channel
+on p1.anonymous_channel = channel._id
+		   
+left join ds_mysql_prod_tagelement third_party
+on p1.third_party_channel = third_party._id
+		   
+left join ds_mysql_prod_tagelement response
+on p1.response_provided = response._id
+		   
+left join ds_mysql_prod_tagelement issues
+on p1.issues_resolved = issues._id
 
 where project like '%%'
 			   
-Group by p._id,project,fac.name,factory,p.year_timerange,p.country,p.director_region,p.facility_type,result,p1.gbv_policy,p1.channels_more, p1.anonymous_channel, p1.third_party_channel, p1.response_provided, p1.issues_resolved,vendor,ven.name			   
+Group by p._id,project,fac.name,factory,p2.facility_vpid,p.year_timerange,p.country,p.director_region,p.facility_type,result,policy.name,more.name,channel.name, third_party.name , response.name, issues.name,vendor,ven.name			   
 )
 Select * from test1 	
