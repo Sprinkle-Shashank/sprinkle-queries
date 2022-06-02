@@ -1,46 +1,9 @@
-with unwind as (select p.*, sdg_unwind,location1 from profile_79656 p, p.sdg as sdg_unwind,p.location location1),
- s1 as(
-select t2.name as projectid,schedule_7, 
-sq.logo, sq.description, sq.fy_timerange,sq.employee_promoter, p1.sdg_icon as sdg_icon, 
-  location1 as location,
-   
-   
-   concat(start_date,'.000Z') as start1,
-concat(end_date,'.000Z') as end2,
-concat(concat(concat(concat('{"start":"',start1),'","end":"'),end2),'"}') as fy_timerange1,
-
- 
-decode(substring(sq.start_date,6,2),'01','January','02','February','03','March','04','April','05','May','06','June','07','July','08','August','09','September','10','October','11','November','12','December') || ' ' || substring(sq.start_date,1,4) as start_date,
- 
- decode(substring(sq.end_date,6,2),'01','January','02','February','03','March','04','April','05','May','06','June','07','July','08','August','09','September','10','October','11','November','12','December') || ' ' || substring(sq.end_date,1,4) as end_date,
- 
-decode(substring(sq.start_date,6,2),'01','January','02','February','03','March','04','April','05','May','06','June','07','July','08','August','09','September','10','October','11','November','12','December') || ' ' || substring(sq.start_date,1,4) ||' - ' || decode(substring(sq.end_date,6,2),'01','January','02','February','03','March','04','April','05','May','06','June','07','July','08','August','09','September','10','October','11','November','12','December') || ' ' || substring(sq.end_date,1,4) as duration
-
-from unwind sq
-left join profile_79655 p1
-on sq.sdg_unwind=p1._id
-left join ds_mysql_prod_tagelement t
-ON t.id=p1.sdg_name
-
-left join ds_mysql_prod_project t2
-ON t2.id=sq.projectid
-  
-  GROUP BY t2.name,sq.start_date, sq.end_date,sq.schedule_7,sq.logo, sq.description, sq.fy_timerange,sq.employee_promoter,t2.name,fy_timerange1, location1, p1.sdg_icon
-),
-
-s2 as(
-  Select projectid, focus_area, 
-logo, description, fy_timerange, employee_promoter,listagg(sdg_icon, ', ') as sdg_icon, location, start_date, end_date, duration,fy_timerange1
-  FROM s1 as s4,s4.schedule_7 focus_area 
-  group by projectid, focus_area, logo, description, fy_timerange, employee_promoter, location, start_date, end_date, duration,fy_timerange1
-)
-
-Select projectid, listagg(distinct t4.name, ', ') as focus_area, 
-logo, description, employee_promoter, sdg_icon, t1.name as location, start_date, end_date, duration,fy_timerange1 as fy_timerange
-From s2
-left join ds_mysql_prod_tagelement t4
-ON t4.id=focus_area
-left join ds_mysql_prod_tagelement t1
-ON t1.id=s2.location
-GROUP BY projectid, logo, description, employee_promoter, t1.name, start_date, end_date, duration,fy_timerange1,sdg_icon
-
+with sub1 as (
+select p.name as projectid, fy_timerange, sum(csr_spent) as csr_spent, sum(last_year_spent) as last_year_spent,
+  concat(concat(concat(concat('FY(',extract(year from cast(fy_timerange.start as date))),'-'),extract(year from cast(fy_timerange.end as date))),')') as fy from profile_80535 
+left join ds_mysql_prod_project p
+on p.id=projectid
+group by fy_timerange, p.name)
+select projectid, fy_timerange, csr_spent, last_year_spent, 'Long-Term Projects' as choose, fy from sub1
+union all
+select projectid, fy_timerange, csr_spent, last_year_spent, 'Short-Term Projects' as choose, fy from sub1
