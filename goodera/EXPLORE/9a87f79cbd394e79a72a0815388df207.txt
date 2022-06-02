@@ -1,4 +1,98 @@
-select * from profile_26729
+with sub1 as(
+  select p1.time_timerange as fy_timerange, t1.name as focus_area, '32441' as text
+from profile_32441 p1
+left join profile_63775 p2 on p2._id = p1.program_name
+left join ds_mysql_prod_tagelement t1 on t1.id = p2.focus_area),
+
+--Investment Details (Above)
+
+sub2 as(
+  select p3.fy_timerange, t2.name as focus_area, '78057' as text
+from profile_78057 p3
+left join ds_mysql_prod_tagelement t2 on t2.id = p3.focus_area),
+
+--ONE OFF (Above)
+
+sub3 as(
+  select p4.fy_timerange, t3.name as focus_area, '78098' as text
+from profile_78098 p4
+left join ds_mysql_prod_tagelement t3 on t3.id = p4.focus_area),
+
+--Brand Led (Above)
+
+sub4 as(
+  select p5.*, is_array(p5.indicator) as indicator_array_check,
+  case 
+  	when (indicator_array_check = false) then array(p5.indicator)
+	else p5.indicator
+  end as indicator_new
+  from profile_55605 p5),
+  
+sub5 as(
+  select s4.*, indicator_605 from sub4 s4, s4.indicator_new indicator_605),
+  
+sub6 as(
+  select s5.time_timerange as fy_timerange, t4.name as focus_area, '55605' as text
+from sub5 s5
+left join profile_55606 p6 on p6._id = s5.indicator_605
+left join profile_55604 p7 on p7._id = p6.indicator
+left join profile_63775 p8 on p8._id = p7.prog_name
+left join ds_mysql_prod_tagelement t4 on t4.id = p8.focus_area),
+
+--KPIs Data Input
+
+sub8 as(
+  select (cast(r1.start_date as date)||'|'||cast(r1.start_date as date)) as fy_timerange, t5.name as focus_area, 'log' as text
+  from rb_loghours r1
+  left join profile_78929 p9 on UPPER(p9.vol_focus_area_full) = UPPER(r1.focus_area)
+  left join ds_mysql_prod_tagelement t5 on t5.id = p9.focus_area),
+  
+--- Log Hours (Above) -- 
+
+sub9 as(
+  select r2.*,
+  case
+  		when extract(year from cast(r2.end_date as date)) > extract(year from cast(r2.start_date as date))
+		then r2.participation_date
+		else r2.start_date
+  end as start_date_new
+  from rb_volhours r2),
+ 
+sub10 as(
+  select (cast(s9.start_date_new as date)||'|'||cast(s9.start_date_new as date)) as fy_timerange, t6.name as focus_area, 'vol' as text
+  from sub9 s9
+  left join profile_78929 p10 on p10.vol_focus_area_full = s9.focus_area
+  left join ds_mysql_prod_tagelement t6 on t6.id = p10.focus_area),
+
+-- Volunteering Hours (Above) --
+
+sub11 as(
+  select fy_timerange, focus_area, text from sub1
+	union all
+  select fy_timerange, focus_area, text from sub2
+	union all
+  select fy_timerange, focus_area, text from sub3
+	union all
+  select fy_timerange, focus_area, text from sub6
+	union all
+  select fy_timerange, focus_area, text from sub8
+	union all
+  select fy_timerange, focus_area, text from sub10)
+  
+select fy_timerange, focus_area, text,
+case 
+	when focus_area = 'Hygiene as a Foundation of Health' then 1
+	when focus_area = 'Intimate Wellness and Sexual Health' then 2
+	when focus_area = 'Maternal & Child Health' then 3
+	when focus_area = 'Natural Disaster & Emergency Relief' then 4
+	when focus_area = 'Environment and Sustainability' then 5
+	when focus_area = 'Self-care' then 6
+	when focus_area = 'Thought Leadership' then 7
+	else 8
+end as focus_sort
+from sub11
+where focus_area is not null and fy_timerange is not null
+order by focus_sort asc
 
 /*with sub1 as(
   select r1.*,
