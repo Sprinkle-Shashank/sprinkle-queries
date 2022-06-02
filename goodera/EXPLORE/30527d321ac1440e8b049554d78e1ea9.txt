@@ -1,0 +1,45 @@
+with table0 as (Select t.name as projectid,fy_timerange, substring(finperiod,strpos(finperiod, ' ')+2,7) as year, datatablebase, questiontext
+
+from sus_78882
+				
+left join ds_mysql_prod_project t
+on xprojectid=t.id
+				
+where keyword='scope_1_dg'
+			   ),
+
+table1 as (
+  Select projectid ,fy_timerange, year, coun.dg_fuel_type as fuel_type,
+  coun.fuel_consumed as fuel_consumed,  row_number() over (order by fy_timerange) as sno
+from table0 as p, unpivot p.datatablebase as coun at xyz
+  
+  
+), table2 as (
+select projectid ,fy_timerange, year, ft.name as fuel_type, fuel_consumed, sno from table1
+  
+  
+  left join ds_mysql_prod_tagelement ft
+on table1.fuel_type = ft.id
+  
+),
+emission_conversion as (
+	select fy_timerange, es.name as emission_source, litre_to_kg,
+ kg_to_gg,
+ calorific_value,
+emission_factor from profile_80892
+  
+  left join ds_mysql_prod_tagelement es
+on profile_80892.emission_source = es.id
+  
+
+), table3 as (
+
+select projectid ,table2.fy_timerange, year, fuel_type, fuel_consumed, sno, litre_to_kg,
+ kg_to_gg,
+ calorific_value,
+emission_factor  from table2
+
+left join emission_conversion on
+emission_conversion.emission_source = table2.fuel_type
+)
+select projectid ,table3.fy_timerange, year, fuel_type, fuel_consumed, fuel_consumed * litre_to_kg * kg_to_gg * calorific_value * emission_factor / 1000 as emission from table3
