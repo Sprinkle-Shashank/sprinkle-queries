@@ -12,11 +12,18 @@ when consumption_type='water_process' then cast(tablesettings."water_process"."c
 when consumption_type='water_domestic' then cast(tablesettings."water_domestic"."consumption"."measureUnitBase" as VARCHAR) 
 when consumption_type='coolant' then cast(tablesettings."coolant"."consumption"."measureUnitBase" as VARCHAR)
 else null
-end as units
+end as units,
+case 
+when FY='FY 2019-20' or FY='FY (2019-20)' then 'FY (2019-20)'
+when FY='FY 2020-21' or FY='FY (2020-21)' then 'FY (2020-21)'
+when FY='FY 2021-22' or FY='FY (2021-22)' then 'FY (2021-22)'
+when FY='FY 2022-23' or FY='FY (2022-23)' then 'FY (2022-23)'
+else null
+end as financial_year
 
 from sub2
 where datatablebase is not null
-group by projectid, financial_period, consumption, fy_timerange,units,questiontext,consumption_type,consumption)
+group by projectid, financial_period, consumption, fy_timerange,units,questiontext,consumption_type,consumption,financial_year)
 
 select *,
 case
