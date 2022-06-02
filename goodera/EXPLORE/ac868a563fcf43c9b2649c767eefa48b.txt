@@ -1,0 +1,52 @@
+WITH table1 AS (
+  SELECT 'Read simple single syllable words' AS C
+  UNION ALL
+  SELECT 'Read difficult single syllable words' AS C
+  UNION ALL
+  SELECT 'Read multi syllable words' AS C
+  UNION ALL
+  SELECT 'Spell multi syllable words' AS C
+  
+)
+ 
+ SELECT proj.name AS partner, theme.name AS theme_name, p.fy_timerange, par.name AS project_name, gr.name AS Grade, p2.name AS School, st.name AS State, dis.name AS Districts, blk.name AS Blocks,
+ SUM(
+ 	CASE C
+	WHEN 'Read simple single syllable words' THEN p.read_single 
+	WHEN 'Read difficult single syllable words' THEN p.difficult_read 
+    WHEN 'Read multi syllable words' THEN p.multi_read 
+    WHEN 'Spell multi syllable words' THEN p.spell_multi
+	ELSE NULL
+	END) AS val, table1.c AS dim
+
+FROM profile_80881  P
+
+CROSS JOIN table1
+
+
+LEFT JOIN ds_mysql_prod_project proj
+ON p.projectid = proj.id
+
+LEFT JOIN ds_mysql_prod_project AS par
+ON proj.parent = par.id
+
+LEFT JOIN ds_mysql_prod_project AS theme
+ON par.parent = theme.id
+
+LEFT JOIN ds_mysql_prod_tagelement AS gr
+ON p.grade = gr.id
+
+LEFT JOIN ds_mysql_prod_tagelement AS blk
+ON p.state = blk.id
+
+LEFT JOIN ds_mysql_prod_tagelement AS dis
+ON blk.parent = dis.id
+
+LEFT JOIN ds_mysql_prod_tagelement AS st
+ON dis.parent = st.id
+
+LEFT JOIN profile_80877 AS p2
+ON p.school = p2.id
+
+
+GROUP BY proj.name,p.fy_timerange,table1.C, par.name, theme.name, gr.name, p2.name, st.name, dis.name, blk.name
