@@ -1,43 +1,73 @@
-SELECT 
-KPI._id,
-KPI.indicator,
-T.name AS type,
---P1.name AS projectid,
-P1.name AS projectname,
+with q as (
+SELECT P1.name AS projectname,
 P2.name AS partner,
 P3.name AS projectcategory,
-P4.name AS vertical,
-NVL(RY.value, RHY.value, RQ.value) AS progress,
-NVL(TY.value, THY.value, TQ.value) AS target,
-NVL(RY.remarks, RHY.remarks, RQ.remarks) AS remarks,
-NVL (RY.fy_timerange, RHY.fy_timerange, RQ.fy_timerange) AS fy_timerange,
-(progress - target) AS variance
+P4.name AS vertical,indicator as tq_indicator,fy_timerange,value as target
 
-FROM profile_80301 AS KPI
-
-LEFT JOIN profile_80302 AS RY
-ON KPI._id = RY.indicator
-
-LEFT JOIN profile_80304 AS RHY
-ON KPI._id = RHY.indicator
-
-LEFT JOIN profile_80305 AS RQ
-ON KPI._id = RQ.indicator
-
-LEFT JOIN profile_80401 AS TY
-ON KPI._id = TY.indicator
-
-LEFT JOIN profile_80402 AS THY
-ON KPI._id = THY.indicator
-
-LEFT JOIN profile_80403 AS TQ
-ON KPI._id = TQ.indicator
-
-LEFT JOIN ds_mysql_prod_tagelement AS T
-ON KPI.type = T.id
+FROM profile_80403 AS tq
 
 LEFT JOIN ds_mysql_prod_project AS P1
-ON KPI.projectid = P1.id
+ON tq.projectid = P1.id
+
+LEFT JOIN ds_mysql_prod_project AS P2
+ON P1.parent = P2.id
+
+LEFT JOIN ds_mysql_prod_project AS P3
+ON P2.parent = P3.id
+
+LEFT JOIN ds_mysql_prod_project AS P4
+ON P3.parent = P4.id
+)
+, q1 as (
+Select projectname,
+ partner, projectcategory,
+ vertical,tq_indicator,q.fy_timerange, target,rq.value as progress
+ from q
+LEFT JOIN profile_80305 AS RQ
+ON q.tq_indicator = RQ.indicator
+)
+ ,
+ hy as (
+ SELECT P1.name AS projectname,
+P2.name AS partner,
+P3.name AS projectcategory,
+P4.name AS vertical,indicator as thy_indicator,fy_timerange,value as target
+
+FROM profile_80402 AS thy
+
+LEFT JOIN ds_mysql_prod_project AS P1
+ON thy.projectid = P1.id
+
+LEFT JOIN ds_mysql_prod_project AS P2
+ON P1.parent = P2.id
+
+LEFT JOIN ds_mysql_prod_project AS P3
+ON P2.parent = P3.id
+
+LEFT JOIN ds_mysql_prod_project AS P4
+ON P3.parent = P4.id
+ )
+,
+hy1 as (
+
+Select projectname,
+ partner, projectcategory,
+ vertical,thy_indicator,hy.fy_timerange, target,rhy.value as progress
+ from hy
+LEFT JOIN profile_80304 AS rhy
+ON hy.thy_indicator = RHY.indicator
+),
+
+y as (
+ SELECT P1.name AS projectname,
+P2.name AS partner,
+P3.name AS projectcategory,
+P4.name AS vertical,indicator as y_indicator,fy_timerange,value as target
+
+FROM profile_80401 AS y
+
+LEFT JOIN ds_mysql_prod_project AS P1
+ON y.projectid = P1.id
 
 LEFT JOIN ds_mysql_prod_project AS P2
 ON P1.parent = P2.id
@@ -48,4 +78,45 @@ ON P2.parent = P3.id
 LEFT JOIN ds_mysql_prod_project AS P4
 ON P3.parent = P4.id
 
-GROUP BY 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12
+),
+
+y1 as (
+
+Select projectname,
+ partner, projectcategory,
+ vertical,y_indicator,y.fy_timerange, target,ry.value as progress
+ from y
+LEFT JOIN profile_80302 AS ry
+ON y.y_indicator = rY.indicator
+)
+
+, 
+
+ff as (
+Select * from q1
+union all
+Select * from hy1
+union all
+Select * from y1
+)
+, ff1 as (
+Select projectname,
+ partner, projectcategory,
+ vertical, kpi.indicator ,kpi.type
+ ,fy_timerange, target, progress,(progress - target) AS variance
+ from ff
+ left join profile_80301 as kpi
+ on kpi._id=ff.tq_indicator
+  
+  group by 1,2,3,4,5,6,7,8,9
+  
+ )
+ 
+ Select projectname,
+ partner, projectcategory,
+ vertical, indicator ,t.name as type
+ ,fy_timerange, target, progress,variance
+ from ff1
+ LEFT JOIN ds_mysql_prod_tagelement AS T
+ON ff1.type = t.id
+  
