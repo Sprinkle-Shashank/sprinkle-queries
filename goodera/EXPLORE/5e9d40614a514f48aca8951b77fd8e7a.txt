@@ -1,27 +1,23 @@
-with table1 as(select datatable,xprojectId,time.name as Time_period,split_part(split_part(fy_timerange,'|',1),'-',1) as time , Substring(finPeriod,1,2) as finPeriod , fy_timerange
+with table1 as(select datatable,xprojectId,time.name as Time_period,split_part(split_part(fy_timerange,'|',1),'-',1) as time
 
   from sus_59946 sus
 
 Left join ds_mysql_prod_tagelement time
 on sus.financialperiod = time.id
 
-where keyword in ('workforce_by_region_gender')
+where keyword in ('workforce_by_region')
 ),table3 as(
-select xprojectId,t1.fy_timerange,t1.Time_period, t1.finPeriod ,t1.time,table2.region, table2.gender, SUM(table2.value) as total from table1 t1, unpivot t1.datatable  table2
+select xprojectId,t1.Time_period,t1.time,table2.region,SUM(table2.value) as total from table1 t1, unpivot t1.datatable  table2
 
-group  by xprojectId,t1.Time_period,t1.time,table2.region , table2.gender , t1.fy_timerange , t1.finPeriod
+group  by xprojectId,t1.Time_period,t1.time,table2.region
   
 ),
 
-table4 as (select t3.*,CAST(reg as varchar)from table3 t3,t3.region reg 
+table4 as (select t3.*,CAST(reg as varchar) from table3 t3,t3.region reg	
+
 )
-, table5 as (select t4.*,CAST(gen as varchar)from table4 t4,t4.gender gen )
 
-SELECT re.name as region, ge.name as gender , xprojectId,t5.Time_period,t5.time,total,t5.finPeriod,t5.fy_timerange
-
-from table5 t5
+SELECT re.name as region,xprojectId,t4.Time_period,t4.time,total,t4.timerange from table4 t4
 
 LEFT JOIN ds_mysql_prod_tagelement re on
-t5.reg = re.id
-LEFT JOIN ds_mysql_prod_tagelement ge on
-t5.gen= ge.id
+t4.reg = re.id
