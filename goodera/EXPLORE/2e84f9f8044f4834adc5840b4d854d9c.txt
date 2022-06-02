@@ -1,11 +1,13 @@
-with table1 as(
+with 
+t as (select t2.*, diagno1 from profile_58474 t2 , t2.diagnosis1 as diagno1 ),
+table1 as(
 	select i.name as name, t1.name as van,
     case 
   		when (p2.date_yn = 28005) 
   			then 
   				p2.date_n
   		else p2.createddate
-  	end as date,
+  	end as date,t3.name as disease,
   extract(month from date) as monthinter,
   case 
   	when monthinter = 1 then 'January'
@@ -20,23 +22,15 @@ with table1 as(
   	when monthinter = 10 then 'October'
   	when monthinter = 11 then 'November'
   	when monthinter = 12 then 'December'
-  end as month,
-  CAST((DATEDIFF(day,p1.createddate,GETDATE())/365.0)+age AS FLOAT) as final_age,
-	CASE 
-		when final_age >=0 and final_age<=5 then '0-5 Yrs'
-		when final_age >=6 and final_age<=18 then '6-18 Yrs'
-		when final_age >=19 and final_age<=40 then '19-40 Yrs'
-		when final_age >=41 and final_age<=60 then '41-60 Yrs'
-		when final_age >60  then 'Above 60 Yrs'
-	end as age
-  	from profile_58474 p 
+  end as month
+  	from t p 
     left join profile_58511 p2
   	on p.sel_camp = p2._id
-  	left join profile_58473 p1
-  	on p.patient = p1._id
   	left join profile_51990 i
   	on p2.imple_partner = i._id
   	left join ds_mysql_prod_project t1
   	on p2.projectid = t1.id
+  	left join ds_mysql_prod_tagelement t3
+  	on p.diagno1 = t3.id
 )
 select name,van,date,age,month,monthinter, 1 as count from table1
