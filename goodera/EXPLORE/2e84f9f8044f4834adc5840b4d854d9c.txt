@@ -23,11 +23,13 @@ table1 as(
   	when monthinter = 11 then 'November'
   	when monthinter = 12 then 'December'
   end as month,
-    case 
-  	when t4.name is null or t4.name =' ' then t3.name
-  	else t4.name
-  end as disease,
-  p.diagno1 as disease1
+  cast(t3.name as varchar) as diagnosis,
+nvl2(SUBSTRING(diagnosis, 1, POSITION(' -' in diagnosis)), SUBSTRING(diagnosis, 1, POSITION(' -' in diagnosis)),diagnosis) as d1,
+  case
+  	when p.diagno1 = 947946 then 'HEALTHY / ASYMPTOMATIC'
+  	else d1
+  end as disease
+  ,
   	from t p 
     left join profile_58511 p2
   	on p.sel_camp = p2._id
@@ -37,7 +39,5 @@ table1 as(
   	on p2.projectid = t1.id
   	left join ds_mysql_prod_tagelement t3
   	on p.diagno1 = t3.id
-  	left join ds_mysql_prod_tagelement t4
-  	on t3.parent =t4.id
 )
 select name,van,date,month,monthinter,disease,disease1, 1 as count from table1
