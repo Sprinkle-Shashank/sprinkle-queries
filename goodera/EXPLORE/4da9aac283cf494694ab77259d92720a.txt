@@ -1,0 +1,50 @@
+WITH table1 AS (
+  SELECT 'Collaborations' AS C
+  UNION ALL
+  SELECT 'Youtube' AS C
+  UNION ALL
+  SELECT 'Feedback Calls' AS C
+  UNION ALL
+  SELECT 'Content Created' AS C
+  UNION ALL
+  SELECT 'Impacted Districts' AS C
+  UNION ALL
+  SELECT 'Impacted State' AS C
+  UNION ALL
+  SELECT 'Impacted Blocks' AS C
+  UNION ALL
+  SELECT 'Impacted School' AS C
+  UNION ALL
+  SELECT 'Upliftment' AS C
+  UNION ALL
+  SELECT 'Student Enrolled' AS C
+)
+ 
+ SELECT proj.name as partner, p.fy_timerange, par.name as project_name,
+ SUM(
+ 	CASE C
+	WHEN 'Collaborations' THEN p.collaborations 
+	WHEN 'Youtube' THEN p.youtube 
+    WHEN 'Feedback Calls' THEN p.feedback_calls 
+    WHEN 'Content Created' THEN p.content_created
+    WHEN 'Impacted Districts' THEN p.impacted_districts
+    WHEN 'Impacted State' THEN p.impacted_state
+    WHEN 'Impacted Blocks' THEN p.impacted_blocks
+    WHEN 'Impacted School' THEN p.impacted_school
+    WHEN 'Upliftment' THEN p.upliftment
+    WHEN 'Student Enrolled' THEN p.stu_enrolled
+	ELSE NULL
+	END) AS val, table1.c AS dim
+
+FROM profile_80882  P
+
+CROSS JOIN table1
+
+
+LEFT JOIN ds_mysql_prod_project proj
+ON p.projectid = proj.id
+
+LEFT JOIN ds_mysql_prod_project AS par
+ON proj.parent = par.id
+
+GROUP BY proj.name,p.fy_timerange,table1.C, par.name
