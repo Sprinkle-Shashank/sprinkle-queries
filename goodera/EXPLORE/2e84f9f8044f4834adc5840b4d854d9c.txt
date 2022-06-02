@@ -1,5 +1,6 @@
 with 
 t as (select t2.*, diagno1 from profile_58474 t2 , t2.diagnosis1 as diagno1 ),
+td2 as (select t2.*, diagno1 from profile_58474 t2 , t2.diagnosis2 as diagno1 ),
 table1 as(
 	select i.name as name, t1.name as van,
     case 
@@ -38,5 +39,45 @@ nvl2(SUBSTRING(diagnosis, 1, POSITION(' -' in diagnosis)), SUBSTRING(diagnosis, 
   	on p2.projectid = t1.id
   	left join ds_mysql_prod_tagelement t3
   	on p.diagno1 = t3.id
-)
-select name,van,date,month,monthinter,disease,d1,1 as count from table1
+),
+table2 as(
+	select i.name as name, t1.name as van,
+    case 
+  		when (p2.date_yn = 28005) 
+  			then 
+  				p2.date_n
+  		else p2.createddate
+  	end as date,
+  extract(month from date) as monthinter,
+  case 
+  	when monthinter = 1 then 'January'
+  	when monthinter = 2 then 'February'
+  	when monthinter = 3 then 'March'
+  	when monthinter = 4 then 'April'
+  	when monthinter = 5 then 'May'
+  	when monthinter = 6 then 'June'
+  	when monthinter = 7 then 'July'
+  	when monthinter = 8 then 'August'
+  	when monthinter = 9 then 'September'
+  	when monthinter = 10 then 'October'
+  	when monthinter = 11 then 'November'
+  	when monthinter = 12 then 'December'
+  end as month,
+  cast(t3.name as varchar) as diagnosis,
+nvl2(SUBSTRING(diagnosis, 1, POSITION(' -' in diagnosis)), SUBSTRING(diagnosis, 1, POSITION(' -' in diagnosis)),diagnosis) as d1,
+  case
+  	when p.diagno1 = 947946 then 'HEALTHY / ASYMPTOMATIC'
+  	else d1
+  end as disease
+  	from td2 p 
+    left join profile_58511 p2
+  	on p.sel_camp = p2._id
+  	left join profile_51990 i
+  	on p2.imple_partner = i._id
+  	left join ds_mysql_prod_project t1
+  	on p2.projectid = t1.id
+  	left join ds_mysql_prod_tagelement t3
+  	on p.diagno1 = t3.id
+),
+table3 as(select * from table1 union all select * from table3)
+select name,van,date,month,monthinter,disease,d1,1 as count from table3
