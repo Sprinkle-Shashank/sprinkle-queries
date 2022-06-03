@@ -1,10 +1,15 @@
-with s as (Select fy_timerange ,t.name as kpi_name ,gri_topic,  sasb_topic ,  sdg_name , sdg_logo ,description ,company_policy from profile_80391
+with s as (Select fy_timerange ,t.name as kpi_name ,gri_topic,  
+		    case 
+  when is_Array(sasb_topic)=False or get_Array_length(sasb_topic)=0 then Array(sasb_topic)
+		     else sasb_topic
+		   end as sasb_top
+		    ,  sdg_name , sdg_logo ,description ,company_policy from profile_80391
 left join ds_mysql_prod_tagelement t
 on kpi_name=t.id
 
 ),
 s2 as(
-Select fy_timerange ,kpi_name ,gri_topic,sasb_topic ,sdg_name ,cast(sdg_log as varchar) as sdg_log ,description ,company_policy
+Select fy_timerange ,kpi_name ,gri_topic,sasb_top as sasb_topic ,sdg_name ,cast(sdg_log as varchar) as sdg_log ,description ,company_policy
 from s as p,p.sdg_logo sdg_log),
 s3 as (
 Select fy_timerange ,kpi_name ,cast(gri_top as INT) as gri_top,sasb_topic ,sdg_name ,sdg_log as sdg_logo ,description ,company_policy
