@@ -1,0 +1,37 @@
+with s as 
+(Select t.name as projectid,substring(finperiod,strpos(finperiod, ' ')+2,7) as year, fy_timerange,datatablebase
+
+from sus_79029
+left join ds_mysql_prod_project t
+on xprojectid=t.id
+where keyword='reduction_initiative_2'
+),
+s2 as (
+Select  projectid , year ,fy_timerange,coun.fuel_or_electric,coun.fuel_type,coun.reduction_initiative,coun.describe_fuel_electricity,coun.energy_savings,coun.energy_savings_unit,coun.cost_savings
+from s as p, unpivot p.datatablebase as coun at xyz
+  ),
+  table1 as (
+  Select  projectid , fy_timerange,year ,t.name as fuel,energy_savings,t1.name as fuel_type
+ 
+from s2
+left join ds_mysql_prod_tagelement t
+on t.id=fuel_or_electric
+left join ds_mysql_prod_tagelement t1
+on t1.id=fuel_type
+where t.name='Electricity'
+)
+,emission_conversion as (
+	select fy_timerange, es.name as emission_source, conversion_factor, emission_factor from profile_80607
+  
+  left join ds_mysql_prod_tagelement es
+on profile_80607.emission_source = es.id
+ ), 
+ table3 as (
+
+   Select projectid , fy_timerange, year, energy_savings, case when projectid is not null then 'Grid Electricity' end as emission_source from table2)
+
+   
+select projectid , t3.fy_timerange, year, t3.emission_source, (energy_savings * ec.conversion_factor * ec.emission_factor) as total_electricity_consumption from table3 t3
+
+left join emission_conversion ec on 
+t3.emission_source = ec.emission_source
