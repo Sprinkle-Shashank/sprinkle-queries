@@ -2,22 +2,28 @@ with sub1 as(
   select p1.fy_timerange, p1.activity as title, t1.name as country, t2.name as focus_area, t3.name as prod_brand, 
 sum(p1.no_of_individuals_reporting_improvement) as impacted
 from profile_78057 p1
+  
 left join ds_mysql_prod_tagelement t1 on t1.id = p1.country
 left join ds_mysql_prod_tagelement t2 on t2.id = p1.focus_area
 left join ds_mysql_prod_tagelement t3 on t3.id = p1.product_brand
+  
 where p1.no_of_individuals_reporting_improvement is not null
+
 group by p1.fy_timerange, t1.name, t2.name, t3.name, p1.activity),
 
 sub2 as(
-  select p2.fy_timerange, t4.name as title, t5.name as country, t6.name as focus_area, t7.name as prod_brand, 
+  select p2.fy_timerange, nvl(t4.name, t8.name) as title, t5.name as country, t6.name as focus_area, t7.name as prod_brand, 
 sum(p2.no_of_individuals_reporting_improvement) as impacted
 from profile_78098 p2
 left join ds_mysql_prod_tagelement t4 on t4.id = p2.program
 left join ds_mysql_prod_tagelement t5 on t5.id = p2.country
 left join ds_mysql_prod_tagelement t6 on t6.id = p2.focus_area
 left join ds_mysql_prod_tagelement t7 on t7.id = p2.product_brand
+left join ds_mysql_prod_tagelement t8 on t8.id = p2.program_new
+  
 where p2.no_of_individuals_reporting_improvement is not null
-group by p2.fy_timerange, t4.name, t5.name, t6.name, t7.name)
+  
+group by p2.fy_timerange, t4.name, t5.name, t6.name, t7.name, t8.name)
 
 select fy_timerange, title, country, focus_area, prod_brand, impacted from sub1
 union all
