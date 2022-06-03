@@ -1,0 +1,42 @@
+with s as (
+Select t.name as projectid,substring(finperiod,strpos(finperiod, ' ')+2,7) as year, datatablebase
+
+from sus_79029
+left join ds_mysql_prod_project t
+on xprojectid=t.id
+where keyword='reduction_initiative_2'
+),
+s2 as (
+Select  projectid , year ,coun.fuel_or_electric,coun.fuel_type,coun.reduction_initiative,coun.describe_fuel_electricity,coun.energy_savings,coun.energy_savings_unit,coun.cost_savings
+from s as p, unpivot p.datatablebase as coun at xyz
+  ),
+  s3 as (
+  Select  projectid , year ,t.name as fuel,energy_savings,t1.name as fuel_type
+ 
+from s2
+left join ds_mysql_prod_tagelement t
+on t.id=fuel_or_electric
+left join ds_mysql_prod_tagelement t1
+on t1.id=fuel_type
+where t.name='Fuel'
+),
+
+
+energy_conversion as (
+	select fy_timerange, es.name as energy_source, conversion_factor from profile_80408
+  
+  left join ds_mysql_prod_tagelement es
+on profile_80408.energy_source = es.id
+ 
+),
+petrol0 as (
+	select projectid,year, energy_savings, fuel_type as energy_source from s3
+  
+)
+
+
+	select projectid, energy_savings, petrol0.energy_source, conversion_factor, energy_savings * conversion_factor as petrol_consumed from petrol0
+  
+  left join energy_conversion on
+  petrol0.energy_source = energy_conversion.energy_source
+
