@@ -1,0 +1,23 @@
+with table1 as(select datatable,xprojectId,fy_timerange,time.name as Time_period,split_part(split_part(fy_timerange,'|',1),'-',1) as time
+
+  from sus_59946 sus
+
+Left join ds_mysql_prod_tagelement time
+on sus.financialperiod = time.id
+
+where keyword in ('new_emp_hire_rate')
+),table3 as(
+select xprojectId,t1.fy_timerange,t1.Time_period,t1.time,table2.gender,SUM(table2.value) as total from table1 t1, unpivot t1.datatable  table2
+
+group  by xprojectId,t1.Time_period,t1.time,table2.gender,t1.fy_timerange
+  
+),
+
+table4 as (select t3.*,CAST(gen as varchar) from table3 t3,t3.gender gen	
+
+)
+
+SELECT ge.name as gender,xprojectId,t4.fy_timerange,t4.Time_period,t4.time,total from table4 t4
+
+LEFT JOIN ds_mysql_prod_tagelement ge on
+t4.gen = ge.id
