@@ -2,11 +2,12 @@ with table1 as(select * from profile_58864),
 
 table2 as (select t1.*, shg_mem from table1 t1 , t1.shg_member_train shg_mem),
 
-table3 as (SELECT pro.name as projectId, CAST(shg_mem AS varchar), substring(cast(start_date as varchar),1,10)||'T00:00:00.000Z'||'|'||substring(cast(current_date as varchar),1,10)||'T00:00:00.000Z' as fy_timerange
+table3 as(SELECT pro.name as projectId, CAST(shg_mem AS varchar), substring(cast(start_date as varchar),1,10)||'T00:00:00.000Z'||'|'||substring(cast(current_date as varchar),1,10)||'T00:00:00.000Z' as fy_timerange
 
 FROM  table2
 
 LEFT JOIN ds_mysql_prod_project pro on
-table2.projectid = pro.id
+table2.projectid = pro.id)
 
-group by shg_mem, max(projectId), max(fy_timerange) )
+select shg_mem, max(projectId), max(fy_timerange) from table3
+group by shg_mem 
