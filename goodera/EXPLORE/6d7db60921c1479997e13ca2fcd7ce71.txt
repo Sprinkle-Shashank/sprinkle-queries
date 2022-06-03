@@ -68,11 +68,20 @@ left join ds_mysql_prod_tagelement t19 on t19.id = p1.sdg),
 
 sub2 as(
   select s1.*, other_brand_2 from sub1 s1, s1.other_brand_new other_brand_2)
- 
-select * from sub1 
 
-/*select s2.p3id, s2.sequence, s2.email as user_email, s2.fy_timerange, t1.name as country, t2.name as product_brand, s2.other_brands_involved, t12.name as program, s2.other_prog, s2.description, s2.partner, 
-t3.name as business_units, t4.name as focus_area, s2.focus_area_other, t5.name as currency, p2.conversion_factor, t6.name as direct_cash, s2.direct_cash_donations, 
+select 
+s2.p3id, s2.sequence, s2.email as user_email, 
+
+s2.fy_timerange, s2.quarter, s2.country, s2.business_units, s2.product_brand, s2.other_brands_involved, s2.program, s2.other_prog, s2.description, s2.focus_area, s2.focus_area_other, s2.partner, s2.product_donation_request,
+
+case
+	when s2.product_donation_request is null or s2.product_donation_request = ' ' then '-'
+	else 'Product Donation Request Download'
+end as product_donation_request_download
+
+----x----
+
+s2.currency, p2.conversion_factor, t6.name as direct_cash, s2.direct_cash_donations, 
 (s2.direct_cash_donations * p2.conversion_factor) as direct_cash_donations_GBP, t7.name as product_donation, s2.value_of_reckitt_products,
 (s2.value_of_reckitt_products * p2.conversion_factor) as value_reckitt_products_gbp, 
 t8.name as brand_of_prods_donated, s2.product_description, s2.no_of_reckitt_prods_donated,
@@ -101,23 +110,11 @@ case
 end as photos_reports_download
 
 from sub2 s2
-left join ds_mysql_prod_tagelement t1 on t1.id = s2.country
-left join ds_mysql_prod_tagelement t2 on t2.id = s2.product_brand
-left join ds_mysql_prod_tagelement t3 on t3.id = s2.business_units
-left join ds_mysql_prod_tagelement t4 on t4.id = s2.focus_area
-left join ds_mysql_prod_tagelement t5 on t5.id = s2.currency
-left join ds_mysql_prod_tagelement t6 on t6.id = s2.direct_cash
-left join ds_mysql_prod_tagelement t7 on t7.id = s2.prod_donation
-left join ds_mysql_prod_tagelement t8 on t8.id = s2.brand_of_prods_donated
-left join ds_mysql_prod_tagelement t9 on t9.id = s2.sold_destroyed
-left join ds_mysql_prod_tagelement t10 on t10.id = s2.emp_volunteering
-left join ds_mysql_prod_tagelement t11 on t11.id = s2.measure_outcomes
-left join ds_mysql_prod_tagelement t12 on t12.id = s2.program
-left join ds_mysql_prod_tagelement t13 on t13.id = s2.edu_spend_yn
-left join profile_78083 p2 on p2.name = (t5.name||'_'||extract(year from cast(s2.fy_timerange.start as date)))
+
+left join profile_78083 p2 on p2.name = (s2.currency||'_'||extract(year from cast(s2.fy_timerange.start as date)))
 left join profile_78062 p3 on p3._id = s2.other_brand_2
 
 group by s2.p3id, s2.sequence, s2.email, s2.fy_timerange, t1.name, t2.name, s2.other_brands_involved, t12.name, s2.other_prog, s2.description, s2.partner, t3.name, t4.name, s2.focus_area_other, t5.name, p2.conversion_factor, t6.name, s2.direct_cash_donations, t7.name, s2.value_of_reckitt_products, t8.name, s2.product_description, s2.no_of_reckitt_prods_donated, t9.name, s2.estimate_cost, t13.name, s2.edu_spend, s2.campaign, t10.name,
 s2.total_amount_donated_payroll, s2.supplier_contribution, s2.indirect_reach, s2.direct_reach, s2.explanation, t11.name, s2.no_of_individuals_better_knowledge, s2.no_of_individuals_behaviour_changed, s2.no_of_individuals_reporting_improvement, s2.outcome_desc, s2.outcome_evidence, s2.photos_reports, s2.attachment, s2.percentage, s2.direct_cash_auto, s2.value_reckitt_products_auto, s2.edu_spend_auto
 
-order by s2.sequence asc*/
+order by s2.sequence asc
