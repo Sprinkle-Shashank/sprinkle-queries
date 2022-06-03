@@ -1,90 +1,59 @@
-with table1 as(select * from profile_58474),
+select pro.name as projectId,ngo.name as ngo ,schedule.name as schedule_7, local.name as local_yn,impdir.name as imp_direct, substring(project_start_date,1,10) as project_start_date , csr_reg_num, ong.name as ongoing , project_end_date,pst.name as past, cumulative, cumulative_allocated,   p.fy_timerange  , p1.fy_timerange as fy_disbursed, sum(p1.amount) as disbursed ,
 
-table2 as (select t1.*, diagno1 from table1 t1 , t1.diagnosis1 as diagno1 ),
+case when p.fy_timerange = fy_disbursed then 1
+	 else 0
+	end as fy_match ,
 
-table4 as
-( select * , Decode(p.reg_date_yn,28005,CONVERT(timestamp,SUBSTRING(p.date_y,1,10)),Convert(timestamp,SUBSTRING(p.reg_date,1,10))) as datefrom , p5.name as gender , p6.name as referred_yn , SUBSTRING(p3.name,0,CHARINDEX('-',p3.name)) as disease , p3.name as full_disease_name,
-CAST(DATEDIFF(year,createddate,GETDATE())+age AS FLOAT) as final_age,
-CASE 
-when final_age >=0 and final_age<=5 then '0-5'
-when final_age >=6 and final_age<=18 then '6-18'
-when final_age >=19 and final_age<=40 then '19-40'
-when final_age >=41 and final_age<=60 then '41-60'
-when final_age >60  then 'more than 60'
-end as age_category,
-case when disease is  null or disease = '' then 0 else 1 end as count ,  row_number() over 
-(partition by p2.projectid
- order by p2._id desc) as row  from table2 as p2
- 
-left join ds_mysql_prod_tagelement p3
-on p2.diagno1=p3.id
+case when ongoing = 837570 then 'Ongoing'
+	 else 'Completed'
+	end as status ,	
+	
+	
+
+concat(
   
-left join ds_mysql_prod_tagelement p4
-on p2.diagnosis2=p4.id
+	concat(concat(extract (day from project_start_date),'-'), 
+ 			concat(extract (month from  project_start_date),'-')),
+	concat(concat(concat(extract( year from project_start_date),
+						       concat(' ' ,concat( 'to',' '))),
+				  concat(extract (day from project_end_date),'-')),
+		   concat(concat(extract(month from project_end_date),'-'),
+                  extract (year from project_end_date )))) 
+				  
+	as duration , p.projectid_dkl , initcap(ent.name) as entity	
+	
   
-left join ds_mysql_prod_tagelement p5
-on p.gender=p5.id
   
-left join profile_58473 p
-on p2.patient = p._id
- 
-left join ds_mysql_prod_tagelement p6
-on p.referred_yn=p6.id
-
-where disease is not null
- ),
-
- 
-
-table3 as
-(
-select p._id,p5.name as gender,p6.name as referred_yn, age, Decode(reg_date_yn,28005,CONVERT(timestamp,SUBSTRING(date_y,1,10)),Convert(timestamp,SUBSTRING(reg_date,1,10))) as date,createddate,SUBSTRING(p3.name,0,CHARINDEX('-',p3.name)) as disease,p3.name as full_disease_name,
-CAST(DATEDIFF(year,createddate,GETDATE())+age AS FLOAT) as final_age,
-CASE 
-when final_age >=0 and final_age<=5 then '0-5'
-when final_age >=6 and final_age<=18 then '6-18'
-when final_age >=19 and final_age<=40 then '19-40'
-when final_age >=41 and final_age<=60 then '41-60'
-when final_age >60  then 'more than 60'
-end as age_category,
-case when disease is  null or disease = '' then 0 else 1 end as count ,  row_number() over 
-(partition by p.projectid
- order by p._id desc) as row
-
-from profile_58473 p
   
-left join table2 p2
-on p._id=p2.patient
-  
-left join ds_mysql_prod_tagelement p3
-on p2.diagno1=p3.id
-  
-left join ds_mysql_prod_tagelement p4
-on p2.diagnosis2=p4.id
-  
-left join ds_mysql_prod_tagelement p5
-on p.gender=p5.id
-  
-left join ds_mysql_prod_tagelement p6
-on p2.referred_yn=p6.id
+  from profile_80433  p
 
-where disease is not null
+left join profile_80429  p1
 
-)
+left join ds_mysql_prod_tagelement ent 
+on p.entity = ent.id
 
-select * from table4 where row=1
+left join ds_mysql_prod_tagelement schedule
+on p.schedule_7 = schedule.id
 
---where date between '2022-04-01' and '2022-05-19'
---group by p3.name,p4.name,p.createddate,p._id,p.age,p2.diagnosis1,p2.diagnosis2
+left join ds_mysql_prod_tagelement local
+on p.local_yn = local.id
 
+left join ds_mysql_prod_tagelement impdir
+on p.imp_direct = impdir.id
 
+left join ds_mysql_prod_tagelement ong 
+on p.ongoing = ong.id
 
+left join ds_mysql_prod_tagelement pst
+on p.past = pst.id
 
-/*select p2.name,p3.name from profile_58474 p
-left join ds_mysql_prod_tagelement p2
-on p.diagnosis1=p2.id
-left join ds_mysql_prod_tagelement p3
-on p.diagnosis2=p3.id
-LEFT JOIN Profile_*/
+left join ds_mysql_prod_project pro 
+on p.projectId = pro.id
+
+left join ds_mysql_prod_project ngo 
+on pro.parent = ngo.id
 
 
+where past = 1683663  and fy_match = 1
+
+group by pro.name,ngo.name, schedule.name,local.name,impdir.name,ong.name, local_yn, imp_direct, project_start_date , csr_reg_num, ongoing , project_end_date,pst.name,cumulative,cumulative_allocated , p.fy_timerange,p1.fy_timerange , p.projectid_dkl , ent.name 
