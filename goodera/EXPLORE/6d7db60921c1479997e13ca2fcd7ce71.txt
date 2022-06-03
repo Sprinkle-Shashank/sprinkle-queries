@@ -2,7 +2,7 @@ with sub1 as(
   select p1._id as p3id, p1.creatorid, t1.email, 
   
 p1.fy_timerange, t2.name as quarter, t3.name as country, 
-nvl(t5.name, t4.name) as business_units,  t6.name as product_brand, p1.other_brands_involved, p1.activity, p1.activity_description, t7.name as focus_area, p1.focus_area_other, p1.partner, p1.product_donation_request,
+nvl(t5.name, t4.name) as business_units, t6.name as product_brand, p1.other_brands_involved, p1.activity, p1.activity_description, t7.name as focus_area, p1.focus_area_other, p1.partner, p1.product_donation_request,
   
 ----x----  
   
@@ -52,7 +52,19 @@ left join ds_mysql_prod_tagelement t14 on t14.id = p1.measure_outcome),
 sub2 as(
   select s1.*, other_brand_2 from sub1 s1, s1.other_brand_new other_brand_2)
   
-select s2.p3id, s2.sequence, s2.email as user_email, s2.fy_timerange, t1.name as country, t2.name as product_brand, s2.other_brands_involved, s2.activity, s2.activity_description, s2.partner, t3.name as business_units, t4.name as focus_area, s2.focus_area_other, t5.name as currency, p2.conversion_factor, t6.name as direct_cash, s2.direct_cash_donations, 
+select 
+s2.p3id, s2.sequence, s2.email as user_email, 
+
+s2.fy_timerange, s2.quarter, s2.country, s2.business_units, s2.product_brand, s2.other_brands_involved, s2.activity, s2.activity_description, s2.focus_area, s2.focus_area_other, s2.partner, s2.product_donation_request,
+
+case
+	when s2.product_donation_request is null or s2.product_donation_request = ' ' then '-'
+	else 'Product Donation Request Download'
+end as product_donation_request_download,
+
+----x----
+
+s2.currency, p2.conversion_factor, s2.direct_cash, s2.direct_cash_donations, 
 (s2.direct_cash_donations * p2.conversion_factor) as direct_cash_donations_GBP, t7.name as product_donation, s2.value_of_reckitt_products,
 (s2.value_of_reckitt_products * p2.conversion_factor) as value_reckitt_products_gbp, t8.name as brand_of_prods_donated, s2.product_description, s2.no_of_reckitt_prods_donated, t9.name as sold_destroyed, s2.estimate_cost, (s2.estimate_cost * p2.conversion_factor) as estimate_cost_gbp, t10.name as emp_volunteering,
 s2.total_amount_donated_payroll, 
