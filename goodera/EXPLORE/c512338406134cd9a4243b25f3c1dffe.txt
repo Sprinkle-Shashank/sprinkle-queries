@@ -1,7 +1,11 @@
-with table1 as(Select p._id,p.projectid,pro.name as factory, p.fac_vpid,f_y.name as fy,mth.name as month,rating.name as facility_rating,profile_54646.name_country as country,profile_54646.name_vendor_filter as vendor,SUBSTRING(mth.name, 1, 3 ) as month2,SUBSTRING(f_y.name, 3, 4 ) as year2,
+with table3 as (select projectid,sourcing_yn,row_number() over 
+(partition by projectid
+ order by p._id desc) as row from profile_52713 p),
+table4 as (select * from table3 where row = 1),
+table1 as(Select p._id,p.projectid,pro.name as factory, p.fac_vpid,f_y.name as fy,mth.name as month,rating.name as facility_rating,profile_54646.name_country as country,profile_54646.name_vendor_filter as vendor,SUBSTRING(mth.name, 1, 3 ) as month2,SUBSTRING(f_y.name, 3, 4 ) as year2,
 
 concat(month2,year2) as temp,
-profile_52713.factory_vpid_1,status.name as pace_status,src.name as sourcing_yn,/*count(*) as cou,*/case when mth.name = 'January' then 1
+t4.factory_vpid_1,status.name as pace_status,src.name as sourcing_yn,/*count(*) as cou,*/case when mth.name = 'January' then 1
 when mth.name = 'February' then 2
 when mth.name = 'March' then 3
 when mth.name = 'April' then 4
@@ -22,8 +26,8 @@ from profile_54267 p
 
 left join ds_mysql_prod_project pro
 on p.projectid = pro.id
-left join profile_52713 on 
-p.projectId= profile_52713.projectId
+left join table4 t4 on 
+p.projectId= t4.projectId
 
 left join profile_54646 on 
 p.projectId= profile_54646.projectId
@@ -36,7 +40,7 @@ on p.pace_status = status.id
 left join ds_mysql_prod_tagelement rating
 on p.facility_rating = rating.id
 left join ds_mysql_prod_tagelement src
-on profile_52713.sourcing_yn = src.id
+on t4.sourcing_yn = src.id
 
 where pace_status = 845114 and sourcing_yn = 57472
 
