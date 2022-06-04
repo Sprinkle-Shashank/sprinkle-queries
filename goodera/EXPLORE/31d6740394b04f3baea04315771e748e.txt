@@ -1,0 +1,23 @@
+with table1 as(select datatable,fy_timerange,time.name as Time_period, split_part(split_part(fy_timerange,'|',1),'-',1) as time,Substring(Time_period,1,2) as Time_period2,case when Time_period2 LIKE F% Then time end as Year_filter,case when Time_period2 LIKE Q% THEN Time_period2 end as quarter_filter,Substring(finPeriod,1,1) as finPeriod
+
+  from sus_59946 sus
+
+Left join ds_mysql_prod_tagelement time
+on sus.financialperiod = time.id
+
+where keyword in ('workforce_by_region')
+),table3 as(
+select t1.fy_timerange,t1.Time_period,t1.Time_period2,t1.year_filter,t1.quarter_filter,t1.time,table2.region,finPeriod,SUM(table2.value) as total from table1 t1, unpivot t1.datatable  table2
+
+group  by t1.Time_period,t1.time,finPeriod,t1.Time_period2,t1.year_filter,t1.quarter_filter,table2.region,t1.fy_timerange
+  
+),
+
+table4 as (select t3.*,CAST(reg as varchar) from table3 t3,t3.region reg	
+
+)
+
+SELECT re.name as region,t4.fy_timerange,t4.Time_period,t4.time,t1.year_filter,t1.quarter_filter,t4.finPeriod,total from table4 t4
+
+LEFT JOIN ds_mysql_prod_tagelement re on
+t4.reg = re.id
