@@ -1,0 +1,85 @@
+WITH table1 AS (
+  SELECT 'Student Impacted' AS C
+  UNION ALL
+  SELECT 'Teachers Impacted' AS C
+  UNION ALL
+  SELECT 'Concept videos produced in each learning level' AS C
+  UNION ALL
+  SELECT 'Students who accessed practice sheets' AS C
+  UNION ALL
+  SELECT 'Teachers who accessed practice sheets' AS C
+  UNION ALL
+  SELECT 'Teachers registered' AS C
+  UNION ALL
+  SELECT 'Content quizzes prepared in each learning level' AS C
+  UNION ALL
+  SELECT 'Working hours (training)' AS C
+  UNION ALL
+  SELECT 'Working hours (teaching)' AS C
+  UNION ALL
+  SELECT 'Teachers undergoing training' AS C
+  UNION ALL
+  SELECT 'Teachers who received the certificate' AS C
+  UNION ALL
+  SELECT 'Teachers accessing the content regularly' AS C
+  UNION ALL
+  SELECT 'Teachers who are rewarded' AS C
+  UNION ALL
+  SELECT 'Teachers who accessed the content using WA 1-on-1 platform' AS C
+  UNION ALL
+  SELECT 'Teachers accessing whatsapp enterprise' AS C
+  UNION ALL
+  SELECT 'Standards covered per teacher' AS C
+ )
+ 
+ SELECT proj.name AS partner, theme.name AS theme_name, p.fy_timerange, par.name AS project_name, p2.name AS School, st.name AS State, dis.name AS Districts, blk.name AS Blocks,
+ 
+ SUM(
+ 	CASE C
+	WHEN 'Student Impacted' THEN p.student_impacted 
+	WHEN 'Teachers Impacted' THEN p.teacher_impacted 
+    WHEN 'Concept videos produced in each learning level' THEN p.concept_videos 
+    WHEN 'Students who accessed practice sheets' THEN p.student_practicesheet
+    WHEN 'Teachers who accessed practice sheets' THEN p.teacher_practicesheet
+   	WHEN 'Teachers registered' THEN p.teacher_registered
+   	WHEN 'Content quizzes prepared in each learning level' THEN p.content_quiz
+   	WHEN 'Working hours (training)' THEN p.training_hours
+   	WHEN 'Working hours (teaching)' THEN p.teaching_hours
+   	WHEN 'Teachers undergoing training' THEN p.teacher_training
+   	WHEN 'Teachers who received the certificate' THEN p.certificate_teacher
+   	WHEN 'Teachers accessing the content regularly' THEN p.content_access
+   	WHEN 'Teachers who are rewarded' THEN p.stu_reward
+   	WHEN 'Teachers who accessed the content using WA 1-on-1 platform' THEN p.wa_1
+   	WHEN 'Teachers accessing whatsapp enterprise' THEN p.teacher_whatsapp
+   	WHEN 'Standards covered per teacher' THEN p.standard_covered
+	ELSE NULL
+	END) AS val, table1.c AS dim
+
+FROM profile_80877  P
+
+CROSS JOIN table1
+
+
+LEFT JOIN ds_mysql_prod_project proj
+ON p.projectid = proj.id
+
+LEFT JOIN ds_mysql_prod_project AS par
+ON proj.parent = par.id
+
+LEFT JOIN ds_mysql_prod_project AS theme
+ON par.parent = theme.id
+
+LEFT JOIN ds_mysql_prod_tagelement AS blk
+ON p.state = blk.id
+
+LEFT JOIN ds_mysql_prod_tagelement AS dis
+ON blk.parent = dis.id
+
+LEFT JOIN ds_mysql_prod_tagelement AS st
+ON dis.parent = st.id
+
+LEFT JOIN profile_80877 AS p2
+ON p.school = p2._id
+
+
+GROUP BY proj.name,p.fy_timerange,table1.C, par.name, theme.name, p2.name, st.name, dis.name, blk.name
