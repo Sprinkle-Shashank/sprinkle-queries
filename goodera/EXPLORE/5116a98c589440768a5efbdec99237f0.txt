@@ -7,9 +7,66 @@ with table1 as
   ( select * from profile_80429 ),
   
   table3 as
-  ( select p.projectid , p.name , p._id , p1.projectid , p1.name from profile_80433 as p
+  ( select  p1.projectid , p1.name , 
+   
+    pro.name as projectId,ngo.name as ngo ,schedule.name as schedule_7, local.name as local_yn,impdir.name as imp_direct, substring(project_start_date,1,10) as project_start_date , csr_reg_num, ong.name as ongoing , project_end_date,pst.name as past, cumulative, cumulative_allocated,   p.fy_timerange  , p1.fy_timerange as fy_disbursed, sum(p1.amount) as disbursed ,
+
+case when p.fy_timerange = fy_disbursed then 1
+	 else 0
+	end as fy_match ,
+
+case when ongoing = 1683663 then 'Ongoing'
+	 else 'Completed'
+	end as status ,	
+	
+	
+
+concat(
+  
+	concat(concat(extract (day from project_start_date),'-'), 
+ 			concat(extract (month from  project_start_date),'-')),
+	concat(concat(concat(extract( year from project_start_date),
+						       concat(' ' ,concat( 'to',' '))),
+				  concat(extract (day from project_end_date),'-')),
+		   concat(concat(extract(month from project_end_date),'-'),
+                  extract (year from project_end_date )))) 
+				  
+	as duration , p.projectid_dkl , initcap(ent.name) as entity	
+	
+
+   
+   
+   from profile_80433 as p
    
 left join profile_80429  p1
-on p.projectid = p1.projectid)
+on p.projectid = p1.projectid
+ 
+left join ds_mysql_prod_tagelement ent 
+on p.entity = ent.id
+
+left join ds_mysql_prod_tagelement schedule
+on p.schedule_7 = schedule.id
+
+left join ds_mysql_prod_tagelement local
+on p.local_yn = local.id
+
+left join ds_mysql_prod_tagelement impdir
+on p.imp_direct = impdir.id
+
+left join ds_mysql_prod_tagelement ong 
+on p.ongoing = ong.id
+
+left join ds_mysql_prod_tagelement pst
+on p.past = pst.id
+
+left join ds_mysql_prod_project pro 
+on p.projectId = pro.id
+
+left join ds_mysql_prod_project ngo 
+on pro.parent = ngo.id
+  
+  group by   p1.projectid , p1.name , 
+   
+    projectId, ngo ,schedule_7, local_yn, imp_direct, project_start_date , csr_reg_num,  ongoing , project_end_date, past, cumulative, cumulative_allocated,   p.fy_timerange  , p1.fy_timerange as fy_disbursed , fy_match , status , entity)
   
   select * from table3
