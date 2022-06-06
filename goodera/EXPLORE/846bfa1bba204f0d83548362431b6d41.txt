@@ -1,5 +1,19 @@
-select p1.name as projectid,t1.name as financial_period,datatablebase,questiontext,tablesettings
+with sub1 as(select p1.name as projectid,t1.name as financial_period,datatablebase,questiontext,tablesettings
 
 from sus_56551
 left join ds_mysql_prod_tagelement t1 on t1.id=p1.financialPeriod
-where keyword='cdp_cc_c6_3_scope_2_emissions_data'
+where keyword='cdp_cc_c6_3_scope_2_emissions_data' and datatablebase is not null)
+
+sub2 as(select *,temp.location,temp.market from sub1 s1,unpivot s1.datatablebase as temp at rows),
+sub3 as(select projectid, financial_period,location,market,questiontext, fy_timerange,('FY' || ' ' || split_part(financial_period, ' ', 2)) as fy,tablesettings
+from sub2),
+sub4 as(
+select 'Location Based' as Dimension
+union all
+select 'Market Based' as Dimension)
+select projectid, financial_period,questiontext,fy_timerange,fy,Dimension,
+sum(
+case Dimension
+when 'Location Based' then location
+when 'Market Based' then market
+
