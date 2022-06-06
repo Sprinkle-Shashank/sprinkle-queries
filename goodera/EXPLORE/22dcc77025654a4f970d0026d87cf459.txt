@@ -1,0 +1,55 @@
+WITH table1 AS (
+  SELECT 'Students who accessed the content' AS C
+  UNION ALL
+  SELECT 'Teachers who accessed the content' AS C
+  UNION ALL
+  SELECT 'Teachers registered' AS C
+  UNION ALL
+  SELECT 'Teachers trained' AS C
+  UNION ALL
+  SELECT 'Teachers rewarded' AS C
+  UNION ALL
+  SELECT 'Students rewarded' AS C
+)
+ 
+ SELECT proj.name AS partner, theme.name AS theme_name, p.fy_timerange, par.name AS project_name, p2.name AS School, st.name AS State, dis.name AS Districts, blk.name AS Blocks,
+ 
+ SUM(
+ 	CASE C 
+    WHEN 'Students who accessed the content' THEN p.student_practicesheet+p.content_access+p.wa_1+p.teacher_whatsapp
+    WHEN 'Teachers who accessed the content' THEN p.teacher_practicesheet
+   	WHEN 'Teachers registered' THEN p.teacher_registered
+   	WHEN 'Teachers trained' THEN p.teacher_training
+   	WHEN 'Teachers rewarded' THEN p.certificate_teacher
+   	WHEN 'Students rewarded' THEN p.stu_reward
+	ELSE NULL
+	END) AS val, table1.c AS dim
+
+FROM profile_80877  P
+
+CROSS JOIN table1
+
+
+LEFT JOIN ds_mysql_prod_project proj
+ON p.projectid = proj.id
+
+LEFT JOIN ds_mysql_prod_project AS par
+ON proj.parent = par.id
+
+LEFT JOIN ds_mysql_prod_project AS theme
+ON par.parent = theme.id
+
+LEFT JOIN ds_mysql_prod_tagelement AS blk
+ON p.state = blk.id
+
+LEFT JOIN ds_mysql_prod_tagelement AS dis
+ON blk.parent = dis.id
+
+LEFT JOIN ds_mysql_prod_tagelement AS st
+ON dis.parent = st.id
+
+LEFT JOIN profile_80877 AS p2
+ON p.school = p2._id
+
+
+GROUP BY proj.name,p.fy_timerange,table1.C, par.name, theme.name, p2.name, st.name, dis.name, blk.name
