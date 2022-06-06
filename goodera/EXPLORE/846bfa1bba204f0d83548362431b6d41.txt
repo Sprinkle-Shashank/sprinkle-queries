@@ -16,4 +16,21 @@ sum(
 case Dimension
 when 'Location Based' then location
 when 'Market Based' then market
+else null
+end) as emission,
+case Dimension
+when 'Location Based' then cast(tablesettings."0"."location"."measureUnitBase" as VARCHAR)
+when 'Market Based' then cast(tablesettings."0"."market"."measureUnitBase" as VARCHAR)
+else null
+end as units,
+case 
+when FY='FY 2019-20' or FY='FY (2019-20)' then 'FY (2019-20)'
+when FY='FY 2020-21' or FY='FY (2020-21)' then 'FY (2020-21)'
+when FY='FY 2021-22' or FY='FY (2021-22)' then 'FY (2021-22)'
+when FY='FY 2022-23' or FY='FY (2022-23)' then 'FY (2022-23)'
+else null
+end as financial_year
 
+from sub3
+cross join sub4
+group by projectid,financial_period,fy_timerange,questiontext,financial_year,fy,Dimension,units
