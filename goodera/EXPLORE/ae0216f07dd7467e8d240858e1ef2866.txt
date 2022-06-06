@@ -1,0 +1,14 @@
+with base1 as(
+select fy_timerange,tag1.name as brand,tag2.name as milestone_id,sum(value) as value from profile_64087 p1
+left join ds_mysql_prod_tagelement tag1
+on p1.brand = tag1.id
+left join ds_mysql_prod_tagelement tag2
+on p1.milestone_id = tag2.id
+group by 1,2,3
+), base2 as(
+select brand,milestone_id,value,row_number() over 
+(partition by brand,milestone
+ order by fy_timerange desc) as row_num
+from base1
+)
+select brand,milestone,value where row_num = 1
