@@ -1,56 +1,40 @@
-with sub1 as (
-select _id, projectid, fy_timerange, zone_db, partner_db, center_name_db, batch_id_db, reg_no, age, dob, gender, mobile_no, mobile_number_2, occu, marriage, fam_head, fam_occ, fam_size, fam_income, city_of_job, state, district, placed, date_of_placement, role_after_placement, type from profile_36901
-union all
-select _id, projectid, fy_timerange, zone_db, partner_db, center_name_db, batch_id_db, reg_no, age, dob, gender, mobile_no, mobile_number_2, occu, marriage, fam_head, fam_occ, fam_size, fam_income, city_of_job, state, district,  placed, date_of_placement, role_after_placement, type from profile_145),
-sub2 as (
-select t._id, p.name as program, t2.name as project, zone_db as zone, partner_db as partner_name, center_name_db as center_id, batch_id_db as batch_id, fy_timerange, status, split_part(split_part(json_serialize(approvallog[0]),',',3),'"',4) as emailid,  reg_no, age, SUBSTRING(SUBSTRING(dob,9,10),1,2) as dob_date,SUBSTRING(SUBSTRING(dob,6,7),1,2) as dob_month, SUBSTRING(dob,1,4) as dob_year, l.name as gender, mobile_no, mobile_number_2, m.name as occu, n.name as marriage, fam_head, fam_occ, fam_size, fam_income, city_of_job, o.name as state, q.name as district,  y.name as placed, SUBSTRING(SUBSTRING(date_of_placement,9,10),1,2) as date_of_placement_date,SUBSTRING(SUBSTRING(date_of_placement,6,7),1,2) as date_of_placement_month, SUBSTRING(date_of_placement,1,4) as date_of_placement_year, z.name as role_after_placement, type, approvallog
-from sub1 a
-LEFT JOIN ds_mysql_prod_project p on a.projectId=p.id
-LEFT JOIN ds_mysql_prod_project t1 on p.parent=t1.id
-LEFT JOIN ds_mysql_prod_project t2 on t1.parent=t2.id
-left join ds_mongo_taskresponse t
-on t.profileinstanceid=a._id
-left join ds_mysql_prod_tagelement l
-on a.gender=l.id
-left join ds_mysql_prod_tagelement m
-on a.occu=m.id
-left join ds_mysql_prod_tagelement y
-on a.placed=y.id
-left join ds_mysql_prod_tagelement n
-on a.marriage=n.id
-left join ds_mysql_prod_tagelement o
-on a.state=o.id
-left join ds_mysql_prod_tagelement q
-on a.district=q.id
-  left join ds_mysql_prod_tagelement z
-on a.role_after_placement=z.id
---left join ds_mysql_prod_project p
---on a.projectid=p.id
-)
---select * from sub2
+with lookup as (select 
+				p.taskuserid, p._id, p.status, p.active, p.organizationid, 
+				taskuser.taskid 
+				from ds_mongo_taskresponse p
+								
+left join ds_mysql_prod_taskuser taskuser on
+taskuser.id = p.taskuserid
+),
 
-select  a._id, program, project, zone, partner_name, center_id, batch_id ,
-fy_timerange, status, emailid,
-case when split_part(json_serialize(approvallog[0]),',',4) like '%approverName%' 
-then split_part(split_part(json_serialize(approvallog[0]),',',4),'"',4) 
-when split_part(json_serialize(approvallog[0]),',',5) like '%approverName%' 
-then split_part(split_part(json_serialize(approvallog[0]),',',5),'"',4) 
-when split_part(json_serialize(approvallog[0]),',',3) like '%approverName%' 
-then split_part(split_part(json_serialize(approvallog[0]),',',3),'"',4) 
-end as name,
-case when split_part(json_serialize(approvallog[0]),',',4) like '%approverComments%' then
-split_part(split_part(json_serialize(approvallog[0]),',',4),'"',4) 
-when split_part(json_serialize(approvallog[0]),',',5) like '%approverComments%' then
-split_part(split_part(json_serialize(approvallog[0]),',',5),'"',4) 
-when split_part(json_serialize(approvallog[0]),',',3) like '%approverComments%' then
-split_part(split_part(json_serialize(approvallog[0]),',',3),'"',4) 
-end as comments,
-case when split_part(json_serialize(approvallog[0]),',',6) like '%timestamp%' then substring(split_part(split_part(json_serialize(approvallog[0]),',',6),'"',4),1,10) 
-when split_part(json_serialize(approvallog[0]),',',5) like '%timestamp%' then substring(split_part(split_part(json_serialize(approvallog[0]),',',5),'"',4),1,10) 
-when split_part(json_serialize(approvallog[0]),',',4) like '%timestamp%' then substring(split_part(split_part(json_serialize(approvallog[0]),',',4),'"',4),1,10) 
-end as timestamp, split_part(split_part(json_serialize(approvallog[0]),',',1),'"',4) as status1,
---,  name, comments, timestamp
- reg_no, age
-, concat(concat(concat(concat(dob_date,'-'),dob_month),'-'),dob_year) as dob
-, gender, mobile_no, mobile_number_2, occu, a.marriage, fam_head, fam_occ, fam_size, fam_income, city_of_job,  state, district,  placed, concat(concat(concat(concat(date_of_placement_date,'-'),date_of_placement_month),'-'),date_of_placement_year) as date_of_placement, role_after_placement, type from sub2 a 
-where status1='REJECTED'
+lookup1 as (select 
+				p.taskid, p._id, p.status, p.active, p.organizationid,  
+				task.flowtaskid
+				from lookup p
+				
+				
+left join ds_mysql_prod_task task on
+task.id = p.taskid
+),
+
+lookup2 as (select 
+			p._id, p.status, p.active, p.organizationid, p.flowtaskid, 
+			flowtask.sectionid
+			from lookup1 p
+ 			
+left join ds_mysql_prod_flowtask flowtask on 
+flowtask.id = p.flowtaskid			
+),
+
+lookup3 as (select 
+			p._id, p.status, p.active, p.organizationid, flowtaskid, sectionid, 
+			section.profileid, section.name
+			from lookup2 p
+  
+left join ds_mysql_prod_section section on
+section.id = p.sectionid		
+)
+
+select _id, p.name, organizationid, flowtaskid, sectionid, profileid, status, active
+from lookup3 p 
+where (profileid = 145 or profileid = 36901) and status = 'REJECTED' and active = 't'
