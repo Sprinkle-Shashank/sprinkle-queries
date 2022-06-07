@@ -12,7 +12,18 @@ group by yr.name,period.name
 
 order by year asc),
 table2 as (
-select sum(p.enrollment)as enrollment, yr.name as year,p.lg_status,extract(month from p.date_of_formation)as month from profile_29179 p
+select sum(p.enrollment)as enrollment, yr.name as year,p.lg_status,extract(month from p.date_of_formation)as month,
+ case when month in ('2', '3', '4')
+then '1st(Feb-Apr)'
+when month in ('5','6','7')
+then '2nd(May-Jul)'
+when month in ('8', '9', '10')
+then '3rd(Aug-Oct)'
+when month in ('11', '12',  '1')
+then '4th(Nov-Jan)'
+end as quarter  
+  
+  from profile_29179 p
 left join ds_mysql_prod_tagelement yr
 on p.year = yr.id
  where lg_status = 847850 or lg_status is null  
