@@ -1,8 +1,13 @@
-select p._id,p.gender,Decode(p.reg_date_yn,28005,p.date_y,p.createddate) as date,p3.name as partner,1 as count, fac.name as van   from profile_58473 p
-left join profile_51990 p3
+ With tx as (select projectid, name,row_number() over 
+(partition by projectid
+ order by projectid desc) as row from profile_51990 ),
+
+table2 as (select p._id,p.gender,Decode(p.reg_date_yn,28005,p.date_y,p.createddate) as date,p3.name as partner,1 as count, fac.name as van   from profile_58473 p
+left join tx p3
 on p.projectid=p3.projectid
 left join ds_mysql_prod_project fac
-on p3.projectid = fac.id
+on p3.projectid = fac.id)
+select * from table2 where row=1
 
 --where date between '2022-04-01' and '2023-03-31'
 --left join ds_mysql_prod_project fac
