@@ -6,7 +6,7 @@ where keyword='cdp_cc_c6_5_scope_3_emissions_data' and datatablebase is not null
 
 sub2 as(select *,temp.mtco2,cast(temp.evaluation_status as varchar) from sub1 s1, unpivot s1.datatablebase as temp at row_id)
 
-select projectid, financial_period, mtco2,t2.name as evaluation_status,questiontext, fy_timerange,('FY' || ' ' || split_part(financial_period, ' ', 2)) as fy,cast(tablesettings."purchased_goods"."mtco2"."measureUnitBase" as VARCHAR) as units,
+select projectid, financial_period, mtco2,questiontext, fy_timerange,('FY' || ' ' || split_part(financial_period, ' ', 2)) as fy,cast(tablesettings."purchased_goods"."mtco2"."measureUnitBase" as VARCHAR) as units,
 
 case 
 when left(fy,4) = 'FY (' then fy
@@ -14,7 +14,7 @@ else ('FY' || ' ' || '(' || split_part(fy, ' ', 2) || ')')
 end as financial_year
 
 from sub2
-left join ds_mysql_prod_tagelement t2 on t2.id= sub2.evaluation_status
+--left join ds_mysql_prod_tagelement t2 on t2.id= sub2.evaluation_status
 --where row_id is not null
 
-group by projectid, financial_period,mtco2,evaluation_status, questiontext,fy_timerange,units,financial_year,t2.name
+group by projectid, financial_period,mtco2, questiontext,fy_timerange,units,financial_year,t2.name
