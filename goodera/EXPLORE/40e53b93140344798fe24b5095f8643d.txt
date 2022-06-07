@@ -1,0 +1,34 @@
+with sub1 as(
+  select p1.*
+  case
+  	when is_array(p1.indicator) = false or get_array_length(p1.indicator) then                        array(p1.indicator)
+  	else p1.indicator
+  end as indicator_new
+  from profile_55605 p1),
+  
+sub2 as(
+  select s1.*, indicator_605 from sub1 s1, s1.indicator_new indicator_605),
+  
+sub3 as(
+  select p2._id as id, s2.time_timerange as fy_timerange, p2.women_beneficiaries, p3.indicator, p4.country_new,
+ ('FY'||' '||extract(year from cast(s2.time_timerange.start as date))) as x_axis, p4.product_brand, p4.focus_area, p5.add_up_2
+from sub2 s2
+left join profile_55606 p2 on p2._id = s2.indicator_605
+left join profile_55604	p3 on p3._id = p2.indicator
+left join profile_63775 p4 on p4._id = p3.prog_name
+left join profile_78780 p5 on p5.name = (p3.indicator||'_'||extract(year from cast(s2.time_timerange.start as date)))),
+
+sub4 as(
+  select s3.*, add_up from sub3 s3, s3.add_up_2 add_up),
+  
+sub5 as(
+  select s4.id, s4.fy_timerange, s4.indicator, t1.name as country, t2.name as prod_brand, t3.name as focus_area, t4.name as add_up, s4.x_axis, s4.women_beneficiaries
+from sub4 s4
+left join ds_mysql_prod_tagelement t1 on t1.id = s4.country_new
+left join ds_mysql_prod_tagelement t2 on t2.id = s4.product_brand
+left join ds_mysql_prod_tagelement t3 on t3.id = s4.focus_area
+left join ds_mysql_prod_tagelement t4 on t4.id = s4.add_up
+where t4.name = 'Impacted' and s4.women_beneficiaries is not null
+group by s4.id, s4.fy_timerange, s4.indicator, t1.name, t2.name, t3.name, t4.name, s4.x_axis, s4.women_beneficiaries)
+
+select * from sub5
