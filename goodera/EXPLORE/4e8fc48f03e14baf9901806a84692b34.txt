@@ -5,5 +5,17 @@ left join ds_mysql_prod_tagelement t1 on t1.id= p1.financialPeriod
 where keyword='cdp_cc_c6_5_scope_3_emissions_data'),
 
 sub2 as(select *,temp.mtco2,temp.evaluation_status from sub1 s1, unpivot s1.datatablebase as temp at rows)
-sub3 as(select projectid, financial_period, mtco2,evaluation_status,questiontext, fy_timerange,('FY' || ' ' || split_part(financial_period, ' ', 2)) as fy,tablesettings
-from sub2),
+select projectid, financial_period, mtco2,evaluation_status,questiontext, fy_timerange,('FY' || ' ' || split_part(financial_period, ' ', 2)) as fy,tablesettings,
+case rows
+when 'mtco2' then cast(tablesettings."purchased_goods"."mtco2"."measureUnitBase" as VARCHAR)
+when 'evaluation_status' then cast(tablesettings."purchased_goods"."evaluation_status"."measureUnitBase" as VARCHAR)
+else null
+end as units,
+case 
+when left(fy,4) = 'FY (' then fy
+else ('FY' || ' ' || '(' || split_part(fy, ' ', 2) || ')')
+end as financial_year
+
+from sub2
+
+group by projectid, financial_period,mtco2,evaluation_status, questiontext,fy_timerange,units,financial_year
