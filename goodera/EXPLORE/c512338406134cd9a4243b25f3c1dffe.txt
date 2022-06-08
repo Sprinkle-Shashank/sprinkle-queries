@@ -29,9 +29,33 @@ on p.year = yr.id
  where lg_status = 847850 or lg_status is null  
 group by yr.name,lg_status,month
 order by year asc
+),
+table3 as ( select sum(p.pace_completion)as graduation, yr.name as year,p.lg_status,extract(month from p.date_of_completion)as month,
+ case when month in ('2', '3', '4')
+then '1st(Feb-Apr)'
+when month in ('5','6','7')
+then '2nd(May-Jul)'
+when month in ('8', '9', '10')
+then '3rd(Aug-Oct)'
+when month in ('11', '12',  '1')
+then '4th(Nov-Jan)'
+end as quarter  
+  
+  from profile_29179 p
+left join ds_mysql_prod_tagelement yr
+on p.year = yr.id
+ where lg_status = 847850 or lg_status is null  
+group by yr.name,lg_status,month
+order by year asc
+
+             
 )
 
-select year,quarter,'Enrollment' as dim , sum(enrollment) as val from table2
+
+/*select year,quarter,'Enrollment' as dim , sum(enrollment) as val from table2
+ group by year ,quarter,dim 
+union all*/
+select year,quarter,'Graduation' as dim , sum(graduation) as val from table3
  group by year ,quarter,dim 
 
 --select * from table1
