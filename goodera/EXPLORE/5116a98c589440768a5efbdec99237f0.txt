@@ -1,81 +1,28 @@
-with table1 as
+with table2 as 
 (
-  select * from profile_80433
-  ),
+select p.projectid, p.facility_status , facility.name as facility_status_update , case when facility_status_update='Active' then 'Active' else 'Deactive' end as Active_Filter , goodera_facility_name_text from profile_68161 as p
   
-  table2 as
-  ( select * from profile_80429 ),
-  
-  table3 as
-  ( select p._id , pro.name as projectId,ngo.name as ngo ,schedule.name as schedule_7, local.name as local_yn,impdir.name as imp_direct, substring(project_start_date,1,10) as project_start_date , csr_reg_num, ong.name as ongoing , project_end_date,pst.name as past, cumulative, cumulative_allocated,   p.fy_timerange  , p1.fy_timerange as fy_disbursed, sum(p1.amount) as disbursed ,
+left join ds_mysql_prod_tagelement facility 
+on p.facility_status = facility.id
+)
 
-case when p.fy_timerange = fy_disbursed then 1
-	 else 0
-	end as fy_match ,
+  select case when nvl2(SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), ven.name)='' then ven.name else nvl2(SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), ven.name) end as vendor ,  cou.name as country ,
+SUBSTRING(to_char(date_1, 'DD/MM-YYYY'), POSITION('-' in to_char(date_1, 'DD/MM-YYYY'))+1,4 ) as year,
+num_female, num_male, prospect_female,  total_supervisors, total_other_participants, prospect_total, prospect_male , t2.Active_Filter , trainer_org as trainer_organization 
+from profile_64075 as p
 
-case when ongoing = 1683663 then 'Ongoing'
-	 else 'Completed'
-	end as status ,	
-	
-	
+left join ds_mysql_prod_project fac
+on p.projectid = fac.id
 
-concat(
-  
-	concat(concat(extract (day from project_start_date),'-'), 
- 			concat(extract (month from  project_start_date),'-')),
-	concat(concat(concat(extract( year from project_start_date),
-						       concat(' ' ,concat( 'to',' '))),
-				  concat(extract (day from project_end_date),'-')),
-		   concat(concat(extract(month from project_end_date),'-'),
-                  extract (year from project_end_date )))) 
-				  
-	as duration , p.projectid_dkl , initcap(ent.name) as entity	
-	
-   from profile_80433 as p
-   
-left join profile_80429  p1
-on p.projectid = p1.projectid
- 
-left join ds_mysql_prod_tagelement ent 
-on p.entity = ent.id
+left join ds_mysql_prod_project ven
+on fac.parent = ven.id
 
-left join ds_mysql_prod_tagelement schedule
-on p.schedule_7 = schedule.id
+left join ds_mysql_prod_project cou
+on ven.parent = cou.id
 
-left join ds_mysql_prod_tagelement local
-on p.local_yn = local.id
+left join table2 t2 on 
+fac.name = t2.goodera_facility_name_text
 
-left join ds_mysql_prod_tagelement impdir
-on p.imp_direct = impdir.id
+where p.projectId not in (54835,54832,31299, 31303) and p.projectid like '%%'
 
-left join ds_mysql_prod_tagelement ong 
-on p.ongoing = ong.id
-
-left join ds_mysql_prod_tagelement pst
-on p.past = pst.id
-
-left join ds_mysql_prod_project pro 
-on p.projectId = pro.id
-
-left join ds_mysql_prod_project ngo 
-on pro.parent = ngo.id
-
-  
-  group by  
-   
-   pro.name , ngo.name ,schedule.name , local.name , impdir.name , project_start_date , csr_reg_num,  ong.name  , ongoing ,  project_end_date, pst.name, cumulative, cumulative_allocated,   p.fy_timerange  , fy_disbursed , fy_match , status , p.entity , projectid_dkl , duration , ent.name , p._id )
-  
-  select * from table3
-  
-  /*
-  
-   pro.name , ngo.name ,schedule.name , local.name , impdir.name , project_start_date , csr_reg_num,  ong.name  , ongoing ,  project_end_date, pst.name, cumulative, cumulative_allocated,   p.fy_timerange  , fy_disbursed , fy_match , status , p.entity , projectid_dkl , duration , ent.name
-  
-  
-  
-  
-  
-  
-   pro.name,ngo.name, schedule.name,local.name,impdir.name,ong.name, local_yn, imp_direct, project_start_date , csr_reg_num, ongoing , project_end_date,pst.name,cumulative,cumulative_allocated , p.fy_timerange,p1.fy_timerange , p.projectid_dkl , ent.name 
- 
-   */
+group by  vendor ,   country , year, prospect_female,  total_supervisors, total_other_participants, prospect_total, prospect_male , t2.Active_Filter , trainer_organization 
