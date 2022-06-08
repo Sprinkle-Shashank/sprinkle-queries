@@ -1,42 +1,65 @@
-with test1 as (
-    select fy_timerange, projectid, 'NEW' as search_status, tag1.name as clinic_type,g_total_new as final_sum from profile_63885 
-      left join ds_mysql_prod_tagelement tag1
-    on tag1.id = profile_63885.clinic_type
-      where tag1.name != 'OPD'
-          union all
-      select fy_timerange, projectid, 'RENEW' as search_status, tag1.name as clinic_type,g_total_renew as final_sum from profile_63885
-      left join ds_mysql_prod_tagelement tag1
-    on tag1.id = profile_63885.clinic_type
-      where tag1.name != 'OPD'
-          union all
-      select fy_timerange, projectid, 'REVISIT' as search_status, tag1.name as clinic_type,g_total_repeat as final_sum from         
-      profile_63885
-      left join ds_mysql_prod_tagelement tag1
-    on tag1.id = profile_63885.clinic_type
-      where tag1.name != 'OPD'
+with lookup as (select 
+				p.taskuserid, p._id, p.status, p.active, p.organizationid, p.data, p.projectid, p.profileid,p.programid, taskuser.programuserid,
+				taskuser.taskid 
+				from ds_mongo_taskresponse p
+								
+left join ds_mysql_prod_taskuser taskuser on
+taskuser.id = p.taskuserid
+
 ),
-test2 as (
-    select concat(p.f_reg_date,concat('|',p.f_reg_date)) as fy_timerange, projectid, f_category,
-      tag1.name as s_clinic_type,search_status
-      from profile_59462 p
-      left join ds_mysql_prod_tagelement tag1
-    on tag1.id = p.s_clinic_type
+
+lookup1 as (select 
+				p.taskid, p._id, p.status, p.active, p.organizationid, p.data, p.projectid,  p.programuserid, 
+				task.flowtaskid,
+			programuser.profileid,
+			programuser.programid 
+				from lookup p
+				
+				
+left join ds_mysql_prod_task task on
+task.id = p.taskid
+						
+left join ds_mysql_prod_programuser programuser on
+programuser.id = p.programuserid
+			
+left join ds_mysql_prod_programuser programuser1 on
+programuser1.id = p.programuserid
 ),
-final as (
-      select concat(cast(fy_timerange.start as varchar), concat('|', cast(fy_timerange.end as varchar))) as fy_timerange, projectid, search_status,clinic_type,
-    sum(final_sum) as final_sum
-      from test1 where final_sum is not null
-      group by 1,2,3,4
+
+lookup2 as (select 
+			p._id, p.status, p.active, p.organizationid, p.data, p.flowtaskid, p.projectid, p.profileid,p.programid,
+			flowtask.sectionid
+			from lookup1 p
+ 			
+left join ds_mysql_prod_flowtask flowtask on 
+flowtask.id = p.flowtaskid			
+),
+
+lookup3 as (select 
+			p._id, p.status, p.active, p.organizationid, p.data, flowtaskid, sectionid, 
+			section.profileid, section.name,p.projectid,p.programid
+			from lookup2 p
   
-      union all
-  
-      select fy_timerange, projectid, s_clinic_type,search_status, 
-      count(*) as final_sum
-      from test2 where search_status = 'm'
-      group by 1,2,3,4
+left join ds_mysql_prod_section section on
+section.id = p.sectionid		
 )
 
-select fy_timerange, project.name as projectid, search_status,sum(final_sum) as final_sum
-from final left join ds_mysql_prod_project as project
-on project.id = final.projectid where projectid like '%'
-group by 1,2,3
+select _id,substring(cast(p.data.date_of_reg as date),1,10) as date_of_reg, p1.name as projectid,p2.name as programid, p.name, organizationid, p.data, p.data.age, p.data.email,p.data.comments,p.data.dob ,t.name as gender ,p.data.mobile_no ,p.data.mobile_number_2 ,p.data.fam_size ,p.data.fam_head ,p.data.fam_occ ,p.data.fam_income , t3.name as city_of_job ,t1.name state ,t2.name district ,t4.name placed ,substring(cast(p.data.date_of_placement as date),1,10) as date_of_placement ,t5.name as role_after_placement ,p.data.trainee_name, flowtaskid, sectionid, p.profileid, status, p.active
+from lookup3 p 
+left join ds_mysql_prod_tagelement t
+ON t.id=p.data.gender
+left join ds_mysql_prod_tagelement t1
+ON t1.id=p.data.state
+left join ds_mysql_prod_tagelement t2
+ON t2.id=p.data.district
+left join ds_mysql_prod_tagelement t3
+ON t3.id=p.data.city_of_job
+left join ds_mysql_prod_tagelement t4
+ON t4.id=p.data.placed
+left join ds_mysql_prod_tagelement t5
+ON t5.id=p.data.role_after_placement
+left join ds_mysql_prod_project p1
+ON p1.id=p.projectid
+left join ds_mysql_prod_project p2
+ON p2.id=p.programid
+where (p.profileid = 145 or p.profileid = 36901) and status = 'REJECTED' and p.active = 't'
