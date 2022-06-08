@@ -1,5 +1,11 @@
-select p1.name as projectid,t1.name as financial_period,('FY' || ' ' || split_part(finanacial_period,' ',2)) as FY, sum(datanumbase) as Emission
+with sub1 as(select p1.name as projectid,t1.name as financial_period,('FY' || ' ' || split_part(finanacial_period,' ',2)) as FY, sum(datanumbase) as Emission,p1.fy_timerange,measureunitbase as units
+case 
+when keyword='gri_emission_r22_ozone_depleting' then 'R22/HCFC-22'
+when keyword='gri_ozone141b_monthly' then 'R - 141b'
+when keyword='gri_emission_r22_ozone_depleting' then 'Other Emissions'
+else null
 
 from sus_56551
 left join ds_mysql_prod_tagelement t1 on t1.id=p1.financialPeriod
-where keyword in ('gri_emission_r22_ozone_depleting', 'gri_ozone141b_monthly', 'gri_emission_other_ozone_depleting')
+where keyword in ('gri_emission_r22_ozone_depleting', 'gri_ozone141b_monthly', 'gri_emission_other_ozone_depleting')),
+
