@@ -1,3 +1,11 @@
+with temp as (
+  select 'Training_1' as col
+  union all
+   select 'Training_2' as col
+  union all
+   select 'Training_3' as col
+  ),
+  s1 as(
 select projectId, q1_timerange, a1, a2, a3, a4, a5, a6, a7, a8 , sum(a2+a3+a4) as total_participants,cast(q1_timerange.start as date) as start,extract(month from start) as month,extract(year from start) as years,
 Case 
 When month=1 then 'Q4'
@@ -13,8 +21,15 @@ When month=10 then 'Q3'
 When month=11 then 'Q3'
 When month=12 then 'Q3'
 Else 'No Data Entry'
-End as quarter, concat(years,quarter) as y
-from profile_60828  
+End as quarter, concat(years,quarter) as y,
+case col
+when 'Training_1' then a2
+when 'Training_2' then a3
+when 'Training_3' then a4
+else 0
+end as number,temp.col as Training
+from profile_60828 
+cross join temp
 where q1_timerange is not null
 
-group by projectId, q1_timerange, a1, a2, a3, a4, a5, a6, a7, a8,start,month,years,quarter,y
+group by projectId, q1_timerange, a1, a2, a3, a4, a5, a6, a7, a8,start,month,years,quarter,y)
