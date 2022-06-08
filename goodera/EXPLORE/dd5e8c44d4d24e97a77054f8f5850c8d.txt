@@ -1,5 +1,5 @@
 with lookup as (select 
-				p.taskuserid, p._id, p.status, p.active, p.organizationid, p.data, p.projectid, p.profileid,
+				p.taskuserid, p._id, p.status, p.active, p.organizationid, p.data, p.projectid, p.profileid,p.programid,
 				taskuser.taskid 
 				from ds_mongo_taskresponse p
 								
@@ -8,7 +8,7 @@ taskuser.id = p.taskuserid
 ),
 
 lookup1 as (select 
-				p.taskid, p._id, p.status, p.active, p.organizationid, p.data, p.projectid, p.profileid,
+				p.taskid, p._id, p.status, p.active, p.organizationid, p.data, p.projectid, p.profileid,p.programid,
 				task.flowtaskid
 				from lookup p
 				
@@ -18,7 +18,7 @@ task.id = p.taskid
 ),
 
 lookup2 as (select 
-			p._id, p.status, p.active, p.organizationid, p.data, p.flowtaskid, p.projectid, p.profileid,
+			p._id, p.status, p.active, p.organizationid, p.data, p.flowtaskid, p.projectid, p.profileid,p.programid,
 			flowtask.sectionid
 			from lookup1 p
  			
@@ -28,14 +28,14 @@ flowtask.id = p.flowtaskid
 
 lookup3 as (select 
 			p._id, p.status, p.active, p.organizationid, p.data, flowtaskid, sectionid, 
-			section.profileid, section.name,p.projectid, p.profileid
+			section.profileid, section.name,p.projectid, p.profileid,p.programid
 			from lookup2 p
   
 left join ds_mysql_prod_section section on
 section.id = p.sectionid		
 )
 
-select _id,projectid, p.name, organizationid, p.data, p.data.age, p.data.email,p.data.comments,p.data.dob ,t.name as gender ,p.data.mobile_no ,p.data.mobile_number_2 ,p.data.fam_size ,p.data.fam_head ,p.data.fam_occ ,p.data.fam_income , t3.name as city_of_job ,t1.name state ,t2.name district ,t4.name placed ,p.data.date_of_placement ,t5.name as role_after_placement ,p.data.trainee_name, flowtaskid, sectionid, profileid, status, p.active,program
+select _id,p.projectid,p.programid, p.name, organizationid, p.data, p.data.age, p.data.email,p.data.comments,p.data.dob ,t.name as gender ,p.data.mobile_no ,p.data.mobile_number_2 ,p.data.fam_size ,p.data.fam_head ,p.data.fam_occ ,p.data.fam_income , t3.name as city_of_job ,t1.name state ,t2.name district ,t4.name placed ,p.data.date_of_placement ,t5.name as role_after_placement ,p.data.trainee_name, flowtaskid, sectionid, p.profileid, status, p.active,program
 from lookup3 p 
 left join ds_mysql_prod_tagelement t
 ON t.id=p.data.gender
