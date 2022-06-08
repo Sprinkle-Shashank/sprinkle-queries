@@ -1,0 +1,32 @@
+with table1 as (select  yr.name as year, period.name as reporting_period,sum(p2.target_ind16)/ 2 as trgt  from profile_23116 as p2
+
+left join ds_mysql_prod_tagelement yr
+on p2.year_3 = yr.id
+
+left join ds_mysql_prod_tagelement period
+on p2.reporting_period_3 = period.id
+
+where target_ind16 is not null
+
+group by yr.name,period.name 
+
+order by year asc),first_half as (select '1st(Feb-Apr)' as quarter 
+		   union all
+		   select '2nd(May-Jul)' as quarter 
+           ),
+second_half as (		   
+		   select '3rd(Aug-Oct)' as quarter
+		   Union all
+           select all '4th(Nov-Jan)' as quarter)
+
+/*select t1.year,t1.reporting_period,t1.trgt, t3.quarter from table1 t1
+
+cross join first_half t3 
+where t1.reporting_period ilike '%Feb-July%' or null 
+order by year asc*/
+
+select t1.year,t1.reporting_period,t1.trgt, t3.quarter from table1 t1
+
+cross join second_half t3 
+where t1.reporting_period ilike '%Aug-Jan%' or null 
+order by year asc
