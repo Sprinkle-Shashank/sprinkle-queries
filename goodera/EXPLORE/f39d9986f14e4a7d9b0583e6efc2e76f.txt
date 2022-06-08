@@ -1,1 +1,25 @@
-select photo, description from profile_55805
+WITH sub1 AS (
+  
+  SELECT S.fy_timerange, S.title, S.photo, S.file, S.description
+  P.name AS projectid,
+  P1.name AS partner,
+  P2.name AS projects
+  
+  FROM profile_55805 AS S
+  
+  LEFT JOIN ds_mysql_prod_project AS P
+  ON S.projectid = P.id
+  
+  LEFT JOIN ds_mysql_prod_tagelement AS P1
+  ON S.partner = P1.id
+  
+  LEFT JOIN ds_mysql_prod_tagelement AS P2
+  ON S.projects = P2.id
+)
+
+SELECT s1.*,
+CAST(photos_unwind AS VARCHAR)
+
+FROM sub1 AS s1, s1.photo AS photos_unwind
+
+ORDER BY fy_timerange DESC
