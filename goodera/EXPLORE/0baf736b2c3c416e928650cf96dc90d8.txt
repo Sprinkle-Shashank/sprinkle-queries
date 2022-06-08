@@ -1,5 +1,5 @@
 with s as (
-Select t.name as projectid,substring(finperiod,strpos(finperiod, ' ')+2,7) as year, datatablebase
+Select t.name as projectid,substring(finperiod,strpos(finperiod, ' ')+2,7) as year, fy_timerange,datatable
 
 from sus_79029
 left join ds_mysql_prod_project t
@@ -7,11 +7,11 @@ on xprojectid=t.id
 where keyword='reduction_initiative_2'
 ),
 s2 as (
-Select  projectid , year ,coun.fuel_or_electric,coun.fuel_type,coun.reduction_initiative,coun.describe_fuel_electricity,coun.energy_savings,coun.energy_savings_unit,coun.cost_savings
+Select  projectid , year ,fy_timerange,coun.fuel_or_electric,coun.fuel_type,coun.reduction_initiative,coun.describe_fuel_electricity,coun.energy_savings,coun.energy_savings_unit,coun.cost_savings
 from s as p, unpivot p.datatablebase as coun at xyz
   ),
   s3 as (
-  Select  projectid , year ,t.name as fuel,energy_savings,t1.name as fuel_type
+  Select  projectid , year ,fy_timerange,t.name as fuel,energy_savings,t1.name as fuel_type
  
 from s2
 left join ds_mysql_prod_tagelement t
@@ -20,6 +20,6 @@ left join ds_mysql_prod_tagelement t1
 on t1.id=fuel_type
 where t.name='Electricity'
 )
-Select projectid, year, fuel, energy_savings /1000 as energy_Saved from s3
+Select projectid, year, fuel,fy_timerange, energy_savings /1000 as energy_Saved from s3
   
 
