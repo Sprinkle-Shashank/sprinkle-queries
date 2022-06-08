@@ -1,10 +1,11 @@
 with sub1 as (
-select p.name as projectId, sched7, spoc_name, location, project_duration, logo_image, project_descrip, project_name, spoc_email, project_status, fy_timerange, budget_approved, bene_num, spoc_number, a.name from profile_41363 a
+select p.name as projectId, sched7, spoc_name, location, project_duration, logo_image, project_descrip, project_name, spoc_email, project_status, fy_timerange, budget_approved, bene_num, spoc_number, a.name
+  from profile_41363 a
 left join ds_mysql_prod_project p
   on p.id=projectid),
 sub2 as (
   select projectId, fy_timerange, name, array(listagg(distinct name,',')) as Name1 from sub1 group by projectId, fy_timerange, name),
   sub3 as(
-	select projectId, fy_timerange, Name11 from sub2 a, a.Name1 Name11)
+	select 'value' as parent, projectId, fy_timerange, Name11 from sub2 a, a.Name1 Name11)
 	select projectId, rtrim(ltrim(json_serialize(Name11),'"'),'"') as Name, fy_timerange, count(*), case when projectId in ('Prasanna Trust', 'Kashtakari Panchayat', 'Shishu Mandir', 'SOUL', 'Narayanaamruta Medicare Foundation', 'SGBS Unnati Foundation','Makkala Jagariti', 'Reefwatch Marine Conservation', 'Nirvanavan Foundation', 'Win over cancer', 'Vipasana', 'Selco Foundation', 'CII Foundation', 'Disha') then 'Short-Term Projects' when projectId in ('Omashram Trust', 'One Billion Literates', 'Cuddles Foundation', 'Rainbow Homes (ANC Rainbow Homes)', 'Rainbow Homes (Bosco Rainbow Homes)', 'Rainbow Homes (Sanrakshan Rainbow Homes)','CUPA', 'Parikrma Foundation','Other Projects') then 'Long-Term Projects' else 'Other Projects' end as choose from sub3 group by projectId, Name, fy_timerange
   
