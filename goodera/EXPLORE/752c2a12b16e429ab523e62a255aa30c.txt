@@ -14,9 +14,14 @@ table1 as (
 from table0 as p, unpivot p.datatable as coun at xyz
   
   
-)
-select projectid ,fy_timerange, year,t.name as  fuel_type, fuel_consumed as fuel_consumed from table1
+),
+t11 as (
+select projectid ,fy_timerange, year,t.name as  fuel_type, fuel_consumed/1000 as fuel_consumed from table1
 left join ds_mysql_prod_tagelement t
 on t.id=fuel_type
 where t.name='Co2 type (Kg)'
-  
+ )
+ select projectid ,fy_timerange, year,case 
+  when fuel_type='Co2 type (Kg)' then 'Fire Extinguisher'
+  else null
+  end as fuel_type, fuel_consumed from t11
