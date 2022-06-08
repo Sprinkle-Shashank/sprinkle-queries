@@ -1,2 +1,35 @@
-select projectId, q1_timerange,ta2 as training1,ta3 as training2, ta4 as training3,sum(training1+training2+training3) as total from profile_60834
-group by projectId,q1_timerange,ta2,ta3,ta4
+with temp as (
+  select 'Training_1' as col
+  union all
+   select 'Training_2' as col
+  union all
+   select 'Training_3' as col
+  ),
+  s1 as(
+select projectId, q1_timerange, ta1, ta2, ta3, ta4, ta5, ta6, ta7, ta8 , sum(ta2+ta3+ta4) as total_participants,cast(q1_timerange.start as date) as start,extract(month from start) as month,extract(year from start) as years,
+Case 
+When month=1 then 'Q4'
+When month=2 then 'Q4'
+When month=3 then 'Q4'
+When month=4 then 'Q1'
+When month=5 then 'Q1'
+When month=6 then 'Q1'
+When month=7 then 'Q2'
+When month=8 then 'Q2'
+When month=9 then 'Q2'
+When month=10 then 'Q3'
+When month=11 then 'Q3'
+When month=12 then 'Q3'
+Else 'No Data Entry'
+End as quarter, concat(years,quarter) as y,
+case col
+when 'Training_1' then ta2
+when 'Training_2' then ta3
+when 'Training_3' then ta4
+else 0
+end as number,temp.col as Training
+from profile_60828 
+cross join temp
+where q1_timerange is not null
+
+group by projectId, q1_timerange, ta1, ta2, ta3, ta4, ta5, ta6, ta7, ta8,start,month,years,quarter,y)
