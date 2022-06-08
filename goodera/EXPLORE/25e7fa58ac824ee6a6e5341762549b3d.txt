@@ -9,7 +9,7 @@ taskuser.id = p.taskuserid
 
 lookup1 as (select 
 				p.taskid, p._id, p.status, p.active, p.organizationid, p.data, p.programuserid, 
-				task.flowtaskid, 
+				task.flowtaskid, task.projectflowid, 
 			    programuser.programid 
 				from lookup p
 				
@@ -22,16 +22,20 @@ programuser.id = p.programuserid
 ),
 
 lookup2 as (select 
-			p._id, p.status, p.active, p.organizationid, p.data, p.flowtaskid, p.programid, 
-			flowtask.sectionid
+			p._id, p.status, p.active, p.organizationid, p.data, p.flowtaskid, p.projectflowid, 			p.programid, 
+			flowtask.sectionid,
+			projectflow.projectid
 			from lookup1 p
  			
 left join ds_mysql_prod_flowtask flowtask on 
-flowtask.id = p.flowtaskid			
+flowtask.id = p.flowtaskid	
+			
+left join ds_mysql_prod_projectflow projectflow on 
+projectflow.id = p.projectflowid
 ),
 
 lookup3 as (select 
-			p._id, p.status, p.active, p.organizationid, p.data, flowtaskid, p.programid, 				sectionid, 
+			p._id, p.status, p.active, p.organizationid, p.data, flowtaskid, p.programid, 				sectionid, p.projectid, 
 			section.profileid, section.name
 			from lookup2 p
   
@@ -39,6 +43,6 @@ left join ds_mysql_prod_section section on
 section.id = p.sectionid		
 )
 
-select _id, p.name, organizationid, p.data, p.data.age, p.data.email,p.data.comments,p.data.dob ,p.data.gender ,p.data.mobile_no ,p.data.mobile_number_2 ,p.data.fam_size ,p.data.fam_head ,p.data.fam_occ ,p.data.fam_income , p.data.city_of_job ,p.data.state ,p.data.district ,p.data.placed ,p.data.date_of_placement ,p.data.role_after_placement ,p.data.trainee_name, flowtaskid, programid, sectionid, profileid, status, active
+select _id, p.name, organizationid, p.data, p.data.age, p.data.email,p.data.comments,p.data.dob ,p.data.gender ,p.data.mobile_no ,p.data.mobile_number_2 ,p.data.fam_size ,p.data.fam_head ,p.data.fam_occ ,p.data.fam_income , p.data.city_of_job ,p.data.state ,p.data.district ,p.data.placed ,p.data.date_of_placement ,p.data.role_after_placement ,p.data.trainee_name, flowtaskid, programid, sectionid, projectid, profileid, status, active
 from lookup3 p 
 where (profileid = 145 or profileid = 36901) and status = 'REJECTED'
