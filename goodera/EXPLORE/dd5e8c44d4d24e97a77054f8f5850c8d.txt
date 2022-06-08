@@ -1,5 +1,5 @@
 with lookup as (select 
-				p.taskuserid, p._id, p.status, p.active, p.organizationid, 
+				p.taskuserid, p._id, p.status, p.active, p.organizationid, p.data, 
 				taskuser.taskid 
 				from ds_mongo_taskresponse p
 								
@@ -8,7 +8,7 @@ taskuser.id = p.taskuserid
 ),
 
 lookup1 as (select 
-				p.taskid, p._id, p.status, p.active, p.organizationid,  
+				p.taskid, p._id, p.status, p.active, p.organizationid, p.data, 
 				task.flowtaskid
 				from lookup p
 				
@@ -18,7 +18,7 @@ task.id = p.taskid
 ),
 
 lookup2 as (select 
-			p._id, p.status, p.active, p.organizationid, p.flowtaskid, 
+			p._id, p.status, p.active, p.organizationid, p.data, p.flowtaskid, 
 			flowtask.sectionid
 			from lookup1 p
  			
@@ -27,7 +27,7 @@ flowtask.id = p.flowtaskid
 ),
 
 lookup3 as (select 
-			p._id, p.status, p.active, p.organizationid, flowtaskid, sectionid, 
+			p._id, p.status, p.active, p.organizationid, p.data, flowtaskid, sectionid, 
 			section.profileid, section.name
 			from lookup2 p
   
@@ -35,6 +35,6 @@ left join ds_mysql_prod_section section on
 section.id = p.sectionid		
 )
 
-select _id, p.name, today_date, p.organizationid, flowtaskid, sectionid, profileid, status, active
+select _id, p.name, organizationid, p.data, p.data.age, p.data.email,p.data.comments,p.data.dob ,p.data.gender ,p.data.mobile_no ,p.data.mobile_number_2 ,p.data.fam_size ,p.data.fam_head ,p.data.fam_occ ,p.data.fam_income , p.data.city_of_job ,p.data.state ,p.data.district ,p.data.placed ,p.data.date_of_placement ,p.data.role_after_placement ,p.data.trainee_name, flowtaskid, sectionid, profileid, status, active
 from lookup3 p 
 where (profileid = 145 or profileid = 36901) and status = 'REJECTED' and active = 't'
