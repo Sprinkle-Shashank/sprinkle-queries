@@ -1,15 +1,16 @@
 with lookup as (select 
-				p.taskuserid, p._id, p.status, p.active, p.organizationid, p.data, p.projectid, p.profileid,p.programid, taskuser.programuserid,
+				p.taskuserid, p._id, p.status, p.active, p.organizationid, p.data, p.projectid, p.profileid,p.programid, taskuser.programuserid, p.profileinstanceid,p.status,approval."approverEmail" as email, approval,
+				
 				taskuser.taskid 
-				from ds_mongo_taskresponse p
-	
+				from ds_mongo_taskresponse p, p.approvallog approval
 								
 left join ds_mysql_prod_taskuser taskuser on
 taskuser.id = p.taskuserid
+GROUP BY p._id
 ),
 
 lookup1 as (select 
-				p.taskid, p._id, p.status, p.active, p.organizationid, p.data, p.programuserid, task.projectflowid,
+				p.taskid, p._id, p.status, p.active, p.organizationid, p.data, p.programuserid, task.projectflowid, p.ap1,
 				task.flowtaskid, 
 			programuser.programid 
 				from lookup p
@@ -25,7 +26,7 @@ programuser.id = p.programuserid
 ),
 
 lookup2 as (select 
-			p._id, p.status, p.active, p.organizationid, p.data, p.flowtaskid, p.programid,p.projectflowid,
+			p._id, p.status, p.active, p.organizationid, p.data, p.flowtaskid, p.programid,p.projectflowid,p.ap1,
 			flowtask.sectionid,
 			projectflow.projectid
 			from lookup1 p
@@ -39,29 +40,11 @@ projectflow.id = p.projectflowid
 
 lookup3 as (select 
 			p._id, p.status, p.active, p.organizationid, p.data, flowtaskid, sectionid, 
-			section.profileid, section.name,p.projectid,p.programid
+			section.profileid, section.name,p.projectid,p.programid,p.ap1
 			from lookup2 p
   
 left join ds_mysql_prod_section section on
 section.id = p.sectionid		
 )
 
-select _id,substring(cast(p.data.date_of_reg as date),1,10) as date_of_reg, p1.name as projectid,p2.name as programid, p.name, organizationid, p.data, p.data.age, p.data.email,p.data.comments,p.data.dob ,t.name as gender ,p.data.mobile_no ,p.data.mobile_number_2 ,p.data.fam_size ,p.data.fam_head ,p.data.fam_occ ,p.data.fam_income , t3.name as city_of_job ,t1.name state ,t2.name district ,t4.name placed ,substring(cast(p.data.date_of_placement as date),1,10) as date_of_placement ,t5.name as role_after_placement ,p.data.trainee_name, flowtaskid, sectionid, p.profileid, status, p.active
-from lookup3 p 
-left join ds_mysql_prod_tagelement t
-ON t.id=p.data.gender
-left join ds_mysql_prod_tagelement t1
-ON t1.id=p.data.state
-left join ds_mysql_prod_tagelement t2
-ON t2.id=p.data.district
-left join ds_mysql_prod_tagelement t3
-ON t3.id=p.data.city_of_job
-left join ds_mysql_prod_tagelement t4
-ON t4.id=p.data.placed
-left join ds_mysql_prod_tagelement t5
-ON t5.id=p.data.role_after_placement
-left join ds_mysql_prod_project p1
-ON p1.id=p.projectid
-left join ds_mysql_prod_project p2
-ON p2.id=p.programid
-where (p.profileid = 145 or p.profileid = 36901) and status = 'REJECTED' and p.active = 't'
+Select * from lookup3
