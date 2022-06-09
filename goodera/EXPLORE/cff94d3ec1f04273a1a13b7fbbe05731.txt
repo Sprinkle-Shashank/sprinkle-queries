@@ -1,4 +1,4 @@
-select projectId, SUBSTRING(CAST(p.time_period_timerange.start as CHAR(256)),1,4) as time  , case when month_ytd in  ('2','3' , '4')
+with tabale1 as (select projectId, SUBSTRING(CAST(p.time_period_timerange.start as CHAR(256)),1,4) as time  , case when month_ytd in  ('2','3' , '4')
 then 'Q1'
 when month_ytd in ('5' ,'6' , '7')
 then 'Q2'
@@ -16,7 +16,7 @@ reg.name as region,reg_parent.name as region_global,  ver.name as  vertical , ho
 		   else
 		   reg.name
 		   END AS reg_new
-		   , reftag.code from profile_59545 p
+		    from profile_59545 p
 
 left join ds_mysql_prod_tagelement ver
 on p.vertical = ver.id
@@ -26,8 +26,12 @@ on p.region = reg.id
 left join ds_mysql_prod_tagelement reg_parent
 on reg.parent = reg_parent.id	   
 
-left join ds_mongo_reftagelementmetadata reftag
-		 on p.reg_new = reftag.name 
+
   
 
-group by reg_parent.name, reg.name ,  site_region, ver.name, dart_incident, lost_time_incidents, recordable_incidents, month_ytd , p.projectId  ,  p.time_period_timerange , p.hours_worked , month_ytd
+group by reg_parent.name, reg.name ,  site_region, ver.name, dart_incident, lost_time_incidents, recordable_incidents, month_ytd , p.projectId  ,  p.time_period_timerange , p.hours_worked , month_ytd)
+
+
+select * , reftag.code from table1 
+ left join ds_mongo_reftagelementmetadata reftag
+		 on table1.reg_new = reftag.name 
