@@ -1,4 +1,4 @@
-Select p.time_period_timerange,CAST(p.time_period_timerange.start as date) as timerange,ver.name as vertical, reg.name as region,reg_parent.name as region_global, category.name as category_ehs, p.act_category, p.site_region, p.emission_scope,  p.s_c_act_type, activity.name as activity_output,source.name as energy_by_source, unit.name as output_unit,Sum(p.output_value) as total_energy  from profile_58283 p
+Select p.time_period_timerange,CAST(p.time_period_timerange.start as date) as timerange,ver.name as vertical, reg.name as region,reg_parent.name as region_global, category.name as category_ehs, p.act_category, site.name as site_region, scope.name as emission_scope,  p.s_c_act_type, activity.name as activity_output,source.name as energy_by_source, unit.name as output_unit,Sum(p.output_value) as total_energy  from profile_58283 p
 
 
 Left join ds_mysql_prod_tagelement ver
@@ -16,6 +16,12 @@ on p.output_unit = unit.id
 Left join ds_mysql_prod_tagelement source
 on p.energy_by_source = source.id
 
+Left join ds_mysql_prod_tagelement site
+on p.site_region = site.id
+
+Left join ds_mysql_prod_tagelement scope
+on p.emission_scope = scope.id
+
 Left join ds_mysql_prod_tagelement reg
 on p.region = reg.id
 
@@ -24,5 +30,5 @@ on reg.parent = reg_parent.id
 
 where unit.name = 'MWh'
 
-group by time_period_timerange,ver.name,reg.name,reg_parent.name,category.name,p.act_category, p.site_region, p.emission_scope,p.s_c_act_type, activity.name,unit.name,source.name
+group by time_period_timerange,ver.name,reg.name,reg_parent.name,category.name,p.act_category, site.name, scope.name,p.s_c_act_type, activity.name,unit.name,source.name
 			
