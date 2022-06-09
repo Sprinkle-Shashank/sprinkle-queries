@@ -1,35 +1,38 @@
+
 with sub1 as(
-  select p1.*,
-cast(timestamp 'epoch' + CAST(p1.eventdate AS BIGINT)/1000 * interval '1 second' as datetime) as event_date,
-cast(timestamp 'epoch' + CAST(p1.created AS BIGINT)/1000 * interval '1 second' as datetime) as create_date,
-is_array(p1.focus_area) as array_check,
-case
-	when array_check = false then array(p1.focus_area)
-	else p1.focus_area
-end as focus_area_new
-from profile_26729 p1),
+  select p1.id as event_id, p2.startdate as start_date, nvl(p2.enddate, p2.startdate) as end_date, INITCAP(p2.countryname) as country, p4.created as participation_date, cast(p4.duration as float) as duration, p1.opportunityType
+from ds_mysql_prod_empOpportunity p1
+LEFT JOIN ds_mysql_prod_empVolunteeringOpportunity p2 ON p2.empOpportunityId = p1.id
+LEFT JOIN ds_mysql_prod_empVolunteeringApplication p3 ON p3.empVolunteeringOpportunityId = p2.id
+LEFT JOIN ds_mysql_prod_empVolunteeringParticipation p4 ON p4.empVolunteeringApplicationId = p3.id
+where UPPER(p1.opportunityType) = 'VOL' and p1.securityContextId = 1615 and p4.active = 1 and p1.active = 1
+and p4.duration != 0 and p4.duration is not null),
 
 sub2 as(
-  select s1.*, (s1.event_date + interval '5.5 hour') as event_date_new,  (s1.create_date + interval '5.5 hour') as create_date_new, focus_area_1 from sub1 s1, s1.focus_area_new focus_area_1)
-  
-select s2._id as id, cast(nvl(s2.event_date_new, s2.create_date_new) as date) as start_date,
-cast(nvl(s2.event_date_new, s2.create_date_new) as date) as end_date,
+  select p5.id as event_id, p6.created as start_date, p6.created as end_date, 
+(cast(p6.timetaken as float)/60) as duration, cast(NULL as varchar) as country, p7.created as participation_date, p5.opportunityType
+from ds_mysql_prod_empOpportunity p5
+LEFT JOIN ds_mysql_prod_empMicroOpportunity p6 ON p6.empOpportunityId = p5.id
+LEFT JOIN ds_mysql_prod_empMicroContributor p7 ON p7.empMicroOpportunityId = p6.id 
+where UPPER(p5.opportunityType) = 'MIC' and p5.securityContextId = 1615 and p5.active = 1 and p7.active = 1 
+and p6.timetaken is not null and p6.timetaken != 0),
 
-case
-	when t1.name is not null then t1.name
-	when t1.name is null and t2.name is not null then t2.name
-	else 'Others'
-end as focus_area,
+sub3 as(
+  select event_id, start_date, participation_date, end_date, country, duration, opportunityType from sub1
+	UNION ALL
+  select event_id, start_date, participation_date, end_date, country, duration, opportunityType from sub2),
 
-case
-	when s2.country is not null or s2.officecountry is not null 
-	then nvl(INITCAP(s2.officecountry), INITCAP(s2.country))
-	else 'Global'
-end as country,
+sub4 as(
+  select s3.event_id, nvl(p9.name, 'Others') as focus_area, s3.opportunityType,
+nvl(s3.country, INITCAP(p10.country), 'Global') as country,
+cast(timestamp 'epoch' + CAST(s3.start_date AS BIGINT)/1000 * interval '1 second' as date) as start_date,
+cast(timestamp 'epoch' + CAST(s3.end_date AS BIGINT)/1000 * interval '1 second' as date) as end_date,
+cast(timestamp 'epoch' + CAST(s3.participation_date AS BIGINT)/1000 * interval '1 second' as date) as participation_date, s3.duration
+from sub3 s3
+LEFT JOIN ds_mysql_prod_empOpportunityFocusArea p8 ON p8.empOpportunityId = s3.event_id
+LEFT JOIN ds_mysql_prod_refFocusArea p9 ON p9.id = p8.focusArea
+LEFT JOIN ds_mysql_prod_empOpportunityVisibility p10 ON p10.empOpportunityId = s3.event_id)
 
-sum(s2.hours_contributed) as hours
-from sub2 s2
-left join ds_mysql_prod_refFocusArea t1 on t1.id = s2.focus_area_1
-left join ds_mysql_prod_tagElement t2 on t2.id = s2.focus_area_2
-where s2.hours_contributed is not null and s2.hours_contributed != 0
-group by s2._id, start_date, end_date, t1.name, s2.country, s2.officecountry, t2.name
+select s4.event_id, s4.start_date, s4.participation_date, s4.end_date, s4.country, s4.focus_area, s4.opportunityType, sum(s4.duration) as vol_hours
+from sub4 s4
+group by s4.event_id, s4.start_date, s4.participation_date, s4.end_date, s4.country, s4.focus_area, s4.opportunityType
