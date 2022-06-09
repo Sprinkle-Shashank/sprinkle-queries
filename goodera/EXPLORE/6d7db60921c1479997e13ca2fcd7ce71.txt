@@ -1,80 +1,35 @@
 with sub1 as(
-  select p1._id as id, p1.cdms_factory_id, p2.cr_tier, p2.curr_cr_rating, p2.region, p2.source_div, p2.timeperiod_timerange, p1.case_status, 
-p1.timeperiod_timerange as fy_timerange, 
-extract(year from cast(p1.timeperiod_timerange.start as date)) as year,
-
-p1.country_1_number_of_workers_received_payment, p1.country_2_number_of_workers_received_payment, p1.country_3_number_of_workers_received_payment, p1.country_4_number_of_workers_received_payment, p1.country_5_number_of_workers_received_payment, p1.country_6_number_of_workers_received_payment, p1.country_7_number_of_workers_received_payment,
-
-p1.country_1_reimbursed_amount_per_worker_usd,  p1.country_2_reimbursed_amount_per_worker_usd,  p1.country_3_reimbursed_amount_per_worker_usd,  p1.country_4_reimbursed_amount_per_worker_usd,  p1.country_5_reimbursed_amount_per_worker_usd,  p1.country_6_reimbursed_amount_per_worker_usd, p1.country_7_reimbursed_amount_per_worker_usd,
-
-p1.country_1_median_fee_reported_usd, p1.country_2_median_fee_reported_usd, p1.country_3_median_fee_reported_usd, p1.country_4_median_fee_reported_usd, p1.country_5_median_fee_reported_usd, p1.country_6_median_fee_reported_usd, p1.country_7_median_fee_reported_usd,
-
-p1.country_1__migrant_workers_reported_paying_fees, p1.country_2__migrant_workers_reported_paying_fees, p1.country_3__migrant_workers_reported_paying_fees, p1.country_4__migrant_workers_reported_paying_fees, p1.country_5__migrant_workers_reported_paying_fees, p1.country_6__migrant_workers_reported_paying_fees, p1.country_7__migrant_workers_reported_paying_fees,
-
-row_number() over (partition  by p1._id order by p2.timeperiod_timerange.start desc) as row 
-
-from profile_74372 p1
-
-left join profile_60928 p2 on p2.factory_id = p1.cdms_factory_id
-
-where p1.cdms_factory_id is not null and p1.timeperiod_timerange is not null),
+  select p1.*,
+cast(timestamp 'epoch' + CAST(p1.eventdate AS BIGINT)/1000 * interval '1 second' as datetime) as event_date,
+cast(timestamp 'epoch' + CAST(p1.created AS BIGINT)/1000 * interval '1 second' as datetime) as create_date,
+is_array(p1.focus_area) as array_check,
+case
+	when array_check = false then array(p1.focus_area)
+	else p1.focus_area
+end as focus_area_new
+from profile_26729 p1),
 
 sub2 as(
-  select s1.*, country, source_div_new 
-  from sub1 s1, s1.region country, s1.source_div source_div_new
-  where s1.row = 1),
+  select s1.*, (s1.event_date + interval '5.5 hour') as event_date_new,  (s1.create_date + interval '5.5 hour') as create_date_new, focus_area_1 from sub1 s1, s1.focus_area_new focus_area_1)
   
-sub3 as(
-  select s2.id, s2.cdms_factory_id, nvl(t1.name, 'NULL') as cr_tier_new, 
-nvl(t2.name, 'NULL') as curr_cr_rating_new, t3.name as case_status, t4.name as country, t5.name as region, t6.name as source_div, nvl(t7.name, t6.name) as bus_div, s2.fy_timerange, s2.year,
+select s2._id as id, cast(nvl(s2.event_date_new, s2.create_date_new) as date) as start_date,
+cast(nvl(s2.event_date_new, s2.create_date_new) as date) as end_date,
 
-(s2.country_1_number_of_workers_received_payment * s2.country_1_reimbursed_amount_per_worker_usd) as country_1_reimbursed,
+case
+	when t1.name is not null then t1.name
+	when t1.name is null and t2.name is not null then t2.name
+	else 'Others'
+end as focus_area,
 
-(s2.country_2_number_of_workers_received_payment *  s2.country_2_reimbursed_amount_per_worker_usd) as country_2_reimbursed,
+case
+	when s2.country is not null or s2.officecountry is not null 
+	then nvl(INITCAP(s2.officecountry), INITCAP(s2.country))
+	else 'Global'
+end as country,
 
-(s2.country_3_number_of_workers_received_payment * s2.country_3_reimbursed_amount_per_worker_usd) as country_3_reimbursed,
-
-(s2.country_4_number_of_workers_received_payment * s2.country_4_reimbursed_amount_per_worker_usd) as country_4_reimbursed,
-
-(s2.country_5_number_of_workers_received_payment * s2.country_5_reimbursed_amount_per_worker_usd) as country_5_reimbursed,  
-
-(s2.country_6_number_of_workers_received_payment * s2.country_6_reimbursed_amount_per_worker_usd) as country_6_reimbursed, 
-
-(s2.country_7_number_of_workers_received_payment *  s2.country_7_reimbursed_amount_per_worker_usd) as country_7_reimbursed,
-
-(s2.country_1__migrant_workers_reported_paying_fees * s2.country_1_median_fee_reported_usd) as country_1_estimated_total,
-
-(s2.country_2__migrant_workers_reported_paying_fees * s2.country_2_median_fee_reported_usd) as country_2_estimated_total,
-
-(s2.country_3__migrant_workers_reported_paying_fees * s2.country_3_median_fee_reported_usd) as country_3_estimated_total, 
-
-(s2.country_4__migrant_workers_reported_paying_fees * s2.country_4_median_fee_reported_usd) as country_4_estimated_total, 
-
-(s2.country_5__migrant_workers_reported_paying_fees * s2.country_5_median_fee_reported_usd) as country_5_estimated_total, 
-
-(s2.country_6__migrant_workers_reported_paying_fees * s2.country_6_median_fee_reported_usd) as country_6_estimated_total, 
-
-(s2.country_7__migrant_workers_reported_paying_fees * s2.country_7_median_fee_reported_usd) as country_7_estimated_total
-
+sum(s2.hours_contributed) as hours
 from sub2 s2
-
-left join ds_mysql_prod_tagelement t1 on t1.id = s2.cr_tier
-left join ds_mysql_prod_tagelement t2 on t2.id = s2.curr_cr_rating
-left join ds_mysql_prod_tagelement t3 on t3.id = s2.case_status
-
-left join ds_mysql_prod_tagelement t4 on t4.id = s2.country
-left join ds_mysql_prod_tagelement t5 on t5.id = t4.parent
-
-left join ds_mysql_prod_tagelement t6 on t6.id = s2.source_div_new
-left join ds_mysql_prod_tagelement t7 on t7.id = t6.parent)
-
-select s3.id, s3.cdms_factory_id, s3.region, s3.bus_div, s3.year, s3.case_status,
-
-(nvl(s3.country_1_reimbursed, 0) + nvl(s3.country_2_reimbursed, 0) + nvl(s3.country_3_reimbursed, 0) + nvl(s3.country_4_reimbursed, 0) + nvl(s3.country_5_reimbursed, 0) + nvl(s3.country_6_reimbursed, 0) + nvl(s3.country_7_reimbursed, 0)) as reimbursed_total,
-
-(nvl(s3.country_1_estimated_total, 0) + nvl(s3.country_2_estimated_total, 0) + nvl(s3.country_3_estimated_total, 0) + nvl(s3.country_4_estimated_total, 0) + nvl(s3.country_5_estimated_total, 0) + nvl(s3.country_6_estimated_total, 0) + nvl(s3.country_7_estimated_total, 0)) as estimated_total
-
-from sub3 s3
-
-where s3.cr_tier_new not in ('Exit', 'Deactivated') and
-s3.curr_cr_rating_new not in ('Red', 'Gray', 'White', 'No Rating')
+left join ds_mysql_prod_refFocusArea t1 on t1.id = s2.focus_area_1
+left join ds_mysql_prod_tagElement t2 on t2.id = s2.focus_area_2
+where s2.hours_contributed is not null and s2.hours_contributed != 0
+group by s2._id, start_date, end_date, t1.name, s2.country, s2.officecountry, t2.name
