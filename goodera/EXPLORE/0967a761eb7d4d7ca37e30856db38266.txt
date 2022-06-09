@@ -1,4 +1,4 @@
-Select p.time_period_timerange,CAST(p.time_period_timerange.start as date) as timerange,ver.name as vertical, reg.name as region,reg_parent.name as region_global, category.name as category_ehs,act.name as act_category, p.site_region, scope.name as emission_scope, Sum(p.output_value) as ghg_tot, type.name as s_c_act_type, activity.name as activity_output, p.output_unit  from profile_58283 p
+Select p.time_period_timerange,CAST(p.time_period_timerange.start as date) as timerange,ver.name as vertical, reg.name as region,reg_parent.name as region_global, category.name as category_ehs,act.name as act_category, site.name as site_region, scope.name as emission_scope, Sum(p.output_value) as ghg_tot, type.name as s_c_act_type, activity.name as activity_output, p.output_unit  from profile_58283 p
 
 
 Left join ds_mysql_prod_tagelement ver
@@ -19,6 +19,9 @@ on p.emission_scope = scope.id
 Left join ds_mysql_prod_tagelement type
 on p.s_c_act_type = type.id
 
+Left join ds_mysql_prod_tagelement site
+on p.site_region = site.id
+
 Left join ds_mysql_prod_tagelement reg
 on p.region = reg.id
 
@@ -27,4 +30,4 @@ on reg.parent = reg_parent.id
 
 where category.name = 'Energy & Emission' and activity.name = 'GHG in CO2e'
 
-group by time_period_timerange,ver.name,reg.name,reg_parent.name,category.name,act.name, p.site_region, scope.name,type.name, activity.name, p.output_unit
+group by time_period_timerange,ver.name,reg.name,reg_parent.name,category.name,act.name, site.name , scope.name,type.name, activity.name, p.output_unit
