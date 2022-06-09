@@ -49,7 +49,18 @@ end as new_time,
 
 
 
-concat(quarter, concat (',' ,new_time)) as temp, case when temp like 'Q%' then 'Quarterly' end as timerange,  reg.name as region,reg_parent.name as region_global,  ver.name as  vertical , hours_worked, dart_incident, lost_time_incidents, recordable_incidents , site_region , SUM(hours_worked) as hours_ytd , month_ytd , time_period_timerange  , 'Total Recordable Incident' as Heat_Map , reftag.code from profile_59545 p
+concat(quarter, concat (',' ,new_time)) as temp, case when temp like 'Q%' then 'Quarterly' end as timerange,  reg.name as region,reg_parent.name as region_global,  ver.name as  vertical , hours_worked, dart_incident, lost_time_incidents, recordable_incidents , site_region , SUM(hours_worked) as hours_ytd , month_ytd , time_period_timerange  , 'Total Recordable Incident' as Heat_Map , reftag.code ,
+		   
+		   case when reg.name = 'US'
+		   then 'United States'
+		   when reg.name = 'UK'
+		   then 'United Kingdom'
+		   else
+		   reg.name
+		   END AS reg_new
+		   
+		   
+		   from profile_59545 p
 
 left join ds_mysql_prod_tagelement ver
 on p.vertical = ver.id
@@ -60,7 +71,7 @@ left join ds_mysql_prod_tagelement reg_parent
 on reg.parent = reg_parent.id
 		   
 left join ds_mongo_reftagelementmetadata reftag
-		 on reg.name = reftag.name
+		 on reg_new = reftag.name
 
 	/*	   
 left join ds_mongo_reftagelementmetadata reftag
