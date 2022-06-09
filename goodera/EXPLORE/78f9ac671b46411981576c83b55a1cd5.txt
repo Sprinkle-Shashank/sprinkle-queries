@@ -1,4 +1,4 @@
-with table0 as (Select t.name as projectid,fy_timerange, substring(finperiod,strpos(finperiod, ' ')+2,7) as year, datatablebase, questiontext
+with table0 as (Select t.name as projectid,fy_timerange, substring(finperiod,strpos(finperiod, ' ')+2,7) as year, datatable, questiontext
 
 from sus_78882
 				
@@ -11,13 +11,18 @@ where keyword='scope_1_circuit_breaker'
 table1 as (
   Select projectid ,fy_timerange, year, coun.type_of_circuit_breaker as fuel_type,
   coun.input_data as fuel_consumed,  row_number() over (order by fy_timerange) as sno
-from table0 as p, unpivot p.datatablebase as coun at xyz
+from table0 as p, unpivot p.datatable as coun at xyz
   
   
-)
+),
+ss as (
 select projectid ,fy_timerange, year, ft.name as fuel_type, fuel_consumed from table1
-  
-  
-  left join ds_mysql_prod_tagelement ft
+left join ds_mysql_prod_tagelement ft
 on table1.fuel_type = ft.id
-  
+)
+
+select projectid ,fy_timerange, year, 
+case 
+	when fuel_type in ('ACB','VCB') then 'Circuit Breaker'
+	else null 
+	end as fuel_type, fuel_consumed from ss
