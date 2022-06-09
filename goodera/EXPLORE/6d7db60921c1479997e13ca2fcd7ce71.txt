@@ -1,5 +1,6 @@
 with sub1 as(
-  select p1._id as id, p1.cdms_factory_id, p2.cr_tier, p2.curr_cr_rating, p2.region, p2.source_div, p2.timeperiod_timerange, 
+  select p1._id as id, p1.cdms_factory_id, p2.cr_tier, p2.curr_cr_rating, p2.region, p2.source_div, p2.timeperiod_timerange, p1.case_status, 
+p1.timeperiod_timerange as fy_timerange, 
 
 p1.country_1_number_of_workers_received_payment, p1.country_2_number_of_workers_received_payment, p1.country_3_number_of_workers_received_payment, p1.country_4_number_of_workers_received_payment, p1.country_5_number_of_workers_received_payment, p1.country_6_number_of_workers_received_payment, p1.country_7_number_of_workers_received_payment,
 
@@ -20,7 +21,7 @@ where p1.cdms_factory_id is not null),
 sub2 as(
   select * from sub1 where row = 1)
   
-select s2.id, s2.cdms_factory_id, t1.name as cr_tier, t2.name as curr_cr_rating, s2.region, s2.source_div, 
+select s2.id, s2.cdms_factory_id, t1.name as cr_tier, t2.name as curr_cr_rating, s2.region, s2.source_div, t3.name as case_status, s2.fy_timerange, 
 
 s2.country_1_number_of_workers_received_payment, s2.country_2_number_of_workers_received_payment, s2.country_3_number_of_workers_received_payment, s2.country_4_number_of_workers_received_payment, s2.country_5_number_of_workers_received_payment, s2.country_6_number_of_workers_received_payment, s2.country_7_number_of_workers_received_payment,
 
@@ -34,6 +35,7 @@ from sub2 s2
 
 left join ds_mysql_prod_tagelement t1 on t1.id = s2.cr_tier
 left join ds_mysql_prod_tagelement t2 on t2.id = s2.curr_cr_rating
+left join ds_mysql_prod_tagelement t3 on t3.id = s2.case_status
 
 where t1.name not in ('Exit', 'Deactivated') and 
 t2.name not in ('Gray', 'Red', 'White', 'No Rating') 
