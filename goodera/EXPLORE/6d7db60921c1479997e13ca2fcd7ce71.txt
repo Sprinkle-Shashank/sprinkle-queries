@@ -1,7 +1,7 @@
 with sub1 as(
-  select p1.factory_id, p2.cr_tier, p2.source_div, p2.region, p2.curr_cr_rating, p2.timeperiod_timerange,
+  select p1._id as id, p1.factory_id, p2.cr_tier, p2.source_div, p2.region, p2.curr_cr_rating, p2.timeperiod_timerange,
   
-row_number() over (partition by p1.factory_id order by p2.timeperiod_timerange.start desc) as row,
+row_number() over (partition by p1._id order by p2.timeperiod_timerange.start desc) as row,
   
 extract(year from cast(p1.timeperiod_timerange.start as date)) as year
   
@@ -23,3 +23,5 @@ left join ds_mysql_prod_tagelement t2 on t2.id = s2.curr_cr_rating
 
 where cr_tier_new not in ('Exit', 'Deactivated')
 and cr_rating_new not in ('Gray', 'Red', 'White', 'No Rating') and s2.year > 2019
+
+group by s2.factory_id, s2.year, s2.source_div, s2.region, t1.name, t2.name
