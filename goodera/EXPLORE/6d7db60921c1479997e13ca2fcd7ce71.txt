@@ -22,9 +22,10 @@ where p1.cdms_factory_id is not null and p1.timeperiod_timerange is not null),
 sub2 as(
   select s1.*, country, source_div_new 
   from sub1 s1, s1.region country, s1.source_div source_div_new
-  where s1.row = 1)
+  where s1.row = 1),
   
-select s2.id, s2.cdms_factory_id, nvl(t1.name, 'NULL') as cr_tier_new, 
+sub3 as(
+  select s2.id, s2.cdms_factory_id, nvl(t1.name, 'NULL') as cr_tier_new, 
 nvl(t2.name, 'NULL') as curr_cr_rating_new, t3.name as case_status, t4.name as country, t5.name as region, t6.name as source_div, nvl(t7.name, t6.name) as bus_div, s2.fy_timerange, s2.year,
 
 (s2.country_1_number_of_workers_received_payment * s2.country_1_reimbursed_amount_per_worker_usd) as country_1_reimbursed,
@@ -65,7 +66,17 @@ left join ds_mysql_prod_tagelement t4 on t4.id = s2.country
 left join ds_mysql_prod_tagelement t5 on t5.id = t4.parent
 
 left join ds_mysql_prod_tagelement t6 on t6.id = s2.source_div_new
-left join ds_mysql_prod_tagelement t7 on t7.id = t6.parent
+left join ds_mysql_prod_tagelement t7 on t7.id = t6.parent)
 
-where cr_tier_new not in ('Exit', 'Deactivated') and 
-curr_cr_rating_new not in ('Gray', 'Red', 'White', 'No Rating') 
+select s3.cdms_factory_id, s3.region, s3.bus_div, s3.year,
+
+sum (s3.country_1_reimbursed + s3.country_2_reimbursed + s3.country_3_reimbursed + s3.country_4_reimbursed + s3.country_5_reimbursed + s3.country_6_reimbursed + s3.country_7_reimbursed) as reimbursed_total, 
+
+sum (s3.country_1_estimated_total + s3.country_2_estimated_total + s3.country_3_estimated_total + s3.country_4_estimated_total + s3.country_5_estimated_total + s3.country_6_estimated_total + s3.country_7_estimated_total) as estimated_total
+
+from sub3 s3
+
+where s3.cr_tier_new not in ('Exit', 'Deactivated') and
+s3.curr_cr_rating_new not in ('Red', 'Gray', 'White', 'No Rating')
+
+group by s3.cdms_factory_id, s3.region, s3.bus_div, s3.year
