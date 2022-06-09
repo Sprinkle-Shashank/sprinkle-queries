@@ -1,4 +1,4 @@
-Select SUBSTRING(CAST(p.time_period_timerange.start as VARCHAR),1,24) as timerange,ver.name as vertical, reg.name as region,reg_parent.name as region_global, category.name as category_ehs, p.act_category, p.site_region, p.emission_scope,  p.s_c_act_type, activity.name as activity_output,p.energy_by_source, unit.name as output_unit,Sum(p.output_value) as total_energy  from profile_58283 p
+Select SUBSTRING(CAST(p.time_period_timerange.start as VARCHAR),1,24) as timerange,ver.name as vertical, reg.name as region,reg_parent.name as region_global, category.name as category_ehs, p.act_category, p.site_region, p.emission_scope,  p.s_c_act_type, activity.name as activity_output,source.name as energy_by_source, unit.name as output_unit,Sum(p.output_value) as total_energy  from profile_58283 p
 
 
 Left join ds_mysql_prod_tagelement ver
@@ -13,6 +13,9 @@ on p.activity_output = activity.id
 Left join ds_mysql_prod_tagelement unit
 on p.output_unit = unit.id
 
+Left join ds_mysql_prod_tagelement source
+on p.energy_by_source = source.id
+
 Left join ds_mysql_prod_tagelement reg
 on p.region = reg.id
 
@@ -21,5 +24,5 @@ on reg.parent = reg_parent.id
 
 where unit.name = 'MWh'
 
-group by time_period_timerange,ver.name,reg.name,reg_parent.name,category.name,p.act_category, p.site_region, p.emission_scope,p.s_c_act_type, activity.name,unit.name,p.energy_by_source
+group by time_period_timerange,ver.name,reg.name,reg_parent.name,category.name,p.act_category, p.site_region, p.emission_scope,p.s_c_act_type, activity.name,unit.name,source.name
 			
