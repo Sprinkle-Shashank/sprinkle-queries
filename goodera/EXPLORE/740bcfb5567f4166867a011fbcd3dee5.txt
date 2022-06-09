@@ -1,13 +1,69 @@
-Select p.projectid,coalesce(total_workers,0), extract(year from p2.date_enrollment)as s_year, extract(month from p2.date_enrollment)as month,
-case when month = 1 then s_year-1
-ELSE s_year END AS year_new,
-s.name as status , coalesce(status,0) as status_new from profile_17526 p
-			   
-LEFT JOIN profile_16619 p2 ON
-p.projectid = p2.projectid
-			   
- LEFT JOIN ds_mysql_prod_tagelement AS S ON
-p2.status = s.id
-			   
- --Where status is not Null OR total_workers != ''
-WHERE total_workers != 0
+with table1 as (select projectId, SUBSTRING(CAST(p.time_period_timerange.start as CHAR(256)),1,4) as time  , case when month_ytd in  ('2','3' , '4')
+then 'Q1'
+when month_ytd in ('5' ,'6' , '7')
+then 'Q2'
+when month_ytd in ('8', '9', '10')
+then 'Q3'
+when month_ytd in ('11', '12',  '1')
+then 'Q4'
+end as quarter  ,
+
+CASE when time is not NULL
+then 
+time
+else 
+NULL
+end as new_time,
+
+
+
+time as temp, case when quarter like 'Q4%' then 'Yearly' end as timerange,  reg.name as region,reg_parent.name as region_global,  ver.name as  vertical , hours_worked, dart_incident, lost_time_incidents, recordable_incidents , site_region , SUM(hours_worked) as hours_ytd , month_ytd , time_period_timerange , 'Total Recordable Incident' as Heat_Map from profile_59545 p
+
+left join ds_mysql_prod_tagelement ver
+on p.vertical = ver.id
+Left join ds_mysql_prod_tagelement reg
+on p.region = reg.id
+
+left join ds_mysql_prod_tagelement reg_parent
+on reg.parent = reg_parent.id
+
+
+group by reg_parent.name, reg.name ,  site_region, ver.name, dart_incident, lost_time_incidents, recordable_incidents, month_ytd , p.projectId  ,  p.time_period_timerange , p.hours_worked , month_ytd
+) , 
+table2 as ( select projectId, SUBSTRING(CAST(p.time_period_timerange.start as CHAR(256)),1,4) as time  , case when month_ytd in  ('2','3' , '4')
+then 'Q1'
+when month_ytd in ('5' ,'6' , '7')
+then 'Q2'
+when month_ytd in ('8', '9', '10')
+then 'Q3'
+when month_ytd in ('11', '12',  '1')
+then 'Q4'
+end as quarter  ,
+
+CASE when time is not NULL
+then 
+time
+else 
+NULL
+end as new_time,
+
+
+
+concat(quarter, concat (',' ,new_time)) as temp, case when temp like 'Q%' then 'Quarterly' end as timerange,  reg.name as region,reg_parent.name as region_global,  ver.name as  vertical , hours_worked, dart_incident, lost_time_incidents, recordable_incidents , site_region , SUM(hours_worked) as hours_ytd , month_ytd , time_period_timerange  , 'Total Recordable Incident' as Heat_Map from profile_59545 p
+
+left join ds_mysql_prod_tagelement ver
+on p.vertical = ver.id
+Left join ds_mysql_prod_tagelement reg
+on p.region = reg.id
+
+left join ds_mysql_prod_tagelement reg_parent
+on reg.parent = reg_parent.id
+
+
+group by reg_parent.name, reg.name ,  site_region, ver.name, dart_incident, lost_time_incidents, recordable_incidents, month_ytd , p.projectId  ,  p.time_period_timerange , p.hours_worked , month_ytd
+)
+
+select * from table2 
+union all 
+select * from table1 
+where timerange = 'Yearly'
