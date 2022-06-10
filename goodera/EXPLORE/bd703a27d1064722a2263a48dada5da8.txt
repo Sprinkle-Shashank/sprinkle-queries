@@ -1,9 +1,14 @@
-select p1.name as projectid,p.fy_timerange,t1.name as donor
+select p1.name as projectid,p.fy_timerange,p3.name as donor,t2.name as state,count(*) as count
 
 from profile_80492 p
 left join ds_mysql_prod_project p1 on p1.id=p.projectid
-left join ds_mysql_prod_tagelement t1 on t1.id=p.donor
---loc
+left join ds_mysql_prod_project p3 on p3.id = p1.parent
 
-left join profile_80475 p2 on p2.id=p.id
-group by p1.name,p.fy_timerange,t1.name
+left join profile_80475 p2 on p2.projectid=p.projectid
+left join ds_mysql_prod_tagelement t2 on t2.id=p2.centre_loc
+where p.projectid like '%%'
+group by p1.name,p.fy_timerange,p3.name,t2.name
+
+--no center added in profile, handling location filter at query level will work
+-- finance, stories of change,gallery  and project details, why count?
+-- indicators
