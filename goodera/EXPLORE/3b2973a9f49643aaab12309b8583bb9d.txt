@@ -1,4 +1,4 @@
-Select p.time_period_timerange,CAST(p.time_period_timerange.start as date) as timerange,ver.name as vertical, reg.name as region,reg_parent.name as region_parent,case when reg_parent.name is null then reg.name else reg_parent.name end as region_global, category.name as category_ehs, p.act_category, site.name as site_region, p.waste_category,  p.waste_type, p.waste_disposal, activity.name as activity_output, unit.name as output_unit,Sum(p.output_value) as total_waste_generated , count( distinct site.name) as landfill_site from profile_58283 p
+with table1 as (Select p.time_period_timerange,CAST(p.time_period_timerange.start as date) as timerange,ver.name as vertical, reg.name as region,reg_parent.name as region_parent,case when reg_parent.name is null then reg.name else reg_parent.name end as region_global, category.name as category_ehs, p.act_category, site.name as site_region, p.waste_category,  p.waste_type, p.waste_disposal, activity.name as activity_output, unit.name as output_unit,Sum(p.output_value) as total_waste_generated , count( distinct site.name) as landfill_site from profile_58283 p
 
 
 Left join ds_mysql_prod_tagelement ver
@@ -22,6 +22,13 @@ on p.region = reg.id
 left join ds_mysql_prod_tagelement reg_parent
 on reg.parent = reg_parent.id
 
-where category.name = 'Waste' and p.waste_disposal = 1000268 and total_waste_generated is not null 
+where category.name = 'Waste' and p.waste_disposal = 1000268 
 
 group by time_period_timerange,ver.name,reg.name,reg_parent.name,category.name,p.act_category, site.name, p.waste_category,  p.waste_type, p.waste_disposal, activity.name,unit.name
+)
+
+select time_period_timerange, timerange, vertical, region, region_parent,region_global,  category_ehs, act_category,  site_region, waste_category,  waste_type, waste_disposal, activity_output,  output_unit,total_waste_generated ,  landfill_site from table1 t1
+
+where total_waste_generated is not null 
+
+group by time_period_timerange, timerange, vertical, region, region_parent,region_global,  category_ehs, act_category,  site_region, waste_category,  waste_type, waste_disposal, activity_output,  output_unit
