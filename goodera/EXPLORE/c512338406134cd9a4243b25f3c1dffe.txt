@@ -1,63 +1,49 @@
-with table1 as (select  yr.name as year, period.name as reporting_period,sum(p2.target_ind16)/ 2 as trgt  from profile_23116 as p2
+with table1 as(SELECT year.name as year, 'Percentage of active learning groups against current annual target' as indicator, 'CARE' as partner, '1' as dim,			
+sum(p.prog_target) as val
+	
+	
 
-left join ds_mysql_prod_tagelement yr
-on p2.year_3 = yr.id
-
-left join ds_mysql_prod_tagelement period
-on p2.reporting_period_3 = period.id
-
-where target_ind16 is not null
-
-group by yr.name,period.name 
-
-order by year asc),
-table2 as (
-select sum(p.enrollment)as enrollment, yr.name as year,p.lg_status,extract(month from p.date_of_formation)as month,
- case when month in ('2', '3', '4')
-then '1st(Feb-Apr)'
-when month in ('5','6','7')
-then '2nd(May-Jul)'
-when month in ('8', '9', '10')
-then '3rd(Aug-Oct)'
-when month in ('11', '12',  '1')
-then '4th(Nov-Jan)'
-end as quarter  
+from profile_77047 p
   
-  from profile_29179 p
-left join ds_mysql_prod_tagelement yr
-on p.year = yr.id
- where lg_status = 847850 or lg_status is null  
-group by yr.name,lg_status,month
-order by year asc
-),
-table3 as ( select sum(p.pace_completion)as graduation, yr.name as year,p.lg_status,extract(month from p.date_of_completion)as month,
- case when month in ('2', '3', '4')
-then '1st(Feb-Apr)'
-when month in ('5','6','7')
-then '2nd(May-Jul)'
-when month in ('8', '9', '10')
-then '3rd(Aug-Oct)'
-when month in ('11', '12',  '1')
-then '4th(Nov-Jan)'
-end as quarter  
+ 
+left join ds_mysql_prod_tagelement year
+ on p.year = year.id 
+where p.indicator = 1534381 
+
+ GROUP BY year.name),
+ table2 as (SELECT year.name as year, 'Percentage of active learning groups against current annual target' as indicator, 'CARE' as partner, '1' as dim,			
+sum(p.target21) as val
+	
+	
+
+from profile_77047 p
   
-  from profile_29179 p
-left join ds_mysql_prod_tagelement yr
-on p.year = yr.id
- where lg_status = 847850 or lg_status is null  
-group by yr.name,lg_status,month
-order by year asc
+ 
+left join ds_mysql_prod_tagelement year
+ on p.year = year.id 
+where p.indicator = 1534381 
 
-             
-)
+ GROUP BY year.name
+ 
+ ),
+ table3 as (
+ SELECT year.name as year, 'Percentage of active learning groups against current annual target' as indicator, 'CARE' as partner, '1' as dim,			
+sum(p.target22) as val
+	
+	
 
+from profile_77047 p
+  
+ 
+left join ds_mysql_prod_tagelement year
+ on p.year = year.id 
+where p.indicator = 1534381 
 
-select year,quarter,'Enrollment' as dim , sum(enrollment) as val from table2
- group by year ,quarter,dim 
-union all
-select year,quarter,'Graduation' as dim , sum(graduation) as val from table3
- group by year ,quarter,dim 
-order by year , quarter asc
---select * from table1
-
-
+ GROUP BY year.name
+ )
+ select * from table1
+ Union all
+ select * from table2
+ Union all
+ select * from table3
+ 
