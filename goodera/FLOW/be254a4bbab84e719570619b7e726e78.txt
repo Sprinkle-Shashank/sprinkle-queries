@@ -1,0 +1,43 @@
+
+with table1 as (select projectId,time_period_timerange, CAST(p.time_period_timerange.start as date) as timerange,SUBSTRING(timerange,1,4) as year_axis,
+reg.name as region,reg_parent.name as region_parent,case when reg_parent.name is null then reg.name else reg_parent.name end as region_global,ver.name as  vertical,category.name as category_ehs,act.name as act_category, site.name as site_region, scope.name as emission_scope, Sum(p.output_value) as ghg_tot, type.name as s_c_act_type, activity.name as activity_output, p.output_unit,'Energy' as Heat_Map ,  case when reg.name = 'US'
+		   then 'United States'
+		   when reg.name = 'UK'
+		   then 'United Kingdom'
+		   else
+		   reg.name
+		   END AS reg_new
+		  from profile_58283 p
+
+
+Left join ds_mysql_prod_tagelement ver
+on p.vertical = ver.id
+
+Left join ds_mysql_prod_tagelement category
+on p.category_ehs = category.id
+
+Left join ds_mysql_prod_tagelement activity
+on p.activity_output = activity.id
+
+Left join ds_mysql_prod_tagelement unit
+on p.output_unit = unit.id
+
+Left join ds_mysql_prod_tagelement site
+on p.site_region = site.id
+
+Left join ds_mysql_prod_tagelement reg
+on p.region = reg.id
+
+left join ds_mysql_prod_tagelement reg_parent
+on reg.parent = reg_parent.id
+
+
+
+where category.name = 'Energy & Emission' and activity.name = 'GHG in CO2e'
+
+group by reg_parent.name, reg.name ,time_period_timerange,ver.name,category.name,act.name, site.name , scope.name,type.name, activity.name, p.output_unit,reg_new,Heat_map)
+
+
+select * , reftag.code from table1 
+ left join ds_mongo_reftagelementmetadata reftag
+		 on table1.reg_new = reftag.name
