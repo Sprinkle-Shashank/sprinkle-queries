@@ -1,4 +1,4 @@
-with table1 as (Select p.time_period_timerange,CAST(p.time_period_timerange.start as date) as timerange,SUBSTRING(CAST(p.time_period_timerange.start as VARCHAR),1,4) as time1 ,ver.name as vertical, reg.name as region,reg_parent.name as region_parent,case when reg_parent.name is null then reg.name else reg_parent.name end as region_global, category.name as category_ehs, p.act_category, site.name as site_region, p.waste_category,  p.waste_type, p.waste_disposal, activity.name as activity_output, unit.name as output_unit,Sum(p.output_value) as total_waste_generated ,case when total_waste_generated > 0 then '1' else '0' end as filter, count( distinct site.name) as landfill_site from profile_58283 p
+with table1 as (Select p.time_period_timerange,CAST(p.time_period_timerange.start as date) as timerange,SUBSTRING(CAST(p.time_period_timerange.start as VARCHAR),1,4) as time1 ,ver.name as vertical, reg.name as region,reg_parent.name as region_parent,case when reg_parent.name is null then reg.name else reg_parent.name end as region_global, category.name as category_ehs, p.act_category, site.name as site_region, p.waste_category,  p.waste_type, p.waste_disposal, activity.name as activity_output, unit.name as output_unit,Sum(p.output_value) as total_waste_generated ,case when total_waste_generated > 0 then '1' else '0' end as filter, 1 as landfill_site from profile_58283 p
 
 
 Left join ds_mysql_prod_tagelement ver
@@ -27,7 +27,7 @@ where category.name = 'Waste' and p.waste_disposal = 1000268
 group by ver.name,reg.name,reg_parent.name,category.name,p.act_category, site.name, p.waste_category,  p.waste_type, p.waste_disposal, activity.name,unit.name ,p.time_period_timerange.start, p.time_period_timerange
 )
 
-select  * from table1 t1
+select time_period_timerange,timerange,time1 ,vertical,region,region_parent,region_global,category_ehs, act_category,site_region,waste_category, waste_type, waste_disposal, activity_output, output_unit,Sum(p.output_value) as total_waste_generated , 1 as landfill_site  from table1 t1
 
 where filter <> '0' 
 
