@@ -1,11 +1,8 @@
-with table1 as(select p.projectId,p.time_period_timerange, CAST(p.time_period_timerange.start as date) as timerange,SUBSTRING(timerange,1,4) as year_axis,
-reg.name as region,reg_parent.name as region_parent,case when reg_parent.name is null then reg.name else reg_parent.name end as region_global,ver.name as  vertical, category.name as category_ehs,act.name as act_category, site.name as site_region, scope.name as emission_scope, p.output_value , type.name as s_c_act_type, activity.name as activity_output, p.output_unit,'Energy' as Heat_Map 
+with table1 as( p.time_period_timerange,CAST(p.time_period_timerange.start as date) as timerange,SUBSTRING(timerange,1,4) as year_axis,ver.name as vertical, reg.name as region,reg_parent.name as region_parent,case when reg_parent.name is null then reg.name else reg_parent.name end as region_global, category.name as category_ehs, p.act_category, site.name as site_region, scope.name as emission_scope,  p.s_c_act_type, activity.name as activity_output,source.name as energy_by_source, unit.name as output_unit,Sum(p.output_value) as total_energy ,'Energy' as Heat_Map 
 		  from profile_58283 p
-
 
 Left join ds_mysql_prod_tagelement ver
 on p.vertical = ver.id
-
 
 Left join ds_mysql_prod_tagelement category
 on p.category_ehs = category.id
@@ -13,17 +10,17 @@ on p.category_ehs = category.id
 Left join ds_mysql_prod_tagelement activity
 on p.activity_output = activity.id
 
-Left join ds_mysql_prod_tagelement act
-on p.act_category = act.id
+Left join ds_mysql_prod_tagelement unit
+on p.output_unit = unit.id
 
-Left join ds_mysql_prod_tagelement scope
-on p.emission_scope = scope.id
-
-Left join ds_mysql_prod_tagelement type
-on p.s_c_act_type = type.id
+Left join ds_mysql_prod_tagelement source
+on p.energy_by_source = source.id
 
 Left join ds_mysql_prod_tagelement site
 on p.site_region = site.id
+
+Left join ds_mysql_prod_tagelement scope
+on p.emission_scope = scope.id
 
 Left join ds_mysql_prod_tagelement reg
 on p.region = reg.id
@@ -31,11 +28,9 @@ on p.region = reg.id
 left join ds_mysql_prod_tagelement reg_parent
 on reg.parent = reg_parent.id
 
+where unit.name = 'MWh'
 
-
-where category.name = 'Energy & Emission' and activity.name = 'GHG in CO2e'
-
-group by p.projectId,p.time_period_timerange,reg_parent.name, reg.name ,ver.name,category.name,act.name, site.name , scope.name,type.name, activity.name, p.output_unit,p.output_value,Heat_map,timerange,year_axis)
+group by p.projectId,p.time_period_timerange,ver.name,reg.name,reg_parent.name,category.name,p.act_category, site.name, scope.name,p.s_c_act_type, activity.name,unit.name,source.name,Heat_Map,year_axis,timerange)
 ,
 table2 as(select projectId,time_period_timerange,timerange,year_axis,region,region_global,vertical,sum(output_value) as ghg_tot ,Heat_Map,reftag.code from table1
 		  
