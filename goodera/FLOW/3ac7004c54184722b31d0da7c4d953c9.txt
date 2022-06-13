@@ -2,7 +2,7 @@ drop table if exists train_rejected_entries_flow;
 create table train_rejected_entries_flow as
 
 with lookup as (select 
-				CAST(p.taskuserid as INT8) as taskuserid1, p._id, p.status, p.active, p.organizationid, p.data, p.projectid, p.profileid, p.profileinstanceid,approval."approverEmail" as email1,approval
+				CAST(p.taskuserid as INT8) as taskuserid1, p._id, p.status, p.active, p.organizationid, p.data, p.projectid, p.profileid, p.profileinstanceid,approval."approverEmail" as email1,approval,approval."approvercomments" as comment1
 				from ds_mongo_taskresponse p, p.approvallog approval
 								
 
@@ -10,7 +10,7 @@ with lookup as (select
 ),
 
 lookup1 as (select 
-				p._id, p.status, p.active, p.organizationid, p.data, task.projectflowid, p.taskuserid1,taskuser.programuserid, taskuser.taskid,p.email1,
+				p._id, p.status, p.active, p.organizationid, p.data, task.projectflowid, p.taskuserid1,taskuser.programuserid, taskuser.taskid,p.email1,p.comment1,
 				task.flowtaskid,p.profileinstanceid
 				from lookup p
 left join ds_mysql_prod_taskuser taskuser on
@@ -27,7 +27,7 @@ lookup2 as (select
 			p._id, p.status, p.active, p.organizationid, p.data, p.flowtaskid,p.projectflowid,
 			flowtask.sectionid,
 			projectflow.projectid,p.profileinstanceid,
-			programuser.programid ,p.email1
+			programuser.programid ,p.email1,p.comment1
 			from lookup1 p
  			
 left join ds_mysql_prod_flowtask flowtask on 
@@ -42,7 +42,7 @@ programuser.id = p.programuserid
 
 lookup3 as (select 
 			p._id, p.status, p.active, p.organizationid, p.data, flowtaskid, sectionid, 
-			section.profileid, section.name,p.projectid,p.programid,p.email1,p.profileinstanceid
+			section.profileid, section.name,p.projectid,p.programid,p.email1,p.profileinstanceid,p.comment1
 			from lookup2 p
   
 left join ds_mysql_prod_section section on
