@@ -1,4 +1,7 @@
-with base0 as(select p._id, task.status, json_serialize(decode(task.approvalLog,null,'[]',task.approvalLog)) as app_status, task.profileinstanceid, p.projectid,p.fy, p.month from taskresp_54963 task\n  left join profile_54963 p on p._id=task.profileinstanceid\n  where task.status in ('PENDING_APPROVAL','SUBMITTED') and task.subcat_output is not null\n),
+with base0 as(select p._id, task.status, json_serialize(decode(task.approvalLog,null,'[]',task.approvalLog)) as app_status, task.profileinstanceid, p.projectid,p.fy, p.month from taskresp_54963 task
+			  left join profile_54963 p on p._id=task.profileinstanceid
+			  where task.status in ('PENDING_APPROVAL','SUBMITTED') and task.subcat_output is not null
+			 ),
 base1 as(select task._id, task.status,
 		 case when task.app_status like '%APPROVED%' and task.status='PENDING_APPROVAL' then 1 else 0 end as first_approval, task.app_status, task.profileinstanceid, proj1.name as projectid, split_part(proj1.name,'|',1) as project_code, decode(proj1.parent,18943, split_part(proj1.name,'|',2),split_part(proj1.name,'|',4)) as project_name, tag1.name as fy1, decode(proj1.parent,18943,proj1.id,proj1.parent) as parent, tag4.name as month from base0 task
 		 left join ds_mysql_prod_project proj1 on task.projectid=proj1.id
@@ -31,8 +34,8 @@ base1 as(select task._id, task.status,
 							 sum(approved2nd) as approved2nd, sum(approved1st) as approved1st , sum(pending1st) as pending1st, sum(1) as activities_reported 
 							 from base6b p
 							 left join ds_mysql_prod_tagelement tag1 on p.project_manager=tag1.id
-							 group by 1,2,3,4\n 
-							 /* (\n\tselect first_value(p.fy1) over (partition by p.project_code, p.project_name, p.project_manager) as fy_timerange, first_value(p.projectid) over (partition by p.project_code, p.project_name, p.project_manager) as projectid,p.project_code, p.project_name, tag1.name as project_manager,p._id, p.month from base6 p\n\tleft join ds_mysql_prod_tagelement tag1 on p.project_manager=tag1.id\n  ) as p*/
+							 group by 1,2,3,4
+							 /* select first_value(p.fy1) over (partition by p.project_code, p.project_name, p.project_manager) as fy_timerange, first_value(p.projectid) over (partition by p.project_code, p.project_name, p.project_manager) as projectid,p.project_code, p.project_name, tag1.name as project_manager,p._id, p.month from base6 p\n\tleft join ds_mysql_prod_tagelement tag1 on p.project_manager=tag1.id ) as p*/
 							 ),
 							 
 							 base8 as(select p.fy_timerange, p.project_code, p.project_name, p.project_manager, p.month, p.activities_reported, (p.approved1st+p.approved2nd) as approved1st, p.pending1st, p.approved2nd, p.approved1st as pending2nd from base7 p),
@@ -63,7 +66,8 @@ base1 as(select task._id, task.status,
 				   
 				   base23 as(
 					 select p.* from base22b p where flag=1 order by p.fy_p3 desc),
-					 base24 as(\nselect *, row_number() over(partition by _id) as row_num 
+					 base24 as(
+					   select *, row_number() over(partition by _id) as row_num 
 							   from base23),
 							   base25 as(select * from base24 where row_num=1),
 							   base26 as(select p.*, case when p.fy_p3<=p.fy1 then p.project_manager_p3 else p.project_manager_p2 end as project_manager from base25 p),
