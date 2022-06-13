@@ -1,5 +1,5 @@
 with sub1 as(
-  select p1._id as id, p1.submissionlog, p1.taskuserid, p1.status, p1.approvallog, p1.active, p1.profileid, p1.profileinstanceid
+  select p1._id as id, p1.submissionlog, p1.taskuserid, p1.status, p1.approvallog, p1.active, p1.profileid, p1.profileinstanceid, p1.data
 
 from ds_mongo_taskresponse p1
 
@@ -7,14 +7,14 @@ where status = 'REJECTED' and profileid = 145 and active = 't'
 
 union all
 
-select p2._id as id, p2.submissionlog, p2.taskuserid, p2.status, p2.approvallog, p2.active, p2.profileid, p2.profileinstanceid
+select p2._id as id, p2.submissionlog, p2.taskuserid, p2.status, p2.approvallog, p2.active, p2.profileid, p2.profileinstanceid, p2.data
 
 from ds_mongo_taskresponse p2
 
 where status = 'REJECTED' and profileid = 36901 and active = 't'),
 
 sub2 as(
-  select s1.id, t10.name as programid, t8.name as projectid, t5.name as profile_name, t6.name as section_name, s1.submissionlog, s1.status, s1.approvallog, s1.active, s1.profileinstanceid
+  select s1.id, t10.name as programid, t8.name as projectid, t5.name as profile_name, t6.name as section_name, s1.submissionlog, s1.status, s1.approvallog, s1.active, s1.profileinstanceid, s1.data
 
 from sub1 s1
 
@@ -34,11 +34,13 @@ left join ds_mysql_prod_project t8 on t8.id = t7.projectid
 left join ds_mysql_prod_project t9 on t9.id = t4.programid
 left join ds_mysql_prod_project t10 on t10.id = t9.parent)
 
-select s2.*, slog, 
+select s2.*,
+
 cast(alog."approvalStatus" as VARCHAR) as approval_status,
 cast(alog."approverEmail" as VARCHAR) as approver_email,
 cast(alog."approverName" as VARCHAR) as approver_name,
 cast(alog."approverComments" as VARCHAR) as approver_comments,
-cast(alog."timestamp" as DATE) as approval_date
+cast(alog."timestamp" as DATE) as approval_date,
+cast(slog."email" as VARCHAR) as data_entry_email,
 
 from sub2 s2, s2.submissionlog slog, s2.approvallog alog
