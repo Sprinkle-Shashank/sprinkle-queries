@@ -1,0 +1,25 @@
+WITH temp (
+  SELECT 'Daily Workers' AS C
+  UNION ALL
+  SELECT 'Migrant Labors' AS C
+  UNION ALL
+  SELECT 'Slum Dwellers' AS C
+  UNION ALL
+  SELECT 'Total Families' AS C
+  )
+ SELECT fy_timerange, loc.name AS location,
+ 
+ SUM(CASE C
+	 WHEN 'Daily Workers' THEN p.kits_daily_workers
+	 WHEN 'Migrant Labors' THEN p.kits_migrant_labourer
+	 WHEN 'Slum Dwellers' THEN p.kits_slum_dwellers
+	 WHEN 'Total Families' THEN p.total_families
+	 ELSE NULL
+	 END) AS val, temp.C AS dim
+FROM profile_81057 p
+CROSS JOIN temp
+
+LEFT JOIN ds_mysql_prod_tagelement loc
+ ON p.location = loc.id
+ 
+ GROUP BY fy_timerange, loc.name, temp.c
