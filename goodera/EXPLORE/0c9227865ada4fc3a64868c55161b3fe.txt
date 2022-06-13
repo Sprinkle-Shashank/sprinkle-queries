@@ -1,8 +1,50 @@
 
-with lookup as (select *
+with lookup as (select 
+				CAST(p.taskuserid as INT8) as taskuserid1, p._id, p.status, p.active, p.organizationid, p.data, p.projectid, p.profileid, p.profileinstanceid,approval."approverEmail" as email1,approval,approval."approvercomments" as comment1, slog."email" as Data_Entry, slog
 				from ds_mongo_taskresponse p, p.approvallog approval, p.submissionlog slog
 								
 
+),
+
+lookup1 as (select 
+				p._id, p.status, p.active, p.organizationid, p.data, task.projectflowid, p.taskuserid1,taskuser.programuserid, taskuser.taskid,p.email1,p.comment1,p.Data_Entry,
+				task.flowtaskid,p.profileinstanceid
+				from lookup p
+			
+left join ds_mysql_prod_taskuser taskuser on
+taskuser.id = p.taskuserid1					
+				
+						
+left join ds_mysql_prod_task task on
+task.id = taskuser.taskid
+			
+
+),
+
+lookup2 as (select 
+			p._id, p.status, p.active, p.organizationid, p.data, p.flowtaskid,p.projectflowid,
+			flowtask.sectionid,
+			projectflow.projectid,p.profileinstanceid,
+			programuser.programid ,p.email1,p.comment1,p.Data_Entry
+			from lookup1 p
+ 			
+left join ds_mysql_prod_flowtask flowtask on 
+flowtask.id = p.flowtaskid		
+			
+left join ds_mysql_prod_projectflow projectflow on 
+projectflow.id = p.projectflowid
+			
+left join ds_mysql_prod_programuser programuser on
+programuser.id = p.programuserid
+),
+
+lookup3 as (select 
+			p._id, p.status, p.active, p.organizationid, p.data, flowtaskid, sectionid, 
+			section.profileid, section.name,p.projectid,p.programid,p.email1,p.profileinstanceid,p.comment1,p.Data_Entry
+			from lookup2 p
+  
+left join ds_mysql_prod_section section on
+section.id = p.sectionid		
 )
 
-Select * from lookup where (profileid = 145 or profileid = 36901) and status = 'REJECTED' and active = 't' and _id = '5841258e0bfeb8a16cb33a98'
+Select * from lookup where _id = '5841258e0bfeb8a16cb33a98'
