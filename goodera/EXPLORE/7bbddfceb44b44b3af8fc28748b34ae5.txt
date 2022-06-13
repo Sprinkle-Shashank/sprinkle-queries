@@ -19,20 +19,30 @@ order by fy_timerange asc
 ) PIVOT (
    sum(datanum) FOR keyword IN ('scope1_emission', 'scope2_emission','scope3_emission','biogenic_emission')
 ) 
-				)
-				
-select country,name,fy_timerange,scope1_emission+scope2_emission as total_emission,
+				),
+				table2 as (
+select country,name,fy_timerange,scope1_emission+scope2_emission as total_emission/*,
 lag(total_emission,1) over (order by  fy_timerange) as prev_emission,
 prev_emission-total_emission as diff_prev
 , 
 (select scope1_emission+scope2_emission from table1
 	order by fy_timerange asc limit 1) as base_value, 
 
-base_value-total_emission as diff_base,
+base_value-total_emission as diff_base*/,
 split_part(cast(fy_timerange as varchar),'-',1)::smallint as year, 
 split_part(cast(fy_timerange as varchar),'-',2)::smallint as start_month,
 case when start_month in (1,2,3) then concat( year-1,concat('-',year))
      else concat(year,concat('-',year+1)) end as fy_1
 
-from table1	
---select * from table1
+from table1
+				)
+
+select country,name,fy_1 as fy_timerange,sum(t2.total_emission) as total_emission,lag(total_emission,1) over (order by  fy_timerange) as prev_emission,
+prev_emission-total_emission as diff_prev
+, 
+(select total_emission from table1
+	order by fy_timerange asc limit 1) as base_value, 
+
+base_value-total_emission as diff_base from table2 t2
+
+group by country,name,fy_timerange
