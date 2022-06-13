@@ -1,0 +1,50 @@
+with lookup as (select 
+				p.taskuserid, p._id, p.status, p.active, p.organizationid, p.data, p.projectid, p.profileid,p.programid, taskuser.programuserid, p.profileinstanceid,p.status,approval."approverEmail" as email, approval,
+				
+				taskuser.taskid 
+				from ds_mongo_taskresponse p, p.approvallog approval
+								
+left join ds_mysql_prod_taskuser taskuser on
+taskuser.id = p.taskuserid
+
+),
+
+lookup1 as (select 
+				p.taskid, p._id, p.status, p.active, p.organizationid, p.data, p.programuserid, task.projectflowid, p.ap1,
+				task.flowtaskid, 
+			programuser.programid 
+				from lookup p
+				
+				
+left join ds_mysql_prod_task task on
+task.id = p.taskid
+						
+left join ds_mysql_prod_programuser programuser on
+programuser.id = p.programuserid
+			
+
+),
+
+lookup2 as (select 
+			p._id, p.status, p.active, p.organizationid, p.data, p.flowtaskid, p.programid,p.projectflowid,p.ap1,
+			flowtask.sectionid,
+			projectflow.projectid
+			from lookup1 p
+ 			
+left join ds_mysql_prod_flowtask flowtask on 
+flowtask.id = p.flowtaskid		
+			
+left join ds_mysql_prod_projectflow projectflow on 
+projectflow.id = p.projectflowid
+),
+
+lookup3 as (select 
+			p._id, p.status, p.active, p.organizationid, p.data, flowtaskid, sectionid, 
+			section.profileid, section.name,p.projectid,p.programid,p.ap1
+			from lookup2 p
+  
+left join ds_mysql_prod_section section on
+section.id = p.sectionid		
+)
+
+Select * from lookup3
