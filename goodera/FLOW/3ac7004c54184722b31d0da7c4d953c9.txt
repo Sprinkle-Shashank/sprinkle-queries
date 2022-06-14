@@ -1,17 +1,22 @@
 drop table if exists train_rejected_entries_flow;
 create table train_rejected_entries_flow as
 
-with lookup as (select 
+
+with lookup as (select *, coalesce(p.submissionlog, array(0)) as sublog, 									coalesce(p.approvallog, array(0)) as applog
+				from ds_mongo_taskresponse p
+),
+
+lookup1 as (select 
 				CAST(p.taskuserid as INT8) as taskuserid1, p._id, p.status, p.active, p.organizationid, p.data, p.projectid, p.profileid, p.profileinstanceid,approval."approverEmail" as email1,approval,approval."approvercomments" as comment1, slog."email" as Data_Entry, slog
-				from ds_mongo_taskresponse p, p.approvallog approval, p.submissionlog slog
+				from lookup p, p.applog approval, p.sublog slog
 								
 
 ),
 
-lookup1 as (select 
+lookup2 as (select 
 				p._id, p.status, p.active, p.organizationid, p.data, task.projectflowid, p.taskuserid1,taskuser.programuserid, taskuser.taskid,p.email1,p.comment1,p.Data_Entry,
 				task.flowtaskid,p.profileinstanceid
-				from lookup p
+				from lookup1 p
 			
 left join ds_mysql_prod_taskuser taskuser on
 taskuser.id = p.taskuserid1					
@@ -23,12 +28,12 @@ task.id = taskuser.taskid
 
 ),
 
-lookup2 as (select 
+lookup3 as (select 
 			p._id, p.status, p.active, p.organizationid, p.data, p.flowtaskid,p.projectflowid,
 			flowtask.sectionid,
 			projectflow.projectid,p.profileinstanceid,
 			programuser.programid ,p.email1,p.comment1,p.Data_Entry
-			from lookup1 p
+			from lookup2 p
  			
 left join ds_mysql_prod_flowtask flowtask on 
 flowtask.id = p.flowtaskid		
@@ -40,13 +45,13 @@ left join ds_mysql_prod_programuser programuser on
 programuser.id = p.programuserid
 ),
 
-lookup3 as (select 
+lookup4 as (select 
 			p._id, p.status, p.active, p.organizationid, p.data, flowtaskid, sectionid, 
 			section.profileid, section.name,p.projectid,p.programid,p.email1,p.profileinstanceid,p.comment1,p.Data_Entry
-			from lookup2 p
+			from lookup3 p
   
 left join ds_mysql_prod_section section on
 section.id = p.sectionid		
 )
 
-Select * from lookup3 where (profileid = 145 or profileid = 36901) and status = 'REJECTED' and active = 't'
+Select * from lookup4 where (profileid = 145 or profileid = 36901) and status = 'REJECTED' and active = 't'
