@@ -12,12 +12,12 @@ p.xprojectid = pro.id
 left join ds_mysql_prod_project cou on 
 pro.parent = cou.id
 
-where keyword in ('scope1_emission', 'scope2_emission','scope3_emission','biogenic_emission') 
+where keyword in ('scope1_emission', 'scope2_emission') 
 
 order by fy_timerange asc
   
 ) PIVOT (
-   sum(datanum) FOR keyword IN ('scope1_emission', 'scope2_emission','scope3_emission','biogenic_emission')
+   sum(datanum) FOR keyword IN ('scope1_emission', 'scope2_emission')
 ) 
 				),
 				table2 as (
@@ -28,11 +28,24 @@ prev_emission-total_emission as diff_prev
 (select scope1_emission+scope2_emission from table1
 	order by fy_timerange asc limit 1) as base_value, 
 
-base_value-total_emission as diff_base*/,
+base_value-total_emission as diff_base,
 split_part(cast(fy_timerange as varchar),'-',1)::smallint as year, 
 split_part(cast(fy_timerange as varchar),'-',2)::smallint as start_month,
-case when start_month in (1,2,3) then concat( year-1,concat('-',year))
-     else concat(year,concat('-',year+1)) end as fy_1
+case when start_month in (1,2,3) then concat( year-1,concat('-',right (year,2)))
+     else concat(year,concat('-',right (year+1,2))) end as fy_1*/,
+EXTRACT(MONTH FROM(CAST(p.fy_timerange.start AS datetime)))AS month1,
+EXTRACT(YEAR FROM(CAST(p.fy_timerange.start AS datetime)))AS year1,
+CASE
+WHEN MONTH1 <= 3
+THEN YEAR1-1
+ELSE
+YEAR1
+END AS start,
+start+1 as end1,
+concat(start,'-04-01T00:00:00.000Z') as start1,
+concat(end1,'-04-01T00:00:00.000Z') as end2,
+concat(concat(concat(concat('{"start":"',start1),'","end":"'),end2),'"}') as fy_1				  
+				  
 
 from table1
 				),
