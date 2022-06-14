@@ -1,0 +1,36 @@
+
+
+
+select p.projectId, ven.name as vendor, cou.name as country,
+nvl2(su.name, su.name, s.name) as wep_status,
+nvl2(spu.name, spu.name, sp.name) as service_provider
+
+from profile_60670 p
+
+left join profile_65025
+on p.projectId = profile_65025.projectId 
+
+left join ds_mysql_prod_project fac
+on p.projectid = fac.id
+left join ds_mysql_prod_project ven
+on fac.parent = ven.id
+left join ds_mysql_prod_project cou
+on ven.parent = cou.id
+
+left join ds_mysql_prod_tagelement sp
+on p.service_provider = sp.id
+
+
+left join ds_mysql_prod_tagelement s
+on p.status = s.id
+
+left join ds_mysql_prod_tagelement spu
+on profile_65025.service_provider = spu.id
+
+
+left join ds_mysql_prod_tagelement su
+on profile_65025.status = su.id
+
+where country <> 'Test Country' and wep_status = 'Active (launched)'
+
+group by p.projectId, wep_status, p.service_provider, cou.name, ven.name, spu.name, sp.name
