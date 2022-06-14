@@ -1,7 +1,7 @@
 with base0 as(
 select p._id, task.status, json_serialize(decode(task.approvalLog,null,'[]',task.approvalLog)) as app_status, task.profileinstanceid, p.projectid,p.fy, p.month from taskresp_54963 task
   left join profile_54963 p on p._id=task.profileinstanceid
-  where task.status in ('PENDING_APPROVAL','SUBMITTED') and task.subcat_output is not null
+  where task.status in ('PENDING_APPROVAL','APPROVED') and task.subcat_output is not null
 ),
 
 base1 as(
@@ -53,7 +53,7 @@ select p.*, case when p.fy_p3<=p.fy1 then p.project_manager_p3 else p.project_ma
 ),
 
 base6b as(
-select p.profileinstanceid as _id, p.project_code, p.project_name, p.project_manager, decode(p.status,'SUBMITTED',1,0) as approved2nd, case when p.status='PENDING_APPROVAL' and p.first_approval=1 then 1 else 0 end as approved1st, p.fy1,  case when p.status='PENDING_APPROVAL' and p.first_approval=0 then 1 else 0 end as pending1st, p.month from base6 p
+select p.profileinstanceid as _id, p.project_code, p.project_name, p.project_manager, decode(p.status,'APPROVED',1,0) as approved2nd, case when p.status='PENDING_APPROVAL' and p.first_approval=1 then 1 else 0 end as approved1st, p.fy1,  case when p.status='PENDING_APPROVAL' and p.first_approval=0 then 1 else 0 end as pending1st, p.month from base6 p
 ),
 
 base7 as(
