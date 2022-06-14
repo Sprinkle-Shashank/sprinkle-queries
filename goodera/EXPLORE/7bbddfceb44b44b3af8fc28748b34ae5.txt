@@ -33,8 +33,8 @@ split_part(cast(fy_timerange as varchar),'-',1)::smallint as year,
 split_part(cast(fy_timerange as varchar),'-',2)::smallint as start_month,
 case when start_month in (1,2,3) then concat( year-1,concat('-',right (year,2)))
      else concat(year,concat('-',right (year+1,2))) end as fy_1*/,
-EXTRACT(MONTH FROM(CAST(p.fy_timerange.start AS datetime)))AS month1,
-EXTRACT(YEAR FROM(CAST(p.fy_timerange.start AS datetime)))AS year1,
+EXTRACT(MONTH FROM(CAST(t1.fy_timerange.start AS datetime)))AS month1,
+EXTRACT(YEAR FROM(CAST(t1.fy_timerange.start AS datetime)))AS year1,
 CASE
 WHEN MONTH1 <= 3
 THEN YEAR1-1
@@ -47,7 +47,7 @@ concat(end1,'-04-01T00:00:00.000Z') as end2,
 concat(concat(concat(concat('{"start":"',start1),'","end":"'),end2),'"}') as fy_1				  
 				  
 
-from table1
+from table1 t1
 				),
 table3 as (
 select country,name,fy_1 as fy_timerange,sum(t2.total_emission1) as total_emission/*,lag(total_emission,1) over (order by  fy_timerange) as prev_emission,
