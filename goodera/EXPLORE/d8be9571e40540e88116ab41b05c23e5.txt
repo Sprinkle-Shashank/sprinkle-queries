@@ -1,4 +1,71 @@
-SELECT *
+with table1 as (SELECT *
+FROM (
+select cou.name as country,p.name,p.fy_timerange,keyword,datanum,startdate
+
+from sus_80478 p
+
+left join ds_mysql_prod_project pro on 
+p.xprojectid = pro.id
+
+left join ds_mysql_prod_project cou on 
+pro.parent = cou.id
+
+where keyword in ('scope3_emission'/*,'scope2_emission'*/) 
+
+order by fy_timerange asc
+  
+) PIVOT (
+   sum(datanum) FOR keyword IN ('scope3_emission'/*,'scope2_emission'*/)
+) 
+				),
+				table2 as (
+select country,name,fy_timerange,scope3_emission/*+scope2_emission*/ as total_emission1,
+EXTRACT(MONTH FROM cast (startdate as datetime))AS month1,
+EXTRACT(YEAR FROM cast (startdate as datetime))AS year1,
+CASE
+WHEN MONTH1 <= 3
+THEN YEAR1-1
+ELSE
+YEAR1
+END AS start,
+start+1 as end1,
+concat(start,'-04-01T00:00:00.000Z') as start1,
+concat(end1,'-04-01T00:00:00.000Z') as end2,
+concat(concat(concat(concat('{"start":"',start1),'","end":"'),end2),'"}') as fy_1				  
+				  
+
+from table1 t1
+				),
+table3 as (
+select country,name,fy_1 as fy_timerange,sum(t2.total_emission1) as total_emission from table2 t2
+
+group by country,name,fy_1)
+
+select country,name,fy_timerange,total_emission,lag(total_emission,1) over (order by  fy_timerange) as prev_emission/*,
+prev_emission-total_emission as diff_prev
+, 
+(select total_emission from table3
+	order by fy_timerange asc limit 1) as base_value, 
+
+base_value-total_emission as diff_base*/ from table3 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/*with table1 as (SELECT *
 FROM (
 select cou.name as country,p.name,p.fy_timerange,keyword,datanum/*,datanumbase
 lag(datanum,1) over (order by  p.fy_timerange) as prev_qty,
@@ -12,10 +79,31 @@ p.xprojectid = pro.id
 left join ds_mysql_prod_project cou on 
 pro.parent = cou.id
 
-where keyword in ('total_renew_consum', 'total_energy_auto') 
+where keyword in ('scope1_emission', 'scope2_emission','scope3_emission','biogenic_emission') 
 
 order by fy_timerange asc
   
 ) PIVOT (
-   sum(datanum) FOR keyword IN ('total_renew_consum', 'total_energy_auto')
+   sum(datanum) FOR keyword IN ('scope1_emission', 'scope2_emission','scope3_emission','biogenic_emission')
 ) 
+				),
+table3 as (
+select country,name,fy_timerange,
+
+)				
+				
+				
+				,
+				table2 as (
+select country,name,fy_timerange,scope1_emission+scope2_emission+scope3_emission as total_emission, lag(total_emission,1) over (order by  fy_timerange) as prev_emission,(prev_emission-total_emission)*100.0/prev_emission as total_perc
+
+,biogenic_emission,lag(biogenic_emission,1) over (order by fy_timerange) as prev_biogenic,(prev_biogenic-biogenic_emission)*100.0/prev_biogenic as biogenic_perc,
+lag(scope1_emission,1) over (order by  fy_timerange) as prev_scope1,
+(prev_scope1-scope1_emission)*100.0/prev_scope1 as scope1_perc,
+lag(scope2_emission,1) over (order by  fy_timerange) as prev_scope2,
+(prev_scope2-scope2_emission)*100.0/prev_scope2 as scope2_perc,
+lag(scope3_emission,1) over (order by  fy_timerange) as prev_scope3,
+(prev_scope3-scope3_emission)*100.0/prev_scope3 as scope3_perc
+from table1 				)
+
+select country,name,fy_timerange,total_perc,biogenic_perc,scope1_perc,scope2_perc,scope3_perc from table2 */
