@@ -1,14 +1,18 @@
-with Base1 as(select f.name as fy_timerange,split_part(split_part(prod.name,'|',1),'.',1) as ProjectCode,split_part(prod.name,'|',2) as Region from profile_60787
+with Base1 as(select f.name as fy_timerange,split_part(split_part(prod.name,'|',1),'.',1) as ProjectCode,split_part(prod.name,'|',2) as Region, select_quarter from profile_60787
 left join  ds_mysql_prod_project prod  on
 prod.id=projectid
 left join ds_mysql_prod_tagelement f 
-on fy=f.id),Base2 as(select fy_timerange,ProjectCode,f.name as Core_area,m.name as Project_Manager,Region from Base1 left join profile_27396 on
+on fy=f.id),
+
+Base2 as(select fy_timerange,ProjectCode,f.name as Core_area,m.name as Project_Manager,Region,select_quarter from Base1 left join profile_27396 on
 ProjectCode=name
 left join ds_mysql_prod_tagelement f on 
 focus_area=f.id
 left join ds_mysql_prod_tagelement m on 
 project_manager=m.id
-),Base3 as(select k.focus_area as Core_area,m.name as Project_Manager,p.name as ProjectCode from profile_27420 k
+),
+
+Base3 as(select k.focus_area as Core_area,m.name as Project_Manager, p.name as ProjectCode from profile_27420 k
 left join profile_27396 p
 on k.project_code=p._id
 left join ds_mysql_prod_tagelement m on 
