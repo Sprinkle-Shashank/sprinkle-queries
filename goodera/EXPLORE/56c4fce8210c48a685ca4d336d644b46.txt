@@ -1,0 +1,23 @@
+select profile_52713.name,profile_54646.name_vendor,profile_54646.name_country, profile_54646.name_vendor_filter,nvl2(pace_status_2,pace_status_2, nvl2(profile_54267.pace_status,profile_54267.pace_status,845114)) as pace_status1,profile_54267.fac_vpid, cast(concat('FY ' ,start_year) as varchar) as start_year ,case when start_quarter=1 then '1st (Feb-Apr)'
+ when start_quarter=2 then '2nd (May-Jul)'
+  when start_quarter=3 then '3rd (Aug-Oct)'
+   when start_quarter=4 then '4th (Nov-Jan)'
+   else null end as start_quarter , primary_category_1.name as primary_category  
+FROM profile_52713
+ 
+LEFT JOIN profile_54646 ON 
+profile_52713.projectId = profile_54646.projectId
+
+LEFT JOIN profile_4227 p ON 
+profile_54646.projectId = p.projectId
+
+LEFT JOIN profile_54267 ON 
+profile_52713.projectId = profile_54267.projectId
+
+left join profile_68161 p2 
+on fac.name = p2.goodera_facility_name_text
+
+left join ds_mysql_prod_tagelement  primary_category_1 on
+p.primary_category =  primary_category_1.id
+
+where pace_status1 = 845114 and sourcing_yn in (57472, 57473) 
