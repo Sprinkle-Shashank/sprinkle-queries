@@ -1,8 +1,6 @@
 with table1 as (SELECT *
 FROM (
-select cou.name as country,p.name,p.fy_timerange,keyword,datanum,startdate/*,datanumbase
-lag(datanum,1) over (order by  p.fy_timerange) as prev_qty,
-(prev_qty-datanum)*100.0/prev_qty as per */
+select cou.name as country,p.name,p.fy_timerange,keyword,datanum,startdate
 
 from sus_80478 p
 
@@ -21,20 +19,9 @@ order by fy_timerange asc
 ) 
 				),
 				table2 as (
-select country,name,fy_timerange,scope1_emission+scope2_emission as total_emission1/*,
-lag(total_emission,1) over (order by  fy_timerange) as prev_emission,
-prev_emission-total_emission as diff_prev
-, 
-(select scope1_emission+scope2_emission from table1
-	order by fy_timerange asc limit 1) as base_value, 
-
-base_value-total_emission as diff_base,
-split_part(cast(fy_timerange as varchar),'-',1)::smallint as year, 
-split_part(cast(fy_timerange as varchar),'-',2)::smallint as start_month,
-case when start_month in (1,2,3) then concat( year-1,concat('-',right (year,2)))
-     else concat(year,concat('-',right (year+1,2))) end as fy_1*/,
-EXTRACT(MONTH FROM /*CAST(t1.fy_timerange.start AS datetime)*/cast (startdate as datetime))AS month1,
-EXTRACT(YEAR FROM/*(CAST(t1.fy_timerange.start AS datetime))*/cast (startdate as datetime))AS year1,
+select country,name,fy_timerange,scope1_emission+scope2_emission as total_emission1,
+EXTRACT(MONTH FROM cast (startdate as datetime))AS month1,
+EXTRACT(YEAR FROM cast (startdate as datetime))AS year1,
 CASE
 WHEN MONTH1 <= 3
 THEN YEAR1-1
@@ -48,7 +35,7 @@ concat(concat(concat(concat('{"start":"',start1),'","end":"'),end2),'"}') as fy_
 				  
 
 from table1 t1
-				)/*,
+				),
 table3 as (
 select country,name,fy_1 as fy_timerange,sum(t2.total_emission1) as total_emission/*,lag(total_emission,1) over (order by  fy_timerange) as prev_emission,
 prev_emission-total_emission as diff_prev
@@ -66,6 +53,6 @@ prev_emission-total_emission as diff_prev
 (select total_emission from table3
 	order by fy_timerange asc limit 1) as base_value, 
 
-base_value-total_emission as diff_base from table3 */
+base_value-total_emission as diff_base from table3 
 
-select * from table2
+--select * from table2
