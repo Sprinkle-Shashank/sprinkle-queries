@@ -1,0 +1,38 @@
+select p.projectId , p.name , p.status,
+cou.name as country , 
+nvl2(SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)),ven.name) as vendor_name, case when vendor_name='' then ven.name else vendor_name end as vendor, ven.id as vendorID , fac.name as factory , fac.id as facilityID ,
+case when p.name_subunit is null or p.name_subunit=' ' then 'N/A' else p.name_subunit end  as unit,p.sub_unit,
+case when country in ('India', 'Bangladesh', 'Sri Lanka')
+then 'South Asia'
+when country in ('China')
+then 'North Asia'
+when country in ('Guatemala', 'El Salvador', 'Dominican Republic')
+then 'Americas'
+when country in ('Philippines', 'Cambodia',  'Vietnam',  'Indonesia', 'Myanmar')
+then 'South East Asia'
+end as region , 
+cast(DATEPART(YEAR,p.date_enrollment) as varchar) as year_new ,
+p.date_enrollment , p.worker_rep , p.mgmt_rep , primary_category1.name as primary_category
+
+from profile_16619 p
+
+
+left join ds_mysql_prod_project fac
+on  p.projectid = fac.id
+
+left join ds_mysql_prod_project ven
+on fac.parent = ven.id
+
+left join ds_mysql_prod_project cou
+on ven.parent = cou.id
+
+left join profile_681616 p2 
+on fac.name = p2.goodera_facility_name_text
+
+left join ds_mysql_prod_tagelement  primary_category_1 on
+p2.primary_category =  primary_category_1.id
+
+where p.projectId like '%%' and cou.name <> 'Test Country' and (p.status = 1400365 or p.status is null)  
+and country <> 'GAP Inc.'
+
+group by  p.projectId , p.name , p.status, cou.name ,ven.name ,fac.name, p.worker_rep ,p.mgmt_rep,p.date_enrollment , fac.id , ven.id ,p.name_subunit, p.sub_unit
