@@ -1,5 +1,7 @@
 with Base1 as(select f.name as fy_timerange,p.name as ProjectCode,p.name_project  as Project_name,k.name as IA,concat(p.start_date,concat('-',p.end_date)) as Start_End_Date, m.name as Project_manager,case when p._id is not null then 'https://api.p3fy.com/api/containers/nextgen-objects/download/Bonzv9lH2AbONxEeI80eqxU7dXtcxfzEYq6ju4DqiwIy1IP4gF7L0ajpmBoEnxM6_logo.jpg' end as Picture, 
-substring(p.start_date,1,10) p4			  
+substring(p.start_date,1,10) p4	
+substring(p.end_date,1,10) p5,
+concat(p4 '-' p5) as p6					  
 from profile_27396 p
 left join profile_27395 k on
 p.ngo_partner=k._id
@@ -9,7 +11,9 @@ left join ds_mysql_prod_tagelement f on
 p.fy=f.id
 union all
 select f.name as fy_timerange,l.name as ProjectCode,p.name_project Project_Name,p.ngo as IA,concat(p.start_date,concat('-',p.end_date)) as Start_End_Date ,m.name as Project_Manager,case when p._id is not null then  'https://api.p3fy.com/api/containers/nextgen-objects/download/Bonzv9lH2AbONxEeI80eqxU7dXtcxfzEYq6ju4DqiwIy1IP4gF7L0ajpmBoEnxM6_logo.jpg' end as Picture, 
-substring(p.start_date,1,10) p4		  
+substring(p.start_date,1,10) p4,	
+substring(p.end_date,1,10) p5,
+concat(p4 '-' p5) as p6			  
 from profile_27420 p
 left join profile_27396 l on
 p.project_code=l._id
@@ -19,4 +23,4 @@ left join ds_mysql_prod_tagelement f on
 p.fy=f.id
 
 )
-select fy_timerange,ProjectCode,Project_name,IA,Start_End_Date,Picture,listagg(Project_manager,',') within group(order by ProjectCode) as Project_manager,p4 from Base1 group by ProjectCode,p4,Project_name,IA,Start_End_Date,Picture,fy_timerange order by fy_timerange desc
+select fy_timerange,ProjectCode,Project_name,IA,Start_End_Date,Picture,listagg(Project_manager,',') within group(order by ProjectCode) as Project_manager,p6 from Base1 group by ProjectCode,p6,Project_name,IA,Start_End_Date,Picture,fy_timerange order by fy_timerange desc
