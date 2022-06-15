@@ -1,18 +1,48 @@
-with Base1 as(select f.name as fy_timerange,split_part(split_part(prod.name,'|',1),'.',1) as ProjectCode,split_part(prod.name,'|',2) as Region from profile_60787
-left join  ds_mysql_prod_project prod  on
-prod.id=projectid
-left join ds_mysql_prod_tagelement f 
-on fy=f.id),Base2 as(select fy_timerange,ProjectCode,f.name as Core_area,m.name as Project_Manager,Region from Base1 left join profile_27396 on
-ProjectCode=name
-left join ds_mysql_prod_tagelement f on 
-focus_area=f.id
-left join ds_mysql_prod_tagelement m on 
-project_manager=m.id
-),Base3 as(select k.focus_area as Core_area,m.name as Project_Manager,p.name as ProjectCode from profile_27420 k
-left join profile_27396 p
-on k.project_code=p._id
-left join ds_mysql_prod_tagelement m on 
-k.project_manager=m.id),Base4 as(select p.fy_timerange,p.ProjectCode, k.Core_area,k.Project_Manager,p.Region from Base1 p left join Base3 k on p.ProjectCode=k.ProjectCode) 
-select * from Base4  where Core_area is not null  and Project_Manager is not null and ProjectCode is not null
+with sub1 as(
+  select p2.name as projectid, p1._id as id, t1.name as fy_timerange, 
+split_part(split_part(p1.name, '|', 1), '.', 1) as projectcode, 
+split_part(p1.name, '|', 2) as region
+
+from profile_60787 p1
+
+left join ds_mysql_prod_tagelement t1 on t1.id = p1.fy
+left join ds_mysql_prod_project p2 on p2.id = p1.projectid),
+
+sub2 as(
+  select s1.projectid, s1.id, s1.fy_timerange, s1.projectcode, s1.region, 
+t2.name as core_area, t3.name as project_manager
+
+from sub1 s1 
+
+left join profile_27396 p2 on p2.name = s1.projectcode
+
+left join ds_mysql_prod_tagelement t2 on t2.id = p2.focus_area
+left join ds_mysql_prod_tagelement t3 on t3.id = p2.project_manager),
+
+sub3 as(
+  select p4.name as projectid, p3._id as id, p5.name as projectcode, t4.name as fy_timerange, p3.focus_area as core_area, t5.name as project_manager
+
+from profile_27420 p3
+
+left join ds_mysql_prod_project p4 on p4.id = p3.projectid
+left join profile_27396 p5 on p5._id = p3.project_code
+
+left join ds_mysql_prod_tagelement t4 on t4.id = p3.fy
+left join ds_mysql_prod_tagelement t5 on t5.id = p5.project_Manager),
+
+sub4 as(
+  select s1.projectid, s1.id, s1.fy_timerange, s1.region, s1.projectcode, s3.core_area, s3.project_manager
+
+from sub1 s1
+
+left join sub3 s3 on s3.projectcode = s1.projectcode),
+
+sub5 as(
+  select fy_timerange, projectcode, core_area, project_manager, region from sub2 
+where project_manager is not null
 union all
-select * from Base2 where Core_area is not null and Project_Manager is not null and ProjectCode is not null
+select fy_timerange, projectcode, core_area, project_manager, region from sub4 
+where project_manager is not null)
+
+select fy_timerange, projectcode, core_area, project_manager, region from sub5
+group by fy_timerange, projectcode, core_area, project_manager, region 
