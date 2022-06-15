@@ -20,4 +20,12 @@ order by fy_timerange asc
    sum(datanum) FOR keyword IN ( 'scope3_emission')
 ) 
 				)
-select * from table1
+select country,name,fy_timerange,scope3_emission,
+lag(scope3_emission,1) over (order by  fy_timerange) as prev_emission,
+prev_emission-scope3_emission as diff_prev
+, 
+(select scope3_emission from table1
+	order by fy_timerange asc limit 1) as base_value, 
+
+base_value-scope3_emission as diff_base from table1				
+
