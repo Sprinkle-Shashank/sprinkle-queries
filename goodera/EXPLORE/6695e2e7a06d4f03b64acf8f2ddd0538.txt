@@ -1,4 +1,20 @@
-select p.name as projectid,p1.name as donor,a.fy_timerange,a.bene_name,a.bene_age, t1.name as bene_gender,t2.name as bene_grade,a.before_attendance, a.after_attendance	,t3.name as tablet_received, a.num_tablets, a.aadhar
+select p.name as projectid,p1.name as donor,a.fy_timerange,a.bene_name, t1.name as bene_gender,t2.name as bene_grade,a.before_attendance, a.after_attendance	,t3.name as tablet_received, a.num_tablets, a.aadhar,
+case
+	when a.bene_age <=10 then 'Below 10'
+	when a.bene_age >=11 and a.bene_age<=14 then '11-14'
+	when a.bene_age >=15 and a.bene_age<=18 then '15-18'
+	when a.bene_age>=19 then 'Above 19'
+	else NULL
+	end as age_bucket,
+
+case
+	when age_bucket='Below 10' then 1
+	when age_bucket='11-14' then 2
+	when age_bucket='15-18' then 3
+	when age_bucket='Above 19' then 4
+	else NULL
+	end as sort
+
 from profile_80609 a
 
 left join ds_mysql_prod_project p on p.id = a.projectid
@@ -10,4 +26,4 @@ left join ds_mysql_prod_tagelement t3 on t3.id=a.tablet_received
 
 where a.projectid like '%%'
 
-group by  p.name,a.fy_timerange,a.bene_name,a.bene_age,t1.name,t2.nam,t3.name,p1.name, a.before_attendance, a.after_attendance, a.num_tablets, a.aadhar
+group by  p.name,a.fy_timerange,a.bene_name,a.bene_age,t1.name,t2.name,t3.name,p1.name, a.before_attendance, a.after_attendance, a.num_tablets, a.aadhar
