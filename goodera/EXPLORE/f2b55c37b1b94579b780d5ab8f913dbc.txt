@@ -1,16 +1,8 @@
-drop table if exists profile_61371;
- create table profile_61371 as
- SELECT projectid, _id,
- CAST(data.name as VARCHAR),
- CAST(data.time_period_timerange as SUPER),
- CAST(data.item as INT),
- CAST(data.region_2 as INT),
- CAST(data.region as INT),
- CAST(data.assignment_profile as INT),
- CAST(data.days_0_29 as INT),
- CAST(data.days_30_59 as INT),
- CAST(data.days_60_89 as INT),
- CAST(data.days_90 as INT),
- CAST(data.total_overdue as INT),
- CAST(data.not_overdue as INT)
-from ds_mongo_profileinstance where profileId='61371' and active = 't' and securitycontextid is not null
+select cast(time_period_timerange.start as date) as x, extract(year from x) as year, t.name as region_global, t1.name as item,name, assignment_profile, days_0_29, days_30_59, days_60_89, days_90, total_overdue, not_overdue
+from profile_61371 p
+left join ds_mysql_prod_tagelement t
+on p.region = t.id
+left join ds_mysql_prod_tagelement t1
+on p.item = t1.id
+left join ds_mysql_prod_tagelement t
+on p.region = t.id
