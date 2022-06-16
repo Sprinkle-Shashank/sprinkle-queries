@@ -1,0 +1,37 @@
+with lookup as (select
+				JSON_SERIALIZE(table_52810.pace_brands) as pace_brand, 
+				p._id, 
+				cast(p.factory_vpid_1 as varchar) as factory_vpid1, 
+				p.factory_vpid_2, p.sourcing_yn, 
+				cast(p.projectid as int) as projectid, 
+				p.child_vendor_vpid as vendor_vpid, 
+				table_54646.name_country as country_name, 
+				table_54646.name_vendor_filter as vendor, 
+				table_54646.name as factory_name, 
+				table_54267._id as id_54267, 
+				table_4227.end_date_2, 
+				table_4227.start_date, table_4227.num_females, 
+				table_4227._id as id_4227, 
+				to_char(table_4227.start_date,'YYYY-MM-DD') as start_date1,
+				to_char(table_4227.end_date,'YYYY-MM-DD') as end_date,
+				table_4228.end_date as end_date_4228, 
+				case when true then 0 else 0 end as filter_batch, 
+				case when id_54267 is not NULL then table_54267.pace_status else p.pace_status_2 end  as pacestatus, 
+				case when pace_brand like '%1011796%' then 1 else 0 end  as brand, 
+				case when sourcing_yn=57472 then factory_vpid1 else factory_vpid_2 end  as factory_id, 
+				case when end_date_4228 is not NULL then 1 else 0 end as modules_completed, 
+				case when end_date_4228 is NULL then 1 else 0 end as modules_pending 
+				from profile_52713 p 
+				
+inner join profile_52810 table_52810 on 
+table_52810.projectid=p.projectid 
+inner join profile_4227 table_4227 on 
+table_4227.projectid=p.projectid 
+left join profile_54267 table_54267 on 
+table_54267.projectid=p.projectid 
+inner join profile_54646 table_54646 on 
+table_54646.projectid=p.projectid 
+inner join profile_4228 table_4228 on 
+table_4228.class=table_4227._id)
+
+select sum(modules_completed) as modules_completed, sum(modules_pending) as modules_pending, num_females, end_date, start_date, factory_name, vendor, country_name, factory_id, vendor_vpid, id_4227, start_date1, projectid, filter_batch from lookup p where brand = 1 and (pacestatus = 845114 or pacestatus = null) and end_date_2 is NULL group by num_females, end_date, start_date, factory_name, vendor, country_name, factory_id, vendor_vpid, id_54267, id_4227, start_date1, projectid, filter_batch order by id_54267
