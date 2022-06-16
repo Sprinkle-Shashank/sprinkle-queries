@@ -1,1 +1,37 @@
-select split_part(cast(fy_timerange as varchar),'-',1) as year, split_part(cast(fy_timerange as varchar),'-',2) as month  from sus_80478 as p
+select profile_52713.projectid , profile_52713.name as factory ,
+
+case when nvl2(SUBSTRING(profile_54646.name_vendor, 1, POSITION(' (' in profile_54646.name_vendor)), SUBSTRING(profile_54646.name_vendor, 1, POSITION(' (' in profile_54646.name_vendor)), profile_54646.name_vendor)='' then profile_54646.name_vendor else nvl2(SUBSTRING(profile_54646.name_vendor, 1, POSITION(' (' in profile_54646.name_vendor)), SUBSTRING(profile_54646.name_vendor, 1, POSITION(' (' in profile_54646.name_vendor)), profile_54646.name_vendor) end as vendor 
+,  split_part(vendor , ':',1) as vendor_1 , 'SHAHI EXPORTS PVT. LIMITED' as vendor_2 , case when vendor_1=vendor_2 then true else false end as check ,
+profile_54646.name_vendor,profile_54646.name_country as country, profile_54646.name_vendor_filter,nvl2(pace_status_2,pace_status_2, nvl2(profile_54267.pace_status,profile_54267.pace_status,845114)) as pace_status1,profile_54267.fac_vpid, cast(concat('FY ' ,start_year) as varchar) as start_year ,case when start_quarter=1 then '1st (Feb-Apr)'
+ when start_quarter=2 then '2nd (May-Jul)'
+  when start_quarter=3 then '3rd (Aug-Oct)'
+   when start_quarter=4 then '4th (Nov-Jan)'
+   else null end as start_quarter , primary_category_1.name as primary_category  
+FROM profile_52713
+ 
+LEFT JOIN profile_54646 ON 
+profile_52713.projectId = profile_54646.projectId
+
+LEFT JOIN profile_4227 p ON 
+profile_54646.projectId = p.projectId
+
+LEFT JOIN profile_54267 ON 
+profile_52713.projectId = profile_54267.projectId
+
+left join ds_mysql_prod_project fac
+on  p.projectid = fac.id
+
+left join ds_mysql_prod_project ven
+on fac.parent = ven.id
+
+left join ds_mysql_prod_project cou
+on ven.parent = cou.id
+
+left join profile_68161 p2 
+on fac.name = p2.goodera_facility_name_text
+
+left join ds_mysql_prod_tagelement  primary_category_1 on
+p2.primary_category =  primary_category_1.id
+
+
+where pace_status1 = 845114 and sourcing_yn in (57472, 57473) and vendor='Vendor: SHAHI EXPORTS PVT. LIMITED'
