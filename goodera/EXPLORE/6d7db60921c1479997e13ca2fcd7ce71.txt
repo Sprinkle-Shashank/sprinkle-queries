@@ -12,8 +12,8 @@ case
   else x1.approvallog
 end as approvallog_new,
   
-cast(concat(concat(substring(cast(timestamp 'epoch' + CAST(x1.created AS BIGINT)/1000 * interval '1 second' as varchar), 1, 10),'T'), concat(split_part(cast(timestamp 'epoch' + CAST(x1.created AS BIGINT)/1000 * interval '1 second' as varchar), ' ',2),'.000Z')) as VARCHAR) as createddate,
-cast(concat(concat(substring(cast(timestamp 'epoch' + CAST(x1.modified AS BIGINT)/1000 * interval '1 second' as varchar), 1, 10),'T'), concat(split_part(cast(timestamp 'epoch' + CAST(x1.modified AS BIGINT)/1000 * interval '1 second' as varchar), ' ',2),'.000Z')) as VARCHAR) as modifieddate
+concat(concat(substring(cast(timestamp 'epoch' + CAST(x1.created AS BIGINT)/1000 * interval '1 second' as varchar), 1, 10),'T'), concat(split_part(cast(timestamp 'epoch' + CAST(x1.created AS BIGINT)/1000 * interval '1 second' as varchar), ' ',2),'.000Z')) as createddate,
+concat(concat(substring(cast(timestamp 'epoch' + CAST(x1.modified AS BIGINT)/1000 * interval '1 second' as varchar), 1, 10),'T'), concat(split_part(cast(timestamp 'epoch' + CAST(x1.modified AS BIGINT)/1000 * interval '1 second' as varchar), ' ',2),'.000Z')) as modifieddate
 
 from ds_mongo_taskresponse x1 
 
@@ -27,4 +27,16 @@ left join ds_mysql_prod_project x8 on x8.id = x5.projectid
 
 where x6.profileid = 27398 and x1.active = 't')
 
-select * from sub1
+select s1.id, s1.profileinstanceid, s1.uc, s1.projectid, s1.tranche, s1.approvallog_new, s1.status,
+
+decode(s1.profileInstanceId, p2._id, p2.fy, s1.data.fy) as fy, 
+decode(s1.profileInstanceId, p2._id, p2.project_name, s1.data.project_name) as project_name, 
+decode(s1.profileInstanceId, p2._id, p2.payment_amount, s1.data.payment_amount) as payment_amount, 
+decode(s1.profileInstanceId, p2._id, p2.renewal, s1.data.renewal) as renewal, 
+decode(s1.profileInstanceId, p2._id, p2.project_renew, s1.data.project_renew) as project_renew, 
+decode(s1.profileInstanceId, p2._id, p2.createddate, s1.createddate) as request_date, 
+decode(s1.profileInstanceId, p2._id, p2.modifieddate, s1.modifieddate) as modified,
+decode(s1.renewal, 430820, s1.data.project_renew, s1.data.project_name) as join_column
+
+from sub1 s1
+left join profile_27398 p2 on p2.id = p1.profileinstanceid
