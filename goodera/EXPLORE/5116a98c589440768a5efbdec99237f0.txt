@@ -1,38 +1,60 @@
-with table2 as 
+with table1 as 
 (
 select p.projectid, p.facility_status , facility.name as facility_status_update , case when facility_status_update='Active' then 'Active' else 'Deactive' end as Active_Filter , goodera_facility_name_text from profile_68161 as p
   
 left join ds_mysql_prod_tagelement facility 
 on p.facility_status = facility.id
-), 
+),
+
 
 table3 as 
 ( 
-
-  select fac.name as factory , case when nvl2(SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), ven.name)='' then ven.name else nvl2(SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), ven.name) end as vendor ,  cou.name as country, torg.name as trainer_organization , 
-SUBSTRING(to_char(profile_64075.date_1, 'DD/MM-YYYY'), POSITION('-' in to_char(profile_64075.date_1, 'DD/MM-YYYY'))+1,4 ) as year, t2.Active_Filter , total_supervisors , prospect_female , profile_64075.projectid , num_female
+  select p.projectid , p._id , p.name , SUBSTRING(to_char(p.date, 'DD/MM-YYYY'), POSITION('-' in to_char(p.date, 'DD/MM-YYYY'))+1,4) as year , p.trainer_org as trainer_organization , facility_name , fac.name as factory  , cou.name as country ,  case when nvl2(SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), ven.name)='' then ven.name else nvl2(SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), ven.name) end as vendor
+ from profile_61498 as p
   
-from profile_64075
-
 left join ds_mysql_prod_project fac
-on profile_64075.projectid = fac.id
+on p.projectid = fac.id
+ 
+left join ds_mysql_prod_project ven
+on fac.parent = ven.id
 
+left join ds_mysql_prod_project cou
+on ven.parent = cou.id
+
+),
+
+table4 as
+(
+select p.*, d1 from table3 as p, p.facility_name as d1
+),
+
+table5 as
+(
+select p.projectid , p._id , p.name , year , trainer_organization , p2.projectid as proj , factory ,  vendor ,  substring(vendor,0,3) , p.country , fac.name as factory_name , case when nvl2(SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), ven.name)='' then ven.name else nvl2(SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), ven.name) end as vendor_update
+, cou.name as country_update , case when substring(vendor,0,3)='Ve' then vendor else vendor_update end as vendor_1 , case when substring(p.country,0,3) is not null then p.country else country_update end as country_1 , t1.active_filter from table4 as p
+
+left join profile_52810 p2 
+on p.d1 = p2._id
+  
+left join ds_mysql_prod_project fac
+on p2.projectid = fac.id
+ 
 left join ds_mysql_prod_project ven
 on fac.parent = ven.id
 
 left join ds_mysql_prod_project cou
 on ven.parent = cou.id
   
-left join profile_61498
-on profile_64075.training_id = profile_61498._id
+left join table1 t1 on 
+fac.name = t1.goodera_facility_name_text
+),
 
-left join ds_mysql_prod_tagelement torg
-on profile_61498.trainer_organization = torg.id
+table6 as
+(
+select p.projectid , p._id , p.name , year, trainer_organization  , active_filter , vendor_1  as vendor,  country_1 as country , factory_name  from table5 as p
 
-left join table2 t2 on 
-fac.name = t2.goodera_facility_name_text
 
-where /*t2.active_filter is not null and*/ country != 'Test Country' and profile_64075.projectid like '%%' /*and trainer_organization is not null and year is not null */
-)
-
-select * from table3
+where p.projectid like '%%' and country_1 !='Test Country' and trainer_organization != 'Equivalent SST Program'
+  )
+  
+  select * from table3
