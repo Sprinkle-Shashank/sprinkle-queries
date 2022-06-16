@@ -1,0 +1,29 @@
+with temp as(
+  select 'Avg academic before in Maths' as col
+  union all
+  select 'Avg academic before in Science' as col
+  union all
+  select 'Avg academic before in Language' as col
+  )
+  
+select p1.name as projectid,p2.name as donor, a.fy_timerange, temp.col as dim,
+avg(case col
+  when 'Avg academic before in Maths' then a.avg_before_maths
+  when 'Avg academic before in Science' then a.avg_before_science	
+  when 'Avg academic before in Language' then a.avg_before_language	
+  else NULL end) as val,
+  
+case
+	when temp.col like '%maths' then 'Maths'
+	when temp.col like '%science' then 'Science'
+	when temp.col like '%language' then 'Language'
+	else NULL
+	end as Subject
+  
+from profile_80608 a
+cross join temp
+left join ds_mysql_prod_project p1 on p1.id = a.projectid
+left join ds_mysql_prod_project p2 on p2.id = p1.parent
+where a.projectid like '%%'
+
+group by p1.name , p2.name , a.fy_timerange, dim
