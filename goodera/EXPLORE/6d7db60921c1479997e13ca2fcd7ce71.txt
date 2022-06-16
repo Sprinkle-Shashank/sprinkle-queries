@@ -1,5 +1,16 @@
 with sub1 as(
-  select x1._id as id, x1.status, x1.active, x1.data, x1.submissionlog, x1.approvallog, x1.taskuserid, x2.taskid, x5.projectid, x6.profileid, x4.sectionid, x6.name as section, x7.name as profile, x8.name as project, x10.name as program
+  select x1._id as id, x1.status, x1.active, x1.data, x1.taskuserid, x2.taskid, x5.projectid, x6.profileid, x4.sectionid, x6.name as section, x7.name as profile, x8.name as project, x10.name as program,
+  
+case
+  when is_array(x1.submissionlog) = false or get_array_length(x1.submissionlog) = 0 then 
+  	   array(x1.submissionlog)
+  else x1.submissionlog
+end as submissionlog_new,
+case
+  when is_array(x1.approvallog) = false or get_array_length(x1.approvallog) = 0 then 
+  	   array(x1.approvallog)
+  else x1.approvallog
+end as approvallog_new
 
 from ds_mongo_taskresponse x1 
 
@@ -17,4 +28,4 @@ where (x6.profileid = 145 or x6.profileid = 36901) and x1.status = 'REJECTED'
 and x1.active = 't')
 
 select s1.*, sublog, applog
-from sub1 s1, s1.submissionlog sublog, s1.approvallog applog
+from sub1 s1, s1.submissionlog_new sublog, s1.approvallog_new applog
