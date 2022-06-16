@@ -1,0 +1,40 @@
+with temp as(
+  select 'Avg attendance after in 5th' as col
+  union all
+  select 'Avg attendance after in 6th' as col
+  union all
+  select 'Avg attendance after in 7th' as col
+  union all
+  select 'Avg attendance after in 8th' as col
+  union all
+  select 'Avg attendance after in 9th' as col
+  union all
+  select 'Avg attendance after in 10th' as col
+  )
+  
+select p1.name as projectid,p2.name as donor, a.fy_timerange, temp.col as dim,
+avg(case col
+  when 'Avg attendance after in 5th' then a.avg_after_5th	
+  when 'Avg attendance after in 6th' then a.avg_after_6th
+  when 'Avg attendance after in 7th' then a.avg_after_7th
+  when 'Avg attendance after in 8th' then a.avg_after_8th
+  when 'Avg attendance after in 9th' then a.avg_after_9th
+  when 'Avg attendance after in 10th' then a.avg_after_10th
+  else NULL end) as val,
+  
+case
+	when temp.col like '%5th' then '5th grade'
+	when temp.col like '%6th' then '6th grade'
+	when temp.col like '%7th' then '7th grade'
+	when temp.col like '%8th' then '8th grade'
+	when temp.col like '%9th' then '9th grade'
+	else '10 grade'
+	end as grade
+  
+from profile_80608 a
+cross join temp
+left join ds_mysql_prod_project p1 on p1.id = a.projectid
+left join ds_mysql_prod_project p2 on p2.id = p1.parent
+where a.projectid like '%%'
+
+group by p1.name , p2.name , a.fy_timerange, dim
