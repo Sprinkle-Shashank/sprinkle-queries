@@ -1,8 +1,31 @@
-select p1.name as projectid,p2.name as donor, a.fy_timerange, a.avg_before_remote_learning, a.avg_attendance_before, a.avg_attendance_after, a.avg_after_remote_learning
+with temp as(
+  select 'Avg attendance before in 5th' as col
+  union all
+  select 'Avg attendance before in 6th' as col
+  union all
+  select 'Avg attendance before in 7th' as col
+  union all
+  select 'Avg attendance before in 8th' as col
+  union all
+  select 'Avg attendance before in 9th' as col
+  union all
+  select 'Avg attendance before in 10th' as col
+  )
+  
+select p1.name as projectid,p2.name as donor, a.fy_timerange, temp.col as dim,
+case col(
+  when 'Avg attendance before in 5th' then a.avg_before_5th	
+  when 'Avg attendance before in 6th' then a.avg_before_6th
+  when 'Avg attendance before in 7th' then a.avg_before_7th
+  when 'Avg attendance before in 8th' then a.avg_before_8th
+  when 'Avg attendance before in 9th' then a.avg_before_9th
+  when 'Avg attendance before in 10th' then a.avg_before_10th
+  else NULL) end as val
+  
 from profile_80608 a
-
+cross join temp
 left join ds_mysql_prod_project p1 on p1.id = a.projectid
 left join ds_mysql_prod_project p2 on p2.id = p1.parent
 where a.projectid like '%%'
 
-group by p1.name , p2.name , a.fy_timerange, a.avg_before_remote_learning, a.avg_attendance_before, a.avg_attendance_after, a.avg_after_remote_learning
+group by p1.name , p2.name , a.fy_timerange, dim
