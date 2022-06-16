@@ -1,23 +1,25 @@
-select * from profile_79637
-/*SELECT profile_54646.name_vendor_filter as vendor, vpid_1 as VPID, LISTAGG(DISTINCT cou.name, ',') 
-within group (order by profile_54646.name_vendor_filter) as COUNTRY,
-cast(concat('FY ' ,start_year) as varchar) as start_year ,case when start_quarter=1 then '1st (Feb-Apr)'
- when start_quarter=2 then '2nd (May-Jul)'
-  when start_quarter=3 then '3rd (Aug-Oct)'
-   when start_quarter=4 then '4th (Nov-Jan)'
-   else null end as start_quarter,profile_54646.name_vendor,profile_54646.name_country,  stat.name as pace_stat
-FROM profile_52162
+select yr.name as year , datepart(month, p.date_of_formation) as month , case when month in ('2', '3', '4')
+then '1st(Feb-Apr)'
+when month in ('5','6','7')
+then '2nd(May-Jul)'
+when month in ('8', '9', '10')
+then '3rd(Aug-Oct)'
+when month in ('11', '12',  '1')
+then '4th(Nov-Jan)'
+end as quarter , loc_parent.name as state,loc_child.name as district , count(p.participant_id) as val, CASE WHEN p.participant_id IS NOT NULL THEN p.participant_id ELSE '0' END AS p_id
+from profile_29179 p
+left join ds_mysql_prod_tagelement yr
+on p.year = yr.id
 
-LEFT JOIN profile_54646 ON
-profile_52162.projectId = profile_54646.projid_vendor
+left join ds_mysql_prod_tagelement loc_child
+on p.location = loc_child.id
 
-LEFT JOIN profile_4227 p ON
-profile_54646.projectId = p.projectId
+left join ds_mysql_prod_tagelement loc_parent
+on loc_child.parent = loc_parent.id
 
+WHERE district <> block AND (lg_status = 847850 OR lg_status IS null) --AND LEN(p_id) != 0
+--(p.participant_id IS NOT null OR p.participant_id <> '')
+ 
 
-left join ds_mysql_prod_tagelement cou on country_2 = cou.id
-left join ds_mysql_prod_tagelement stat on pace_status  = stat.id
+group by p_id, yr.name  , quarter , state , district  , p.date_of_formation
 
-WHERE pace_status = 845114 or pace_status is NULL or stat.name = '' 
-
-group by profile_54646.name_vendor_filter, vpid_1, start_quarter,profile_54646.name_vendor,profile_54646.name_country, profile_54646.name_vendor_filter,start_year , stat.name */
