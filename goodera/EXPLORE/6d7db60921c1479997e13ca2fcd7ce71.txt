@@ -1,5 +1,5 @@
 with sub1 as(
-  select x1._id as id, x1.status, x1.active, x1.data, x1.taskuserid, x2.taskid, x5.projectid, x6.profileid, x4.sectionid, x6.name as section, x7.name as profile, x8.name as project, x10.name as program,
+  select x1._id as id, x1.profileinstanceid, x1.status, x1.active, x1.data, x1.taskuserid, x2.taskid, x5.projectid, x6.profileid, x4.sectionid, x6.name as section, x7.name as profile, x8.name as project, x10.name as program,
   
 case
   when is_array(x1.submissionlog) = false or get_array_length(x1.submissionlog) = 0 then 
@@ -24,25 +24,6 @@ left join ds_mysql_prod_project x8 on x8.id = x5.projectid
 left join ds_mysql_prod_project x9 on x9.id = x8.parent
 left join ds_mysql_prod_project x10 on x10.id = x9.parent
 
-where (x6.profileid = 145 or x6.profileid = 36901) and x1.status = 'REJECTED' 
-and x1.active = 't'),
+where x6.profileid 27398 and x1.status = 'REJECTED' and x1.active = 't')
 
-sub2 as(
-  select s1.*, sublog, applog,
-  
-cast(applog."approverEmail" as VARCHAR) as approver_email,
-cast(applog."approverName" as VARCHAR) as approver_name,
-cast(applog."approverComments" as VARCHAR) as approver_comments,
-  
-cast(sublog."email" as VARCHAR) as data_entry_email
-
-from sub1 s1, s1.submissionlog_new sublog, s1.approvallog_new applog),
-
-sub3 as(
-  select s2.id, s2.data, s2.program, s2.project, s2.profile, s2.section, s2.approver_email, s2.approver_name, listagg(distinct s2.approver_comments, ' | ') as comments, s2.data_entry_email
-
-from sub2 s2
-
-group by s2.id, s2.data, s2.program, s2.project, s2.profile, s2.section, s2.approver_email, s2.approver_name, s2.data_entry_email)
-
-select * from sub3
+select * from sub1
