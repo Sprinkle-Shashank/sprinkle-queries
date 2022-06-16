@@ -1,0 +1,33 @@
+with lookup as (select
+				p._id, p.projectid, 
+				p.child_vendor_vpid as vendor_vpid, 
+				cast(p.factory_vpid_1 as varchar) as factory_vpid1, 
+				table_54267._id as id_54267, 
+				table_54646.name_country as country_name, 
+				table_54646.name_vendor_filter as vendor, 
+				table_54646.name as factory_name,
+				table_4227_2._id as id_4227,
+				JSON_SERIALIZE(table_52810.pace_brands) as pace_brand,
+				case when pace_brand like '%1011796%' then 1 else 0 end  as brand,
+				case when id_54267 is not NULL then table_54267.pace_status else p.pace_status_2 end  as pacestatus, 
+				case when p.sourcing_yn=57472 then factory_vpid1 else p.factory_vpid_2 end  as factory_id,
+				case when true then 1 else 1 end as filter_batch,
+				case when true then '-' else '-' end as modules_completed,
+				case when true then '-' else '-' end as modules_pending,
+				case when true then '-' else '-' end as num_females,
+				case when true then '-' else '-' end as end_date,
+				case when true then '-' else '-' end as start_date
+				from profile_52713 p
+inner join profile_52810 table_52810 on
+table_52810.projectid=p.projectid
+left join profile_4227 table_4227 on
+table_4227.projectid=p.projectid
+left join profile_54267 table_54267 on
+table_54267.projectid=p.projectid
+inner join profile_54646 table_54646 on
+table_54646.projectid=p.projectid
+left join profile_4227 table_4227_2 on
+table_4227_2.projectid=p.projectid
+				
+order by id_54267)
+select projectid, factory_id, country_name, vendor, factory_name, vendor_vpid, modules_completed, modules_pending, num_females, end_date, start_date, filter_batch, id_4227 from lookup p where brand = 1 and (pacestatus = 845114 or pacestatus = null) and id_4227 is NULL group by projectid, factory_id, country_name, vendor, factory_name, vendor_vpid, modules_completed, modules_pending, num_females, end_date, start_date, filter_batch, id_4227
