@@ -12,7 +12,7 @@ With table1 as (
   ),
 
  table2 as ( 
-  Select table1._id, table1.name , table1.projectid , table1.fy_timerange , table1.status ,table1.location, table1.title , table1.type , ng.name as ngo , table1.proj_img, table1.s_date, table1.e_date,table1.desc,table1.spoc_name,table1.spoc_email,table1.spoc_contact,table1.budget , table1.outcome,to_char(table1.s_date, 'MM-YYYY') as start_final , to_char(table1.e_date, 'MM-YYYY') as end_final , concat(concat(start_final,' to  '),end_final) as new_dur,
+  Select table1._id, table1.name , table1.projectid , proj.name AS projectname, table1.fy_timerange , table1.status ,table1.location, table1.title , table1.type , ng.name as ngo , table1.proj_img, table1.s_date, table1.e_date,table1.desc,table1.spoc_name,table1.spoc_email,table1.spoc_contact,table1.budget , table1.outcome,to_char(table1.s_date, 'MM-YYYY') as start_final , to_char(table1.e_date, 'MM-YYYY') as end_final , concat(concat(start_final,' to  '),end_final) as new_dur,
   
  listagg(distinct cast(foc.name as varchar),',') AS schedule_7_unwind,	
  listagg(distinct cast(sg.name as varchar),',') AS sdg_unwind,
@@ -39,11 +39,14 @@ With table1 as (
   
       LEFT JOIN ds_mysql_prod_tagelement AS ng
   ON ng.id = table1.ngo
+   
+  LEFT JOIN ds_mysql_prod_project AS proj
+   ON table1.projectid = proj.id
   
   
   GROUP BY 
    table1._id,
-  table1.name , table1.projectid , table1.fy_timerange , table1.status , table1.title , table1.type , table1.ngo , table1.proj_img, table1.s_date, table1.e_date,table1.desc,table1.spoc_name,table1.spoc_email,table1.spoc_contact,table1.budget , table1.outcome , ng.name , table1.location),
+  table1.name , table1.projectid , table1.fy_timerange , table1.status , table1.title , table1.type , table1.ngo , table1.proj_img, table1.s_date, table1.e_date,table1.desc,table1.spoc_name,table1.spoc_email,table1.spoc_contact,table1.budget , table1.outcome , ng.name , table1.location), proj.id,
   
  table3 as ( Select _id, count (distinct  st1.name) as count_state from table1
 			  LEFT JOIN ds_mysql_prod_tagelement AS st
