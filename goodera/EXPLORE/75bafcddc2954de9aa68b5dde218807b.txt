@@ -4,7 +4,8 @@ with table1 as (Select
 				substring(table_54646.projcode_factory,1,1) as code,
 				reverse(SPLIT_PART(reverse(table_54646.projcode_factory), '-',1)) as code_brand,
 				JSON_SERIALIZE(table_52810.pace_brands) as pace_brand,	
-				case when pace_brand like '%1011796%' then 1 else 0 end  as brand
+				case when pace_brand like '%1011796%' then 1 else 0 end  as brand,
+				case when table_52810.offset_date is null then '2020-02-01T00:00:00.000Z' else table_52810.offset_date end as offset_date
 				
 				from profile_71993 p 
 
@@ -15,7 +16,9 @@ inner join profile_52810 table_52810 on
 table_52810.projectId = p.projectId
 ),
 
-table2 as ( Select partner_type,factory_id,code,code_brand,brand
+table2 as ( Select partner_type,factory_id,code,code_brand,brand,
+		   table_4227.start_date as start_date,
+		   table_4227.select_modules as select_modules,offset_date
 		   
 		   
 		   from table1 p
@@ -26,4 +29,4 @@ table_4227.projectId = factory_id
 
 
 
-Select * from table2 where partner_type = 1132937 and code = 'F' and brand = 1
+Select * from table2 where partner_type = 1132937 and code = 'F' and brand = 1 and start_date >= offset_date
