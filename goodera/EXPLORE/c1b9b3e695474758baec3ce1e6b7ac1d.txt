@@ -1,9 +1,37 @@
-with table1 as ( select distinct projectid,fac.name as factory,trainer_org from profile_64075 p
+with table1 as ( select distinct projectid,trainer_org 
+				
+				from profile_64075 p			
+			   
+	where trainer_org not like '%facility%'		   ),
+
+table2 as (select  p.projectid,fac.name as factory,trainer_org as trainer_organization,
+
+case when nvl2(SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), ven.name)='' then ven.name else nvl2(SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), ven.name) end as vendor ,  cou.name as country ,
+row_number() over 
+(partition by p.projectid
+ order by date_1 asc) as row, case when status.name = 'Active' then 'Active'
+		                            else 'Deactive' end as active_filter
+/*SUBSTRING(to_char(p.date_1, 'DD/MM-YYYY'), POSITION('-' in to_char(p.date_1, 'DD/MM-YYYY'))+1,4 ) as year,*/,extract (year from date_1) as  year
+				
+
+from profile_64075 p
 
 left join ds_mysql_prod_project fac
 on p.projectid = fac.id
-			   
-	where trainer_org not ilike '%facility%'		   )
+				
+left join ds_mysql_prod_project ven
+on fac.parent = ven.id
 
-select distinct projectid,trainer_org from profile_64075
-where trainer_org ilike '%facility%' and projectid not in (select projectid from table1)
+left join ds_mysql_prod_project cou
+on ven.parent = cou.id
+		 
+left join profile_68161 q on 
+fac.name = q.goodera_facility_name_text	
+	
+left join ds_mysql_prod_tagelement status
+on q.facility_status = status.id		   
+
+where trainer_org like '%facility%' and p.projectid not in (select projectid from table1))
+
+select * from table2
+where row = 1
