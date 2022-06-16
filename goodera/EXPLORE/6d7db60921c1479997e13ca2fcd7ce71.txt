@@ -30,20 +30,41 @@ where x6.profileid = 27398 and x1.active = 't'),
 --taskresponse table--
 
 sub2 as(
-  select s1.id, s1.profileinstanceid,  s1.projectid, s1.data.uc, s1.data.tranche, s1.approvallog_new, s1.status, s1.data.fy as j,
+  select s1.id, s1.profileinstanceid,  s1.projectid, s1.data.uc, s1.data.tranche, s1.approvallog_new, s1.status,
 
 case
   when s1.profileinstanceid = p2._id then p2.fy
   else s1.data.fy
 end as fy,
-decode(s1.profileInstanceId, p2._id, p2.project_name, s1.data.project_name) as project_name, 
-decode(s1.profileInstanceId, p2._id, p2.payment_amount, s1.data.payment_amount) as payment_amount, 
-decode(s1.profileInstanceId, p2._id, p2.renewal, s1.data.renewal) as renewal, 
-decode(s1.profileInstanceId, p2._id, p2.project_renew, s1.data.project_renew) as project_renew, 
-decode(s1.profileInstanceId, p2._id, p2.createddate, s1.createddate) as request_date, 
-decode(s1.profileInstanceId, p2._id, p2.modifieddate, s1.modifieddate) as modified,
-decode(s1.data.renewal, 430820, s1.data.project_renew, s1.data.project_name) as join_column
-
+case
+  when s1.profileinstanceid = p2._id then p2.project_name
+  else s1.data.project_name
+end as project_name, 
+case
+  when s1.profileinstanceid = p2._id then p2.payment_amount
+  else s1.data.payment_amount
+end as payment_amount, 
+case
+  when s1.profileinstanceid = p2._id then p2.renewal
+  else s1.data.renewal
+end as renewal,  
+case
+  when s1.profileinstanceid = p2._id then p2.project_renew
+  else s1.data.project_renew
+end as project_renew,  
+case
+  when s1.profileinstanceid = p2._id then p2.createddate
+  else s1.createddate
+end as createddate,  
+case
+  when s1.profileinstanceid = p2._id then p2.modifieddate
+  else s1.modifieddate
+end as modifieddate,
+case
+  when s1.data.renewal = 430820 then s1.data.project_renew
+  else s1.data.project_name
+end as joincloumn
+  
 from sub1 s1
 left join profile_27398 p2 on p2._id = s1.profileinstanceid)
 
