@@ -1,4 +1,61 @@
-select fy_timerange, proj.name AS projectname, num_ben from profile_80981 p
+WITH table1 AS (
+  
+  SELECT * 
+  
+  FROM profile_80433 AS p1,
+  
+  p1.schedule_7 AS schedule_7_unwind,
+  p1.sdg AS sdg_unwind,
+  p1.sdg_icon AS sdg_icon_unwind,
+  p1.location AS location_unwind
+  ),
+
+ table2 AS ( 
+  SELECT table1._id, table1.name , table1.projectid , proj.name AS projectname, table1.fy_timerange , table1.status ,table1.location, table1.title , table1.type , ng.name as ngo , table1.proj_img, table1.s_date, table1.e_date,table1.desc,table1.spoc_name,table1.spoc_email,table1.spoc_contact,table1.budget , table1.outcome,to_char(table1.s_date, 'MM-YYYY') as start_final , to_char(table1.e_date, 'MM-YYYY') as end_final , concat(concat(start_final,' to  '),end_final) as new_dur,
+  
+ listagg(distinct cast(foc.name as varchar),',') AS schedule_7_unwind,	
+ listagg(distinct cast(sg.name as varchar),',') AS sdg_unwind,
+  listagg(distinct cast(st.name as varchar),',') AS location_unwind,
+ -- listagg(distinct cast(st.name as varchar),',') AS location_unwind
+ listagg(DISTINCT CAST(table1.sdg_icon_unwind AS VARCHAR),',') AS sdg_photo_unwind2,
+   listagg(distinct cast(st1.name as varchar),',') AS locationstate_unwind
+ 
+ 
+  from table1
+  
+  LEFT JOIN ds_mysql_prod_tagelement AS foc
+  ON foc.id = table1.schedule_7_unwind
+  
+   LEFT JOIN ds_mysql_prod_tagelement AS sg
+  ON sg.id = table1.sdg_unwind
+  
+     LEFT JOIN ds_mysql_prod_tagelement AS st
+  ON st.id = table1.location_unwind
+   
+    LEFT JOIN ds_mysql_prod_tagelement AS st1
+  ON st.parent = st1.id
+   
+  
+      LEFT JOIN ds_mysql_prod_tagelement AS ng
+  ON ng.id = table1.ngo
+   
+  LEFT JOIN ds_mysql_prod_project AS proj
+   ON table1.projectid = proj.id
+  
+  
+  GROUP BY 
+   table1._id,
+  table1.name , table1.projectid , table1.fy_timerange , table1.status , table1.title , table1.type , table1.ngo , table1.proj_img, table1.s_date, table1.e_date,table1.desc,table1.spoc_name,table1.spoc_email,table1.spoc_contact,table1.budget , table1.outcome , ng.name , proj.name, table1.location), 
+
+
+ table3 as ( select fy_timerange, proj.name AS projectname, num_ben from profile_80981 p
 
 LEFT JOIN ds_mysql_prod_project AS proj
 ON p.projectid = proj.id
+
+ )
+	Select *  from table2 
+	
+	LEFT JOIN table3 as tob3
+	on tob3._id = table2._id
+			
