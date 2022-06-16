@@ -1,5 +1,41 @@
-select  p1.name as projectid,p2.name as donor, a.fy_timerange, a.new_dishwash_area, a.new_drinking_water_area, a.area_of_new_shed, a.new_male_toilets, a.school_name, a.new_female_toilets, a.school_location, a.dishwash_before_wash, 	a.drinking_water_area_before, a.area_of_shed_before_wash, a.no_of_male_toilets, a.no_of_female_toilets, a.mdm_shed_constructed from profile_80587 a
+with temp as(
+  select 'Dishwash before' as col
+  union all
+   select 'Drinking area before' as col
+  union all
+   select 'Dishwash after' as col
+  union all
+   select 'Drinking area after' as col
+  union all
+   select 'Multipurpose shed after' as col
+  union all
+  select 'Female toiltes before' as col
+  union all
+  select 'Female toiltes after' as col
+  union all
+  select 'Male toiltes before' as col
+  union all
+  select 'Male toiltes after' as col
+  union all
+  
+select  p1.name as projectid,p2.name as donor, a.fy_timerange,a.school_name,a.school_location, temp.col as dim
+  
+case col
+  when 'Dishwash after' then a.new_dishwash_area
+  when 'Drinking area before' then a.drinking_water_area_before
+  when 'Dishwash before' then a.dishwash_before_wash
+  when 'Drinking area after' then a.new_drinking_water_area
+  when 'Multipurpose shed after' then a.a.area_of_new_shed
+  select 'Female toiltes before' then a.no_of_female_toilets
+  when 'Female toiltes after' then  a.new_female_toilets
+  when 'Male toiltes before' then a.no_of_male_toilets
+  when 'Male toiltes after' then a.new_male_toilets
+  else NULL end as val
+  
+from profile_80587 a
 
 left join ds_mysql_prod_project p1 on p1.id = a.projectid
 left join ds_mysql_prod_project p2 on p2.id = p1.parent
 where a.projectid like '%%'
+  
+group by p1.name,p2.name, a.fy_timerange,a.school_name,a.school_location, dim
