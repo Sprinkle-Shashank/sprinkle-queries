@@ -27,19 +27,64 @@ where x6.profileid = 27398 and x1.active = 't'
 group by x1._id, x1.profileinstanceid, x1.status, x1.active, x1.data, x1.taskuserid, x2.taskid, x5.projectid, x6.profileid, x4.sectionid, x6.name, x7.name, x8.name, x1.created, x1.modified, x1.submissionlog, x1.approvallog),
 
 sub2 as(
-  select s1.id, s1.profileinstanceid, s1.status, s1.projectid, s1.data,
-cast(applog."approvalStatus" as VARCHAR) as approve_status,
+  select s1.id, s1.profileinstanceid, s1.status, s1.projectid, s1.data, s1.created, s1.modified, cast(applog."approvalStatus" as VARCHAR) as approve_status,
 
 case
 	when approve_status = 'REJECTED' then 1
 	else 0 
 end as rejection_count
 
-from sub1 s1, s1.approvallog_new applog)
+from sub1 s1, s1.approvallog_new applog),
 
-select s2.id, s2.profileinstanceid, s2.status, s2.projectid, s2.data,
-sum(s2.rejection_count) as rejection_count
+sub3 as(
+  select s2.id, s2.profileinstanceid, s2.status, s2.projectid, s2.data, s2.created, s2.modified, sum(s2.rejection_count) as rejection_count
 
 from sub2 s2
 
-group by s2.id, s2.profileinstanceid, s2.status, s2.projectid, s2.data
+group by s2.id, s2.profileinstanceid, s2.status, s2.projectid, s2.data)
+
+select s3.id, s3.profileinstanceid, s3.status, s3.projectid, s3.data.tranche,
+cast(s3.data.uc as VARCHAR) as uc,
+
+case 
+	when s3.profileinstanceid = p2._id then p2.fy 
+	else s3.data.fy
+end as fy,
+
+case 
+	when s3.profileinstanceid = p2._id then p2.project_name 
+	else s3.data.project_name
+end as project_name, 
+
+case 
+	when s3.profileinstanceid = p2._id then p2.payment_amount 
+	else s3.data.payment_amount
+end as payment_amount,
+
+case 
+	when s3.profileinstanceid = p2._id then p2.renewal 
+	else s3.data.renewal
+end as renewal,
+
+case 
+	when s3.profileinstanceid = p2._id then p2.project_renew 
+	else s3.data.project_renew
+end as project_renew,
+
+case 
+	when s3.profileinstanceid = p2._id then p2.created 
+	else s3.created
+end as created,
+
+case 
+	when s3.profileinstanceid = p2._id then p2.modified 
+	else s3.modified
+end as modified,
+
+case 
+	when s3.data.renewal = 430820 then p2.data.project_renew 
+	else s3.data.project_name
+end as joincolumn
+
+from sub3 s3
+left join profile_27398 p2 on p2._id = s3.profileinstanceid
