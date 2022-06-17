@@ -1,0 +1,32 @@
+with table1 as 
+(
+select p.projectid, p.facility_status , goodera_facility_name_text , facility.name as facility_status_update , case when facility_status_update='Active' then 'Active' else 'Deactive' end as Active_Filter from profile_68161 as p
+  
+left join ds_mysql_prod_tagelement facility 
+on p.facility_status = facility.id
+),
+
+table2 as 
+(
+ select p.projectid , fac.name as factory ,
+  
+  case when nvl2(SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), ven.name)='' then ven.name else nvl2(SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), ven.name) end as vendor , 
+  
+  cou.name as country , case when extract(month from date)=1 then extract(year from date)-1 
+else extract(year from date) end as year , t1.Active_Filter from profile_61572 as p
+  
+left join ds_mysql_prod_project fac 
+on p.projectId = fac.id
+
+ left join ds_mysql_prod_project ven 
+on fac.parent = ven.id
+
+ left join ds_mysql_prod_project cou 
+on ven.parent = cou.id
+  
+left join table1 t1 on 
+fac.name = t1.goodera_facility_name_text
+  
+ where p.projectid like '%%' and country <> 'Test Country' and t1.Active_Filter is not null)
+
+select * from table2
