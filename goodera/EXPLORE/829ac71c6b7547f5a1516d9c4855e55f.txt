@@ -1,4 +1,10 @@
-Select projectId,dir.name as dir_indir, source.name as data_source,CAST(time_period_timerange.start as date) as timerange,Substring(timerange,1,4) as year_axis, Sum(p.total_suppliers) as total, p.suppliers_with_po, sc.name as scope from profile_61245 p
+Select projectId,dir.name as dir_indir, source.name as data_source,CAST(time_period_timerange.start as date) as timerange,Substring(timerange,1,4) as year_axis,DATEPART(MONTH,timerange) as month,case when month in ('1','2','3') then 'Quarter 1'
+     when month in ('4','5','6') then 'Quarter 2'
+	 when month in ('7','8','9') then 'Quarter 3'
+	 when month in ('10','11','12') then 'Quarter 4'
+	 end as quarter,
+	 
+	 concat(quarter,concat(' ',concat('-', SUBSTRING(year_axis,3,4)))) as year_new, Sum(p.total_suppliers) as total, p.suppliers_with_po, sc.name as scope from profile_61245 p
 
 Left join ds_mysql_prod_tagelement dir
 on p.dir_indir = dir.id
@@ -10,4 +16,4 @@ Left join ds_mysql_prod_tagelement sc
 on p.scope = sc.id
 
 
-group by projectId,time_period_timerange.start,year_axis,dir.name,source.name,p.suppliers_with_po,sc.name
+group by projectId,time_period_timerange.start,year_axis,dir.name,source.name,p.suppliers_with_po,sc.name,month,quarter
