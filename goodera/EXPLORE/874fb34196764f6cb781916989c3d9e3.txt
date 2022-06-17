@@ -7,8 +7,6 @@ with temp as(
   union all
   select 'Dishwashing after' as col
   union all
-  select 'Multipurpose shed after' as col
-  union all
   select 'Exterior ambience after' as col
   union all
   select 'No. of participants' as col
@@ -27,7 +25,7 @@ with temp as(
   union all
   select 'Hygiene before'  as col
   )
-select p1.name as projectid,p2.name as donor, a.session, a.fy_timerange,a.school_name,temp.col as dim,
+select p1.name as projectid,p2.name as donor, t1.name as session, a.fy_timerange,a.school_name,temp.col as dim,
 
 sum(case col
   when 'Boys sanitation after' then a.post_boys_sanitation	
@@ -49,6 +47,7 @@ from profile_80589 a
 cross join temp
 left join ds_mysql_prod_project p1 on p1.id = a.projectid
 left join ds_mysql_prod_project p2 on p2.id = p1.parent
+left join ds_mysql_prod_tagelement t1 on t1.id = a.session
 where a.projectid like '%%'
   
-group by p1.name,p2.name, a.fy_timerange,a.school_name,dim
+group by p1.name,p2.name, a.fy_timerange,a.school_name,dim, t1.name
