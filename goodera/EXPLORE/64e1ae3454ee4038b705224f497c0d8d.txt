@@ -18,7 +18,7 @@ with temp as(
   select 'Male toilets after' as col
   )
   
-select p1.name as projectid,p2.name as donor, a.fy_timerange,a.school_name,a.school_location, temp.col as dim,
+select p1.name as projectid,p2.name as donor, a.fy_timerange,a.school_name,t1.name as school_location, temp.col as dim,
    
 sum(case col
   when 'Dishwash after' then a.new_dishwash_area
@@ -36,6 +36,7 @@ from profile_80587 a
 cross join temp
 left join ds_mysql_prod_project p1 on p1.id = a.projectid
 left join ds_mysql_prod_project p2 on p2.id = p1.parent
+left join ds_mysql_prod_tagelement t1 on t1.id = a.school_location
 where a.projectid like '%%'
   
-group by p1.name,p2.name, a.fy_timerange,a.school_name,a.school_location, dim
+group by p1.name,p2.name, a.fy_timerange,a.school_name,t1.name, dim
