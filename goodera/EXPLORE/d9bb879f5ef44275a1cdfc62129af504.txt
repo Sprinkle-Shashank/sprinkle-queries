@@ -41,9 +41,10 @@ sub3 as(
 
 from sub2 s2
 
-group by s2.id, s2.profileinstanceid, s2.status, s2.projectid, s2.data, s2.created, s2.modified)
+group by s2.id, s2.profileinstanceid, s2.status, s2.projectid, s2.data, s2.created, s2.modified),
 
-select s3.id, s3.profileinstanceid, s3.status, s3.projectid, s3.data.tranche,
+sub4 as(
+  select s3.id, s3.profileinstanceid, s3.status, s3.projectid, s3.data.tranche,
 cast(s3.data.uc as VARCHAR) as uc, s3.rejection_count,
 
 case 
@@ -87,4 +88,30 @@ case
 end as joincolumn
 
 from sub3 s3
-left join profile_27398 p2 on p2._id = s3.profileinstanceid
+left join profile_27398 p2 on p2._id = s3.profileinstanceid)
+
+select s4.id, s4.profileinstanceid, s4.status, s5.name as projectid, s4.uc, s4.payment_amount, t1.name as fy, t2.name as tranche, t3.name as renewal,
+
+cast(timestamp 'epoch' + CAST(s4.created AS BIGINT)/1000 * interval '1 second' as date) as request_date,
+cast(timestamp 'epoch' + CAST(s3.modified AS BIGINT)/1000 * interval '1 second' as date) as modified,
+
+case
+	when s4.renewal = 430820 then p4.name_project
+	else p3.name_project
+end as project_name,
+
+case
+	when s4.renewal = 430820 then p4.project_code
+	else p2.name
+end as project_code
+
+from sub4 s4
+
+left join profile_27396 p3 on p3._id = s4.joincolumn
+left join profile_27420 p4 on p4._id = s4.joincolumn
+
+left join ds_mysql_prod_tagelement t1 on t1.id = s4.fy
+left join ds_mysql_prod_tagelement t2 on t2.id = s4.tranche
+left join ds_mysql_prod_tagelement t3 on t3.id = s4.renewal
+
+left join ds_mysql_prod_project p5 on p5.id = s4.projectid
