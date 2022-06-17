@@ -1,9 +1,12 @@
 with table1 as 
 (
-select p.projectid, p.facility_status , goodera_facility_name_text , facility.name as facility_status_update , case when facility_status_update='Active' then 'Active' else 'Deactive' end as Active_Filter from profile_68161 as p
+select p.projectid, p.facility_status , goodera_facility_name_text , facility.name as facility_status_update , case when facility_status_update='Active' then 'Active' else 'Deactive' end as Active_Filter , primary_category_1.name as primary_category from profile_68161 as p
   
 left join ds_mysql_prod_tagelement facility 
 on p.facility_status = facility.id
+  
+left join ds_mysql_prod_tagelement  primary_category_1 on
+p.primary_category =  primary_category_1.id
 ),
 
 table2 as 
@@ -13,7 +16,7 @@ table2 as
 case when nvl2(SUBSTRING(substring(ven.name,9,len(ven.name)), 1, POSITION(' (' in substring(ven.name,9,len(ven.name)))), SUBSTRING(substring(ven.name,9,len(ven.name)), 1, POSITION(' (' in substring(ven.name,9,len(ven.name)))), substring(ven.name,9,len(ven.name)))='' then substring(ven.name,9,len(ven.name)) else nvl2(SUBSTRING(substring(ven.name,9,len(ven.name)), 1, POSITION(' (' in substring(ven.name,9,len(ven.name)))), SUBSTRING(substring(ven.name,9,len(ven.name)), 1, POSITION(' (' in substring(ven.name,9,len(ven.name)))), substring(ven.name,9,len(ven.name))) end as vendor , 
   
   cou.name as country , case when extract(month from date)=1 then extract(year from date)-1 
-else extract(year from date) end as year , t1.Active_Filter from profile_61572 as p
+else extract(year from date) end as year , t1.Active_Filter , t1.primary_category from profile_61572 as p
   
 left join ds_mysql_prod_project fac 
 on p.projectId = fac.id
