@@ -24,9 +24,10 @@ left join ds_mysql_prod_project x8 on x8.id = x5.projectid
 
 where x6.profileid = 27398 and x1.active = 't'
 
-group by x1._id, x1.profileinstanceid, x1.status, x1.active, x1.data, x1.taskuserid, x2.taskid, x5.projectid, x6.profileid, x4.sectionid, x6.name, x7.name, x8.name, x1.created, x1.modified, x1.submissionlog, x1.approvallog)
+group by x1._id, x1.profileinstanceid, x1.status, x1.active, x1.data, x1.taskuserid, x2.taskid, x5.projectid, x6.profileid, x4.sectionid, x6.name, x7.name, x8.name, x1.created, x1.modified, x1.submissionlog, x1.approvallog),
 
-select s1.id, s1.profileinstanceid, s1.status, s1.projectid, 
+sub2 as(
+  select s1.id, s1.profileinstanceid, s1.status, s1.projectid, s1.data,
 cast(applog."approvalStatus" as VARCHAR) as approve_status,
 
 case
@@ -34,4 +35,11 @@ case
 	else 0 
 end as rejection_count
 
-from sub1 s1, s1.approvallog_new applog
+from sub1 s1, s1.approvallog_new applog)
+
+select s2.id, s2.profileinstanceid, s2.status, s2.projectid, s2.data
+sum(s2.rejection_count) as rejection_count
+
+from sub2 s2
+
+group by s2.id, s2.profileinstanceid, s2.status, s2.projectid, s2.data
