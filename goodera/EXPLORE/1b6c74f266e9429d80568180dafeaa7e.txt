@@ -1,0 +1,42 @@
+WITH table1 AS (
+  
+  SELECT * 
+  
+  FROM profile_80433 AS p1,
+  
+ p1.location AS location_unwind
+  ),
+
+ table2 AS ( 
+  SELECT  table1.projectid, ng.name as ngo ,  table1.s_date, table1.e_date,
+  
+listagg(distinct cast(st.name as varchar),',') AS location_unwind
+ 
+  from table1
+  
+      LEFT JOIN ds_mysql_prod_tagelement AS st
+  ON st.id = table1.location_unwind
+   
+    LEFT JOIN ds_mysql_prod_tagelement AS st1
+  ON st.parent = st1.id
+   
+  
+      LEFT JOIN ds_mysql_prod_tagelement AS ng
+  ON ng.id = table1.ngo
+   
+  
+  GROUP BY 
+      table1.projectid, table1.ngo ,table1.s_date, table1.e_date,  ng.name ), 
+
+
+ table3 as ( select projectid, fy_timerange, proj.name AS projectname, COUNT(unique_id) AS num_ben from profile_80536 p
+
+LEFT JOIN ds_mysql_prod_project AS proj
+ON p.projectid = proj.id
+
+ )
+	Select *  from table3 
+	
+	LEFT JOIN table2 as tob3
+	on tob3.projectid = table3.projectid
+			
