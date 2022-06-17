@@ -1,9 +1,10 @@
 
+select p.projectId, 
 
-
-select p.projectId, ven.name as vendor, cou.name as country,
+case when nvl2(SUBSTRING(substring(ven.name,9,len(ven.name)), 1, POSITION(' (' in substring(ven.name,9,len(ven.name)))), SUBSTRING(substring(ven.name,9,len(ven.name)), 1, POSITION(' (' in substring(ven.name,9,len(ven.name)))), substring(ven.name,9,len(ven.name)))='' then substring(ven.name,9,len(ven.name)) else nvl2(SUBSTRING(substring(ven.name,9,len(ven.name)), 1, POSITION(' (' in substring(ven.name,9,len(ven.name)))), SUBSTRING(substring(ven.name,9,len(ven.name)), 1, POSITION(' (' in substring(ven.name,9,len(ven.name)))), substring(ven.name,9,len(ven.name))) end as vendor
+, cou.name as country,
 nvl2(su.name, su.name, s.name) as wep_status,
-nvl2(spu.name, spu.name, sp.name) as service_provider
+nvl2(spu.name, spu.name, sp.name) as service_provider ,  primary_category_1.name as primary_category  
 
 from profile_60670 p
 
@@ -27,10 +28,15 @@ on p.status = s.id
 left join ds_mysql_prod_tagelement spu
 on profile_65025.service_provider = spu.id
 
-
 left join ds_mysql_prod_tagelement su
 on profile_65025.status = su.id
 
+left join profile_68161 p2 
+on fac.name = p2.goodera_facility_name_text
+
+left join ds_mysql_prod_tagelement  primary_category_1 on
+p2.primary_category =  primary_category_1.id
+
 where country <> 'Test Country' and wep_status = 'Active (launched)'
 
-group by p.projectId, wep_status, p.service_provider, cou.name, ven.name, spu.name, sp.name
+group by p.projectId, wep_status, p.service_provider, cou.name, ven.name, spu.name, sp.name ,  primary_category_1.name
