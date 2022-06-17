@@ -74,8 +74,50 @@ on p.block = p2._id
 where (date_of_completion is not null) and  (stat.name = 'Active' or  stat.name is null)
 			  
 group by p.projectId,month,quarter,quarter_new,p.date_of_completion,year_new,final_year,loc_parent.name,loc_child.name,p2.name,stat.name),
+test5 as(select p.projectId,p.date_of_formation,case when extract(month from date_of_formation)=1 then extract(year from date_of_formation)-1 else extract(year from date_of_formation) end as year1,concat(year1,concat( ' - ' ,  RIGHT(year1+1,2))) as year_new,DATEPART(Month,p.date_of_formation) as month1,case when month1 = 1 then 'January' 
+     when month1 = 2 then 'February'
+	 when month1 = 3 then 'March'
+	 when month1 = 4 then 'April'
+	 when month1 = 5 then 'May'
+	 when month1 = 6 then 'June'
+	 when month1 = 7 then 'July'
+	 when month1 = 8 then 'August'
+	 when month1 = 9 then 'September'
+	 when month1 = 10 then 'October'
+	 when month1 = 11 then 'November'
+	 when month1 = 12 then 'December'
+end as month,case when month in ('February','March','April') then '1st(Feb-Apr)'
+                  when month in ('May','June','July') then  '2nd(May-Jul)'
+				  when month in ('August','September','October') then '3rd(Aug-Oct)'
+				  when month in ('November','December','January') then '4th(Nov-Jan)' end as quarter,case when quarter = '1st(Feb-Apr)'then 'Q1'
+when quarter = '2nd(May-Jul)' then 'Q2'
+when quarter =  '3rd(Aug-Oct)' then 'Q3'
+when quarter = '4th(Nov-Jan)' then 'Q4' end as quarter_new,concat(year_new,concat(' ',quarter_new)) as final_year,'Learning Group In Progress' as Learning_group,loc_parent.name as state,loc_child.name as district, p2.name as block,stat.name as lg_status,count(p.projectId) as total1 from profile_29179 p
+
+
+left join ds_mysql_prod_tagelement loc_child
+on p.location = loc_child.id
+
+left join ds_mysql_prod_tagelement loc_parent
+on loc_child.parent = loc_parent.id
+
+
+
+left join ds_mysql_prod_tagelement stat
+on p.lg_status = stat.id
+		  
+left join profile_30450 p2
+on p.block = p2._id
+
+where (date_of_completion is  null) and  (stat.name = 'Active' or  stat.name is null)
+			  
+group by p.projectId,month,quarter,quarter_new,p.date_of_completion,p.date_of_formation,year_new,final_year,loc_parent.name,loc_child.name,p2.name,stat.name  ),
+
 test4 as(
-select projectId,quarter,quarter_new,year_new,final_year,state,district,block,total1,Learning_group from test2
+select projectId,quarter,quarter_new,year_new,final_year,state,district,block,total1,Learning_group from test2 
+union all
+select projectId,quarter,quarter_new,year_new,final_year,state,district,block,total1,Learning_group from test5
 union all
 select projectId,quarter,quarter_new,year_new,final_year,state,district,block,total1,Learning_group from test3)
 select * from test4
+
