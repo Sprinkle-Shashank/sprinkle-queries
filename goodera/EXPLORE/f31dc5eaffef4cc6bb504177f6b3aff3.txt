@@ -53,6 +53,18 @@ sub4 as(
 
 row_number() over (partition by s3.id order by s3.approval_date_time desc) as row
 
-from sub3 s3)
+from sub3 s3),
 
-select * from sub4 where row = 1
+sub5 as(
+  select s4.id, s4.data, s4.program, s4.project, s4.profile, s4.section, s4.approver_email, s4.approver_name, s4.approver_comments, s4.data_entry_email,
+
+nvl(p1.trainee_name, p2.trainee_name, cast(s4.data.trainee_name as VARCHAR)) as trainee_name
+
+from sub4 s4
+
+left join profile_145 p1 on p1._id = s4.profileinstanceid
+left join profile_36901 p2 on p2._id = s4.profileinstanceid
+
+where s4.row = 1)
+
+select * from sub5
