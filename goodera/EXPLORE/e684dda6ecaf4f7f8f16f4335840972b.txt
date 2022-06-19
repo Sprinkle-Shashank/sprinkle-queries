@@ -1,0 +1,39 @@
+with table1 as (Select 
+				JSON_SERIALIZE(table_52810.pace_brands) as pace_brand,	
+				case when pace_brand like '%1151834%' then 1 else 0 end  as brand,
+				reverse(SPLIT_PART(reverse(projcode_factory), '-',1)) as code_factory,
+				cast(projid_country as int) as countryId,
+				projid_rp as rpId,
+				cast (projid_vendor as int) as vendorId,
+				projcode_factory as factoryCode,
+				name_factory as factoryName,
+				
+				projid_factory as factoryId
+				
+				
+				from profile_54646 p
+				
+inner join profile_52810 table_52810 on
+table_52810.projectId = p.projectId
+
+left join profile_4227 table_4227 on
+table_4227.projectId = p.projectId
+	
+),
+
+table2 as (Select 
+		   brand, 
+		   factoryId, 
+		   listagg(distinct code_factory, ',') as code_factory, 
+		   listagg(distinct countryId, ',') as countryId, 
+		   listagg(distinct rpId , ',') as rpId, 
+		   listagg(distinct vendorId , ',') as vendorId, 
+		   listagg(distinct factoryCode ,',') as factoryCode, 
+		   listagg(distinct factoryName , ',') as factoryName
+		from table1 p
+group by brand,factoryId
+
+)
+
+
+select * from table2 p where brand = 1
