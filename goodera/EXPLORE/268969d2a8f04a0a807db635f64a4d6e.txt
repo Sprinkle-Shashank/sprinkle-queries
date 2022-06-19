@@ -1,1 +1,34 @@
-SELECT * FROM PROFILE_52810
+with table1 as (Select 
+				JSON_SERIALIZE(table_52810.pace_brands) as pace_brand,	
+				case when pace_brand like '%1011796%' then 1 else 0 end  as brand,
+				reverse(SPLIT_PART(reverse(projcode_factory), '-',1)) as code_factory,
+				projcode_vendor as vendorCode,
+				cast(projid_vendor as int4) as vendorId, 
+				cast(projid_country as int4) as countryId,
+				cast(projid_factory as int4) as factory_list,
+				name_vendor_filter as vendorName,
+				case when table_52810.offset_date is null then '2020-02-01T00:00:00.000Z' else table_52810.offset_date end as offset_date,
+				table_4227.start_date as start_date1,
+				case when start_date1>=offset_date then 1 else 0 end as datestatus
+				
+				from profile_54646 p
+				
+inner join profile_52810 table_52810 on
+table_52810.projectId = p.projectId
+
+left join profile_4227 table_4227 on
+table_4227.projectId = p.projectId
+order by vendorName
+),
+
+table2 as (Select brand, vendorName, 
+		   listagg(distinct(code_factory),',') as code_factory, listagg(distinct(vendorCode),',') as vendorCode, listagg(distinct(vendorId)) as vendorId,
+		 cast(listagg(distinct(countryId),',') as int) as countryId,listagg(distinct(factory_list),',') as factory_list,datestatus
+		   
+	from table1 p
+group by brand, vendorName,datestatus
+)
+
+
+
+select * from table2 p where brand = 1 AND datestatus = 1
