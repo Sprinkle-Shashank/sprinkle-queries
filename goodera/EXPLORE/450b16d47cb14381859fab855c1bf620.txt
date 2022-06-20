@@ -1,8 +1,33 @@
 
 with table2 as 
 ( select p.projectid , p._id , fac.name as factory , case when nvl2(SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), ven.name)='' then ven.name else nvl2(SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), ven.name) end as vendor
- , cou.name as country ,  p2.fac_cl_vpid, p2.vendor_ngo_id, pri.name as primary_category , p3.name as training , prospect_total , p4.createddate , to_char(p4.createddate,'DD-MM-YYYY') as date_updated 
- ,  datepart(month,p4.createddate) as month1 ,
+ , cou.name as country ,  p2.fac_cl_vpid, p2.vendor_ngo_id, pri.name as primary_category , p3.name as training , prospect_total 
+ 
+ from profile_64075 as p
+
+left join ds_mysql_prod_project fac
+on p.projectid = fac.id
+
+left join ds_mysql_prod_project ven
+on fac.parent = ven.id
+
+left join ds_mysql_prod_project cou
+on ven.parent = cou.id 
+ 
+ left join profile_52810 p2 on
+ p.projectid = p2.projectid
+ 
+left join ds_mysql_prod_tagelement pri
+on p2.primary_category = pri.id  
+ 
+left join profile_61498 p3 
+on p.training_id = p3._id
+ 
+ where cou.name != 'Test Country'
+ ),
+ 
+ table11 as
+( select p.projectid , p._id , createddate , to_char(createddate,'DD-MM-YYYY') as date_updated ,  datepart(month,createddate) as month1,
 case when month1 = 1 then 'January' 
      when month1 = 2 then 'February'
 	 when month1 = 3 then 'March'
@@ -21,37 +46,27 @@ end as month,case when month in ('February','March','April') then '1st(Feb-Apr)'
 				  when month in ('November','December','January') then '4th(Nov-Jan)' end as quarter,Case when quarter = '1st(Feb-Apr)'then 'Q1'
 when quarter = '2nd(May-Jul)' then 'Q2'
 when quarter =  '3rd(Aug-Oct)' then 'Q3'
-when quarter = '4th(Nov-Jan)' then 'Q4' end as quarter_new ,  row_number() over 
-(partition by p.projectid
- order by p._id desc) as row
+when quarter = '4th(Nov-Jan)' then 'Q4' end as quarter_new , (female_supervisors + male_supervisors) as total_employed  , d1
  
- from profile_64075 as p
-
-left join ds_mysql_prod_project fac
-on  p.projectid = fac.id
-
-left join ds_mysql_prod_project ven
-on  fac.parent = ven.id
-
-left join ds_mysql_prod_project cou
-on  ven.parent = cou.id 
- 
- left join profile_52810 p2 on
- p.projectid = p2.projectid
- 
-left join ds_mysql_prod_tagelement pri
-on  p2.primary_category = pri.id  
- 
-left join profile_61498 p3 
- on p.training_id = p3._id
- 
-left join profile_76755 p4
-on p.projectid = p4.projectid 
- 
- where cou.name != 'Test Country'
+from profile_76755 as p , p.sst_goals_arr as d1
  ),
+
+table21 as 
+(
+select p.* , p5.num_supervisors as total_trained 
+, row_number() over 
+(partition by p.projectid order by p._id desc) as row from table1 as p
+  
+left join profile_76896 p5
+on p.d1 = p5._id 
+)
+
+table31 as
+(
+select * from table21 where row=1
+  )
  
- table3 as 
- ( select * from table2  where row=1)
+ select p.*, t31.date_updated , quarter_new , total_employed , total_trained from table2 as p
  
- select * from table3
+left join table31 t31
+on p.projectid = t31.projectid
