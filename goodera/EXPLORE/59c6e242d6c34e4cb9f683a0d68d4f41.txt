@@ -1,0 +1,21 @@
+with table1 as (select
+				photo, photo3, p.projectId, lg_status, start_date,
+				case when lg_status = 848007 or lg_status is null then 1 else 0 end as status,
+				case when photo is null or photo3 is null then 0 else 1 end as photostatus,
+				substring(table_54646.projcode_factory,1,1) as code,
+				reverse(SPLIT_PART(reverse(table_54646.projcode_factory), '-',1)) as code_brand,
+				JSON_SERIALIZE(table_52810.pace_brands) as pace_brand,	
+				case when pace_brand like '%1011796%' then 1 else 0 end as brand,
+				p._id as _id,
+				p.projectId as projectid1,
+				case when table_52810.offset_date is null then '2020-02-01T00:00:00.000Z' else table_52810.offset_date end as offset_date
+				
+				from profile_4227 p
+inner join profile_54646 table_54646 on
+table_54646.projectId = p.projectId
+				
+inner join profile_52810 table_52810 on
+table_52810.projectId = p.projectId	
+)
+
+Select _id, projectid1 as projectId, photo3, photo, start_date,code, code_brand from table1 p where status = 1 and photostatus = 1 and code = 'F' and brand = 1 and start_date >= offset_date
