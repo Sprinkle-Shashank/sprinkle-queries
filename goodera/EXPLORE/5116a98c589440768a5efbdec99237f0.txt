@@ -21,31 +21,20 @@ when quarter =  '3rd(Aug-Oct)' then 'Q3'
 when quarter = '4th(Nov-Jan)' then 'Q4' end as quarter_new , (female_supervisors + male_supervisors) as total_employed  , d1
  
 from profile_76755 as p , p.sst_goals_arr as d1
- /* 
-left join ds_mysql_prod_project fac
-on p.projectid = fac.id
-
-left join ds_mysql_prod_project ven
-on fac.parent = ven.id
-
-left join ds_mysql_prod_project cou
-on ven.parent = cou.id 
- */
  ),
 
 table2 as 
 (
-select p.* , p5.num_supervisors as total_trained from table1 as p
+select p.* , p5.num_supervisors as total_trained , 
+,  row_number() over 
+(partition by p.projectid
+ order by p._id desc) as row from table1 as p
   
  left join profile_76896 p5
  on p.d1 = p5._id 
 )
 
-select * from table2
---where row=1
+select * from table2 where row=1
 
 /*
-,  row_number() over 
-(partition by p.projectid
- order by p._id desc) as row
  */
