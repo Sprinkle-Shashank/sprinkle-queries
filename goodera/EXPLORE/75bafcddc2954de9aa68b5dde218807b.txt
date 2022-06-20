@@ -1,32 +1,57 @@
 with table1 as (Select 
-				p.partner_type as partner_type,
+				case when p.partner_type = 1132937 then 1 else 0 end as type,
 				table_54646.projid_factory as factory_id,
 				substring(table_54646.projcode_factory,1,1) as code,
 				reverse(SPLIT_PART(reverse(table_54646.projcode_factory), '-',1)) as code_brand,
+				case when code = 'F' then 1 else 0 end as codeStatus,
 				JSON_SERIALIZE(table_52810.pace_brands) as pace_brand,	
 				case when pace_brand like '%1011796%' then 1 else 0 end  as brand,
-				case when table_52810.offset_date is null then '2020-02-01T00:00:00.000Z' else table_52810.offset_date end as offset_date,p.goal_2022 as goal_2022,p.projectId as projectId1
+				table_4227.start_date as start_date,
+				table_4227.select_modules as select_modules,
+				p.projectId as projectId1,
+				(goal_2022) as commitment,
+				case when table_52810.offset_date is null then '2020-02-01T00:00:00.000Z' else table_52810.offset_date end as offset_date
 				
-				from profile_71993 p 
-
+			from profile_71993 p
 left join profile_54646 table_54646 on
 table_54646.projectId = p.projectId
-	
+
 inner join profile_52810 table_52810 on
 table_52810.projectId = p.projectId
+
+left join profile_4227 table_4227 on
+table_4227.projectId = table_54646.projid_factory
+
+),
+table2 as (select type,codeStatus,brand,projectId1,start_date,
+		   sum(commitment) as commitment,select_modules,code,code_brand,offset_date
+			from table1 p
+
+group by type,codeStatus,brand,projectId1,start_date,select_modules,code,code_brand,offset_date
 ),
 
-table2 as ( Select partner_type,factory_id,code,code_brand,brand,
-		   table_4227.start_date as start_date,
-		   table_4227.select_modules as select_modules,offset_date,projectId1 as projectId,sum(goal_2022) as goal_2022
-		   
-		   
-		   from table1 p
-left join profile_4227 table_4227 on
-table_4227.projectId = factory_id
-group by projectId,partner_type,factory_id,code,code_brand,brand,start_date,select_modules,offset_date,p.projectid1
+table3 as(select t2.*,CAST(select_module as int) from table2 t2,t2.select_modules select_module
+),
+
+table3_1 as (select type,codeStatus,brand,projectId1,start_date,commitment,select_modules,code,code_brand,
+			 select_module, t1.parent as m_parent1,
+			 case when m_parent1 is null then select_module else m_parent1 end as m_parent,offset_date
+		from table3 p
+left join ds_mysql_prod_tagelement t1 on t1.id = p.select_module
+),
+
+table4 as (Select 
+		   select_module,
+		   type,codeStatus,brand,projectId1,start_date,commitment,code,code_brand, m_parent,offset_date
+		   from table3_1 
+where m_parent in ('64503')
+),
+
+table5 as (select 
+		   listagg(select_module,',') as select_module ,
+		   type,codeStatus,brand,projectId1,start_date,min(commitment) as commitment,code,code_brand,m_parent,offset_date
+ from table4 
+group by type,codeStatus,brand,projectId1,start_date,code,code_brand,m_parent,offset_date
 )
 
-
-
-Select offset_date,start_date,projectId,select_modules, code, code_brand,goal_2022 from table2 where partner_type = 1132937 and code = 'F' and brand = 1 and start_date >= offset_date
+Select projectId1 as projectid,commitment as goal_2022,start_date,select_module,code,code_brand,m_parent from table5 p where type = 1 and codeStatus = 1 and brand = 1 and start_date >= offset_date
