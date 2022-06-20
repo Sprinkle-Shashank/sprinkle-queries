@@ -1,0 +1,27 @@
+with table1 as (Select 
+				impact_story as event_description,
+				stry_title as event_name,
+				photo as event_photograph,
+				p.date as start_date,
+				substring(table_54646.projcode_factory,1,1) as code,
+				reverse(SPLIT_PART(reverse(table_54646.projcode_factory), '-',1)) as code_brand,
+				JSON_SERIALIZE(table_52810.pace_brands) as pace_brand,	
+				case when pace_brand like '%1011796%' then 1 else 0 end as brand,
+				p._id as _id,
+				p.projectId as projectId,
+				table_4227.start_date as start_date,
+				case when table_52810.offset_date is null then '2020-02-01T00:00:00.000Z' else table_52810.offset_date end as offset_date
+				
+				from profile_4580 p
+
+left join profile_54646 table_54646 on
+table_54646.projectId = p.projectId
+
+inner join profile_52810 table_52810 on
+table_52810.projectId = p.projectId
+				
+left join profile_4227 table_4227 on
+table_4227.projectId = p.projectId
+)
+
+select _id,projectId,event_description,event_name,cast(event_photograph[0] as varchar(65535)) as event_photograph1,cast(event_photograph as varchar(65535)),start_date, code, code_brand from table1 p where code = 'F' and brand = 1 and start_date >= offset_date
