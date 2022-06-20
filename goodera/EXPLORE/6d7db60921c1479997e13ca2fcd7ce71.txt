@@ -1,8 +1,5 @@
-select x1.projectid, x1.name, p1.code from profile_27420 x1
-left join ds_mysql_prod_project p1 on p1.id = projectid
-
-/*with sub1 as(
-  select x1._id as id, x1.profileinstanceid, x1.status, x1.active, x1.data, x1.taskuserid, x2.taskid, x5.projectid, x6.profileid, x4.sectionid, x6.name as section, x7.name as profile, x8.name as project,
+with sub1 as(
+  select x1._id as id, x1.profileinstanceid, x1.status, x1.active, x1.data, x1.taskuserid, x2.taskid, x5.projectid, x6.profileid, x4.sectionid, x6.name as section, x7.name as profile, x8.name as project, x1.created, x1.modified,
   
 case
   when is_array(x1.submissionlog) = false or get_array_length(x1.submissionlog) = 0 then 
@@ -13,11 +10,8 @@ case
   when is_array(x1.approvallog) = false or get_array_length(x1.approvallog) = 0 then 
   	   array(x1.approvallog)
   else x1.approvallog
-end as approvallog_new,
+end as approvallog_new
   
-concat(concat(substring(cast(timestamp 'epoch' + CAST(x1.created AS BIGINT)/1000 * interval '1 second' as varchar), 1, 10),'T'), concat(split_part(cast(timestamp 'epoch' + CAST(x1.created AS BIGINT)/1000 * interval '1 second' as varchar), ' ',2),'.000Z')) as createddate,
-concat(concat(substring(cast(timestamp 'epoch' + CAST(x1.modified AS BIGINT)/1000 * interval '1 second' as varchar), 1, 10),'T'), concat(split_part(cast(timestamp 'epoch' + CAST(x1.modified AS BIGINT)/1000 * interval '1 second' as varchar), ' ',2),'.000Z')) as modifieddate
-
 from ds_mongo_taskresponse x1 
 
 left join ds_mysql_prod_taskuser x2 on x2.id = x1.taskuserid
@@ -28,66 +22,6 @@ left join ds_mysql_prod_section x6 on x6.id = x4.sectionid
 left join ds_mysql_prod_profile x7 on x7.id = x6.profileid
 left join ds_mysql_prod_project x8 on x8.id = x5.projectid
 
-where x6.profileid = 27398 and x1.active = 't'),
+where x6.profileid = 54963 and x1.active = 't'
 
---taskresponse table--
-
-sub2 as(
-  select s1.id, s1.profileinstanceid,  s1.projectid, s1.data.uc, s1.data.tranche, s1.approvallog_new, s1.status,
-
-case
-  when s1.profileinstanceid = p2._id then p2.fy
-  else s1.data.fy
-end as fy,
-case
-  when s1.profileinstanceid = p2._id then p2.project_name
-  else s1.data.project_name
-end as project_name, 
-case
-  when s1.profileinstanceid = p2._id then p2.payment_amount
-  else s1.data.payment_amount
-end as payment_amount, 
-case
-  when s1.profileinstanceid = p2._id then p2.renewal
-  else s1.data.renewal
-end as renewal,  
-case
-  when s1.profileinstanceid = p2._id then p2.project_renew
-  else s1.data.project_renew
-end as project_renew,  
-case
-  when s1.profileinstanceid = p2._id then p2.createddate
-  else s1.createddate
-end as request_date,  
-case
-  when s1.profileinstanceid = p2._id then p2.modifieddate
-  else s1.modifieddate
-end as modified,
-case
-  when s1.data.renewal = 430820 then s1.data.project_renew
-  else s1.data.project_name
-end as joincolumn
-  
-from sub1 s1
-left join profile_27398 p2 on p2._id = s1.profileinstanceid),
-
-sub3 as(
-  select s2.id, s2.profileinstanceid, s2.projectid, cast(s2.uc as varchar) as uc, s2.tranche, s2.status, s2.approvallog_new, s2.fy, s2.payment_amount, s2.request_date, s2.modified, 
-
-case
-	when s2.renewal = 430820 then p3.name_project
-	else p2.name_project
-end as project_name,
-case
-	when s2.renewal = 430820 then p3.project_code
-	else p2.name
-end as project_code
-
-from sub2 s2
-
-left join profile_27396 p2 on p2._id = s2.joincolumn
-left join profile_27420 p3 on p2._id = s2.joincolumn)
-
-select id, profileinstanceid, projectid, uc, tranche, status, approvallog_new, fy, payment_amount, request_date, modified, project_name, project_code
-from sub3
-group by id, profileinstanceid, projectid, uc, tranche, status, approvallog_new, fy, payment_amount, request_date, modified, project_name, project_code*/
+group by x1._id, x1.profileinstanceid, x1.status, x1.active, x1.data, x1.taskuserid, x2.taskid, x5.projectid, x6.profileid, x4.sectionid, x6.name, x7.name, x8.name, x1.created, x1.modified, x1.submissionlog, x1.approvallog)
