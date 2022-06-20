@@ -6,7 +6,7 @@ with table1 as (select
 				case when code = 'F' then 1 else 0 end as codeStatus,
 				JSON_SERIALIZE(table_52810.pace_brands) as pace_brand,	
 				case when pace_brand like '%1011796%' then 1 else 0 end  as brand,
-				case when table_52810.offset_date is null then '2020-02-01T00:00:00.000Z' else table_52810.offset_date end as offset_date1,
+				
 				sum(num_females) as total_females,
 				sum(num_females_graduated) as total_females_graduated,
 				sum(num_females_dropout) as total_females_dropout,
@@ -39,7 +39,7 @@ inner join profile_52810 table_52810 on
 table_52810.projectId = p.projectId
 				
 				
-group by lg_status,table_54646.projcode_factory,table_52810.pace_brands,p.end_date_2,p.start_date,projectid1,select_modules,code_brand,code,offset_date1
+group by lg_status,table_54646.projcode_factory,table_52810.pace_brands,p.end_date_2,p.start_date,projectid1,select_modules,code_brand,code
 ),
 table2 as (select
 		   sum(total_females) as total_females,
@@ -60,10 +60,10 @@ table2 as (select
 		   sum(dropout_pressure) as dropout_pressure,
 		   sum(dropout_other) as dropout_other,
 		   sum(total_females_completed) as total_females_completed,
-		   status,codeStatus,brand,start_date,projectid1,select_modules,code_brand,code,offset_date1
+		   status,codeStatus,brand,start_date,projectid1,select_modules,code_brand,code
 
 	from table1 p
-group by status,codeStatus,brand,start_date,projectid1,select_modules,code_brand,code,offset_date1
+group by status,codeStatus,brand,start_date,projectid1,select_modules,code_brand,code
 ),
 
 table3 as(select t2.*,CAST(select_module as int) from table2 t2,t2.select_modules select_module
@@ -88,7 +88,6 @@ table3_1 as (select
 		   dropout_pressure,
 		   dropout_other,
 		   total_females_completed,
-			 offset_date1,
 		   status,codeStatus,brand,start_date,projectid1,code_brand,code,
 			 select_module,t1.parent as m_parent1,
 			case when m_parent1 is null then select_module else m_parent1 end as m_parent
@@ -117,7 +116,7 @@ table4 as (Select
 		   dropout_pressure,
 		   dropout_other,
 		   total_females_completed,
-		   status,codeStatus,brand,start_date,projectid1,code_brand,code,offset_date1
+		   status,codeStatus,brand,start_date,projectid1,code_brand,code
 		   from table3_1 
 
 where m_parent in ('64503')
@@ -144,10 +143,10 @@ table5 as (select
 		   min(dropout_pressure) as dropout_pressure,
 		   min(dropout_other) as dropout_other,
 		   min(total_females_completed) as total_females_completed,
-		   status,codeStatus,brand,start_date,projectid1,code_brand,code,offset_date1
+		   status,codeStatus,brand,start_date,projectid1,code_brand,code
  from table4 
-group by status,codeStatus,brand,start_date,projectid1,code_brand,code,offset_date1
+group by status,codeStatus,brand,start_date,projectid1,code_brand,code
 ) 
 
 
-Select cast(total_females as int4),cast(total_females_graduated as int4),cast(total_females_dropout as int4),cast(total_females_ongoing as int4),cast(total_batches_ongoing as int4),cast(total_batches_completed as int4),cast(average_hours as float),cast(total_hours as int4), cast(total_males as int4),cast(total_males_ongoing as int4),cast(total_males_graduated as int4),cast(total_males_dropout as int4),cast(dropout_pregnancy as int4),cast(dropout_left as int4),cast(dropout_interest as int4),cast(dropout_pressure as int4),cast(dropout_other as int4),cast(total_females_completed as int4),start_date,projectid1 as projectid,select_module ,code_brand,code from table5 p where status = 1 and codeStatus = 1 and brand = 1 and start_date>=offset_date1
+Select cast(total_females as int4),cast(total_females_graduated as int4),cast(total_females_dropout as int4),cast(total_females_ongoing as int4),cast(total_batches_ongoing as int4),cast(total_batches_completed as int4),cast(average_hours as float),cast(total_hours as int4), cast(total_males as int4),cast(total_males_ongoing as int4),cast(total_males_graduated as int4),cast(total_males_dropout as int4),cast(dropout_pregnancy as int4),cast(dropout_left as int4),cast(dropout_interest as int4),cast(dropout_pressure as int4),cast(dropout_other as int4),cast(total_females_completed as int4),start_date,projectid1 as projectid,select_module ,code_brand,code from table5 p where status = 1 and codeStatus = 1 and brand = 1
