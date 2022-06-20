@@ -1,0 +1,55 @@
+with table1 as (select
+  				case when end_date_2 is null then 1 else 0 end as datastatus,
+				case when table_54646._id is null then 0 else 1 end as st,
+				substring(table_54646.projcode_factory,1,1) as code,
+				reverse(SPLIT_PART(reverse(table_54646.projcode_factory), '-',1)) as code_brand,
+				JSON_SERIALIZE(table_52810.pace_brands) as pace_brand,	
+				case when pace_brand like '%1011796%' then 1 else 0 end as brand,
+				p.cls_time as cls_time,
+				p.cls_time as class_tag,start_date, p.projectid as projectid1,select_modules,
+				case when table_52810.offset_date is null then '2020-02-01T00:00:00.000Z' else table_52810.offset_date end as offset_date
+  
+  			from profile_4227 p 
+left join profile_54646 table_54646 on
+table_54646.projectId = p.projectId
+				
+inner join profile_52810 table_52810 on
+table_52810.projectId = p.projectId	
+),
+table2 as ( select cls_time, sum(1) as participants,datastatus,st,code,brand,
+		   classTable.name as category,start_date, projectid1,select_modules,code_brand,offset_date
+
+	from table1 p
+left join ds_mysql_prod_tagelement classTable on
+classTable.id = class_tag[0]
+		   		   	   
+group by cls_time,datastatus,st,code,brand,category,start_date, projectid1,select_modules,code_brand,offset_date
+),
+
+
+table3 as(select t2.*,CAST(select_module as int) from table2 t2,t2.select_modules select_module
+),
+
+
+table3_1 as (select select_module,cls_time,participants, datastatus,st,code,brand, category,start_date, projectid1,select_modules,code_brand, t1.parent as m_parent1,
+			 case when m_parent1 is null then select_module else m_parent1 end as m_parent,offset_date
+		from table3 p
+left join ds_mysql_prod_tagelement t1 on t1.id = p.select_module
+),
+
+table4 as (Select 
+		   select_module,cls_time,participants, datastatus,st,code,brand, category,start_date, projectid1,select_modules,code_brand,m_parent,offset_date
+		   from table3_1 
+
+where m_parent in ('64503') 
+)
+,
+
+table5 as (select 
+		   listagg(select_module,',') as select_module 
+		   ,cls_time,participants, datastatus,st,code,brand, category,start_date, projectid1,code_brand,m_parent,offset_date
+ from table4 
+group by cls_time,participants, datastatus,st,code,brand, category,start_date, projectid1,code_brand,m_parent,offset_date
+)
+
+Select participants,category,start_date, projectid1 as projectid,select_module ,code, code_brand,m_parent from table5 p where datastatus = 1 and st = 1 and code = 'F' and brand = 1 and start_date >= offset_date
