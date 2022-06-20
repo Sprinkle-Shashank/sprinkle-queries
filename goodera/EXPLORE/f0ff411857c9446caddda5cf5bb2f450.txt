@@ -1,11 +1,9 @@
-select t1.name as category, p.name, projectId, p.time_period_timerange, SUBSTRING(CAST(p.time_period_timerange.start as VARCHAR),1,4) as time , reg.name as region,reg_parent.name as region_global, t2.name as organization, amount, grant_period, purpose, t3.name as state, sdg,gender, age_group, bene_served, sum(amount) as amount_alloc
+select t1.name as category,t.name as region,reg_parent.name as region_global, p.name, time_period_timerange as timerange,SUBSTRING(CAST(p.time_period_timerange.start as VARCHAR),1,4) as time, t2.name as organization, amount, grant_period, purpose, t3.name as state, sdg,gender, age_group, bene_served , sum(amount) as amount_alloc
 from profile_56194 p
-Left join ds_mysql_prod_tagelement reg
-on p.region = reg.id
-
+left join ds_mysql_prod_tagelement t
+on p.region = t.id
 left join ds_mysql_prod_tagelement reg_parent
-on reg.parent = reg_parent.id
-
+on t.parent = reg_parent.id
 left join ds_mysql_prod_tagelement t1
 on p.program_category = t1.id
 left join ds_mysql_prod_tagelement t2
@@ -13,5 +11,4 @@ on p.organization = t2.id
 left join ds_mysql_prod_tagelement t3
 on p.state = t3.id
 
-
-group by t1.name,p.time_period_timerange , region_global , t2.name, t3.name , p.name , p.projectId , reg.name , sdg, gender, age_group , bene_served , p.amount , p.grant_period , p.purpose
+group by t1.name ,t.name ,reg_parent.name, p.name, time_period_timerange, t2.name , amount, grant_period, purpose, t3.name, sdg,gender, age_group, bene_served
