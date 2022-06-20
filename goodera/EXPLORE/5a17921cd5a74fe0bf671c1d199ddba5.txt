@@ -1,0 +1,48 @@
+with table1 as (Select pre_post_yn,
+				substring(table_54646.projcode_factory,1,1) as code,
+				reverse(SPLIT_PART(reverse(table_54646.projcode_factory), '-',1)) as code_brand,
+				JSON_SERIALIZE(table_52810.pace_brands) as pace_brand,	
+				case when pace_brand like '%1011796%' then 1 else 0 end as brand,
+				module_name as select_modules,
+				table_4227.start_date as start_date,
+				score,
+				score2
+				,p.projectId as projectid1,
+				case when table_52810.offset_date is null then '2020-02-01T00:00:00.000Z' else table_52810.offset_date end as offset_date
+				
+				from profile_4228 p
+inner join profile_54646 table_54646 on
+table_54646.projectId = p.projectId				
+
+inner join profile_52810 table_52810 on
+table_52810.projectId = p.projectId
+		
+inner join profile_4227 table_4227 on
+table_4227._id = p.class
+),
+
+table2 as (Select
+		   avg(score) as pre_score,
+		   avg(score2) as post_score,
+		   pre_post_yn, code, brand, select_modules,
+		   moduleTable.name as module,
+		   moduleTable.sortOrder as sortOrder,
+		   case when moduleTable.name is null then 0 else 1 end as status
+		   ,projectid1
+		   ,start_date,code_brand,offset_date
+
+			from table1 p
+left join ds_mysql_prod_tagelement moduleTable on
+moduleTable.id = select_modules
+		
+group by pre_post_yn, code, brand, select_modules,status,sortOrder,module
+		   ,projectid1
+		   ,start_date,code_brand,offset_date
+order by sortOrder 
+)
+
+
+Select pre_score, post_score, cast(select_modules as int) , module
+,projectid1 as projectid
+,start_date , code, code_brand
+from table2 p where pre_post_yn = 57472 and code = 'F' and brand = 1 and status = 1 and start_date >= offset_date
