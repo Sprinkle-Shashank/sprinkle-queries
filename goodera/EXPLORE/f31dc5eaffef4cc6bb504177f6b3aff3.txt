@@ -40,8 +40,7 @@ cast(sublog."email" as VARCHAR) as data_entry_email
 from sub1 s1, s1.submissionlog_new sublog, s1.approvallog_new applog),
 
 sub3 as(
-  select s2.id, s2.profileinstanceid, s2.data, s2.program, s2.project, s2.profile, s2.section, s2.approver_email, s2.approver_name, s2.approver_comments, s2.data_entry_email,
-s2.approval_date_time
+  select s2.id, s2.taskid, s2.profileinstanceid, s2.data, s2.program, s2.project, s2.profile, s2.section, s2.approver_email, s2.approver_name, s2.approver_comments, s2.data_entry_email, s2.approval_date_time
   
 from sub2 s2
 
@@ -49,14 +48,14 @@ group by s2.id, s2.profileinstanceid, s2.data, s2.program, s2.project, s2.profil
 s2.approval_date_time),
 
 sub4 as(
-  select s3.id, s3.profileinstanceid, s3.data, s3.program, s3.project, s3.profile, s3.section, s3.approver_email, s3.approver_name, s3.approver_comments, s3.data_entry_email, s3.approval_date_time,
+  select s3.id, s3.taskid, s3.profileinstanceid, s3.data, s3.program, s3.project, s3.profile, s3.section, s3.approver_email, s3.approver_name, s3.approver_comments, s3.data_entry_email, s3.approval_date_time,
 
 row_number() over (partition by s3.id order by s3.approval_date_time desc) as row
 
 from sub3 s3),
 
 sub5 as(
-  select s4.id, s4.data, s4.program, s4.project, s4.profile, s4.section, s4.approver_email, s4.approver_name, s4.approver_comments, s4.data_entry_email,
+  select s4.id, s4.taskid, s4.data, s4.program, s4.project, s4.profile, s4.section, s4.approver_email, s4.approver_name, s4.approver_comments, s4.data_entry_email,
 
 p1.trainee_name as trainee_name1, p2.trainee_name as trainee_name2,  cast(s4.data.trainee_name as VARCHAR) as trainee_name3,
 nvl(p1.trainee_name, p2.trainee_name, cast(s4.data.trainee_name as VARCHAR)) as trainee_name,
@@ -72,7 +71,7 @@ left join profile_36901 p2 on p2._id = s4.profileinstanceid
 
 where s4.row = 1)
 
-select s5.id, s5.program, s5.project, s5.profile, s5.section, s5.approver_name, s5.approver_email, s5.approver_comments, s5.data_entry_email, s5.record_name, s5.trainee_name, s5.data.fy_timerange, cast(s5.data.reg_no as VARCHAR), 
+select s5.id, s5.taskid, s5.program, s5.project, s5.profile, s5.section, s5.approver_name, s5.approver_email, s5.approver_comments, s5.data_entry_email, s5.record_name, s5.trainee_name, s5.data.fy_timerange, cast(s5.data.reg_no as VARCHAR), 
 
 TO_CHAR(cast(s5.data.date_of_reg as DATE), 'DD-MM-YYYY') as date_of_reg, 
 TO_CHAR(cast(s5.data.start as DATE), 'DD-MM-YYYY') as start, 
