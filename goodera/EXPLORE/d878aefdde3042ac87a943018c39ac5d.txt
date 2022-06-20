@@ -1,0 +1,16 @@
+with sub1 as (
+select p.name as projectId, sched7, fy_timerange, sum(budget_approved) as budget_approved from profile_41363
+left join ds_mysql_prod_project p
+on p.id=projectid
+group by p.name, sched7, fy_timerange),
+sub2 as (
+select projectId,
+  --trim(ltrim(json_serialize(sched7),'['),']') as 
+  sched7_1, fy_timerange, budget_approved from sub1 
+  a, a.sched7 sched7_1
+),
+sub3 as (
+select projectId, t.name as sched7, fy_timerange, budget_approved, case when projectId in ('Prasanna Trust', 'Kashtakari Panchayat', 'Shishu Mandir', 'SOUL', 'Narayanaamruta Medicare Foundation', 'SGBS Unnati Foundation','Makkala Jagariti', 'Reefwatch Marine Conservation', 'Nirvanavan Foundation', 'Win over cancer', 'Vipasana', 'Selco Foundation', 'CII Foundation', 'Disha') then 'Short-Term Projects' when projectId in ('Omashram Trust', 'One Billion Literates', 'Cuddles Foundation', 'Rainbow Homes (ANC Rainbow Homes)', 'Rainbow Homes (Bosco Rainbow Homes)', 'Rainbow Homes (Sanrakshan Rainbow Homes)','CUPA', 'Parikrma Foundation','Other Projects') then 'Long-Term Projects' else 'Other Projects' end as choose from sub2
+left join ds_mysql_prod_tagelement t
+on t.id=sched7_1)
+select * from sub3
