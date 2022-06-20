@@ -1,30 +1,28 @@
+with sub1 as(
+  select x1._id as id, x1.profileinstanceid, x1.status, x1.active, x1.data, x1.taskuserid, x2.taskid, x5.projectid, x6.profileid, x4.sectionid, x6.name as section, x7.name as profile, x8.name as project, x1.created, x1.modified,
+  
+case
+  when is_array(x1.submissionlog) = false or get_array_length(x1.submissionlog) = 0 then 
+  	   array(x1.submissionlog)
+  else x1.submissionlog
+end as submissionlog_new,
+case
+  when is_array(x1.approvallog) = false or get_array_length(x1.approvallog) = 0 then 
+  	   array(x1.approvallog)
+  else x1.approvallog
+end as approvallog_new
+  
+from ds_mongo_taskresponse x1 
 
-with 
-test0 as(Select p._id ,(gbv_goals)from  profile_76755 p
-, p.gbv_goals_arr gbv_goals union 
- select p._id,NULL as gbv_goals from profile_76755 p where gbv_goals_arr IS NULL
-),
-test1 as(Select p._id ,(impact_wcp)from  profile_76755 p
-, p.impact_wcp_arr impact_wcp union 
- select p._id,NULL as impact_wcp from profile_76755 p where impact_wcp_arr IS NULL
-),
-test2 as(Select p._id ,(grievances_wcp)from  profile_76755 p
-, p.grievances_wcp_arr grievances_wcp union 
- select p._id,NULL as grievances_wcp from profile_76755 p where grievances_wcp_arr IS NULL
-),
-test3 as(Select p._id ,(pace_goals)from  profile_76755 p
-, p.pace_goals_arr pace_goals union
- select p._id,NULL as pace_goals from profile_76755 p where pace_goals_arr IS NULL
-),
-test4 as(Select p._id ,(sst_goals)from  profile_76755 p
-, p.sst_goals_arr sst_goals union 
- select p._id,NULL as sst_goals from profile_76755 p where sst_goals_arr IS NULL
-),
-test5 as(Select p._id ,(sdis)from  profile_76755 p
-, p.sdis_arr sdis union 
- select p._id,NULL as sdis from profile_76755 p where sdis_arr IS NULL
-)
-Select * from test5
-	 
+left join ds_mysql_prod_taskuser x2 on x2.id = x1.taskuserid
+left join ds_mysql_prod_task x3 on x3.id = x2.taskid
+left join ds_mysql_prod_flowtask x4 on x4.id = x3.flowtaskid
+left join ds_mysql_prod_projectflow x5 on x5.id = x3.projectflowid
+left join ds_mysql_prod_section x6 on x6.id = x4.sectionid
+left join ds_mysql_prod_profile x7 on x7.id = x6.profileid
+left join ds_mysql_prod_project x8 on x8.id = x5.projectid
 
- 
+where x6.profileid = 54963 and x1.active = 't' 
+and x1.status in ('PENDING_APPROVAL', 'SUBMITTED'))
+
+select * from sub1 group by  id
