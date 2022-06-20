@@ -1,49 +1,58 @@
 with temp as(
-  select 'Boys sanitation' as col
+  select 'Boys sanitation after' as col
   union all
-  select 'Girls sanitation' as col
+  select 'Girls sanitation after' as col
   union all
-  select 'Drinking water' as col
+  select 'Drinking water after' as col
   union all
-  select 'Dish washing' as col
+  select 'Dishwashing after' as col
   union all
-  select 'Exterior ambience' as col
+  select 'Exterior ambience after' as col
   union all
-  select 'Overall hygiene' as col
+  select 'Hygiene after' as col
   union all
-  select 'Boys sanitation' as col
+  select 'Boys sanitation before' as col
   union all
-  select 'Girls sanitation' as col
+  select 'Girls sanitation before' as col
   union all
-  select 'Drinking water' as col
+  select 'Drinking water before' as col
   union all
-  select 'Dishwashing' as col
+  select 'Dishwashing before' as col
   union all
-  select 'Exterior ambience'  as col
+  select 'Exterior ambience before'  as col
   union all
-  select 'Overall hygiene'  as col
+  select 'Overall hygiene before'  as col
   )
-select p1.name as projectid,p2.name as donor, t1.name as session, a.fy_timerange,p3.school_name,temp.col as dim,
+select p1.name as projectid,p2.name as donor, t1.name as session, a.fy_timerange,p3.school_name,temp.col as d,
 
 avg(case col
-  when 'Boys sanitation' then a.post_boys_sanitation	
-  when 'Girls sanitation' then a.post_girls_sanitation	
-  when 'Drinking water' then a.post_avg_drinking_water	
-  when 'Dish washing' then a.post_avg_dish_washing	
-  when 'Exterior ambience' then a.post_avg_ambience_exterior		
-  when 'Overall hygiene' then  a.post_hygiene_area	
-  when 'Boys sanitation' then a.pre_boys_sanitation	
-  when 'Girls sanitation' then a.pre_girls_sanitation	
-	when 'Drinking water' then a.pre_avg_drinking_water		
-	when 'Dishwashing' then a.pre_avg_dish_washing	
-	when 'Exterior ambience' then a.pre_avg_ambience_exterior		
-	when 'Overall hygiene' then a.pre_hygiene_area		
+  when 'Boys sanitation after' then a.post_boys_sanitation	
+  when 'Girls sanitation after' then a.post_girls_sanitation	
+  when 'Drinking water after' then a.post_avg_drinking_water	
+  when 'Dishwashing after' then a.post_avg_dish_washing	
+  when 'Exterior ambience after' then a.post_avg_ambience_exterior		
+  when 'Hygiene after' then  a.post_hygiene_area	
+  when 'Boys sanitation before' then a.pre_boys_sanitation	
+  when 'Girls sanitation before' then a.pre_girls_sanitation	
+	when 'Drinking water before' then a.pre_avg_drinking_water		
+	when 'Dishwashing before' then a.pre_avg_dish_washing	
+	when 'Exterior ambience before' then a.pre_avg_ambience_exterior		
+	when 'Overall hygiene before' then a.pre_hygiene_area		
   else NULL end) as val,
   
 case
 	when temp.col like '%after' then 'After'
 	when temp.col like '%before' then 'Before'
-	else NULL end as before_after
+	else NULL end as before_after,
+	
+case 
+	when temp.col like 'Boys sanitation%' then 'Boys sanitation'
+	when temp.col like 'Girls sanitation%' then 'Girls sanitation'
+	when temp.col like 'Drinking water%' then 'Drinking water'
+	when temp.col like 'Dishwashing%' then 'Dish washing'
+	when temp.col like 'Exterior ambience%' then 'Exterior ambience'
+	when temp.col like 'Overall hygiene%' then 'Overall hygiene'
+	else NULL end as dim
   
 from profile_80589 a
 cross join temp
