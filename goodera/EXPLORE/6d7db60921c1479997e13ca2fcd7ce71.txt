@@ -37,17 +37,12 @@ and x1.status in ('PENDING_APPROVAL', 'SUBMITTED')
 group by x1._id, x1.profileinstanceid, x1.status, x1.active, x1.data, x1.taskuserid, x2.taskid, x5.projectid, x6.profileid, x4.sectionid, x6.name, x7.name, x8.name, x1.submissionlog, x1.approvallog), 
 
 sub2 as(
-  select s1.id, split_part(p2.name, '|', 1) as projectcode, s1.approvallog_new, t1.name as fy, t2.name as month, p1.subcat_output, 1 as total_count, p2.parent as project_parent,
+  select s1.id, split_part(p2.name, '|', 1) as projectcode, s1.approvallog_new, t1.name as fy, t2.name as month, p1.subcat_output, p2.parent as project_parent,
   
 case
 	when p2.parent = 18943 then split_part(p2.name, '|', 2)
 	else split_part(p2.name, '|', 4)
 end as project_name,
-  
-case
-  	when p1.subcat_output is not null then 1 
- 	else 0
-end as subcat_not_null,
   
 case
 	when p2.parent = 18943 then split_part(p2.name, '|', 1)
@@ -64,7 +59,7 @@ left join ds_mysql_prod_tagelement t1 on t1.id = p1.fy
 left join ds_mysql_prod_tagelement t2 on t2.id = p1.month),
 
 sub3 as(
-  select s2.id, s2.projectcode, s2.approvallog_new, s2.fy, s2.month, s2.subcat_output, s2.total_count, s2.project_parent, s2.project_name, s2.subcat_not_null, s2.parentcode, t1.name as fy_27396, t2.name as project_manager_27396, t3.name as fy_27420, t4.name as project_manager_27420,
+  select s2.id, s2.projectcode, s2.approvallog_new, s2.fy, s2.month, s2.subcat_output, s2.project_parent, s2.project_name, s2.parentcode, t1.name as fy_27396, t2.name as project_manager_27396, t3.name as fy_27420, t4.name as project_manager_27420,
   
 case
   	when t3.name is null or (split_part(s2.fy, '-', 1) < split_part(t3.name, '-', 1))
@@ -92,14 +87,14 @@ left join ds_mysql_prod_tagelement t3 on t3.id = p5.fy
 left join ds_mysql_prod_tagelement t4 on t4.id = p5.project_manager),
 
 sub4 as(
-  select s3.id, s3.projectcode, s3.approvallog_new, s3.fy, s3.month, s3.project_name, s3.subcat_not_null, s3.fy_27396, s3.project_manager_27396, s3.fy_27420_new, s3.project_manager_27420_new, s3.flag,
+  select s3.id, s3.projectcode, s3.approvallog_new, s3.fy, s3.month, s3.project_name, s3.fy_27396, s3.project_manager_27396, s3.fy_27420_new, s3.project_manager_27420_new, s3.flag, s3.subcat_output,
 
 row_number() over(partition by s3.id order by split_part(s3.fy_27420_new, '-', 1) desc) as row
   
 from sub3 s3),
 
 sub5 as(
-  select s4.id, s4.projectcode, s4.approvallog_new, s4.fy, s4.month, s4.project_name, s4.fy_27396, s4.project_manager_27396, s4.fy_27420_new, s4.project_manager_27420_new, s4.subcat_not_null,
+  select s4.id, s4.projectcode, s4.approvallog_new, s4.fy, s4.month, s4.project_name, s4.fy_27396, s4.project_manager_27396, s4.fy_27420_new, s4.project_manager_27420_new, s4.subcat_output,
 
 case s4.month
 	when 'January' then 1
@@ -121,13 +116,18 @@ from sub4 s4
 where s4.row = 1 and s4.flag = 1),
 
 sub6 as(
-  select s5.projectcode, s5.fy, s5.fy_27420_new, s5.project_name, s5.month, s5.month_sort, 1 as total_count, s5.subcat_not_null, s5.project_manager_27420_new, s5.project_manager_27396,
+  select s5.projectcode, s5.fy, s5.fy_27420_new, s5.project_name, s5.month, s5.month_sort, 1 as total_count, s5.project_manager_27420_new, s5.project_manager_27396,
   
 case
   when (split_part(s5.fy_27420_new, '-', 1) <= split_part(s5.fy, '-', 1)) 
   		then s5.project_manager_27420_new
   else s5.project_manager_27396
-end as project_manager
+end as project_manager,
+  
+case 
+  when s5.subcat_output is not null then 1
+  else 0
+end as subcat_not_null
   
 from sub5 s5),
 
@@ -140,4 +140,4 @@ from sub6 s6
 
 group by s6.projectcode, s6.fy, s6.project_name, s6.project_manager, s6.month)
 
-select * from sub7
+select * from sub6
