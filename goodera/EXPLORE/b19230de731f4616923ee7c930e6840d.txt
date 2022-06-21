@@ -1,50 +1,58 @@
+
 with table1 as(
   
 select * from profile_68161 
 ),
 
-table2 as 
-(
-   select p.* , cast(c as varchar)  as programs_run_update from table1 as p , p.programs_run as c
- ),
- 
- table4 as 
- ( 
-   select p.* , x2.name as programs_run_update_1  from table2 p
    
-
-	 left join ds_mysql_prod_tagelement x2 on
- 	 p.programs_run_update = x2.id
-   ),
-  
-  
-table3 as
-( 
-select  p.projectid, facility_name,  facility_status, facility_rating, pace_status, pace_status_detail, assessor, last_assessment_date,  payment_method, pace, wcp, sst, wep, gbv, goodera_facility_name_text, fac_vpid, parent_vendor_vpid, facility_score, open_issues, total_workers,
+  table3 as
+  ( 
+  select  projectid, p._id , facility_name , pace_status, pace_status_detail, assessor, last_assessment_date,  payment_method, pace, wcp, sst, wep, gbv, goodera_facility_name_text, fac_vpid, parent_vendor_vpid, facility_score, open_issues, total_workers,
 	
-    listagg(programs_run_update_1 , ',') as programs_run_update_new ,
+	programs_run , 
+	
 	parent_vendor_name_1.name as vendor_name, 
+	case when nvl2(SUBSTRING(parent_vendor_name_1.name, 1, POSITION(' (' in parent_vendor_name_1.name)), SUBSTRING(parent_vendor_name_1.name, 1, POSITION(' (' in parent_vendor_name_1.name)), parent_vendor_name_1.name)='' then parent_vendor_name_1.name else nvl2(SUBSTRING(parent_vendor_name_1.name, 1, POSITION(' (' in parent_vendor_name_1.name)), SUBSTRING(parent_vendor_name_1.name, 1, POSITION(' (' in parent_vendor_name_1.name)), parent_vendor_name_1.name) end as vendor ,
+	
 	primary_category_1.name as primary_category ,
-	country_name_1.name as country , case when nvl2(SUBSTRING(parent_vendor_name_1.name, 1, POSITION(' (' in parent_vendor_name_1.name)), SUBSTRING(parent_vendor_name_1.name, 1, POSITION(' (' in parent_vendor_name_1.name)), parent_vendor_name_1.name)='' then parent_vendor_name_1.name else nvl2(SUBSTRING(parent_vendor_name_1.name, 1, POSITION(' (' in parent_vendor_name_1.name)), SUBSTRING(parent_vendor_name_1.name, 1, POSITION(' (' in parent_vendor_name_1.name)), parent_vendor_name_1.name) end as vendor
-	from table4 p 
-  
-  
-	 left join ds_mysql_prod_tagelement parent_vendor_name_1 on
- 	 p.parent_vendor_name = parent_vendor_name_1.id
+	country_name_1.name as country , facility_rating_update.name as facility_rating_update_1 , facility_status_update.name as facility_status_update_1
+	from table1 p 
+	 
 	
-	 left join ds_mysql_prod_tagelement  primary_category_1 on
- 	 p.primary_category =  primary_category_1.id
+	  left join ds_mysql_prod_tagelement parent_vendor_name_1 on
+  p.parent_vendor_name = parent_vendor_name_1.id
 	
-	 left join ds_mysql_prod_tagelement  country_name_1 on
- 	 p.country_name =  country_name_1.id
+	  left join ds_mysql_prod_tagelement  primary_category_1 on
+  p.primary_category =  primary_category_1.id
 	
+	left join ds_mysql_prod_tagelement  country_name_1 on
+  p.country_name =  country_name_1.id
 	
-    where facility_status in (845097, 845104) and p.projectid like '%%'
-  
-  Group By  p.projectId, p.name, month, fy, facility_name, child_vendor_name, parent_vendor_name, facility_status, facility_rating, country_code, pace_status, pace_status_detail, assessor, last_assessment_date, sustainability_contact, payment_method, last_assessment_name, last_assessment_type, date_latest, pace, wcp, sst, wep, gbv, goodera_facility_name, goodera_facility_name_text, fac_vpid, child_vendor_vpid, parent_vendor_vpid, facility_score, open_issues, total_workers, female_workers, male_workers, parent_vendor_name_1.name, primary_category_1.name, country_name_1.name, fac_id , vendor
+	left join ds_mysql_prod_tagelement  facility_rating_update on
+  p.facility_rating =  facility_rating_update.id
 	
-	)
+	left join ds_mysql_prod_tagelement  facility_status_update on
+  p.facility_status =  facility_status_update.id
 	
-	select facility_name,  facility_status, facility_rating, pace_status, pace_status_detail, assessor, last_assessment_date,  payment_method, pace, wcp, sst, wep, gbv, goodera_facility_name_text, fac_vpid, parent_vendor_vpid, facility_score, open_issues, total_workers,programs_run_update_new , vendor_name,primary_category ,country , vendor from table3
+  where facility_status in (845097,845104)
+ ),
 	
-	  Group By  facility_name,  facility_status, facility_rating, pace_status, pace_status_detail, assessor, last_assessment_date,  payment_method, pace, wcp, sst, wep, gbv, goodera_facility_name_text, fac_vpid, parent_vendor_vpid, facility_score, open_issues, total_workers,programs_run_update_new , vendor_name,primary_category , country , vendor 
+table4 as (
+select projectid, p._id , facility_name as factory, fac_vpid , vendor, parent_vendor_vpid , facility_status_update_1, facility_rating_update_1, pace_status, pace_status_detail, assessor, last_assessment_date,  payment_method, pace, wcp, sst, wep, gbv, goodera_facility_name_text, facility_score, open_issues, total_workers  , country,primary_category , d1 , to_char(last_assessment_date,'Month') as month_name , to_char(last_assessment_date,'YY') as year_update , concat(month_name,'\'') as month_update , concat(month_update,year_update) as last_assessment_date_update from table3 as p , p.programs_run as d1)
+
+
+select projectid, factory, fac_vpid , vendor, parent_vendor_vpid , facility_status_update_1, facility_rating_update_1, assessor, last_assessment_date,  payment_method, facility_score, open_issues, total_workers  , country ,primary_category , listagg(d1_update.name, ',') as programs_run , last_assessment_date_update from table4 as p
+
+left join ds_mysql_prod_tagelement  d1_update on
+p.d1 =  d1_update.id
+
+group by projectid, factory, fac_vpid , vendor, parent_vendor_vpid , facility_status_update_1, facility_rating_update_1, assessor, last_assessment_date,  payment_method, facility_score, open_issues, total_workers  , country ,primary_category , last_assessment_date_update
+
+/*
+
+select * from table3 where _id not in ( select _id from table4)
+--- missing entries + final output
+
+*/
+
+ 
