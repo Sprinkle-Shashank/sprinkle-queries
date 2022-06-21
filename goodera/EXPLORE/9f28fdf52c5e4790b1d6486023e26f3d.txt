@@ -1,0 +1,41 @@
+with table1 as (select 
+				photo,photo3,p.projectId,start_date,p._id as _id,
+				case when lg_status = 848007 or lg_status is null then 1 else 0 end as status,
+				case when photo is not null or photo3 is not null then 1 else 0 end as status1,
+				substring(projcode_factory,1,1) as code,
+				reverse(SPLIT_PART(reverse(table_54646.projcode_factory), '-',1)) as code_brand,
+				JSON_SERIALIZE(table_52810.pace_brands) as pace_brand,	
+				case when pace_brand like '%1011796%' then 1 else 0 end  as brand,
+				case when table_52810.offset_date is null then '2020-02-01T00:00:00.000Z' else table_52810.offset_date end as offset_date,select_modules			
+				
+		from profile_4227 p
+
+inner join profile_54646 table_54646 on
+table_54646.projectId = p.projectId	
+
+inner join profile_52810 table_52810 on
+table_52810.projectId = p.projectId					
+),
+
+table2 as(
+		select _id,projectId,photo3,photo,start_date,offset_date,status,status1,brand,
+  case when start_date >= offset_date then 1 else 0 end as token,select_modules,code
+  from table1 p
+),
+
+table3 as(select t2.*,CAST(select_module as int) from table2 t2,t2.select_modules select_module
+),
+
+table4 as (Select 
+		_id, projectId, photo3, photo, start_date, offset_date, token, select_module, code, 	status, status1, brand
+		from table3 
+where select_module in (    '64504','70914','70905','70906','70916','70946','70915','70917','70933','70949','70947','70899','459391','459394','459395','64506','70928','70920','70898','70908','70907','70942','70936','70904','70918','70924','70923','459392','459393','459397','64507','70937','70944','70930','70931','70950','70929','70921','70932','70934','70948','70938','459396','459398','459399','64509','70925','70927','70943','70939','70940','64508','70317','70919','70922','70926','70935','70945') 
+),
+
+table5 as (Select 
+		   listagg(select_module,',') as select_module, _id, projectId, photo3, photo, start_date, offset_date, token, code, status, status1, brand from table4
+		   group by 
+		   _id, projectId, photo3, photo, start_date, offset_date, token, code, status, 			status1, brand
+)
+
+select _id, projectId, photo3, photo, start_date, offset_date, token, select_module, code from table5 p where status = 1 and status1 = 1 and brand = 1 and token = 1
