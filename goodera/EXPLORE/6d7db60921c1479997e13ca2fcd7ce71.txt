@@ -114,16 +114,25 @@ case s4.month
 	when 'October' then 10
 	when 'November' then 11
 	else 12
-end as month_sort
+end as month_sort,
+  
+case
+  when (split_part(s4.fy_27420_new, '-', 1) <= split_part(s4.fy, '-', 1)) 
+  		then s4.project_manager_27420_new
+  else s4.project_manager_27396
+end as project_manager
 
 from sub4 s4 
 
-where s4.row = 1 and s4.flag = 1)
+where s4.row = 1 and s4.flag = 1),
 
-select s4.projectcode, s4.fy, s4.project_name, s4.project_manger, 
+sub6 as(
+  select s4.projectcode, s4.fy, s4.project_name, s4.project_manger, 
 listagg(distinct s4.month, ', ') within group (order by s4.month_sort asc), 
 sum(s4.total_count) as total_count, sum(s4.subcat_not_null) as subcat_not_null
 
 from sub5 s4
 
-group by s4.projectcode, s4.fy, s4.project_name
+group by s4.projectcode, s4.fy, s4.project_name, s4.project_manager)
+
+select * from sub5
