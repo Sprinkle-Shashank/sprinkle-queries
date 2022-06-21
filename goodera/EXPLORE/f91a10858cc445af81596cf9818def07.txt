@@ -1,0 +1,46 @@
+with temp as ( 
+select 'mobilised' as c
+  Union all 
+select 'onboarded' as c
+  Union all 
+select '18-21yrs' as c 
+ Union all
+select '22-25yrs' as c
+  Union all 
+select 'youth_integration_programs' as c
+  Union all 
+select 'microeconomic_initiatives' as c
+  Union all 
+select 'no_of_trainings' as c
+  Union all 
+select 'life_proj_plan' as c
+  Union all 
+select 'life_project_money' as c
+  Union all
+select 'coaches_onboarded' as c
+  Union all   
+select 'placed' as c 
+  Union all
+  select 'alumni_involved' as c )
+  
+select pro.name as projectid,fy_timerange,
+sum( case c when 'mobilised' then p.mobilised
+	        when 'onboarded' then p.onboarded
+	        when '18-21yrs' then p.age_18_21
+	        when '22-25yrs' then p.age_22_25 
+	        when 'youth_integration_programs' then p.youth_integration_programs 
+	        when 'micro_economic_initiatives' then p.micro_economic_initiatives
+	        when 'no_of_trainings' then p.no_of_trainings
+	        when 'life_proj_plan' then p.life_proj_plan
+	        when 'life_project_money' then p.life_project_money
+	        when 'coaches_onboarded' then p.coaches_onboarded
+	        when 'placed' then p.placed
+	        when 'alumni_involved' then p.alumni_involved
+	
+	        else null end ) as val, temp.c as dim from profile_80472 p
+			
+			left join ds_mysql_prod_project pro
+             on p.projectid = pro.id
+			cross join temp
+			
+group by projectid,fy_timerange,temp.c,pro.name			
