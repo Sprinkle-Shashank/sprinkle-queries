@@ -1,0 +1,43 @@
+with lookup as (select
+				JSON_SERIALIZE(table_52810.pace_brands) as pace_brand,
+				case when pace_brand like '%1011796%' then 1 else 0 end  as brand,
+				case when table_54267.pace_status is not null then table_54267.pace_status else 			pace_status_2 end as paceStatus,
+				case when paceStatus = 845114 or paceStatus is null then 1 else 0 end as status,
+				factory_vpid_1 as factory_vpid_1,
+				factory_vpid_2 as factory_vpid_2,
+				sourcing_yn as sourcing_yn,
+				p.child_vendor_vpid as vendor_vpid,
+				cast(factory_vpid_1 as varchar(65535)) as vpid_1,
+				case when sourcing_yn =57472 then vpid_1 else factory_vpid_2 end as factory_id,
+				table_54646.name_country as country_name,
+				p.projectid as projectid,
+				table_54646.name as factory_name,
+				table_54646.name_vendor_filter as vendor,
+				table_4227.end_date_2 as end_date_2,
+				case when end_date_2 is not null then 1 else 0 end as datestatus,
+				table_4227._id as _4227id,
+				table_4227.select_modules as select_modules,
+				table_4227.start_date as start_date,
+				substring(table_4227.start_date,1,10) as start_date2,
+				substring(table_4227.start_date,1,4) as year,
+				substring(table_4227.end_date_2,1,10) as end_date,
+				case when table_4227.num_females_graduated is null then null else table_4227.num_females_graduated end as num_females_graduated,
+				table_4227.num_females as num_females,
+				case when table_52810.offset_date is null then '2020-02-01T00:00:00.000Z' else table_52810.offset_date end as offset_date
+				
+				from profile_52713 p
+				
+inner join profile_52810 table_52810 on
+table_52810.projectid=p.projectid
+				
+left join profile_4227 table_4227 on
+table_4227.projectid=p.projectid
+
+left join profile_54267 table_54267 on
+table_54267.projectid=p.projectid
+											
+left join profile_54646 table_54646 on
+table_54646.projectid=p.projectid
+				
+group by table_54646.name_country, table_52810.pace_brands,factory_name,vendor,factory_vpid_1,factory_vpid_2,sourcing_yn,p.pace_status_2,table_54267.pace_status,p.child_vendor_vpid, p.projectid,table_4227.end_date_2,table_4227.select_modules,table_4227.start_date,table_4227.num_females,table_4227.num_females_graduated,table_4227._id,table_52810.offset_date)
+select projectId,factory_id,country_name,vendor,factory_name,_4227id,select_modules,vendor_vpid,start_date2,year,end_date,num_females,num_females_graduated,start_date, offset_date from lookup p where brand = 1 and status = 1 and datestatus = 1 and start_date >= offset_date
