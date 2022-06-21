@@ -1,0 +1,51 @@
+with table1 as (select 
+				substring(table_54646.projcode_factory,1,1) as code,
+
+				reverse(SPLIT_PART(reverse(table_54646.projcode_factory), '-',1)) as code_brand,
+				JSON_SERIALIZE(table_52810.pace_brands) as pace_brand,	
+				case when pace_brand like '%1011796%' then 1 else 0 end  as brand,
+				case when table_52810.offset_date is null then '2020-02-01T00:00:00.000Z' else table_52810.offset_date end as offset_date,
+				p.start_date as start_date,
+				case when lg_status = 848007 or lg_status is null then 1 else 0 end as status,
+				sum(p.num_females) as females,
+				start_year as year1,p.projectId as projectId1,select_modules
+				from profile_4227 p
+inner join profile_54646 table_54646 on
+table_54646.projectId = p.projectId
+				
+inner join profile_52810 table_52810 on
+table_52810.projectId = p.projectId				
+
+group by p.lg_status,p.start_date,table_52810.offset_date,table_52810.pace_brands,table_54646.projcode_factory,start_year,projectId1,select_modules
+),
+
+table2 as ( select 
+		   sum(females) as total_females,
+		   year1 as year,
+		   brand,
+		   status,start_date,projectId1,select_modules,code,code_brand,
+		   case when start_date >= offset_date then 1 else 0 end as token
+		from table1 p
+group by year,brand,
+		   status,
+		   token,start_date,projectId1,select_modules,code,code_brand
+),
+
+table3 as(select t2.*,CAST(select_module as int) from table2 t2,t2.select_modules select_module
+),
+
+	
+table4 as (Select 
+		year, total_females, start_date, projectId1, select_module, code, code_brand, brand, token, status
+		from table3 
+where select_module in (    '64504','70914','70905','70906','70916','70946','70915','70917','70933','70949','70947','70899','459391','459394','459395','64506','70928','70920','70898','70908','70907','70942','70936','70904','70918','70924','70923','459392','459393','459397','64507','70937','70944','70930','70931','70950','70929','70921','70932','70934','70948','70938','459396','459398','459399','64509','70925','70927','70943','70939','70940','64508','70317','70919','70922','70926','70935','70945') 
+),
+
+table5 as (Select 		   
+		   listagg(select_module,',') as select_module , total_females, year, start_date, projectId1, code, code_brand, brand, token, status
+		   from table4 
+	group by  
+	year, total_females, start_date, projectId1, code, code_brand, brand, token, status
+)
+
+select year, total_females, start_date, projectId1 as projectId, select_module, code, code_brand from table5 p where brand = 1 and token = 1 and status = 1
