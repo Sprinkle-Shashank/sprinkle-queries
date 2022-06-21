@@ -1,13 +1,27 @@
-drop table if exists profile_74704;
- create table profile_74704 as
- SELECT projectid, _id,
- CAST(data.name as VARCHAR),
- CAST(data.revenue_for_normalization as INT),
- CAST(data.water_withdrawal as INT),
- CAST(data.electricity_consumption as INT),
- CAST(data.waste_generation as INT),
- CAST(data.elec_normal as INT),
- CAST(data.water_normal as INT),
- CAST(data.waste_normal as INT),
- CAST(data.keyword_1 as SUPER)
-from ds_mongo_profileinstance where profileId='74704' and active = 't' and securitycontextid is not null
+drop table if exists sus_74704;
+ create table sus_74704 as
+				select st.xprojectid, p.name, st.financialperiod, t.name as finPeriod,
+				concat(concat(substring(cast(timestamp 'epoch' + CAST(t.start AS BIGINT)/1000 * interval '1 second' as varchar), 1, 10),'T'), concat(split_part(cast(timestamp 'epoch' + CAST(t.start AS BIGINT)/1000 * interval '1 second' as varchar), ' ',2),'.000Z')) as startdate,
+				concat(concat(substring(cast(timestamp 'epoch' + CAST(t.end AS BIGINT)/1000 * interval '1 second' as varchar), 1, 10),'T'), concat(split_part(cast(timestamp 'epoch' + CAST(t.end AS BIGINT)/1000 * interval '1 second' as varchar), ' ',2),'.000Z')) as enddate,
+				concat(concat(startdate,'|'),enddate) as fy_timerange,
+				-- concat(concat(t.start,'|'),t.end) as fy_timerange,
+				st.xquestionid,
+				q.questiontype,
+				q.keyword,
+				q.questiontext,
+				cast(st.datanum as float),
+				cast(st.dataNumBase as float),
+				st.datatext,
+				st.datatagref as dataselect,
+				st.datatable,
+				st.dataTableBase,
+				st.measureunit,
+				st.measureunitBase,
+				st.tableSettings
+				from ds_mongo_sustainabilityTask st
+				left join ds_mysql_prod_question q on st.xquestionid = q.id
+				left join ds_mysql_prod_project p on st.xprojectid = p.id
+				left join ds_mysql_prod_tagelement t on st.financialperiod = t.id
+				where xprofileId='74704' and status = 'APPROVED' and st.active='t'
+				and keyword in ()
+				
