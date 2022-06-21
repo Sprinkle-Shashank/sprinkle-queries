@@ -1,9 +1,22 @@
 
 with  x as (select year_timerange, subsection_title, content, report_section, gri_section,  djsi_section,
 
-sort from  profile_62982 temp,temp.gri_sec as gri_section, temp.djsi_sec as djsi_section ) 
+sort from  profile_62982 temp,temp.gri_sec as gri_section, temp.djsi_sec as djsi_section ) ,
+x1 as (select year_timerange, subsection_title, content, report_section, d.name as gri_sec,  d1.name as djsi_sec,
 
-select * from x
+sort from x 
+	   left join ds_mysql_prod_tagelement d
+on d.id=gri_section
+left join ds_mysql_prod_tagelement d1
+on d1.id=djsi_section),
+sort from x 
+x2 as (select year_timerange, subsection_title, content, report_section, LISTAGG(DISTINCT gri_sec ,',' ) as gri_section ,
+ 
+LISTAGG(DISTINCT djsi_sec ,',' ) as djsi_section,
+
+sort from x )
+
+select * from x2
 
 /*left join ds_mysql_prod_tagelement d
 on d.id=gri_sec
