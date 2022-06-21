@@ -10,7 +10,12 @@ case
   when is_array(x1.approvallog) = false or get_array_length(x1.approvallog) = 0 then 
   	   array(x1.approvallog)
   else x1.approvallog
-end as approvallog_new
+end as approvallog_new,
+  
+case
+  when x1.profileinstanceid is not null and x1.status = 'SUBMITTED' then 1
+  else 0
+end as flag
   
 from ds_mongo_taskresponse x1 
 
@@ -22,7 +27,7 @@ left join ds_mysql_prod_section x6 on x6.id = x4.sectionid
 left join ds_mysql_prod_profile x7 on x7.id = x6.profileid
 left join ds_mysql_prod_project x8 on x8.id = x5.projectid
 
-where x6.profileid = 54963 and x1.active = 't' 
-and x1.status in ('PENDING_APPROVAL', 'SUBMITTED'))
+where x6.profileid = 54963 and x1.active = 't' and flag = 0
+and x1.status in ('PENDING_APPROVAL', 'SUBMITTED')) 
 
-select * from sub1
+select s1.id, 
