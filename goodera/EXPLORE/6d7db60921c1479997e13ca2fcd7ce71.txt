@@ -35,7 +35,7 @@ where x6.profileid = 54963 and x1.active = 't' and flag = 1
 and x1.status in ('PENDING_APPROVAL', 'SUBMITTED')), 
 
 sub2 as(
-  select s1.id, split_part(p2.name, '|', 1) as projectcode, s1.approvallog_new, t1.name as fy, t2.name as month, p1.subcat_output, 1 as total_count, p2.parent,
+  select s1.id, split_part(p2.name, '|', 1) as projectcode, s1.approvallog_new, t1.name as fy, t2.name as month, p1.subcat_output, 1 as total_count, p2.parent as project_parent,
   
 case
 	when p2.parent = 18943 then split_part(p2.name, '|', 2)
@@ -59,6 +59,15 @@ left join ds_mysql_prod_project p2 on p2.id = s1.projectid
 left join ds_mysql_prod_project p3 on p3.id = p2.parent
 
 left join ds_mysql_prod_tagelement t1 on t1.id = p1.fy
-left join ds_mysql_prod_tagelement t2 on t2.id = p1.month)
+left join ds_mysql_prod_tagelement t2 on t2.id = p1.month),
 
-select * from sub2 where parent = 18943
+sub3 as(
+  select s2.id, s2.projectcode, s2.approvallog_new, s2.fy, s2.month, s2.subcat_output, s2.total_count, s2.project_parent, s2.project_name, s2.subcat_not_null, s2.parentcode, 
+p4.fy as fy_27396, p4.project_manager as project_manager_27396, p5.fy as fy_27420, p5.project_manager as project_manager_27420
+  
+from sub2 s2
+  
+left join profile_27396 p4 on p4.name = s2.parentcode
+left join profile_27420 p5 on p5.project_code = p4._id)
+
+select * from sub3
