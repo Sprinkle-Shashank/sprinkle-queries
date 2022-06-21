@@ -1,4 +1,5 @@
-with lookup as (select split_part(split_part(prod.name,'|',1),'.',1) as ProjectCode,f.name as fy_timerange,m.name as Month,concat(ProjectCode,fy_timerange) as CODE,split_part(prod.name,'|',3) as census,case when p._id is not NULL then 'Total no. of activities' end  as type  from profile_54963 p
+with lookup as (
+Select split_part(split_part(prod.name,'|',1),'.',1) as ProjectCode,f.name as fy_timerange,m.name as Month,concat(ProjectCode,fy_timerange) as CODE,split_part(prod.name,'|',3) as census,case when p._id is not NULL then 'Total no. of activities' end  as type  from profile_54963 p
 left join ds_mysql_prod_project prod on
 prod.id=p.projectid
 left join ds_mysql_prod_tagelement f on
@@ -22,7 +23,8 @@ left join ds_mysql_prod_tagelement f on
 p.fy=f.id
 left join ds_mysql_prod_tagelement m on
 p.month=m.id)
-,Base1 as
+,
+Base1 as
 (select p.name as ProjectCode,f.name as fy_timerange,concat(ProjectCode,fy_timerange) as CODE,m.name  as Project_Manager from profile_27396 p
 left join ds_mysql_prod_tagelement m on
 p.project_manager=m.id
@@ -38,7 +40,8 @@ p.project_manager=m.id
 left join ds_mysql_prod_tagelement f on
 p.fy=f.id
 )
-,Base3 as(select p.ProjectCode,p.fy_timerange,p.Month,p.CODE,upper(l.village) as Village,p.type from lookup p left join profile_27489 l on p.census=l.name),Base4 as(select p.ProjectCode,p.fy_timerange,p.Village,l.Project_Manager,p.type ,count(*) as Count from Base3 p left join Base1 l on p.CODE=l.CODE
+,Base3 as(select p.ProjectCode,p.fy_timerange,p.Month,p.CODE,upper(l.village) as Village,p.type from lookup p left join profile_27489 l on p.census=l.name),
+Base4 as(select p.ProjectCode,p.fy_timerange,p.Village,l.Project_Manager,p.type ,count(*) as Count from Base3 p left join Base1 l on p.CODE=l.CODE
 group by p.ProjectCode,p.fy_timerange,p.Month,p.Village,l.Project_Manager,p.type)
 ,Base41 as(select p.fy_timerange,p.ProjectCode,p.Village,p.Project_Manager,p.type ,p.count from Base4 p )
 
@@ -48,7 +51,8 @@ prod.id=p.projectid
 left join ds_mysql_prod_tagelement f on
 p.fy=f.id
 left join ds_mysql_prod_tagelement m on
-p.month=m.id),lookup21 as(select p.instance,p.ProjectCode,p.fy_timerange,l.village as Village,p.Code from lookup2 p left join profile_27489 l on p.census=l.name),lookup22 as(select cast(q.name as varchar) as ProjectCode,f.name as fy_timerange,m.name as Project_Manager,CONCAT(ProjectCode,fy_timerange) as CODE
+p.month=m.id),
+lookup21 as(select p.instance,p.ProjectCode,p.fy_timerange,l.village as Village,p.Code from lookup2 p left join profile_27489 l on p.census=l.name),lookup22 as(select cast(q.name as varchar) as ProjectCode,f.name as fy_timerange,m.name as Project_Manager,CONCAT(ProjectCode,fy_timerange) as CODE
 from profile_27420 d
 left join ds_mysql_prod_tagelement f on
 d.fy=f.id
@@ -73,7 +77,8 @@ left join ds_mysql_prod_tagelement f on
 p.fy=f.id
 left join ds_mysql_prod_tagelement m on
 p.month=m.id),Base10 as(select p.fy_timerange,p.ProjectCode,l.Project_Manager,k.village as Village,count(*) as Count,p.type from Base9 p left join Base1 l on p.CODE=l.CODE
-left join profile_27489 k on p.census=k.name group by p.fy_timerange,p.ProjectCode,l.Project_Manager,k.village,p.type),Base11 as(select p.fy_timerange,p.ProjectCode,p.Project_Manager,p.Village,count(*) as Count,case when p.instance is not null then 'No. of Activities reported' end as type from lookup24 p left join test_hdfc_sample k on p.instance=k.profileinstanceid where k.status='PENDING_APPROVAL' or k.status='SUBMITTED' group by p.fy_timerange,p.ProjectCode,p.Project_Manager,p.Village,type),Base12 as(select p.fy_timerange,p.Project_Manager,p.ProjectCode,p.Village,count(*) as Count,l.type from lookup24 p left join Base6 l on p.instance=l.profileinstanceid group by p.fy_timerange,p.Project_Manager,p.ProjectCode,p.Village,l.type),Base13 as(select p.fy_timerange,p.Project_Manager,p.ProjectCode,p.Village,count(*) as Count,l.type 
+left join profile_27489 k on p.census=k.name group by p.fy_timerange,p.ProjectCode,l.Project_Manager,k.village,p.type),
+Base11 as(select p.fy_timerange,p.ProjectCode,p.Project_Manager,p.Village,count(*) as Count,case when p.instance is not null then 'No. of Activities reported' end as type from lookup24 p left join test_hdfc_sample k on p.instance=k.profileinstanceid where k.status='PENDING_APPROVAL' or k.status='SUBMITTED' group by p.fy_timerange,p.ProjectCode,p.Project_Manager,p.Village,type),Base12 as(select p.fy_timerange,p.Project_Manager,p.ProjectCode,p.Village,count(*) as Count,l.type from lookup24 p left join Base6 l on p.instance=l.profileinstanceid group by p.fy_timerange,p.Project_Manager,p.ProjectCode,p.Village,l.type),Base13 as(select p.fy_timerange,p.Project_Manager,p.ProjectCode,p.Village,count(*) as Count,l.type 
 from lookup24 p left join Base7 l on p.instance=l.profileinstanceid group by p.fy_timerange,p.Project_Manager,p.ProjectCode,p.Village,l.type)
 
 
