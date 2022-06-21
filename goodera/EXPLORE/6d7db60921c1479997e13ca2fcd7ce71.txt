@@ -35,24 +35,24 @@ where x6.profileid = 54963 and x1.active = 't' and flag = 1
 and x1.status in ('PENDING_APPROVAL', 'SUBMITTED')), 
 
 sub2 as(
-  select s1.id, split_part(p1.name, '|', 1) as projectcode, s1.approvallog_new, t1.name as fy, t2.name as month, p2.subcat_output, 1 as total_count, 
+  select s1.id, split_part(p2.name, '|', 1) as projectcode, s1.approvallog_new, t1.name as fy, t2.name as month, p1.subcat_output, 1 as total_count, 
 
 case
-	when p1.parent = 18943 then split_part(p1.name, '|', 4)
-	else split_part(p1.name, '|', 2)
+	when p1.parent = 18943 then split_part(p2.name, '|', 4)
+	else split_part(p2.name, '|', 2)
 end as project_name,
   
 case
-  	when p2.subcat_output is not null then 1 
+  	when p1.subcat_output is not null then 1 
  	else 0
 end as subcat_not_null
 
 from sub1 s1
 
-left join ds_mysql_prod_project p1 on p1.id = s1.projectid 
-left join profile_54963 p2 on p2._id = s1.profileinstanceid
+left join profile_54963 p1 on p1._id = s1.profileinstanceid
+left join ds_mysql_prod_project p2 on p2.id = s1.projectid 
 
-left join ds_mysql_prod_tagelement t1 on t1.id = p2.fy
-left join ds_mysql_prod_tagelement t2 on t2.id = p2.month)
+left join ds_mysql_prod_tagelement t1 on t1.id = p1.fy
+left join ds_mysql_prod_tagelement t2 on t2.id = p1.month)
 
 select * from sub2
