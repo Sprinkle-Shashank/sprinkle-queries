@@ -1,0 +1,39 @@
+with table1 as (Select
+				JSON_SERIALIZE(table_52810.pace_brands) as pace_brand,	
+				case when pace_brand like '%1011796%' then 1 else 0 end  as brand,
+				p.projectid as projectid1,pace_status_2,
+				table_54267._id as _54267id,
+				case when table_54267._id is null then pace_status_2 else table_54267.pace_status end as paceStatus,
+				table_54646.name_vendor_filter as name_vendor_filter,
+				table_54646.name_country as country_name,
+				table_52162.child_vpid_autocal as vp_id,
+				table_4227.start_date as start_date,
+				case when table_52810.offset_date is null then '2020-02-01T00:00:00.000Z' else table_52810.offset_date end as offset_date1
+		
+				from profile_52713 p
+
+left join profile_52810 table_52810 on
+table_52810.projectId = p.projectId
+				
+left join profile_4227 table_4227 on
+table_4227.projectId = p.projectId
+				
+left join profile_54267 table_54267 on
+table_54267.projectId = p.projectId
+
+left join profile_54646 table_54646 on
+table_54646.projectId = p.projectId
+				
+left join profile_52162 table_52162 on
+table_52162.projectId = table_54646.projid_vendor
+				
+order by _54267id
+),
+
+table2 as (Select brand, name_vendor_filter, listagg(distinct(country_name),',') as country_name , listagg(distinct(vp_id)) as vp_id,projectid1 as projectid,start_date,offset_date1
+			from table1 p
+
+group by brand, name_vendor_filter, projectid,start_date,offset_date1
+)
+
+Select country_name,vp_id,name_vendor_filter,projectid,start_date from table2 p where brand = 1 and start_date >= offset_date1
