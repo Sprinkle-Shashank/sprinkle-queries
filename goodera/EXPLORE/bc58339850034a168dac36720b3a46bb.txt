@@ -1,0 +1,131 @@
+
+with table1 as (Select p.profileid as pid1, 
+				case when pid1 = '54963' then 1 else 0 end as idstatus,
+				p.status as statusfinal,
+				case when p.status = 'SUBMITTED'  or p.status = 'PENDING_APPROVAL' then 1 else 0 end as status1,
+				case when p.data.subcat_output is null then 0 else 1 end as output,
+				data54963._id as idd1,
+				--p._id as idd1,
+				
+				data54963.fy as fy1,
+				data54963.month as month,
+				json_serialize(approvalLog) as approvalStatus1,
+				
+				p.data.subcat_output as subcat_output1,
+				reverse(reverse(SPLIT_PART((dataproj.name), '|',3))) as censusCode1,
+				case when dataproj.parent = 18943 then dataproj.id else dataproj.parent end as parent1,
+				dataproj.parent as parent2,
+				dataproj.id  as parent3,
+				p.projectId as taskrespid,
+				case when dataproj.parent = 18943 then 'Cluster' else censusCode1 end as censusCode,
+				data54963._id as idd,
+				f.name as fy_timerange1,
+				m.name as Month1,
+				p.active as activestatus
+				
+			from ds_mongo_taskresponse p
+				
+left join profile_54963 data54963 on 
+data54963._id = p.profileInstanceId
+				
+--left join ds_mysql_prod_project dataproj on
+--dataproj.id = p.projectId	
+				
+/* For Testing*/
+left join ds_mysql_prod_project dataproj on
+dataproj.id = data54963.projectId
+				
+							
+left join ds_mysql_prod_tagelement f on
+data54963.fy=f.id
+left join ds_mysql_prod_tagelement m on
+data54963.month=m.id
+),
+
+table2 as (Select idstatus, status1, output, fy1, month, approvalStatus1, subcat_output1, parent1,censusCode, fy_timerange1, month1 ,idd,idd1,
+		   reverse(reverse(SPLIT_PART((data1.name), '|',1))) as projectCode,
+		   data1.name as name1,activestatus,
+	
+		   statusfinal,
+		   case when approvalStatus1 like '%APPROVED%' and statusfinal = 'PENDING_APPROVAL' then 1 else 0 end as  firstLevelApproval
+		   
+		   from table1 p
+left join ds_mysql_prod_project data1 on
+data1.id = parent1
+		   
+),
+
+
+table3 as (Select idstatus, status1, output, fy1, month, approvalStatus1, subcat_output1, parent1,censusCode, fy_timerange1, month1 ,projectCode, firstLevelApproval,statusfinal,idd,idd1,
+		   data27396.project_manager as project_manager27396,
+		   data27396._id as recordId,
+		   data27396.fy as fy27396,
+		   data27420.project_manager as project_manager27420,
+		   data27420.fy as fy27420,
+		   tags.name as fy27396_1,
+		   tags1.name as fy_1,
+		   tags2.name as fy27420_1,activestatus,
+		   case when fy27420_1 is null or fy_1 < fy27420_1 then fy27396_1 else fy27420_1 end as fy27420_2,
+		   name1,
+		   case when project_manager27420 is null then project_manager27396 else project_manager27420 end as project_manager27420_1,
+		   case when fy27420_2 <= fy_1 or fy27396_1 <= fy_1 then 1 else 0 end as flag
+		   
+		   from table2 p
+
+left join profile_27396 data27396 on
+data27396.name = projectCode
+		   
+left join profile_27420 data27420 on
+data27420.project_code = data27396._id 
+		   
+left join ds_mysql_prod_tagelement tags on
+tags.id = data27396.fy
+		   
+left join ds_mysql_prod_tagelement tags1 on
+tags1.id = fy1
+		   
+left join ds_mysql_prod_tagelement tags2 on
+tags2.id = data27420.fy
+		   
+order by fy27420_2 desc
+),
+table4 as (Select 
+		   	listagg(fy27420_2,',') as fy27420_2, 
+			listagg(fy27396_1,',') as fy27396_1,
+			listagg(project_manager27396 ,',') as project_manager27396,
+			listagg(project_manager27420_1,',') as project_manager27420_1,
+			listagg(fy_1 ,',') as fy_1,
+			listagg(cast(subcat_output1 as int),',') as subcat_output1,
+		activestatus,
+		   listagg(cast(firstLevelApproval as int),',') as firstLevelApproval,
+			 status1, output,flag,fy_timerange1, month1,projectCode
+		   ,idstatus,idd, idd1
+		from table3 p
+
+group by idstatus,flag,fy_timerange1, month1,projectCode,status1, output,idd, idd1,activestatus
+),
+
+table5 as (Select
+		   
+		   reverse(reverse(SPLIT_PART((fy27420_2), ',',1))) as fy27420_2,
+		   reverse(reverse(SPLIT_PART((fy27396_1), ',',1))) as fy27396_1,
+		   reverse(reverse(SPLIT_PART((project_manager27396), ',',1))) as project_manager27396,
+		   reverse(reverse(SPLIT_PART((project_manager27420_1), ',',1))) as project_manager27420_1,
+		   reverse(reverse(SPLIT_PART((fy_1), ',',1))) as fy_1,
+		   reverse(reverse(SPLIT_PART((subcat_output1), ',',1))) as subcat_output1,
+		   reverse(reverse(SPLIT_PART((firstLevelApproval), ',',1))) as firstLevelApproval,
+		   idstatus,idd,idd1,
+		   
+		    status1, output,flag,fy_timerange1, month1,projectCode,
+		   case when fy27420_2 <= fy_1 then project_manager27420_1 else project_manager27396 end as projectManager, activestatus
+		   		   
+		   from table4 p
+),
+table6 as (Select ( idd1) as taskreported,  (firstLevelApproval) as manager1,  status1, output,flag,fy_timerange1, month1,projectCode,projectManager,idstatus,activestatus
+		   
+		   from table5 p  
+
+
+)
+
+Select projectCode, fy_timerange1 as fy_timerange, month1 as month,taskreported,manager1,projectManager, 1 as count from table6 p where idstatus = 1 and status1 = 1  and flag = 1 and output = 1 
