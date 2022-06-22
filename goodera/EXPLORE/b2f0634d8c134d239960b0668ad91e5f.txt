@@ -125,19 +125,25 @@ case
 end as project_manager,
   
 case 
-  when s5.status = 'PENDING_APPROVAL' and 
-       json_serialize(s5.approvallog_new) like '%APPROVED%' then 1
+  when s5.subcat_output is not null or s5.subcat_output != ' ' then
+  	case
+  			when s5.status = 'PENDING_APPROVAL' and 
+       		 	  json_serialize(s5.approvallog_new) like '%APPROVED%' then 1
+  			else 0
+  	end
   else 0
 end as pending_second,
   
 case
-  when s5.status = 'SUBMITTED' then 1
+  when s5.subcat_output is not null or s5.subcat_output != ' ' then 
+  	case
+  			when s5.status = 'SUBMITTED' then 1
+  			else 0
+  	end
   else 0
 end as approved_second
   
-from sub5 s5
-
-where s5.subcat_output is not null or s5.subcat_output != ' '),
+from sub5 s5),
 
 sub7 as(
   select s6.projectcode, s6.fy as fy_timerange, s6.project_name, s6.project_manager,
