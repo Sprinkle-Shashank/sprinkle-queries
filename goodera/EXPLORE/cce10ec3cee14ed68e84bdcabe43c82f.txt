@@ -1,0 +1,33 @@
+with lookup as (select
+				JSON_SERIALIZE(table_52810.pace_brands) as pace_brand,
+				table_54646.name_country as country_name,
+				cast (p.projectid as int) as projectid,
+				table_54646.name as factory_name,
+				table_54646.name_vendor_filter as vendor,
+				factory_vpid_1 as factory_vpid_1,
+				factory_vpid_2 as factory_vpid_2,
+				sourcing_yn as sourcing_yn,
+				p.child_vendor_vpid as vendor_vpid,
+				case when pace_brand like '%1011796%' then 1 else 0 end  as brand,
+				case when table_54267.pace_status is not null then table_54267.pace_status else 			pace_status_2 end as paceStatus,
+				case when paceStatus = 845114 or paceStatus is null then 1 else 0 end as status,
+				cast(factory_vpid_1 as varchar(65535)) as vpid_1,
+				case when sourcing_yn =57472 then vpid_1 
+     		else factory_vpid_2 end as factory_id
+					
+				from profile_52713 p
+				
+left join profile_52810 table_52810 on
+table_52810.projectid=p.projectid
+				
+left join profile_4227 table_4227 on
+table_4227.projectid=p.projectid
+
+left join profile_54267 table_54267 on
+table_54267.projectid=p.projectid
+											
+left join profile_54646 table_54646 on
+table_54646.projectid=p.projectid
+				
+group by  table_54646.name_country, table_52810.pace_brands,factory_name,vendor,factory_vpid_1,factory_vpid_2,sourcing_yn,p.pace_status_2,table_54267.pace_status,p.child_vendor_vpid, p.projectid)
+select projectid,factory_id,country_name,vendor,factory_name,vendor_vpid from lookup p where brand = 1 and status = 1
