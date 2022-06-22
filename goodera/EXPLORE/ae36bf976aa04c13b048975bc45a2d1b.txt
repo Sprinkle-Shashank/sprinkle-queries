@@ -1,0 +1,42 @@
+with lookup as (select 
+				taskid, programuserid, p.securitycontextid, p.id, 
+				programuser.userid, programuser.programid,
+				task.projectflowid, task.flowtaskid
+				from ds_mysql_prod_taskuser p
+				
+left join ds_mysql_prod_programuser programuser on
+programuser.id = p.programuserid
+				
+left join ds_mysql_prod_task task on
+task.id = p.taskid
+),
+			   
+lookup2 as (select 
+			taskid, programuserid, p.securitycontextid, p.id, userid, programid, projectflowid, 			flowtaskid, 
+			prog_user.email, 
+			projectflow.projectid, 
+			flowtask.sectionid
+			from lookup p
+  
+left join ds_mysql_prod_user prog_user on
+prog_user.id = p.userid
+			
+left join ds_mysql_prod_projectflow projectflow on 
+projectflow.id = p.projectflowid			
+
+left join ds_mysql_prod_flowtask flowtask on 
+flowtask.id = p.flowtaskid			
+),
+
+lookup3 as (select 
+			taskid, programuserid, p.securitycontextid, p.id, userid, programid, projectflowid, 			flowtaskid, email, projectid, sectionid, 
+			section.profileid
+			from lookup2 p
+  
+left join ds_mysql_prod_section section on
+section.id = p.sectionid		
+)
+
+select taskid, programuserid, id, userid, programid, projectflowid, flowtaskid, email, projectid, sectionid, profileid 
+from lookup3 p 
+where p.securitycontextid = 1137 and (profileid = 4227 or profileid = 4228 or profileid = 4580 or profileid = 4724)
