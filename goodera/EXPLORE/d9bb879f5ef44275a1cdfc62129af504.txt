@@ -46,48 +46,27 @@ group by s2.id, s2.profileinstanceid, s2.status, s2.projectid, s2.data, s2.creat
 
 sub4 as(
   select s3.id, s3.profileinstanceid, s3.status, s3.projectid, s3.data.tranche,
-cast(s3.data.uc as VARCHAR) as uc, cast(s3.data.call_report as VARCHAR) as call_report, s3.rejection_count,
+cast(s3.data.uc as VARCHAR) as uc, cast(s3.data.call_report as VARCHAR) as call_report, s3.rejection_count, s3.created,
 
-case 
-	when s3.profileinstanceid = p2._id then p2.fy 
-	else s3.data.fy
-end as fy,
+nvl(p2.fy, s3.data.fy) as fy,
+nvl(p2.project_name, s3.data.project_name) as project_name,
+nvl(p2.payment_amount, s3.data.payment_amount) as payment_amount,
+nvl(p2.renewal, s3.data.renewal) as renewal,
+nvl(p2.project_renew, s3.data.project_renew) as project_renew
+  
+from sub3 s3
+left join profile_27398 p2 on p2._id = s3.profileinstanceid),
 
-case 
-	when s3.profileinstanceid = p2._id then p2.project_name 
-	else s3.data.project_name
-end as project_name, 
+sub5 as(
+  select s3.id, s3.profileinstanceid, s3.status, s3.projectid, s3.data.tranche,
+cast(s3.data.uc as VARCHAR) as uc, cast(s3.data.call_report as VARCHAR) as call_report, s3.rejection_count, s3.created,
 
-case 
-	when s3.profileinstanceid = p2._id then p2.payment_amount 
-	else s3.data.payment_amount
-end as payment_amount,
-
-case 
-	when s3.profileinstanceid = p2._id then p2.renewal 
-	else s3.data.renewal
-end as renewal,
-
-case 
-	when s3.profileinstanceid = p2._id then p2.project_renew 
-	else s3.data.project_renew
-end as project_renew,
-
-case 
-	when s3.profileinstanceid = p2._id then p2.created 
-	else s3.created
-end as created,
-
-case 
-	when s3.profileinstanceid = p2._id then p2.modified 
-	else s3.modified
-end as modified,
-
-case 
-	when s3.data.renewal = 430820 then s3.data.project_renew 
-	else s3.data.project_name
-end as joincolumn
-
+nvl(p2.fy, s3.data.fy) as fy,
+nvl(p2.project_name, s3.data.project_name) as project_name,
+nvl(p2.payment_amount, s3.data.payment_amount) as payment_amount,
+nvl(p2.renewal, s3.data.renewal) as renewal,
+nvl(p2.project_renew, s3.data.project_renew) as project_renew
+  
 from sub3 s3
 left join profile_27398 p2 on p2._id = s3.profileinstanceid),
 
@@ -119,7 +98,7 @@ left join ds_mysql_prod_tagelement t3 on t3.id = s4.renewal
 left join ds_mysql_prod_project p5 on p5.id = s4.projectid),
 
 sub6 as(
-  select projectid, id, profileinstanceid, uc, payment_amount, fy, tranche, renewal, request_date, modified, project_name, project_code, rejection_count, call_report,
+  select uc, payment_amount, fy, tranche, renewal, request_date, modified, project_name, project_code, rejection_count, call_report,
 'Click Here' as uc_download, 'Click Here' as call_report_download,
 
 case 
@@ -129,6 +108,6 @@ end as status_new
 
 from sub5
 
-group by projectid, id, profileinstanceid, status, uc, payment_amount, fy, tranche, renewal, request_date, modified, project_name, project_code, rejection_count, call_report)
+group by status, uc, payment_amount, fy, tranche, renewal, request_date, modified, project_name, project_code, rejection_count, call_report)
 
 select * from sub6
