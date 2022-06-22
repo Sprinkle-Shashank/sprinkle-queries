@@ -1,0 +1,26 @@
+with table1 as (Select
+				JSON_SERIALIZE(table_52810.pace_brands) as pace_brand,	
+				case when pace_brand like '%1011796%' then 1 else 0 end  as brand,
+				case when lg_status = 848007 or lg_status is null then 1 else 0 end as lg,
+				case when table_54646._id is null then 0 else 1 end as tablest,
+				(num_females) as total_females,
+				start_year as year1,
+				p.start_date as start_date1,
+				p.projectId as projectid1,
+				case when table_52810.offset_date is null then '2020-02-01T00:00:00.000Z' else table_52810.offset_date end as offset_date1
+
+				from profile_4227 p
+left join profile_52810 table_52810 on
+table_52810.projectId = p.projectId
+				
+left join profile_54646 table_54646 on
+table_54646.projectId = p.projectId
+),
+
+table2 as (Select sum(total_females) as total_females, year1,brand,lg, tablest, start_date1,projectid1,offset_date1  
+			from table1 p
+
+group by year1, brand,lg, tablest, start_date1,projectid1,offset_date1
+		   
+)
+Select cast(total_females as int4) as total_females, year1 as year, start_date1 as start_date,projectid1 as projectid from table2 p where brand = 1 and lg = 1 and tablest = 1 and start_date1 >= offset_date1
