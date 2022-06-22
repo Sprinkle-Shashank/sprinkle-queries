@@ -1,6 +1,6 @@
 with table1 as
 ( select p.projectid , p._id ,  fac.name as factory , case when nvl2(SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), ven.name)='' then ven.name else nvl2(SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), ven.name) end as vendor
- , cou.name as country , p2.fac_cl_vpid, p2.vendor_ngo_id , pri.name as primary_category from profile_61572 as p 
+ , cou.name as country , p2.fac_cl_vpid, p2.vendor_ngo_id , pri.name as primary_category , count(p.projectid) as awareness from profile_61572 as p 
  
 left join ds_mysql_prod_project fac
 on p.projectid = fac.id
@@ -16,6 +16,9 @@ on ven.parent = cou.id
  
 left join ds_mysql_prod_tagelement pri
 on p2.primary_category = pri.id  
+ 
+ group by  p.projectid , p._id ,  fac.name , ven.name
+ , cou.name  , p2.fac_cl_vpid, p2.vendor_ngo_id , pri.name
  )
  
  select * from table1
