@@ -19,7 +19,8 @@ case
   	   		else 0
   	   end
   else 1
-end as flag
+end as flag,
+   
   
 from ds_mongo_taskresponse x1 
 
@@ -32,7 +33,7 @@ left join ds_mysql_prod_profile x7 on x7.id = x6.profileid
 left join ds_mysql_prod_project x8 on x8.id = x5.projectid
 
 where x6.profileid = 54963 and x1.active = 't' and flag = 1
-and x1.status in ('PENDING_APPROVAL', 'SUBMITTED')
+and x1.status in ('PENDING_APPROVAL', 'SUBMITTED') 
 
 group by x1._id, x1.profileinstanceid, x1.status, x1.active, x1.data, x1.taskuserid, x2.taskid, x5.projectid, x6.profileid, x4.sectionid, x6.name, x7.name, x8.name, x1.submissionlog, x1.approvallog), 
 
@@ -47,7 +48,11 @@ end as project_name,
 case
 	when p2.parent = 18943 then split_part(p2.name, '|', 1)
 	else split_part(p3.name, '|', 1)
-end as parentcode
+end as parentcode,
+  case 
+  when p1.subcat_output is not null then 1
+  else 0
+end as subcat_not_null
 
 from sub1 s1
 
@@ -58,7 +63,7 @@ left join ds_mysql_prod_project p3 on p3.id = p2.parent
 left join ds_mysql_prod_tagelement t1 on t1.id = p1.fy
 left join ds_mysql_prod_tagelement t2 on t2.id = p1.month
 
-where p1.fy = 1302339 or p1.fy = 1302340
+where p1.fy = 1302339 or p1.fy = 1302340 and subcat_not_null = 1
 ),
 
 sub3 as(
@@ -145,7 +150,7 @@ end as subcat_not_null
   
 from sub5 s5
 
-where subcat_not_null = 1),
+),
 
 sub7 as(
   select s6.projectcode, s6.fy, s6.project_name, s6.project_manager,
