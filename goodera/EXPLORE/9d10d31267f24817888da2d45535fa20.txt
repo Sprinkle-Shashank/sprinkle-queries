@@ -1,4 +1,16 @@
-select p1.name as projectid,p.fy_timerange,p2.name as donor, p.project_name, p.start_date, p.end_date, p.desc, t1.name as city, t2.name as state, p.male_bene, p.female_bene, p.third_gender_bene, p.photo
+with temp as (
+  select 'Male' as col
+  union all
+  select 'Female' as col
+  union all
+  select 'Third Gender' as col
+  )
+select p1.name as projectid,p.fy_timerange,p2.name as donor, p.project_name, p.start_date, p.end_date, p.desc, t1.name as city, t2.name as state,
+sum(case col
+	when 'Male' then p.male_bene
+	when 'Female' then p.female_bene
+	when 'Third Gender' then p.third_gender_bene
+	else NULL end ) as val, temp.col as gender, count(*)
 from profile_80744 p
 left join ds_mysql_prod_project p1 on p1.id=p.projectid
 left join ds_mysql_prod_project p2 on p2.id = p1.parent
