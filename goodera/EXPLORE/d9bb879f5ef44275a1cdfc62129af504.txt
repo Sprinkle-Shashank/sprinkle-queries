@@ -68,7 +68,7 @@ end as joincolumn
 from sub4 s4),
 
 sub6 as(
-  select s5.id, s5.profileinstanceid, s5.status, p5.name as projectid, 54.uc, 54.payment_amount, t1.name as fy, t2.name as tranche, t3.name as renewal, s5.rejection_count, s5.call_report,
+  select s5.id, s5.profileinstanceid, s5.status, p5.name as projectid, s5.uc, s5.payment_amount, t1.name as fy, t2.name as tranche, t3.name as renewal, s5.rejection_count, s5.call_report,
 
 cast(timestamp 'epoch' + CAST(s5.created AS BIGINT)/1000 * interval '1 second' as date) as request_date,
   
@@ -93,8 +93,17 @@ left join ds_mysql_prod_tagelement t3 on t3.id = s5.renewal
 
 left join ds_mysql_prod_project p5 on p5.id = s5.projectid),
 
-sub6 as(
-  select uc, payment_amount, fy, tranche, renewal, request_date, modified, project_name, project_code, rejection_count, call_report,
+sub7 as(
+  select s6.id, s6.status, s6.projectid, s6.uc, s6.payment_amount, s6.rejection_count, s6.request_date, s6.call_report, s6.project_name, s6.fy, s6.projectcode,
+  
+nvl(p6.name, s6.projectcode) as projectcode_new
+
+from sub6 s6
+left join profile_27396 p6 on p6.name = s6.projectcode),
+  
+sub8 as(
+  select uc, payment_amount, fy as fy_timerange, request_date, project_name, projectcode_new as project_code, rejection_count, call_report,
+
 'Click Here' as uc_download, 'Click Here' as call_report_download,
 
 case 
@@ -102,8 +111,8 @@ case
 	else status
 end as status_new
 
-from sub5
+from sub7
 
-group by status, uc, payment_amount, fy, tranche, renewal, request_date, modified, project_name, project_code, rejection_count, call_report)
+group by uc, payment_amount, fy as fy_timerange, request_date, project_name, projectcode_new as project_code, rejection_count, call_report)
 
-select * from sub6
+select * from sub8
