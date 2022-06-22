@@ -1,4 +1,4 @@
-with tab1 as (select p.name as names, f.name as fy_timerange,f1.name as focus_area,m.name as Project_Manager,p2.name as ngo_partners,p.state as states
+with tab1 as (select p.name as names, f.name as fy_timerange,f1.name as focus_area,m.name as Project_Manager,p2.name as ngo_partners,p.state as states,'' as project_code
 from profile_27396 p
 left join profile_27395 p2
 on p.ngo_partner = p2._id
@@ -8,9 +8,8 @@ left join ds_mysql_prod_tagelement f on
 p.fy=f.id
 left join ds_mysql_prod_tagelement f1 on
 p.focus_area=f1.id
-
-			  union all
-select q.name as names ,f3.name as fy_timerange,f5.name as focus_area,f4.name as project_manager,q.ngo as ngo_partners,'' as states from profile_27420 q
+union all
+select q.name as names ,f3.name as fy_timerange,f5.name as focus_area,f4.name as project_manager,q.ngo as ngo_partners,'' as states,q.project_code as project_code from profile_27420 q
 left join ds_mysql_prod_tagelement f3 on
 q.fy=f3.id
 left join ds_mysql_prod_tagelement f4 on
@@ -18,7 +17,7 @@ q.project_manager=f4.id
 left join ds_mysql_prod_tagelement f5 on
 q.focus_area=f5.id 
 union all
-select p.name as names,f.name as fy_timerange,f1.name as focus_area,m.name as Project_Manager,p2.name as ngo_partners,p.state as states
+select p.name as names,f.name as fy_timerange,f1.name as focus_area,m.name as Project_Manager,p2.name as ngo_partners,p.state as states,'' as project_code
 from profile_27396 p
 left join profile_80183 p2
 on p.ngo_partner = p2._id
@@ -31,12 +30,12 @@ p.focus_area=f1.id)
 
 select case when prj_code is NULL
 then 'new' else 'renew' end as status,
-r.names,r.fy_timerange,r.focus_area,r.Project_Manager,r.ngo_partners,t.state as states 
+r.names,r.fy_timerange,r.focus_area,r.Project_Manager,r.ngo_partners,t1.name as states 
 from tab1 r
 left join profile_29974 s on
 r.project_code=s.prj_code
-left join profile_27489 t on
-t._id=r.states
+left join ds_mysql_prod_tagelement t1 on 
+t1.id=p.State 
 
 
 
