@@ -128,21 +128,27 @@ case
   when s5.status = 'PENDING_APPROVAL' and 
        json_serialize(s5.approvallog_new) like '%APPROVED%' then 1
   else 0
-end as pending_second,
-  
-case
-  when s5.status = 'SUBMITTED' then 1
-  else 0
-end as approved_second
+end as pending_second
   
 from sub5 s5),
 
 sub7 as(
   select s6.projectcode, s6.fy, s6.project_name, s6.project_manager,
-listagg(distinct s6.month, ', ') within group (order by s6.month_sort asc) as months,  sum(s6.pending_second) as pending_second, sum(s6.approved_second) as approved_second
+s6.month, s6.status, s6.pending_second,
+  
+case
+  	when s5.status = 'PENDING_APPROVAL' and s6.pending_second = 0 then 1
+  	else 0
+end as pending_first
 
-from sub6 s6
+from sub6 s6),
 
-group by s6.projectcode, s6.fy, s6.project_name, s6.project_manager)
+sub8 as(
+  select s7.projectcode, s7.fy, s7.project_name, s7.project_manager,
+listagg(distinct s7.month, ', ') within group (order by s7.month_sort asc) as months,  sum(s7.pending_first) as pending_first
+
+from sub7 s7
+
+group by s7.projectcode, s7.fy, s7.project_name, s7.project_manager)
 
 select * from sub7
