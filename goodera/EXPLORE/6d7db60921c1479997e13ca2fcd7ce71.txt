@@ -67,13 +67,7 @@ case
   	else t3.name
 end as fy_27420_new,
  
-nvl(t4.name, t2.name) as project_manager_27420_new,
-  
-case
-  	when (split_part(fy_27420_new, '-', 1) <= split_part(s2.fy, '-', 1)) or 
-  		 (split_part(t1.name, '-', 1) <= split_part(s2.fy, '-', 1)) then 1
-    else 0
-end as flag
+nvl(t4.name, t2.name) as project_manager_27420_new
   
 from sub2 s2
   
@@ -87,7 +81,13 @@ left join ds_mysql_prod_tagelement t3 on t3.id = p5.fy
 left join ds_mysql_prod_tagelement t4 on t4.id = p5.project_manager),
 
 sub4 as(
-  select s3.id, s3.projectcode, s3.approvallog_new, s3.fy, s3.month, s3.project_name, s3.fy_27396, s3.project_manager_27396, s3.fy_27420_new, s3.project_manager_27420_new, s3.flag, s3.subcat_output,
+  select s3.id, s3.projectcode, s3.approvallog_new, s3.fy, s3.month, s3.project_name, s3.fy_27396, s3.project_manager_27396, s3.fy_27420_new, s3.project_manager_27420_new, s3.fy_27420, s3.subcat_output,
+  
+case
+  	when (split_part(s3.fy_27420_new, '-', 1) <= split_part(s3.fy, '-', 1)) or 
+  		 (split_part(s3.fy_27396, '-', 1) <= split_part(s3.fy, '-', 1)) then 1
+    else 0
+end as flag,
 
 row_number() over(partition by s3.id order by split_part(s3.fy_27420_new, '-', 1) desc) as row
   
