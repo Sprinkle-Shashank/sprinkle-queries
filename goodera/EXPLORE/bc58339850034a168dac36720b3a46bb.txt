@@ -68,7 +68,8 @@ table3 as (Select idstatus, status1, output, fy1, month, approvalStatus1, subcat
 		   case when fy27420_1 is null or fy_1 < fy27420_1 then fy27396_1 else fy27420_1 end as fy27420_2,
 		   name1,
 		   case when project_manager27420 is null then project_manager27396 else project_manager27420 end as project_manager27420_1,
-		   case when fy27420_2 <= fy_1 or fy27396_1 <= fy_1 then 1 else 0 end as flag
+		   case when fy27420_2 <= fy_1 or fy27396_1 <= fy_1 then 1 else 0 end as flag,
+		   case when firstLevelApproval = 1 then data27396.project_manager else 'null' end as manager1final
 		   
 		   from table2 p
 
@@ -99,10 +100,10 @@ table4 as (Select
 		activestatus,
 		   listagg(cast(firstLevelApproval as int),',') as firstLevelApproval,
 			 status1, output,flag,fy_timerange1, month1,projectCode
-		   ,idstatus,idd, idd1
+		   ,idstatus,idd, idd1,manager1final
 		from table3 p
 
-group by idstatus,flag,fy_timerange1, month1,projectCode,status1, output,idd, idd1,activestatus
+group by idstatus,flag,fy_timerange1, month1,projectCode,status1, output,idd, idd1,activestatus,manager1final
 ),
 
 table5 as (Select
@@ -117,15 +118,15 @@ table5 as (Select
 		   idstatus,idd,idd1,
 		   
 		    status1, output,flag,fy_timerange1, month1,projectCode,
-		   case when fy27420_2 <= fy_1 then project_manager27420_1 else project_manager27396 end as projectManager, activestatus
+		   case when fy27420_2 <= fy_1 then project_manager27420_1 else project_manager27396 end as projectManager, activestatus,manager1final
 		   		   
 		   from table4 p
 ),
-table6 as (Select ( idd1) as taskreported,  (firstLevelApproval) as manager1,  status1, output,flag,fy_timerange1, month1,projectCode,projectManager,idstatus,activestatus
+table6 as (Select ( idd1) as taskreported,  (firstLevelApproval) as manager1,  status1, output,flag,fy_timerange1, month1,projectCode,projectManager,idstatus,activestatus,manager1final
 		   
 		   from table5 p  
 
 
 )
 
-Select projectCode, fy_timerange1 as fy_timerange, month1 as month,taskreported,manager1,projectManager, 1 as count from table6 p where idstatus = 1 and status1 = 1  and flag = 1 and output = 1 
+Select projectCode,manager1final, fy_timerange1 as fy_timerange, month1 as month,taskreported,manager1,projectManager, 1 as count from table6 p where idstatus = 1 and status1 = 1  and flag = 1 and output = 1 
