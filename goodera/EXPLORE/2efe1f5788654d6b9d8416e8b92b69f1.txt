@@ -1,0 +1,33 @@
+with lookup as (select
+				JSON_SERIALIZE(table_52810.pace_brands) as pace_brand,
+				case when pace_brand like '%1011796%' then 1 else 0 end  as brand,
+				SUBSTRING(p.name, 1, 2) as ExtractString,
+				case when (ExtractString) like ' -' or (ExtractString) like '- ' then 0 else 1 end as ch,
+				p.name,
+				p._id as id1,
+				listagg(distinct p.module_name, ',') as module_name,
+				listagg(distinct p.projectid, ',') as projectid,
+				listagg(distinct p.start_date, ',') as start_date,
+				listagg(distinct p.end_date, ',') as end_date,
+				listagg(distinct p.pre_post_yn, ',') as pre_post_yn,
+				listagg(distinct p.no_pre_assessment, ',') as no_pre_assessment,
+				listagg(distinct p.score, ',') as score,
+				listagg(distinct p.no_post_assessment, ',') as no_post_assessment,
+				listagg(distinct p.score2, ',') as score2,
+				listagg(distinct p.attendance, ',') as attendance,
+				listagg(distinct (cast(taskResponse.submissionLog[0].email as varchar(65535))), ', ') as data_user
+				
+				from profile_4228 p
+						
+inner join profile_52810 table_52810 on
+table_52810.projectid=p.projectid
+				
+inner join profile_4227 table_4227 on
+table_4227.projectid=p.projectid
+				
+left join ds_mongo_taskresponse taskResponse on
+taskResponse.profileinstanceid=p._id		
+			
+group by id1,table_52810.pace_brands,p.name)
+select name, module_name, projectid, cast(start_date as timestamp) as start_date, to_char(cast(start_date as timestamp), 'YYYY-MM-DD') as start_date1, end_date, pre_post_yn, no_pre_assessment,score, no_post_assessment, score2, attendance, data_user
+from lookup p where brand = 1 and ch =1
