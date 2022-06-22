@@ -39,7 +39,19 @@ left join ds_mysql_prod_tagelement t1 on t1.id = p4.fy
 left join ds_mysql_prod_tagelement t2 on t2.id = p4.project_manager
 
 left join ds_mysql_prod_tagelement t3 on t3.id = p5.fy
-left join ds_mysql_prod_tagelement t4 on t4.id = p5.project_manager)
+left join ds_mysql_prod_tagelement t4 on t4.id = p5.project_manager),
 
-select * from sub2
+sub3 as(
+  select s2.id, s2.projectcode, s2.fy, s2.month, s2.project_name, s2.fy_27396, s2.project_manager_27396, s2.fy_27420_new, s2.project_manager_27420_new, s2.fy_27420,
   
+case
+  	when (split_part(s2.fy_27420_new, '-', 1) <= split_part(s2.fy, '-', 1)) or 
+  		 (split_part(s2.fy_27396, '-', 1) <= split_part(s2.fy, '-', 1)) then 1
+    else 0
+end as flag,
+
+row_number() over(partition by s2.id order by split_part(s2.fy_27420_new, '-', 1) desc) as row
+  
+from sub2 s2)
+
+select * from sub2 
