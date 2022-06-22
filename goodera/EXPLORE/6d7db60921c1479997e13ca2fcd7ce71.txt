@@ -38,7 +38,7 @@ end as rejection_count
 from sub1 s1, s1.approvallog_new applog),
 
 sub3 as(
-  select s2.id, s2.profileinstanceid, s2.status, s2.projectid, s2.data, s2.created, s2.modified, sum(s2.rejection_count) as rejection_count
+  select s2.id, s2.profileinstanceid, s2.status, s2.projectid, s2.data, s2.created, s2.modified, sum(s2.rejection_count) as rejection_count, s2.approvallog_new
 
 from sub2 s2
 
@@ -46,7 +46,7 @@ group by s2.id, s2.profileinstanceid, s2.status, s2.projectid, s2.data, s2.creat
 
 sub4 as(
   select s3.id, s3.profileinstanceid, s3.status, s3.projectid, s3.data.tranche,
-cast(s3.data.uc as VARCHAR) as uc, cast(s3.data.call_report as VARCHAR) as call_report, s3.rejection_count, s3.created, s3.modified,
+cast(s3.data.uc as VARCHAR) as uc, cast(s3.data.call_report as VARCHAR) as call_report, s3.rejection_count, s3.created, s3.modified, s3.approvallog_new,
 
 nvl(p2.fy, s3.data.fy) as fy,
 nvl(p2.project_name, s3.data.project_name) as project_name,
@@ -58,7 +58,7 @@ from sub3 s3
 left join profile_27398 p2 on p2._id = s3.profileinstanceid),
 
 sub5 as(
-  select s4.id, s4.profileinstanceid, s4.status, s4.projectid, s4.tranche, s4.uc, s4.call_report, s4.rejection_count, s4.created, s4.fy, s4.project_name, s4.payment_amount, s4.renewal, s4.project_renew, s4.modified,
+  select s4.id, s4.profileinstanceid, s4.status, s4.projectid, s4.tranche, s4.uc, s4.call_report, s4.rejection_count, s4.created, s4.fy, s4.project_name, s4.payment_amount, s4.renewal, s4.project_renew, s4.modified, s4.approvallog_new,
   
 case
   when s4.renewal = 430820 then s4.project_renew
@@ -68,7 +68,7 @@ end as joincolumn
 from sub4 s4),
 
 sub6 as(
-  select s5.id, s5.profileinstanceid, s5.status, p5.name as projectid, s5.uc, s5.payment_amount, t1.name as fy, t2.name as tranche, t3.name as renewal, s5.rejection_count, s5.call_report,
+  select s5.id, s5.profileinstanceid, s5.status, p5.name as projectid, s5.uc, s5.payment_amount, t1.name as fy, t2.name as tranche, t3.name as renewal, s5.rejection_count, s5.call_report, s5.approvallog_new,
 
 cast(timestamp 'epoch' + CAST(s5.created AS BIGINT)/1000 * interval '1 second' as date) as request_date,
 cast(timestamp 'epoch' + CAST(s5.modified AS BIGINT)/1000 * interval '1 second' as date) as modified,
@@ -127,4 +127,4 @@ from sub7
 
 group by uc, payment_amount, fy, request_date, project_name, projectcode_new, rejection_count, call_report, status, modified)
 
-select * from sub2
+select * from sub6
