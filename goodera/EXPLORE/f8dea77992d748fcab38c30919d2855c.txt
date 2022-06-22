@@ -19,7 +19,7 @@ order by fy_timerange asc
 ) 
 				),
 				table2 as (
-select country,name,fy_timerange,total_water/*+scope2_emission*/ as total_emission1,
+select country,name,fy_timerange,total_water/*+scope2_emission*/ as total_water1,
 EXTRACT(MONTH FROM cast (startdate as datetime))AS month1,
 EXTRACT(YEAR FROM cast (startdate as datetime))AS year1,
 CASE
@@ -37,12 +37,12 @@ concat(concat(concat(concat('{"start":"',start1),'","end":"'),end2),'"}') as fy_
 from table1 t1
 				),
 table3 as (
-select country,name,fy_1 as fy_timerange,sum(t2.total_emission1) as total_emission from table2 t2
+select country,name,fy_1 as fy_timerange,sum(t2.total_water1) as total_water from table2 t2
 
 group by country,name,fy_1)
 
-select country,name,fy_timerange,total_emission,lag(total_emission,1) over (order by  fy_timerange) as prev_emission,
-(select total_emission from table3
+select country,name,fy_timerange,total_water,lag(total_water,1) over (order by  fy_timerange) as prev_water,
+(select total_water from table3
 	order by fy_timerange asc limit 1) as base_value from table3 
 
 
