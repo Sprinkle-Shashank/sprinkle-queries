@@ -3,13 +3,16 @@ select p.name as projectid, date_disbursal as fy_timerange,sum(disbursed) as dis
 left join ds_mysql_prod_project p
 on p.id=projectid
 group by p.name,date_disbursal, disbursed),
+
 sub2 as (
 select sched7 from profile_41363
-left join profile_41363 p2 on p2.projectid=p.projectid
+left join profile_41363 p2 on p2.projectid=projectid
 group by sched7),
+
 sub3 as (
   select sched from sub2 s2, s2.sched7 sched)
   select p.name as projectid, case when p.name in ('Prasanna Trust', 'Kashtakari Panchayat', 'Shishu Mandir', 'SOUL', 'Narayanaamruta Medicare Foundation', 'SGBS Unnati Foundation','Makkala Jagariti', 'Reefwatch Marine Conservation', 'Nirvanavan Foundation', 'Win over cancer', 'Vipasana', 'Selco Foundation', 'CII Foundation', 'Disha') then 'Short-Term Projects' when p.name in ('Omashram Trust', 'One Billion Literates', 'Cuddles Foundation', 'Rainbow Homes (ANC Rainbow Homes)', 'Rainbow Homes (Bosco Rainbow Homes)', 'Rainbow Homes (Sanrakshan Rainbow Homes)','CUPA', 'Parikrma Foundation','Other Projects') then 'Long-Term Projects' else 'Other Projects' end as choose from sub3 as s3
-left join ds_mysql_prod_tagelement t1 on t1.id=sched
+
+left join ds_mysql_prod_tagelement t1 on t1.id=s3.sched
 where disbursed is not NULL
 group by p.name,p2.sched7
