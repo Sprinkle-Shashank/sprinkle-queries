@@ -1,0 +1,40 @@
+with table1 as (Select
+				JSON_SERIALIZE(table_52810.pace_brands) as pace_brand,	
+				case when pace_brand like '%1011796%' then 1 else 0 end  as brand,
+				p.projectid as projectid1, pace_status_2,
+				case when table_54267._id is null then pace_status_2 else table_54267.pace_status end as paceStatus,
+				case when paceStatus is null then 845114 else paceStatus end as paceStatus1,
+				table_4227.start_date as start_date,
+				case when table_52810.offset_date is null then '2020-02-01T00:00:00.000Z' else table_52810.offset_date end as offset_date1
+				
+				from profile_52713 p
+left join profile_52810 table_52810 on
+table_52810.projectId = p.projectId
+				
+left join profile_4227 table_4227 on
+table_4227.projectId = p.projectId
+				
+left join profile_54267 table_54267 on
+table_54267.projectId = p.projectId
+				
+order by table_54267._id desc
+),
+
+table2 as (select 
+		   listagg(distinct(paceStatus1)) as pace_status, projectid1 as projectid,brand,start_date,offset_date1
+		  		  
+		  from table1 p
+group by brand, projectid,start_date,offset_date1		   
+),
+
+table3 as (select pace_status,brand, count(pace_status) as count, projectid	,start_date,offset_date1 
+		  from table2 p
+		   
+left join ds_mysql_prod_tagelement tag_pace on
+p.pace_status=tag_pace.id
+
+group by pace_status,brand,tag_pace.name,projectid,start_date,offset_date1
+order by tag_pace.name
+)
+
+Select pace_status,cast(count as int4),projectid ,start_date from table3 p where brand = 1 and start_date >= offset_date1
