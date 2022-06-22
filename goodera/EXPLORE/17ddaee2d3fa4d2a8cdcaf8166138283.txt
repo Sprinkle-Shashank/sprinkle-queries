@@ -1,0 +1,84 @@
+with lookup as (select
+				
+				JSON_SERIALIZE(table_52810.pace_brands) as pace_brand,
+				case when pace_brand like '%1011796%' then 1 else 0 end  as brand,
+				case when table_54267.pace_status is not null then table_54267.pace_status else pace_status_2 end as paceStatus,
+				listagg(distinct table_4227._id )as p3id,
+				listagg(distinct p.projectId) as ProjectId,
+					
+				taskResponse.submissionLog[0].email as data_user,
+			
+				case when table_54267.facility_status is not null then table_54267.facility_status else facility_status_2 end as facilityStatus,
+				case when p.projectId is not null then 1 else 0 end as pid,
+				cast(factory_vpid_1 as varchar(65535)) as vpid_1,
+				case when sourcing_yn =57472 then (vpid_1) else factory_vpid_2 end as factory_id,
+				listagg(distinct table_54646.name_country) as country_name,
+				listagg(distinct table_54646.name_vendor_filter) as vendor,
+				listagg(distinct table_54646.name) as factory_name,
+				
+				listagg(distinct table_54646.fac_brand_code) as brand_code_old,
+				table_52810.pace_brands as brand_code_new,
+				listagg(distinct p.child_vendor_vpid) as vendor_vpid,
+				listagg(distinct table_4227.start_date) as start_date,
+				listagg(distinct table_4227.end_date) as end_date,
+				listagg(distinct table_4227.num_females) as num_females,
+				(table_4227.name) as name,
+				listagg(distinct table_4227.hours) as hours,
+				table_4227.cls_time as cls_time,
+				listagg(distinct table_4227.num_males) as num_males,
+				table_4227.influencers as influencers,
+				listagg(distinct table_4227.other_influencer) as other_influencer,
+				listagg(distinct table_4227.end_date_2) as end_date_2,
+				listagg(distinct table_4227.num_females_graduated) as num_females_graduated,
+				listagg(distinct table_4227.reason_pregnancy) as reason_pregnancy,
+				listagg(distinct table_4227.reason_left) as reason_left,
+				listagg(distinct table_4227.reason_interest) as reason_interest,
+				listagg(distinct table_4227.reason_pressure) as reason_pressure,
+				listagg(distinct table_4227.reason_other) as reason_other,
+				listagg(distinct table_4227.reason_additional) as reason_additional,
+				listagg(distinct table_4227.num_females_dropout) as num_females_dropout,
+				listagg(distinct table_4227.num_males_graduated) as num_males_graduated,
+				listagg(distinct table_4227.num_males_dropout) as num_males_dropout,
+				listagg(distinct table_4227.absenteeism) as absenteeism,
+				listagg(distinct table_4227.absenteeism_1) as absenteeism_1,
+				listagg(distinct table_4227.efficiency) as efficiency,
+				listagg(distinct table_4227.efficiency_1) as efficiency_1,
+				listagg(distinct table_4227.turnover) as turnover,
+				listagg(distinct table_4227.turnover_1) as turnover_1,
+				listagg(distinct table_4227.promotions) as promotions,
+				listagg(distinct table_4227.promotions_1) as promotions_1,
+				( table_4227.select_modules) as select_modules,
+				listagg(distinct table_4227.createddate) as date_created,
+				listagg(distinct table_4227.modifieddate) as date_modified,
+				listagg(distinct table_4227.lg_status) as lg_status,
+				listagg(distinct brandTag.name) as brand_code,
+				case when lg_status = 848007 or lg_status is null  then 1 else 0 end as lg,
+				case when paceStatus = 845114 or paceStatus is null then 845114 else paceStatus end as pace_status
+				
+				from profile_52713 p
+						
+left join profile_52810 table_52810 on
+table_52810.projectid=p.projectid
+				
+inner join profile_4227 table_4227 on
+table_4227.projectid=p.projectid
+				
+left join profile_54267 table_54267 on
+table_54267.projectid=p.projectid
+											
+inner join profile_54646 table_54646 on
+table_54646.projectid=p.projectid
+				
+left join ds_mongo_taskresponse taskResponse on
+taskResponse.profileinstanceid=table_4227._id
+				
+left join ds_mysql_prod_tagElement brandTag on
+brandTag.id=table_52810.pace_brands[0]
+		
+group by table_52810.pace_brands,table_54267.pace_status,p.pace_status_2,taskResponse.submissionLog[0].email,table_54267.facility_status,p.facility_status_2,p.factory_vpid_1,p.sourcing_yn,p.factory_vpid_2,table_54646.name, table_4227.cls_time, table_4227.influencers, table_4227.select_modules,
+table_4227.lg_status,p.projectid,table_4227.name,paceStatus,data_user
+				
+order by table_54646.name
+)		
+select ProjectId, factory_id, pace_status, facilityStatus, country_name, brand_code_old, brand_code, vendor, factory_name, vendor_vpid, cast(start_date as timestamp) as start_date, to_char(cast(start_date as timestamp), 'YYYY-MM-DD') as start_date1, end_date, num_females, name, hours, cls_time, num_males, influencers, other_influencer, end_date_2, num_females_graduated, reason_pregnancy, reason_left, reason_interest, reason_pressure, reason_other, reason_additional, num_females_dropout, num_males_graduated, num_males_dropout, absenteeism, absenteeism_1, efficiency, efficiency_1, turnover, turnover_1, promotions, promotions_1, select_modules, cast(data_user as varchar) as data_user, date_created, date_modified, p3Id
+from lookup p where brand = 1 and pid =1 and lg=1
