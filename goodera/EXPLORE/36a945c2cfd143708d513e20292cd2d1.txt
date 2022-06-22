@@ -1,0 +1,79 @@
+with lookup as (select
+				JSON_SERIALIZE(table_52810.pace_brands) as pace_brand,
+				case when pace_brand like '%1011796%' then 1 else 0 end  as brand,
+				listagg(distinct table_54646.name_country) as country_name,
+				listagg(distinct table_54646.name_vendor_filter) as vendor,
+				listagg(distinct table_54646.name) as factory_name,
+				listagg(distinct table_54646.fac_brand_code) as brand_code_old,
+				p.cp_location_id as factory_id,
+				p.cp_id as vendor_vpid,
+				p.projectid,
+				table_52810.pace_brands as brand_code_new,
+				case when p.projectId is not null then 1 else 0 end as pid,
+				case when table_54267.pace_status is not null then table_54267.pace_status else pace_status_2 end as paceStatus,
+				case when paceStatus = 845114 or paceStatus is null then 845114 else paceStatus end as pace_status1,
+				listagg(distinct(cast(taskResponse.submissionLog[0].email as varchar(65535))),', ') as data_user,
+				--taskResponse.submissionLog[0].email as data_user,
+				cast((listagg(distinct table_4227.start_date)) as timestamp) as start_date,
+				to_char(cast(listagg(distinct table_4227.start_date) as timestamp),'YYYY-MM-DD') as start_date1,
+				listagg(distinct table_4227.end_date) as end_date,
+				listagg(distinct table_4227.num_females) as num_females,
+				table_4227.name as name,
+				listagg(distinct table_4227.hours) as hours,
+				table_4227.cls_time as cls_time,
+				listagg(distinct table_4227.num_males) as num_males,
+				table_4227.influencers as influencers,
+				listagg(distinct table_4227.other_influencer) as other_influencer,
+				listagg(distinct table_4227.end_date_2) as end_date_2,
+				listagg(distinct table_4227.num_females_graduated) as num_females_graduated,
+				listagg(distinct table_4227.reason_pregnancy) as reason_pregnancy,
+				listagg(distinct table_4227.reason_left) as reason_left,
+				listagg(distinct table_4227.reason_interest) as reason_interest,
+				listagg(distinct table_4227.reason_pressure) as reason_pressure,
+				listagg(distinct table_4227.reason_other) as reason_other,
+				listagg(distinct table_4227.reason_additional) as reason_additional,
+				listagg(distinct table_4227.num_females_dropout) as num_females_dropout,
+				listagg(distinct table_4227.num_males_graduated) as num_males_graduated,
+				listagg(distinct table_4227.num_males_dropout) as num_males_dropout,
+				listagg(distinct table_4227.absenteeism) as absenteeism,
+				listagg(distinct table_4227.absenteeism_1) as absenteeism_1,
+				listagg(distinct table_4227.efficiency) as efficiency,
+				listagg(distinct table_4227.efficiency_1) as efficiency_1,
+				listagg(distinct table_4227.turnover) as turnover,
+				listagg(distinct table_4227.turnover_1) as turnover_1,
+				listagg(distinct table_4227.promotions) as promotions,
+				listagg(distinct table_4227.promotions_1) as promotions_1,
+				table_4227.select_modules as select_modules,
+				max(distinct((concat(concat(substring(cast(timestamp 'epoch' + CAST(table_4227.created AS BIGINT)/1000 * interval '1 second' as varchar), 1, 10),'T'), concat(split_part(cast(timestamp 'epoch' + CAST(table_4227.created AS BIGINT)/1000 * interval '1 second' as varchar), ' ',2),'.000Z'))))) as date_created1,
+				
+				max(distinct((concat(concat(substring(cast(timestamp 'epoch' + CAST(table_4227.modified AS BIGINT)/1000 * interval '1 second' as varchar), 1, 10),'T'), concat(split_part(cast(timestamp 'epoch' + CAST(table_4227.modified AS BIGINT)/1000 * interval '1 second' as varchar), ' ',2),'.000Z'))))) as date_modified1,
+				listagg(distinct table_4227.lg_status) as lg_status,
+				listagg(distinct brandTag.name) as brand_code_new1,
+				case when lg_status = 848007 or lg_status is null  then 1 else 0 end as lg,
+				tag1.name as pace_status
+				from profile_4948 p
+						
+left join profile_52810 table_52810 on
+table_52810.projectid=p.projectid
+				
+inner join profile_4227 table_4227 on
+table_4227.projectid=p.projectid
+				
+left join profile_54267 table_54267 on
+table_54267.projectid=p.projectid
+											
+inner join profile_54646 table_54646 on
+table_54646.projectid=p.projectid
+				
+left join ds_mongo_taskresponse taskResponse on
+taskResponse.profileinstanceid=table_4227._id
+				
+left join ds_mysql_prod_tagElement brandTag on
+brandTag.id = p.projectid
+				
+left join ds_mysql_prod_tagElement tag1 on
+tag1.id = p.pace_status_2
+				
+group by table_52810.pace_brands,table_54267.pace_status,p.pace_status_2,table_54267.facility_status,table_54646.name, table_4227.cls_time, table_4227.influencers, table_4227.select_modules,p.projectid,table_4227.name,paceStatus,p.cp_location_id, p.cp_id, table_4227.lg_status,tag1.name)
+
+select *, to_char(cast(date_modified1 as timestamp), 'YYYY-MM-DD') as date_modified, to_char(cast(date_created1 as timestamp), 'YYYY-MM-DD') as date_created from lookup p where lg=1 and pid = 1 and brand = 1 
