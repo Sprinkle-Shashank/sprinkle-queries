@@ -1,4 +1,5 @@
-select t1.name as fy, split_part(p2.name, '|', 1) as projectcode, t2.name as month,
+with sub1 as(
+  select p1._id as id, t1.name as fy, split_part(p2.name, '|', 1) as projectcode, t2.name as month,
 
 case
 	when p2.parent = 18943 then split_part(p2.name, '|', 2)
@@ -16,4 +17,29 @@ left join ds_mysql_prod_project p2 on p2.id = p1.projectid
 left join ds_mysql_prod_project p3 on p3.id = p2.parent
 
 left join ds_mysql_prod_tagelement t1 on t1.id = p1.fy
-left join ds_mysql_prod_tagelement t2 on t2.id = p1.month
+left join ds_mysql_prod_tagelement t2 on t2.id = p1.month),
+
+sub2 as(
+  select s1.id, s1.projectcode, s1.fy, s1.month, s2.project_name, s2.parentcode, t1.name as fy_27396, t2.name as project_manager_27396, t3.name as fy_27420, t4.name as project_manager_27420,
+  
+case
+  	when t3.name is null or (split_part(s2.fy, '-', 1) < split_part(t3.name, '-', 1))
+  		 then t1.name
+  	else t3.name
+end as fy_27420_new,
+ 
+nvl(t4.name, t2.name) as project_manager_27420_new
+  
+from sub2 s2
+  
+left join profile_27396 p4 on p4.name = s1.parentcode
+left join profile_27420 p5 on p5.project_code = p4._id
+
+left join ds_mysql_prod_tagelement t1 on t1.id = p4.fy
+left join ds_mysql_prod_tagelement t2 on t2.id = p4.project_manager
+
+left join ds_mysql_prod_tagelement t3 on t3.id = p5.fy
+left join ds_mysql_prod_tagelement t4 on t4.id = p5.project_manager)
+
+select * from sub2
+  
