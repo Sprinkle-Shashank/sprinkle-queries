@@ -1,0 +1,46 @@
+with lookup as (select
+				JSON_SERIALIZE(table_52810.pace_brands) as pace_brand,
+				case when pace_brand like '%1011796%' then 1 else 0 end as brand,
+				--table_54267.id as 54267_id,
+				case when table_54267.pace_status is null then p.pace_status_2 else table_54267.pace_status end as paceStatus,
+				case when paceStatus = 845114 or paceStatus is null then 1 else 0 end as status,
+				p.projectId as projectId,
+				taskResponse.submissionLog[0].email as data_user,
+				cast(factory_vpid_1 as varchar(65535)) as vpid1,
+				case when sourcing_yn = 57472 then vpid1 else factory_vpid_2 end as factory_id,
+				listagg(distinct table_54646.name_vendor_filter) as vendor,
+				listagg(distinct table_54646.name) as factory_name,
+				(p.child_vendor_vpid) as vendor_vpid,
+				table_4724.name_event as name_event,
+				table_4724.date as start_date,
+				table_4724.type_event as type_event,
+				table_4724.other_event as other_event,
+				table_4724.event_description as event_description,
+				table_4724.type_influencer as type_influencer,
+				(table_4724.duration_event) as duration_event,
+				table_4724.attend as attend,
+				table_4724._id as _id
+				
+				from profile_52713 p
+						
+inner join profile_52810 table_52810 on
+table_52810.projectid=p.projectid
+				
+left join profile_54267 table_54267 on
+table_54267.projectid=p.projectid
+				
+left join profile_54646 table_54646 on
+table_54646.projectid=p.projectid
+				
+left join profile_4227 table_4227 on
+table_4227.projectid=p.projectid
+				
+inner join profile_4724 table_4724 on
+table_4724.projectid=p.projectid
+				
+left join ds_mongo_taskresponse taskResponse on
+taskResponse.profileinstanceid=table_4724._id		
+			
+group by p.projectId,table_52810.pace_brands,table_54267.pace_status,p.pace_status_2,p.factory_vpid_1,p.sourcing_yn,p.factory_vpid_2,table_4724.type_influencer,p.child_vendor_vpid,table_4724.name_event,table_4724.date,taskresponse.submissionlog,			table_4724.type_event,table_4724.other_event,table_4724.event_description,table_4724.duration_event,table_4724.attend,table_4724._id)
+select projectId, factory_id, vendor, factory_name, vendor_vpid, name_event, start_date, type_event, event_description, duration_event, attend, cast(data_user as varchar) as data_user, to_char(cast(start_date as timestamp), 'YYYY-MM-DD') as start_date1 
+from lookup p where brand = 1 and status =1
