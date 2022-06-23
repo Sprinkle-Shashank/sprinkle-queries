@@ -1,0 +1,29 @@
+with table1 as (Select 
+				JSON_SERIALIZE(table_52810.pace_brands) as pace_brand,	
+				case when pace_brand like '%1011796%' then 1 else 0 end  as brand,
+				case when pace_status = 182398 or pace_status is null then 1 else 0 end as status,
+				table_54646.name_vendor_filter as name_vendor_filter,
+				table_54646.name_country as country_name,
+				p.projectid as projectid1,cp_id,
+				table_4227.start_date as start_date,
+				case when table_52810.offset_date is null then '2020-02-01T00:00:00.000Z' else table_52810.offset_date end as offset_date1
+				
+				
+				from profile_4948 p
+left join profile_52810 table_52810 on
+table_52810.projectId = p.projectId
+				
+left join profile_4227 table_4227 on
+table_4227.projectId = p.projectId
+				
+left join profile_54646 table_54646 on
+table_54646.projectId = p.projectId
+),
+table2 as (Select projectid1, brand, status, listagg(distinct(country_name)) as country_name, listagg(distinct(cp_id)) as cp_id, name_vendor_filter,start_date,offset_date1
+
+			from table1 p
+group by projectid1, brand, status, name_vendor_filter,start_date,offset_date1
+)
+
+
+select projectid1 as projectid, country_name, cp_id, name_vendor_filter,start_date from table2 p where brand = 1 and status = 1 and start_date >= offset_date1
