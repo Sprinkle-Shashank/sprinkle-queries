@@ -5,7 +5,9 @@ with table1 as (Select p.subcat_output, p._id, p.focus_area, p.fy, p.projectId, 
 				f.name as fy_timerange,
 				m.name as Month, 
 				query1.taskreported as total_activity_reported,
-				query1.manager1 as manager1_approved
+				query1.manager1 as manager1_approved,
+				query1.manager27396_ as level1m,
+				query1.manager27420_ as level2m
 				
  
 		from profile_54963 p
@@ -35,7 +37,7 @@ table2 as (select p.parent as parent1,
 		   p.fy_timerange as fy_timerange1,
 		   p.month as month1,
 		   total_activity_reported,
-		   manager1_approved
+		   manager1_approved,level1m,level2m
 		   
 		   from table1 p
 
@@ -66,7 +68,7 @@ table3 as ( select parent1, censusCode, subcat_output,focus_area1, projectId1, f
 		   case when fy27420_2 <= fy_1 or fy27396_1 <= fy_1 then 1 else 0 end as flag,
 		   case when subcat_output is not null and flag_deviation_delay = '1' then 1 else 0 end as deviations,
 		   total_activity_reported,
-		   manager1_approved
+		   manager1_approved,,level1m,level2m
 		   
 		   from table2 p
 
@@ -99,11 +101,11 @@ table4 as (Select
 			listagg(dataCheck,',') as dataCheck,
 			_id1,flag,fy_timerange1, month1,projectCode,deviations,
 		   total_activity_reported,
-		   manager1_approved
+		   manager1_approved,,level1m,level2m
 		from table3 p
 
 group by _id1,flag,fy_timerange1, month1,projectCode,deviations,total_activity_reported,
-		   manager1_approved
+		   manager1_approved,,level1m,level2m
 ),
 
 table5 as (Select
@@ -124,23 +126,23 @@ table5 as (Select
 		    
 		   case when subcat_output is null or dataCheck = 0 then 0 else 1 end as manager2,
 		   case when dataCheck = 1 and subcat_output = 0 then 1 else manager2 end as manager2_1, fy_timerange1, month1,projectCode,total_activity_reported,
-		   manager1_approved
+		   manager1_approved,,level1m,level2m
 		   		   
 		   from table4 p
 ),
 
 table6 as (Select listagg(manager2_1,',') as manager2_1,
 		   sum(deviations) as deviations, _id1,flag,projectManager,fy_timerange1, month1,projectCode,total_activity_reported,
-		   manager1_approved					 
+		   manager1_approved,level1m,level2m					 
 						 from table5 p						 					
 group by _id1, flag,projectManager,fy_timerange1, month1,projectCode,total_activity_reported,
-		   manager1_approved
+		   manager1_approved,level1m,level2m
 
 ),
 table6_1 as (select   
 			reverse(reverse(SPLIT_PART((manager2_1), ',',1))) as manager2_1,
 			 _id1, deviations,flag,projectManager ,fy_timerange1, month1,projectCode,total_activity_reported,
-		   manager1_approved
+		   manager1_approved,level1m,level2m
 			 
 			from table6 p
 ),
@@ -148,7 +150,7 @@ table6_1 as (select
 table7 as (Select distinct _id1 as Totalactivity, (manager2_1) as manager2actReported, 
 		   
 		   (deviations) as devReported,flag,projectManager,fy_timerange1, month1,projectCode,total_activity_reported,
-		   manager1_approved
+		   manager1_approved,level1m,level2m
 		   from table6_1 p 
 
 ),
@@ -163,6 +165,11 @@ temp as (
   union all
   select 'No. of Deviations reported' as col
   ),
+  temp2 as (
+	select level1m as man
+	union all
+	select level2m as man
+  ),
 table8 as (
 select Totalactivity as Total_activity,total_activity_reported as number_of_activities_reported, case when len(total_activity_reported)>0 then 1 else 0 end as activity,
 (cast(manager1_approved as int) + cast(manager2actReported as int)) as manager_1_approved,
@@ -174,7 +181,7 @@ when 'No. of Tasks approved by 1st Manager' then cast(manager_1_approved as int)
 when 'No. of Tasks approved by 2nd Manager' then cast(manager_2_approved as int)
 when 'No. of Deviations reported' then cast(number_of_deviations as int)
 else 0
-end as value, temp.col as dimensions,manager_2_approved as level2, manager_1_approved as level1, fy_timerange as fy,  t.name as projectmanager,projectCode, months
+end as value, temp.col as dimensions,manager_2_approved as level2, manager_1_approved as level1, fy_timerange as fy,  t.name as projectmanager,projectCode, months,man
 from table8 
 cross join temp
 left join ds_mysql_prod_tagelement t
