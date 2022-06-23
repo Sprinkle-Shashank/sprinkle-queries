@@ -1,10 +1,9 @@
-select t1.name as financialperiod, fy_timerange as timerange,
+with x as(select t1.name as financialperiod, fy_timerange as timerange,
 
 
 sum (datanumbase)
 	as position,
-sum (datanumbase)
-	as participants,
+
 	
 	split_part(fy_timerange,'-',1)  as year
 		
@@ -12,7 +11,26 @@ from sus_74645
 
 left join ds_mysql_prod_tagelement t1 on t1.id = financialperiod
 
-where keyword in ('esg_position','esg_total_parcipants') and datanumbase is not null
+where keyword ='esg_position' and datanumbase is not null),
+y as (select t1.name as financialperiod, fy_timerange as timerange,
+
+
+sum (datanumbase)
+	as participants,
+
+	
+	split_part(fy_timerange,'-',1)  as year
+		
+from sus_74645
+
+left join ds_mysql_prod_tagelement t1 on t1.id = financialperiod
+
+where keyword ='esg_total_parcipants' and datanumbase is not null)
+
+Select * from x left join y
 group by t1.name,fy_timerange, year
 
+/*sum (datanumbase)
+	as participants,
+	,'esg_total_parcipants'*/
 /*select * from sus_74645*/
