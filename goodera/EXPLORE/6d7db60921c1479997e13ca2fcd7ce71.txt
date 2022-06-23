@@ -14,11 +14,7 @@ case
 end as flag,
   
 case
-  when s1.batch_end_db <= GETDATE() then 
-  		case
-  				when t1.name = 'Dropout (during training)' then 0
-  				else 1
-  		end
+  when s1.batch_end_db <= GETDATE() then 1
   else 0
 end as completed_training
 
@@ -28,7 +24,9 @@ left join ds_mysql_prod_project p1 on p1.id = s1.projectid
 left join ds_mysql_prod_project p2 on p2.id = p1.parent
 left join ds_mysql_prod_project p3 on p3.id = p2.parent
 
-left join ds_mysql_prod_tagelement t1 on t1.id = s1.placed),
+left join ds_mysql_prod_tagelement t1 on t1.id = s1.placed
+
+where flag != 1),
 
 sub3 as(
   select project, fy_timerange, zone, partner_name, center_id, batch_id, sum(completed_training) as completed_training
@@ -37,4 +35,4 @@ from sub2
 
 group by project, fy_timerange, zone, partner_name, center_id, batch_id)
 
-select * from sub2
+select * from sub3
