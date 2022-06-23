@@ -1,0 +1,31 @@
+with table1 as (Select 
+				JSON_SERIALIZE(table_52810.pace_brands) as pace_brand,	
+				case when pace_brand like '%1011796%' then 1 else 0 end as brand,
+				case when table_54646._id is null then 0 else 1 end as status,
+				case when lg_status = 8484007 or lg_status is null then 1 else 0 end as lg,
+				table_54646.projid_country as country_id,
+				avg(turnover) as avg_pace_turnover,
+				avg(absenteeism) as avg_pace_absent,
+				avg(promotions) as avg_pace_promo,
+				avg(efficiency) as avg_pace_eff,
+				avg(turnover_1) as avg_non_pace_turnover,
+				avg(absenteeism_1) as avg_non_pace_absent,
+				avg(promotions_1) as avg_non_pace_promo,
+				avg(efficiency_1) as avg_non_pace_eff, 
+				listagg(distinct(table_54646.name_country),',') as country,
+				p.projectId as projectid,
+				p.start_date as start_date,
+				case when table_52810.offset_date is null then '2020-02-01T00:00:00.000Z' else table_52810.offset_date end as offset_date1
+				
+				from profile_4227 p
+	
+left join profile_52810 table_52810 on
+table_52810.projectId = p.projectId
+				
+left join profile_54646 table_54646 on
+table_54646.projectId = p.projectId
+	
+group by brand, status, lg, country_id, table_52810.pace_brands, p.projectid, start_date
+)
+
+select avg_pace_turnover, avg_pace_absent, avg_pace_promo, avg_pace_eff, avg_non_pace_turnover, avg_non_pace_absent, avg_non_pace_promo, avg_non_pace_eff, country, country_id, p.projectid, start_date from table1 p where brand = 1 and status = 1 and lg = 1 and start_date >= offset_date1
