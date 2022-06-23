@@ -163,26 +163,38 @@ table7 as (Select distinct _id1 as Totalactivity, (manager2_1) as manager2actRep
 		   from table6_1 p 
 
 ),
-ss as (
+ss2 as (
 
-select Totalactivity as Total_activity,total_activity_reported as number_of_activities_reported,(cast(manager1_approved as int) + cast(manager2actReported as int)) as manager_1_approved,
-manager2actReported as manager_2_approved, devReported as number_of_deviations, projectmanager,projectCode, fy_timerange1 as fy_timerange, month1 as month, 1 as count from table7 p where flag = 1    
-  )
-  ,ss1 as (
-select Total_activity,number_of_activities_reported,manager_1_approved,manager_2_approved, number_of_deviations, projectmanager,projectCode, fy_timerange,month, 1 as count from ss 
-  
-  group by projectmanager,projectCode, fy_timerange , month,Total_activity,number_of_activities_reported,manager_1_approved,manager_2_approved, number_of_deviations
+select Totalactivity as Total_activity,
+case when Totalactivity is not null then 1 else 0 end as tot,
+case when total_activity_reported is not null then 1 else 0 end as  num_act_report,
+total_activity_reported as number_of_activities_reported, 
+(cast(manager1_approved as int) + cast(manager2actReported as int)) as manager_1_approved,
+manager2actReported as manager_2_approved, devReported as number_of_deviations,projectmanager,projectCode, fy_timerange1 as fy_timerange, month1 as month,
+1 as count from table7 p where flag = 1         
+),
+ss1 as (
+select Total_activity, tot,num_act_report,
+number_of_activities_reported, 
+case when manager_1_approved is not null  and manager_1_approved !=0 then 1 else 0 end as  man_1_app,
+  case when manager_2_approved is not null  and manager_2_approved !=0 then 1 else 0 end as  man_2_app,
+    case when number_of_deviations is not null  and number_of_deviations !=0 then 1 else 0 end as  num_dev
+,projectmanager,projectCode, fy_timerange,  month,
+ count
+  from ss2
 )
-
-Select Total_activity,number_of_activities_reported,manager_1_approved,manager_2_approved, number_of_deviations,
+  Select tot,num_act_report,man_1_app,man_2_app, num_dev,
 sum(case col
-when 'Total no. of activities' then ss1.total_num_activity
-when 'No. of Activities reported' then ss1.num_act_report
-when 'Approved by 1st Manager' then cast( ss1.manager_1_approved as int)
-when 'Approved by 2nd manager' then cast (ss1.manager_2_approved as int)
-when 'Number of Deviations Reported' then cast(ss1.number_of_deviations as int)
+when 'Total no. of activities' then tot
+when 'No. of Activities reported' then num_act_report
+when 'Approved by 1st Manager' then man_1_app
+when 'Approved by 2nd manager' then man_2_app 
+when 'Number of Deviations Reported' then num_dev 
 else 0
-end) as count_tot,projectmanager,projectCode, fy_timerange,month, temp.col as type
+end) as count_tot,t.name as projectmanager,projectCode, fy_timerange,month, temp.col as type
 from ss1 
 cross join temp
-group by Total_activity,number_of_activities_reported,manager_1_approved,manager_2_approved, number_of_deviations,projectmanager,projectCode, fy_timerange,month, temp.col
+left join ds_mysql_prod_tagelement t
+on t.id=projectmanager
+group by tot,num_act_report,man_1_app,man_2_app, num_dev,t.name ,projectCode, fy_timerange,month, temp.col
+  
