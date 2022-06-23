@@ -1,15 +1,20 @@
-with sub1 as(
-select fy_timerange, extract(year from cast(fy_timerange.start as date)) as start_year, extract(year from cast(fy_timerange.end as date)) as end_year, extract(month from cast(fy_timerange.start as date)) as start_month, extract(month from cast(fy_timerange.end as date)) as end_month, Sum(amount_utilized) as amount_utilized, sched7,p1.name as projectid, case when p1.name in ('Prasanna Trust', 'Kashtakari Panchayat', 'Shishu Mandir', 'SOUL', 'Narayanaamruta Medicare Foundation', 'SGBS Unnati Foundation','Makkala Jagariti', 'Reefwatch Marine Conservation', 'Nirvanavan Foundation', 'Win over cancer', 'Vipasana', 'Selco Foundation', 'CII Foundation', 'Disha') then 'Short-Term Projects' when p1.name in ('Omashram Trust', 'One Billion Literates', 'Cuddles Foundation', 'Rainbow Homes (ANC Rainbow Homes)', 'Rainbow Homes (Bosco Rainbow Homes)', 'Rainbow Homes (Sanrakshan Rainbow Homes)','CUPA', 'Parikrma Foundation','Other Projects') then 'Long-Term Projects' else 'Other Projects' end as choose
-from profile_79977 p1
+with sub1 as (
+select p1.name as projectid, fy_timerange, extract(year from cast (fy_timerange as date)) as year,sched7,sum(amount_utilized) as amount_utilized from profile_79977 p1
 left join ds_mysql_prod_project p
 on p.id=p1.projectid
-left join profile_41363 p2 on p2.projectid=p1.projectid 
-group by fy_timerange, p1.name, start_year, end_year, start_month, end_month,sched7),
+left join profile_41363 p2 on p2.projectid=p1.projectid  
+group by p1.name,fy_timerange,amount_utilized,sched7),
 
-select s1.*, sched from sub1 s1, s1.sched7 sched, fy_timerange, projectid, choose, amount_utilized t1.name as sched7, case when end_month<=4 then concat(concat(concat(concat('FY(',end_year-1),'-'),end_year),')') when start_month>3 then concat(concat(concat(concat('FY(',start_year),'-'),start_year+1),')') end as fy from sub1
+sub2 as (
+select s1.*, sched from sub1 s1, s1.sched7 sched)
 
-left join ds_mysql_prod_tagelement t1 on t1.id=s1.sched
+select s2.projectid, s2.fy_timerange, t1.name as sched7, s2.amount_utilized, 
+('FY('||s2.year||'-'||s2.year+1||')') as fy,
 
+
+case when s2.projectid in ('Prasanna Trust', 'Kashtakari Panchayat', 'Shishu Mandir', 'SOUL', 'Narayanaamruta Medicare Foundation', 'SGBS Unnati Foundation','Makkala Jagariti', 'Reefwatch Marine Conservation', 'Nirvanavan Foundation', 'Win over cancer', 'Vipasana', 'Selco Foundation', 'CII Foundation', 'Disha') then 'Short-Term Projects' when s2.projectid in ('Omashram Trust', 'One Billion Literates', 'Cuddles Foundation', 'Rainbow Homes (ANC Rainbow Homes)', 'Rainbow Homes (Bosco Rainbow Homes)', 'Rainbow Homes (Sanrakshan Rainbow Homes)','CUPA', 'Parikrma Foundation','Other Projects') then 'Long-Term Projects' else 'Other Projects' end as choose from sub2 as s2
+
+left join ds_mysql_prod_tagelement t1 on t1.id=s2.sched
 
 /*with sub1 as (
 select p1.name as projectid, date_disbursal as fy_timerange,sched7,sum(disbursed) as disbursed from profile_79979 p1
