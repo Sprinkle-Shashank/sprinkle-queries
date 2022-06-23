@@ -1,0 +1,95 @@
+with table1 as (Select
+				p.projectId as projectId1,
+				--sum(target_2014) as target_2014,
+				--sum(target_2015) as target_2015,
+				--sum(target_2016) as target_2016,
+				--sum(target_2017) as target_2017,
+				--sum(target_2018) as target_2018,
+				--sum(target_2019) as target_2019,
+				sum(target_2020) as target_2020,
+				sum(target_2021) as target_2021,
+				sum(target_2022) as target_2022,
+				sum(goal_2020) as goal_2020,
+				sum(goal_2022) as goal_2022,
+				listagg(distinct(name)) as partner
+				,listagg(distinct(vp_id)) as vp_id
+  			
+			from profile_71993 p
+group by projectid1
+),
+table2 as (Select projectId1,
+		   table_54646.projid_factory as factory_id,
+		   table_4227.start_date as start_date,
+		   table_4227.num_females as num_females,
+		   table_4227.lg_status as lg_status,
+		   table_4227.select_modules as select_modules,
+		   JSON_SERIALIZE(table_52810.pace_brands) as pace_brand,	
+		   case when pace_brand like '%1011796%' then 1 else 0 end  as brand,
+		   target_2020 as target2020,
+		   target_2021 as target2021,
+		   target_2022 as target2022,
+		   goal_2020 as goal2020,
+		   goal_2022 as goal2022,
+		   case when lg_status = 848008 then 0 else table_4227.num_females end as women_reached,
+		   partner,
+		   projectId1 as vp_id,
+		   case when table_52810.offset_date is null then '2020-02-01T00:00:00.000Z' else table_52810.offset_date end as offset_date1
+
+			from table1 p
+left join profile_54646 table_54646 on
+table_54646.projid_factory = projectId1
+		   
+left join profile_4227 table_4227 on
+table_4227.projectId = table_54646.projid_factory
+		   
+left join profile_52810 table_52810 on
+table_52810.projectId = table_4227.projectId
+),
+table3 as (Select listagg(distinct(target2020)) as target2020,
+		   listagg(distinct(target2021)) as target2021,
+		   listagg(distinct(target2022)) as target2022,
+		   listagg(distinct(goal2020)) as goal2020,
+		   listagg(distinct(goal2022)) as goal2022,
+		   sum(women_reached) as women_reached,
+		   listagg(distinct(partner)) as partner,
+		   vp_id,brand,projectId1,start_date,select_modules,offset_date1	   
+
+	from table2 p
+group by brand,vp_id,projectId1,start_date,select_modules,offset_date1
+),
+table4 as (Select brand, vp_id, sum(target2020) as target2020, sum(target2021) as target2021, sum(target2022) as target2022, sum(goal2020) as goal2020, sum(goal2022) as goal2022, sum(women_reached) as women_reached, listagg(distinct(partner),',') as partner,projectId1,start_date,select_modules,offset_date1
+	from table3 p
+group by vp_id, brand,projectId1,start_date,select_modules,offset_date1
+),
+
+table5 as(select t4.*,CAST(select_module1 as int) from table4 t4,t4.select_modules select_module1
+),
+
+
+table6 as (Select 
+		   brand, vp_id, target2020, target2021,target2022,goal2020,goal2022,women_reached,partner, projectId1,start_date,
+		   select_module1,
+		   case when select_module1 in ('64503','70912','70941','70900','70910','70913','70909','70903','70901','70902','70911','264682','264684','264683') then '64503' else '60504' end as parent,offset_date1
+		   from table5
+
+where select_module1 in ('64503','70912','70941','70900','70910','70913','70909','70903','70901','70902','70911','264682','264684','264683','64504','60914', '70905', '70906', '70916', '70946', '70915', '70917', '70933', '70949', '70947', '70899', '459391', '459394', '459395') 
+)
+,
+
+table7 as (select 
+		   listagg(select_module1,',') as select_module1 ,
+		   brand, listagg( distinct vp_id,',') as vp_id, min(target2020) as target2020, 
+		   min(target2021) as target2021,
+		   min(target2022) as target2022,
+		   min(goal2020) as goal2020
+		   ,min(goal2022) as goal2022,min(women_reached) as women_reached,
+		   listagg(distinct partner, ',') as partner,
+		   projectId1,start_date
+		   ,parent,offset_date1
+ from table6 
+group by  brand, projectId1,start_date
+		   ,parent,offset_date1
+)
+
+
+Select target2020,target2021,target2022, goal2020, goal2022,  women_reached, partner,vp_id,projectId1 as projectId,start_date, select_module1, cast(parent as int4) as select_modules from table7 p where brand = 1 and start_date >= offset_date1
