@@ -164,16 +164,11 @@ temp as (
   select 'No. of Tasks approved by 2nd Manager' as col
   union all
   select 'No. of Deviations reported' as col
-  ),
-  temp2 as (
-	select level1m as man
-	union all
-	select level2m as man
-  ),
+  )
 table8 as (
 select Totalactivity as Total_activity,total_activity_reported as number_of_activities_reported, case when len(total_activity_reported)>0 then 1 else 0 end as activity,
 (cast(manager1_approved as int) + cast(manager2actReported as int)) as manager_1_approved,
-manager2actReported as manager_2_approved, devReported as number_of_deviations, projectmanager,projectCode, fy_timerange1 as fy_timerange, month1 as months, 1 as count from table7 p where flag = 1)
+manager2actReported as manager_2_approved, devReported as number_of_deviations, projectmanager,projectCode, fy_timerange1 as fy_timerange, month1 as months, 1 as count,level1m,level2m from table7 p where flag = 1)
 select Total_activity,
 case col when 'Total Activities to be done' then cast(count as int)
 when 'No. of tasks reported by NGO' then cast(activity as int)
@@ -181,7 +176,7 @@ when 'No. of Tasks approved by 1st Manager' then cast(manager_1_approved as int)
 when 'No. of Tasks approved by 2nd Manager' then cast(manager_2_approved as int)
 when 'No. of Deviations reported' then cast(number_of_deviations as int)
 else 0
-end as value, temp.col as dimensions,manager_2_approved as level2, manager_1_approved as level1, fy_timerange as fy,  t.name as projectmanager,projectCode, months,man
+end as value, temp.col as dimensions,manager_2_approved as level2, manager_1_approved as level1, fy_timerange as fy,  t.name as projectmanager,projectCode, months,level1m,level2m
 from table8 
 cross join temp
 left join ds_mysql_prod_tagelement t
