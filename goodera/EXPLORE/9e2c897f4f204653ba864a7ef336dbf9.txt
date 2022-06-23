@@ -1,5 +1,5 @@
 with sub1 as (
-select p1.name as projectid, fy_timerange, extract(year from cast (fy_timerange as date)) as year,sched7,sum(amount_utilized) as amount_utilized from profile_79977 p1
+select p1.name as projectid, fy_timerange as FT, extract(year from cast (fy_timerange as date)) as year,sched7,sum(amount_utilized) as amount_utilized from profile_79977 p1
 left join ds_mysql_prod_project p
 on p.id=p1.projectid
 left join profile_41363 p2 on p2.projectid=p1.projectid  
@@ -8,7 +8,7 @@ group by p1.name,fy_timerange,amount_utilized,sched7),
 sub2 as (
 select s1.*, sched from sub1 s1, s1.sched7 sched)
 
-select s2.projectid, s2.fy_timerange, t1.name as sched7, s2.amount_utilized, 
+select s2.projectid, s2.FT, t1.name as sched7, s2.amount_utilized, 
 ('FY('||s2.year||'-'||s2.year+1||')') as fy,
 
 case when s2.projectid in ('Prasanna Trust', 'Kashtakari Panchayat', 'Shishu Mandir', 'SOUL', 'Narayanaamruta Medicare Foundation', 'SGBS Unnati Foundation','Makkala Jagariti', 'Reefwatch Marine Conservation', 'Nirvanavan Foundation', 'Win over cancer', 'Vipasana', 'Selco Foundation', 'CII Foundation', 'Disha') then 'Short-Term Projects' when s2.projectid in ('Omashram Trust', 'One Billion Literates', 'Cuddles Foundation', 'Rainbow Homes (ANC Rainbow Homes)', 'Rainbow Homes (Bosco Rainbow Homes)', 'Rainbow Homes (Sanrakshan Rainbow Homes)','CUPA', 'Parikrma Foundation','Other Projects') then 'Long-Term Projects' else 'Other Projects' end as choose from sub2 as s2
