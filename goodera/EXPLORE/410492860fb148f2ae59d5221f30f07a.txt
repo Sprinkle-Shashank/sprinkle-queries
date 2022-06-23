@@ -1,0 +1,20 @@
+with table1 as (select pro.name as projectid,fy_timerange,mwra_using_new,
+Substring(json_serialize(fy_timerange),11,4)::smallint as year,  
+Substring(json_serialize(fy_timerange),16,2)::smallint as start_month,
+case when start_month in (1,2,3) then concat( year-1,concat('-',year))
+     else concat(year,concat('-',year+1)) end as fy_1
+
+
+from profile_59872 p
+
+left join ds_mysql_prod_project as pro
+on p.projectid = pro.id
+order by fy_timerange desc)
+
+select projectid,fy_timerange,sum(mwra_using_new)  from table1 
+
+group by projectid,fy_timerange
+
+where fy_1 = '2020-2021'
+
+order by fy_timerange asc
