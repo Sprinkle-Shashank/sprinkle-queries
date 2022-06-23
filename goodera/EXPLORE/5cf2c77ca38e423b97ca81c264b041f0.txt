@@ -1,0 +1,13 @@
+with sub1 as(
+  select p1.*, sdgs_unwind from profile_80500 p1, p1.name sdgs_unwind),
+  
+sub2 as(
+  select sdgs_unwind from sub1 group by sdgs_unwind)
+  
+select substring(t1.name, 4, (len(t1.name) - 3)) as sdg, p2.photo, left(t1.name, 2) as sort_order
+from sub2 s2
+
+left join profile_80499 p2 on p2._id = s2.sdgs_unwind
+left join ds_mysql_prod_tagelement t1 on t1.id = p2.sdg
+
+order by sort_order asc 
