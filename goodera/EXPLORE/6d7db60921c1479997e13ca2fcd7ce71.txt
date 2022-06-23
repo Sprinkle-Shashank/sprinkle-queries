@@ -11,7 +11,12 @@ sub2 as(
 case 
 	when t1.name =  'Dropout (during training)' and s1.batch_end_db <= GETDATE() then 1
 	else 0
-end as flag
+end as flag,
+  
+case
+  when s1.batch_end_db <= GETDATE() then 1
+  else 0
+end as completed_training
 
 from sub1 s1
 
@@ -19,6 +24,12 @@ left join ds_mysql_prod_project p1 on p1.id = s1.projectid
 left join ds_mysql_prod_project p2 on p2.id = p1.parent
 left join ds_mysql_prod_project p3 on p3.id = p2.parent
 
-left join ds_mysql_prod_tagelement t1 on t1.id = s1.placed)
+left join ds_mysql_prod_tagelement t1 on t1.id = s1.placed
 
-select * from sub2 where placed = 'Dropout (during training)'
+where flag = 0)
+
+select project, fy_timerange, zone, partner_name, center_id, batch_id, sum(completed_training) as completed_training
+
+from sub2
+
+group by project, fy_timerange, zone, partner_name, center_id, batch_id
