@@ -3,9 +3,15 @@ with sub1 as(
   from profile_145
   union all
   select projectid, fy_timerange, placed, zone_db, batch_end_db, center_name_db, partner_db, batch_id_db
-  from profile_36901)
+  from profile_36901),
   
-select p3.name as project, s1.fy_timerange, s1.zone_db as zone, t1.name as placed, s1.partner_db as partner_name, s1.center_name_db as center_id, s1.batch_id_db as batch_id
+sub2 as(
+  select p3.name as project, s1.fy_timerange, s1.zone_db as zone, t1.name as placed, s1.partner_db as partner_name, s1.center_name_db as center_id, s1.batch_id_db as batch_id, s1.batch_end_db as batch_end_date, GETDATE() as today_date,
+
+case 
+	when t1.name =  'Dropout (during training)' and s1.batch_end_db > GETDATE() then 1
+	else 0
+end as flag,
 
 from sub1 s1
 
@@ -13,4 +19,6 @@ left join ds_mysql_prod_project p1 on p1.id = s1.projectid
 left join ds_mysql_prod_project p2 on p2.id = p1.parent
 left join ds_mysql_prod_project p3 on p3.id = p2.parent
 
-left join ds_mysql_prod_tagelement t1 on t1.id = s1.placed
+left join ds_mysql_prod_tagelement t1 on t1.id = s1.placed)
+
+select * from sub2
