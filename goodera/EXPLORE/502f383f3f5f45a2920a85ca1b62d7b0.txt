@@ -17,10 +17,34 @@ with table1 as (select
 				sum(p.goal_2022) as goal_2022,
 				listagg(distinct p.name,',') as name,
 				listagg(distinct p.vp_id, ',') as vp_id,
-				listagg(distinct p.partner_type , ',') as partner_type
+				listagg(distinct p.partner_type , ',') as partner_type,
+				table_54646.projid_factory as factory_id,
+				table_4579.partner_name as partner_name,
+				table_54646.name_country as name_country,
+				table_54646.name as facility_name,
+				table_4227.start_date as start_date,
+				table_4227.start_year as start_year,
+				table_4227.num_females as num_females,
+				table_4227.lg_status as lg_status,
+				table_4227.select_modules as select_modules,
+				JSON_SERIALIZE(table_52810.pace_brands) as pace_brand,	
+				case when pace_brand like '%1011796%' then 1 else 0 end  as brand,
+				case when table_52810.offset_date is null then '2020-02-01T00:00:00.000Z' else table_52810.offset_date end as offset_date1
 				
 				from profile_71993 p
 
-group by projectid
+left join profile_54646 table_54646 on
+table_54646.projid_factory = p.projectId
+				
+left join profile_4579 table_4579 on
+table_4579.projectId = table_54646.projid_vendor
+				
+left join profile_4227 table_4227 on
+table_4227.projectId = table_54646.projid_factory 
+				
+left join profile_52810 table_52810 on
+table_52810.projectId = p.projectID
+				
+group by p.projectid,factory_id,partner_name,name_country,facility_name,start_date,start_year,num_females,lg_status,select_modules,pace_brand,brand,offset_date1
 )
-Select * from table1 p
+Select * from table1 p where brand = 1 and start_date >= offset_date1
