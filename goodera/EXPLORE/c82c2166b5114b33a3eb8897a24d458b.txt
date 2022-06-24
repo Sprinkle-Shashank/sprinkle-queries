@@ -1,0 +1,139 @@
+with table1 as(Select p.projectId,
+CAST(time_period_timerange.start as date) as time_period,
+Substring(CAST(time_period as CHAR(256)),1,4) as axis_value,
+x2.name as ship_city,x21.name as region,x22.name as region_global,x23.name as region_global_parent,
+x5.name as sales_org,
+p.shlf_life_buckt,p.shelf_life,p.total_cost,sum(doses_delivered) as doses,'Yearly' as time_period_level, CASE when axis_value is not NULL
+then 
+axis_value
+else 
+NULL
+end as temp from profile_56340 p
+
+
+Left join ds_mysql_prod_tagelement x2
+on p.ship_city = x2.id
+
+Left join ds_mysql_prod_tagelement x21
+on x2.parent = x21.id
+
+Left join ds_mysql_prod_tagelement x22
+on x21.parent = x22.id
+
+Left join ds_mysql_prod_tagelement x23
+on x22.parent = x23.id
+
+Left join ds_mysql_prod_tagelement x5
+on p.sales_org = x5.id
+
+group by p.projectId,
+time_period_timerange.start,x2.name,x21.name,x22.name, x23.name,
+x5.name,p.shlf_life_buckt,p.shelf_life,p.total_cost,time_period_level,temp
+
+order by doses desc),
+table2 as(Select p.projectId,
+CAST(time_period_timerange.start as date) as time_period,DATEPART(Month,time_period) as month_value,case when month_value = '1' then 'Jan'
+		    when month_value = '2' then 'Feb'
+		     when month_value = '3' then 'Mar'
+		     when month_value = '4' then 'Apr'
+		     when month_value = '5' then 'May'
+		     when month_value = '6' then 'Jun'
+		     when month_value = '7' then 'Jul'
+		     when month_value = '8' then 'Aug'
+		     when month_value = '9' then 'Sep'
+		     when month_value = '10' then 'Oct'
+		     when month_value = '11' then 'Nov'
+		     when month_value = '12' then 'Dec'
+		    end as month_name,
+Substring(CAST(time_period as CHAR(256)),1,4) as axis_value,CASE when axis_value is not NULL
+then 
+axis_value
+else 
+NULL
+end as time_axis,concat(month_name, concat (',' ,time_axis)) as temp,
+		 
+x2.name as ship_city,x21.name as region,x22.name as region_global,x23.name as region_global_parent,
+x5.name as sales_org,
+p.shlf_life_buckt,p.shelf_life,p.total_cost,sum(doses_delivered) as doses,'Monthly' as time_period_level from profile_56340 p
+
+
+Left join ds_mysql_prod_tagelement x2
+on p.ship_city = x2.id
+
+Left join ds_mysql_prod_tagelement x21
+on x2.parent = x21.id
+
+Left join ds_mysql_prod_tagelement x22
+on x21.parent = x22.id
+
+Left join ds_mysql_prod_tagelement x23
+on x22.parent = x23.id
+
+Left join ds_mysql_prod_tagelement x5
+on p.sales_org = x5.id
+
+group by p.projectId,
+time_period_timerange.start,x2.name,x21.name,x22.name, x23.name,
+x5.name,p.shlf_life_buckt,p.shelf_life,p.total_cost,month_value,month_name,time_period_level,axis_value
+
+order by doses desc),
+table3 as(Select p.projectId,
+CAST(time_period_timerange.start as date) as time_period,DATEPART(Month,time_period) as month_value,case when month_value = '1' then 'Jan'
+		          when month_value = '2' then 'Feb'
+		          when month_value = '3' then 'Mar'
+		          when month_value = '4' then 'Apr'
+		          when month_value = '5' then 'May'
+		          when month_value = '6' then 'Jun'
+		          when month_value = '7' then 'Jul'
+		          when month_value = '8' then 'Aug'
+		          when month_value = '9' then 'Sep'
+		          when month_value = '10' then 'Oct'
+		          when month_value = '11' then 'Nov'
+		          when month_value = '12' then 'Dec'
+		    end as month_name,
+Substring(CAST(time_period as CHAR(256)),1,4) as axis_value,CASE when axis_value is not NULL
+then 
+axis_value
+else 
+NULL
+end as time_axis,
+		  case when month_name in ('Jan','Feb','Mar') then 'Q1'
+		       when month_name in ('Apr','May','Jun') then 'Q2'
+		       when month_name in ('Jul','Aug','Sep') then 'Q3'
+		       when month_name in ('Oct','Nov','Dec') then 'Q4'
+		       end as quarter,concat(quarter, concat (',' ,time_axis)) as temp,
+		  
+		  
+x2.name as ship_city,x21.name as region,x22.name as region_global,x23.name as region_global_parent,
+x5.name as sales_org,
+p.shlf_life_buckt,p.shelf_life,p.total_cost,sum(doses_delivered) as doses,'Quarterly' as time_period_level from profile_56340 p
+
+
+Left join ds_mysql_prod_tagelement x2
+on p.ship_city = x2.id
+
+Left join ds_mysql_prod_tagelement x21
+on x2.parent = x21.id
+
+Left join ds_mysql_prod_tagelement x22
+on x21.parent = x22.id
+
+Left join ds_mysql_prod_tagelement x23
+on x22.parent = x23.id
+
+Left join ds_mysql_prod_tagelement x5
+on p.sales_org = x5.id
+
+group by p.projectId,
+time_period_timerange.start,x2.name,x21.name,x22.name, x23.name,
+x5.name,p.shlf_life_buckt,p.shelf_life,p.total_cost,month_value,month_name,time_period_level,axis_value,quarter
+
+order by doses desc)
+
+select projectId,time_period,temp,region_global,region_global_parent,sales_org,shlf_life_buckt,total_cost,doses,time_period_level from table1
+union all
+select
+projectId,time_period,temp,region_global,region_global_parent,sales_org,shlf_life_buckt,total_cost,doses,time_period_level from table2
+union all
+select
+projectId,time_period,temp,region_global,region_global_parent,sales_org,shlf_life_buckt,total_cost,doses,time_period_level from table3
