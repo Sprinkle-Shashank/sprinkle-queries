@@ -1,0 +1,30 @@
+with temp as(
+  Select 'Beneficiaries screened' as col
+  union all
+  select 'Beneficiaries with primary healthcare facility' as col
+  union all
+  select 'Beneficiaries with higher healthcare facility' as col
+  union all
+  select 'Beneficiaries supported with nutritional food' as col
+  union all
+  select 'Nutritional food distributed' as col
+  )
+
+Select a.hc_date,p.name as projectid,p1.name as parent,t1.name as rel_centre,temp.col as dimensions,
+sum(case col
+	when 'Beneficiaries screened' then a.bene_screened
+	when 'Beneficiaries with primary healthcare facility' then a.bene_primary_treatment
+	when 'Beneficiaries with higher healthcare facility' then a.bene_secondary_treatment
+	when 'Beneficiaries supported with nutritional food' then a.bene_nutrition_food
+	when 'Nutritional food distributed' then a.food_quantity
+	 else NULL
+end) as Values
+from profile_80984 a
+cross join temp
+left join ds_mysql_prod_project p on p.id = a.projectid
+left join ds_mysql_prod_project p1 on p1.id = p.parent
+
+left join ds_mysql_prod_tagelement t1 on t1.id=a.rel_centre
+
+group by a.hc_date,p.name,p1.name,t1.name
+,temp.col
