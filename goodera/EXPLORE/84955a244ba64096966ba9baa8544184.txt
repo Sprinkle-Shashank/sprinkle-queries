@@ -1,35 +1,115 @@
-SELECT P1.name AS projectname,
-P2.name AS partner,
-P3.name AS projectcategory,
-P4.name AS vertical,
-K.indicator AS indicator,
-RY.fy_timerange,
-RY.value AS progress,
-TY.value AS target
---RY._id
+WITH Y AS (
+  SELECT P1.name AS projectname,
+  P2.name AS partner,
+  P3.name AS projectcategory,
+  P4.name AS vertical,
+  K.indicator AS indicator,
+  RY.fy_timerange,
+  RY.value AS progress,
+  TY.value AS target,
+  RY._id
+  
+  FROM profile_80302 AS RY
 
-FROM profile_80302 AS RY
+  LEFT JOIN ds_mysql_prod_project AS P1
+  ON RY.projectid = P1.id
 
-LEFT JOIN ds_mysql_prod_project AS P1
-ON RY.projectid = P1.id
+  LEFT JOIN ds_mysql_prod_project AS P2
+  ON P1.parent = P2.id
 
-LEFT JOIN ds_mysql_prod_project AS P2
-ON P1.parent = P2.id
+  LEFT JOIN ds_mysql_prod_project AS P3
+  ON P2.parent = P3.id
 
-LEFT JOIN ds_mysql_prod_project AS P3
-ON P2.parent = P3.id
+  LEFT JOIN ds_mysql_prod_project AS P4
+  ON P3.parent = P4.id
 
-LEFT JOIN ds_mysql_prod_project AS P4
-ON P3.parent = P4.id
+  LEFT JOIN profile_80401 AS TY
+  ON TY.indicator = RY.indicator
+  AND TY.fy_timerange = RY.fy_timerange
 
-LEFT JOIN profile_80401 AS TY
-ON TY.indicator = RY.indicator
-AND TY.fy_timerange = RY.fy_timerange
+  LEFT JOIN profile_80301 AS K
+  ON RY.indicator = K._id
+  
+  GROUP BY 1,2,3,4,5,6,7,8,9
+)
 
-LEFT JOIN profile_80301 AS K
-ON RY.indicator = K._id
+WITH HY AS (
+  SELECT P1.name AS projectname,
+  P2.name AS partner,
+  P3.name AS projectcategory,
+  P4.name AS vertical,
+  K.indicator AS indicator,
+  RHY.fy_timerange,
+  RHY.value AS progress,
+  THY.value AS target,
+  RHY._id
+  
+  FROM profile_80304 AS RHY
 
-GROUP BY 1,2,3,4,5,6,7,8
+  LEFT JOIN ds_mysql_prod_project AS P1
+  ON RHY.projectid = P1.id
+
+  LEFT JOIN ds_mysql_prod_project AS P2
+  ON P1.parent = P2.id
+
+  LEFT JOIN ds_mysql_prod_project AS P3
+  ON P2.parent = P3.id
+
+  LEFT JOIN ds_mysql_prod_project AS P4
+  ON P3.parent = P4.id
+
+  LEFT JOIN profile_80402 AS THY
+  ON THY.indicator = RHY.indicator
+  AND THY.fy_timerange = RHY.fy_timerange
+
+  LEFT JOIN profile_80301 AS K
+  ON RHY.indicator = K._id
+  
+  GROUP BY 1,2,3,4,5,6,7,8,9
+)
+
+WITH Q AS (
+  SELECT P1.name AS projectname,
+  P2.name AS partner,
+  P3.name AS projectcategory,
+  P4.name AS vertical,
+  K.indicator AS indicator,
+  RQ.fy_timerange,
+  RQ.value AS progress,
+  TQ.value AS target,
+  RQ._id
+  
+  FROM profile_80305 AS RQ
+
+  LEFT JOIN ds_mysql_prod_project AS P1
+  ON RQ.projectid = P1.id
+
+  LEFT JOIN ds_mysql_prod_project AS P2
+  ON P1.parent = P2.id
+
+  LEFT JOIN ds_mysql_prod_project AS P3
+  ON P2.parent = P3.id
+
+  LEFT JOIN ds_mysql_prod_project AS P4
+  ON P3.parent = P4.id
+
+  LEFT JOIN profile_80403 AS TQ
+  ON TQ.indicator = RQ.indicator
+  AND TQ.fy_timerange = RQ.fy_timerange
+
+  LEFT JOIN profile_80301 AS K
+  ON RQ.indicator = K._id
+  
+  GROUP BY 1,2,3,4,5,6,7,8,9
+)
+
+SELECT * FROM Y
+UNION
+SELECT * FROM HY
+UNION
+SELECT * FROM Q
+
+
 
 
 
