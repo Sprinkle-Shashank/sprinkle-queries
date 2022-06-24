@@ -1,0 +1,42 @@
+with table1 as (Select
+				JSON_SERIALIZE(table_52810.pace_brands) as pace_brand,	
+				case when pace_brand like '%1011796%' then 1 else 0 end  as brand,
+				case when lg_status = 848007 or lg_status is null then 1 else 0 end as status,
+				case when table_54646._id is null then 0 else 1 end as tablestatus,
+				num_females, start_year, p.select_modules as select_modules,
+				case when table_52810.offset_date is null then '2020-02-01T00:00:00.000Z' else table_52810.offset_date end as offset_date1,
+				p.start_date as start_date1
+								
+				from profile_4227 p
+
+left join profile_52810 table_52810 on
+table_52810.projectId = p.projectId
+
+left join profile_54646 table_54646 on
+table_54646.projectId = p.projectId
+),
+table2 as (select brand,status,tablestatus,start_year as _year, sum(num_females) as total_females,select_modules,start_date1,offset_date1
+		from table1 p
+group by brand,status,tablestatus,_year,select_modules,start_date1,offset_date1
+),
+
+table3 as(select t2.*,CAST(select_module1 as int) from table2 t2,t2.select_modules select_module1
+),
+
+table4 as (Select 
+		   brand,status,tablestatus,_year as _year, total_females,select_module1,
+		   case when select_module1 in ('64503','70912','70941','70900','70910','70913','70909','70903','70901','70902','70911','264682','264684','264683') then '64503' else '60504' end as parent,start_date1,offset_date1
+		   from table3 
+
+where select_module1 in ('64503','70912','70941','70900','70910','70913','70909','70903','70901','70902','70911','264682','264684','264683','64504','60914', '70905', '70906', '70916', '70946', '70915', '70917', '70933', '70949', '70947', '70899', '459391', '459394', '459395') 
+)
+,
+
+table5 as (select 
+		   listagg(select_module1,',') as select_module1 ,
+		   brand,status,tablestatus,_year, total_females,parent,start_date1,offset_date1
+ from table4 
+group by brand,status,tablestatus,_year,total_females,parent,start_date1,offset_date1
+)
+
+select _year as year, total_females, select_module1,cast(parent as int4) as select_modules from table5 p where brand = 1 and status = 1 and tablestatus = 1 and start_date1 >= offset_date1
