@@ -1,1 +1,40 @@
-select sum(num_females) from profile_4227
+with table1 as (Select 
+				case when p.lg_status = 848008 then 1 else 0 end as lg, 
+				substring(table_54646.projcode_factory,1,1) as code,
+				case when code = 'F' then 1 else 0 end as codeStatus,
+				reverse(SPLIT_PART(reverse(table_54646.projcode_factory), '-',1)) as code_brand,
+				json_serialize(table_52810.pace_brands) as pace_brand,
+				case when pace_brand like '%1011796%' then 1 else 0 end as brand,
+				case when table_52810.offset_date is null then '2020-02-01T00:00:00.000Z' else table_52810.offset_date end as offset_date,
+				p.start_date as start_date,
+				case when start_date >= offset_date then 1 else 0 end as token,
+				p.num_females as total_females,
+				p.num_females_graduated as total_females_graduated,
+				p.num_females_dropout as total_females_dropout,
+				case when p.end_date_2 is null then p.num_females else 0 end as total_females_ongoing,
+				case when p.end_date_2 is null then 1 else 0 end as total_batches_ongoing,
+				case when p.end_date_2 is null then 0 else 1 end as total_batches_completed,
+				p.hours as average_hours,
+				p.hours as total_hours,
+				p.num_males as total_males,
+				case when p.end_date_2 is null then p.num_males else 0 end as total_males_ongoing,
+				p.num_males_graduated as total_males_graduated,
+				p.num_males_dropout as total_males_dropout,
+				p.reason_pregnancy as dropout_pregnancy,
+				p.reason_left as dropout_left,
+				p.reason_interest as dropout_interest,
+				p.reason_pressure as dropout_pressure,
+				p.reason_other as dropout_other,
+				case when p.end_date_2 is null then 0 else p.num_females end as total_females_completed,
+				p.projectid as projectid1,
+				p.select_modules as select_modules
+				
+				from profile_4227 p
+
+inner join profile_54646 table_54646 on
+table_54646.projectId = p.projectId
+				
+inner join profile_52810 table_52810 on
+table_52810.projectId = p.projectId
+)
+Select * from table1 p where lg = 0 and code = 'F' and brand = 1 and token = 1
