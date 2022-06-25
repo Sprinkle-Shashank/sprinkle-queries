@@ -8,7 +8,8 @@ with table1 as (Select
 				cast(projid_factory as int4) as factory_list,
 				name_vendor_filter as vendorName,
 				case when table_52810.offset_date is null then '2020-02-01T00:00:00.000Z' else table_52810.offset_date end as offset_date,
-				table_4227.start_date as start_date1
+				table_4227.start_date as start_date1,
+				case when start_date1 >= offset_date then 1 else 0 end as token 
 				
 				from profile_54646 p
 				
@@ -22,11 +23,11 @@ order by vendorName
 
 table2 as (Select brand, vendorName, 
 		   listagg(distinct(code_factory),',') as code_factory, listagg(distinct(vendorCode),',') as vendorCode, listagg(distinct(vendorId)) as vendorId,
-		 listagg(distinct(countryId),',') as countryId,listagg(distinct(factory_list),',') as factory_list,start_date1,offset_date
+		 listagg(distinct(countryId),',') as countryId,listagg(distinct(factory_list),',') as factory_list,token
 		   
 	from table1 p
-group by brand, vendorName,start_date1,offset_date
+group by brand, vendorName,token
 )
 
 
-select * from table2 p where brand = 1 and start_date1>=offset_date
+select * from table2 p where brand = 1 and token = 1
