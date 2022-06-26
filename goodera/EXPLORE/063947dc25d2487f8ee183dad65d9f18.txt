@@ -1,5 +1,5 @@
 with table1 as (Select 
-				p.projectid as projectid,
+				p.projectid as projectid1,
 				case when p.lg_status = 848008 then 0 else 1 end as lg,
 				substring(projcode_factory,1,1) as code,
 				reverse(SPLIT_PART(reverse(projcode_factory), '-',1)) as code_brand,
@@ -36,5 +36,30 @@ inner join profile_52810 table_52810 on
 table_52810.projectId = p.projectId
 ),
 table2 as(select t1.*,CAST(select_module as int) from table1 t1,t1.select_modules select_module
-)
+),
+table3 as (select 
+		   total_females,
+		   total_females_graduated,
+		   total_females_dropout,
+		   total_females_ongoing,
+		   total_batches_ongoing,
+		   total_batches_completed,
+		   average_hours,
+		   total_hours,
+		   total_males,
+		   total_males_ongoing,
+		   total_males_graduated,
+		   total_males_dropout,
+		   dropout_pregnancy,
+		   dropout_left,
+		   dropout_interest,
+		   dropout_pressure,
+		   dropout_other,
+		   total_females_completed,
+		   status,codeStatus,brand,start_date,projectid1,code_brand,code,
+			 select_module,t1.parent as m_parent1,
+			case when m_parent1 is null then select_module else m_parent1 end as m_parent
+		from table2 p
+left join ds_mysql_prod_tagelement t1 on t1.id = p.select_module
+),
 select * from table2 p where lg = 1 and code = 'F' and brand = 1 and token = 1
