@@ -1,76 +1,44 @@
-with table1 as (select
-					case when lg_status = 848008 then 0 else 1 end as status,
-				substring(table_54646.projcode_factory,1,1) as code,
-				reverse(SPLIT_PART(reverse(table_54646.projcode_factory), '-',1)) as code_brand,
-				lg_status as st,
-				case when code = 'F' then 1 else 0 end as codeStatus,
-				JSON_SERIALIZE(table_52810.pace_brands) as pace_brand,	
-				case when pace_brand like '%1011796%' then 1 else 0 end  as brand,
+with table1 as (Select 
+				p.projectid as projectid,
+				case when p.lg_status = 848008 then 0 else 1 end as lg,
+				substring(projcode_factory,1,1) as code,
+				reverse(SPLIT_PART(reverse(projcode_factory), '-',1)) as code_brand,
+				json_serialize(table_52810.pace_brands) as pace_brand,
+				case when pace_brand like '%1011796%' then 1 else 0 end as brand,
+				case when table_52810.offset_date is null then '2020-02-01T00:00:00.000Z' else table_52810.offset_date end as offset_date1,
+				p.start_date as start_date,
+				case when start_date >= offset_date1 then 1 else 0 end as token,
+				p.num_females as total_females,
+				p.num_females_graduated as total_females_graduated,
+				p.num_females_dropout as total_females_dropout,
+				case when p.end_date_2 is null then p.num_females else 0 end as total_females_ongoing,
+				case when p.end_date_2 is null then 1 else 0 end as total_batches_ongoing,
+				case when p.end_date_2 is null then 0 else 1 end as total_batches_completed,
+				p.hours as average_hours,
+				p.hours as total_hours,
+				p.num_males as total_males,
+				case when p.end_date_2 is null then p.num_males else 0 end as total_males_ongoing,
+				p.projectId as projectid1,
+				p.num_males_graduated as total_males_graduated,
+				p.num_males_dropout as total_males_dropout,
+				p.reason_pregnancy as dropout_pregnancy,
+				p.reason_left as dropout_left,
+				p.reason_interest as dropout_interest,
+				p.reason_pressure as dropout_pressure,
+				p.reason_other as dropout_other,
+				case when p.end_date_2 is null then 0 else p.num_females end as total_females_completed,
+				p.select_modules as select_module
 				
-				sum(num_females) as total_females,
-				sum(num_females_graduated) as total_females_graduated,
-				sum(num_females_dropout) as total_females_dropout,
-				case when end_date_2 is null then sum(num_females) else null end as total_females_ongoing,
-				case when end_date_2 is null then 1 else 0 end as batchOng,
-				sum(batchOng)as total_batches_ongoing,
-				start_date,
-				case when table_52810.offset_date is null then '2020-02-01T00:00:00.000Z' else table_52810.offset_date end as offset_date,
-				
-				case when batchOng = 0 then 1 else 0 end as batchComp,
-				sum(batchComp) as total_batches_completed,
-				avg(hours) as average_hours,
-				sum(hours) as total_hours,
-				sum(num_males) as total_males,
-				case when end_date_2 is null then sum(num_males) else 0 end as total_males_ongoing,
-				sum(num_males_graduated) as total_males_graduated,
-				sum(num_males_dropout) as total_males_dropout,
-				sum(reason_pregnancy) as dropout_pregnancy,
-				sum(reason_left) as dropout_left,
-				sum(reason_interest) as dropout_interest,
-				sum(reason_pressure) as dropout_pressure,
-				sum(reason_other) as dropout_other,
-				case when end_date_2 is null then 0 else sum(num_females) end as total_females_completed,p.projectid as projectid1,select_modules
-				
-
 				from profile_4227 p
 inner join profile_54646 table_54646 on
 table_54646.projectId = p.projectId
-
+				
 inner join profile_52810 table_52810 on
 table_52810.projectId = p.projectId
-				
-				
-group by lg_status,table_54646.projcode_factory,table_52810.pace_brands,p.end_date_2,p.start_date,projectid1,select_modules,code_brand,code,offset_date
 ),
-table2 as (select
-		   sum(total_females) as total_females,
-		   sum(total_females_graduated) as total_females_graduated,
-		   sum(total_females_dropout) as total_females_dropout,
-		   sum(total_females_ongoing) as total_females_ongoing,
-		   sum(total_batches_ongoing) as total_batches_ongoing,
-		   sum(total_batches_completed) as total_batches_completed,
-		   avg(average_hours) as average_hours,
-		   sum(total_hours) as total_hours,
-		   sum(total_males) as total_males,
-		   sum(total_males_ongoing) as total_males_ongoing,
-		   sum(total_males_graduated) as total_males_graduated,
-		   sum(total_males_dropout) as total_males_dropout,
-		   sum(dropout_pregnancy) as dropout_pregnancy,
-		   sum(dropout_left) as dropout_left,
-		   sum(dropout_interest) as dropout_interest,
-		   sum(dropout_pressure) as dropout_pressure,
-		   sum(dropout_other) as dropout_other,
-		   sum(total_females_completed) as total_females_completed,
-		   status,codeStatus,brand,start_date,projectid1,select_modules,code_brand,code,offset_date
-
-	from table1 p
-group by status,codeStatus,brand,start_date,projectid1,select_modules,code_brand,code,offset_date
+table2 as(select t1.*,CAST(select_module as int) from table1 t1,t1.select_modules select_module
 ),
-
-table3 as(select t2.*,CAST(select_module as int) from table2 t2,t2.select_modules select_module
-),
-
-table3_1 as (select 
+table3 as (select 
 		   total_females,
 		   total_females_graduated,
 		   total_females_dropout,
@@ -85,69 +53,19 @@ table3_1 as (select
 		   total_males_dropout,
 		   dropout_pregnancy,
 		   dropout_left,
-		   dropout_interest,
+		   dropout_interest, 
 		   dropout_pressure,
 		   dropout_other,
 		   total_females_completed,
-		   status,codeStatus,brand,start_date,projectid1,code_brand,code,
-			 select_module,t1.parent as m_parent1,
-			case when m_parent1 is null then select_module else m_parent1 end as m_parent,offset_date
-		from table3 p
+		   lg,brand,start_date,projectid1,code_brand,code,
+			 select_module,t1.parent as m_parent1,token,
+			case when m_parent1 is null then select_module else m_parent1 end as m_parent
+		from table2 p
 left join ds_mysql_prod_tagelement t1 on t1.id = p.select_module
-),
+)
+
+Select cast(total_females as int4),cast(total_females_graduated as int4),cast(total_females_dropout as int4),cast(total_females_ongoing as int4),cast(total_batches_ongoing as int4),cast(total_batches_completed as int4),cast(average_hours as float),cast(total_hours as int4), cast(total_males as int4),cast(total_males_ongoing as int4),cast(total_males_graduated as int4),cast(total_males_dropout as int4),cast(dropout_pregnancy as int4),cast(dropout_left as int4),cast(dropout_interest as int4),cast(dropout_pressure as int4),cast(dropout_other as int4),cast(total_females_completed as int4),start_date,projectid1 as projectid,select_module ,code_brand,code from table1 p where lg = 1 and code = 'F' and brand = 1 and token = 1
 
 
-table4 as (Select 
-		   select_module,
-		   total_females,
-		   total_females_graduated,
-		   total_females_dropout,
-		   total_females_ongoing,
-		   total_batches_ongoing,
-		   total_batches_completed,
-		   average_hours,
-		   total_hours,
-		   total_males,
-		   total_males_ongoing,
-		   total_males_graduated,
-		   total_males_dropout,
-		   dropout_pregnancy,
-		   dropout_left,
-		   dropout_interest,
-		   dropout_pressure,
-		   dropout_other,
-		   total_females_completed,
-		   status,codeStatus,brand,start_date,projectid1,code_brand,code,offset_date
-		   from table3_1 
 
-where m_parent in ('64503')
-
-),
-
-table5 as (select 
-		   listagg(select_module,',') as select_module ,
-		   min(total_females) as total_females,
-		   min(total_females_graduated) as total_females_graduated,
-		   min(total_females_dropout) as total_females_dropout,
-		   min(total_females_ongoing) as total_females_ongoing,
-		   min(total_batches_ongoing) as total_batches_ongoing,
-		   min(total_batches_completed) as total_batches_completed,
-		   min(average_hours) as average_hours,
-		   min(total_hours) as total_hours,
-		   min(total_males) as total_males,
-		   min(total_males_ongoing) as total_males_ongoing,
-		   min(total_males_graduated) as total_males_graduated,
-		   min(total_males_dropout) as total_males_dropout,
-		   min(dropout_pregnancy) as dropout_pregnancy,
-		   min(dropout_left) as dropout_left,
-		   min(dropout_interest) as dropout_interest,
-		   min(dropout_pressure) as dropout_pressure,
-		   min(dropout_other) as dropout_other,
-		   min(total_females_completed) as total_females_completed,
-		   status,codeStatus,brand,start_date,projectid1,code_brand,code,offset_date
- from table4 
-group by status,codeStatus,brand,start_date,projectid1,code_brand,code,offset_date
-) 
-
-
-Select cast(total_females as int4),cast(total_females_graduated as int4),cast(total_females_dropout as int4),cast(total_females_ongoing as int4),cast(total_batches_ongoing as int4),cast(total_batches_completed as int4),cast(average_hours as float),cast(total_hours as int4), cast(total_males as int4),cast(total_males_ongoing as int4),cast(total_males_graduated as int4),cast(total_males_dropout as int4),cast(dropout_pregnancy as int4),cast(dropout_left as int4),cast(dropout_interest as int4),cast(dropout_pressure as int4),cast(dropout_other as int4),cast(total_females_completed as int4),start_date,projectid1 as projectid,select_module ,code_brand,code from table5 p where status = 1 and code = 'F' and brand = 1 and start_date>=offset_date
+--select * from table1 p where lg = 1 and code = 'F' and brand = 1 and token = 1
