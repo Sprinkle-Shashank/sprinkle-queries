@@ -1,54 +1,36 @@
-with table1 as (Select
-				p.projcode_factory as projcode_factory,
-				p.projectId as projectId1,
-				p.name_factory as name_factory,
-				p.projid_factory as factory_id,
-				substring(p.projcode_factory,1,1) as code,
-				reverse(SPLIT_PART(reverse(p.projcode_factory), '-',1)) as code_brand,
+with table1 as (Select 
+				case when p.lg_status = 848008 then 0 else 1 end as lg,
+				substring(projcode_factory,1,1) as code,
+				reverse(SPLIT_PART(reverse(projcode_factory), '-',1)) as code_brand,
 				json_serialize(table_52810.pace_brands) as pace_brand,
-				case when pace_brand like '%1011796%' then 1 else 0 end as brand1,
-				table_4227.start_date as start_date,
-				table_4227.name as name_batch,
-				table_4227.num_females as num_females,
-				table_4227.num_females_graduated as num_females_graduated,
+				case when pace_brand like '%1011796%' then 1 else 0 end as brand,
 				case when table_52810.offset_date is null then '2020-02-01T00:00:00.000Z' else table_52810.offset_date end as offset_date1,
-				case when start_date >= offset_date1 then 1 else 0 end as token
+				p.start_date as start_date
+				case when start_date >= offset_date1 then 1 else 0 end as token,
+				p.num_females as total_females,
+				p.num_females_graduated as total_females_graduated,
+				p.num_females_dropout as total_females_dropout,
+				case when p.end_date_2 is null then p.num_females else 0 end as total_females_ongoing,
+				case when p.end_date_2 is null then 1 else 0 end as total_batches_ongoing,
+				case when p.end_date_2 is null then 0 else 1 end as total_batches_completed,
+				p.hours as average_hours,
+				p.hours as total_hours,
+				p.num_males as total_males,
+				case when p.end_date_2 is null then p.num_males else 0 end as total_males_ongoing,
+				p.num_males_graduated as total_males_graduated,
+				p.num_males_dropout as total_males_dropout,
+				p.reason_pregnancy as dropout_pregnancy,
+				p.reason_left as dropout_left,
+				p.reason_interest as dropout_interest,
+				p.reason_pressure as dropout_pressure,
+				p.reason_other as dropout_other,
+				case when p.end_date_2 is null then 0 else p.num_females end as total_females_completed
 				
+				from profile_4227 p
+inner join profile_54646 table_54646 on
+table_54646.projectId = p.projectId
 				
-				from profile_54646 p
 inner join profile_52810 table_52810 on
 table_52810.projectId = p.projectId
-				
-left join profile_4227 table_4227 on
-table_4227.projectId = p.projid_factory
-
-order by start_date desc
-),
-table2 as ( Select min(name_factory) as name_factory, min(name_batch) as name_batch, sum(num_females) as num_females, sum(num_females_graduated) as num_females_graduated,projectid1,code,brand1,token,code_brand,
-		   
-		   min(table_71993.goal_2022) as commitment,
-		   case when table_52713.sourcing_yn = 57473 then table_52713.pace_status_2 else table_54267.pace_status end as pace_status,
-		   cast(table_52713.factory_vpid_1 as varchar(65535)) as vpid_1,
-		   case when table_52713.sourcing_yn = 57472 then vpid_1 else table_52713.factory_vpid_2 end as factory_id,
-		   case when table_52713.sourcing_yn = 57472 then table_54267.facility_score else null end as facility_score,
-		   case when table_52713.sourcing_yn = 57472 then table_54267.facility_rating else null end as facility_rating
-		   
-		   
-		   
-		   from table1 p
-	
-left join profile_71993 table_71993 on
-table_71993.projectId = projectId1
-		   
-inner join profile_52713 table_52713 on
-table_52713.projectId = projectid1
-		   
-left join profile_54267 table_54267 on
-table_54267.projectId = projectid1
-		
-group by projectId1,code,brand1,token,code_brand,pace_status,vpid_1,factory_id,facility_score,facility_rating,table_52713.sourcing_yn,table_52713.pace_status_2,table_54267.pace_status,table_52713.factory_vpid_1, table_52713.factory_vpid_2,table_54267.facility_score,table_54267.facility_rating
 )
-
-
-
-Select * from table2 p where code = 'F' and brand1 = 1 and token = 1
+select * from table1 p where lg = 1 and code = 'F' and brand = 1 and token = 1
