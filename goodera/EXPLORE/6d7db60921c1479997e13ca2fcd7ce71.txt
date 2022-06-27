@@ -1,12 +1,15 @@
 with sub1 as(
-  select p2.name as projectid, p1._id, t1.name as focus_area, t2.name as fy, p1.subcat_output, p1.flag_deviation_delay, x1.status, x1.approval_log,
-
+  select p2.name as projectid, p1._id, t1.name as focus_area, t2.name as fy, p1.subcat_output, p1.flag_deviation_delay, split_part(p2.name, '|', 1) as projectcode,
+  
 case
-	when p2.parent = 18943 then p2.name
-	else p3.name
-end as project_parent,
-
-split_part(project_parent, '|', 1) as projectcode
+	when p2.parent = 18943 then split_part(p2.name, '|', 2)
+	else split_part(p2.name, '|', 4)
+end as project_name,
+  
+case
+	when p2.parent = 18943 then split_part(p2.name, '|', 1)
+	else split_part(p3.name, '|', 1)
+end as parentcode
 
 from profile_54963 p1
 
@@ -14,8 +17,6 @@ left join ds_mysql_prod_project p2 on p2.id = p1.projectid
 left join ds_mysql_prod_project p3 on p3.id = p2.parent
 
 left join ds_mysql_prod_tagelement t1 on t1.id = p1.focus_area
-left join ds_mysql_prod_tagelement t2 on t2.id = p1.fy
-
-left join ds_mongo_taskresponse x1 on x1.profileinstanceid = p1._id)
+left join ds_mysql_prod_tagelement t2 on t2.id = p1.fy)
 
 select * from sub1
