@@ -1,5 +1,5 @@
 with sub1 as(
-  select p2.name as projectid, p1._id as id, p1.time_timerange as fy_timerange, p1.target, p3.indicator, extract(year from cast(p1.time_timerange.start as date)) as year, p4.program_name as program, p5.add_up_2
+  select p2.name as projectid, p1._id as id, p1.time_timerange as fy_timerange, p1.target, p3.indicator, extract(year from cast(p1.time_timerange.start as date)) as year, p4.program_name as program, p5.add_up_2, t1.name as country
 
 from profile_56105 p1
 
@@ -9,16 +9,18 @@ left join profile_63775 p4 on p4._id = p3.prog_name
 
 left join profile_78780 p5 on p5.name = 
 		(p3.indicator || '_' || extract(year from cast(p1.time_timerange.start as date)))
+  
+left join ds_mysql_prod_tagelement t1 on t1.id = p4.country_new
 
 where p3.indicator is not null),
 
 sub2 as(
   select s1.*, add_up from sub1 s1, s1.add_up_2 add_up)
   
-select s2.program, s2.projectid, s2.fy_timerange, s2.year, s2.indicator, t1.name as add_up, sum(s2.target) as target_value
+select s2.program, s2.projectid, s2.fy_timerange, s2.year, s2.indicator, t1.name as add_up, s2.country, sum(s2.target) as target_value
 
 from sub2 s2
 
 left join ds_mysql_prod_tagelement t1 on t1.id = s2.add_up
 
-group by s2.program, s2.projectid, s2.fy_timerange, s2.year, s2.indicator, t1.name
+group by s2.program, s2.projectid, s2.fy_timerange, s2.year, s2.indicator, t1.name, s2.country
