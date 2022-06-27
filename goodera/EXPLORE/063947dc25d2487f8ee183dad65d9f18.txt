@@ -3,7 +3,12 @@ with table1 as (Select
 				case when pace_brand like '%1011796%' then 1 else 0 end as brand,
 				case when table_52810.offset_date is null then '2020-02-01T00:00:00.000Z' else table_52810 end as offset_date,
 				table_4227.start_date as start_date,
-				case when start_date >= offset_date then 1 else 0 end as token
+				case when start_date >= offset_date then 1 else 0 end as token,
+				substring(projcode_vendor,1,1) as code,
+				p.projid_country as countryId,
+				p.projcode_vendor as vendorCode,
+				p.name_country as countryName,
+				p.projid_factory as factory_list
 				
 				
 				from profile_54646 p
@@ -13,5 +18,16 @@ table_52810.projectId = p.projectId
 
 left join profile_4227 table_4227 on
 table_4227.projectId p.projectId
+),
+
+table2 as (Select brand,token,code,countryId,
+		   min(vendorcode) as vendorcode,
+		   listagg(distinct countryName,',') as countryName,
+		   listagg(distinct factory_list,',') as factory_list
+		   
+		from table1 p
+group by brand,token,code,countryId		   
 )
-Select * from table1 p where brand = 1 and token = 1
+
+
+Select * from table1 p where brand = 1 and token = 1 and code = 'N'
