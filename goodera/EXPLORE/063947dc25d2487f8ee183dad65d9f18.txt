@@ -27,8 +27,34 @@ table2 as (Select sum(commitment) as commitment, projectid1,code,code_brand,type
 		   start_date,offset_date
 				from table1 p
 group by projectid1,code,code_brand,type,token,brand,start_date,offset_date
+),
+
+table3 as(select t2.*,CAST(select_module as int) from table2 t2,t2.select_modules select_module
+),
+
+table3_1 as (select type,brand,projectId1,start_date,commitment,select_modules,code,code_brand,
+			 select_module, t1.parent as m_parent1,
+			 case when m_parent1 is null then select_module else m_parent1 end as m_parent,offset_date
+		from table3 p
+left join ds_mysql_prod_tagelement t1 on t1.id = p.select_module
+),
+
+table4 as (Select 
+		   select_module,
+		   type,brand,projectId1,start_date,commitment,code,code_brand, m_parent,offset_date
+		   from table3_1 
+where m_parent in ('64503')
+),
+
+table5 as (select 
+		   listagg(select_module,',') as select_module ,
+		   type,brand,projectId1,start_date,min(commitment) as commitment,code,code_brand,m_parent,offset_date
+ from table4 
+group by type,brand,projectId1,start_date,code,code_brand,m_parent,offset_date
 )
 
+Select projectId1 as projectid,cast(commitment as int)as commitment,start_date,select_module,code,code_brand,m_parent from table5 p where type = 1 and code = 'F' and brand = 1 and start_date >= offset_date
 
 
-Select * from table2 p where type = 1 and code = 'F' and brand = 1 and start_date >= offset_date
+
+--Select * from table2 p where type = 1 and code = 'F' and brand = 1 and start_date >= offset_date
