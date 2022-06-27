@@ -38,16 +38,15 @@ table_54267.projectId = p.projectId
 				
 order by start_date,sort_id desc
 ),
-
-table2 as (Select code,brand,min(name_batch) as name_batch,sum(num_females) as num_females, sum(num_females_graduated) as num_females_graduated ,min(name_factory) as name_factory, projectId1, min(commitment) as commitment,min(pace_status2) as pace_status1 ,min(factory_id) as factory_id, min(facility_score) as facility_score, min(facility_rating) as facility_rating,
-		   case when (pace_status1) between -2147483648 and 2147483648 then 1 else 0 end as st,
-		   case when st = 1 then tag_pace.name else 'Currently implementing P.A.C.E.' end as pace_status,start_date, code_brand,offset_date
+table2 as (Select min(commitment) as commitment, sum(num_females) as num_females, sum(num_females_graduated) as num_females_graduated, max(name_batch) as name_batch,code,brand,factory_id
+		   from table1 p
+group by factory_id,code,brand
 		   
-  		from table1 p
 
-left join ds_mysql_prod_tagelement tag_pace on
-tag_pace.id = pace_status2
-group by code,brand,projectId1,tag_pace.name,start_date,code, code_brand,offset_date
+
 )
-select * from table1 p where code = 'F' and brand = 1 and start_date >= offset_date
---Select cast(commitment as int4) as commitment , name_factory, pace_status, factory_id, cast(facility_score as int4) as facility_score, cast(facility_rating as int4) as facility_rating, name_batch, cast(num_females as int4) as num_females, cast(num_females_graduated as int4) as num_females_graduated,projectId1 as projectid, start_date,code, code_brand from table2 p where code = 'F' and brand = 1 and start_date >= offset_date
+
+
+
+
+select * from table2 p where code = 'F' and brand = 1 --and start_date >= offset_date
