@@ -2,14 +2,25 @@ with table1 as (select
 				
 				JSON_SERIALIZE(table_52810.pace_brands) as pace_brand, 
 				case when pace_brand like '%1011796%' then 1 else 0 end as brand, 
-				substring(table_54646.projcode_factory,1,1) as code,
+				case when table_52810.offset_date is null then '2020-02-01T00:00:00.000Z' else table_52810.offset_date end as offset_date, 
+			   
+			   case when p.start_date >= offset_date then 1 else 0 end as token, 
+				case when lg_status in (848007,null,"") then 1 else 0 end as status1
+				substring(table_54646.projcode_factory,1,1) as code,  
+				reverse(SPLIT_PART(reverse(table_54646.projcode_factory), '-',1)) as code_brand,
+				photo,
+				photo3, 
+				projectId,
+				lg_status,
+				start_date1,
+				offset_date
 			   
 			   from profile_4227 p 
 inner join profile_54646 table_54646 on 
 table_54646.projectId = p.project_Id
 			   
 inner join profile_52810 table_52810 on 
-table_52810.projectId = p.project_Id
-			   
-			   
-)
+table_52810.projectId = p.project_Id	 
+group by 
+) 
+select projectId, photo3, photo, start_date1, offset_date from table1 p where photo not in (null, "") or photo3 not in (null, "") and token = 1 and status1 = 1 and brand =1
