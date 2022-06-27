@@ -38,13 +38,25 @@ table_54267.projectId = p.projectId
 				
 order by start_date,sort_id desc
 ),
-table2 as (Select min(commitment) as commitment, (num_females) as num_females, (num_females_graduated) as num_females_graduated, (name_batch) as name_batch,name_factory,code,brand,factory_id,start_date,offset_date,max(facility_score) as facility_score,max(facility_rating) as facility_rating,projectId1 as projectId,code_brand
+table2 as (Select min(commitment) as commitment, (num_females) as num_females, (num_females_graduated) as num_females_graduated, (name_batch) as name_batch,name_factory,code,brand,factory_id,start_date,offset_date,max(facility_score) as facility_score,max(facility_rating) as facility_rating,projectId1 as projectId1,code_brand,min(pace_status2) as pace_status2
 		   from table1 p
-group by factory_id,code,brand,name_batch,name_factory,start_date,offset_date,num_females,num_females_graduated,projectId,code_brand
+group by factory_id,code,brand,name_batch,name_factory,start_date,offset_date,num_females,num_females_graduated,projectId1,code_brand
 order by start_date 
 
 
+),
+table3 as (Select min(commitment) as commitment, (num_females) as num_females, (num_females_graduated) as num_females_graduated, (name_batch) as name_batch,name_factory,code,brand,factory_id,start_date,offset_date,max(facility_score) as facility_score,max(facility_rating) as facility_rating,projectId1 as projectId,code_brand,
+		   min(pace_status2) as pace_status1,
+		   case when (pace_status1) between -2147483648 and 2147483648 then 1 else 0 end as st,
+		   case when st = 1 then tag_pace.name else 'Currently implementing P.A.C.E.' end as pace_status,
+		   case when pace_status = 'Has never implemented P.A.C.E.' then 'Currently implementing P.A.C.E.' else pace_status end as status_pace 
+		   
+  		from table2 p
+
+left join ds_mysql_prod_tagelement tag_pace on
+tag_pace.id = pace_status2
+group by code,brand,projectId1,tag_pace.name,start_date,code, code_brand,num_females,num_females_graduated,name_batch,name_factory,offset_date,factory_id
 )
 
 
-select * from table2 p where code = 'F' and brand = 1 and start_date >= offset_date
+select * from table3 p where code = 'F' and brand = 1 and start_date >= offset_date
