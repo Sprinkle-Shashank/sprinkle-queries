@@ -1,4 +1,4 @@
-select a.fy_timerange, p.name as projectid, p2.name as donor, a.about, a.caption, cast(pic as varchar),
+with sub1 as(select a.fy_timerange, p.name as projectid, p2.name as donor, a.about, a.caption, a.photo,
 
 case
 	when (p.name) like '%School Transformation' then 'School Transformation'
@@ -9,8 +9,10 @@ case
 	when (p.name) like '%Educational Scholarships' then 'Educational Scholarships'
 	else NULL
 	end as project_type
-from profile_80502 a, a.photo as pic
+from profile_80502 a
 
 left join ds_mysql_prod_project p on p.id = a.projectid
 left join ds_mysql_prod_project p2 on p2.id = p.parent
-where a.projectid like '%%'
+where a.projectid like '%%')
+
+select *, cast(pic as varchar) from sub1, sub1.photo as pic
