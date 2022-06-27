@@ -1,31 +1,27 @@
 with sub1 as(
-  select p2.name as projectid, p1._id as id, p1.time_timerange as fy_timerange, p1.target, p3.indicator, extract(year from cast(p1.time_timerange.start as date)) as year, p4.program_name as program, p5.add_up_2, t1.name as country
-
-from profile_56105 p1
-
-left join ds_mysql_prod_project p2 on p2.id = p1.projectid
-left join profile_55604 p3 on p3._id = p1.indicator
-left join profile_63775 p4 on p4._id = p3.prog_name
-
-left join profile_78780 p5 on p5.name = 
-		(p3.indicator || '_' || extract(year from cast(p1.time_timerange.start as date)))
+  	select p1.*,
+cast(timestamp 'epoch' + CAST(p1.created AS BIGINT)/1000 * interval '1 second' as date) as create_date, cast(timestamp 'epoch' + CAST(p1.modified AS BIGINT)/1000 * interval '1 second' as date) as modified_date,
+is_array(p1.indicator) as indicator_array_check,
+case
+  when (indicator_array_check = false) or get_array_length(p1.indicator) = 0 then 					array(p1.indicator)
+  else p1.indicator
+end as indicator_new
+from profile_55605 p1),
   
-left join ds_mysql_prod_tagelement t1 on t1.id = p4.country_new
-
-where p3.indicator is not null
-
-group by p2.name, p1._id, p1.time_timerange,  p1.target, p3.indicator, p4.program_name, p5.add_up_2, t1.name),
-
 sub2 as(
-  select s1.*, add_up from sub1 s1, s1.add_up_2 add_up),
+  select s1.*, indicator_605 from sub1 s1, s1.indicator_new indicator_605),
   
 sub3 as(
-  select s2.program, s2.projectid, s2.fy_timerange, s2.year, s2.indicator, t1.name as add_up, s2.country, sum(s2.target) as target_value
-
+  select p2.name as projectid, s2.time_timerange as fy_timerange, p5.program_name, t1.name as country, 
+cast('Download' as Varchar) as file_download, s2.file , s2.det_file, s2.big_d,
+to_char(s2.create_date, 'DD-MM-YYYY') as create_date, to_char(s2.modified_date, 'DD-MM-YYYY') as modified_date
 from sub2 s2
+left join ds_mysql_prod_project p2 on p2.id = s2.projectid
+left join profile_55606 p3 on p3._id = s2.indicator_605
+left join profile_55604	p4 on p4._id = p3.indicator
+left join profile_63775 p5 on p5._id = p4.prog_name
+left join ds_mysql_prod_tagelement t1 on t1.id = p5.country_new
+where s2.file is not null and s2.file != ' '
+group by p2.name, s2.time_timerange, p5.program_name, t1.name, s2.file, s2.create_date, s2.modified_date, s2.det_file, s2.big_d)
 
-left join ds_mysql_prod_tagelement t1 on t1.id = s2.add_up
-
-group by s2.program, s2.projectid, s2.fy_timerange, s2.year, s2.indicator, t1.name, s2.country)
-
-select * from sub3
+select * from sub2
