@@ -2,59 +2,11 @@ with table1 as (Select
 				case when p.partner_type = 1132937 then 1 else 0 end as type,
 				table_54646.projid_factory as factory_id,
 				substring(table_54646.projcode_factory,1,1) as code,
-				reverse(SPLIT_PART(reverse(table_54646.projcode_factory), '-',1)) as code_brand,
-				case when code = 'F' then 1 else 0 end as codeStatus,
-				JSON_SERIALIZE(table_52810.pace_brands) as pace_brand,	
-				case when pace_brand like '%1011796%' then 1 else 0 end  as brand,
-				table_4227.start_date as start_date,
-				table_4227.select_modules as select_modules,
-				p.projectId as projectId1,
-				(goal_2022) as commitment,
-				case when table_52810.offset_date is null then '2020-02-01T00:00:00.000Z' else table_52810.offset_date end as offset_date,
-				case when start_date >= offset_date then 1 else 0 end as token
+				reverse(SPLIT_PART(reverse(table_54646.projcode_factory), '-',1)) as code_brand
 				
-			from profile_71993 p
+				from profile_71993 p
 left join profile_54646 table_54646 on
 table_54646.projectId = p.projectId
-
-inner join profile_52810 table_52810 on
-table_52810.projectId = p.projectId
-
-left join profile_4227 table_4227 on
-table_4227.projectId = table_54646.projid_factory
-
-),
-table2 as (select type,codeStatus,brand,projectId1,start_date,
-		   (commitment) as commitment,select_modules,code,code_brand,token
-			from table1 p
-
-),
-
-table3 as(select t2.*,CAST(select_module as int) from table2 t2,t2.select_modules select_module
-),
-
-table3_1 as (select type,codeStatus,brand,projectId1,start_date,commitment,select_modules,code,code_brand,
-			 select_module, t1.parent as m_parent1,
-			 case when m_parent1 is null then select_module else m_parent1 end as m_parent,token
-		from table3 p
-left join ds_mysql_prod_tagelement t1 on t1.id = p.select_module
-),
-
-table4 as (Select 
-		   select_module,
-		   type,codeStatus,brand,projectId1,start_date,commitment,code,code_brand, m_parent,token
-		   from table3_1 
-where m_parent in ('64503')
-),
-
-table5 as (select 
-		   min(type) as type,min(codeStatus) as codeStatus,min(brand) as brand,projectId1
-		   --,start_date
-		   ,sum(commitment) as commitment,min(code) as code, min(code_brand) as code_brand,min(m_parent) as m_parent,min(token) as token
- from table4 
-		   group by projectId1
 )
 
-Select projectId1 as projectid,cast(commitment as int)as commitment
---,start_date
-,code,code_brand,m_parent from table5 p where type = 1 and codeStatus = 1 and brand = 1 and token = 1
+Select * from table1 p where type = 1
