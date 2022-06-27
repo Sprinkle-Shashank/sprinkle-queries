@@ -70,8 +70,21 @@ case
   when (split_part(s4.fy_27420_new, '-', 1) <= split_part(s4.fy, '-', 1)) 
   		then s4.project_manager_27420_new
   else s4.project_manager_27396
-end as project_manager
+end as project_manager,
   
-from sub4 s4)
+case
+  when s4.subcat_output is not null and s4.flag_deviation_delay = 1 then 1
+  else 0
+end as deviations
+  
+from sub4 s4),
 
-select * from sub5
+sub6 as(
+  select s5.projectcode, s5.fy as fy_timerange, s5.project_name, s5.project_manager,
+s5.month, s5.focus_area, sum(s5.deviations) as deviations
+  
+from sub5 s5
+
+group by s5.projectcode, s5.fy, s5.project_name, s5.project_manager, s5.month, s5.focus_area)
+
+select * from sub6
