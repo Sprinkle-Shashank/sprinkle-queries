@@ -1,60 +1,53 @@
-with table1 as (Select 
-				case when p.partner_type = 1132937 then 1 else 0 end as type,
-				table_54646.projid_factory as factory_id,
-				substring(table_54646.projcode_factory,1,1) as code,
-				reverse(SPLIT_PART(reverse(table_54646.projcode_factory), '-',1)) as code_brand,
-				json_serialize(table_52810.pace_brands) as pace_brand,
-				case when pace_brand like '%1011796%' then 1 else 0 end as brand,
+with table1 as (Select
+				--p.projid_factory as factory_id,
+				substring(projcode_factory,1,1) as code,
+				reverse(SPLIT_PART(reverse(projcode_factory), '-',1)) as code_brand,
+				JSON_SERIALIZE(table_52810.pace_brands) as pace_brand,	
+				case when pace_brand like '%1011796%' then 1 else 0 end  as brand,
 				table_4227.start_date as start_date,
-				table_4227.select_modules as select_modules,
-				case when table_52810.offset_date is null then '2020-02-01T00:00:00.000Z' else table_52810.offset_date end as offset_date,
-				case when start_date >= offset_date then 1 else 0 end as token,
-				p.projectId as projectid1,
-				p.goal_2022 as commitment
-				
-				
-				from profile_71993 p
-left join profile_54646 table_54646 on
-table_54646.projectId = p.projectId
-				
+				(table_4227.name) as name_batch,
+				(table_4227.num_females) as num_females,
+				(table_4227.num_females_graduated) as num_females_graduated,
+				(name_factory) as name_factory,
+				p.projectId as projectId1,
+				table_54267._id as sort_id,
+				table_71993.goal_2022 as commitment,
+				Cast(table_52713.factory_vpid_1 as varchar(65535)) as vpid1,
+				case when table_52713.sourcing_yn = 57473 then table_52713.pace_status_2 else table_54267.pace_status end as pace_status2,
+				case when table_52713.sourcing_yn = 57472 then vpid1 else
+table_52713.factory_vpid_2 end as factory_id,
+				case when table_52713.sourcing_yn = 57472 then table_54267.facility_score else null end as facility_score,
+				case when table_52713.sourcing_yn = 57472 then table_54267.facility_rating else null end as facility_rating,
+				case when table_52810.offset_date is null then '2020-02-01T00:00:00.000Z' else table_52810.offset_date end as offset_date
+								
+				from profile_54646 p
 inner join profile_52810 table_52810 on
 table_52810.projectId = p.projectId
 				
 left join profile_4227 table_4227 on
-table_4227.projectId = table_54646.projid_factory
-),
-table2 as (Select sum(commitment) as commitment, projectid1,code,code_brand,type,token,brand,
-		   start_date,offset_date,select_modules
-				from table1 p
-group by projectid1,code,code_brand,type,token,brand,start_date,offset_date,select_modules
+table_4227.projectId = p.projid_factory
+
+left join profile_71993 table_71993 on
+table_71993.projectId = p.projectId
+				
+inner join profile_52713 table_52713 on
+table_52713.projectId = p.projectId
+				
+left join profile_54267 table_54267 on
+table_54267.projectId = p.projectId
+				
+order by start_date,sort_id desc
 ),
 
-table3 as(select t2.*,CAST(select_module as int) from table2 t2,t2.select_modules select_module
-),
+table2 as (Select code,brand,min(name_batch) as name_batch,sum(num_females) as num_females, sum(num_females_graduated) as num_females_graduated ,min(name_factory) as name_factory, projectId1, min(commitment) as commitment,min(pace_status2) as pace_status1 ,min(factory_id) as factory_id, min(facility_score) as facility_score, min(facility_rating) as facility_rating,
+		   case when (pace_status1) between -2147483648 and 2147483648 then 1 else 0 end as st,
+		   case when st = 1 then tag_pace.name else 'Currently implementing P.A.C.E.' end as pace_status,start_date, code_brand,offset_date
+		   
+  		from table1 p
 
-table3_1 as (select type,brand,projectId1,start_date,commitment,select_modules,code,code_brand,
-			 select_module, t1.parent as m_parent1,
-			 case when m_parent1 is null then select_module else m_parent1 end as m_parent,offset_date
-		from table3 p
-left join ds_mysql_prod_tagelement t1 on t1.id = p.select_module
-),
-
-table4 as (Select 
-		   select_module,
-		   type,brand,projectId1,start_date,commitment,code,code_brand, m_parent,offset_date
-		   from table3_1 
-where m_parent in ('64503')
-),
-
-table5 as (select 
-		   listagg(select_module,',') as select_module ,
-		   type,brand,projectId1,start_date,min(commitment) as commitment,code,code_brand,m_parent,offset_date
- from table4 
-group by type,brand,projectId1,start_date,code,code_brand,m_parent,offset_date
+left join ds_mysql_prod_tagelement tag_pace on
+tag_pace.id = pace_status2
+group by code,brand,projectId1,tag_pace.name,start_date,code, code_brand,offset_date
 )
-
-Select projectId1 as projectid,cast(commitment as int)as commitment,start_date,code,code_brand from table2 p where type = 1 and code = 'F' and brand = 1 and start_date >= offset_date
-
-
-
---Select * from table2 p where type = 1 and code = 'F' and brand = 1 and start_date >= offset_date
+select * from table1 p where code = 'F' and brand = 1 and start_date >= offset_date
+--Select cast(commitment as int4) as commitment , name_factory, pace_status, factory_id, cast(facility_score as int4) as facility_score, cast(facility_rating as int4) as facility_rating, name_batch, cast(num_females as int4) as num_females, cast(num_females_graduated as int4) as num_females_graduated,projectId1 as projectid, start_date,code, code_brand from table2 p where code = 'F' and brand = 1 and start_date >= offset_date
