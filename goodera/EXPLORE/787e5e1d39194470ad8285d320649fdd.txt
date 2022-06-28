@@ -1,33 +1,15 @@
-with main as (select p.name as names, f.name as fy_timerange,f1.name as focus_area,m.name as Project_Manager,p2.name as ngo_partners,'' as project_code
-from profile_27396 p
-left join profile_27395 p2
-on p.ngo_partner = p2._id
-left join ds_mysql_prod_tagelement m on
-p.project_manager=m.id
-left join ds_mysql_prod_tagelement f on
-p.fy=f.id
-left join ds_mysql_prod_tagelement f1 on
-p.focus_area=f1.id
-union all
-select q.name as names ,f3.name as fy_timerange,f5.name as focus_area,f4.name as project_manager,q.ngo as ngo_partners,q.project_code as project_code from profile_27420 q
-left join ds_mysql_prod_tagelement f3 on
-q.fy=f3.id
-left join ds_mysql_prod_tagelement f4 on
-q.project_manager=f4.id
-left join ds_mysql_prod_tagelement f5 on
-q.focus_area=f5.id 
-union all
-select p.name as names,f.name as fy_timerange,f1.name as focus_area,m.name as Project_Manager,p2.name as ngo_partners,'' as project_code
-from profile_27396 p
-left join profile_80183 p2
-on p.ngo_partner = p2._id
-left join ds_mysql_prod_tagelement m on
-p.project_manager=m.id
-left join ds_mysql_prod_tagelement f on
-p.fy=f.id
-left join ds_mysql_prod_tagelement f1 on
-p.focus_area=f1.id
-),
+with main as (select p.subcat_output,n1.name as focus,r.name as fy_timerange,n.name as months, cast((split_part(split_part(prod.name,'|',1),'.',1)) as varchar) as ProjectCode,CONCAT(ProjectCode,fy_timerange) as code from profile_54963 p
+left join ds_mysql_prod_project prod on
+prod.id=p.projectid
+left join ds_mysql_prod_tagelement r on
+r.id=p.fy
+left join ds_mysql_prod_tagelement n on
+n.id=p.month
+			  
+left join ds_mysql_prod_tagelement n1 on
+n1.id=p.focus_area),
+
+
 lookup as (select cast(q.name as varchar) as ProjectCode,f.name as fy_timerange,m.name as Project_Manager,CONCAT(ProjectCode,fy_timerange) as code
 from profile_27420 d
 left join ds_mysql_prod_tagelement f on
@@ -37,14 +19,32 @@ d.project_manager=m.id
 left join profile_27396 q on
 d.project_code=q._id
 		   
-union all
 		   
-select cast(c.name as varchar)as ProjectCode,f.name as fy_timerange,m.name as Project_Manager,CONCAT(ProjectCode,fy_timerange) as code 
+union all
+
+select cast(c.name as varchar)as ProjectCode,f.name as fy_timerange,m.name as Project_Manager,CONCAT(ProjectCode,fy_timerange) as code,p2.name as ngo_partners
 from profile_27396 c	
 left join ds_mysql_prod_tagelement f on
 c.fy=f.id
 left join ds_mysql_prod_tagelement m on
-c.project_manager=m.id),
+c.project_manager=m.id
+left join profile_27395 p2
+on p.ngo_partner = p2._id
+		   
+union all
+		   
+select p.name as names,f.name as fy_timerange,f1.name as focus_area,m.name as Project_Manager,p2.name as ngo_partners,cast(c.name as varchar)as ProjectCode
+from profile_27396 p
+left join ds_mysql_prod_tagelement f on
+c.fy=f.id
+left join profile_80183 p2
+on p.ngo_partner = p2._id
+left join ds_mysql_prod_tagelement m on
+p.project_manager=m.id
+left join ds_mysql_prod_tagelement f on
+p.fy=f.id
+left join ds_mysql_prod_tagelement f1 on
+p.focus_area=f1.id),
 
 main2 as (
 select b.fy_timerange as fy,b.months,b.code,q.Project_Manager as level1,sum(b.subcat_output) as output,b.focus from main b
