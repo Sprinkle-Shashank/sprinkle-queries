@@ -10,7 +10,7 @@ left join ds_mysql_prod_tagelement n1 on
 n1.id=p.focus_area),
 
 
-lookup as (select cast(q.name as varchar) as ProjectCode,f.name as fy_timerange,m.name as Project_Manager,CONCAT(ProjectCode,fy_timerange) as code,' ' as ngo_partners,f1.name as focus_area
+lookup as (select cast(q.name as varchar) as ProjectCode,f.name as fy_timerange,m.name as Project_Manager,' ' as ngo_partners,f1.name as focus_area
 from profile_27420 d
 left join ds_mysql_prod_tagelement f on
 d.fy=f.id
@@ -24,7 +24,7 @@ d.focus_area=f1.id
 		   
 union all
 
-select cast(c.name as varchar)as ProjectCode,f.name as fy_timerange,m.name as Project_Manager,CONCAT(ProjectCode,fy_timerange) as code,p2.name as ngo_partners,f1.name as focus_area
+select cast(c.name as varchar)as ProjectCode,f.name as fy_timerange,m.name as Project_Manager,p2.name as ngo_partners,f1.name as focus_area
 from profile_27396 c	
 left join ds_mysql_prod_tagelement f on
 c.fy=f.id
@@ -49,10 +49,10 @@ left join ds_mysql_prod_tagelement f1 on
 p.focus_area=f1.id),
 
 main2 as (
-select b.fy_timerange as fy,b.months,b.code,q.Project_Manager as level1,sum(b.subcat_output) as output,b.focus,q.ngo_partners from main b
+select b.fy_timerange as fy,b.months,b.ProjectCode,q.Project_Manager as level1,sum(b.subcat_output) as output,b.focus,q.ngo_partners from main b
 left join lookup q on
 q.code = b.code
-group by b.fy_timerange,b.months,b.code,q.Project_Manager,b.focus,q.ngo_partners),
+group by b.fy_timerange,b.months,b.ProjectCode,q.Project_Manager,b.focus,q.ngo_partners),
 
 level1tab as (select m.name as level1 ,p.approver as level2,p.name as level1email from profile_27424 p
 left join ds_mysql_prod_tagelement m on
@@ -68,6 +68,6 @@ select p.*,d.level2,
 case when prj_code is NULL
 then 'initiated' else 'renewed' end as status from main2 p
 left join profile_29974 s on
-p.code=s.prj_code
+p.ProjectCode=s.prj_code
 left join level2tab d on
 d.level1 = p.level1
