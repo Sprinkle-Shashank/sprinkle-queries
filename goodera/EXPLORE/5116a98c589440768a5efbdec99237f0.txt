@@ -1,53 +1,36 @@
-with table1 as(
-  
-select * from profile_68161 
-),
+select p.projectId , p._id , p.name , p.status,
+cou.name as country , 
+nvl2(SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)),ven.name) as vendor_name, case when vendor_name='' then ven.name else vendor_name end as vendor, ven.id as vendorID , fac.name as factory , fac.id as facilityID ,
+case when p.name_subunit is null or p.name_subunit=' ' then 'N/A' else p.name_subunit end  as unit,p.sub_unit,
+case when country in ('India', 'Bangladesh', 'Sri Lanka')
+then 'South Asia'
+when country in ('China')
+then 'North Asia'
+when country in ('Guatemala', 'El Salvador', 'Dominican Republic')
+then 'Americas'
+when country in ('Philippines', 'Cambodia',  'Vietnam',  'Indonesia', 'Myanmar')
+then 'South East Asia'
+end as region , 
+cast(DATEPART(YEAR,p.date_enrollment) as varchar) as year_new ,
+p.date_enrollment , p.worker_rep , p.mgmt_rep 
 
-table2 as 
-(
-   select p.* , cast(c as varchar)  as programs_run_update from table1 as p , p.programs_run as c
- ),
- 
- table4 as 
- ( 
-   select p.* , x2.name as programs_run_update_1  from table2 p
-   
+from profile_16619 p
 
-	 left join ds_mysql_prod_tagelement x2 on
- 	 p.programs_run_update = x2.id
-   ),
-  
-  
-table3 as
-( 
-select  p.projectid, parent_vendor_name_1.name as vendor, country_name_1.name as country , facility_name ,  facility_status, facility_rating_update.name as facility_rate_1, pace_status, pace_status_detail, assessor, last_assessment_date,  payment_method, pace, wcp, sst, wep, gbv, goodera_facility_name_text, fac_vpid, parent_vendor_vpid, facility_score, open_issues, total_workers,
-	
-    listagg(programs_run_update_1 , ',') as programs_run_update_new ,
-	primary_category_1.name as primary_category 
 
-	from table4 p 
-	
-left join ds_mysql_prod_tagelement parent_vendor_name_1 on
-p.parent_vendor_name = parent_vendor_name_1.id
+left join ds_mysql_prod_project fac
+on  p.projectid = fac.id
 
-left join ds_mysql_prod_tagelement  country_name_1 on
-p.country_name =  country_name_1.id
-	
-left join ds_mysql_prod_tagelement  primary_category_1 on
-p.primary_category =  primary_category_1.id
-  
-left join ds_mysql_prod_tagelement  facility_rating_update on
-p.facility_rating =  facility_rating_update.id
+left join ds_mysql_prod_project ven
+on fac.parent = ven.id
 
-where facility_status in (845097, 845104) and p.projectid like '%%'
-  
-Group By p.projectid, facility_name , country_name_1.name, parent_vendor_name_1.name ,  facility_status, facility_rating_update.name , pace_status, pace_status_detail, assessor, last_assessment_date,  payment_method, pace, wcp, sst, wep, gbv, goodera_facility_name_text, fac_vpid, parent_vendor_vpid, facility_score, open_issues, total_workers,
-	primary_category_1.name)
+left join ds_mysql_prod_project cou
+on ven.parent = cou.id
 
-select * from table2
-	
-	
-	/*select facility_name,  facility_status, facility_rating, pace_status, pace_status_detail, assessor, last_assessment_date,  payment_method, pace, wcp, sst, wep, gbv, goodera_facility_name_text, fac_vpid, parent_vendor_vpid, facility_score, open_issues, total_workers,programs_run_update_new , vendor_name,primary_category ,country , vendor from table3
-	
-	  Group By  facility_name,  facility_status, facility_rating, pace_status, pace_status_detail, assessor, last_assessment_date,  payment_method, pace, wcp, sst, wep, gbv, goodera_facility_name_text, fac_vpid, parent_vendor_vpid, facility_score, open_issues, total_workers,programs_run_update_new , vendor_name,primary_category , country , vendor 
-	  */
+
+
+
+where p.projectId like '%%' and cou.name <> 'Test Country' and (p.status = 1400365 or p.status is null)  
+and country <> 'GAP Inc.' and p.projectid = 56196
+
+
+group by  p.projectId , p.name , p.status, cou.name ,ven.name ,fac.name, p.worker_rep ,p.mgmt_rep,p.date_enrollment , fac.id , ven.id ,p.name_subunit, p.sub_unit , p._id
