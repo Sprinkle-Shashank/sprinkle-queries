@@ -1,33 +1,68 @@
-with table1 as (select  
-				JSON_SERIALIZE(table_52810.pace_brands) as pace_brand, 
-				case when pace_brand like '%1011796%' then 1 else 0 end as brand,  
-				listagg(distinct($table_4227.start_date)) as start_date, 
-				listagg(distinct(table_4227.select_modules)) as select_modules, 
-				case when table_52810.offset_date is null then '2020-02-01T00:00:00.000Z' else table_52810.offset_date end as offset_date, 
-				case when start_date1 >= offset_date then 1 else 0 end as token, 
-				listagg(distinct(projid_factory)) as factory_id, 
-				substring(projcode_factory,1,1) as code,				
-				reverse(SPLIT_PART(reverse(projcode_factory), '-',1)) as code_brand, 
-				(min(table_71993.target_2022)) as target2022, 
-				(min(table_71993.target_2021)) as target2021,
-				(min($table_71993.target_2020)) as target2020, 
-				projectId, 
-				 
+with table1 as ( select
+			projid_factory as factory_id,
+			p.projectId as projectId1,
+			substring(projcode_factory,1,1) as code,
+			reverse(SPLIT_PART(reverse(projcode_factory), '-',1)) as code_brand,
+			JSON_SERIALIZE(table_52810.pace_brands) as pace_brand,	
+			case when pace_brand like '%1011796%' then 1 else 0 end  as brand,
+			case when table_52810.offset_date is null then '2020-02-01T00:00:00.000Z' else table_52810.offset_date end as offset_date
 
-			   
-			   
-			   from profile_54646 p  
-inner join profile_52810 table_52810 on 
-table_52810.projectId = p.projectId 
-				
-left join profile_4227 table_4227 on 
-table_4227.factory_id = p.projectId	 
+			from profile_54646 p
 
+inner join profile_52810 table_52810 on
+table_52810.projectId = p.projectId	
+),
+
+table2 as ( select
+			factory_id,brand,code,offset_date,
+		    table_4227.start_date as start_date,
+		    table_4227.select_modules as select_modules,
+		    case when start_date >= offset_date then 1 else 0 end as token,
+		    case when table_71993.partner_type = 1132938 then 1 else 0 end as token2, 
+		    table_71993.target_2022 as target2022,
+		    table_71993.target_2021 as target2021,
+		    table_71993.target_2020 as target2020,code_brand,projectId1
+		   
+  			from table1 p
+left join profile_4227 table_4227 on
+table_4227.projectId = p.factory_id
+		   
 left join profile_71993 table_71993 on
-table_71993.projectId = p.projectId 
+table_71993.projectId = projectId1	
+    
+),
 
-group by projectId, pace_brand, brand
-				
-) 
+table3 as (select 
+		   token,
+		   token2,
+		   brand,code,code_brand,
+		   listagg(distinct(target2022)) as target2022, 
+		   listagg(distinct(target2021)) as target2021, 
+		   listagg(distinct(target2020)) as target2020,
+		   projectId1,start_date,select_modules
+		   
+		   from table2 p
 
-select * from table1 p where table_71993.partner_type = 1132938
+group by token,
+		   token2,
+		   brand, projectId1, code, start_date, select_modules, code, code_brand	
+),
+
+table4 as(select t3.*,CAST(select_module as int) from table3 t3,t3.select_modules select_module
+),
+
+	
+table5 as (Select 
+		target2022, target2021, target2020, start_date, select_module, projectId1, code, code_brand, brand, token, token2 
+		from table4
+where select_module in (    '64504','70914','70905','70906','70916','70946','70915','70917','70933','70949','70947','70899','459391','459394','459395','64506','70928','70920','70898','70908','70907','70942','70936','70904','70918','70924','70923','459392','459393','459397','64507','70937','70944','70930','70931','70950','70929','70921','70932','70934','70948','70938','459396','459398','459399','64509','70925','70927','70943','70939','70940','64508','70317','70919','70922','70926','70935','70945') 
+),
+
+table6 as (Select 		   
+		   listagg(select_module,',') as select_module , target2022, target2021, target2020, start_date, projectId1, code, code_brand, brand, token, token2 
+		   from table5 
+	group by  
+	target2022, target2021, target2020, start_date, projectId1, code, code_brand, brand, token, token2
+)
+
+select target2022, target2021, target2020, start_date, select_module, projectId1 as projectId, code, code_brand from table5 p where brand = 1 and token =1 and token2 = 1
