@@ -83,7 +83,17 @@ end as project_name,
 case
 	when s5.renewal = 430820 then p4.project_code
 	else p3.name
-end as projectcode
+end as projectcode,
+  
+case
+  when s5.renewal = 430822 and s5.tranche = 432692 then '1st Advance Payment'
+  else '-'
+end as uc_download,
+  
+case
+  when s5.renewal = 430822 and s5.tranche = 432692 then '1st Advance Payment'
+  else '-'
+end as call_report_download
 
 from sub5 s5
 
@@ -97,7 +107,7 @@ left join ds_mysql_prod_tagelement t3 on t3.id = s5.renewal
 left join ds_mysql_prod_project p5 on p5.id = s5.projectid),
 
 sub7 as(
-  select s6.id, s6.status, s6.projectid, s6.uc, s6.payment_amount, s6.rejection_count, s6.request_date, s6.call_report, s6.project_name, s6.fy, s6.projectcode, s6.modified,
+  select s6.id, s6.status, s6.projectid, s6.uc, s6.payment_amount, s6.rejection_count, s6.request_date, s6.call_report, s6.project_name, s6.fy, s6.projectcode, s6.modified, s6.call_report_download, s6.uc_download,
   
 nvl(p6.name, s6.projectcode) as projectcode_new
 
@@ -105,28 +115,28 @@ from sub6 s6
 left join profile_27396 p6 on p6._id = s6.projectcode),
   
 sub8 as(
-  select uc, cast(payment_amount as FLOAT), fy as fy_timerange, project_name, projectcode_new as project_code, rejection_count, call_report,
+  select s7.uc, cast(s7.payment_amount as FLOAT), s7.fy as fy_timerange, s7.project_name, s7.projectcode_new as project_code, s7.rejection_count, s7.call_report,
 
 case 
-	when status = 'SUBMITTED' then 'APPROVED'
-	else status
+	when s7.status = 'SUBMITTED' then 'APPROVED'
+	else s7.status
 end as status_new,
   
 case
-  when uc is not null then 'Click Here'
-  else '-'
+  when s7.uc is not null then 'Click Here'
+  else s7.uc_download
 end as uc_download,
   
 case
-  when call_report is not null then 'Click Here'
-  else '-'
+  when s7.call_report is not null then 'Click Here'
+  else s7.call_report_download
 end as call_report_download,
  
-TO_CHAR(request_date, 'DD-MM-YYYY') as request_date,
-TO_CHAR(modified, 'DD-MM-YYYY') as modified
+TO_CHAR(s7.request_date, 'DD-MM-YYYY') as request_date,
+TO_CHAR(s7.modified, 'DD-MM-YYYY') as modified
 
-from sub7
+from sub7 s7
 
-group by uc, payment_amount, fy, request_date, project_name, projectcode_new, rejection_count, call_report, status, modified)
+group by s7.uc, s7.payment_amount, s7.fy, s7.request_date, s7.project_name, s7.projectcode_new, s7.rejection_count, s7.call_report, s7.status, s7.modified, s7.uc_download, s7.call_report_download)
 
 select * from sub8
