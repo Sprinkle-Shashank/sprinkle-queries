@@ -43,17 +43,21 @@ from table1 t1
 table3 as (
 select country,name,fy_1 as fy_timerange,sum(t2.total_emission1) as total_emission from table2 t2
 
-group by country,name,fy_1)
+group by country,name,fy_1),
+table4 as (select total_emission from(select name,total_emission, row_number() over(partition by name order by fy_timerange desc) as row from table3
+	
+where row = 1)
 
-select country,name,fy_timerange,total_emission,lag(total_emission,1) over (Partition by name order by fy_timerange) as prev_emission,
+
+/*select country,name,fy_timerange,total_emission,lag(total_emission,1) over (Partition by name order by fy_timerange) as prev_emission,
 prev_emission-total_emission as diff_prev
 , 
-(select total_emission from(select name,total_emission, row_number() over(partition by name order by fy_timerange desc) as row from table3
-	)
-where row = 1
-) as base_value, 
 
-base_value-total_emission as diff_base from table3 
+
+
+base_value-total_emission as diff_base from table3*/
+		   
+		select * from table4   
 
 
 
