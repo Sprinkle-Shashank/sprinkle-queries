@@ -1,0 +1,26 @@
+with tab1 as (select p.name as names, f.name as fy_timerange,f1.name as focus_area,m.name as Project_Manager,p2.name as ngo_partners,'' as project_code
+from profile_27396 p
+left join profile_27395 p2
+on p.ngo_partner = p2._id
+left join ds_mysql_prod_tagelement m on
+p.project_manager=m.id
+left join ds_mysql_prod_tagelement f on
+p.fy=f.id
+left join ds_mysql_prod_tagelement f1 on
+p.focus_area=f1.id
+union all
+select q.name as names ,f3.name as fy_timerange,f5.name as focus_area,f4.name as project_manager,q.ngo as ngo_partners,q.project_code as project_code from profile_27420 q
+left join ds_mysql_prod_tagelement f3 on
+q.fy=f3.id
+left join ds_mysql_prod_tagelement f4 on
+q.project_manager=f4.id
+left join ds_mysql_prod_tagelement f5 on
+q.focus_area=f5.id 
+)
+
+select case when prj_code is NULL
+then 'initiated' else 'renewed' end as status,
+r.names,r.fy_timerange,r.focus_area,r.Project_Manager,r.ngo_partners
+from tab1 r
+left join profile_29974 s on
+r.project_code=s.prj_code
