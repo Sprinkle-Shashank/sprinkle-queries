@@ -1,4 +1,4 @@
-with main as (select p.subcat_output,n1.name as focus,r.name as fy_timerange,n.name as months, cast((split_part(split_part(prod.name,'|',1),'.',1)) as varchar) as ProjectCode,CONCAT(ProjectCode,fy_timerange) as code from profile_54963 p
+with main as (select p.subcat_output,n1.name as focus,r.name as fy_timerange,n.name as months, cast((split_part(split_part(prod.name,'|',1),'.',1)) as varchar) as ProjectCode from profile_54963 p
 left join ds_mysql_prod_project prod on
 prod.id=p.projectid
 left join ds_mysql_prod_tagelement r on
@@ -16,8 +16,6 @@ left join ds_mysql_prod_tagelement f on
 d.fy=f.id
 left join ds_mysql_prod_tagelement m on
 d.project_manager=m.id
-left join profile_27396 q on
-d.project_code=q._id
 left join ds_mysql_prod_tagelement f1 on
 d.focus_area=f1.id
 		   
@@ -51,7 +49,7 @@ p.focus_area=f1.id),
 main2 as (
 select b.fy_timerange as fy,b.months,b.ProjectCode,q.Project_Manager as level1,sum(b.subcat_output) as output,b.focus,q.ngo_partners from main b
 left join lookup q on
-q.code = b.code
+q.ProjectCode = b.ProjectCode
 group by b.fy_timerange,b.months,b.ProjectCode,q.Project_Manager,b.focus,q.ngo_partners),
 
 level1tab as (select m.name as level1 ,p.approver as level2,p.name as level1email from profile_27424 p
