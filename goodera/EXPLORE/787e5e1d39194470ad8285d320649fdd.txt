@@ -10,7 +10,7 @@ left join ds_mysql_prod_tagelement n1 on
 n1.id=p.focus_area),
 
 
-lookup as (select cast(q.name as varchar)as ProjectCode,f.name as fy_timerange,m.name as Project_Manager,' ' as ngo_partners,f1.name as focus_area,'' as st
+lookup as (select cast(q.name as varchar)as ProjectCode,f.name as fy_timerange,m.name as Project_Manager,' ' as ngo_partners,f1.name as focus_area,'' as state
 from profile_27420 d
 left join ds_mysql_prod_tagelement f on
 d.fy=f.id
@@ -24,8 +24,8 @@ d.project_code=q._id
 		   
 union all
 
-select cast(c.name as varchar)as ProjectCode,f.name as fy_timerange,m.name as Project_Manager,p2.name as ngo_partners,f1.name as focus_area,st
-from profile_27396 c, c.state st
+select cast(c.name as varchar)as ProjectCode,f.name as fy_timerange,m.name as Project_Manager,p2.name as ngo_partners,f1.name as focus_area,c.state
+from profile_27396 c
 		   
 left join ds_mysql_prod_tagelement f on
 c.fy=f.id
@@ -38,8 +38,8 @@ c.focus_area=f1.id
 		   
 union all
 		   
-select f.name as fy_timerange,f1.name as focus_area,m.name as Project_Manager,p2.name as ngo_partners,cast(p.name as varchar)as ProjectCode,st
-from profile_27396 p,p.state st
+select f.name as fy_timerange,f1.name as focus_area,m.name as Project_Manager,p2.name as ngo_partners,cast(p.name as varchar)as ProjectCode,p.state
+from profile_27396 p
 left join ds_mysql_prod_tagelement f on
 p.fy=f.id
 left join profile_80183 p2
@@ -50,7 +50,7 @@ left join ds_mysql_prod_tagelement f1 on
 p.focus_area=f1.id),
 
 main2 as (
-select b.fy_timerange as fy,b.months,b.ProjectCode,q.Project_Manager as level1,sum(b.subcat_output) as output,b.focus,q.ngo_partners,q.st from main b
+select b.fy_timerange as fy,b.months,b.ProjectCode,q.Project_Manager as level1,sum(b.subcat_output) as output,b.focus,q.ngo_partners,state from main b, q.state as state
 left join lookup q on
 q.ProjectCode = b.ProjectCode
 group by b.fy_timerange,b.months,b.ProjectCode,q.Project_Manager,b.focus,q.ngo_partners,q.st),
