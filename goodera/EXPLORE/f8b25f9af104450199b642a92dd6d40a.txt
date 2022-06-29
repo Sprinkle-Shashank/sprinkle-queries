@@ -73,8 +73,8 @@ newtab1 as (select distinct(newtab.project_code) as project_code from newtab)
 
 
 
-
-select p.*,d.level2,state,
+, ss as (
+select fy,months,ProjectCode,as level1, output,focus,ngo_partners,level2,state,
 case when s.project_code is NULL
 then 'initiated' else 'renewed' end as status from main2 p
 
@@ -82,3 +82,11 @@ left join newtab1 s on
 p.ProjectCode=s.project_code
 left join level2tab d on
 d.level1 = p.level1
+), sss as (
+Select fy,months,ProjectCode,as level1, output,focus,ngo_partners,level2,st,status
+from ss as sp, sp.state st
+  )
+  Select fy,months,ProjectCode,as level1, output,focus,ngo_partners,level2,t.name as state,status
+from sss
+left join ds_mysql_prod_tagelement t on
+t.id=st
