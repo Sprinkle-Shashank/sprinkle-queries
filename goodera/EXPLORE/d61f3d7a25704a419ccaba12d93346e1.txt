@@ -30,9 +30,23 @@ left join profile_78780 p6 on p6.name =
 left join ds_mysql_prod_tagelement t1 on t1.id = p5.country_new
 left join ds_mysql_prod_tagelement t2 on t2.id = p5.product_brand
   
+where p4.indicator is not null
+  
 group by p2.name, s2.time_timerange, p3.data, p3.women_beneficiaries, p4.indicator, p5.program_name, p6.add_up_2, t1.name, t2.name),
 
 sub4 as(
-  select s3.*, add_up from sub3 s3, s3.add_up_2 add_up)
+  select s3.*, add_up from sub3 s3, s3.add_up_2 add_up),
   
-select * from sub3
+sub5 as(
+  select s4.program, s4.projectid, s4.fy_timerange, s4.product_brand, s4.country, s4.indicator, t3.name as add_up,
+  
+sum(s4.total_beneficiaries) as total_beneficiaries, 
+sum(s4.women_beneficiaries) as women_beneficiaries, 
+  
+from sub4 s4
+  
+left join ds_mysql_prod_tagelement t3 on t3.id = s4.add_up
+  
+group by s4.program, s4.projectid, s4.fy_timerange, s4.product_brand, s4.country, s4.indicator, t3.name)
+
+select * from sub4
