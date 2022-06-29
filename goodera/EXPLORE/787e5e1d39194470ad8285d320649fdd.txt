@@ -53,7 +53,7 @@ main2 as (
 select b.fy_timerange as fy,b.months,b.ProjectCode,q.Project_Manager as level1,sum(b.subcat_output) as output,b.focus,q.ngo_partners,q.st from main b
 left join lookup q on
 q.ProjectCode = b.ProjectCode
-group by b.fy_timerange,b.months,b.ProjectCode,q.Project_Manager,b.focus,q.ngo_partners),
+group by b.fy_timerange,b.months,b.ProjectCode,q.Project_Manager,b.focus,q.ngo_partners,q.st),
 
 level1tab as (select m.name as level1 ,p.approver as level2,p.name as level1email from profile_27424 p
 left join ds_mysql_prod_tagelement m on
@@ -74,11 +74,11 @@ newtab1 as (select distinct(newtab.project_code) as project_code from newtab)
 
 
 
-select p.*,d.level2,
+select p.*,d.level2,t.name as state,
 case when s.project_code is NULL
 then 'initiated' else 'renewed' end as status from main2 p
---left join ds_mysql_prod_tagelement t
---on p.st=t.id
+left join ds_mysql_prod_tagelement t
+on p.st=t.id
 left join newtab1 s on
 p.ProjectCode=s.project_code
 left join level2tab d on
