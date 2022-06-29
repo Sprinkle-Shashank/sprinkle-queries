@@ -6,7 +6,7 @@ tx as (select projectid, name,row_number() over
 (partition by projectid
  order by projectid desc) as row from profile_51990 ),
 
-table3 as (select t._id,p5.name as gender,p6.name as referred_yn, p.age, Decode(p.reg_date_yn,28005,CONVERT(timestamp,SUBSTRING(p.date_y,1,10)),Convert(timestamp,SUBSTRING(p.reg_date,1,10))) as date, p.createddate, SUBSTRING(p4.name,1,CHARINDEX('-',p4.name)) as disease,p4.name as full_disease_name,  CAST((DATEDIFF(day,p.createddate,GETDATE())/365.0)+p.age as FLOAT) AS final_age,
+table3 as (select t._id,p5.name as gender,fac.name as van ,p6.name as referred_yn, p.age, Decode(p.reg_date_yn,28005,CONVERT(timestamp,SUBSTRING(p.date_y,1,10)),Convert(timestamp,SUBSTRING(p.reg_date,1,10))) as date, p.createddate, SUBSTRING(p4.name,1,CHARINDEX('-',p4.name)) as disease,p4.name as full_disease_name,  CAST((DATEDIFF(day,p.createddate,GETDATE())/365.0)+p.age as FLOAT) AS final_age,
 CASE 
 when final_age >=0 and final_age<=5 then '0-5'
 when final_age >=6 and final_age<=18 then '6-18'
@@ -18,6 +18,8 @@ end as age_category,
 case when disease is  null or disease = '' then 0 else 1 end as count, tx.name as partner, tx.row
 from  t
 
+left join ds_mysql_prod_project fac
+on t.projectid = fac.id
 left join profile_58473 p
 on t.patient=p._id
 left join ds_mysql_prod_tagelement p3
