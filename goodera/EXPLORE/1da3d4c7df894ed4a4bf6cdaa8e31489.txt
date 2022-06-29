@@ -1,0 +1,30 @@
+with temp as(
+  Select 'Male members' as col
+    union all
+  Select 'Female Members' as col
+    union all
+  Select 'Other Gender Members' as col)
+
+
+Select a.fy_timerange,a.name as family_unique_id,p.name as projectid,p1.name as parent,t1.name as rel_centre,temp.col as dimensions,
+case 
+	when dimensions='Male members' then 'Male'
+	when dimensions='Female Members' then 'Female'
+	when dimensions='Other Gender Members' then 'Other Genders'
+	else NULL
+	end as gender,
+sum(case col
+	when 'Male members' then a.male_members
+	when 'Female Members' then a.female_members
+	when 'Other Gender Members' then a.other_gender
+	else NULL
+end) as Values
+
+	
+from profile_80974 a
+cross join temp
+
+left join ds_mysql_prod_project p on p.id = a.projectid
+left join ds_mysql_prod_project p1 on p1.id = p.parent
+left join ds_mysql_prod_tagelement t1 on t1.id=a.rel_centre
+group by a.fy_timerange,p.name,p1.name,t1.name,temp.col,gender,a.name
