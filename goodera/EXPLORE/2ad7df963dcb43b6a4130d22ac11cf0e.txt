@@ -1,6 +1,24 @@
-select p1.fy_timerange, p1.boys_impacted, p1.girls_impacted, t1.name , p2.school_name
+with t1 as 
+(select p1.fy_timerange, p1.boys_impacted, p1.girls_impacted, t1.name as intervention, p2.school_name
 from profile_76610 p1
 left join profile_76607 p2
 on p1.school = p2._id
 left join ds_mysql_prod_tagelement t1
-on p1.intervention = t1.name 
+on p1.intervention = t1.name ),
+
+items as (
+select 'boys_impacted' as gender
+select 'girls_impacted' as gender
+),
+
+t2 as (
+select t1.school_name, it.gender,
+case gender
+		when 'boys_impacted' then t1.boys_impacted
+  		when 'grls_impacted' then t1.girls_impacted
+  		else null
+end as count
+from t1 cross join items it
+)
+select t1.fy_timerange, t1.intervention, t2.school_name, t2.gender
+from t1 and t2
