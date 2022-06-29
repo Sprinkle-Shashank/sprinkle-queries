@@ -1,30 +1,52 @@
 with temp as(
-  Select 'Male members' as col
-    union all
-  Select 'Female Members' as col
-    union all
-  Select 'Other Gender Members' as col)
+  Select 'Cocunut Saplings' as col
+  union all
+  select 'Arecanut Saplings' as col
+  union all
+  select 'Jackfruit Saplings' as col
+  union all
+  select 'Drumstick Saplings' as col
+  union all
+  select 'Other Horticulture Saplings' as col
+  union all
+  select 'Malabar Saplings' as col
+  union all
+  select 'Mahogany Saplings' as col
+  union all
+  select 'Neem Saplings' as col
+  union all
+  select 'Silver Oak Saplings' as col
+  union all
+  select 'Other Agroforestry Saplings' as col
+)
 
-
-Select a.fy_timerange,a.name as family_unique_id,p.name as projectid,p1.name as parent,t1.name as rel_centre,temp.col as dimensions,
-case 
-	when dimensions='Male members' then 'Male'
-	when dimensions='Female Members' then 'Female'
-	when dimensions='Other Gender Members' then 'Other Genders'
-	else NULL
-	end as gender,
+Select a.fy_timerange,p.name as projectid,p1.name as parent,t1.name as rel_centre
+,p2.name as fam_house_no,temp.col as dimensions,
 sum(case col
-	when 'Male members' then a.male_members
-	when 'Female Members' then a.female_members
-	when 'Other Gender Members' then a.other_gender
-	else NULL
+	when 'Cocunut Saplings' then a.coconut_sapling
+	when 'Arecanut Saplings' then a.arecanut_sapling
+	when 'Jackfruit Saplings' then a.jackfruit_sapling
+	when 'Drumstick Saplings' then a.drumstick_sapling
+	when 'Other Horticulture Saplings' then a.horti_others
+	when 'Malabar Saplings' then a.malabar_sapling
+	when 'Mahogany Saplings' then a.mahogany_sapling
+	when 'Neem Saplings' then a.neem_sapling
+	when 'Silver Oak Saplings' then a.silver_oak_sapling
+	when 'Other Agroforestry Saplings' then a.agro_other
+	 else NULL
 end) as Values
 
-	
-from profile_80974 a
+from profile_80975 a
 cross join temp
 
 left join ds_mysql_prod_project p on p.id = a.projectid
 left join ds_mysql_prod_project p1 on p1.id = p.parent
+
 left join ds_mysql_prod_tagelement t1 on t1.id=a.rel_centre
-group by a.fy_timerange,p.name,p1.name,t1.name,temp.col,gender
+
+left join profile_80974 p2 on p2._id= a.fam_house_no
+--left join ds_mysql_prod_tagelement t2 on t2.id=a.fam_house_no
+
+
+group by a.fy_timerange,p.name,p1.name,t1.name
+,p2.name,temp.col
