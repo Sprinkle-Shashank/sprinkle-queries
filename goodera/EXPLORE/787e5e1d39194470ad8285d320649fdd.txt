@@ -10,7 +10,7 @@ left join ds_mysql_prod_tagelement n1 on
 n1.id=p.focus_area),
 
 
-lookup as (select cast(q.name as varchar)as ProjectCode,f.name as fy_timerange,m.name as Project_Manager,' ' as ngo_partners,f1.name as focus_area
+lookup as (select cast(q.name as varchar)as ProjectCode,f.name as fy_timerange,m.name as Project_Manager,' ' as ngo_partners,f1.name as focus_area,'' as st
 from profile_27420 d
 left join ds_mysql_prod_tagelement f on
 d.fy=f.id
@@ -24,8 +24,11 @@ d.project_code=q._id
 		   
 union all
 
-select cast(c.name as varchar)as ProjectCode,f.name as fy_timerange,m.name as Project_Manager,p2.name as ngo_partners,f1.name as focus_area
-from profile_27396 c
+select cast(c.name as varchar)as ProjectCode,f.name as fy_timerange,m.name as Project_Manager,p2.name as ngo_partners,f1.name as focus_area,t.name as st
+from profile_27396 c, c.state st
+		   
+left join ds_mysql_prod_tagelement t
+on st=t.id
 left join ds_mysql_prod_tagelement f on
 c.fy=f.id
 left join ds_mysql_prod_tagelement m on
@@ -37,8 +40,10 @@ c.focus_area=f1.id
 		   
 union all
 		   
-select f.name as fy_timerange,f1.name as focus_area,m.name as Project_Manager,p2.name as ngo_partners,cast(p.name as varchar)as ProjectCode
-from profile_27396 p
+select f.name as fy_timerange,f1.name as focus_area,m.name as Project_Manager,p2.name as ngo_partners,cast(p.name as varchar)as ProjectCode,t.name as st
+from profile_27396 p,p.state st
+left join ds_mysql_prod_tagelement t
+on st=t.id
 left join ds_mysql_prod_tagelement f on
 p.fy=f.id
 left join profile_80183 p2
@@ -49,7 +54,7 @@ left join ds_mysql_prod_tagelement f1 on
 p.focus_area=f1.id),
 
 main2 as (
-select b.fy_timerange as fy,b.months,b.ProjectCode,q.Project_Manager as level1,sum(b.subcat_output) as output,b.focus,q.ngo_partners from main b
+select b.fy_timerange as fy,b.months,b.ProjectCode,q.Project_Manager as level1,sum(b.subcat_output) as output,b.focus,q.ngo_partners,q.st from main b
 left join lookup q on
 q.ProjectCode = b.ProjectCode
 group by b.fy_timerange,b.months,b.ProjectCode,q.Project_Manager,b.focus,q.ngo_partners),
@@ -68,23 +73,14 @@ newtab as (Select t.name as project_code from profile_29974 p
 left join profile_27396 t
 on t._id=p.prj_code),
 
-newtab1 as (select distinct(newtab.project_code) as project_code from newtab),
-
-newtab2 as (Select st from profile_27396 s , s.state st
-),
-s1 as(
-Select t.name as state
-from newtab2
-left join ds_mysql_prod_tagelement t
-on newtab2.st=t.id),
-s2 as (Select distinct(state) as states from s1)
+newtab1 as (select distinct(newtab.project_code) as project_code from newtab
 
 
 
 
-select p.*,d.level2,s2.states,
+select p.*,d.level2,
 case when s.project_code is NULL
-then 'initiated' else 'renewed' end as status from main2 p,s2
+then 'initiated' else 'renewed' end as status from main2 p
 left join newtab1 s on
 p.ProjectCode=s.project_code
 left join level2tab d on
