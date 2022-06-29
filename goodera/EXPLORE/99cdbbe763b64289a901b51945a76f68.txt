@@ -1,0 +1,53 @@
+with sub1 as(
+  select p1.*,
+  
+  case
+  		when is_array(p1.indicator) = false or GET_ARRAY_LENGTH(p1.indicator) = 0 then 						array(p1.indicator)
+  		else p1.indicator
+  end as indicator_new
+  
+  from profile_55605 p1),
+  
+sub2 as(
+  select s1.*, indicator_605 from sub1 s1, s1.indicator_new indicator_605),
+  
+sub3 as(
+  select p2.name as projectid, s2.time_timerange as fy_timerange, p3.data as total_beneficiaries, p3.women_beneficiaries, p4.indicator, p5.program_name as program, p6.add_up_2, t1.name as country, t2.name as product_brand,
+
+extract(year from cast(s2.time_timerange.start as date)) as year
+
+from sub2 s2
+
+left join ds_mysql_prod_project p2 on p2.id = s2.projectid
+
+left join profile_55606 p3 on p3._id = s2.indicator_605 
+left join profile_55604 p4 on p4._id = p3.indicator
+left join profile_63775 p5 on p5._id = p4.prog_name
+
+left join profile_78780 p6 on p6.name = 
+		   (p4.indicator || '_' || extract(year from cast(s2.time_timerange.start as date)))
+	
+left join ds_mysql_prod_tagelement t1 on t1.id = p5.country_new
+left join ds_mysql_prod_tagelement t2 on t2.id = p5.product_brand
+  
+where p4.indicator is not null
+  
+group by p2.name, s2.time_timerange, p3.data, p3.women_beneficiaries, p4.indicator, p5.program_name, p6.add_up_2, t1.name, t2.name),
+
+sub4 as(
+  select s3.*, add_up from sub3 s3, s3.add_up_2 add_up),
+  
+sub5 as(
+  select s4.program, s4.projectid, s4.fy_timerange, s4.year, s4.product_brand, s4.country, s4.indicator, t3.name as add_up,
+   
+sum(s4.total_beneficiaries) as total_beneficiaries 
+  
+from sub4 s4
+  
+left join ds_mysql_prod_tagelement t3 on t3.id = s4.add_up
+  
+where s4.total_beneficiaries is not null
+  
+group by s4.program, s4.projectid, s4.fy_timerange, s4.year, s4.product_brand, s4.country, s4.indicator, t3.name)
+
+select * from sub5
