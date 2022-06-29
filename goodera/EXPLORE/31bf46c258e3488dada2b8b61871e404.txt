@@ -18,12 +18,10 @@ with temp as(
   select 'Silver Oak Saplings' as col
   union all
   select 'Other Agroforestry Saplings' as col
-  union all
-  select 'Maize Seeds' as col
 )
 
 Select a.fy_timerange,p.name as projectid,p1.name as parent,t1.name as rel_centre
-,p2.name as fam_unique_no,temp.col as dimensions,
+,p2.name as fam_house_no,temp.col as dimensions,
 sum(case col
 	when 'Cocunut Saplings' then a.coconut_sapling
 	when 'Arecanut Saplings' then a.arecanut_sapling
@@ -35,18 +33,8 @@ sum(case col
 	when 'Neem Saplings' then a.neem_sapling
 	when 'Silver Oak Saplings' then a.silver_oak_sapling
 	when 'Other Agroforestry Saplings' then a.agro_other
-	when 'Maize Seeds' then p3.maize_seeds
 	 else NULL
-end) as Values,
-
-case 
-	when dimensions='Cocunut Saplings' OR dimensions='Arecanut Saplings' OR dimensions='Jackfruit Saplings' OR dimensions='Drumstick Saplings' OR dimensions='Other Horticulture Saplings' then 'Horticulture'
-	
-	
-	when dimensions='Malabar Saplings' OR dimensions='Neem Saplings' OR dimensions='Mahogany Saplings' OR dimensions='Silver Oak Saplings' OR dimensions='Other Agroforestry Saplings' then 'Agroforestry'
-	else 'Maize' 
-	end as Intervention_type
-	
+end) as Values
 
 from profile_80975 a
 cross join temp
@@ -57,9 +45,7 @@ left join ds_mysql_prod_project p1 on p1.id = p.parent
 left join ds_mysql_prod_tagelement t1 on t1.id=a.rel_centre
 
 left join profile_80974 p2 on p2._id= a.fam_house_no
-left join profile_80983 p3 on p3.fam_house_no= a.fam_house_no  --joining maize distribution profile
-
-
+--left join ds_mysql_prod_tagelement t2 on t2.id=a.fam_house_no
 
 
 group by a.fy_timerange,p.name,p1.name,t1.name
