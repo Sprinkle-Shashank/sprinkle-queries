@@ -24,11 +24,9 @@ d.project_code=q._id
 		   
 union all
 
-select cast(c.name as varchar)as ProjectCode,f.name as fy_timerange,m.name as Project_Manager,p2.name as ngo_partners,f1.name as focus_area,t.name as st
+select cast(c.name as varchar)as ProjectCode,f.name as fy_timerange,m.name as Project_Manager,p2.name as ngo_partners,f1.name as focus_area,st
 from profile_27396 c, c.state st
 		   
-left join ds_mysql_prod_tagelement t
-on st=t.id
 left join ds_mysql_prod_tagelement f on
 c.fy=f.id
 left join ds_mysql_prod_tagelement m on
@@ -40,10 +38,9 @@ c.focus_area=f1.id
 		   
 union all
 		   
-select f.name as fy_timerange,f1.name as focus_area,m.name as Project_Manager,p2.name as ngo_partners,cast(p.name as varchar)as ProjectCode,t.name as st
+select f.name as fy_timerange,f1.name as focus_area,m.name as Project_Manager,p2.name as ngo_partners,cast(p.name as varchar)as ProjectCode,st
 from profile_27396 p,p.state st
-left join ds_mysql_prod_tagelement t
-on st=t.id
+
 left join ds_mysql_prod_tagelement f on
 p.fy=f.id
 left join profile_80183 p2
@@ -78,9 +75,11 @@ newtab1 as (select distinct(newtab.project_code) as project_code from newtab)
 
 
 
-select p.*,d.level2,
+select p.*,d.level2,t.name as state
 case when s.project_code is NULL
 then 'initiated' else 'renewed' end as status from main2 p
+left join ds_mysql_prod_tagelement t
+on p.st=t.id
 left join newtab1 s on
 p.ProjectCode=s.project_code
 left join level2tab d on
