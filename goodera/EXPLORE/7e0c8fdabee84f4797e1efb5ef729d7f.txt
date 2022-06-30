@@ -6,11 +6,13 @@ with table1 as ( select
 				reverse(SPLIT_PART(reverse(projcode_factory), '-',1)) as code_brand,
 				JSON_SERIALIZE(table_52810.pace_brands) as pace_brand,	
 				case when pace_brand like '%1011796%' then 1 else 0 end as brand,
-				case when table_52810.offset_date is null then '2020-02-01T00:00:00.000Z' else table_52810.offset_date end as offset_date,
-				len(name_vendor_filter) as len1,
-				substring(name_vendor_filter,5,len1) as vendor_name,
-				len(name_factory) as len2,
-				substring(name_factory,5,len2) as factory_name,
+				case when table_52810.offset_date is null then '2020-02-01T00:00:00.000Z' else table_52810.offset_date end as offset_date, 
+				min(name_factory) as factory_name1,
+				min(vendor_name) as vendor_name2,
+				len(vendor_name2) as len1,
+				substring(vendor_name2,5,len1) as vendor_name,
+				len(factory_name1) as len2,
+				substring(factory_name1,5,len2) as factory_name,
 				
 				case when table_71993.partner_type = 1132938 then 1 else 0 end as status1,
 				p.projectId as projectId1,
@@ -26,10 +28,12 @@ table_71993.projectId = p.projectId
 ),
 table2 as(select brand,factory_id,name_factory,projcode_vendor,vendor_name,pace_brand,offset_date,
 		table_4227.start_date as start_date,
-		  table_4227.num_females as num_females,
-		  table_4227.num_females_graduated as num_females_graduated,
+		  table_4227.num_females as num_females1,
+		  table_4227.num_females_graduated as num_females_graduated1,
 		  table_4227.select_modules as select_modules,
-		  table_4227.lg_status as lg_status,factory_name,projectId1 as projectId,
+		  table_4227.lg_status as lg_status,factory_name,projectId1 as projectId, 
+		  sum(num_females1) as num_females, 
+		  sum(num_females_graduated1) as num_females_graduated,
 		case when start_date>=offset_date then 1 else 0 end as token,
 		  case when lg_status = 848008 then 0 else 1 end as status,status1,code,name_commitment
 		  
@@ -55,4 +59,4 @@ table5 as (Select
 	name_commitment, factory_name, vendor_name, num_females, num_females_graduated,start_date, projectId, code, status, status1, brand, token
 )
 
-select name_commitment, factory_name, vendor_name, num_females, num_females_graduated, start_date, projectId, select_module, code  from table5 p where brand = 1 and token = 1 and status = 1 and status1 = 1
+select name_commitment, factory_name, vendor_name, sum(num_females), sum(num_females_graduated), start_date, projectId, select_module, code  from table5 p where brand = 1 and token = 1 and status = 1 and status1 = 1
