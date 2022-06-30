@@ -12,7 +12,7 @@ with temp as(
 
 
 sub1 as(Select concat(concat(concat(concat('{"start":"',a.hc_date),'","end":"'),a.hc_date),'"}') as fy_timerange,a.bene_screened,a.bene_nutrition_food
-,p.name as projectid,p1.name as parent,t1.name as rel_centre, temp.col as dimensions,
+,p.name as projectid,p1.name as parent,t1.name as rel_centre, 
 
 case
 	when a.bene_primary_treatment is Null then 0 else a.bene_primary_treatment end as col1,
@@ -44,26 +44,32 @@ case
 end) as numbers*/
 
 from profile_80985 a
-cross join temp
+--cross join temp
 
 left join ds_mysql_prod_project p on p.id = a.projectid
 left join ds_mysql_prod_project p1 on p1.id = p.parent
 
 left join ds_mysql_prod_tagelement t1 on t1.id=a.rel_centre
 
-group by fy_timerange,p.name,p1.name,t1.name,temp.col,a.bene_screened,a.bene_nutrition_food,a.bene_primary_treatment,a.bene_primary_over_months,a.bene_secondary_treatment,a.bene_secondary_over_months,a.food_quantity,a.food_distributed)
+group by fy_timerange,p.name,p1.name,t1.name,a.bene_screened,a.bene_nutrition_food,a.bene_primary_treatment,a.bene_primary_over_months,a.bene_secondary_treatment,a.bene_secondary_over_months,a.food_quantity,a.food_distributed),
 
-select fy_timerange,projectid,parent,rel_centre,dimensions,
-
-sum(case col
+sub2 as(select * ,
+		sum(case col
 	when 'Beneficiaries screened' then sub1.bene_screened
 	when 'Beneficiaries with primary healthcare facility' then (sub1.col1+sub1.col2)
 	when 'Beneficiaries with higher healthcare facility' then (sub1.col3+sub.col4)
 	when 'Beneficiaries supported with nutritional food' then (sub1.col5+sub1.col6)
 	when 'Nutritional food distributed' then sub1.bene_nutrition_food 
 	 else NULL
-end) as numbers
+end) as numbers,temp.col as dimensions,
 from sub1
+cross join temp		
+)
+
+select fy_timerange,projectid,parent,rel_centre,dimensions,
+
+
+from sub2
 
 
 
