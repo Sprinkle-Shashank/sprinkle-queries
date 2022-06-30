@@ -4,8 +4,9 @@ with table1 as (select
 				substring(table_54646.projcode_factory,1,1) as code,  
 				json_serialize(table_52810.pace_brands) as pace_brand, 
 				case when pace_brand like '%1011796%' then 1 else 0 end as brand, 
-				case when table_52810.offset_date is null then '2020-02-01T00:00:00.000Z' else table_52810.offset_date end as offset_date, 
-				case when start_date>=offset_date then 1 else 0 end as token, 
+				case when table_52810.offset_date is null then '2020-02-01T00:00:00.000Z' else table_52810.offset_date end as offset_date,  
+				p.start_date as start_date1,
+				case when start_date1 >= offset_date then 1 else 0 end as token, 
 				sum(num_females) as total_females, 
 				sum(num_females_graduated) as total_females_graduated, 
 				sum(num_females_dropout) as total_females_dropout, 
@@ -47,7 +48,7 @@ table_54646.projectId = p.projectId
 inner join profile_52810 table_52810 on 
 table_52810.projectId = p.projectId 
 				
-group by status1, pace_brand, code , brand, offset_date, start_date, end_date_2 , num_females, num_males, projectId1, status, select_modules
+group by status1, pace_brand, code , brand, offset_date, start_date1, end_date_2 , num_females, num_males, projectId1, status, select_modules
 ) 
 
-select projectId1 as projectId, code, start_date,select_modules, total_batches_completed   from table1 p where status1 = 1 and brand=1 and token =1 and status = 1
+select projectId1 as projectId, code, start_date1 as start_date,select_modules, total_batches_completed   from table1 p where status1 = 1 and brand=1 and token =1 and status = 1
