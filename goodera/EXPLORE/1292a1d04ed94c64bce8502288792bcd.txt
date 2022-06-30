@@ -14,7 +14,8 @@ union all
 select 'girls_enrolled_post' as c
 )
 
-select t1.school_name, t1.fy_timerange, t1.intervention, it.c as dimensions,
+t2 as 
+(select t1.school_name, t1.fy_timerange, t1.intervention, it.c as dimensions,
 
 case c 
 when 'boys_enrolled_pre' then t1.boys_enrolled_pre
@@ -22,9 +23,11 @@ when 'girls_enrolled_pre' then t1.girls_enrolled_pre
 when 'boys_enrolled_post' then t1.boys_enrolled_post
 when 'girls_enrolled_post' then t1.girls_enrolled_post
 else null
-end as sum(values) as values
-from t1 cross join items it  
-group by t1.school_name, t1.fy_timerange, t1.intervention, it.c as dimensions
-  
+end as values
+from t1 cross join items it),
+
+select t2.school_name, t2.fy_timerange, t2.intervention, t2.dimensions, sum(t2.values) as values 
+from t2
+group by 2.school_name, t2.fy_timerange, t2.intervention, t2.dimensions, t2.values  
   
 
