@@ -1,47 +1,17 @@
-with temp as(
-  Select 'Cocunut Saplings' as col
-  union all
-  select 'Arecanut Saplings' as col
-  union all
-  select 'Jackfruit Saplings' as col
-  union all
-  select 'Drumstick Saplings' as col
-  union all
-  select 'Other Horticulture Saplings' as col
-  union all
-  select 'Malabar Saplings' as col
-  union all
-  select 'Mahogany Saplings' as col
-  union all
-  select 'Neem Saplings' as col
-  union all
-  select 'Silver Oak Saplings' as col
-  union all
-  select 'Other Agroforestry Saplings' as col
-
-)
 
 Select a.fy_timerange,p.name as projectid,p1.name as parent,t1.name as rel_centre
-,p2.name as fam_unique_no,temp.col as dimensions,
-sum(case col
-	when 'Cocunut Saplings' then a.coconut_sapling
-	when 'Arecanut Saplings' then a.arecanut_sapling
-	when 'Jackfruit Saplings' then a.jackfruit_sapling
-	when 'Drumstick Saplings' then a.drumstick_sapling
-	when 'Other Horticulture Saplings' then a.horti_others
-	when 'Malabar Saplings' then a.malabar_sapling
-	when 'Mahogany Saplings' then a.mahogany_sapling
-	when 'Neem Saplings' then a.neem_sapling
-	when 'Silver Oak Saplings' then a.silver_oak_sapling
-	when 'Other Agroforestry Saplings' then a.agro_other
-	 else NULL
-end) as Values,
+,p2.name as fam_unique_no,
+sum(a.coconut_sapling+a.arecanut_sapling+a.jackfruit_sapling+a.drumstick_sapling+a.horti_others) as total_horti,
+sum(a.malabar_sapling+a.mahogany_sapling+ a.neem_sapling+ a.silver_oak_sapling+a.agro_other) as total_agro,
+
 
 case 
-	when dimensions='Cocunut Saplings' OR dimensions='Arecanut Saplings' OR dimensions='Jackfruit Saplings' OR dimensions='Drumstick Saplings' OR dimensions='Other Horticulture Saplings' then 'Horticulture'
+	when total_horti= 0 or total_agro = 0 then 0 else 1
+	end as flag,
 	
-	
-	when dimensions='Malabar Saplings' OR dimensions='Neem Saplings' OR dimensions='Mahogany Saplings' OR dimensions='Silver Oak Saplings' OR dimensions='Other Agroforestry Saplings' then 'Agroforestry'
+case	
+	when total_horti != NULL then 'Horticulture'
+	when total_agro != NULL then 'Agroforestry'
 	else NULL 
 	end as Intervention_type
 
@@ -62,4 +32,4 @@ left join profile_80983 p3 on p3.fam_house_no= a.fam_house_no  --joining maize d
 
 
 group by a.fy_timerange,p.name,p1.name,t1.name
-,p2.name,temp.col
+,p2.name
