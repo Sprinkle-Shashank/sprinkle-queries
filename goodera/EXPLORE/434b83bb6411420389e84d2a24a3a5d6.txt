@@ -1,5 +1,26 @@
-
-select p1._id, p1.fy_timerange, p1.school, p1.intervention, p1.standard, p1.learning_hours as Learning_Hours, p1.utilization_hours as Utilzation_Hours, p1.teacher_learning_hours as Teacher_Training_Hours, p2.school_name
+with t1 as 
+(select p1._id, p1.fy_timerange, p1.school, p1.intervention, p1.standard, p1.learning_hours as Learning_Hours, p1.utilization_hours as Utilzation_Hours, p1.teacher_learning_hours as Teacher_Training_Hours, p2.school_name
 from profile_76610 p1
 left join profile_76607 p2
-on p1.school = p2._id
+on p1.school = p2._id),
+
+items as (
+select 'Learning_Hours' as c
+union all
+select 'Teacher_Training_Hours' as c
+union all
+select 'Utilization_Hours' as c
+),
+
+select it.c,
+
+case c
+when 'Learning_Hours' then t1.Learning_Hours
+when 'Teacher_Training_Hours' then t1.Teacher_Training_Hours
+when 'Utilization_Hours' then t1.Utilization_Hours
+else null 
+end 
+from t1 cross join items it
+
+
+  
