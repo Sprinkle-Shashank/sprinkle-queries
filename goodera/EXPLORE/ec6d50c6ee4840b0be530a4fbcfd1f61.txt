@@ -1,0 +1,35 @@
+with temp as(
+  Select 'Beneficiaries screened' as col
+  union all
+  select 'Beneficiaries with primary healthcare facility' as col
+  union all
+  select 'Beneficiaries with higher healthcare facility' as col
+  union all
+  select 'Beneficiaries supported with nutritional food' as col
+  union all
+  select 'Nutritional food distributed' as col
+  )
+
+
+Select concat(concat(concat(concat('{"start":"',a.hc_date),'","end":"'),a.hc_date),'"}') as fy_timerange
+,p.name as projectid,p1.name as parent,t1.name as rel_centre, temp.col as dimensions,
+(a.bene_primary_treatment+a.bene_primary_over_months) as primary,(a.bene_secondary_treatment+a.bene_secondary_over_months) as secondary,(a.food_quantity+a.food_distributed) as food,a.bene_nutrition_food ,
+
+sum(case col
+	when 'Beneficiaries screened' then a.bene_screened
+	when 'Beneficiaries with primary healthcare facility' then (a.bene_primary_treatment+a.bene_primary_over_months)
+	when 'Beneficiaries with higher healthcare facility' then (a.bene_secondary_treatment+a.bene_secondary_over_months)
+	when 'Beneficiaries supported with nutritional food' then (a.food_quantity+a.food_distributed)
+	when 'Nutritional food distributed' then a.bene_nutrition_food 
+	 else NULL
+end) as numbers
+
+from profile_80985 a
+
+left join ds_mysql_prod_project p on p.id = a.projectid
+left join ds_mysql_prod_project p1 on p1.id = p.parent
+
+left join ds_mysql_prod_tagelement t1 on t1.id=a.rel_centre
+
+group by a.timerange,p.name,p1.name,t1.name,temp.col
+
