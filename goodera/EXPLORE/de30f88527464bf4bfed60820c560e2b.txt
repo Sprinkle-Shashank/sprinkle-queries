@@ -8,10 +8,6 @@ with table1 as (select
 				table_4227.start_date as start_date1,		
 				case when num_enrolled_class = 0 then null else (cast(attendance as float)/cast(num_enrolled_class as float)) end as avg_attendance,
 				case when table_52810.offset_date is null then '2020-02-01T00:00:00.000Z' else table_52810.offset_date end as offset_date, 
-				case when start_date1 >= offset_date then 1 else 0 end as token, 
-				avg(avg_attendance) as total_avg_attendance, 
-				 moduleTable.name as module , 
-				moduleTable.sortOrder as sortOrder, 
 				p._id as id1,
 				p.projectId as projectid1
 
@@ -26,12 +22,20 @@ table_52810.projectId = p.projectId
 inner join profile_4227 table_4227 on
 table_4227._id = p.class 
 				
+
+), 
+
+table2 as (select brand,case when start_date1 >= offset_date then 1 else 0 end as token,select_modules1, avg(avg_attendance) as total_avg_attendance,
+		   moduleTable.name as module ,attendance,num_enrolled_class,id1,start_date,projectid1,code
+
+			from table1 p
+		   
 left join ds_mysql_prod_tagelement moduleTable on
-moduleTable.Id = select_modules
-				
-group by brand,token,select_modules1 ,module,moduleTable.sortOrder,attendance,num_enrolled_class,id1,start_date1,projectid1,code, code_brand, pace_brand, brand ,avg_attendance, offset_date 
+moduleTable.Id = select_modules1
+		   
+group by brand,token,select_modules,module,moduleTable.sortOrder,attendance,num_enrolled_class,id1,start_date,projectid1,code
 order by moduleTable.sortOrder
 )
 
 
-select total_avg_attendance,select_modules1 as select_modules,module,start_date1 as start_date,projectid1 as projectid, code from table1 p where brand = 1 and token = 1
+select total_avg_attendance,select_modules1 as select_modules,module,start_date1 as start_date,projectid1 as projectid, code from table2 p where brand = 1 and token = 1
