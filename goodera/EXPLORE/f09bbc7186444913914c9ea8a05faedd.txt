@@ -1,11 +1,32 @@
-Select t1.name projectid, p.fy_timerange, q.location,p.tanks_renovated,q.tanks_renovated,p.recharge_shaft,q.recharge_shaft
+Select t1.name projectid, p.fy_timerange, q.location
 FROM profile_81184 p
 left join profile_81225 q
 on q._id=p.location
+with temp as ( 
+select 'tanks_renovated' as c
+  Union all 
+select 'recharge_shaft' as c
+  Union all 
+select 'saplings_raised' as c 
+  Union all 
+  select 'self_help_groups_formed' as c
+  Union all 
+  select 'rmc_creation' as c 
+  Union all 
+  select 'rmc_members_trained' as c  )
+  
+  select pro.name as projectid, fy_timerange,
+sum( case c when 'tanks_renovated' then p.tanks_renovated
+	        when 'recharge_shaft' then p.recharge_shaft
+	        when 'saplings_raised' then p.saplings_raised
+	        when 'self_help_groups_formed' then p.self_help_groups_formed
+	        when 'rmc_creation' then p.rmc_creation
+	        when 'rmc_members_trained' then p.rmc_members_trained
+	       
 left join ds_mysql_prod_tagelement t1
 ON p.projectid=t1.id
 
-GROUP BY 1,2,3,4,5,6,7
+
 
 /*
 with temp as ( 
