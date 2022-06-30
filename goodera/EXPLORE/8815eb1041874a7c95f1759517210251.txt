@@ -1,9 +1,12 @@
-select _id,saplings_raised, t.name locationh, self_help_groups_formed, q.name tanks_renovated, principal, principal_no, r.name recharge_shaft, rmc_creation, rmc_members_trained
-from profile_77382 p  
-left join ds_mysql_prod_tagelement t
-on p.location = t.id
-left join ds_mysql_prod_tagelement q
-on p.tanks_renovated = q.id
-left join ds_mysql_prod_tagelement r
-on p.recharge_shaft = r.id
-group by 1,2,3,4,5,6,7,8,9,10,11,12;
+with s1 as(
+select p.fy_timerange,location,  cast(t.batch_course as super) , count(*) from profile_81184 p
+left join profile_81225 t
+on p.location = t._id
+group by 1,2,3),
+
+s2 as(
+select s3.*,fsf
+from s1 as s3,s3.batch_course as fsf)
+
+select s2.*
+from s2
