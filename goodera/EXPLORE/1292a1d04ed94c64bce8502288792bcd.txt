@@ -5,29 +5,36 @@ left join profile_76610 p2
 on p2.intervention = p1._id),
 
 items as (
-select 'boys_enrolled_pre' as c
-union all
-select 'girls_enrolled_pre' as c
-union all
-select 'boys_enrolled_post' as c
-union all  
-select 'girls_enrolled_post' as c
+	select 'boys_enrolled_pre' as c
+	union all
+	select 'girls_enrolled_pre' as c
+	union all
+	select 'boys_enrolled_post' as c
+	union all  
+	select 'girls_enrolled_post' as c
 ),
 
 t2 as 
 (select t1.school_name, t1.fy_timerange, t1.intervention, it.c as dimensions,
 
 case c 
-when 'boys_enrolled_pre' then t1.boys_enrolled_pre
-when 'girls_enrolled_pre' then t1.girls_enrolled_pre
-when 'boys_enrolled_post' then t1.boys_enrolled_post
-when 'girls_enrolled_post' then t1.girls_enrolled_post
-else null
+	when 'boys_enrolled_pre' then t1.boys_enrolled_pre
+	when 'girls_enrolled_pre' then t1.girls_enrolled_pre
+	when 'boys_enrolled_post' then t1.boys_enrolled_post
+	when 'girls_enrolled_post' then t1.girls_enrolled_post
+	else null
 end as values
 from t1 cross join items it)
 
-select t2.school_name, t2.fy_timerange, t2.intervention, t2.dimensions, sum(t2.values) as values 
+select t2.school_name, t2.fy_timerange, t2.intervention, t2.dimensions, t2.values
+case t2.dimensions 
+when 'boys_enrolled_pre' then 'Boys'
+when 'girls_enrolled_pre' then 'Girls'
+when 'boys_enrolled_post' then 'Boys'
+when 'girls_enrolled_post' then 'Girls'
+else null
+end as Gender 
 from t2
-group by t2.school_name, t2.fy_timerange, t2.intervention, t2.dimensions
+
   
 
