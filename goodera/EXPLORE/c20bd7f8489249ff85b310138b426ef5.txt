@@ -19,7 +19,10 @@ order by fy_timerange asc
 ) 
 				),
 				table2 as (
-select country,name,fy_timerange,/*pur_electricity_r+*/in_electricity_auto as total_renew_elec1,total_elec_consumption, 
+select country,name,fy_timerange,
+case when pur_electricity_r = 0 then in_electricity_auto
+	 when in_electricity_auto = 0 then pur_electricity_r			  
+	 else pur_electricity_r+in_electricity_auto end as total_renew_elec1,total_elec_consumption, 
 EXTRACT(MONTH FROM cast (startdate as datetime))AS month1,
 EXTRACT(YEAR FROM cast (startdate as datetime))AS year1,
 CASE
@@ -37,13 +40,13 @@ concat(concat(concat(concat('{"start":"',start1),'","end":"'),end2),'"}') as fy_
 from table1 t1
 				),
 table3 as (
-select country,name,fy_1 as fy_timerange,sum(t2.total_renew_elec1) as total_renew_elec from table2 t2
+select country,name,fy_1 as fy_timerange,sum(t2.total_renew_elec1) as total_renew_elec,sum(total_elec_consumption) as total_elec_consumption from table2 t2
 
 group by country,name,fy_1)
 
-select country,name,fy_timerange,total_renew_elec,lag(total_renew_elec,1) over (partition by name order by  fy_timerange) as prev_energy/*,
+select country,name,fy_timerange,total_renew_elec,total_elec_consumption/*,lag(total_renew_elec,1) over (partition by name order by  fy_timerange) as prev_energy,
 (select total_e from table3
-	order by fy_timerange asc limit 1) as base_value*/,(prev_energy-total_renew_elec)*100.0/prev_energy as per  from table3 
+	order by fy_timerange asc limit 1) as base_value,(prev_energy-total_renew_elec)*100.0/prev_energy as per*/  from table3 
 
 
 
