@@ -1,51 +1,64 @@
 
-with temp as (
-  select 'beneficiary_reach' as C
-  Union all 
-  select 'philips_partcipants' as C
-  Union all 
-  select 'pre_assessment' as C
-  Union all
-  select 'post_assessment' as C
-	)
-Select report.projectid,  
-EXTRACT(MONTH FROM(date))AS month1,
-EXTRACT(YEAR FROM(date))AS year1,		  
-CASE
-WHEN month1 <= 3
-THEN year1-1
-ELSE year1
-END AS start,
-start+1 as end1,
-concat(start,'-04-01T00:00:00.000Z') as start1,
-concat(end1,'-04-01T00:00:00.000Z') as end2,
-concat(concat(concat(concat('{"start":"',start1),'","end":"'),end2),'"}') as fy_timerange1
+
+with test0 as(Select p.* ,CAST(pace_goals as VARCHAR)from profile_76755 p
+, p.pace_goals_arr pace_goals
+),
+
+ test1 as(
+Select t0._id,t0.projectId as project,fac.name as projectId, p2.facility_name as facility,t0.pace,t0.strategic_yn,t0.facility_type,t0.year_timerange, t0.country as country,ven.name as vendor1,nvl2(SUBSTRING(vendor1, 1, POSITION(' (' in vendor1)), SUBSTRING(vendor1, 1, POSITION(' (' in vendor1)), vendor1) as vendor_name, case when vendor_name='' then vendor1 else vendor_name end as vendor, t0.director_region as director_region, p1.pace_introduced,p1.certified_trainers, p1.certified_mts,case when  p1.pace_introduced = 57472 then 'Yes' else 'No' end as result_1,concat(vendor,t0.country) as unique
 
 
-, cast (fy_timerange1 as SUPER) as fy_timerange,
-report.date 
-, act.activity ,cit.name as location ,report.details,report.photo,report.upload,
-Sum(Case C
-	When 'beneficiary_reach' then report.beneficiary_reach
-	When 'philips_partcipants' then report.philips_partcipants
-	When 'pre_assessment' then report.pre_assessment
-	When 'post_assessment' then report.post_assessment
-	Else Null
-END) as values , temp.C as dimensions
-from profile_78552 report
-cross join temp
-Left join profile_78551 act
-On report.task = act._id
 
-left join ds_mysql_prod_tagelement cit
- on report.locate = cit.id
+from test0 t0
+   
+left join profile_76895 p1
+on t0.pace_goals = p1._id
 
-GROUP BY report.projectid,report.date , act.activity ,cit.name ,report.details,report.photo,report.upload,temp.C ,cit.start
-/*Select report.date, act.activity ,cit.name as location ,report.beneficiary_reach,report.philips_partcipants,report.details,report.photo,report.upload,report.pre_assessment,report.post_assessment
-from profile_78552 report
-Left join profile_78551 act
-On report.task = act._id
 
-left join ds_mysql_prod_tagelement cit
- on report.locate = cit.id
-*/
+left join profile_76770 p2 on
+t0.facility_name = p2._id
+		   
+left join ds_mysql_prod_project fac
+on t0.projectid = fac.id
+left join ds_mysql_prod_project ven
+on fac.parent = ven.id
+
+
+   
+
+
+),
+test2 as (select t1.vendor,t1.country,Sum(t1.certified_mts) as certified_masters,Sum(t1.certified_trainers) as total_trainers,certified_masters*100 AS a1,
+a1/nullif(total_trainers,0) AS master
+		  --t1.certified_trainers,t1.certified_mts
+		  ,case when (master>=30) then 'Yes'
+		  else 'No' end as result_2,concat(vendor,t1.country) as unique
+		  
+from test1 t1
+		  
+		  
+group by vendor,country
+
+)
+
+,
+test3 as (Select t1._id,t1.projectId,t1.project,t1.facility, t1.pace,t1.facility_type, t1.strategic_yn, t1.year_timerange, t1.country , t1.director_region as director_region,t2.master
+		  ,t2.result_2,t1.result_1,t1.vendor,t1.pace_introduced,t2.total_trainers,t2.certified_masters,
+count(project) as count
+from test1 t1
+
+
+
+left join test2 t2 on
+t1.unique = t2.unique
+
+
+where t1.strategic_yn = 'Yes' and project like '%%' and (result_1 = 'Yes' and result_2 = 'Yes')
+		  
+group by t1._id,t1.project,t1.projectId,t1.facility, t1.pace,t1.facility_type, t1.strategic_yn, t1.year_timerange, t1.country , t1.director_region ,t2.master
+		  ,t2.result_2,t1.result_1,t1.vendor,t1.pace_introduced,t2.total_trainers,t2.certified_masters
+
+		  
+)
+
+select * from test3
