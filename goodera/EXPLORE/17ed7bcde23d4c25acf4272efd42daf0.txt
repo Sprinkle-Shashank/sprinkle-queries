@@ -1,4 +1,57 @@
-select cou.name as country,p.name,p.fy_timerange,keyword,datanum,datanumbase,
+with table1 as (SELECT *
+FROM (
+select cou.name as country,p.name,p.fy_timerange,keyword,datanum,startdate
+
+from sus_80478 p
+
+left join ds_mysql_prod_project pro on 
+p.xprojectid = pro.id
+
+left join ds_mysql_prod_project cou on 
+pro.parent = cou.id
+
+where keyword in ('total_energy_auto'/*,'scope2_emission'*/) 
+
+order by fy_timerange asc
+  
+) PIVOT (
+   sum(datanum) FOR keyword IN ('total_energy_auto'/*,'scope2_emission'*/)
+) 
+				),
+				table2 as (
+select country,name,fy_timerange,total_energy_auto/*+scope2_emission*/ as total_energy1,
+EXTRACT(MONTH FROM cast (startdate as datetime))AS month1,
+EXTRACT(YEAR FROM cast (startdate as datetime))AS year1,
+CASE
+WHEN MONTH1 <= 3
+THEN YEAR1-1
+ELSE
+YEAR1
+END AS start,
+start+1 as end1,
+concat(start,'-04-01T00:00:00.000Z') as start1,
+concat(end1,'-03-31T00:00:00.000Z') as end2,
+concat(concat(concat(concat('{"start":"',start1),'","end":"'),end2),'"}') as fy_1				  
+				  
+
+from table1 t1
+				),
+table3 as (
+select country,name,fy_1 as fy_timerange,sum(t2.total_energy1) as total_energy from table2 t2
+
+group by country,name,fy_1)
+
+select country,name,fy_timerange,total_energy,lag(total_energy,1) over (order by  fy_timerange) as prev_energy/*,
+(select total_e from table3
+	order by fy_timerange asc limit 1) as base_value*/,(prev_energy-total_energy)*100.0/prev_qty as per  from table3 
+
+
+
+
+
+
+
+/*select cou.name as country,p.name,p.fy_timerange,keyword,datanum,datanumbase,
 lag(datanum,1) over (order by  p.fy_timerange) as prev_qty,
 (prev_qty-datanum)*100.0/prev_qty as per 
 
@@ -12,4 +65,4 @@ pro.parent = cou.id
 
 where keyword = 'total_energy_auto' 
 
-order by fy_timerange asc
+order by fy_timerange asc*/
