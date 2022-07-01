@@ -6,12 +6,16 @@ items as (
 select 'girls_enrolled_pre' as dimensions
 union all
 select 'boys_enrolled_pre' as dimensions 
-)
-select t1.school_name, t1.fy_timerange, it.dimensions,
+),
+t2 as 
+(select t1.school_name, t1.fy_timerange, it.dimensions,
 case dimensions 
 when 'girls_enrolled_pre' then t1.girls_enrolled_pre
 when 'boys_enrolled_pre' then t1.boys_enrolled_pre
 else null
-end as sum(values) as values
-from t1 cross join items it
-group by t1.school_name, t1.fy_timerange, it.dimensions
+end as values
+from t1 cross join items it)
+
+select t2.school_name, t2.fy_timerange, t2.dimensions, sum(values) as values
+from t2
+group by t2.school_name, t2.fy_timerange, t2.dimensions
