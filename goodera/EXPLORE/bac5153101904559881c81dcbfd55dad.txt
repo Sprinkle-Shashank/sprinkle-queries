@@ -1,0 +1,54 @@
+with table1 as (SELECT *
+FROM (
+select cou.name as country,p.name,p.fy_timerange,keyword,datanum,startdate
+
+from sus_80478 p
+
+left join ds_mysql_prod_project pro on 
+p.xprojectid = pro.id
+
+left join ds_mysql_prod_project cou on 
+pro.parent = cou.id
+
+where keyword in ('comsuption_bio','total_energy') 
+
+order by fy_timerange asc
+  
+) PIVOT (
+   sum(datanum) FOR keyword IN ('comsuption_bio','total_energy')
+) 
+				),
+				table2 as (
+select country,name,fy_timerange,
+consumption_bio as total_renew_thermal1,total_energy, 
+EXTRACT(MONTH FROM cast (startdate as datetime))AS month1,
+EXTRACT(YEAR FROM cast (startdate as datetime))AS year1,
+CASE
+WHEN MONTH1 <= 3
+THEN YEAR1-1
+ELSE
+YEAR1
+END AS start,
+start+1 as end1,
+concat(start,'-04-01T00:00:00.000Z') as start1,
+concat(end1,'-03-31T00:00:00.000Z') as end2,
+concat(concat(concat(concat('{"start":"',start1),'","end":"'),end2),'"}') as fy_1				  
+				  
+
+from table1 t1
+				),
+table3 as (
+select country,name,fy_1 as fy_timerange,sum(t2.total_renew_thermal1) as total_renew_thermal,sum(total_energy) as total_energy from table2 t2
+
+group by country,name,fy_1)
+
+select country,name,fy_timerange,total_renew_thermal,total_energy/*,lag(total_renew_elec,1) over (partition by name order by  fy_timerange) as prev_energy,
+(select total_e from table3
+	order by fy_timerange asc limit 1) as base_value,(prev_energy-total_renew_elec)*100.0/prev_energy as per*/  from table3 
+
+
+
+
+
+
+
