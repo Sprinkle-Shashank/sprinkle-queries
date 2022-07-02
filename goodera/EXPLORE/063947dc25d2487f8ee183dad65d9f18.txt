@@ -19,7 +19,9 @@ listagg(distinct( cast(p.end_date_2 as varchar(256)))) as enddate2,
 				
 case when last_modified is null or sectionId1 != 9296 then enddate2 else last_modified end as business_date,
 							
-case when table_4228._id is null then p._id else table_4228._id end as _4228id, p.projectId as projectid1
+case when table_4228._id is null then p._id else table_4228._id end as _4228id, p.projectId as projectid1,
+				case when table_52810.offset_date is null then '2020-02-01T00:00:00.000Z' else table_52810.offset_date end as offset_date,
+				case when p.start_date >= offset_date then 1 else 0 end as token
 
 from profile_4227 p
 
@@ -49,7 +51,7 @@ lookup2 as (select
 			business_date,
 			_4227_id,
 			last_modified,
-			_4228id,projectid1
+			_4228id,projectid1,token
 			
 		   from lookup p
 
@@ -61,7 +63,7 @@ group by 	taskResponse_4228.status,
 			,p.data_user
 			,p.business_date
 			,p._4227_id
-			,p._4228id,projectid1
+			,p._4228id,projectid1,token
 			
 order by p._4227_id),
 lookup3 as( select
@@ -73,11 +75,11 @@ lookup3 as( select
   		(max(date_modified)) as date_modified,
   		max(last_modified) as last_modified,
   		max(last_entry_date) as last_entry_date ,
-		listagg(_4228id) as _4228id,projectid1
+		listagg(_4228id) as _4228id,projectid1,token
 
 		from lookup2 p
-group by _4227_id,brand,status10,projectid1
+group by _4227_id,brand,status10,projectid1,token
 order by data_user
 )
 
-select data_user,business_date,_4227_id,last_entry_date,projectid1 as projectId from lookup3 p where brand = 1 and status10 = 'SUBMITTED'
+select data_user,business_date,_4227_id,last_entry_date,projectid1 as projectId from lookup3 p where brand = 1 and status10 = 'SUBMITTED' and token = 1
