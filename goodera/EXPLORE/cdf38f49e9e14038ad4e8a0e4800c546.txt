@@ -1,16 +1,30 @@
 with lookup as (select
 				JSON_SERIALIZE(table_52810.pace_brands) as pace_brand,
-				LISTAGG(DISTINCT projcode_factory) as factorycode,
-				LISTAGG(DISTINCT projid_vendor) as vendorID,
-				LISTAGG(DISTINCT projid_rp) as rpid,
-				LISTAGG(DISTINCT name_factory) as factoryname,
-				LISTAGG(DISTINCT projid_country) as country_id,
+				( projcode_factory) as factorycode,
+				( projid_vendor) as vendorID,
+				( projid_rp) as rpid,
+				( name_factory) as factoryname,
+				( projid_country) as country_id,
 				projid_factory as factory_id,
-				case when pace_brand like '%1011796%' then 1 else 0 end  as brand
+				case when pace_brand like '%1011796%' then 1 else 0 end  as brand,
+				table_4227.start_date as start_date,
+				case when table_52810.offset_date is null then '2020-02-01T00:00:00.000Z' else table_52810.offset_date end as offset_date,
+				case when start_date >= offset_date then 1 else 0 end as token
 				from profile_54646 p
 left join profile_52810 table_52810 on
 table_52810.projectid=p.projectid
 left join profile_4227 table_4227 on
 table_4227.projectid=p.projectid
-group by  projid_factory,table_52810.pace_brands)			   
-select country_id,rpid,vendorID,factorycode,factoryname,factory_id from lookup p where brand = 1
+),
+lookup2 as(Select brand,token,factory_id,
+		   		LISTAGG(DISTINCT factorycode) as factorycode,
+				LISTAGG(DISTINCT vendorID) as vendorID,
+				LISTAGG(DISTINCT rpid) as rpid,
+				LISTAGG(DISTINCT factoryname) as factoryname,
+				LISTAGG(DISTINCT country_id) as country_id
+		   from lookup p
+		   
+group by brand,token,factory_id
+
+)
+select country_id,rpid,vendorID,factorycode,factoryname,factory_id from lookup2 p where brand = 1 and token = 1
