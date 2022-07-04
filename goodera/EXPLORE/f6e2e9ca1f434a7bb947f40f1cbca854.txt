@@ -1,10 +1,15 @@
-select p1._id, tag1.name as projectId, p1.student_name, p1.roll_number, p3.name as select_topic, p1.student_name ||'-'||p1.roll_number as name, count(*)
+with t1 as 
+(select p1._id, tag1.name as projectId, p1.student_name, p1.roll_number, p3.name as select_topic, p1.student_name ||'-'||p1.roll_number as name
 from profile_64048 p1
 left join ds_mysql_prod_project tag1
 on p1.projectId = tag1.id
 left join profile_64052 p2
 on p2.select_name = p1._id
 left join profile_64049 p3
-on p2.select_topic = p3._id
-group by projectId, name, select_topic
+on p2.select_topic = p3._id)
+
+select t1.projectId, t1.select_topic, t1.name, count(*)
+from t1
+group by t1.projectId, t1.select_topic, t1.name
+
 
