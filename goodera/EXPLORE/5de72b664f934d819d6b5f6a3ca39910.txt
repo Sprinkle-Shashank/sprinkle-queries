@@ -1,1 +1,22 @@
-Select * from profile_81270
+
+with temp as (
+  select 'Tanks Rejuvenated' as C
+  Union all 
+  select 'Dams Desilted' as C
+  Union all 
+  select 'Ponds Created' as C
+  Union all 
+  select 'Others' as C
+  )
+Select projectid , fy_timerange, 
+SUM(Case C
+	When 'Tanks Rejuvenated' then p.water_tanks_cap
+	When 'Dams Desilted' then p.dam_disilt_cap
+	When 'Ponds Created' then p.farm_pond_cap
+	When 'Others' then p.other_water_cap
+	Else Null
+END) as values,
+temp.C as dimensions
+from profile_81270 p
+cross join temp
+group by fy_timerange,projectid,temp.C
