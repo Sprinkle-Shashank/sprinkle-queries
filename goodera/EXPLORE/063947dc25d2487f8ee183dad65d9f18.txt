@@ -31,9 +31,33 @@ table_54267.projectid = p.projectid
 table2 as (select factory_id,projectId1,min(child_vendor_vpid) as child_vendor_vpid,brand,token
 		   from table1 p where brand = 1 and token = 1 --and status = 1
 		   group by projectid1,factory_id,brand,token
+),
+table3 as (Select factory_id,projectId1,child_vendor_vpid as vendor_vpid,
+		   table_54646.name_country as country_name,
+		   table_54646.name_vendor_filter as vendor,
+		   table_54646.name as factory_name,
+		   table_4227.end_date_2 as end_date_2,
+		   case when end_date_2 is null then 0 else 1 end as datestatus,
+		   table_4227._id as _4227_id,
+		   table_4227.select_modules as select_modules,
+		   table_4227.start_date as start_date,
+		   substring(table_4227.start_date,1,10) as start_date2,
+		   substring(table_4227.start_date,1,4) as year,
+		   substring(table_4227.end_date_2,1,10) as end_date,
+		   table_4227.num_females as num_females,
+		   case when table_4227.num_females_graduated is null then '-' else table_4227.num_females_graduated end as num_females_graduated
+		   
+		   
+		   from table2 p
+
+inner join profile_54646 table_54646 on
+table_54646.projectid = p.projectid
+		   
+left join profile_4227 table_4227 on
+table_4227.projectid = p.projectid
 )
 
 
 
-Select * from table2 p 
+Select * from table3 p where datestatus = 1
 -- where brand = 1 and token = 1 and status = 1
