@@ -11,7 +11,8 @@ with table1 as (Select
 				case when (JSON_SERIALIZE(taskResponse_4227.submissionLog)) is null then 0 else 1 end as submissionstatus,
 				case when sectionId = 9292 or submissionstatus=1 then ((taskResponse_4227.submissionLog[0].email)) else null end as data_user,
 				( cast(p.end_date_2 as varchar(256))) as enddate2,		
-				case when last_modified is not null or sectionId = 9296 then last_modified else enddate2 end as business_date
+				case when last_modified is not null or sectionId = 9296 then last_modified else enddate2 end as business_date,
+				p._id as _4227_id
 				
 				
 				from profile_4227 p
@@ -23,4 +24,4 @@ inner join ds_mongo_taskresponse taskResponse_4227 on
 taskResponse_4227.profileinstanceid=p._id
 
 )
-Select * from table1 p where brand = 1 and start_date1 >= offset_date and status = 'SUBMITTED'
+Select max(last_modified) as last_modified, max(data_user) as data_user, max(business_date) as business_date,(_4227_id) as _4227_id from table1 p where brand = 1 and start_date1 >= offset_date and status = 'SUBMITTED' group by _4227_id
