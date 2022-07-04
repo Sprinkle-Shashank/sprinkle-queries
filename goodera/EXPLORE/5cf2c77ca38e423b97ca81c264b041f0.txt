@@ -1,13 +1,23 @@
-with sub1 as(
-  select p1.*, sdgs_unwind from profile_80500 p1, p1.name sdgs_unwind),
-  
-sub2 as(
-  select sdgs_unwind from sub1 group by sdgs_unwind)
-  
-select substring(t1.name, 4, (len(t1.name) - 3)) as sdg, p2.photo, left(t1.name, 2) as sort_order
-from sub2 s2
+with sub1  as(
+  select b.*,unwind_sdg, unwind_city
+  from profile_80499 b,  b.sdg as unwind_sdg, b.state as unwind_city)
 
-left join profile_80499 p2 on p2._id = s2.sdgs_unwind
-left join ds_mysql_prod_tagelement t1 on t1.id = p2.sdg
+Select a.fy_timerange, p.name as projectid,a.project_name as project_name, p1.name as donor, 
+listagg(distinct d1.name, ', ') as sdg,
+listagg(distinct t3.name, ', ') as city,
+listagg(distinct t4.name, ', ') as state, d1.photo as sdg_pic
 
-order by sort_order asc 
+from  sub1 a
+
+left join ds_mysql_prod_project p on p.id = a.projectid
+left join ds_mysql_prod_project p1 on p1.id = p.parent
+
+
+left join ds_mysql_prod_tagelement t3 on t3.id=a.unwind_city
+left join ds_mysql_prod_tagelement t4 on t4.id=t3.parent
+
+left join  profile_80500 d1 on d1._id = a.unwind_sdg
+
+where a.projectid like '%%'
+
+group by a.fy_timerange,a.project_name,p.name,d1.photo,p1.name
