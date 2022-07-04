@@ -1,19 +1,21 @@
-Select a.fy_timerange, p.name as projectid,a.project_name as project_name, p1.name as donor,t2.name as city, t3.name as state,
-case
-	when (p.name) like '%School Transformation' then 'School Transformation'
-	when (p.name) like '%Random act of kindness' then 'Random act of kindness'
-	when (p.name) like '%Health & Nutrition' then 'Health & Nutrition'
-	when (p.name) like '%Unstoppable Vaccination Drive' then 'Unstoppable Vaccination Drive'
-	when (p.name) like '%Remote Learning' then 'Remote Learning'
-	when (p.name) like '%Educational Scholarships' then 'Educational Scholarships'
-	else NULL
-	end as project_type
+with sub1  as(
+  select b.*,unwind_schedule_vii,unwind_sdg, unwind_city
+  from profile_80499 b,  b.schedule_vii as unwind_schedule_vii,
+  b.sdg as unwind_sdg, b.state as unwind_city)
+  
+Select a.fy_timerange, p.name as projectid,a.project_name as project_name, p1.name as donor,
 
-from profile_80499 a
+listagg(distinct t3.name, ', ') as city,
+listagg(distinct t4.name, ', ') as state
+from  sub1 a
 
 left join ds_mysql_prod_project p on p.id = a.projectid
 left join ds_mysql_prod_project p1 on p1.id = p.parent
-left join ds_mysql_prod_tagelement t2 on t2.id=a.loc
-left join ds_mysql_prod_tagelement t3 on t3.id=t2.parent
+
+left join ds_mysql_prod_tagelement t3 on t3.id=a.unwind_city
+left join ds_mysql_prod_tagelement t4 on t4.id=t3.parent
+
 
 where a.projectid like '%%'
+
+group by a.fy_timerange,a.project_name,p.name,p1.name
