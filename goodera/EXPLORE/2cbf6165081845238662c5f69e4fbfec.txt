@@ -12,7 +12,8 @@ with table1 as (Select
 				case when sectionId = 9292 or submissionstatus=1 then ((taskResponse_4227.submissionLog[0].email)) else null end as data_user,
 				( cast(p.end_date_2 as varchar(256))) as enddate2,		
 				case when last_modified is not null or sectionId = 9296 then last_modified else enddate2 end as business_date,
-				p._id as _4227_id
+				p._id as _4227_id,
+				case when table_4228._id is null then _4227_id else table_4228._id end as _4228_id
 				
 				
 				from profile_4227 p
@@ -22,6 +23,12 @@ table_52810.projectId = p.projectId
 				
 inner join ds_mongo_taskresponse taskResponse_4227 on
 taskResponse_4227.profileinstanceid=p._id
+				
+left join profile_4228 table_4228 on
+table_4228.class = p._id 
+				
+left join ds_mongo_taskresponse taskresponse_4228 on
+taskresponse_4228.profileinstanceid = IFNULL(table_4228._id, p._id)
 
 )
 Select max(last_modified) as last_modified, max(data_user) as data_user, max(business_date) as business_date,(_4227_id) as _4227_id from table1 p where brand = 1 and start_date1 >= offset_date and status = 'SUBMITTED' group by _4227_id
