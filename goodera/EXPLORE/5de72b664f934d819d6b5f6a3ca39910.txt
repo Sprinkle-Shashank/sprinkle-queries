@@ -8,7 +8,7 @@ with temp as (
   Union all 
   select 'Others' as C
   )
-Select projectid , fy_timerange, 
+Select projectid , fy_timerange,  t1.name as loc_1 , t2.name as loc_2 , t3.name as loc_3 ,
 SUM(Case C
 	When 'Tanks Rejuvenated' then p.water_tanks_cap
 	When 'Dams Desilted' then p.dam_disilt_cap
@@ -16,7 +16,35 @@ SUM(Case C
 	When 'Others' then p.other_water_cap
 	Else Null
 END) as values,
-temp.C as dimensions
+temp.C as dimensions ,
+
+CASE WHEN loc_3 is NOT NULL
+then loc_1
+ELSE NULL
+END AS block_1 ,
+
+CASE WHEN loc_3 is NULL
+then loc_1
+ELSE loc_2
+END AS district,
+
+CASE WHEN loc_3 is NOT NULL
+then loc_3
+else loc_2
+END AS state ,
+
+CASE WHEN block_1 is NULL
+THEN 'NA'
+Else block_1
+END as block 
 from profile_81270 p
 cross join temp
+LEFT JOIN ds_mysql_prod_tagelement t1 on
+  p.location = t1.id 
+ LEFT JOIN ds_mysql_prod_tagelement t2 on
+  t1.parent = t2.id 
+  
+  LEFT JOIN ds_mysql_prod_tagelement t3 on
+  t2.parent = t3.id 
+  
 group by fy_timerange,projectid,temp.C
