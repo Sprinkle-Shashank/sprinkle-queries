@@ -1,22 +1,16 @@
 with sub1  as(
-  select b.*,unwind_sdg, unwind_city
-  from profile_80499 b,  b.sdg as unwind_sdg, b.state as unwind_city)
+  select b.*,unwind_sdg
+  from profile_80499 b,  b.sdg as unwind_sdg)
 
-Select a.fy_timerange, p.name as projectid,a.project_name as project_name, p1.name as donor, 
+Select  
 listagg(distinct d1.name, ', ') as sdg,
-listagg(distinct t3.name, ', ') as city,
-listagg(distinct t4.name, ', ') as state, d1.photo as sdg_pic
+
+d1.photo as sdg_pic
 from  sub1 a
 
-left join ds_mysql_prod_project p on p.id = a.projectid
-left join ds_mysql_prod_project p1 on p1.id = p.parent
-
-
-left join ds_mysql_prod_tagelement t3 on t3.id=a.unwind_city
-left join ds_mysql_prod_tagelement t4 on t4.id=t3.parent
 
 left join  profile_80500 d1 on d1._id = a.unwind_sdg
 
 where a.projectid like '%%'
 
-group by a.fy_timerange,a.project_name,p.name,d1.photo,p1.name
+group by d1.photo
