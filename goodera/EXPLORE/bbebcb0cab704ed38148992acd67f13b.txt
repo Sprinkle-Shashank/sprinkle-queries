@@ -1,6 +1,6 @@
 
 
-Select projectid , fy_timerange ,financial_year,  t1.name as loc_1 , t2.name as loc_2 , t3.name as loc_3 ,
+Select projectid , fy_timerange ,financial_year,  t1.name as loc_1 , t2.name as loc_2 , t3.name as loc_3 ,  reftag.code , sum(1) as count , 
 
 CASE WHEN loc_3 is NOT NULL
 then loc_1
@@ -30,3 +30,9 @@ LEFT JOIN ds_mysql_prod_tagelement t1 on
   
   LEFT JOIN ds_mysql_prod_tagelement t3 on
   t2.parent = t3.id 
+  
+   left join ds_mongo_reftagelementmetadata reftag
+		 on p.state = reftag.name
+		 WHERE reftag.code is not null
+  
+  group by fy_timerange,projectid, t1.name , t2.name , t3.name ,financial_year
