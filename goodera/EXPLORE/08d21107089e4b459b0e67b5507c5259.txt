@@ -1,6 +1,6 @@
 with table1 as
 ( select p.projectid , p._id ,  fac.name as factory , case when nvl2(SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), ven.name)='' then ven.name else nvl2(SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), ven.name) end as vendor
- , cou.name as country , p2.fac_cl_vpid, p2.vendor_ngo_id , pri.name as primary_category , count(p.projectid) as awareness , training_name.name as training_values , case when training_values='Awareness Workshop' then 1 else 0 end as awareness_update , case when training_values='GBV P&R TOT' then 1 else 0 end as gbv_update ,   sum(hours) as hours_update from profile_61572 as p 
+ , cou.name as country , p2.fac_cl_vpid, p2.vendor_ngo_id , pri.name as primary_category , count(p.projectid) as awareness , training_name.name as training_values , case when training_values='Awareness Workshop' then 1 else 0 end as awareness_update , case when training_values='GBV P&R TOT' then 1 else 0 end as gbv_update ,  case when training_values='Awareness Workshop' then  sum(hours) else 0 end as Awareness_hours ,  case when training_values='GBV P&R TOT' then  sum(hours) else 0 end as GBV_hours ,  sum(hours) as hours_update from profile_61572 as p 
  
 left join ds_mysql_prod_project fac
 on p.projectid = fac.id
@@ -86,7 +86,7 @@ table31 as
 select * from table21 where row=1
 )
  
- select p.projectid , p._id , factory , vendor , country , fy_year , fac_cl_vpid, vendor_ngo_id , primary_category , awareness , awareness_update , gbv_update , hours_update ,  t31.indepth_workers 
+ select p.projectid , p._id , factory , vendor , country , fy_year , fac_cl_vpid, vendor_ngo_id , primary_category , awareness , awareness_update , gbv_update , Awareness_hours , gbv_hours , hours_update ,  t31.indepth_workers 
   , t31.indepth_managers  , t31.channels_more_update
   ,  t31.anonymous_channel_update , t31.third_party_channel_update , t31.gbv_policy_update  , t31.response_provided_update , t31.issues_resolved_update , t31.internal_trainers , t31.gbv_issues , t31.date_updated , t31.quarter_new , training_values from table1 as p
  
