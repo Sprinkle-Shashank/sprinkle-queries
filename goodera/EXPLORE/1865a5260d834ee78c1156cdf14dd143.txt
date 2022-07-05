@@ -5,7 +5,7 @@ WITH table1 AS (
   SELECT 'BENEFICIARY' AS C
  )
  
- SELECT projectid, proj.name as project_name, p.fy_timerange, p.partner, the.name AS theme, sdg.name AS SDG, p.activity, p.desc, goal.name AS Goals, sch.name as Schedule7, loc.name AS locations,
+ SELECT projectid, proj.name as project_name, p.fy_timerange, p.partner, the.name AS theme, sdg.name AS SDG, p.activity, p.desc, goal.name AS Goals, sch.name as Schedule7, loc.name AS blocks,dist.name AS districts, sta.name AS state,
  SUM(
  	CASE C
 	WHEN 'UTILIZED' THEN p.fund
@@ -27,6 +27,13 @@ ON p.theme = the.id
 LEFT JOIN ds_mysql_prod_tagelement AS loc
 ON p.location = loc.id
 
+LEFT JOIN ds_mysql_prod_tagelement AS dist
+ON loc.parent = dist.id
+
+
+LEFT JOIN ds_mysql_prod_tagelement AS sta
+ON dist.parent = sta.id
+
 LEFT JOIN ds_mysql_prod_tagelement AS sch
 ON p.schedule_7 = sch.id
 
@@ -37,4 +44,4 @@ ON p.sdg = sdg.id
 LEFT JOIN ds_mysql_prod_tagelement AS goal
 ON p.goals_target = goal.id
 
-GROUP BY proj.name,p.fy_timerange,table1.C, projectid, p.partner, the.name , sdg.name , p.activity, p.desc, goal.name, sch.name,loc.name
+GROUP BY proj.name,p.fy_timerange,table1.C, projectid, p.partner, the.name , sdg.name , p.activity, p.desc, goal.name, sch.name,loc.name, dist.name, sta.name
