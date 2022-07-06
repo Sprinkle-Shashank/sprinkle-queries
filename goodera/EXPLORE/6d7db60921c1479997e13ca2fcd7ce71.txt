@@ -1,45 +1,34 @@
-with table1 as (select projectid, name_benef, count(name_benef) as no_of_benef, pn.name as program,gb.name as gender_benef, ab.name as age_benef
-				, cb.name as class_benef
-				,  sn.name as support, extract(year from cast(fy_timerange.start as DATE)) as year, extract(month from cast(fy_timerange.start as DATE)) as start_month,
-case when start_month = 1 then 'January'
-	 when start_month = 2 then 'February'
-	 when start_month = 3 then 'March'
-	 when start_month = 4 then 'April'
-	 when start_month = 5 then 'May'
-	 when start_month = 6 then 'June'
-	 when start_month = 7 then 'July'
-	 when start_month = 8 then 'August'
-	 when start_month = 9 then 'September'
-	 when start_month = 10 then 'October'
-	 when start_month = 11 then 'November'
-	when start_month = 12 then 'December' end as start_month_name from profile_80198
+with sub1 as(
+  select p1.*,
+  case
+  	when IS_ARRAY(p1.support) = false or GET_ARRAY_LENGTH(p1.support) = 0 then ARRAY(p1.support)
+    else p1.support
+  end as support_new
+  from profile_80198 p1),
+  
+sub2 as(
+  select s1.*, support from sub1 s1, s1.support_new support)
+  
+select s2._id as id, t1.name as program, t2.name as support,
 
-			
-left join ds_mysql_prod_tagelement pn 
-on profile_80198.program = pn.id
-	
-				
-left join ds_mysql_prod_tagelement gb
-on profile_80198.gender_benef = gb.id
-				
-				
-left join ds_mysql_prod_tagelement cb on profile_80198.class_benef = cb.id
-				
-				
-left join ds_mysql_prod_tagelement ab
-on profile_80198.age_benef = ab.id
-				
-				left join ds_mysql_prod_tagelement sn
-on profile_80198.support = sn.id
-				
-				group by projectid, _id, name_benef,pn.name,gb.name,ab.name, sn.name, fy_timerange ,cb.name
-			   
-			   ), sub2 as( select projectid, name_benef, support, class_benef,
-			   no_of_benef,program,gender_benef,age_benef,  case when (year=2019 and start_month>3) or (year=2020 and start_month<4) then 'FY 2019-20'
-	 when (year=2020 and start_month>3) or (year=2021 and start_month<4) then 'FY 2020-21'
-	 when (year=2021 and start_month>3) or (year=2022 and start_month<4) then 'FY 2021-22' 
-	 when (year=2022 and start_month>3) or (year=2023 and start_month<4) then 'FY 2022-23'
-	 when (year=2023 and start_month>3) or (year=2024 and start_month<4) then 'FY 2023-24'
-	 else 'FY 2024-25' end as year, start_month_name as month from table1)
+extract(month from cast(s2.fy_timerange.start as DATE)) as start_month,
 
-select distinct extract(month from cast(fy_timerange.start as date)) from profile_80198 
+case start_month
+	when 1 then 'January'
+	when 2 then 'February'
+	when 3 then 'March'
+	when 4 then 'April'
+	when 5 then 'May'
+	when 6 then 'June'
+	when 7 then 'July'
+	when 8 then 'August'
+	when 9 then 'September'
+	when 10 then 'October'
+	when 11 then 'November'
+	else 'December'
+end as month
+
+from sub2 s2
+
+left join ds_mysql_prod_tagelement t1 on t1.id = s2.program
+left join ds_mysql_prod_tagelement t2 on t2.id = s2.support
