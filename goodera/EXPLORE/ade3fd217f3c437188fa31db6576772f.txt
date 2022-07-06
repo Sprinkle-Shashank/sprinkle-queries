@@ -1,0 +1,42 @@
+
+with temp as ( 
+select 'water_purifiers_installed' as c
+  Union all 
+select 'toilets_constructed' as c
+  Union all 
+select 'dustbins_installed' as c 
+ Union all
+select 'smart_class_equipment_installed' as c
+  Union all 
+select 'teachers_trained_smart_class' as c
+  Union all 
+select 'teachers_trained_skill_upgradation_program' as c
+  Union all 
+select 'members_included_qesc' as c
+  Union all 
+select 'workshops_organized' as c
+  Union all
+select 'teachers_hired' as c
+  Union all   
+select 'health_and_hygiene_awareness' as c ) 
+  
+select pro.name as projectid, fy_timerange,
+sum( case c when 'water_purifiers_installed' then p.water_purifiers_installed
+	        when 'toilets_constructed' then p.toilets_constructed
+	        when 'dustbins_installed' then p.dustbins_installed
+	        when 'smart_class_equipment_installed' then p.smart_class_equipment_installed
+	        when 'teachers_trained_smart_class' then p.teachers_trained_smart_class
+	        when 'teachers_trained_skill_upgradation_program' then p.teachers_trained_skill_upgradation_program
+	        when 'members_included_qesc' then p.members_included_qesc
+	        when 'workshops_organized' then p.workshops_organized
+	        when 'teachers_hired' then p.teachers_hired
+	        when 'health_and_hygiene_awareness' then p.health_and_hygiene_awareness
+	
+	
+	        else null end ) as val, temp.c as dim from profile_81169 p
+			
+			left join ds_mysql_prod_project pro
+             on p.projectid = pro.id
+			cross join temp
+			
+group by projectid,fy_timerange,temp.c,pro.name			
