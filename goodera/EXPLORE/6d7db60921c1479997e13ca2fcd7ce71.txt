@@ -12,7 +12,7 @@ case when start_month = 1 then 'January'
 	 when start_month = 9 then 'September'
 	 when start_month = 10 then 'October'
 	 when start_month = 11 then 'November'
-	when start_month = 12 then 'December' end as start_month_name*/ from profile_80198
+	when start_month = 12 then 'December' end as start_month_name from profile_80198
 
 			
 left join ds_mysql_prod_tagelement pn 
@@ -34,10 +34,12 @@ on profile_80198.support = sn.id
 				
 				group by projectid, _id, name_benef,pn.name,gb.name,ab.name, sn.name, fy_timerange ,cb.name
 			   
-			   ) select projectid, name_benef, support, class_benef,
+			   ), sub2 as( select projectid, name_benef, support, class_benef,
 			   no_of_benef,program,gender_benef,age_benef,  case when (year=2019 and start_month>3) or (year=2020 and start_month<4) then 'FY 2019-20'
 	 when (year=2020 and start_month>3) or (year=2021 and start_month<4) then 'FY 2020-21'
 	 when (year=2021 and start_month>3) or (year=2022 and start_month<4) then 'FY 2021-22' 
 	 when (year=2022 and start_month>3) or (year=2023 and start_month<4) then 'FY 2022-23'
 	 when (year=2023 and start_month>3) or (year=2024 and start_month<4) then 'FY 2023-24'
-	 else 'FY 2024-25' end as year, start_month_name as month from table1
+	 else 'FY 2024-25' end as year, start_month_name as month from table1)
+
+select * from sub2 where month != 'January'
