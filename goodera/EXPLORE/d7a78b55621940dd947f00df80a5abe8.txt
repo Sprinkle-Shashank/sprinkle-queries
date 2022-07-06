@@ -5,19 +5,21 @@ left join ds_mysql_prod_tagelement f on
 p.fy=f.id
 left join ds_mysql_prod_tagelement n1 on
 n1.id=p.focus_area),
-tab3 as (select q.prj2 as prj3,count(q.prj1) as c,q.fy_timerange fy,p.state,t2.name as manager,q.focus_area from profile_27396 p
+tab3 as (select q.prj2 as prj3,count(q.prj1) as c,q.fy_timerange fy,p.state,t2.name as manager,q.focus_area,p2.name as ngo_partners from profile_27396 p
 		 left join tab1 q
 		 on p._id=q.prj_code
 		 left join ds_mysql_prod_tagelement t2
          on p.project_manager=t2.id
-		group by prj3,fy_timerange,p.state,manager,q.focus_area),
+		 left join profile_27395 p2
+         on p.ngo_partner = p2._id
+		group by prj3,fy_timerange,p.state,manager,q.focus_area,ngo_partners),
 	
 tab4 as(
-		Select c, prj3,fy, st,manager,focus_area from tab3 t, t.state st
+		Select c, prj3,fy, st,manager,focus_area,ngo_partners from tab3 t, t.state st
 )
 
 
-select t1.prj3,t1.c,t1.fy,t.name as state,t1.manager,t1.focus_area from tab4 t1
+select t1.prj3,t1.c,t1.fy,t.name as state,t1.manager,t1.focus_area,t1.ngo_partners from tab4 t1
 left join ds_mysql_prod_tagelement t
 on t.id=t1.st
 
