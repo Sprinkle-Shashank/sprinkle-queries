@@ -1,5 +1,5 @@
 with sub1 as (
-select p1.date_disbursal as fy_timerange,extract(year from cast (p1.date_disbursal as date)) as year,extract(month from cast (p1.date_disbursal as date)) as start_month, sum(p1.disbursed) as disbursed, p.name as projectid,
+select p1.date_disbursal as fy_timerange,extract(year from cast (p1.date_disbursal as date)) as year,extract(month from cast (p1.date_disbursal.start as date)) as start_month, extract(month from cast (p1.date_disbursal.end as date)) as end_month,sum(p1.disbursed) as disbursed, p.name as projectid,
   
 case when p.name in ('Prasanna Trust', 'Kashtakari Panchayat', 'Shishu Mandir', 'SOUL', 'Narayanaamruta Medicare Foundation', 'SGBS Unnati Foundation','Makkala Jagariti', 'Reefwatch Marine Conservation', 'Nirvanavan Foundation', 'Win over cancer', 'Vipasana', 'Selco Foundation', 'CII Foundation', 'Disha') then 'Short-Term Projects' when p.name in ('Omashram Trust', 'One Billion Literates', 'Cuddles Foundation', 'Rainbow Homes (ANC Rainbow Homes)', 'Rainbow Homes (Bosco Rainbow Homes)', 'Rainbow Homes (Sanrakshan Rainbow Homes)','CUPA', 'Parikrma Foundation','Other Projects') then 'Long-Term Projects' else 'Other Projects' end as choose from profile_79979 p1
 
@@ -8,4 +8,4 @@ on p.id=projectid
 where disbursed is not NULL
 group by p1.date_disbursal,p.name)
 
-select fy_timerange,projectid,choose,disbursed,start_month,case when start_month<4 then year-1 else year,('FY('||s1.year-2000||'-'||s1.year+1-2000||')') as fy from sub1 as s1
+select fy_timerange,projectid,choose,disbursed,case when end_month<=4 then concat(concat(concat(concat('FY(',end_year-1-2000),'-'),end_year-2000),')') when start_month>3 then concat(concat(concat(concat('FY(',start_year-2000),'-'),start_year+1-2000),')') end as fy from sub1
