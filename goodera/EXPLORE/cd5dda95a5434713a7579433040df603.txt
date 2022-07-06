@@ -1,0 +1,45 @@
+with sub1 as(
+  select p1.*,
+  case
+  	when IS_ARRAY(p1.support) = false or GET_ARRAY_LENGTH(p1.support) = 0 then ARRAY(p1.support)
+    else p1.support
+  end as support_new,
+  
+  extract(year from cast(p1.fy_timerange.start as DATE)) as start_year,
+  extract(month from cast(p1.fy_timerange.start as DATE)) as start_month
+  
+  from profile_80198 p1),
+  
+sub2 as(
+  select s1.*, support_unwind from sub1 s1, s1.support_new support_unwind)
+  
+select t1.name as program, t2.name as support,
+
+case s2.start_month
+	when 1 then 'January'
+	when 2 then 'February'
+	when 3 then 'March'
+	when 4 then 'April'
+	when 5 then 'May'
+	when 6 then 'June'
+	when 7 then 'July'
+	when 8 then 'August'
+	when 9 then 'September'
+	when 10 then 'October'
+	when 11 then 'November'
+	else 'December'
+end as month,
+
+case 
+	when s2.start_month < 4 then ('FY ' || s2.start_year - 1 || '-' || s2.start_year - 2000)
+	else ('FY ' || s2.start_year || '-' || s2.start_year + 1 - 2000)
+end as year, count(*)
+
+from sub2 s2
+
+left join ds_mysql_prod_tagelement t1 on t1.id = s2.program
+left join ds_mysql_prod_tagelement t2 on t2.id = s2.support_unwind
+
+where t2.name is not null
+
+group by t1.name, t2.name, s2.start_month, s2.start_year
