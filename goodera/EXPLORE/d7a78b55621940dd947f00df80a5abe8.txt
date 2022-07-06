@@ -1,9 +1,11 @@
-with tab1 as (select cast((split_part(prod.name,'|',1)) as varchar) as prj1,cast((split_part(split_part(prod.name,'|',1),'.',1)) as varchar) as prj2,prj_code,f.name as fy_timerange from profile_54963 p
+with tab1 as (select cast((split_part(prod.name,'|',1)) as varchar) as prj1,cast((split_part(split_part(prod.name,'|',1),'.',1)) as varchar) as prj2,prj_code,f.name as fy_timerange,f1.name as month from profile_54963 p
 left join ds_mysql_prod_project prod
 on p.projectid=prod.id
+left join ds_mysql_prod_tagelement prod1
+on p.month=prod1.id
 left join ds_mysql_prod_tagelement f on
 p.fy=f.id),
-tab3 as (select q.prj2 as prj3,count(q.prj1) as c,q.fy_timerange fy,p.state,t2.name as manager from profile_27396 p
+tab3 as (select q.prj2 as prj3,count(q.prj1) as c,q.fy_timerange fy,p.state,t2.name as manager,q.month from profile_27396 p
 		 left join tab1 q
 		 on p._id=q.prj_code
 		 left join ds_mysql_prod_tagelement t2
@@ -11,11 +13,11 @@ tab3 as (select q.prj2 as prj3,count(q.prj1) as c,q.fy_timerange fy,p.state,t2.n
 		group by prj3,fy_timerange,p.state,manager),
 	
 tab4 as(
-		Select c, prj3,fy, st,manager from tab3 t, t.state st
+		Select c, prj3,fy, st,manager,month from tab3 t, t.state st
 )
 
 
-select t1.prj3,t1.c,t1.fy,t.name as state,t1.manager from tab4 t1
+select t1.prj3,t1.c,t1.fy,t.name as state,t1.manager,t1.month from tab4 t1
 left join ds_mysql_prod_tagelement t
 on t.id=t1.st
 
