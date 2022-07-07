@@ -42,7 +42,28 @@ union all
 		 left join profile_80183 p2
          on p.ngo_partner = p2._id
 		group by prj3,fy_timerange,p.state,manager,q.focus_area,ngo_partners),
-	
+		
+		
+		
+		
+level1tab as (select m.name as level1 ,p.approver as level2,p.name as level1email from profile_27424 p
+left join ds_mysql_prod_tagelement m on
+m.id = p.pm_name),
+
+level2tab as (select m.name as level1 , z.level1 as level2 from profile_27424 p
+left join ds_mysql_prod_tagelement m on
+m.id = p.pm_name
+left join level1tab z on
+z.level1email = p.approver),
+
+newtab1 as (
+   Select c, prj3,fy, st,manager,focus_area,ngo_partners from tab3 t, t.state st
+left join level2tab d on
+d.level1 = t.manager
+  
+)
+
+/*	
 tab4 as(
 		Select c, prj3,fy, st,manager,focus_area,ngo_partners from tab3 t, t.state st
 )
@@ -52,6 +73,6 @@ select t1.prj3,t1.c,t1.fy,t.name as state,t1.manager,t1.focus_area,t1.ngo_partne
 left join ds_mysql_prod_tagelement t
 on t.id=t1.st
 
- 
+ */
 
  
