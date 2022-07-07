@@ -1,29 +1,13 @@
-drop table if exists profile_79216_waste;
- create table profile_79216_waste as
- SELECT projectid, _id,
- CAST(data.name as VARCHAR),
- CAST(data.fy_timerange as SUPER),
- CAST(data.category_of_waste as INT) as c,
- CAST(data.other_waste as VARCHAR),
- CAST(data.waste_generated as FLOAT),
- CAST(data.waste_recovered_disposed as INT),
- CAST(data.recovery_operation as INT),
- CAST(data.recovery_onsite_offsite as INT),
- CAST(data.disposal_operation as INT),
- CAST(data.disposal_onsite_offsite as INT),
- CAST(data.additional_cost as FLOAT),
- CAST(data.revenue as FLOAT),
- CAST(data.category_of_waste_text as VARCHAR),
+ SELECT projectid, _id,name,fy_timerange,category_of_waste,other_waste,waste_generated,waste_recovered_disposed,recovery_operation,recovery_onsite_offsite,disposal_operation,disposal_onsite_offsite,additional_cost,revenue,category_of_waste_text,
  t.name as category_of_waste ,nvl(tt2.name,tt1.name) as haz_nonhaz,
  case 
 	when tt2.name is null then t.name
 	else tt1.name
 	end as waste_type2
-from ds_mongo_profileinstance
+from profile_79216
 left join ds_mysql_prod_tagelement t
-on t.id=c
+on t.id=category_of_waste
 left join ds_mysql_prod_tagelement tt1
 on tt1.id=t.parent
 left join ds_mysql_prod_tagelement tt2
 on tt2.id=tt1.parent
-where profileId='79216' and active = 't' and securitycontextid is not null
