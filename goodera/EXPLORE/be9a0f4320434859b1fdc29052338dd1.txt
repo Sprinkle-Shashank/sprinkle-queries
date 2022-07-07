@@ -1,0 +1,33 @@
+with table1 as(
+	select i.name as partner, t1.name as van,
+    case 
+  		when (p2.date_yn = 28005) 
+  			then 
+  				p2.date_n
+  		else p2.createddate
+  	end as date
+  , p.patient as patient
+  	from profile_58474 p
+  	left join profile_58511 p2
+  	on p.sel_camp = p2._id 
+  	left join 
+  	profile_51990 i
+  	on p2.imple_partner = i._id
+  	  left join 
+  	ds_mysql_prod_project t1
+  	on p.projectid = t1.id
+), table2 as(
+  	select 
+  	case 
+  		when count(patient)=1
+  			then 'Once'
+  		when (count(patient)>=2 and count(patient)<10)
+  			then '2-10'
+  		when (count(patient)>=10 and count(patient)<50)
+  			then '10-50'
+  		else 'Others'
+  	end as pcount,date,van,name
+    from table1
+	group by patient,date,van,name
+  )
+select *,1 as count from table2
