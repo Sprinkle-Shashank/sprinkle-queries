@@ -1,0 +1,33 @@
+drop table if exists profile_79255_waste;
+ create table profile_79255_waste as
+ SELECT projectid, _id,
+ CAST(data.name as VARCHAR),
+ CAST(data.fy_timerange as SUPER),
+ CAST(data.category_of_waste as INT),
+ CAST(data.waste_generated as FLOAT),
+ CAST(data.waste_recovered_disposed as INT),
+ CAST(data.recovery_operation as INT),
+ CAST(data.recovery_onsite_offsite as INT),
+ CAST(data.disposal_operation as INT),
+ CAST(data.disposal_onsite_offsite as INT),
+ CAST(data.additional_cost as FLOAT),
+ CAST(data.revenue as FLOAT),
+ t.name as category_of_wastee ,nvl(tt2.name,tt1.name) as haz_nonhaz,
+ case 
+	when tt2.name is null then t.name
+	else tt1.name
+	end as waste_type2
+from ds_mongo_profileinstance p
+left join ds_mysql_prod_tagelement t
+on t.id=data.category_of_waste
+left join ds_mysql_prod_tagelement tt1
+on tt1.id=t.parent
+left join ds_mysql_prod_tagelement tt2
+on tt2.id=tt1.parent
+where profileId='79255' and p.active = 't' and p.securitycontextid is not null
+
+
+
+
+
+
