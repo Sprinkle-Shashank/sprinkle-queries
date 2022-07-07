@@ -1,0 +1,16 @@
+with sub1 as(select p2.name as sub_location, count(*) as count,p3.name as impl_partner,p4.name as van,p2.lat as latitude,p2.longi as longitude
+case 
+  	when (p1.date_yn is not null and p1.date_yn = 28005 ) then p1.date_n
+  	else p1.createddate
+  	end as date
+
+from profile_58511 p1
+			
+left join profile_49219 p2 on p2._id=p1.location
+left join profile_51990 p3 on p3._id=p1.imple_partner
+left join ds_mysql_prod_project p4 on p1.projectid = p4.id
+			 
+where p2.name <> ''
+group by p2.name,impl_partner,date,p4.name)
+select sub_location,count,impl_partner as name,date,van
+from sub1
