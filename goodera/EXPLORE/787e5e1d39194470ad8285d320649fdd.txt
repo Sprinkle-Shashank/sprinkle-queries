@@ -1,85 +1,37 @@
-with main as (select p.subcat_output,n1.name as focus,r.name as fy_timerange,n.name as months, cast((split_part(split_part(prod.name,'|',1),'.',1)) as varchar) as ProjectCode from profile_54963 p
-left join ds_mysql_prod_project prod on
-prod.id=p.projectid
-left join ds_mysql_prod_tagelement r on
-r.id=p.fy
-left join ds_mysql_prod_tagelement n on
-n.id=p.month
-			  
-left join ds_mysql_prod_tagelement n1 on
-n1.id=p.focus_area),
-
-
-lookup as (select cast(q.name as varchar)as ProjectCode,f.name as fy_timerange,m.name as Project_Manager,' ' as ngo_partners,f1.name as focus_area,'' as state
-from profile_27420 d
-left join ds_mysql_prod_tagelement f on
-d.fy=f.id
-left join ds_mysql_prod_tagelement m on
-d.project_manager=m.id
-left join ds_mysql_prod_tagelement f1 on
-d.focus_area=f1.id
-left join profile_27396 q on
-d.project_code=q._id
-		   
-		   
-union all
-
-select cast(c.name as varchar)as ProjectCode,f.name as fy_timerange,m.name as Project_Manager,p2.name as ngo_partners,f1.name as focus_area,c.state
-from profile_27396 c
-		   
-left join ds_mysql_prod_tagelement f on
-c.fy=f.id
-left join ds_mysql_prod_tagelement m on
-c.project_manager=m.id
-left join profile_27395 p2
-on c.ngo_partner = p2._id
-left join ds_mysql_prod_tagelement f1 on
-c.focus_area=f1.id
-		   
-union all
-		   
-select f.name as fy_timerange,f1.name as focus_area,m.name as Project_Manager,p2.name as ngo_partners,cast(p.name as varchar)as ProjectCode,p.state
-from profile_27396 p
+with tab1 as (select cast((split_part(prod.name,'|',1)) as varchar) as prj1,cast((split_part(split_part(prod.name,'|',1),'.',1)) as varchar) as prj2,prj_code,f.name as fy_timerange,n1.name as focus_area from profile_54963 p
+left join ds_mysql_prod_project prod
+on p.projectid=prod.id
 left join ds_mysql_prod_tagelement f on
 p.fy=f.id
-left join profile_80183 p2
-on p.ngo_partner = p2._id
-left join ds_mysql_prod_tagelement m on
-p.project_manager=m.id
-left join ds_mysql_prod_tagelement f1 on
-p.focus_area=f1.id),
-
-main2 as (
-select b.fy_timerange as fy,b.months,b.ProjectCode,q.Project_Manager as level1,sum(b.subcat_output) as output,b.focus,q.ngo_partners,state from lookup q, q.state as state
-left join main2 b on
-q.ProjectCode = b.ProjectCode
-group by b.fy_timerange,b.months,b.ProjectCode,q.Project_Manager,b.focus,q.ngo_partners,q.st),
-
-level1tab as (select m.name as level1 ,p.approver as level2,p.name as level1email from profile_27424 p
-left join ds_mysql_prod_tagelement m on
-m.id = p.pm_name),
-
-level2tab as (select m.name as level1 , z.level1 as level2 from profile_27424 p
-left join ds_mysql_prod_tagelement m on
-m.id = p.pm_name
-left join level1tab z on
-z.level1email = p.approver),
-
-newtab as (Select t.name as project_code from profile_29974 p
-left join profile_27396 t
-on t._id=p.prj_code),
-
-newtab1 as (select distinct(newtab.project_code) as project_code from newtab)
+left join ds_mysql_prod_tagelement n1 on
+n1.id=p.focus_area),
+tab3 as (select q.prj2 as prj3,count(q.prj1) as c,q.fy_timerange fy,p.state,t2.name as manager,q.focus_area,p2.name as ngo_partners from profile_27396 p
+		 left join tab1 q
+		 on p._id=q.prj_code
+		 left join ds_mysql_prod_tagelement t2
+         on p.project_manager=t2.id
+		 left join profile_27395 p2
+         on p.ngo_partner = p2._id
+		group by prj3,fy_timerange,p.state,manager,q.focus_area,ngo_partners
+		union all
+		select q.prj2 as prj3,count(q.prj1) as c,q.fy_timerange fy,p.state,t2.name as manager,q.focus_area,p2.name as ngo_partners from profile_27396 p
+		 left join tab1 q
+		 on p._id=q.prj_code
+		 left join ds_mysql_prod_tagelement t2
+         on p.project_manager=t2.id
+		 left join profile_80183 p2
+         on p.ngo_partner = p2._id
+		group by prj3,fy_timerange,p.state,manager,q.focus_area,ngo_partners),
+	
+tab4 as(
+		Select c, prj3,fy, st,manager,focus_area,ngo_partners from tab3 t, t.state st
+)
 
 
-
-
-select p.*,d.level2,t.name as state,
-case when s.project_code is NULL
-then 'initiated' else 'renewed' end as status from lookup p
+select t1.prj3,t1.c,t1.fy,t.name as state,t1.manager,t1.focus_area,t1.ngo_partners from tab4 t1
 left join ds_mysql_prod_tagelement t
-on p.st=t.id
-left join newtab1 s on
-p.ProjectCode=s.project_code
-left join level2tab d on
-d.level1 = p.level1
+on t.id=t1.st
+
+ 
+
+ 
