@@ -6,6 +6,16 @@ with b as(
   select 'Other' as col)
 
 Select a.fy_timerange, p.name as projectid,p1.name as donor,b.col as gender,
+case
+	when (p1.name) like '%School Transformation' then 'School Transformation'
+	when (p1.name) like '%Random act of kindness' then 'Random act of kindness'
+	when (p1.name) like '%Health & Nutrition' then 'Health & Nutrition'
+	when (p1.name) like '%Unstoppable Vaccination Drive' then 'Unstoppable Vaccination Drive'
+	when (p1.name) like '%Remote Learning' then 'Remote Learning'
+	when (p1.name) like '%Educational Scholarships' then 'Educational Scholarships'
+	else NULL
+	end as project_type,
+	
 sum(case col
 	when 'Male' then a.male_student
 	when 'Female' then a.female_student	
@@ -17,5 +27,5 @@ from profile_80587 a
 cross join b
 left join ds_mysql_prod_project p on p.id = a.projectid
 left join ds_mysql_prod_project p1 on p1.id = p.parent
-
+where a.projectid like '%%'
 group by a.fy_timerange, p.name,p1.name,gender
