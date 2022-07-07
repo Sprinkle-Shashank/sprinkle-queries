@@ -1,0 +1,28 @@
+with table1 as(
+  select i.name as partner,t1.name as van,
+    case 
+  		when (p2.date_yn = 28005) 
+  			then 
+  				p2.date_n
+  		else p2.createddate
+  	end as date,
+  	case 
+  	when t2.name is not null 
+  		then t2.name
+  	else t.name
+  	end as referral
+	from profile_58474 p
+	left join profile_58511 p2
+	on p.sel_camp = p2._id 
+	left join 
+	profile_51990 i
+	on p2.imple_partner = i._id
+	left join ds_mysql_prod_tagelement t
+	on p.referral_destination = t.id
+  	left join ds_mysql_prod_tagelement t2
+  	on t.parent = t2.id
+	left join ds_mysql_prod_project t1
+	on i.projectid = t1.id
+  	where (t2.name <> '' or t.name <> '')
+)
+select *, 1 as count from table1
