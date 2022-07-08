@@ -1,5 +1,4 @@
-with t1 as 
-(select p1._id, tag3.name as projectId, tag1.name as sub1, tag2.name as sub2, p1.fy_2_timerange, p1.sub1_marks, p1.sub2_marks, p1.sub1_total, p1.sub2_total,
+select p1._id, tag3.name as projectId, tag1.name as sub1, tag2.name as sub2, p1.fy_2_timerange, p1.sub1_marks, p1.sub2_marks, p1.sub1_total, p1.sub2_total, p2.kali_class
 
 case p1.sub1
 when sub1 = 481717 then sub1_marks
@@ -12,46 +11,16 @@ else 0
 end as sub2_maths
 
 from profile_31103 p1
+left join profile_31099 p2
+on p1.kali_id = p2._id 
 left join ds_mysql_prod_tagelement tag1
 on p1.sub1 = tag1.id
 left join ds_mysql_prod_tagelement tag2
 on p1.sub2 = tag2.id
 left join ds_mysql_prod_project tag3
-on p1.projectId = tag3.id),
-
-t2 as 
-(select *, round((t1.sub1_maths :: decimal/t1.sub1_total :: decimal)*100,2) as avg_maths_marks_sub1,
-round((t1.sub2_maths :: decimal/t1.sub2_total :: decimal)*100,2) as avg_maths_marks_sub2
-
-from t1),
-
-t3 as 
-(select *, sum(avg_maths_marks_sub1) + sum(avg_maths_marks_sub2) as Total_maths_percentage 
- 
-from t2
- 
-group by t2._id, t2.projectId, t2.sub1, t2.sub2, t2.fy_2_timerange, t2.sub1_marks, t2.sub2_marks, t2.sub1_total, t2.sub2_total, t2.sub1_maths, t2.sub2_maths, t2.avg_maths_marks_sub1, t2.avg_maths_marks_sub2)
-
-select t3._id, t3.projectId, t3.sub1, t3.sub2, t3.fy_2_timerange as fy_timerange, t3.sub1_marks, t3.sub2_marks, t3.sub1_total, t3.sub2_total, t3.sub1_maths, t3.sub2_maths, t3.avg_maths_marks_sub1, t3.avg_maths_marks_sub2, t3.Total_maths_percentage :: integer,
-tag4.name as kali_class,
-  case t3.Total_maths_percentage :: integer
-  when t3.Total_maths_percentage :: integer <= 20 then '0-20%'
-  when t3.Total_maths_percentage :: integer <= 40 then '20-40%'
-  when t3.Total_maths_percentage :: integer <= 60 then '40-60%'
-  when t3.Total_maths_percentage :: integer <= 80 then '60-80%'
-  when t3.Total_maths_percentage :: integer <= 100 then '80-100%'
-  else '100%'
-  end as percent_bucket, count(*)
-from t3 
-
-left join profile_31099 p3
-on t3.projectId = p3.projectId
-left join ds_mysql_prod_tagelement tag4
-on p3.kali_class = tag4.id
+on p1.projectId = tag3.id
 
 
-group by t3._id, t3.projectId, t3.sub1, t3.sub2, t3.fy_2_timerange , t3.sub1_marks, t3.sub2_marks, t3.sub1_total, t3.sub2_total, t3.sub1_maths, t3.sub2_maths, t3.avg_maths_marks_sub1, t3.avg_maths_marks_sub2, t3.Total_maths_percentage, tag4.name
-order by t3.Total_maths_percentage asc
 
 
 
