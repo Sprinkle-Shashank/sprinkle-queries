@@ -1,4 +1,4 @@
-select p.name as projectid,p1.name as donor,a.fy_timerange,a.bene_name, t1.name as gender,t3.name as tablet,a.aadhar,
+select p.name as projectid,p1.name as donor,a.fy_timerange,a.bene_name, t1.name as gender,t2.name as tablet,a.aadhar, t3.name as city, t4.name as state, m1.code as map_code,
 case
 	when (p.name) like '%School Transformation' then 'School Transformation'
 	when (p.name) like '%Random act of kindness' then 'Random act of kindness'
@@ -15,9 +15,12 @@ left join ds_mysql_prod_project p on p.id = a.projectid
 left join ds_mysql_prod_project p1 on p1.id = p.parent
 
 left join ds_mysql_prod_tagelement t1 on t1.id=a.bene_gender
-left join ds_mysql_prod_tagelement t3 on t3.id=a.tablet_received
+left join ds_mysql_prod_tagelement t2 on t2.id=a.tablet_received
+left join ds_mysql_prod_tagelement t3 on t3.id = a.location
+left join ds_mysql_prod_tagelement t4 on t4.id = t3.parent
+left join ds_mongo_reftagelementmetadata m1 on m1._id=t4.reftagelementmetadataid
 
 where a.projectid like '%%'
 --and tablet = 'Yes'
 
-group by  p.name,a.fy_timerange,a.bene_name,t1.name,t3.name,p1.name, a.aadhar
+group by  p.name,a.fy_timerange,a.bene_name,t1.name,t2.name,p1.name, a.aadhar, city, state, m1.code
