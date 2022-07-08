@@ -1,0 +1,46 @@
+with temp as ( 
+select 'children_enrolled_regular' as c
+  Union all 
+select 'children_enrolled_irregular' as c
+  Union all 
+select 'health_sensitization_session' as c 
+  Union all 
+  select 'nutrition_sensitization_sessions' as c
+  Union all 
+  select 'life_skills_sensitization_sessions' as c 
+  Union all 
+  select 'health_checkups_organized' as c 
+  Union all 
+  select 'drug_deaddiction' as c 
+  Union all 
+  select 'psychosocial_sessions_held' as c 
+  Union all 
+  select 'psychosocial_sessions' as c 
+  Union all 
+  select 'children_reintegrated_into_schools' as c 
+  Union all 
+  select 'indoor_and_outdoor_activities' as c  )
+  
+  
+  select pro.name as projectid, fy_timerange,
+sum( case c when 'children_enrolled_regular' then p.children_enrolled_regular
+	        when 'children_enrolled_irregular' then p.children_enrolled_irregular
+	        when 'health_sensitization_session' then p.health_sensitization_session
+	        when 'nutrition_sensitization_sessions' then p.nutrition_sensitization_sessions
+	        when 'life_skills_sensitization_sessions' then p.life_skills_sensitization_sessions
+	        when 'health_checkups_organized' then p.health_checkups_organized
+	        when 'drug_deaddiction' then p.drug_deaddiction
+	        when 'psychosocial_sessions_held' then p.psychosocial_sessions_held
+	        when 'psychosocial_sessions' then p.psychosocial_sessions
+	        when 'children_reintegrated_into_schools' then p.children_reintegrated_into_schools
+	        when 'indoor_and_outdoor_activities' then p.indoor_and_outdoor_activities
+	
+	
+	        else null end ) as val, temp.c as dim from profile_81299 p
+			
+			left join ds_mysql_prod_project pro
+             on p.projectid = pro.id
+			cross join temp
+			
+group by projectid,fy_timerange,temp.c,pro.name			
+			
