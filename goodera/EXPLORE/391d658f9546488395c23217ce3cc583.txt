@@ -1,0 +1,31 @@
+with sub1 as ( Select p.projectid , p.location ,p1.location as loc1, p1.lat as latitude , p1.longi as longitude, p1.base_dist as base_distance 
+			  
+from profile_58511 p
+left join profile_49219 p1 on p.location = p1._id  
+WHERE p1.location <> ' '  and p.projectid like '%%'
+),
+			 
+			 
+ sub2 as ( 
+   
+Select count(*) , p1.location , p2.location as loc 
+   
+   from profile_58474 p
+   
+    left join profile_58511 p1
+   on p.sel_camp = p1._id  
+   left join profile_49219 p2
+   on p1.location = p2._id  
+    GROUP BY p1.location , p2.location 
+   
+   )
+  
+ Select loc ,count, sub1.latitude , sub1.longitude , sub1.base_distance , t1.name as van 
+ 
+ from sub2 
+ LEFT JOIN sub1 
+ on sub2.loc = sub1.loc1
+ LEFT JOIN ds_mysql_prod_project t1
+ on sub1.projectid = t1.id
+ where loc <> ' ' and loc is not null
+ GROUP BY loc , count ,sub1.latitude , sub1.longitude , sub1.base_distance , t1.name
