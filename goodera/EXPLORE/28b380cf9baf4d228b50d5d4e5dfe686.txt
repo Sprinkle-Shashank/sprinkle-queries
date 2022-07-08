@@ -1,26 +1,31 @@
 with table1 as (Select
 				JSON_SERIALIZE(table_52810.pace_brands) as pace_brand,	
 				case when pace_brand like '%1011796%' then 1 else 0 end  as brand,
-				case when lg_status = 848007 or lg_status is null then 1 else 0 end as lg,
-				case when table_54646._id is null then 0 else 1 end as tablest,
-				(num_females) as total_females,
-				start_year as year1,
-				p.start_date as start_date1,
-				p.projectId as projectid1,
+				p.projectid as projectid1,pace_status_2,
+				table_54267._id as _54267id,
+				case when table_54267._id is null then pace_status_2 else table_54267.pace_status end as paceStatus,
+				table_54646.name_vendor_filter as name_vendor_filter,
+				table_54646.name_country as country_name,
+				table_52162.child_vpid_autocal as vp_id,
+				table_4227.start_date as start_date,
 				case when table_52810.offset_date is null then '2020-02-01T00:00:00.000Z' else table_52810.offset_date end as offset_date1
+		
+				from profile_52713 p
 
-				from profile_4227 p
 left join profile_52810 table_52810 on
 table_52810.projectId = p.projectId
 				
+left join profile_4227 table_4227 on
+table_4227.projectId = p.projectId
+				
+left join profile_54267 table_54267 on
+table_54267.projectId = p.projectId
+
 left join profile_54646 table_54646 on
 table_54646.projectId = p.projectId
-),
-
-table2 as (Select cast(total_females as int) as total_females, year1,brand,lg, tablest, start_date1,projectid1,offset_date1  
-			from table1 p
-
---group by year1, brand,lg, tablest, start_date1,projectid1,offset_date1
-		   
+				
+left join profile_52162 table_52162 on
+table_52162.projectId = table_54646.projid_vendor
 )
-Select sum(total_females), year1 as year from table2 p where brand = 1 and lg = 1 and tablest = 1 and start_date1 >= offset_date1 group by year1
+
+Select distinct listagg(distinct(country_name),',') as country_name,listagg(distinct(vp_id)) as vp_id,name_vendor_filter,projectid1 as projectid from table2 p where brand = 1 and start_date >= offset_date1 group by name_vendor_filter order by _54267id
