@@ -7,7 +7,9 @@ with test0 as(Select p.* ,CAST(pace_goals as VARCHAR)from profile_76755 p
 ),
 
  test1 as(
-Select t0._id,t0.projectId as project,fac.name as projectId, p2.facility_name as facility,t0.pace,t0.strategic_yn,t0.facility_type,t0.year_timerange, t0.country as country,ven.name as vendor1,nvl2(SUBSTRING(vendor1, 1, POSITION(' (' in vendor1)), SUBSTRING(vendor1, 1, POSITION(' (' in vendor1)), vendor1) as vendor_name, case when vendor_name='' then vendor1 else vendor_name end as vendor, t0.director_region as director_region, p1.pace_introduced,p1.certified_trainers, p1.certified_mts,case when  p1.pace_introduced = 57472 then 'Yes' else 'No' end as result_1,concat(concat(vendor,t0.country),t0.year_timerange) as unique
+Select t0._id,t0.projectId as project,fac.name as projectId, p2.facility_name as facility,t0.pace,t0.strategic_yn,t0.facility_type,t0.year_timerange, t0.country as country,ven.name as vendor1,nvl2(SUBSTRING(vendor1, 1, POSITION(' (' in vendor1)), SUBSTRING(vendor1, 1, POSITION(' (' in vendor1)), vendor1) as vendor_name, case when vendor_name='' then vendor1 else vendor_name end as vendor, t0.director_region as director_region, p1.pace_introduced,p1.certified_trainers, p1.certified_mts,case when  p1.pace_introduced = 57472 then 'Yes' else 'No' end as result_1,
+   CAST (t0.year_timerange as varchar) as new_timeperiod
+   concat(concat(vendor,t0.country),t0.year_timerange) as unique
 
 
 
@@ -35,10 +37,13 @@ on fac.parent = ven.id
 
 ,
 test2 as (select t1.vendor,t1.country,t1.year_timerange,Sum(t1.certified_mts) as certified_masters,Sum(t1.certified_trainers) as total_trainers,certified_masters*100 AS a1,
-a1/nullif(total_trainers,0) AS master
+a1/nullif(total_trainers,0) AS master , CAST (t1.year_timerange as varchar) as new_timeperiod
 		  --t1.certified_trainers,t1.certified_mts
 		  ,case when (master>=30) then 'Yes'
-		  else 'No' end as result_2,concat(concat(vendor,t1.country),t1.year_timerange) as unique
+		  else 'No' end as result_2,
+		  
+		  
+		  concat(concat(vendor,t1.country),new_timeperiod) as unique
 		  
 from test1 t1
 		  
