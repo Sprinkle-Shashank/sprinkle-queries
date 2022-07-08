@@ -1,5 +1,5 @@
 with s as(
-Select tt.name as projectid ,fy_timerange ,(EXTRACT(YEAR FROM(CAST(fy_timerange.start AS datetime)))) as  year, t.name as category_of_waste ,nvl(tt1.name,t.name) as haz_nonhaz,
+Select ss.name as projectid ,fy_timerange ,(EXTRACT(YEAR FROM(CAST(fy_timerange.start AS datetime)))) as  year,ss.category_of_wastee as category_of_waste ,ss.haz_nonhaz,
 extract(Month from cast(fy_timerange.start as datetime) )as Monthh,
 case 
   when monthh=01 then 'January'
@@ -15,29 +15,19 @@ case
   when monthh=11 then 'November'
   when monthh=12 then 'December'
   end as month,
-case 
-	when tt1.name is null then t.name
-	else t.name
-	end as waste_type2, nvl(t4.name,t2.name)  as opertn_type,
+ss.waste_type2, nvl(t4.name,t2.name)  as opertn_type,
  t1.name as waste_recovered_disposed  ,sum(waste_generated)  as waste_generated
-from  profile_79255
-left join ds_mysql_prod_project tt
-on tt.id=projectid
-left join ds_mysql_prod_tagelement t
-on t.id=category_of_waste
-left join ds_mysql_prod_tagelement tt1
-on tt1.id=t.parent
+from  profile_79255_waste ss
 left join ds_mysql_prod_tagelement t1
 on t1.id=waste_recovered_disposed
 left join ds_mysql_prod_tagelement t2
 on t2.id=disposal_operation
 left join ds_mysql_prod_tagelement t3
 on t3.id=disposal_onsite_offsite
-
 left join  ds_mysql_prod_tagelement t4
 on t4.id=recovery_operation
 
-group by tt.name ,fy_timerange ,t.name ,tt1.name,t4.name,t1.name,t2.name
+group by ss.name,fy_timerange,t4.name,t1.name,t2.name,ss.category_of_wastee,ss.waste_type2,ss.haz_nonhaz
 )
 Select projectid,fy_timerange,
 case 
