@@ -27,13 +27,32 @@ t2 as
 (select *, round((t1.sub1_maths :: decimal/t1.sub1_total :: decimal)*100,2) as avg_maths_marks_sub1,
 round((t1.sub2_maths :: decimal/t1.sub2_total :: decimal)*100,2) as avg_maths_marks_sub2
 
-from t1)
+from t1),
 
-select *, sum(avg_maths_marks_sub1) + sum(avg_maths_marks_sub2) as Total_maths_percentage 
+t3 as 
+(select *, sum(avg_maths_marks_sub1) + sum(avg_maths_marks_sub2) as Total_maths_percentage 
  
 from t2
  
-group by t2._id, t2.projectId, t2.sub1, t2.sub2, t2.fy_2_timerange, t2.sub1_marks, t2.sub2_marks, t2.sub1_total, t2.sub2_total, t2.sub1_maths, t2.sub2_maths, t2.avg_maths_marks_sub1, t2.avg_maths_marks_sub2, t2.kali_class
+group by t2._id, t2.projectId, t2.sub1, t2.sub2, t2.fy_2_timerange, t2.sub1_marks, t2.sub2_marks, t2.sub1_total, t2.sub2_total, t2.sub1_maths, t2.sub2_maths, t2.avg_maths_marks_sub1, t2.avg_maths_marks_sub2, t2.kali_class)
+
+select t3._id, t3.projectId, t3.sub1, t3.sub2, t3.fy_2_timerange as fy_timerange, t3.sub1_marks, t3.sub2_marks, t3.sub1_total, t3.sub2_total, t3.sub1_maths, t3.sub2_maths, t3.avg_maths_marks_sub1, t3.avg_maths_marks_sub2, t3.Total_maths_percentage :: integer, t3.kali_class
+tag4.name as kali_class,
+  case t3.Total_maths_percentage :: integer
+  when t3.Total_maths_percentage :: integer <= 20 then '0-20%'
+  when t3.Total_maths_percentage :: integer <= 40 then '20-40%'
+  when t3.Total_maths_percentage :: integer <= 60 then '40-60%'
+  when t3.Total_maths_percentage :: integer <= 80 then '60-80%'
+  when t3.Total_maths_percentage :: integer <= 100 then '80-100%'
+  else '100%'
+  end as percent_bucket, count(*)
+from t3 
+
+group by t3._id, t3.projectId, t3.sub1, t3.sub2, t3.fy_2_timerange , t3.sub1_marks, t3.sub2_marks, t3.sub1_total, t3.sub2_total, t3.sub1_maths, t3.sub2_maths, t3.avg_maths_marks_sub1, t3.avg_maths_marks_sub2, t3.Total_maths_percentage, t3.kali_class
+
+order by t3.Total_maths_percentage asc
+
+
 
 
 
