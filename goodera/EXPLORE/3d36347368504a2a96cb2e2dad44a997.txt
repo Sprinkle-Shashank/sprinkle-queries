@@ -1,0 +1,35 @@
+with b as(
+  select 'Male' as col
+  union all
+  select 'Female' as col
+  union all
+  select 'Other' as col)
+
+Select a.fy_timerange, p.name as projectid,p1.name as donor,b.col as gender,t3.name as city, t4.name as state, m1.code as map_code,
+case
+	when (p.name) like '%School Transformation' then 'School Transformation'
+	when (p.name) like '%Random act of kindness' then 'Random act of kindness'
+	when (p.name) like '%Health & Nutrition' then 'Health & Nutrition'
+	when (p.name) like '%Unstoppable Vaccination Drive' then 'Unstoppable Vaccination Drive'
+	when (p.name) like '%Remote Learning' then 'Remote Learning'
+	when (p.name) like '%Educational Scholarships' then 'Educational Scholarships'
+	else NULL
+	end as project_type,
+	
+sum(case col
+	when 'Male' then a.total_male_students_enrolled_after
+	when 'Female' then a.total_female_students_enrolled_after	
+	when 'Other' then a.total_other_students_enrolled_after	
+	else NULL
+	end )as students
+	
+from profile_80582 a
+cross join b
+left join ds_mysql_prod_project p on p.id = a.projectid
+left join ds_mysql_prod_project p1 on p1.id = p.parent
+left join ds_mysql_prod_tagelement t3 on t3.id = a.school_loc	
+left join ds_mysql_prod_tagelement t4 on t4.id = t3.parent
+left join ds_mongo_reftagelementmetadata m1 on m1._id=t4.reftagelementmetadataid
+
+where a.projectid like '%%'
+group by a.fy_timerange, p.name,p1.name,gender,city, state, m1.code
