@@ -5,7 +5,9 @@ with table1 as (Select
 				case when table_54267._id is null then pace_status_2 else table_54267.pace_status end as paceStatus,
 				table_54646.name_vendor_filter as name_vendor_filter,
 				table_4227.start_date as start_date,
-				case when table_52810.offset_date is null then '2020-02-01T00:00:00.000Z' else table_52810.offset_date end as offset_date1
+				case when table_52810.offset_date is null then '2020-02-01T00:00:00.000Z' else table_52810.offset_date end as offset_date1,
+				listagg(distinct(name_vendor_filter)) as num_partners, 
+				table_54267._id as id1
 				
 				
 				from profile_52713 p
@@ -20,14 +22,8 @@ table_54267.projectId = p.projectId
 				
 left join profile_54646 table_54646 on
 table_54646.projectId = p.projectId
-			
-order by table_54267._id desc
-),
-table2 as (Select name_vendor_filter, brand, listagg(distinct(name_vendor_filter)) as num_partners,projectId1 as projectId, start_date,offset_date1
-			from table1 p
-
---group by name_vendor_filter, brand,projectId,start_date,offset_date1
 )
+--group by name_vendor_filter, brand,projectId,start_date,offset_date1
 Select 
 count(num_partners) as num_partners, projectid, start_date
-from table2 p where brand = 1 and start_date >= offset_date1 group by name_vendor_filter
+from table1 p where brand = 1 and start_date >= offset_date1 group by name_vendor_filter order by id1 desc
