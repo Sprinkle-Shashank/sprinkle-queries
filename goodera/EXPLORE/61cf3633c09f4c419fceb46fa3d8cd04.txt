@@ -1,4 +1,20 @@
-with sub1 as(select p2.name as sub_location, count(*) as count,p3.name as impl_partner,p4.name as van,
+with sub1 as(select p2.name as location, p1.lat as latitude,p1.longi as longitude,p1.base_dist as distance,count(*) as count
+/*case 
+  	when (p2.date_yn is not null and p2.date_yn = 28005 ) then p2.date_n
+  	else p2.createddate
+  	end as date
+*/
+
+from profile_49219 p1
+left join profile_58511 p2 on p2._id=p1.location
+where p2.name <> ' ' and p2.name is not null
+group by p2.name,p1.lat,p1.longi,p1.base_dist)
+
+select location,latitude,longitude,distance,sum(count) as total_bene
+from sub1
+group by location,latitude,longitude,distance
+
+/*with sub1 as(select p2.name as sub_location,p3.name as impl_partner,p4.name as van,p2.lat as latitude,p2.longi as longitude,count(*) as count,
 case 
   	when (p1.date_yn is not null and p1.date_yn = 28005 ) then p1.date_n
   	else p1.createddate
@@ -10,7 +26,19 @@ left join profile_49219 p2 on p2._id=p1.location
 left join profile_51990 p3 on p3._id=p1.imple_partner
 left join ds_mysql_prod_project p4 on p1.projectid = p4.id
 			 
---where p2.name <> ''
-group by p2.name,impl_partner,date,p4.name)
-select sub_location,count,impl_partner as name,date,van
+where p2.name <> ' ' and p2.name is not null
+group by p2.name,impl_partner,date,p4.name,p2.lat,p2.longi)
+select sub_location,sum(count) as total_bene,impl_partner as name,date,van,latitude,longitude
 from sub1
+group by sub_location,name,date,van,latitude,longitude
+
+with sub1 as (
+select p1.*,p3.name as impl_partner,
+ case p3.name 
+	when 'BSES Hospital (Mumbai)' then '62c69c15d251f51b00374da2'
+	else p1.location
+	end as loc_new
+
+from profile_58511 p1
+left join profile_51990 p3 on p3._id=p1.imple_partner
+),*/
