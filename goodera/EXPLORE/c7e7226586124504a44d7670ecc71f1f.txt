@@ -1,5 +1,5 @@
 with s as (
-Select tt.name as projectid ,fy_timerange ,(EXTRACT(YEAR FROM(CAST(fy_timerange.start AS datetime)))) as  year, t.name as category_of_waste ,nvl(tt2.name,tt1.name) as haz_nonhaz,
+Select ss.name as projectid ,fy_timerange ,(EXTRACT(YEAR FROM(CAST(fy_timerange.start AS datetime)))) as  year, ss.category_of_wastee as category_of_waste ,ss.haz_nonhaz,
 extract(Month from cast(fy_timerange.start as datetime) )as Monthh,
 case 
   when monthh=01 then 'January'
@@ -15,20 +15,10 @@ case
   when monthh=11 then 'November'
   when monthh=12 then 'December'
   end as month,
-case 
-	when tt2.name is null then t.name
-	else tt1.name
-	end as waste_type2, nvl(t4.name,t2.name)  as opertn_type,
+ss.waste_type2,nvl(t4.name,t2.name)  as opertn_type,
 t1.name as waste_recovered_disposed , sum(waste_generated) as waste_generated
-from  profile_79216
-left join ds_mysql_prod_project tt
-on tt.id=projectid
-left join ds_mysql_prod_tagelement t
-on t.id=category_of_waste
-left join ds_mysql_prod_tagelement tt1
-on tt1.id=t.parent
-left join ds_mysql_prod_tagelement tt2
-on tt2.id=tt1.parent
+from  profile_79216_waste ss
+
 left join ds_mysql_prod_tagelement t1
 on t1.id=waste_recovered_disposed
 left join ds_mysql_prod_tagelement t2
@@ -38,16 +28,17 @@ on t3.id=disposal_onsite_offsite
 left join  ds_mysql_prod_tagelement t4
 on t4.id=recovery_operation
 
-group by tt.name ,fy_timerange ,t.name ,tt2.name,tt1.name,t4.name,t1.name,t2.name
+group by ss.name ,fy_timerange ,t4.name,t1.name,t2.name,ss.category_of_wastee,ss.waste_type2,ss.haz_nonhaz
 )
 Select projectid,fy_timerange,
 case 
-         when (year=2018 and month1>3) or (year=2019 and month1<4) then 'FY 2018-19' 
-        when (year=2019 and month1>3) or (year=2020 and month1<4) then 'FY 2019-20' 
-	 when (year=2020 and month1>3) or (year=2021 and month1<4) then 'FY 2020-21' 
-        when (year=2021 and month1>3) or (year=2022 and month1<4) then 'FY 2021-22' 
-	 when (year=2022 and month1>3) or (year=2023 and month1<4) then 'FY 2022-23'
-	 when (year=2023 and month1>3) or (year=2024 and month1<4) then 'FY 2023-24'
+        when (year=2018 and monthh>3) or (year=2019 and monthh<4) then 'FY 2018-19' 
+        when (year=2019 and monthh>3) or (year=2020 and monthh<4) then 'FY 2019-20' 
+	 when (year=2020 and monthh>3) or (year=2021 and monthh<4) then 'FY 2020-21' 
+        when (year=2021 and monthh>3) or (year=2022 and monthh<4) then 'FY 2021-22' 
+	 when (year=2022 and monthh>3) or (year=2023 and monthh<4) then 'FY 2022-23'
+	 when (year=2023 and monthh>3) or (year=2024 and monthh<4) then 'FY 2023-24'
+
 	 end as year
 ,category_of_waste,haz_nonhaz,monthh,month, waste_type2, opertn_type,waste_recovered_disposed , waste_generated
 from s
