@@ -1,0 +1,27 @@
+
+with temp as ( 
+select 'health_and_hygiene_camps__sessions' as c
+  Union all 
+select 'computer_classes' as c
+  Union all 
+select 'life_skills_sessions' as c 
+  Union all 
+  select 'youthadolescent_clubs_formed' as c
+  Union all 
+  select 'children_linked_with_government_sch_csr' as c  )
+  
+  select pro.name as projectid, fy_timerange,
+sum( case c when 'health_and_hygiene_camps__sessions' then p.health_and_hygiene_camps__sessions
+	        when 'computer_classes' then p.computer_classes
+	        when 'life_skills_sessions' then p.life_skills_sessions
+	        when 'youthadolescent_clubs_formed' then p.youthadolescent_clubs_formed
+	        when 'children_linked_with_government_sch_csr' then p.children_linked_with_government_sch_csr
+	
+	        else null end ) as val, temp.c as dim from profile_81300 p
+			
+			left join ds_mysql_prod_project pro
+             on p.projectid = pro.id
+			cross join temp
+			
+group by projectid,fy_timerange,temp.c,pro.name			
+			
