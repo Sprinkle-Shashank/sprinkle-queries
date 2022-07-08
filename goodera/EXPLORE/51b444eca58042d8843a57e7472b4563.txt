@@ -1,18 +1,28 @@
-with sub1 as (select p2.name as sub_location,p4.name as van,p2.lat as latitude,p2.longi as longitude,count(*) as count,
-case 
-  	when (p1.date_yn is not null and p1.date_yn = 28005 ) then p1.date_n
-  	else p1.createddate
-  	end as date
-
-from profile_58511 p1
-			
-left join profile_49219 p2 on p2._id=p1.location
-left join ds_mysql_prod_project p4 on p1.projectid = p4.id
+with sub1 as ( Select p.projectid , p.location ,p1.location as loc1, p1.lat as latitude , p1.longi as longitude, p1.base_dist as base_distance 
+			  
+from profile_58511 p
+left join profile_49219 p1 on p.location = p1._id  
+WHERE p1.location <> ' '  
+),
 			 
-where p2.name <> ' ' and p2.name is not null
-group by p2.name,date,p4.name,p2.lat,p2.longi)
-
-
-select sub_location,sum(count) as total_bene,date,van,latitude,longitude
-from sub1
-group by sub_location,date,van,latitude,longitude
+			 
+ sub2 as ( 
+   
+Select count(*) , p1.location , p2.location as loc 
+   
+   from profile_58474 p
+   
+    left join profile_58511 p1
+   on p.sel_camp = p1._id  
+   left join profile_49219 p2
+   on p1.location = p2._id  
+    GROUP BY p1.location , p2.location 
+   
+   )
+  
+ Select loc ,count, sub1.latitude , sub1.longitude , sub1.base_distance , t1.name as van from sub2 
+ LEFT JOIN sub1 
+ on sub2.loc = sub1.loc1
+ LEFT JOIN ds_mysql_prod_project t1
+ on sub1.projectid = t1.id
+ GROUP BY loc , count ,sub1.latitude , sub1.longitude , sub1.base_distance , t1.name
