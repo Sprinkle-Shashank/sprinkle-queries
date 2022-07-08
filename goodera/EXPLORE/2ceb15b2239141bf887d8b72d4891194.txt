@@ -1,53 +1,6 @@
-Select  p._id,p.projectId as project,fac.name as projectId,p2.name as factory,p.director_region as director_region , p.facility_type, p.strategic_yn, p.year_timerange, p.country as country,ven.name as vendor1,nvl2(SUBSTRING(vendor1, 1, POSITION(' (' in vendor1)), SUBSTRING(vendor1, 1, POSITION(' (' in vendor1)), vendor1) as vendor_name, case when vendor_name='' then vendor1 else vendor_name end as vendor, p.female_workers, p.male_workers, p.female_managers, p.male_managers, p.female_reps_worker, p.male_reps_workers, p.female_reps_management, p.male_reps_management, p.female_supervisors, p.male_supervisors, 
-p.female_reps_management*100 AS a,(p.female_reps_management + p.male_reps_management) AS b,
-CAST (a AS FLOAT) as a1,
-CAST (b as FLOAT) as b1,
-a1/nullif(b1,0) AS f1,
-
-p.female_managers*100 AS c, (p.female_managers+p.male_managers) AS d,
-CAST (c AS FLOAT) as c1,
-CAST (d as FLOAT) as d1,
-Case when p.country IN ('Cambodia')
-THEN 
-c1/nullif(d1,0) 
-else
-(p.female_managers+p.female_supervisors)/(p.female_managers+p.female_supervisors+p.male_managers+p.male_supervisors)*100.0
-END as f2,
-
-
-p.female_reps_worker*100 AS e, (p.female_reps_worker + p.male_reps_workers) AS g,
-CAST (e AS FLOAT) as e1,
-CAST (g as FLOAT) as g1,
-e1/nullif(g1,0) AS f3,
-
-(p.female_workers+p.female_supervisors)*100 AS h, (p.female_workers + p.female_supervisors+p.male_workers+p.male_supervisors) AS i,
-CAST (h AS FLOAT) as h1,
-CAST (i as FLOAT) as i1,
-p.female_workers+p.male_workers as chaljabhai,
-Case when p.country IN ('Cambodia')
-THEN
-h1/nullif(i1,0)
-else
-(p.female_workers/chaljabhai)*100.0
-end as f4,
-count(p.projectId) as count,
-
-CASE WHEN(f1>f2) AND (f3>f4) THEN 'YES'
-ELSE
-'NO'
-END AS result
-
-from profile_76755 p
-
-left join profile_76770 p2 on
-p.facility_name = p2._id
-
-
-left join ds_mysql_prod_project fac
-on p.projectid = fac.id
-left join ds_mysql_prod_project ven
-on fac.parent = ven.id
-
-
-WHERE p.strategic_yn ='Yes' and result = 'YES' and project like '%%'
-Group by  p._id,project,fac.name,factory,p.director_region,p.facility_type, p.strategic_yn, p.year_timerange,p.country,ven.name,f1, f3, f4, result, vendor, f2,p.female_workers, p.male_workers,p.female_managers, p.male_managers, p.female_reps_worker, p.male_reps_workers, p.female_reps_management, p.male_reps_management, p.female_supervisors, p.male_supervisors
+Select p.projectid , p.location ,p1.location as loc, p1.lat as latitude , p1.longi as longitude, p1.base_dist as base_distance from profile_58511 p
+  
+   left join profile_49219 p1
+   on p.location = p1._id  
+  
+			  WHERE p1.location <> ' '
