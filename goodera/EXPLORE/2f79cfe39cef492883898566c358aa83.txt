@@ -1,5 +1,5 @@
 with t1 as 
-(select p1._id, tag1.name as projectId, tag2.name as sub_1, tag3.name as sub_2, p1.fy_2_timerange, p1.sub1_marks, p1.sub2_marks, p1.sub1_total, p1.sub2_total,p1.sub1, p1.sub2, 
+(select p1._id, tag1.name as projectId, tag2.name as sub_1, tag3.name as sub_2, p1.fy_2_timerange, p1.sub1_marks, p1.sub2_marks, p1.sub1_total, p1.sub2_total,p1.sub1, p1.sub2, tag4.name as kali_class
 case p1.sub1 
 when p1.sub1 <> 481717 then (p1.sub1_marks :: decimal/p1.sub1_total :: decimal)*100 
 else 0
@@ -12,14 +12,18 @@ end as sub2_lang_percentage,
 (sub1_lang_percentage) + (sub2_lang_percentage) as Total_lang_Percentage
 
 from profile_31103 p1
+left join profile_31099 p2
+on p1.kali_id = p2._id  
 left join ds_mysql_prod_project tag1
 on p1.projectId = tag1.id
 left join ds_mysql_prod_tagelement tag2
 on p1.sub1 = tag2.id
 left join ds_mysql_prod_tagelement tag3
-on p1.sub2 = tag3.id)
+on p1.sub2 = tag3.id
+left join ds_mysql_prod_tagelement tag3
+on p2.kali_class = tag4.id)
 
-select t1._id, t1.projectId, t1.sub_1, t1.sub_2, t1.fy_2_timerange as fy_timerange, t1.sub1_marks, t1.sub2_marks, t1.sub1_total, t1.sub2_total, t1.sub1_lang_percentage, t1.sub2_lang_percentage, t1.Total_lang_Percentage :: integer,
+select t1._id, t1.projectId, t1.sub_1, t1.sub_2, t1.fy_2_timerange as fy_timerange, t1.sub1_marks, t1.sub2_marks, t1.sub1_total, t1.sub2_total, t1.sub1_lang_percentage, t1.sub2_lang_percentage, t1.Total_lang_Percentage :: integer, 
 
 case t1.Total_lang_Percentage :: integer
 when t1.Total_lang_Percentage :: integer <= 20 then '0-20%'
@@ -28,9 +32,9 @@ when t1.Total_lang_Percentage :: integer <= 60 then '40-60%'
 when t1.Total_lang_Percentage :: integer <= 80 then '60-80%'
 when t1.Total_lang_Percentage :: integer <= 100 then '80-100%'
 else '100%'
-end as percent_bucket, count(*)
+end as percent_bucket, count(*), t1.kali_class
 from t1
-group by t1._id, t1.projectId, t1.sub_1, t1.sub_2, t1.fy_2_timerange, t1.sub1_marks, t1.sub2_marks, t1.sub1_total, t1.sub2_total, t1.sub1_lang_percentage, t1.sub2_lang_percentage, t1.Total_lang_Percentage, percent_bucket
+group by t1._id, t1.projectId, t1.sub_1, t1.sub_2, t1.fy_2_timerange, t1.sub1_marks, t1.sub2_marks, t1.sub1_total, t1.sub2_total, t1.sub1_lang_percentage, t1.sub2_lang_percentage, t1.Total_lang_Percentage, percent_bucket, t1.kali_class
 order by t1.Total_lang_Percentage asc
 
 
