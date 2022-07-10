@@ -1,4 +1,5 @@
-select p1._id, tag1.name as projectId, tag2.name as sub1, tag3.name as sub2, p1.fy_2_timerange, p1.sub1_marks, p1.sub2_marks, p1.sub1_total, p1.sub2_total,p1.sub1, p1.sub2, 
+with t1 as 
+(select p1._id, tag1.name as projectId, tag2.name as sub1, tag3.name as sub2, p1.fy_2_timerange, p1.sub1_marks, p1.sub2_marks, p1.sub1_total, p1.sub2_total,p1.sub1, p1.sub2, 
 case p1.sub1 
 when p1.sub1 <> 481717 then (p1.sub1_marks :: decimal/p1.sub1_total :: decimal)*100 
 else 0
@@ -16,7 +17,15 @@ on p1.projectId = tag1.id
 left join ds_mysql_prod_tagelement tag2
 on p1.sub1 = tag2.id
 left join ds_mysql_prod_tagelement tag3
-on p1.sub2 = tag3.id
+on p1.sub2 = tag3.id)
+
+select t1._id, t1.projectId, t1.sub1, t1.sub2, t1.fy_2_timerange as fy_timerange, t1.sub1_marks, t1.sub2_marks, t1.sub1_total, t1.sub2_total, t1.sub1_lang_percentage, t1.sub2_lang_percentage, t1.Total_lang_Percentage
+
+case t1.Total_lang_Percentage
+when t1.Total_lang_Percentage = 20 then '0-20%'
+else 0
+end as bucket_percentage
+from t1
 
 
 
