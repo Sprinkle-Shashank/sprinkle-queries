@@ -1,24 +1,21 @@
-with table1 as (Select 
+with table1 as (Select
 				JSON_SERIALIZE(table_52810.pace_brands) as pace_brand,	
 				case when pace_brand like '%1011796%' then 1 else 0 end  as brand,
-				case when pace_status = 182398 or pace_status is null then 1 else 0 end as status,
-				table_54646.name_vendor_filter as name_vendor_filter,
-				table_54646.name_country as country_name,
-				p.projectid as projectid1,cp_id,
-				table_4227.start_date as start_date,
+				p.projectId as projectId,
+				photo3,photo,
+				case when lg_status = 848007 or lg_status is null then 1 else 0 end as lg,
+				case when photo is null or photo3 is null then 0 else 1 end as photostatus,
+				p._id as _id,
+				p.start_date as start_date,
 				case when table_52810.offset_date is null then '2020-02-01T00:00:00.000Z' else table_52810.offset_date end as offset_date1
 				
+
+				from profile_4227 p
 				
-				from profile_4948 p
 left join profile_52810 table_52810 on
 table_52810.projectId = p.projectId
 				
-left join profile_4227 table_4227 on
-table_4227.projectId = p.projectId
-				
-left join profile_54646 table_54646 on
+inner join profile_54646 table_54646 on
 table_54646.projectId = p.projectId
 )
-
-
-select projectid1 as projectid, listagg(distinct(country_name)) as country_name, listagg(distinct(cp_id)) as cp_id, name_vendor_filter,start_date from table1 p where brand = 1 and status = 1 and start_date >= offset_date1 group by name_vendor_filter, projectid, start_date
+select _id,cast(projectId as int4) as projectId, photo3, photo,start_date from table1 p where brand = 1 and lg = 1 and photostatus = 1 and start_date >= offset_date1
