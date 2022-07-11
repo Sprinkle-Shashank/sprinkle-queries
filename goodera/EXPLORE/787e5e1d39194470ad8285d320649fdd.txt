@@ -8,8 +8,8 @@ n1.id=p.focus_area),
 
 tab3 as (
   
-  select q.name as prj3,'-1' as c, f.name as fy,' ' as state, m.name as manager,f1.name as focus_area,
-  ' ' as ngo_partners
+  select q.name as prj3,'-1' as village_count, f.name as fy,' ' as state, m.name as manager,f1.name as focus_area,
+  ' ' as ngo_partners,d.start_date as start_date,d.end_date  as End_Date
 from profile_27420 d
   
 left join ds_mysql_prod_tagelement f on
@@ -23,7 +23,7 @@ d.project_code=q._id
 		   
 union all
   
-  select q.prj2 as prj3,count(q.prj1) as village_count,q.fy_timerange fy,p.state,t2.name as manager,q.focus_area,p2.name as ngo_partners from profile_27396 p
+  select q.prj2 as prj3,count(q.prj1) as village_count,q.fy_timerange fy,p.state,t2.name as manager,q.focus_area,p2.name as ngo_partners,p.start_date as start_date,p.end_date  as End_Date from profile_27396 p
 		 left join tab1 q
 		 on p._id=q.prj_code
 		 left join ds_mysql_prod_tagelement t2
@@ -34,7 +34,7 @@ union all
   
 		union all
 
-		select q.prj2 as prj3,count(q.prj1) as village_count,q.fy_timerange fy,p.state,t2.name as manager,q.focus_area,p2.name as ngo_partners from profile_27396 p
+		select q.prj2 as prj3,count(q.prj1) as village_count,q.fy_timerange fy,p.state,t2.name as manager,q.focus_area,p2.name as ngo_partners,p.start_date as start_date,p.end_date  as End_Date from profile_27396 p
 		 left join tab1 q
 		 on p._id=q.prj_code
 		 left join ds_mysql_prod_tagelement t2
@@ -57,17 +57,17 @@ left join level1tab z on
 z.level1email = p.approver),
 
 newtab1 as (
-   Select village_count, prj3,fy,focus_area,ngo_partners,d.level1, d.level2,state from tab3 t
+   Select village_count, prj3,fy,focus_area,ngo_partners,d.level1, d.level2,state,t.start_date,t.End_Date  from tab3 t
   --t, t.state st
 left join level2tab d on
 d.level1 = t.manager
 ),
 
 newtab2 as(
-Select c, prj3,fy,focus_area, ngo_partners, level1, level2, st from newtab1 t,t.state st
+Select village_count, prj3,fy,focus_area, ngo_partners, level1, level2, st,start_date,End_Date  from newtab1 t,t.state st
   )
   
-Select c, prj3,fy,focus_area, ngo_partners, level1, level2, t1.name as state
+Select village_count, prj3,fy,focus_area, ngo_partners, level1, level2, t1.name as state,start_date,End_Date
 from newtab2 t
 left join ds_mysql_prod_tagelement t1
 on t1.id=t.st
