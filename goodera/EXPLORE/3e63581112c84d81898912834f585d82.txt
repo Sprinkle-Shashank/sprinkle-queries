@@ -1,0 +1,48 @@
+with s as (
+Select tt.name as projectid ,fy_timerange ,(EXTRACT(YEAR FROM(CAST(fy_timerange.start AS datetime)))) as  year, ss.category_of_wastee as category_of_waste ,ss.haz_nonhazz as haz_nonhaz,extract(Month from cast(fy_timerange.start as datetime) )as Monthh,
+case 
+  when monthh=01 then 'January'
+  when monthh=02 then 'February'
+  when monthh=03 then 'March'
+  when monthh=04 then 'April'
+  when monthh=05 then 'May'
+  when monthh=06 then 'June'
+  when monthh=07 then 'July'
+  when monthh=08 then 'August'
+  when monthh=09 then 'September'
+  when monthh=10 then 'October'
+  when monthh=11 then 'November'
+  when monthh=12 then 'December'
+  end as month,
+ss.waste_type22 as waste_type2, coalesce(t4.name,t5.name)  as opertn_type,
+ t1.name as waste_recovered_disposed ,t3.name as disposal_onsite_offsite, t5.name as recovery_onsite_offsite, sum(additional_cost) as additional_cost
+from  profile_79255_waste ss
+left join ds_mysql_prod_project tt
+on tt.id=projectid
+left join ds_mysql_prod_tagelement t1
+on t1.id=waste_recovered_disposed
+left join ds_mysql_prod_tagelement t2
+on t2.id=disposal_operation
+left join ds_mysql_prod_tagelement t3
+on t3.id=disposal_onsite_offsite
+
+left join  ds_mysql_prod_tagelement t4
+on t4.id=recovery_operation
+
+left join ds_mysql_prod_tagelement t5
+on t5.id=recovery_onsite_offsite
+
+group by tt.name ,fy_timerange ,ss.category_of_wastee,ss.waste_type22,ss.haz_nonhazz,t4.name,t2.name,t1.name,t3.name ,t5.name
+)
+Select projectid ,fy_timerange ,
+case
+when (year=2018 and monthh>3) or (year=2019 and monthh<4) then 'FY 2018-19' 
+        when (year=2019 and monthh>3) or (year=2020 and monthh<4) then 'FY 2019-20' 
+	 when (year=2020 and monthh>3) or (year=2021 and monthh<4) then 'FY 2020-21' 
+        when (year=2021 and monthh>3) or (year=2022 and monthh<4) then 'FY 2021-22' 
+	 when (year=2022 and monthh>3) or (year=2023 and monthh<4) then 'FY 2022-23'
+	 when (year=2023 and monthh>3) or (year=2024 and monthh<4) then 'FY 2023-24'
+end as year
+, category_of_waste , haz_nonhaz,Monthh, month,
+waste_type2, opertn_type,waste_recovered_disposed , disposal_onsite_offsite,recovery_onsite_offsite,  additional_cost
+from s
