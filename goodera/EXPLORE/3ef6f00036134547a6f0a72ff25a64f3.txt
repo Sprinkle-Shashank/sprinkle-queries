@@ -6,7 +6,8 @@ with table1 as (Select
 				score2,score,
 				table_4227.start_date as start_date1,
 				p.projectId as projectid1,
-				case when table_52810.offset_date is null then '2020-02-01T00:00:00.000Z' else table_52810.offset_date end as offset_date1
+				case when table_52810.offset_date is null then '2020-02-01T00:00:00.000Z' else table_52810.offset_date end as offset_date1 , 
+				case when start_date1 >= offset_date1 then 1 else 0 end as token
 				
 				from profile_4228 p
 left join profile_52810 table_52810 on
@@ -16,7 +17,7 @@ left join profile_4227 table_4227 on
 table_4227._id = p.class
 ),
 
-table2 as (Select brand, pre_post_yn, avg(score) as pre_score , avg(score2) as post_score, select_modules,
+table2 as (Select brand, pre_post_yn, avg(score) as pre_score , avg(score2) as post_score, select_modules,token,
 		   moduleTable.name as module,
 		   start_date1,projectid1,offset_date1
 
@@ -25,9 +26,9 @@ table2 as (Select brand, pre_post_yn, avg(score) as pre_score , avg(score2) as p
 left join ds_mysql_prod_tagelement moduleTable on
 moduleTable.id = select_modules
 		   
-group by brand, pre_post_yn, select_modules,moduleTable.name,moduleTable.sortOrder,start_date1,projectid1,offset_date1
+group by brand, pre_post_yn, select_modules,moduleTable.name,moduleTable.sortOrder,start_date1,projectid1,offset_date1, token
 order by moduleTable.sortOrder
 )
 
 Select pre_score, post_score, cast(select_modules as int4), module,start_date1 as start_date ,projectid1 as projectid from table2 p where brand = 1 and pre_post_yn = 57472
-and module is not null and start_date1 >= offset_date1
+and module is not null and token = 1
