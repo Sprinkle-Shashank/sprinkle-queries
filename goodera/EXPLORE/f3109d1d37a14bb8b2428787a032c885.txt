@@ -1,7 +1,7 @@
-with sub1 as(select a.*, unwind_loc, unwind_sdg from profile_65003 a, a.location as unwind_loc, a.sdg as unwind_sdg)
+with sub1 as(select a.*, unwind_loc, unwind_sdg from profile_65003 a, a.location as unwind_loc, a.sdg as unwind_sdg),
 
-
-select p2.name as projectId, name_project, start_date :: timestamp, end_date :: timestamp, description, objectives, name_coordinator, designation, email, tag2.name as focus_area, p1.sdg, tag3.name as schedule_vii, photo, phone_no, to_char(start_date, 'MM') as start_month, to_char(end_date, 'MM') as end_month, start_date|| '|' ||end_date as fy_timerange, to_char(start_date, 'DD') as start_day, to_char(end_date, 'DD') as end_day, to_char(start_date, 'YYYY') as start_year, to_char(end_date, 'YYYY') as end_year, p3.name as p3, p4.name as p4, p5.sdg_icon,
+t2 as 
+(select p2.name as projectId, name_project, start_date :: timestamp, end_date :: timestamp, description, objectives, name_coordinator, designation, email, tag2.name as focus_area, p1.sdg, tag3.name as schedule_vii, photo, phone_no, to_char(start_date, 'MM') as start_month, to_char(end_date, 'MM') as end_month, start_date|| '|' ||end_date as fy_timerange, to_char(start_date, 'DD') as start_day, to_char(end_date, 'DD') as end_day, to_char(start_date, 'YYYY') as start_year, to_char(end_date, 'YYYY') as end_year, p3.name as p3, p4.name as p4, p5.sdg_icon,
 listagg(distinct t4.name, ', ') as state, listagg(distinct t5.name, ', ') as sdg1
 
 from sub1 p1
@@ -19,7 +19,43 @@ left join profile_65010 p5 on p5.projectid=p3.parent
 left join ds_mysql_prod_tagelement t5
 on p1.unwind_sdg = t5.id 
 
-group by  p2.name , name_project, start_date , end_date , description, objectives, name_coordinator, designation, email, tag2.name, p1.sdg, tag3.name , photo, phone_no, p3.name , p4.name , p5.sdg_icon
+group by  p2.name , name_project, start_date , end_date , description, objectives, name_coordinator, designation, email, tag2.name, p1.sdg, tag3.name , photo, phone_no, p3.name , p4.name , p5.sdg_icon)
+
+select * , 
+case t1.start_month :: integer
+when t1.start_month :: integer = 1 then 'January'
+when t1.start_month :: integer = 2 then 'February'
+when t1.start_month :: integer = 3 then 'March'
+when t1.start_month :: integer = 4 then 'April'
+when t1.start_month :: integer = 5 then 'May'
+when t1.start_month :: integer = 6 then 'June'
+when t1.start_month :: integer = 7 then 'July'
+when t1.start_month :: integer = 8 then 'August'
+when t1.start_month :: integer = 9 then 'September'
+when t1.start_month :: integer = 10 then 'October'
+when t1.start_month :: integer = 11 then 'November'
+when t1.start_month :: integer = 12 then 'December'
+else '-'
+end as s_month,
+
+case t1.end_month :: integer
+when t1.end_month :: integer = 1 then 'January'
+when t1.end_month :: integer = 2 then 'February'
+when t1.end_month :: integer = 3 then 'March'
+when t1.end_month :: integer = 4 then 'April'
+when t1.end_month :: integer = 5 then 'May'
+when t1.end_month :: integer = 6 then 'June'
+when t1.end_month :: integer = 7 then 'July'
+when t1.end_month :: integer = 8 then 'August'
+when t1.end_month :: integer = 9 then 'September'
+when t1.end_month :: integer = 10 then 'October'
+when t1.end_month :: integer = 11 then 'November'
+when t1.end_month :: integer = 11 then 'December'
+else '-'
+end as e_month
+from t1
+
+
 
 
 
