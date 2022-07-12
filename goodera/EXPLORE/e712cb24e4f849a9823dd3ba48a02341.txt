@@ -31,20 +31,34 @@ END AS start,
 start+1 as end1,
 concat(start,'-04-01T00:00:00.000Z') as start1,
 concat(end1,'-03-31T00:00:00.000Z') as end2,
-concat(concat(concat(concat('{"start":"',start1),'","end":"'),end2),'"}') as fy_1,turnover				  
+concat(concat(concat(concat('{"start":"',start1),'","end":"'),end2),'"}') as fy_1,turnover,			concat('FY(',concat(start,concat('-',concat(end1,')')))) as fy_2	  
 				  
 
 from table1 t1
-				)/*,
+				),
 table3 as (
 select country,name,fy_1 as fy_timerange,sum(t2.total_emission1) as total_emission,sum(turnover) as turnover1,total_emission/turnover1 as intensity from table2 t2
 
-group by country,name,fy_1)
+group by country,name,fy_1),
 
-select country,name,fy_timerange,intensity/*,lag(total_emission,1) over (order by  fy_timerange) as prev_emission*/,
+/*select country,name,fy_timerange,intensity/*,lag(total_emission,1) over (order by  fy_timerange) as prev_emission*/,
 (select intensity from table3
 	order by fy_timerange asc limit 1) as base_value,(base_value-intensity)*100.0/base_value as base_perc,turnover1 from table3 */
 	
-select * from table2	
+table4 as ( select cou.name as country,p.name,p.fy_timerange,keyword,datanum,startdate
 
+from sus_80478 p
+
+left join ds_mysql_prod_project pro on 
+p.xprojectid = pro.id
+
+left join ds_mysql_prod_project cou on 
+pro.parent = cou.id
+
+where keyword in ('turnover') 
+
+order by fy_timerange asc
+)	
+
+select * from table4
 
