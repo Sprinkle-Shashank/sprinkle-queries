@@ -39,10 +39,14 @@ from table1 t1
 table3 as (
 select country,name,fy_1 as fy_timerange,sum(t2.total_emission1) as total_emission,sum(turnover) as turnover1,total_emission/turnover1 as intensity,fy_2 from table2 t2
 
-group by country,name,fy_1,fy_2)
+group by country,name,fy_1,fy_2),
+
+table4 as (select name,intensity as base_value from(select name,intensity, row_number() over(partition by name order by fy_timerange asc) as row from table3)
+where row = 1 )
 
 select country,name,fy_timerange,intensity,fy_2/*,lag(total_emission,1) over (order by  fy_timerange) as prev_emission*/,
-(select intensity from table3
-	order by fy_timerange asc limit 1) as base_value,(base_value-intensity)*100.0/base_value as base_perc,turnover1 from table3 
+t4.base_value,(t4.base_value-intensity)*100.0/t4.base_value as base_perc,turnover1 from table3 t3
 	
+left join table4 t4 on
+t3.name = t4.name 
 
