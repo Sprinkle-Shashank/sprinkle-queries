@@ -1,0 +1,20 @@
+with sub1 as(
+  select projectid, batch_id, video_date, video, comments from profile_79420
+  union all
+  select projectid, batch_id, video_date, video, comments from profile_79421)
+  
+select p3.name as project,
+
+nvl(p4.name, p5.name) as batch_id, nvl(p4.center_id_db, p5.center_id_db) as center_id,
+nvl(p4.partner_db, p5.partner_db) as partner_name
+
+from sub1 s1
+
+left join ds_mysql_prod_project p1 on p1.id = s1.projectid
+left join ds_mysql_prod_project p2 on p2.id = p1.parent
+left join ds_mysql_prod_project p3 on p3.id = p2.parent
+
+left join profile_196 p4 on p4._id = s1.batch_id
+left join profile_36904 p5 on p5._id = s1.batch_id
+
+order by batch_id
