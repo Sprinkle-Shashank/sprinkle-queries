@@ -1,1 +1,39 @@
-select min(select_modules) as select_modules from profile_4227
+with table1 as (select 
+				json_serialize(table_52810.pace_brands) as pace_brands, 
+				case when pace_brand like '%1011796%' then 1 else 0 end as brand,
+				p.target_2020 as target_2020, 
+				p.target_2021 as target_2021,
+				p.target_2022 as target_2022,
+				p.goal_2020 as goal_2020,
+				p.goal_2022 as goal_2022, 
+				p.name as partner1, 
+				p.vp_id as vp_id1, 
+				p.projectId as projectid1,  
+				table_54646.projid_factory as factory_id, 
+				table_4227.start_date as start_date1,
+				table_4227.num_females as num_females1,
+				table_4227.lg_status as lg_status1,
+				table_4227.select_modules as select_modules1, 
+				case when table_52810.offset_date is null then '2020-02-01T00:00:00.000Z'  else table_52810.offset_date end as offset_date1, 
+				case when start_date1 >= offset_date1 then 1 else 0 end as token, 
+				case when (lg_status1 = 848008 or lg_status1 is not null) then 0 else num_females1 end as women_reached
+				
+				from profile_71993 p 
+left join profile_54646 table_54646 on 
+table_54646.projid_factory = p.projectId
+				
+left join profile_4227 table_4227 on 
+table_4227.projectId = table_54646.projid_factory 
+
+left join profile_52810 as table_52810 om 
+table_52810.projectId = table_4227.projectId	
+)
+,
+table2 as (select sum(target_2020) as target_2020, sum(target_2021) as target_2021, sum(target_2022) as target_2022, sum(goal_2020) as goal_2020, sum(goal_2022) as goal_2022, sum(women_reached) as women_reached, listagg(name1 , ',') as partner , listagg(vp_id1, ',') as vp_id, projectId1, brand, token
+
+from table1
+group by projectId1, brand , token)
+
+select sum(target_2020) as target_2020, sum(target_2021) as target_2021, sum(target_2022) as target_2022, sum(goal_2020) as goal_2020, sum(goal_2022) as goal_2022, sum(women_reached) as women_reached, min(projectId1) as projectid, min(projectId1) as vp_id, min(partner) as partner from table2 p where brand = 1 and token = 1 group by vp_id
+
+
