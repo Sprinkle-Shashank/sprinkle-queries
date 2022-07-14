@@ -1,1 +1,24 @@
-select * from profile_79421
+with sub1 as(
+  select projectid, batch_id, video_date, video, comments from profile_79420
+  union all
+  select projectid, batch_id, video_date, video, comments from profile_79421)
+  
+select p3.name as project, p1.name as projectid, s1.video, nvl(s1.comments, '-') as comment, 
+nvl(p4.name, p5.name) as batch_id, nvl(p6.name, p7.name) as center_id,
+
+case
+	when s1.video is null then '-'
+	else 'Click Here'
+end as video_download
+
+from sub1 s1
+
+left join ds_mysql_prod_project p1 on p1.id = s1.projectid
+left join ds_mysql_prod_project p2 on p2.id = p1.parent
+left join ds_mysql_prod_project p3 on p3.id = p2.parent
+
+left join profile_196 p4 on p4._id = s1.batch_id
+left join profile_36904 p5 on p5._id = s1.batch_id
+
+left join profile_141 p6 on p6._id = p4.center
+left join profile_36872 p7 on p7._id = p5.center
