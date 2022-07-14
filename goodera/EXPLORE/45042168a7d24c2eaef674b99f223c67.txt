@@ -6,9 +6,9 @@ with table1 as(Select
 			   p.lg_status as lg,
 			   case when table_54646._id is null then 0 else 1 end as status,
 			   p.start_year as start_year,
-			   p.num_females as num_females
-			   
-			   
+			   p.num_females as num_females,
+			   p.select_modules as select_modules
+			 
 			   from profile_4227 p
 left join profile_52810 table_52810 on
 table_52810.projectid = p.projectid
@@ -16,5 +16,15 @@ table_52810.projectid = p.projectid
 left join profile_54646 table_54646 on
 table_54646.projectid = p.projectid
 
+),
+table3 as(select t2.*,CAST(select_module1 as int) from table2 t2,t2.select_modules select_module1
+),
+
+table4 as (Select 
+		   brand,status,start_year, total_females,select_module1,lg,
+		   case when select_module1 in ('64503','70912','70941','70900','70910','70913','70909','70903','70901','70902','70911','264682','264684','264683') then '64503' else '64504' end as parent,start_date1,offset_date1
+		   from table3 
+
+--where select_module1 in ('64503','70912','70941','70900','70910','70913','70909','70903','70901','70902','70911','264682','264684','264683','64504','60914', '70905', '70906', '70916', '70946', '70915', '70917', '70933', '70949', '70947', '70899', '459391', '459394', '459395') 
 )
 select sum(num_females) as total_females,start_year as year  from table1 p where brand = 1 and start_date >= offset_date and (lg= 848007 or lg is null) and status = 1 group by start_year
