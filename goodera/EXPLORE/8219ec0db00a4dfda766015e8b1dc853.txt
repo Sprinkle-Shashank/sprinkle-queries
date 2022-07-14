@@ -1,5 +1,14 @@
+with table2 as 
+(
+select p.projectid, p.facility_status , facility.name as facility_status_update , case when facility_status_update='Active' then 'Active' else 'Deactive' end as Active_Filter , goodera_facility_name_text from profile_68161 as p
+  
+left join ds_mysql_prod_tagelement facility 
+on p.facility_status = facility.id
+)
+
+
 select p.projectId , p.name , p.status, status1.name as status_t ,cou.name as country , 
-nvl2(SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)),ven.name) as vendor_name, case when vendor_name='' then ven.name else vendor_name end as vendor, ven.id as vendorID , fac.name as factory , fac.id as facilityID ,
+nvl2(SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)),ven.name) as vendor_name, case when vendor_name='' then ven.name else vendor_name end as vendor , fac.name as factory , 
 case when p.name_subunit is null or p.name_subunit=' ' then 'N/A' else p.name_subunit end  as unit,sub_unit1.name as sub_unit,
 case when country in ('India', 'Bangladesh', 'Sri Lanka')
 then 'South Asia'
@@ -11,7 +20,7 @@ when country in ('Philippines', 'Cambodia',  'Vietnam',  'Indonesia', 'Myanmar')
 then 'South East Asia'
 end as region , 
 cast(DATEPART(YEAR,p.date_enrollment) as varchar) as year_new ,
-p.date_enrollment , p.worker_rep , p.mgmt_rep ,p1.name ,p1.contact_no , p1.email
+p.date_enrollment , p.worker_rep , p.mgmt_rep ,p1.name ,p1.contact_no , p1.email , fac_vpid as facilityID , child_vendor_vpid as vendorID
 
 from profile_16619 p
 
@@ -24,13 +33,18 @@ on fac.parent = ven.id
 
 left join ds_mysql_prod_project cou
 on ven.parent = cou.id
+
 left join profile_16950 p1
 on  p.projectid = p1.projectId
+
 left join ds_mysql_prod_tagelement sub_unit1 on
 	p.sub_unit = sub_unit1.id
+	
 left join ds_mysql_prod_tagelement status1 on
 	p.status = status1.id
 
+left join table2 t2 on 
+fac.name = t2.goodera_facility_name_text
 
 
 where p.projectId ilike '%%' and cou.name <> 'Test Country' and (p.status = 1400365 or p.status is null)  
