@@ -1,0 +1,30 @@
+with sub1 as(
+  select projectid, fy_timerange, center, employer, info_prior_placement, satisfied_with_support, students_matched_roles, level_preparation, infra_support, testimony, recommend, comments
+from profile_81351
+union all
+select projectid, fy_timerange, center, employer, info_prior_placement, satisfied_with_support, students_matched_roles, level_preparation, infra_support, testimony, recommend, comments
+from profile_81352)
+
+select p1.name as project, s1.fy_timerange, nvl(p2.name, p3.name) as center_id, nvl(p2.partner_db, p3.partner_db) as partner_name, nvl(p4.name, p5.name) as employer_id, t1.name as info_prior_placement, t2.name as satisfied_with_support, t3.name as students_matched_roles, t4.name as level_preparation, t5.name as infra_support, t6.name as recommend, s1.comments, s1.testimony,
+
+case
+	when s1.testimony is null or s1.testimony = ' ' then '-'
+	else 'Click Here'
+end as testimony_download
+
+from sub1 s1
+
+left join ds_mysql_prod_project p1 on p1.id = s1.projectid
+
+left join profile_141 p2 on p2._id = s1.center
+left join profile_36872 p3 on p3._id = s1.center
+
+left join profile_143 p4 on p4._id = s1.employer
+left join profile_36878 p5 on p5._id = s1.employer
+
+left join ds_mysql_prod_tagelement t1 on t1.id = s1.info_prior_placement
+left join ds_mysql_prod_tagelement t2 on t2.id = s1.satisfied_with_support
+left join ds_mysql_prod_tagelement t3 on t3.id = s1.students_matched_roles
+left join ds_mysql_prod_tagelement t4 on t4.id = s1.level_preparation
+left join ds_mysql_prod_tagelement t5 on t5.id = s1.infra_support
+left join ds_mysql_prod_tagelement t6 on t6.id = s1.recommend
