@@ -1,4 +1,14 @@
-with table1 as (SELECT proj.name AS projectid, s.fy_timerange, phc_detail.name as PHC, sum(beneficiary) as count,phc_detail.state,detail.schedule_7 FROM  profile_80544 s
+WITH table1 AS (
+ SELECT 
+  proj.name AS projectid, 
+  s.fy_timerange, 
+  phc_detail.name AS phc, 
+  SUM(beneficiary) AS count,
+  SUM(household) AS hh
+  phc_detail.state,
+  detail.schedule_7 
+	  
+FROM  profile_80544 s
 
 
 LEFT JOIN ds_mysql_prod_project proj
@@ -10,13 +20,22 @@ ON s.phc = phc_detail._id
 left join profile_79279 detail
 on s.projectid= detail.projectid
 
-group by proj.name,s.fy_timerange,phc_detail.name,phc_detail.state,detail.schedule_7
+GROUP BY proj.name,s.fy_timerange,phc_detail.name,phc_detail.state,detail.schedule_7
 ),
 
-table2 as (
-select projectid,fy_timerange,count,schedule,state,name from table1 tab1, tab1.schedule_7 schedule)
+table2 AS (
+SELECT 
+  projectid,
+  fy_timerange,
+  count,
+  hh,
+  schedule,
+  state,
+  phc 
+  FROM table1 tab1, 
+  tab1.schedule_7 schedule)
 
-select projectid, fy_timerange,tab2.name, count,sche.name as schedule_7,dist.name as district,sta.name as state,reftag.code 
+	SELECT projectid, fy_timerange,phc, count,hh,sche.name as schedule_7,dist.name as district,sta.name as state,reftag.code 
 from table2 tab2
 
 LEFT JOIN ds_mysql_prod_tagelement AS sche
