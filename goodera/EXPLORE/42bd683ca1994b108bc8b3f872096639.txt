@@ -4,7 +4,10 @@ sum(secondary_surgery_required) as secondary_surgery,
 sum(treatment_completed) as treatment_comp,
 sum(total_patients) as total_p,
 (secondary_surgery+treatment_comp) as numerator,
-(numerator*100.0 / total_p) as conversion_rate
+(numerator*100.0 / total_p) as conversion_rate , 
+
+INITCAP(ent.name) as entity , 
+ proj.name AS projectname 
 
 /*
 + treatment_completed as numerator , 
@@ -13,4 +16,10 @@ sum(total_patients) as total_p,
 
 from profile_80621
 
-GROUP by projectid,fy_timerange
+left join ds_mysql_prod_tagelement ent 
+on p.entity = ent.id
+
+LEFT JOIN ds_mysql_prod_project AS proj
+   ON p.projectid = proj.id
+
+GROUP by projectid,fy_timerange , proj.name , ent.name
