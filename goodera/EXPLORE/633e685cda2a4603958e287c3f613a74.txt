@@ -2,7 +2,20 @@ with table1 as (SELECT *
 FROM (
 select cou.name as country,p.name,p.fy_timerange,keyword,datanum,startdate/*,datanumbase
 lag(datanum,1) over (order by  p.fy_timerange) as prev_qty,
-(prev_qty-datanum)*100.0/prev_qty as per */
+(prev_qty-datanum)*100.0/prev_qty as per */,
+EXTRACT(MONTH FROM cast (startdate as datetime))AS month1,
+EXTRACT(YEAR FROM cast (startdate as datetime))AS year1,
+CASE
+WHEN MONTH1 <= 3
+THEN YEAR1-1
+ELSE
+YEAR1
+END AS start,
+start+1 as end1,
+concat(start,'-04-01T00:00:00.000Z') as start1,
+concat(end1,'-04-01T00:00:00.000Z') as end2,
+concat(concat(concat(concat('{"start":"',start1),'","end":"'),end2),'"}') as fy_1 
+
 
 from sus_80478 p
 
@@ -21,16 +34,16 @@ order by fy_timerange asc
 ) 
 				)
 							
-/*select country,name,fy_timerange,scope3_emission,
+select country,name,fy_1 as fy_timerange,scope3_emission,
 lag(scope3_emission,1) over (order by  fy_timerange) as prev_emission,
 prev_emission-scope3_emission as diff_prev
 , 
 (select scope3_emission from table1
 	order by fy_timerange asc limit 1) as base_value, 
 
-base_value-scope3_emission as diff_base from table1	*/
+base_value-scope3_emission as diff_base from table1	
 
-select name,fy_timerange,startdate,
+/*select name,fy_timerange,startdate,
 EXTRACT(MONTH FROM cast (startdate as datetime))AS month1,
 EXTRACT(YEAR FROM cast (startdate as datetime))AS year1,
 CASE
@@ -42,4 +55,4 @@ END AS start,
 start+1 as end1,
 concat(start,'-04-01T00:00:00.000Z') as start1,
 concat(end1,'-04-01T00:00:00.000Z') as end2,
-concat(concat(concat(concat('{"start":"',start1),'","end":"'),end2),'"}') as fy_1 from table1
+concat(concat(concat(concat('{"start":"',start1),'","end":"'),end2),'"}') as fy_1 from table1*/
