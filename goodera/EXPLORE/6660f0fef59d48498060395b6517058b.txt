@@ -1,30 +1,14 @@
-with table1 as (select 
-				
-				sum(p.target_2020) as target_2020,
-				sum(p.target_2021) as target_2021,
-				sum(p.target_2022) as target_2022,
-				sum(p.goal_2020) as goal_2020,
-				sum(p.goal_2022) as goal_2022,
-				listagg(distinct(p.name), ',') as partner,
-				listagg(distinct(p.vp_id), ',') as vp_id ,
-				p.projectId as projectid1,
-				p._id as id11
-				
-				from profile_71993 p 
-				group by projectid1,id11
-), 
-
-table2 as (select  
+with table1 as (select  
 		   		json_serialize(table_52810.pace_brands) as pace_brand, 
 		   		case when pace_brand like '%1011796%' then 1 else 0 end as brand,  
-		   		(target_2020) as target_2020,
-				(target_2021) as target_2021,
-				(target_2022) as target_2022,
-				(goal_2020) as goal_2020,
-				(goal_2022) as goal_2022,
-				(partner) as partner,
-				(vp_id) as vp_id ,
-				projectid1,  
+		   		(p.target_2020) as target_2020,
+				(p.target_2021) as target_2021,
+				(p.target_2022) as target_2022,
+				(p.goal_2020) as goal_2020,
+				(p.goal_2022) as goal_2022,
+				(p.name) as partner,
+				(p.vp_id) as vp_id ,
+				p.projectId as projectid1,  
 		   		table_4227.num_females as num_females1,
 				table_54646.projid_factory as factory_id,  
 		   		table_4227.select_modules as select_modules,
@@ -32,11 +16,12 @@ table2 as (select
 				table_4227.lg_status as lg_status1, 
 		   		case when table_52810.offset_date is null then '2020-02-01T00:00:00.000Z' else table_52810.offset_date end as offset_date1, 
 		   case when start_date >=offset_date then 1 else 0 end as token, 
-		   case when lg_status = 848008 then 0 else num_females1 end as women_reached,id11
-		   --, CAST(select_module1 as int) from table1 t2,t2.select_modules select_module1
-		   from table1
+		   case when lg_status = 848008 then 0 else num_females1 end as women_reached,
+				p._id as id11
+				
+		   from profile_71993 p
 		   left join profile_54646 table_54646 on 
-			table_54646.projid_factory = projectid1
+			table_54646.projid_factory = p.projectId
 				
 			left join profile_4227 table_4227 on 
 			table_4227.projectId = table_54646.projid_factory 
@@ -44,25 +29,40 @@ table2 as (select
 		   left join profile_52810 table_52810 on 
 		   table_52810.projectId = table_4227.projectId 
 		   
-		   where brand = 1 and  start_date1 >= offset_date1
-		   
-		   --group by projectid1, factory_id, start_date1, lg_status1,pace_brand ,offset_date1, token , num_females1
 ), 
 
-table4 as(select t2.*,CAST(select_module1 as int) from table2 t2,t2.select_modules select_module1
+table2 as(select t2.*,CAST(select_module1 as int) from table1 t2,t2.select_modules select_module1
 ),
 
 
-table5 as (Select 
+table3 as (Select target_2020,
+		   target_2021,target_2022, goal_2020,goal_2022, women_reached, start_date1, partner, projectid1, offset_date1,brand,
 		   select_module1,vp_id as vpid1,
 		   case when select_module1 in ('64503','70912','70941','70900','70910','70913','70909','70903','70901','70902','70911','264682','264684','264683') then '64503' else '64504' end as parent,id11
-		   from table4 p
+		   from table2
 
 where select_module1 in ('64503','70912','70941','70900','70910','70913','70909','70903','70901','70902','70911','264682','264684','264683','64504','70914', '70905', '70906', '70916', '70946', '70915', '70917', '70933', '70949', '70947', '70899', '459391', '459394', '459395') 
 ),
 
+				
+table4 as (select 
+				
+				sum(target_2020) as target_2020,
+				sum(target_2021) as target_2021,
+				sum(target_2022) as target_2022,
+				sum(goal_2020) as goal_2020,
+				sum(goal_2022) as goal_2022,
+				listagg(distinct(partner), ',') as partner,
+				listagg(distinct(vpid1), ',') as vp_id ,
+				projectid1 as projectid1, sum(women_reached) as women_reached, (start_date1) as start_date ,brand,offset_date1,id11
 
-table3 as (select
+				
+				from table3  
+
+				group by projectid1,start_date ,brand,offset_date1,id11
+), 
+
+table5 as (select
 		   		min(target_2020) as target_2020,
 				min(target_2021) as target_2021,
 				min(target_2022) as target_2022,
@@ -70,24 +70,24 @@ table3 as (select
 				min(goal_2022) as goal_2022,
 				min(partner) as partner,
 				min(vp_id) as vp_id ,
-				projectid1,  
-				min(start_date1) as start_date,  
+				projectid1 as projectid,  
+				min(start_date) as start_date,  
 		   sum(women_reached) as women_reached ,id11
-		   from table2 p
+		   from table4
+		   where brand =1 and start_date>=offset_date1
 		   
-		  -- where brand = 1 and token = 1
 		   
 		   group by projectid1,id11
-		   --, factory_id, start_date1, lg_status1,pace_brand ,offset_date1, token , num_females1
 ) 
 ,
 table6 as( 
 					   
-select id11,sum(target_2020) as target_2020 , sum(target_2021) as target_2021, sum(target_2022) as target_2022, sum(goal_2020) as goal_2020 , sum(goal_2022) as goal_2022, sum(women_reached) as women_reached,vp_id ,min(partner) as partner, min(projectid1) as projectid, min(start_date) as start_date from table3 p
---inner join table5 on 
---table5.vpid1 = vp_id
+select sum(target_2020) as target_2020 , sum(target_2021) as target_2021, sum(target_2022) as target_2022, sum(goal_2020) as goal_2020 , sum(goal_2022) as goal_2022, sum(women_reached) as women_reached,vp_id ,min(partner) as partner, min(projectid) as projectid, min(start_date) as start_date from table5,id11
 group by vp_id ,id11
   
 )
 
-select id11,min(target_2020) as target_2020, min(target_2021) as target_2021, min(target_2022) as target_2022 , min(goal_2020) as goal_2020, min(goal_2022) as goal_2022, min(women_reached) as women_reached, min(partner) as partner, min(projectid) as projectid, min(start_date) as start_date, vp_id, table5.parent as parent from table6 p  inner join table5 on table5.vpid1 = p.vp_id group by vp_id, parent,id11
+select id11,min(p.target_2020) as target_2020, min(p.target_2021) as target_2021, min(p.target_2022) as target_2022 , min(p.goal_2020) as goal_2020, min(p.goal_2022) as goal_2022, min(p.women_reached) as women_reached, min(p.partner) as partner, min(p.projectid) as projectid, min(p.start_date) as start_date, p.vp_id as vp_id
+, min(table3.parent) as parent 
+from table6 p  inner join table3 on table3.vpid1 = p.vp_id  
+group by vp_id,id11
