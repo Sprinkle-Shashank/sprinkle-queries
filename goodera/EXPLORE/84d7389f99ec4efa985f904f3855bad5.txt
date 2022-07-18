@@ -1,0 +1,20 @@
+with sub1 as(
+  select projectid, fy_timerange, partner_db as partner, center_name_db as center, batch_id_db as batch_id 
+from profile_145 
+where declaration != ' ' or nps_feedback_q is not null
+  
+union all 
+  
+select projectid, fy_timerange, partner_db as partner, center_name_db as center, batch_id_db as batch_id 
+from profile_36901
+where declaration != ' ' or nps_feedback_q is not null)
+
+select p3.name as project, s1.fy_timerange, s1.partner, s1.center, s1.batch_id
+
+from sub1 s1
+
+left join ds_mysql_prod_project p1 on p1.id = s1.projectid
+left join ds_mysql_prod_project p2 on p2.id = p1.parent
+left join ds_mysql_prod_project p3 on p3.id = p2.parent
+
+order by s1.batch_id
