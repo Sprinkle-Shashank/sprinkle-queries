@@ -1,6 +1,6 @@
 with table1 as (SELECT *
 FROM (
-select cou.name as country,p.name,p.fy_timerange,keyword,datanum/*,datanumbase
+select cou.name as country,p.name,p.fy_timerange,keyword,datanum,startdate/*,datanumbase
 lag(datanum,1) over (order by  p.fy_timerange) as prev_qty,
 (prev_qty-datanum)*100.0/prev_qty as per */
 
@@ -30,8 +30,16 @@ prev_emission-scope3_emission as diff_prev
 
 base_value-scope3_emission as diff_base from table1	*/
 
-select name,fy_timerange,
-Substring((fy_timerange),11,4)::smallint as year,  
-Substring((fy_timerange),16,2)::smallint as start_month,
-case when start_month in (1,2,3) then concat( year-1,concat('-',year))
-     else concat(year,concat('-',year+1)) end as fy_1 from table1
+select name,fy_timerange,startdate,
+EXTRACT(MONTH FROM cast (startdate as datetime))AS month1,
+EXTRACT(YEAR FROM cast (startdate as datetime))AS year1,
+CASE
+WHEN MONTH1 <= 3
+THEN YEAR1-1
+ELSE
+YEAR1
+END AS start,
+start+1 as end1,
+concat(start,'-04-01T00:00:00.000Z') as start1,
+concat(end1,'-04-01T00:00:00.000Z') as end2,
+concat(concat(concat(concat('{"start":"',start1),'","end":"'),end2),'"}') as fy_1 from table1
