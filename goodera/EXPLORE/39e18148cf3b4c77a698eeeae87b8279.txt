@@ -1,9 +1,13 @@
 With table1 as(
-Select projectid,fy_timerange,gsk_entity,name_patient,unique_id,age_patient,gender,catchment_location,date_operation,type_operation,hospital,city,acknowledgement_patient,financial_criteria from profile_80536),
+Select projectid,fy_timerange,gsk_entity,name_patient,unique_id,age_patient,gender,catchment_location,date_operation,type_operation,hospital,city,acknowledgement_patient,financial_criteria ,  proj.name AS projectname  from profile_80536
+
+
+LEFT JOIN ds_mysql_prod_project AS proj
+   ON p.projectid = proj.id),
 
 table2 as ( Select t1.*, type_op from table1 t1 , t1.type_operation type_op),
 
-table3 as (Select projectid,fy_timerange,gsk.name as gsk_entity,name_patient,unique_id,age_patient,gen.name as gender,cat.name as catchment_location,to_char(date_operation,'DD-MM-YYYY') as date_operation,LISTAGG(op.name,',') as type_op,hos.name as hospital,cit.name as city,ack.name as acknowledgement_patient,fin.name as financial_criteria ,
+table3 as (Select projectid,fy_timerange, initcap(gsk.name) as entity , name_patient,unique_id,age_patient,gen.name as gender,cat.name as catchment_location,to_char(date_operation,'DD-MM-YYYY') as date_operation,LISTAGG(op.name,',') as type_op,hos.name as hospital,cit.name as city,ack.name as acknowledgement_patient,fin.name as financial_criteria , projectname , 
 		   1 as count 
 		    from table2 p
 		   
@@ -33,7 +37,7 @@ LEFT JOIN ds_mysql_prod_tagelement as fin on
 p.financial_criteria = fin.id
 		   
 		   
-	GROUP BY projectid,fy_timerange,gsk.name,name_patient,unique_id,age_patient,gen.name,cat.name,date_operation,hos.name,cit.name,ack.name,fin.name	   
+	GROUP BY projectid,fy_timerange,gsk.name,name_patient,unique_id,age_patient,gen.name,cat.name,date_operation,hos.name,cit.name,ack.name,fin.name , projectname	   
 		   
 	)
 	
