@@ -1,28 +1,40 @@
-with table1 as (select   
-				
+with table1 as (Select 
 				JSON_SERIALIZE(table_52810.pace_brands) as pace_brand,	
-				case when pace_brand like '%1011796%' then 1 else 0 end  as brand,
-				case when table_52810.offset_date is null then '2020-02-01T00:00:00.000Z' else table_52810.offset_date end as offset_date, 
-				case when start_date >= offset_date then 1 else 0 end as token,
+				case when pace_brand like '%1011796%' then 1 else 0 end as brand,
+				case when table_54646._id is not null then 1 else 0 end as status,
+				case when (lg_status = 8484007 or lg_status is null or len(lg_status) <1) then 1 else 0 end as lg,
+				table_54646.projid_vendor as vendor_id,
+				(turnover) as turnover,
+				(absenteeism) as absenteeism,
+				(promotions) as promotions,
+				(efficiency) as efficiency,
+				(turnover_1) as turnover_1,
+				(absenteeism_1) as absenteeism_1,
+				(promotions_1) as promotions_1,
+				(efficiency_1) as efficiency_1,
+				table_54646.name_vendor_filter as name_vendor_filter,
+				table_54646.name_country as name_country,
+				p.start_date as start_date1,
+				p.projectId as projectId1,
+				case when table_52810.offset_date is null then '2020-02-01T00:00:00.000Z' else table_52810.offset_date end as offset_date1
 				
-				substring(projcode_factory,1,1) as code,
-				reverse(SPLIT_PART(reverse(projcode_factory), '-',1)) as code_brand,	
-				table_4227._id as _4227Id,
-				table_4227.start_date as start_date,
-				table_4227.num_females as num_females,
-				table_4227.num_females_graduated as num_females_graduated,
-				table_4227.select_modules as select_modules,
-				table_4227.lg_status as lg_status,
-				table_4227.num_females_dropout as num_females_dropout,
-				case when table_4227.end_date_2 is null then false else true end as end_date_color,
-				case when table_4227.end_date_2 is null then table_4227.end_date else table_4227.end_date_2 end as end_date,
-			   
-			   from profile_54646 p  
-inner join profile_4227 table_4227 on
-table_4227.projectId = p.projectId 
-				
-nner join profile_52810 table_52810 on
-table_52810.projectId = p.projectId
-) 
+				from profile_4227 p
 
-select * from table1
+left join profile_52810 table_52810 on
+table_52810.projectId = p.projectId
+
+left join profile_54646 table_54646 on
+table_54646.projectId = p.projectId 
+				
+where start_date1 >= offset_date1 and brand = 1 and status = 1 and lg = 1
+)
+
+Select avg(turnover) as avg_pace_turnover,
+				avg(absenteeism) as avg_pace_absent,
+				avg(promotions) as avg_pace_promo,
+				avg(efficiency) as avg_pace_eff,
+				avg(turnover_1) as avg_non_pace_turnover,
+				avg(absenteeism_1) as avg_non_pace_absent,
+				avg(promotions_1) as avg_non_pace_promo,
+				avg(efficiency_1) as avg_non_pace_eff, listagg(distinct(name_vendor_filter),',') as vendor,
+				listagg(distinct(name_country),',') as vendorBelongsTo, vendor_id , start_date1 as start_date, projectId1 as projectId from table1 p group by vendor_id, projectId, start_date
