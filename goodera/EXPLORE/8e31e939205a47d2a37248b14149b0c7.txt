@@ -1,21 +1,22 @@
 with item as 
 ( 
-select 'meeting_principal' as c
+select 'meeting_principal' as Dim
 union all
-select 'parent_teacher_meeting' as c  
+select 'parent_teacher_meeting' as Dim  
 ),
 
 t1 as 
-(select fy_timerange, tag1.name as batch, meeting_principal, parent_teacher_meeting,
-case c
+(select fy_timerange, tag1.name as batch
+sum(case Dim
 when 'meeting_principal' then p1.meeting_principal
 when 'parent_teacher_meeting' then p1.parent_teacher_meeting
 else null
-end as val, item.c as item 
+end) as val, item.Dim as item 
 from profile_61652 p1
 left join ds_mysql_prod_tagelement tag1
 on p1.batch = tag1.id
 cross join item
+ group by fy_timerange, tag1.name, item
 )
 
 select * from t1
