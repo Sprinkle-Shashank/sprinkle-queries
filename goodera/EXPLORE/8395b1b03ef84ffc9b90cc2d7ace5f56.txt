@@ -11,7 +11,7 @@ With table1 as (
   ),
 
  table2 as ( 
-  Select table1.projectid , proj.name AS projectname, table1.fy_timerange, st1.name AS State, foc.name AS Schedule7, sg.name AS sdg
+  Select table1.projectid , proj.name AS projectname, table1.fy_timerange, st1.name AS State, foc.name AS Schedule7, sg.name AS sdg , INITCAP(ent.name) as entity 
    
   from table1
   
@@ -29,12 +29,16 @@ With table1 as (
       
   LEFT JOIN ds_mysql_prod_project AS proj
    ON table1.projectid = proj.id
+   
+left join ds_mysql_prod_tagelement ent 
+on table1.entity = ent.id
+
   
   
   GROUP BY 
-   table1.projectid , table1.fy_timerange ,proj.name, st1.name, foc.name, sg.name), 
+   table1.projectid , table1.fy_timerange ,proj.name, st1.name, foc.name, sg.name , ent.name)
   
- /*table3 as ( Select _id, count (distinct  st1.name) as count_state from table1
+ /*,table3 as ( Select _id, count (distinct  st1.name) as count_state from table1
 			  LEFT JOIN ds_mysql_prod_tagelement AS st
   ON st.id = table1.location_unwind
    
