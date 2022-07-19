@@ -1,22 +1,22 @@
 with t1 as 
-(select fy_timerange, tag1.name as batch, sum(meeting_principal) as Number_of_meetings_with_principal, sum(parent_teacher_meeting) as Number_of_parents_teacher_meetings
+(select fy_timerange, tag1.name as batch, meeting_principal , parent_teacher_meeting 
 from profile_61652 p1
 left join ds_mysql_prod_tagelement tag1
 on p1.batch = tag1.id
-group by fy_timerange, tag1.name),
+),
 
 items as (
-select Number_of_meetings_with_principal as c
+select meeting_principal as c
 union all
-select Number_of_parents_teacher_meetings as c
+select parent_teacher_meeting as c
 ),
 
 t2 as (
 select it.c,
 
 case c 
-when 'Number_of_meetings_with_principal' then t1.Number_of_meetings_with_principal
-when 'Number_of_parents_teacher_meetings' then t1.Number_of_parents_teacher_meetings
+when 'meeting_principal' then t1.meeting_principal
+when 'parent_teacher_meeting' then t1.parent_teacher_meeting
 end 
 from t1 cross join items it
 )
