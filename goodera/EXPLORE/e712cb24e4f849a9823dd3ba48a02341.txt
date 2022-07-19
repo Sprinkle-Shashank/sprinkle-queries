@@ -19,7 +19,10 @@ order by fy_timerange asc
 ) 
 				),
 				table2 as (
-select country,name,fy_timerange,scope1_emission+scope2_emission as total_emission1,
+select country,name,fy_timerange,
+case when scope1_emission is null and scope2_emission is not null then scope2_emission
+	 when scope2_emission is null and scope1_emission is not null then scope1_emission
+	 else scope1_emission+scope2_emission	end	 as total_emission1,
 EXTRACT(MONTH FROM cast (startdate as datetime))AS month1,
 EXTRACT(YEAR FROM cast (startdate as datetime))AS year1,
 CASE
