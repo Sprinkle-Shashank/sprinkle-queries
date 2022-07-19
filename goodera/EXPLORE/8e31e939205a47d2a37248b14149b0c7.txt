@@ -1,8 +1,29 @@
-select fy_timerange, tag1.name as batch, sum(meeting_principal) as Number_of_Meetings_with_Principal, sum(parent_teacher_meeting) as Number_of_Parent_Teacher_Meetings 
+with t1 as 
+(select fy_timerange, tag1.name as batch, sum(meeting_principal) as Number_of_Meetings_with_Principal, sum(parent_teacher_meeting) as Number_of_Parent_Teacher_Meetings 
 from profile_61652 p1
 left join ds_mysql_prod_tagelement tag1
 on p1.batch = tag1.id
-group by fy_timerange, tag1.name
+group by fy_timerange, tag1.name),
+
+items as (
+select 'Number_of_Meetings_with_Principal' as c
+union all
+select 'Number_of_Parent_Teacher_Meetings' as c
+),
+
+t2 as (
+select it.c,
+
+case c
+when 'Number_of_Meetings_with_Principal' then t1.Number_of_Meetings_with_Principal
+when 'Number_of_Parent_Teacher_Meeting' then t1.Number_of_Parent_Teacher_Meeting
+else null
+end
+from t1 cross join items it
+)
+
+select t2.c as dimensions, t2.case as values
+
 
 
 
