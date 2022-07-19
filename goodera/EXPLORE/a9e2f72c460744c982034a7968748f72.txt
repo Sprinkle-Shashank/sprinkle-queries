@@ -10,16 +10,19 @@ p.xprojectid = pro.id
 left join ds_mysql_prod_project cou on 
 pro.parent = cou.id
 
-where keyword in ('scope1_emission'/*,'scope2_emission'*/) 
+where keyword in ('pur_electricity_r','in_electricity_solar_auto','total_ele_consumption') 
 
 order by fy_timerange asc
   
 ) PIVOT (
-   sum(datanum) FOR keyword IN ('scope1_emission'/*,'scope2_emission'*/)
+   sum(datanum) FOR keyword IN ('pur_electricity_r','in_electricity_solar_auto','total_ele_consumption')
 ) 
 				),
 				table2 as (
-select country,name,fy_timerange,scope1_emission/*+scope2_emission*/ as total_emission1,
+select country,name,fy_timerange,
+case when pur_electricity_r is null then in_electricity_solar_auto
+	 when in_electricity_solar_auto is null then pur_electricity_r			  
+	 else pur_electricity_r+in_electricity_solar_auto end as total_renew_elec1,total_ele_consumption, 
 EXTRACT(MONTH FROM cast (startdate as datetime))AS month1,
 EXTRACT(YEAR FROM cast (startdate as datetime))AS year1,
 CASE
@@ -30,20 +33,25 @@ YEAR1
 END AS start,
 start+1 as end1,
 concat(start,'-04-01T00:00:00.000Z') as start1,
-concat(end1,'-04-01T00:00:00.000Z') as end2,
-concat(concat(concat(concat('{"start":"',start1),'","end":"'),end2),'"}') as fy_1,
-concat('FY(',concat(start,concat('-',concat(end1,')')))) as fy_2				  
+concat(end1,'-03-31T00:00:00.000Z') as end2,
+concat(concat(concat(concat('{"start":"',start1),'","end":"'),end2),'"}') as fy_1				  
 				  
 
 from table1 t1
 				),
 table3 as (
-select country,name,fy_1 as fy_timerange,sum(t2.total_emission1) as total_emission,fy_2 from table2 t2
+select country,name,fy_1 as fy_timerange,sum(t2.total_renew_elec1) as total_renew_elec,sum(total_ele_consumption) as total_elec_consumption from table2 t2
 
-group by country,name,fy_1,fy_2)
+group by country,name,fy_1)
 
-select country,name,fy_timerange,total_emission,lag(total_emission,1) over (partition by name order by  fy_timerange asc) as prev_emission/*,
-(select total_emission from table3
-	order by fy_timerange asc limit 1) as base_value*/,fy_2 from table3 
+/*select country,name,fy_timerange,total_renew_elec,total_elec_consumption/*,lag(total_renew_elec,1) over (partition by name order by  fy_timerange) as prev_energy,
+(select total_e from table3
+	order by fy_timerange asc limit 1) as base_value,(prev_energy-total_renew_elec)*100.0/prev_energy as per*/  from table3 */
+	
+select * from table1
+
+
+
+
 
 
