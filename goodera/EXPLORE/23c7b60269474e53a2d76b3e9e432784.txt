@@ -5,11 +5,11 @@ union all
 select 'post_assessment' as Assessment
 ),
 
-
-select tag1.name as projectId, p1.fy_timerange, p1.pre_assessment, p1.post_assessment, p2.name as beneficiary, tag2.name as location, tag3.name as batch,
+t1 as 
+(select tag1.name as projectId, p1.fy_timerange, p1.pre_assessment, p1.post_assessment, p2.name as beneficiary, tag2.name as location, tag3.name as batch,
 sum(case Assessment
-when 'pre_assessment' then t1.pre_assessment
-when 'post_assessment' then t1.post_assessment
+when 'pre_assessment' then p1.pre_assessment
+when 'post_assessment' then p1.post_assessment
 else null
 end) as Val, item.assessment as it
 from profile_61656 p1
@@ -22,6 +22,10 @@ on p2.location = tag2.id
 left join ds_mysql_prod_tagelement tag3
 on p2.batch = tag3.id
 cross join item 
+)
+
+select t1.projectId, t1.beneficiary, t1.it, t1.Val, t1.batch, t1.location
+from t1
 
 
 
