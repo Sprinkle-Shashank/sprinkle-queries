@@ -53,12 +53,12 @@ table4 as (select
 				sum(goal_2022) as goal_2022,
 				listagg(distinct(partner), ',') as partner,
 				listagg(distinct(vpid1), ',') as vp_id ,
-				projectid1 as projectid1, sum(women_reached) as women_reached, (start_date1) as start_date ,brand,offset_date1
+				projectid1 as projectid1, sum(women_reached) as women_reached, (start_date1) as start_date ,brand,offset_date1, parent
 
 				
 				from table3  
 
-				group by projectid1,start_date ,brand,offset_date1
+				group by projectid1,start_date ,brand,offset_date1, parent
 ), 
 
 table5 as (select
@@ -71,23 +71,22 @@ table5 as (select
 				min(vp_id) as vp_id ,
 				projectid1 as projectid,  
 				(start_date) as start_date,  
-		   sum(women_reached) as women_reached 
+		   sum(women_reached) as women_reached , parent
 		   from table4
 		   where brand =1 and start_date>=offset_date1
 		   
 		   
-		   group by projectid1, start_date
-) 
-,
-table6 as( 
+		   group by projectid1, start_date, parent
+)  
 					   
-select sum(target_2020) as target_2020 , sum(target_2021) as target_2021, sum(target_2022) as target_2022, sum(goal_2020) as goal_2020 , sum(goal_2022) as goal_2022, sum(women_reached) as women_reached,vp_id ,min(partner) as partner, (projectid) as projectid, (start_date) as start_date from table5
-group by vp_id , projectid, start_date
-  
-)
+select sum(target_2020) as target_2020 , sum(target_2021) as target_2021, sum(target_2022) as target_2022, sum(goal_2020) as goal_2020 , sum(goal_2022) as goal_2022, sum(women_reached) as women_reached,vp_id ,min(partner) as partner, (projectid) as projectid, (start_date), parent as select_modules as start_date from table5
+group by vp_id , projectid, start_date, parent
 
+
+
+/*
 select (p.target_2020) as target_2020, (p.target_2021) as target_2021, (p.target_2022) as target_2022 , (p.goal_2020) as goal_2020, (p.goal_2022) as goal_2022, (p.women_reached) as women_reached, (p.partner) as partner, (p.projectid) as projectid, (p.start_date) as start_date, p.vp_id as vp_id
 , (table3.parent) as parent 
 from table6 p  
 inner join table3 on 
-table3.vpid1 = p.vp_id  
+table3.vpid1 = p.vp_id  */
