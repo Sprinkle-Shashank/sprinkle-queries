@@ -1,1 +1,103 @@
-select * from profile_52810 p where projectid = 44710 or projectid = 44711 or projectid = 44712 or projectid = 44713 or projectid = 44714
+with table1 as (select 
+				
+				sum(p.target_2020) as target_2020,
+				sum(p.target_2021) as target_2021,
+				sum(p.target_2022) as target_2022,
+				sum(p.target_2023) as target_2023,
+				sum(p.target_2024) as target_2024,
+				sum(p.target_2025) as target_2025,
+				sum(p.target_2026) as target_2026,
+				sum(p.goal_2020) as goal_2020,
+				sum(p.goal_2022) as goal_2022,
+				listagg((p.name), ',') as partner,
+				listagg((p.vp_id), ',') as vp_id , 
+				p.modifieddate as mod,
+				p.projectId as projectid1
+				
+				from profile_71993 p 
+				group by projectid1 , mod
+				order by mod desc
+), 
+
+table2 as (select  
+		   		json_serialize(table_52810.pace_brands) as pace_brand, 
+		   		case when pace_brand like '%1011796%' then 1 else 0 end as brand,  
+		   		(target_2020) as target_2020,
+				(target_2021) as target_2021,
+				(target_2022) as target_2022,
+				(target_2023) as target_2023,
+				(target_2024) as target_2024,
+				(target_2025) as target_2025,
+				(target_2026) as target_2026,
+				(goal_2020) as goal_2020,
+				(goal_2022) as goal_2022,
+				(partner) as partner,
+				(vp_id) as vp_id ,
+				projectid1 as projectid1,  
+		   		mod,
+		   		table_4227.num_females as num_females1,
+				table_54646.projid_factory as factory_id, 
+				table_4227.start_date as start_date1, 
+				table_4227.lg_status as lg_status1, 
+		   		case when table_52810.offset_date is null then '2020-02-01T00:00:00.000Z' else table_52810.offset_date end as offset_date1, 
+		   case when start_date >=offset_date then 1 else 0 end as token, 
+		   case when lg_status = 848008 then 0 else num_females1 end as women_reached
+		   from table1  
+		   
+		   left join profile_54646 table_54646 on 
+			table_54646.projid_factory = projectid1
+				
+			left join profile_4227 table_4227 on 
+			table_4227.projectId = table_54646.projid_factory 
+		   
+		   left join profile_52810 table_52810 on 
+		   table_52810.projectId = table_4227.projectId 
+		   
+		   where brand = 1 and  start_date1 >= offset_date1 
+		   
+		   order by mod desc
+		   
+		   --group by projectid1, factory_id, start_date1, lg_status1,pace_brand ,offset_date1, token , num_females1
+), 
+tablex as (select
+  				listagg(target_2020, ',') as target_2020,
+				listagg(target_2021, ',') as target_2021,
+				listagg(target_2022, ',') as target_2022,
+				listagg(target_2023, ',') as target_2023,
+				listagg(target_2024, ',') as target_2024,
+				listagg(target_2025, ',') as target_2025,
+				listagg(target_2026, ',') as target_2026,
+				listagg(goal_2020, ',') as goal_2020,
+				listagg(goal_2022,',') as goal_2022,
+				listagg(partner,',') as partner,
+				listagg(vp_id,',') as vp_id ,
+				projectid1  , 
+		   mod,
+		   sum(women_reached) as women_reached
+		   from table2
+			group by projectid1 , mod
+			order by mod desc
+),
+table3 as (select
+		   		split_part(target_2020, ',', 1) as target_2020,
+		   		split_part(target_2021, ',', 1) as target_2021,
+		   		split_part(target_2022, ',', 1) as target_2022,
+		   		split_part(target_2023, ',', 1) as target_2023,
+		   		split_part(target_2024, ',', 1) as target_2024,
+		   		split_part(target_2025, ',', 1) as target_2025,
+		   		split_part(target_2026, ',', 1) as target_2026,
+		   		split_part(goal_2020, ',', 1) as goal_2020,
+		   		split_part(goal_2022, ',', 1) as goal_2022,
+		   		split_part(partner, ',', 1) as partner,
+		   		split_part(vp_id, ',', 1) as vpid,
+				projectid1,
+		   		mod
+		   from tablex
+		   
+		  -- where brand = 1 and token = 1
+		   order by mod desc
+		   --, factory_id, start_date1, lg_status1,pace_brand ,offset_date1, token , num_females1
+) 
+select * from table3
+					   
+/*select sum(target_2020) as target_2020 , sum(target_2021) as target_2021, sum(target_2022) as target_2022, min(target_2023) as target_2023, min(target_2024) as target_2024, min(target_2025) as target_2025 , min(target_2026) as target_2026, sum(goal_2020) as goal_2020 , sum(goal_2022) as goal_2022, sum(women_reached) as women_reached,vp_id ,min(partner) as partner, (projectid1) as projectid from table3 group by vp_id, projectid*/
