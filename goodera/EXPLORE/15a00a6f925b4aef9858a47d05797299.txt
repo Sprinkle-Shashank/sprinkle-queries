@@ -64,16 +64,34 @@ order by emission desc
 ),
 s5 as (
 Select projectId, carrier,client, 
+  case 
+  	when month1 < 4 then ('FY ' || (year-1) || '-'||(year-2000))
+    else ('FY ' || (year) || '-'||(year+1-2000))
+  end as yy,
    case 
          when (year=2018 and month1>3) or (year=2019 and month1<4) then 'FY 2018-19' 
         when (year=2019 and month1>3) or (year=2020 and month1<4) then 'FY 2019-20' 
-	 when (year=2020 and month1>3) or (year=2021 and month1<4) then 'FY 2020-21' 
-        when (year=2021 and month1>3) or (year=2022 and month1<4) then 'FY 2021-22' 
+	   when (year=2020 and month1>3) or (year=2021 and month1<4) then 'FY 2020-21' 
+      when (year=2021 and month1>3) or (year=2022 and month1<4) then 'FY 2021-22' 
 	 when (year=2022 and month1>3) or (year=2023 and month1<4) then 'FY 2022-23'
 	 when (year=2023 and month1>3) or (year=2024 and month1<4) then 'FY 2023-24'
 	 end as year
-  , shipment_id,  origin_port,dest_port,units, shipment_type,start_country,dest_country, tradelane , km,  emission,month
+  , shipment_id,  origin_port,dest_port,units, shipment_type,start_country,dest_country, tradelane , km,  emission,
+  case 
+  when  s4.month='December' then 'February'
+  when  s4.month='January' then 'March'
+  when  s4.month='February' then 'April'
+  when  s4.month='March' then 'May'
+  when  s4.month='April' then 'June'
+  when  s4.month='May' then 'July'
+  when  s4.month='June' then 'August'
+  when  s4.month='July' then 'September'
+  when  s4.month='August' then 'October'
+  when  s4.month='September' then 'November'
+  when s4.month='October'  then 'December'
+  when s4.month='November' then 'January'
+  end as month
   from s4
 )
-Select projectId, carrier,client, year, shipment_id,  origin_port,dest_port,units, shipment_type,start_country,dest_country, tradelane , km,  (emission) emission,month
+Select projectId, carrier,client, year,yy, shipment_id,  origin_port,dest_port,units, shipment_type,start_country,dest_country, tradelane , km,  (emission) emission,month
 from s5
