@@ -1,5 +1,5 @@
 with tab1 as(
-select p2.name as projectId, p3.trucker_id,t1.name as city,t2.name as state,any_value(p1.date_visit) as fy_timerange,ttt.code as map_code,any_value(q.name) as clinic from profile_73098 p1
+select p2.name as projectId, p3.trucker_id,t1.name as city,t2.name as state,first_value(p1.date_visit) as fy_timerange,ttt.code as map_code,first_value(q.name) as clinic from profile_73098 p1
 left join ds_mysql_prod_project p2 on
 p2.id= p1.projectId
 left join profile_73096 p3 on
@@ -15,7 +15,7 @@ t1.parent=t2.id
 left join ds_mongo_reftagelementmetadata ttt
 on t2.reftagelementmetadataid=ttt._id
 where t2.name is not null
-group by  p2.name, p3.trucker_id,t1.name,t2.name,ttt.code,p1.date_visit,q.name
-order by p1.date_visit)
+group by  p2.name, p3.trucker_id,t1.name,t2.name,ttt.code,p1.date_visit,q.name)
+--order by p1.date_visit
 select s.projectId as clinic_type,s.fy_timerange,s.map_code,count(*) as beneficiaries from tab1 s
 group by clinic_type, fy_timerange, map_code
