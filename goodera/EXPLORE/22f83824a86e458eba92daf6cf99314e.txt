@@ -4,8 +4,7 @@ with table1 as (Select
 				pre_post_yn,class, 
 				module_name as select_modules,
 				score2,score, 
-				p._id as id1,
-				max(table_4227.start_date) as start_date1,
+				table_4227.start_date as start_date1,
 				p.projectId as projectid1,
 				case when table_52810.offset_date is null then '2020-02-01T00:00:00.000Z' else table_52810.offset_date end as offset_date1
 				
@@ -15,17 +14,15 @@ table_52810.projectId = p.projectId
 
 left join profile_4227 table_4227 on
 table_4227._id = p.class 
-				where pre_post_yn = 57472 and brand = 1 
-				group by pace_brand, brand, pre_post_yn, module_name,score, score2, id1, projectid1, offset_date1,p.class
+				where pre_post_yn = 57472 and brand = 1  and start_date1>=offset_date1
 ),
 
-table2 as (select avg(score) as pre_score, avg(score2) as post_score, select_modules, start_date1,projectid1 ,offset_date1
+table2 as (select avg(score) as pre_score, avg(score2) as post_score, select_modules, start_date1,projectid1
 from table1
-		  where start_date1>=offset_date1
-group by select_modules , projectid1, start_date1 ,offset_date1
+group by select_modules , projectid1, start_date1
 		   
 )
-select pre_score, post_score, select_modules, projectid1 as projectid, start_date1 as start_date, moduleTable.name as module, case when (module is  null or len(module) = 0) then 0 else 1 end as module_status, offset_date1
+select pre_score, post_score, select_modules, projectid1 as projectid, start_date1 as start_date, moduleTable.name as module, case when (module is  null or len(module) = 0) then 0 else 1 end as module_status
  from table2  
 left join ds_mysql_prod_tagelement moduleTable on
 moduleTable.id = select_modules 
