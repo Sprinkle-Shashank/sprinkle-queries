@@ -13,20 +13,12 @@ left join profile_52810 table_52810 on
 table_52810.projectId = p.projectId
 
 left join profile_4227 table_4227 on
-table_4227._id = p.class
+table_4227._id = p.class 
+				where pre_post_yn = 57472 and brand = 1 and start_date>=offset_date1
 ),
 
-table2 as (Select brand, pre_post_yn, score as pre_score , score2 as post_score, select_modules,
-		   moduleTable.name as module,
-		   max(start_date) as start_date,projectid1,offset_date1
-
-		from table1 p
-		  
-left join ds_mysql_prod_tagelement moduleTable on
-moduleTable.id = select_modules
-		   
-group by brand, pre_post_yn, select_modules,moduleTable.name,moduleTable.sortOrder,projectid1,offset_date1, pre_score, post_score
-order by moduleTable.sortOrder
-)
-
-Select pre_score, post_score, cast(select_modules as int4), module,start_date,offset_date1,projectid1 as projectid from table2 p where brand = 1 and pre_post_yn = 57472 and module is not null-- and start_date >= offset_date1
+table2 as (select avg(score) as pre_score, avg(score2) as post_score, select_modules, start_date,projectid1 
+from table1  
+group by select_modules , projectid1, start_date
+), 
+select
