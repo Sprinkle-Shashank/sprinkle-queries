@@ -1,29 +1,80 @@
-with table1 as (Select
-				JSON_SERIALIZE(table_52810.pace_brands) as pace_brand,	
-				case when pace_brand like '%1011796%' then 1 else 0 end  as brand,
-				pre_post_yn,class, 
-				module_name as select_modules,
-				score2,score, 
-				table_4227.start_date as start_date1,
-				p.projectId as projectid1,
-				case when table_52810.offset_date is null then '2020-02-01T00:00:00.000Z' else table_52810.offset_date end as offset_date1
+with table1 as (select 
 				
-				from profile_4228 p
-left join profile_52810 table_52810 on
-table_52810.projectId = p.projectId
+				sum(p.target_2020) as target_2020,
+				sum(p.target_2021) as target_2021,
+				sum(p.target_2022) as target_2022,
+				sum(p.target_2023) as target_2023,
+				sum(p.target_2024) as target_2024,
+				sum(p.target_2025) as target_2025,
+				sum(p.target_2026) as target_2026,
+				sum(p.goal_2020) as goal_2020,
+				sum(p.goal_2022) as goal_2022,
+				listagg(distinct(p.name), ',') as partner,
+				listagg(distinct(p.vp_id), ',') as vp_id ,
+				p.projectId as projectid1
+				
+				from profile_71993 p 
+				group by projectid1
+), 
 
-left join profile_4227 table_4227 on
-table_4227._id = p.class 
-				where pre_post_yn = 57472 and brand = 1  and start_date1>=offset_date1
-),
-
-table2 as (select (score) as pre_score, (score2) as post_score, select_modules, start_date1,projectid1
-from table1
---group by select_modules , projectid1, start_date1
+table2 as (select  
+		   		json_serialize(table_52810.pace_brands) as pace_brand, 
+		   		case when pace_brand like '%1011796%' then 1 else 0 end as brand,  
+		   		(target_2020) as target_2020,
+				(target_2021) as target_2021,
+				(target_2022) as target_2022,
+				(target_2023) as target_2023,
+				(target_2024) as target_2024,
+				(target_2025) as target_2025,
+				(target_2026) as target_2026,
+				(goal_2020) as goal_2020,
+				(goal_2022) as goal_2022,
+				(partner) as partner,
+				(vp_id) as vp_id ,
+				projectid1,  
+		   		table_4227.num_females as num_females1,
+				table_54646.projid_factory as factory_id, 
+				table_4227.start_date as start_date1, 
+				table_4227.lg_status as lg_status1, 
+		   		case when table_52810.offset_date is null then '2020-02-01T00:00:00.000Z' else table_52810.offset_date end as offset_date1, 
+		   case when start_date >=offset_date then 1 else 0 end as token, 
+		   case when lg_status = 848008 then 0 else num_females1 end as women_reached
+		   from table1  
 		   
+		   left join profile_54646 table_54646 on 
+			table_54646.projid_factory = projectid1
+				
+			left join profile_4227 table_4227 on 
+			table_4227.projectId = table_54646.projid_factory 
+		   
+		   left join profile_52810 table_52810 on 
+		   table_52810.projectId = table_4227.projectId 
+		   
+		   where brand = 1 and  start_date1 >= offset_date1
+		   
+		   --group by projectid1, factory_id, start_date1, lg_status1,pace_brand ,offset_date1, token , num_females1
+), 
+table3 as (select
+		   		min(target_2020) as target_2020,
+				min(target_2021) as target_2021,
+				min(target_2022) as target_2022,
+				min(target_2023) as target_2023,
+				min(target_2024) as target_2024,
+				min(target_2025) as target_2025,
+				min(target_2026) as target_2026,
+				min(goal_2020) as goal_2020,
+				min(goal_2022) as goal_2022,
+				min(partner) as partner,
+				min(vp_id) as vp_id ,
+				projectid1,  
+				(start_date1) as start_date,  
+		   sum(women_reached) as women_reached
+		   from table2
+		   
+		  -- where brand = 1 and token = 1
+		   
+		   group by projectid1,start_date
+		   --, factory_id, start_date1, lg_status1,pace_brand ,offset_date1, token , num_females1
 )
-select pre_score, post_score, select_modules, projectid1 as projectid, start_date1 as start_date, moduleTable.name as module, case when (module is  null or len(module) = 0) then 0 else 1 end as module_status
- from table2  
-left join ds_mysql_prod_tagelement moduleTable on
-moduleTable.id = select_modules 
-where module_status =1  
+					   
+select sum(target_2020) as target_2020 , sum(target_2021) as target_2021, sum(target_2022) as target_2022, min(target_2023) as target_2023, min(target_2024) as target_2024, min(target_2025) as target_2025 , min(target_2026) as target_2026, sum(goal_2020) as goal_2020 , sum(goal_2022) as goal_2022, sum(women_reached) as women_reached,vp_id ,min(partner) as partner, (projectid1) as projectid, (start_date) as start_date from table3 group by vp_id, projectid,start_date
