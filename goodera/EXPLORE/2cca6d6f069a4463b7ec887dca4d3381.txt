@@ -1,4 +1,4 @@
-with tab1 as(
+/*with tab1 as(
 select p2.name as projectId, p3.trucker_id,t1.name as city,t2.name as state,p1.date_visit as fy_timerange,ttt.code as map_code,q.name as clinic from profile_73098 p1
 left join ds_mysql_prod_project p2 on
 p2.id= p1.projectId
@@ -18,4 +18,22 @@ where t2.name is not null
 group by  p2.name, p3.trucker_id,t1.name,t2.name,ttt.code,p1.date_visit,q.name)
 order by p1.date_visit
 select s.projectId as clinic_type,s.fy_timerange,s.map_code,count(*) as beneficiaries from tab1 s
-group by clinic_type, fy_timerange, map_code
+group by clinic_type, fy_timerange, map_code */
+
+with sub1 as(
+  select p3.name as theme, p2.name as projectid, 
+(p1.date_visit || '|' || p1.date_visit) as fy_timerange, p1.trucker_id, t1.name as plant,concat(cast((split_part(ttt.code,'-',1)) as varchar),cast((split_part(ttt.code,'-',2)) as varchar)) as map_code
+from profile_73096 p1	
+
+left join ds_mysql_prod_project p2 on p2.id = p1.projectid
+left join ds_mysql_prod_project p3 on p3.id = p2.parent
+  
+
+left join ds_mysql_prod_tagelement t1 on t1.id = p1.plant
+  left join ds_mongo_reftagelementmetadata ttt
+on t1.reftagelementmetadataid=ttt._id
+group by p3.name, p2.name, p1.date_visit, p1.trucker_id, t1.name)
+
+select s1.theme, s1.projectid, s1.fy_timerange, s1.plant, count(*) as beneficiaries,s1.map_code
+from sub1 s1
+group by s1.theme, s1.projectid, s1.fy_timerange, s1.plant,s1.map_code
