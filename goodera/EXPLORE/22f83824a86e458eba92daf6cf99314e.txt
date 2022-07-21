@@ -79,9 +79,9 @@ tablex as (select
 			order by mod desc
 ),
 table3 as (select
-		   		(target_2020) as target_2020,
-		   		(target_2021) as target_2021,
-		   		(target_2022) as target_2022,
+		   		split_part(target_2020, ',', 1) as target_2020,
+		   		split_part(target_2021, ',', 1) as target_2021,
+		   		split_part(target_2022, ',', 1) as target_2022,
 		   		split_part(target_2023, ',', 1) as target_2023,
 		   		split_part(target_2024, ',', 1) as target_2024,
 		   		split_part(target_2025, ',', 1) as target_2025,
@@ -90,6 +90,7 @@ table3 as (select
 		   		split_part(goal_2022, ',', 1) as goal_2022,
 		   		split_part(partner, ',', 1) as partner,
 		   		split_part(vp_id, ',', 1) as vpid,
+		   		women_reached as women_reached,
 				projectid1 as projectid,
 		   		mod
 		   from tablex
@@ -97,7 +98,35 @@ table3 as (select
 		  -- where brand = 1 and token = 1
 		   order by mod desc
 		   --, factory_id, start_date1, lg_status1,pace_brand ,offset_date1, token , num_females1
-) 
-select * from table3
-					   
+) , 
+table4 as (
+select sum(target_2020) as target_2020 , 
+sum(target_2021) as target_2021, 
+sum(target_2022) as target_2022, 
+listagg(target_2023, ',') as target_2023,
+				listagg(target_2024, ',') as target_2024,
+				listagg(target_2025, ',') as target_2025,
+				listagg(target_2026, ',') as target_2026,
+				listagg(goal_2020, ',') as goal_2020,
+				listagg(goal_2022,',') as goal_2022,
+				listagg(partner,',') as partner,
+				(vp_id) as vp_id ,
+				projectid  , 
+		   mod,
+		   sum(women_reached) as women_reached
+from table3  
+  group by vp_id, projectid , mod
+order by mod desc)
+					
+select target_2020, target_2021, target_2022,  split_part(target_2023, ',', 1) as target_2023,
+		   		split_part(target_2024, ',', 1) as target_2024,
+		   		split_part(target_2025, ',', 1) as target_2025,
+		   		split_part(target_2026, ',', 1) as target_2026,
+		   		split_part(goal_2020, ',', 1) as goal_2020,
+		   		split_part(goal_2022, ',', 1) as goal_2022,
+		   		split_part(partner, ',', 1) as partner,
+		   		(vp_id) as vpid,
+		   		women_reached as women_reached,
+				projectid,
+		   		mod
 /*select sum(target_2020) as target_2020 , sum(target_2021) as target_2021, sum(target_2022) as target_2022, min(target_2023) as target_2023, min(target_2024) as target_2024, min(target_2025) as target_2025 , min(target_2026) as target_2026, sum(goal_2020) as goal_2020 , sum(goal_2022) as goal_2022, sum(women_reached) as women_reached,vp_id ,min(partner) as partner, (projectid1) as projectid from table3 group by vp_id, projectid*/
