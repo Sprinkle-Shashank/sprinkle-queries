@@ -1,16 +1,27 @@
 with sub1 as(
-select p.name as projectId, sched7, spoc_name, location, project_duration, logo_image, project_descrip, project_name, spoc_email, project_status, fy_timerange, extract(year from cast (fy_timerange.start as date)) as year,extract(month from cast (fy_timerange.start as date)) as start_month,budget_approved, bene_num, spoc_number, a.name from profile_41363 a
+select p.name as projectId, sched7, spoc_name, location, project_duration, logo_image, project_descrip, project_name, spoc_email, project_status, fy_timerange, extract(year from cast (fy_timerange.start as date)) as year,extract(month from cast (fy_timerange.start as date)) as start_month,budget_approved, bene_num, spoc_number, a.name, t1.name as choose
+  
+from profile_41363 a
 left join ds_mysql_prod_project p
 on p.id=projectid
+  
+left join ds_mysql_prod_tagelement t1 on t1.id = a.project_type
+  
 where location is not null),
   
 sub2 as (
-select projectId, sched7, spoc_name, location1, project_duration, logo_image, project_descrip, project_name, spoc_email, project_status, fy_timerange, case when start_month<4 then year-1 else year end as fy_year,budget_approved, bene_num, spoc_number, name from sub1 a, a.location location1)
+select projectId, sched7, spoc_name, location1, project_duration, logo_image, project_descrip, project_name, spoc_email, project_status, fy_timerange, choose, 
+  
+case when start_month<4 then year-1 else year end as fy_year,
+  
+budget_approved, bene_num, spoc_number, name 
+from sub1 a, a.location location1)
 
 select projectId, fy_timerange, t.name as location, count(*), 
-('FY('||s2.fy_year-2000||'-'||s2.fy_year+1-2000||')') as fy,
+('FY('||s2.fy_year-2000||'-'||s2.fy_year+1-2000||')') as fy, choose 
+from sub2 as s2
 
-case when projectId in ('Prasanna Trust', 'Kashtakari Panchayat', 'Shishu Mandir', 'SOUL', 'Narayanaamruta Medicare Foundation', 'SGBS Unnati Foundation','Makkala Jagariti', 'Reefwatch Marine Conservation', 'Nirvanavan Foundation', 'Win over cancer', 'Vipasana', 'Selco Foundation', 'CII Foundation', 'Disha') then 'Short-Term Projects' when projectId in ('Omashram Trust', 'One Billion Literates', 'Cuddles Foundation', 'Rainbow Homes (ANC Rainbow Homes)', 'Rainbow Homes (Bosco Rainbow Homes)', 'Rainbow Homes (Sanrakshan Rainbow Homes)','CUPA', 'Parikrma Foundation','Other Projects') then 'Long-Term Projects' else 'Other Projects' end as choose from sub2 as s2
 left join ds_mysql_prod_tagelement t
 on t.id=location1
-group by projectId, fy_timerange, t.name,s2.fy_year
+
+group by projectId, fy_timerange, t.name, s2.fy_year, choose
