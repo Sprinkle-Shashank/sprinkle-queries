@@ -1,0 +1,31 @@
+select  t1.name as plant,clinic_type,concat((cast((split_part(ttt.code,'-',1)) as varchar)),concat('-',(cast((split_part(ttt.code,'-',2)) as varchar)))) as map_code
+from profile_75963 p1
+
+left join ds_mysql_prod_project p2 on p2.id = p1.projectid
+left join ds_mysql_prod_project p3 on p3.id = p2.parent
+left join ds_mysql_prod_project p4 on p4.id = p3.parent
+
+left join profile_73658 p5 on p5._id = p1.clinic_id
+
+left join ds_mysql_prod_tagelement t1 on t1.id = p5.plant
+left join ds_mongo_reftagelementmetadata ttt
+on t1.reftagelementmetadataid=ttt._id
+left join ds_mysql_prod_tagelement t2 on t2.id = p5.clinic_type
+
+union all
+
+select t1.name as plant,concat((cast((split_part(ttt.code,'-',1)) as varchar)),concat('-',(cast((split_part(ttt.code,'-',2)) as varchar)))) as map_code
+from profile_73096 p1	
+
+left join ds_mysql_prod_project p2 on p2.id = p1.projectid
+left join ds_mysql_prod_project p3 on p3.id = p2.parent
+  
+
+left join ds_mysql_prod_tagelement t1 on t1.id = p1.plant
+  left join ds_mongo_reftagelementmetadata ttt
+on t1.reftagelementmetadataid=ttt._id
+group by p3.name, p2.name, p1.date_visit, p1.trucker_id, t1.name,map_code
+
+--where t2.name = 'MMU - Mobile medical unit' 
+where t1.name is not null
+group by t1.name,t2.name,map_code
