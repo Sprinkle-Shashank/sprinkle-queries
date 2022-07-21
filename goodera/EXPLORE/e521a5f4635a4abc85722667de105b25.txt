@@ -1,11 +1,14 @@
-with sub1 as (
-select projectid, rtrim(ltrim(json_serialize(sched7),'['),']') as sched7, bene_num, benef_actual,fy_timerange from profile_41363 
-  where bene_num is not null),
-sub2 as (
-  select projectid, fy_timerange, benef_actual,bene_num, sched7 from sub1 where len(sched7)>1)
-	select p.name as projectid, t.name as sched7, bene_num, benef_acutal,fy_timerange, case when p.name in ('Prasanna Trust', 'Kashtakari Panchayat', 'Shishu Mandir', 'SOUL', 'Narayanaamruta Medicare Foundation', 'SGBS Unnati Foundation','Makkala Jagariti', 'Reefwatch Marine Conservation', 'Nirvanavan Foundation', 'Win over cancer', 'Vipasana', 'Selco Foundation', 'CII Foundation', 'Disha') then 'Short-Term Projects' when p.name in ('Omashram Trust', 'One Billion Literates', 'Cuddles Foundation', 'Rainbow Homes (ANC Rainbow Homes)', 'Rainbow Homes (Bosco Rainbow Homes)', 'Rainbow Homes (Sanrakshan Rainbow Homes)','CUPA', 'Parikrma Foundation','Other Projects') then 'Long-Term Projects' else 'Other Projects' end as choose from sub2
-   left join ds_mysql_prod_tagelement t 
-   on t.id=sched7
-   left join ds_mysql_prod_project p
-   on p.id=projectid
-	
+with sub1 as(
+  select p1.*, sched_unwind
+from profile_41363 p1, p1.sched_7 sched_unwind
+  
+where bene_num is not null)
+
+select p2.name as projectid, s1.fy_timerange, s1.partner_name, t1.name as choose, t2.name as sched_7, s1.benef_actual, s1.bene_num
+
+from sub1 s1
+
+left join ds_mysql_prod_project p1 on p1.id = s1.projectid
+
+left join ds_mysql_prod_tagelement t1 on t1.id = s1.project_type
+left join ds_mysql_prod_tagelement t2 on t2.id = s1.sched_unwind
