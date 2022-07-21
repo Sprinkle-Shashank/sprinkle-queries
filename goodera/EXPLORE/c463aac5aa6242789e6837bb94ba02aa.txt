@@ -1,5 +1,19 @@
-select p.end_date,p.name, p.location, p.clinic_type, p.fy_timerange, p.plant, p.projectId,t1.name as city from profile_73658 p
+with tab1 as (select p.end_date,p.name, p.location, t5.name as clinic_type, p.fy_timerange, t6.name as plant, p.projectId,t1.name as city,t2.name as state,t4.name as project_partner,
+case when p.end_date is not null then 'active' else 'inactive' end as clinic_status		  
+from profile_73658 p
 left join ds_mysql_prod_tagelement t on
 t.id=p.location
 left join ds_mysql_prod_tagelement t1 on
 t.parent=t1.id
+left join ds_mysql_prod_tagelement t2 on
+t1.parent=t2.id
+left join ds_mysql_prod_project t3 on
+p.projectId=t3.id
+left join ds_mysql_prod_project t4 on
+t3.parent=t4.id
+left join ds_mysql_prod_tagelement t5 on
+t5.id=p.clinic_type
+left join ds_mysql_prod_tagelement t6 on
+t6.id=p.plant)
+select s.name, s.clinic_type, s.fy_timerange, s.plant, s.state,s.project_partner, s.clinic_status,count(*) as count from tab1 s
+ group by s.name, s.clinic_type, s.fy_timerange, s.plant, s.state,s.project_partner, s.clinic_status
