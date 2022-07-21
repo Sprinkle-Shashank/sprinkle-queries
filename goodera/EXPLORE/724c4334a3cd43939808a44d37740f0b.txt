@@ -1,0 +1,57 @@
+with item as 
+(
+select 'a1' as type
+union all
+select 'a2' as type
+union all 
+select 'b' as type
+union all 
+select 'c' as type
+),
+
+t1 as 
+(select tag1.name as projectId, fy1_timerange, tag2.name as month,
+ 
+(case type
+when 'a1' then p1.a1
+when 'a2' then p1.a2
+when 'b' then p1.b
+when 'c' then p1.c
+else null
+end) as Val, item.type as item
+from profile_29111 p1
+left join ds_mysql_prod_project tag1
+on p1.projectId = tag1.id
+left join ds_mysql_prod_tagelement tag2
+on p1.month = tag2.id
+cross join item
+)
+
+
+select projectid, fy1_timerange, month, val, count(*), 
+case item
+when 'a1' then 'Grade A+'
+when 'a2' then 'Grade A'
+when 'b' then 'Grade B'
+when 'c' then 'Grade C'
+else null
+end as freq,
+
+case month 
+when 'January' then 1
+when 'February' then 2
+when 'March' then 3
+when 'April' then 4
+when 'May' then 5
+when 'June' then 6
+when 'July' then 7
+when 'August' then 8
+when 'September' then 9
+when 'October' then 10
+when 'November' then 11
+when 'December' then 12
+else null
+end as month_num
+from t1
+group by projectid, fy1_timerange, month, val, t1.item
+order by month_num asc
