@@ -1,14 +1,14 @@
 SELECT PF.projectid,
 PF.fy_allocated_timerange AS fy_timerange,
 PF.disbursed_project AS amount_disbursed,
-PDV.project_start_date, PDV.project_end_date AS end_date, t.name AS entity, PDV.project_name_display, PDC.mode, PDC.partner(tag), t2.name AS state, PF.allocated, PDC.schedule_7(tag), PDC.local_area, PDC.csr_registration, PDC.csr,
-PDC.project_ended, UA.unspent_amount, UA.unspent_amount, UA.cumulative_amount
-
+PDV.project_start_date, PDV.project_end_date AS end_date, t.name AS entity, PDV.project_name_display, PDC.mode, t4.name as partner, t2.name AS state, PF.allocated,  t3.name AS schedule_7, PDC.local_area, PDC.csr_registration, PDC.csr,
+PDC.project_ended, UA.unspent_amount, UA.unspent_amount, UA.cumulative_amount,
+/*
 CASE 
   WHEN (EXTRACT(month from PDV.project_start_date) <04) THEN (EXTRACT(year from PDV.project_start_date)-1)
   ELSE  (EXTRACT(year from PDV.project_start_date))
   END AS fy_start_date,
-  
+ */ 
  CASE 
   WHEN (EXTRACT(month from PDV.project_end_date) <4) THEN (EXTRACT(year from PDV.project_end_date)-1)
   ELSE (EXTRACT(year from PDV.project_end_date))
@@ -16,7 +16,7 @@ CASE
 
 CASE
 	WHEN 
-	fy_end_date = (EXTRACT(year from PF.fy_allocated_timerange.end))
+	fy_end_date = (EXTRACT(year from cast(PF.fy_allocated_timerange.end as datetime)))
 	THEN 'Completed'
 	ELSE 'Ongoing'
 	END AS status
@@ -44,9 +44,13 @@ ON PD.funding_entity = t.id
 LEFT JOIN ds_mysql_prod_tagelement AS t2
 ON PDV.geography = t2.id
 
+LEFT JOIN ds_mysql_prod_tagelement AS t3
+ON PDC.schedule_7 = t3.id
+
+LEFT JOIN ds_mysql_prod_tagelement AS t4
+ON PDC.partner = t4.id
 
 WHERE  PDC.csr = true
 AND PDC.project_ended = true
-AND result = 0
 
 /*GROUP BY PF.projectid, pf.project_code_new, PD.name, PD.start_date, t.name, PD.project_name, t3.name, PD.partner, t2.name, PD.budget_outlay, PD.item, PD.local_area, PD.csr_registration, PD.CSR, PP.completed, PP.date, PF.month_timerange*/
