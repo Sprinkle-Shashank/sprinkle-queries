@@ -1,0 +1,56 @@
+SELECT PF.projectid,
+PF.fy_allocated_timerange AS fy_timerange,
+PF.disbursed_project AS amount_disbursed,
+PDV.project_start_date, PDV.project_end_date AS end_date, t.name AS entity, PDV.project_name_display, PDC.mode, PDC.partner(tag), t2.name AS state, PF.allocated, PDC.schedule_7(tag), PDC.local_area, PDC.csr_registration, PDC.csr,
+PDC.project_ended(tag), UA.unspent_amount, IA.agency,
+
+CASE 
+  WHEN (EXTRACT(month from PD.start_date) <04) THEN (EXTRACT(year from PD.start_date)-1)
+  ELSE  (EXTRACT(year from PD.start_date))
+  END AS fy_start_date,
+  
+ CASE 
+  WHEN (EXTRACT(month from PP.date) <4) THEN (EXTRACT(year from PP.date)-1)
+  ELSE (EXTRACT(year from PP.date))
+  END AS fy_end_date,
+
+CASE
+	WHEN fy_start_date = fy_end_date
+	AND
+	fy_end_date = PF.fy_year
+	THEN 1
+	ELSE 0
+	END AS result
+
+FROM profile_55749 AS PF
+
+LEFT JOIN profile_55750 AS PDV
+ON PF.projectid = PDV.projectid
+
+LEFT JOIN profile_55752 AS PDC
+ON PF.projectid = PDC.projectid
+
+
+-
+LEFT JOIN profile_55471 AS PP
+ON PD.project_code = PP.project_code
+
+LEFT JOIN profile_78756 AS UA
+ON PD.project_code = UA.project_code
+
+LEFT JOIN profile_78594 AS IA
+ON PD.project_name = IA.project_name
+-
+LEFT JOIN ds_mysql_prod_tagelement AS t
+ON PD.funding_entity = t.id
+
+LEFT JOIN ds_mysql_prod_tagelement AS t2
+ON PDV.geography = t2.id
+
+
+WHERE PF.project_code_new IS NOT NULL
+AND PD.CSR = 1395093
+AND PP.completed = 939857
+AND result = 1
+
+/*GROUP BY PF.projectid, pf.project_code_new, PD.name, PD.start_date, t.name, PD.project_name, t3.name, PD.partner, t2.name, PD.budget_outlay, PD.item, PD.local_area, PD.csr_registration, PD.CSR, PP.completed, PP.date, PF.month_timerange*/
