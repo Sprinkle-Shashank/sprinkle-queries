@@ -1,2 +1,11 @@
-select projectId, fam_incom, fy1_timerange
-from profile_29014
+select tag1.name as projectId, fam_incom :: integer, fy1_timerange,
+case fam_incom :: integer
+when fam_incom < 1000 and is null then 'Less than 1000'
+when fam_incom < 4000 then '1000 - 4000'
+when fam_incom < 7000 then '4000 - 7000'
+else 'Greater than 7000'
+end as income, count(*)
+from profile_29014 p1
+left join ds_mysql_prod_project tag1
+on p1.projectId = tag1.id
+group by tag1.name, fam_incom, fy1_timerange, income
