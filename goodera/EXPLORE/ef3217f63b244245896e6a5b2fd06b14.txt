@@ -1,18 +1,23 @@
-with sub1 as(
-select p3.name as theme, p2.name as clinic_type, 
-concat(concat(concat(concat('{"start":"',concat(concat(concat(substring(p1.date_visit, 1,10),'T'),substring(p1.date_visit, 12,16)),'.000Z')),'","end":"')	,concat(concat(concat(substring(p1.date_visit, 1,10),'T'),substring(p1.date_visit, 12,16)),'.000Z')),'"}') as fy_timerange, p1.trucker_id, ttt_code as map_code
-from profile_73096 p1	
+with sub1  as(
+  select b.*,unwind_plants
+  from profile_73154 b , b.plants as unwind_plants)
+  
+  select p1._id as id, p2.name as projectid, t1.name as partner, t2.name as theme, 1 as count,
+(p1.start_date || '|' || p1.end_date) as fy_timerange,t3.name as plants,
+
+case
+	when cast(p1.end_date as date) <= current_date then 'Completed'
+	when cast(p1.end_date as date) > current_date then 'Ongoing'
+	else '-'
+end as status
+
+from sub1 p1
 
 left join ds_mysql_prod_project p2 on p2.id = p1.projectid
-left join ds_mysql_prod_project p3 on p3.id = p2.parent
-  
 
-left join ds_mysql_prod_tagelement t1 on t1.id = p1.plant
-  left join ds_mongo_reftagelementmetadata ttt
-on t1.reftagelementmetadataid=ttt._id
-group by p3.name, p2.name, p1.date_visit, p1.trucker_id, t1.name,map_code)
+left join ds_mysql_prod_tagelement t1 on t1.id = p1.partner
+left join ds_mysql_prod_tagelement t2 on t2.id = p1.theme
+left join ds_mysql_prod_tagelement t3 on t3.id = p1.unwind_plants
 
-select s1.theme, s1.clinic_type, s1.fy_timerange, s1.plant, count(*) as beneficiaries,s1.map_code
-from sub1 s1
-where s1.plant is not null
-group by s1.theme, s1.clinic_type, s1.fy_timerange, s1.plant,s1.map_code
+
+group by p1._id, t1.name, t2.name, p2.name, p1.end_date, p1.start_date,t3.name
