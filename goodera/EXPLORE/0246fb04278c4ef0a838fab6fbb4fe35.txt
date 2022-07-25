@@ -1,0 +1,29 @@
+with temp as (
+  select 'Basic Education and Life Skills Training (BELST)' as col
+  union all
+  select 'Prevocational Training' as col
+  union all
+  select 'Vocational Training' as col
+  union all
+  select 'Pre-NIOS(Bridge Group)' as col
+  union all
+  select 'NIOS-10th' as col
+  union all
+  select 'NIOS-12th' as col
+),
+term1 as (
+select p.name as projectid, fy_timerange, benef_belst, benef_prevocational, benef_vocational, benef_pre_nios, benef_nios_ten, benef_nios_twelve, temp.col as edu_program,
+case col
+when 'Basic Education and Life Skills Training (BELST)' then p1.benef_belst
+when 'Prevocational Training' then p1.benef_prevocational
+when 'Vocational Training' then p1.benef_vocational
+when 'Pre-NIOS(Bridge Group)' then p1.benef_pre_nios
+when 'NIOS-10th' then p1.benef_nios_ten
+when 'NIOS-12th' then p1.benef_nios_twelve
+else Null end as count
+from profile_81244 p1
+left join ds_mysql_prod_project p
+on p.id=projectid
+cross join temp
+)
+select * from term1
