@@ -1,4 +1,4 @@
-with base1 as (select  CHR(123) || '"start"'|| ':' || '"' || substring(h.start,1,10) || 'T00:00:00.000Z' || '"' || ',' || '"end"'|| ':' || '"' || substring(h.end,1,10) || 'T00:00:00.000Z' || '"' || Chr(125) as fy_timerange1, m.name as placed,h.start, h.end, k.name as donor, h.donor_commitment,t2.name as project , count  (*) as count from profile_36901 p
+with base1 as (select  CHR(123) || '"start"'|| ':' || '"' || substring(h.start,1,10) || 'T00:00:00.000Z' || '"' || ',' || '"end"'|| ':' || '"' || substring(h.end,1,10) || 'T00:00:00.000Z' || '"' || Chr(125) as fy_timerange1, m.name as placed,h.start, h.end, k.name as donor, h.donor_commitment_db as donor_commitment,t2.name as project , count  (*) as count from profile_36901 p
 
 left join profile_36904 h on
 p.batch_id=h._id
@@ -15,6 +15,7 @@ LEFT JOIN ds_mysql_prod_project t2 on t1.parent=t2.id
 
 where h.donor is not null and (p.placed = 288903 or p.placed =3606)
 
-group by m.name, k.name, h.donor_commitment, fy_timerange1, t2.name,h.start,h.end
+group by m.name, k.name, h.donor_commitment_db, fy_timerange1, t2.name,h.start,h.end
 )
-select j.fy_timerange1 as fy_timerange,j.placed , j.donor, j.donor_commitment,j.start, j.end ,j.project,j.count from base1 j
+select j.fy_timerange1 as fy_timerange,j.placed , j.donor, nvl(j.donor_commitment, 'NA'),j.start, j.end, j.project, j.count 
+from base1 j
