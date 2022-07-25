@@ -12,7 +12,7 @@
 
 --group by donor, donor_commitment, project, p.fy_timerange, p.projectid,p.placed,p.batch_id,h.start,h.end
 ---------------------------------------------------------
-select  p.placed,  CHR(123) || '"start"'|| ':' || '"' || substring(h.start,1,10) || 'T00:00:00.000Z' || '"' || ',' || '"end"'|| ':' || '"' || substring(h.end,1,10) || 'T00:00:00.000Z' || '"' || Chr(125) as fy_timerange, z.name as donor, l.name as donor_commitment ,t2.name as project , sum(case when h.end > current_Date then 1 else 0 end) as count from profile_145 p
+select  p.placed,  CHR(123) || '"start"'|| ':' || '"' || substring(h.start,1,10) || 'T00:00:00.000Z' || '"' || ',' || '"end"'|| ':' || '"' || substring(h.end,1,10) || 'T00:00:00.000Z' || '"' || Chr(125) as fy_timerange, z.name as donor, nvl(l.name, 'NA') as donor_commitment ,t2.name as project , sum(case when h.end > current_Date then 1 else 0 end) as count from profile_145 p
 
 left join profile_196 h on
 p.batch_id=h._id
@@ -29,4 +29,3 @@ LEFT JOIN ds_mysql_prod_project t2 on t1.parent=t2.id
 where h.donor is not null
 
 group by z.name,l.name, p.fy_timerange,p.placed,t2.name,h.end,h.start
-
