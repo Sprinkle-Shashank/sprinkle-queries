@@ -1,0 +1,38 @@
+with temp as (
+  select 'From BELST to Prevocational training' as col
+  union all
+  select 'Beneficiaries who joined pre-NIOS' as col
+  union all
+  select 'Beneficiaries who moved to NIOS 10th standard' as col
+  union all
+  select 'Beneficiaries who moved to NIOS 12th standard' as col
+  union all
+  select 'Beneficiaries who completed NIOS 10th' as col
+  union all
+  select 'Beneficiaries who completed NIOS 12th' as col
+  union all
+  select 'Beneficiaries who completed vocational training' as col
+  union all
+  select 'Beneficiaries who joined higher education' as col
+  union all
+  select 'Beneficiaries who got job placements' as col
+),
+term1 as (
+select p.name as projectid, fy_timerange, benef_moved_from_belst, benef_joined_pre_nios, benef_moved_nios_ten, benef_moved_nios_twelve, benef_complete_nios_ten, benef_complete_nios_twelve, benef_complete_vocational, benef_joined_higher_ed, benef_job, temp.col as edu_program,
+case col
+when 'From BELST to Prevocational training' then p1.benef_moved_from_belst
+when 'Beneficiaries who joined pre-NIOS' then p1.benef_joined_pre_nios
+when 'Beneficiaries who moved to NIOS 10th standard' then p1.benef_moved_nios_ten
+when 'Beneficiaries who moved to NIOS 12th standard' then p1.benef_moved_nios_twelve
+when 'Beneficiaries who completed NIOS 10th' then p1.benef_complete_nios_ten
+when 'Beneficiaries who completed NIOS 12th' then p1.benef_complete_nios_twelve
+when 'Beneficiaries who completed vocational training' then p1.benef_complete_vocational
+when 'Beneficiaries who joined higher education' then p1.benef_joined_higher_ed
+when 'Beneficiaries who got job placements' then p1.benef_job
+else Null end as count
+from profile_81244 p1
+left join ds_mysql_prod_project p
+on p.id=projectid
+cross join temp
+)
+select * from term1
