@@ -1,4 +1,6 @@
-select p4.name as theme, p3.name as partner, p2.name as projectid, p1.fy_timerange, t1.name as plant, count(*) as beneficiaries,ttt.code as map_code,t2.name as clinic_type
+select p4.name as theme, p3.name as partner, p2.name as projectid, p1.fy_timerange, t1.name as plant, count(*) as beneficiaries,t2.name as clinic_type,
+--concat((cast((split_part(ttt.code,'-',1)) as varchar)),concat('-',(cast((split_part(ttt.code,'-',2)) as varchar)))) as map_code
+left(ttt.code,5) as map_code
 from profile_75963 p1
 
 left join ds_mysql_prod_project p2 on p2.id = p1.projectid
@@ -13,5 +15,5 @@ on t1.reftagelementmetadataid=ttt._id
 left join ds_mysql_prod_tagelement t2 on t2.id = p5.clinic_type
 
 --where t2.name = 'MMU - Mobile medical unit' 
-
-group by p4.name, p3.name, p2.name, p1.fy_timerange, t1.name,t2.name
+where t1.name is not null
+group by p4.name, p3.name, p2.name, p1.fy_timerange, t1.name,t2.name,map_code
