@@ -18,7 +18,13 @@ select p.fy_timerange, p.projectid, p.batch_id, p.donor, decode(pname,null,qname
 ),
 
 test4 as(
-select CHR(123) || '"start"'|| ':' || '"' || substring(p.start,1,10) || 'T00:00:00.000Z' || '"' || ',' || '"end"'|| ':' || '"' || substring(p.end,1,10) || 'T00:00:00.000Z' || '"' || Chr(125) as fy_timerange, t2.name as project, p.batch_id, p.donor, p.donor_commitment from test3 p 
+select CHR(123) || '"start"'|| ':' || '"' || substring(p.start,1,10) || 'T00:00:00.000Z' || '"' || ',' || '"end"'|| ':' || '"' || substring(p.end,1,10) || 'T00:00:00.000Z' || '"' || Chr(125) as fy_timerange, t2.name as project, p.batch_id, p.donor,
+case
+	when p.donor_commitment is NULL or p.donor_commitment = ' ' then 'NA'
+	else p.donor_commitment
+end as donor_commitment  
+
+from test3 p 
   
 LEFT JOIN ds_mysql_prod_project t on p.projectId=t.id
 LEFT JOIN ds_mysql_prod_project t1 on t.parent=t1.id      
