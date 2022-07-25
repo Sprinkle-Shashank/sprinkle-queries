@@ -6,7 +6,14 @@ select CHR(123) || '"start"'|| ':' || '"' || substring(p.start,1,10) || 'T00:00:
 donor, 
 projectid, p.donor_commitment_db from profile_36904 p
 )
-select p.fy_timerange,  k.name as donor, t2.name as project, nvl(p.donor_commitment_db, 'NA') as donor_commitment from base1 p
+select p.fy_timerange,  k.name as donor, t2.name as project, 
+
+case
+	when p.donor_commitment_db = '' then 'NA'
+	else p.donor_commitment_db
+end as donor_commitment
+
+from base1 p
 left join ds_mysql_prod_tagelement k on
 p.donor= k.id
 LEFT JOIN ds_mysql_prod_project t on p.projectId=t.id
