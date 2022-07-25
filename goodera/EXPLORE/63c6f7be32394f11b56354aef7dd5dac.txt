@@ -10,16 +10,16 @@ p.xprojectid = pro.id
 left join ds_mysql_prod_project cou on 
 pro.parent = cou.id
 
-where keyword in ('total_renew_consum','total_energy_auto') 
+where keyword in ('total_renew_consum','total_energy_auto','total_energy_consumption_2122onwards','total_renew_consump_2122') 
 
 order by fy_timerange asc
   
 ) PIVOT (
-   sum(datanum) FOR keyword IN ('total_renew_consum','total_energy_auto')
+   sum(datanum) FOR keyword IN ('total_renew_consum','total_energy_auto','total_energy_consumption_2122onwards','total_renew_consump_2122')
 ) 
 				),
 				table2 as (
-select country,name,fy_timerange,total_renew_consum,total_energy_auto, 
+select country,name,fy_timerange, 
 EXTRACT(MONTH FROM cast (startdate as datetime))AS month1,
 EXTRACT(YEAR FROM cast (startdate as datetime))AS year1,
 CASE
@@ -32,7 +32,14 @@ start+1 as end1,
 concat(start,'-04-01T00:00:00.000Z') as start1,
 concat(end1,'-03-31T00:00:00.000Z') as end2,
 concat(concat(concat(concat('{"start":"',start1),'","end":"'),end2),'"}') as fy_1,
-concat('FY(',concat(start,concat('-',concat(end1,')')))) as fy_2
+concat('FY(',concat(start,concat('-',concat(end1,')')))) as fy_2,
+case when start >= 2021 then total_renew_consum
+	 else total_renew_consump_2122
+	 end as total_renew_consum			  
+				  ,
+case when start >= 2021 then total_energy_auto
+	 else 	total_energy_consumption_2122onwards
+	 end as  total_energy_auto		  
 				  
 				  
 
