@@ -1,0 +1,21 @@
+with sub1 as(
+  select projectid, fy_timerange, center, employer
+from profile_81351
+union all
+select projectid, fy_timerange, center, employer
+from profile_81352)
+
+select p1.name as project, s1.fy_timerange, nvl(p2.name, p3.name) as center, nvl(p2.partner_db, p3.partner_db) as partner_name, t1.name as employer, count(*)
+
+from sub1 s1
+
+left join ds_mysql_prod_project p1 on p1.id = s1.projectid
+
+left join profile_141 p2 on p2._id = s1.center
+left join profile_36872 p3 on p3._id = s1.center
+
+left join ds_mysql_prod_tagelement t1 on t1.id = s1.employer
+
+where s1.projectid like '%%'
+
+group by p1.name, s1.fy_timerange, p2.name, p3.name, p2.partner_db, p3.partner_db, t1.name
