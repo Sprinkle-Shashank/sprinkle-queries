@@ -11,7 +11,12 @@ select p.fy_timerange,  k.name as donor, t2.name as project,
 case
 	when p.donor_commitment_db is NULL or p.donor_commitment_db = ' ' then 'NA'
 	else p.donor_commitment_db
-end as donor_commitment
+end as donor_commitment,
+
+case
+	when donor_commitment != 'NA' then 1
+	else 2
+end as sort_order
 
 from base1 p
 left join ds_mysql_prod_tagelement k on
@@ -22,4 +27,4 @@ LEFT JOIN ds_mysql_prod_project t2 on t1.parent=t2.id
 
 where k.name is not null
 group by p.fy_timerange,  k.name, t2.name, p.donor_commitment_db
-order by p.donor_commitment_db
+order by p.donor_commitment_db, sort_order
