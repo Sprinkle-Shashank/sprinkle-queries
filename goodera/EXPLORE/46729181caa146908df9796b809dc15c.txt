@@ -1,4 +1,5 @@
-SELECT m.month_timerange AS fy_timerange, m.project_code_new, SUM(m.amount) AS amount, r.project_name, r.vertical, r.focus, vert.name AS vertical2, vert_1.name AS vertical1,
+WITH Table1 AS 
+(SELECT m.month_timerange AS fy_timerange, m.project_code_new, SUM(m.amount) AS amount, r.project_name, r.vertical, r.focus, vert.name AS vertical2, vert_1.name AS vertical1,
 
 case when vert.name IS NULL AND vert_1.name IS NOT NULL THEN vert.name 
 when vert_1.name IS NULL AND vert.name IS NOT NULL THEN vert_1.name
@@ -21,9 +22,14 @@ left join ds_mysql_prod_tagelement as entity
   
 GROUP BY m.month_timerange, m.project_code_new, r.project_name, r.vertical, r.focus, m.entity, vert.name, vert_1.name 
 
-ORDER BY m.project_code_new ASC
+ORDER BY m.project_code_new ASC),
 
+Table2 AS 
+(
+  Select p.*,q1 from Table1 AS p, p.vertical AS q1
 
+)
+Select * From Table2
 
 
 	
