@@ -1,4 +1,23 @@
-select tag1.name as projectId, a, b, c, fy1_timerange
+with items as 
+(
+select 'a' as type
+union all
+select 'b' as type
+union all
+select 'c' as type
+),
+t1 as 
+select tag1.name as projectId, a, b, c, fy1_timerange,
+(case type
+when 'a' then p1.a
+when 'b' then p1.b
+when 'c' then p1.c
+else null
+end) as freq, item.type as item
 from profile_29183 p1
 left join ds_mysql_prod_project tag1
 on p1.projectId = tag1.id
+cross join item
+)
+
+select * from t1
