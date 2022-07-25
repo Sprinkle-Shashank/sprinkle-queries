@@ -1,0 +1,20 @@
+with temp as (
+  select 'Beneficiaries who received need based medical consultations' as col
+  union all
+  select 'Beneficiaries who received need based physiotherapy sessions' as col
+  union all
+  select 'Beneficiaries who received need based speech therapy sessions' as col
+),
+term1 as (
+select p.name as projectid, fy_timerange, benef_medical_service, benef_phsio_therapy, benef_speech_therapy, temp.col as disability,
+case col
+when 'Beneficiaries who received need based medical consultations' then p1.benef_medical_service
+when 'Beneficiaries who received need based physiotherapy sessions' then p1.benef_phsio_therapy
+when 'Beneficiaries who received need based speech therapy sessions' then p1.benef_speech_therapy
+else Null end as count
+from profile_81244 p1
+left join ds_mysql_prod_project p
+on p.id=projectid
+cross join temp
+)
+select * from term1
