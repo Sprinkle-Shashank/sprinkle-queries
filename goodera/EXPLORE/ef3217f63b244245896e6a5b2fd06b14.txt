@@ -3,13 +3,14 @@ with sub1  as(
   from profile_73154 b , b.plants as unwind_plants)
   
   select p1._id as id, p2.name as projectid, t1.name as partner, t2.name as theme, 1 as count,
-(p1.start_date || '|' || p1.end_date) as fy_timerange,t3.name as plants,
+(p1.start_date || '|' || p1.end_date) as fy_timerange,
 
 case
 	when cast(p1.end_date as date) <= current_date then 'Completed'
 	when cast(p1.end_date as date) > current_date then 'Ongoing'
 	else '-'
-end as status
+	end as status
+
 
 from sub1 p1
 
@@ -20,4 +21,4 @@ left join ds_mysql_prod_tagelement t2 on t2.id = p1.theme
 left join ds_mysql_prod_tagelement t3 on t3.id = p1.unwind_plants
 
 
-group by p1._id, t1.name, t2.name, p2.name, p1.end_date, p1.start_date,t3.name
+group by p1._id, t1.name, t2.name, p2.name, p1.end_date, p1.start_date
