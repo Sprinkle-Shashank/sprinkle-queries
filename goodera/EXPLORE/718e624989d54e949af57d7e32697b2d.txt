@@ -1,0 +1,21 @@
+with temp as (
+  select 'Number of students eligible to receive UDID cards' as col
+  union all
+  select 'Number of UDID Cards applied for' as col
+  union all
+  select 'Number of UDID Cards received' as col
+),
+term1 as (
+select p.name as projectid, fy_timerange, benef_eligible_udid, udid_applied, udid_received, 
+temp.col as project_intervention,
+case col
+when 'Number of students eligible to receive UDID cards' then p1.benef_eligible_udid
+when 'Number of UDID Cards applied for' then p1.udid_applied
+when 'Number of UDID Cards received' then p1.udid_received
+else Null end as count
+from profile_81244 p1
+left join ds_mysql_prod_project p
+on p.id=projectid
+cross join temp
+)
+select * from term1
