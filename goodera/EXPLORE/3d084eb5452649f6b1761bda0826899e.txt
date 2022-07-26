@@ -1,8 +1,19 @@
-select m._id, m.projectId, m.ben_name, m.doc, m.story, m.month_timerange AS fy_timerange, m.title, m.designation, m.pic, m.location, m.project_code, r.name AS project_code_new, r.vertical, r.focus, r.state, r.direct_or_partner, r.entity
+select m._id, m.projectId, m.ben_name, m.doc, m.story, m.month_timerange AS fy_timerange, m.title, m.designation, m.pic, m.location, m.project_code, r.name AS project_code_new, r.vertical, r.focus, r.state, r.direct_or_partner, r.entity, vert.name AS vertical1, vert_1.name AS vertical2,
+
+case when vert.name IS NULL AND vert_1.name IS NOT NULL THEN vert.name 
+when vert_1.name IS NULL AND vert.name IS NOT NULL THEN vert_1.name
+else 'Admin' 
+END AS verticals
 
 from profile_55182 AS m
 
 left join profile_62881 AS r
  on m.project_code = r.project_code
+ 
+left join ds_mysql_prod_tagelement as vert
+  on r.vertical = vert.id
+
+left join ds_mysql_prod_tagelement as vert_1
+  on vert.parent = vert_1.id
  
 order by fy_timerange desc
