@@ -15,6 +15,24 @@ where keyword in ('r22')
 order by fy_timerange asc
   
 )
-				)
+				),
+table2 as (
+select country,name,fy_timerange,
+EXTRACT(MONTH FROM cast (startdate as datetime))AS month1,
+EXTRACT(YEAR FROM cast (startdate as datetime))AS year1,
+CASE
+WHEN MONTH1 <= 3
+THEN YEAR1-1
+ELSE
+YEAR1
+END AS start,
+start+1 as end1,
+concat(start,'-04-01T00:00:00.000Z') as start1,
+concat(end1,'-04-01T00:00:00.000Z') as end2,
+concat(concat(concat(concat('{"start":"',start1),'","end":"'),end2),'"}') as fy_1,
+concat('FY(',concat(start,concat('-',concat(end1,')')))) as fy_2,
+keyword
+from table1 t1
+where start >=2021				)				
 				
-select * from table1				
+select * from table2				
