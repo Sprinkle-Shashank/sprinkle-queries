@@ -1,5 +1,5 @@
 with temp1 AS
-(select m.projectId, m.indicator, m.sdgs, m.schedule_vii, m.project_name, m.ben_type, m.baseline, m.target, m.proj, r._id, r.vertical, r.focus, r.state, r.direct_or_partner, r.project_code, r.start_date, r.entity, site.name AS site_1, q.completed, q.fy_timerange, complete.name AS complete_1, ben_type.name AS ben_type_1, vert.name AS vertical2, vert_1.name AS vertical1,
+(select m.projectId, m.indicator, m.sdgs, m.schedule_vii, m.project_name, m.ben_type, m.baseline, m.target, m.proj, r._id, r.vertical, r.focus, r.state, r.direct_or_partner, r.project_code, r.start_date, r.entity, site.name AS site_1, q.completed, q.fy_timerange, complete.name AS complete_1, ben_type.name AS ben_type_1, vert.name AS vertical2, vert_1.name AS vertical1, state.name AS state_1, int_indi.name AS indicator_1,
  
 case when vert.name IS NULL AND vert_1.name IS NOT NULL THEN vert.name 
 when vert_1.name IS NULL AND vert.name IS NOT NULL THEN vert_1.name
@@ -21,16 +21,22 @@ left join ds_mysql_prod_tagelement as ben_type
 
 left join ds_mysql_prod_tagelement as complete
   on q.completed = complete.id
-
-left join ds_mysql_prod_tagelement as vert_1
-  on vert.parent = vert_1.id
  
 left join ds_mysql_prod_tagelement as vert
   on r.vertical = vert.id
 
+left join ds_mysql_prod_tagelement as vert_1
+  on vert.parent = vert_1.id
+
+left join ds_mysql_prod_tagelement as state
+  on r.state = state.id
+
+left join ds_mysql_prod_tagelement as int_indi
+  on state.parent = int_indi.id
+
 Where direct_or_partner = 1132990 AND q.completed = 939857 AND m.ben_type = 939857)
 
-Select m.projectId, m.indicator, m.sdgs, m.schedule_vii, m.focus, m.state, m.fy_timerange, m.entity, SUM(m.target) AS beneficiary, m.vertical2, m.vertical1, m.verticals from temp1 as m 
+Select m.projectId, m.indicator, m.sdgs, m.schedule_vii, m.focus, m.state, m.fy_timerange, m.entity, SUM(m.target) AS beneficiary, m.vertical2, m.vertical1, m.verticals, m.indicator_1, m.state_1 from temp1 as m 
 
 Group by m.projectId, m.indicator, m.sdgs, m.schedule_vii, m.focus, m.state, m.entity, m.fy_timerange, m.vertical2, m.vertical1, m.verticals
 
