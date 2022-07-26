@@ -1,4 +1,19 @@
-select cou.name as country,p.name,p.fy_timerange,keyword,datanum,datanumbase
+select cou.name as country,p.name,p.fy_timerange,keyword,datanum,datanumbase/*,startdate,
+EXTRACT(MONTH FROM cast (startdate as datetime))AS month1,
+EXTRACT(YEAR FROM cast (startdate as datetime))AS year1,
+CASE
+WHEN MONTH1 <= 3
+THEN YEAR1-1
+ELSE
+YEAR1
+END AS start*/,
+case when keyword in ('consumption_diesel','consumption_fo','pur_electricity_nr_auto',
+					'consumption_petrol','consumption_natural_gas' )then 'Non-Renewable'
+else 'Renewable' end as ren_and_non,
+case when keyword in ('consumption_diesel','consumption_fo','consumption_bio',
+					 'consumption_biodiesel','consumption_petrol','consumption_natural_gas'
+					 ) then 'Thermal Energy' 
+else 'Electrical Energy' end as energy_type
 
 from sus_80478 p
 
@@ -8,7 +23,7 @@ p.xprojectid = pro.id
 left join ds_mysql_prod_project cou on 
 pro.parent = cou.id
 
-where keyword in ('consumption_diesel','consumption_fo','consumption_bio','pur_electricity_r','pur_electricity_nr_auto','in_electricity_solar_auto') 
+where keyword in ('consumption_diesel','consumption_fo','consumption_bio','pur_electricity_r','pur_electricity_nr_auto','in_electricity_solar_auto','consumption_biodiesel','consumption_petrol','consumption_natural_gas') 
 
 order by fy_timerange asc
 
