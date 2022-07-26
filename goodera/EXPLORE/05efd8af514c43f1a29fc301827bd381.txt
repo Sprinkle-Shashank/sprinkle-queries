@@ -10,7 +10,8 @@ Select t0.projectId as project,fac.name as projectId, p2.facility_name as facili
   concat(vendor,t0.country) as unique , t0.year_timerange.start as start_year , cast (start_year as datetime)as str1, extract(month from str1) as m1 , extract(year from str1) as y1,CASE when m1 = 3 or m1 = 4 or m1 = 5 then 'Q1' when m1 =6 or m1 = 7 or m1= 8 then 'Q2' when m1 =9 or m1 = 10 or m1= 11 then 'Q3' when m1 =12 or m1 = 1 or m1= 2 then 'Q4' else null end as quarter_final  , cast(y1 as varchar) as ye2 , substring(str1,0,5) as new_var,
    JSON_serialize(t0.year_timerange) as ye_new,
   concat(concat(t0.country,"vendor"),"quarter_final") as temp_very_new, CAST ( temp_very_new as varchar) as t4,
-   concat(t4,SUBSTRING(ye_new,11,4)) as unique_final
+   concat(t4,SUBSTRING(ye_new,11,4)) as unique_final,
+   k1.name as pace_intro_yn
    
 
   
@@ -28,6 +29,9 @@ left join ds_mysql_prod_project fac
 on t0.projectid = fac.id
 left join ds_mysql_prod_project ven
 on fac.parent = ven.id
+left join ds_mysql_prod_tagelement k1
+on p1.pace_introduced = k1.id
+
 
 where t0.strategic_yn = 'Yes'
    
@@ -63,7 +67,7 @@ count(project) as count, t1.facility_vpid,
 case when (t2.result_2 = 'Yes' and t1.result_1 = 'Yes')
 		  then 'Yes'
 		  else 'No'
-		  end as KPI4_MET
+		  end as KPI4_MET, t1.pace_intro_yn
 from test1 t1
 
 
@@ -77,11 +81,9 @@ t1.unique_final = t2.unique_final
 where t1.strategic_yn = 'Yes' and project like '%%'
 		  
 group by t1.project,t1.projectId,t1.facility, t1.pace,t1.facility_type, t1.strategic_yn, t1.year_timerange, t1.country , t1.director_region ,t2.master 
-		  ,t2.result_2,t1.result_1,t1.vendor,
-		  k1.name ,t2.total_trainers,t2.certified_masters , t1.facility_vpid
-
-		 LEFT JOIN ds_mysql_prod_tagelement k1 on
-		  k1.id = t1.pace_introduced
+		  ,t2.result_2,t1.result_1,t1.vendor ,t2.total_trainers,t2.certified_masters , t1.facility_vpid
+, t1.pace_intro_yn
+		 
 		  
 )
 
