@@ -10,17 +10,16 @@ p.xprojectid = pro.id
 left join ds_mysql_prod_project cou on 
 pro.parent = cou.id
 
-where keyword in ('consumption_bio','total_energy') 
+where keyword in ('consumption_bio','total_energy','consumption_biodiesel','total_thermal_2122') 
 
 order by fy_timerange asc
   
 ) PIVOT (
-   sum(datanum) FOR keyword IN ('consumption_bio','total_energy')
+   sum(datanum) FOR keyword IN ('consumption_bio','total_energy','consumption_biodiesel','total_thermal_2122')
 ) 
 				),
 				table2 as (
-select country,name,fy_timerange,
-consumption_bio as total_renew_thermal1,total_energy, 
+select country,name,fy_timerange, 
 EXTRACT(MONTH FROM cast (startdate as datetime))AS month1,
 EXTRACT(YEAR FROM cast (startdate as datetime))AS year1,
 CASE
@@ -32,7 +31,11 @@ END AS start,
 start+1 as end1,
 concat(start,'-04-01T00:00:00.000Z') as start1,
 concat(end1,'-03-31T00:00:00.000Z') as end2,
-concat(concat(concat(concat('{"start":"',start1),'","end":"'),end2),'"}') as fy_1				  
+concat(concat(concat(concat('{"start":"',start1),'","end":"'),end2),'"}') as fy_1,
+case when start >= 2021 then consumption_bio+consumption_biodiesel
+     else consumption_bio	end  as total_renew_thermal1,
+case when start >= 2021 then total_thermal_2122
+	 else  total_energy end as total_energy			  
 				  
 
 from table1 t1
