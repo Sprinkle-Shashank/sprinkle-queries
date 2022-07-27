@@ -1,11 +1,17 @@
-with sub1 as (
-select date_disbursal as fy_timerange, extract(year from cast (date_disbursal as date)) as year, extract(month from cast (date_disbursal as date)) as start_month,sum(disbursed) as disbursed, p.name as projectid,
-  
-case when p.name in ('Prasanna Trust', 'Kashtakari Panchayat', 'Shishu Mandir', 'SOUL', 'Narayanaamruta Medicare Foundation', 'SGBS Unnati Foundation','Makkala Jagariti', 'Reefwatch Marine Conservation', 'Nirvanavan Foundation', 'Win over cancer', 'Vipasana', 'Selco Foundation', 'CII Foundation', 'Disha') then 'Short-Term Projects' when p.name in ('Omashram Trust', 'One Billion Literates', 'Cuddles Foundation', 'Rainbow Homes (ANC Rainbow Homes)', 'Rainbow Homes (Bosco Rainbow Homes)', 'Rainbow Homes (Sanrakshan Rainbow Homes)','CUPA', 'Parikrma Foundation','Other Projects') then 'Long-Term Projects' else 'Other Projects' end as choose from profile_79979 p1
-
+with temp as (
+  select 'Male' as col
+  union all
+  select 'Female' as col
+),
+term1 as (
+select p.name as projectid, fy_timerange, male_children_supported, female_children_supported, temp.col as gender,temp.col as grade, benef_autism
+case col
+when 'Male' then p1.male_children_supported,p1.benef_autism
+when 'Female' then p1.female_children_supported
+else Null end as children
+from profile_81244 p1
 left join ds_mysql_prod_project p
 on p.id=projectid
-where disbursed is not NULL
-group by date_disbursal,p.name)
-
-select fy_timerange,projectid,case when start_month<4 then year-1 else year end as fy_year,choose,disbursed,('FY('||fy_year-2000||'-'||fy_year+1-2000||')') as fy from sub1 s1
+cross join temp
+)
+select * from term1
