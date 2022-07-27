@@ -1,5 +1,5 @@
 with table1 as
-(select p.projectid , project_code_new ,p1.vertical from profile_55194 as p
+(select p.projectid , p._id , project_code_new ,p1.vertical from profile_55194 as p
 
 left join profile_62881 p1 on 
 p.project_code_new = p1._id
@@ -8,33 +8,35 @@ p.project_code_new = p1._id
  table2 as 
  ( select p.*, q1 from table1 as p, p.vertical as q1),
  
+ table8 as
+ ( select p.projectid , p._id , project_code_new , q1 as vertical from table2 as p),
  
-table3 as
-(
-select p.projectid  , vertical , new_1.name as vertical1 , new_2.name as vertical2 , 
-case when vertical1 is null then vertical2 else vertical1 end as first_null_value , case when first_null_value is null then 'Admin' else first_null_value end as second_null_value
+ table3 as
+ ( select p.projectid , p._id , project_code_new , vertical from table2 as p),
+ 
+ table4 as
+ ( select * from table1
+   except 
+   select * from table3 
+  ),
+  
+  table5 as
+  ( select * from table4 
+   union all
+   select * from table8
+   ),
 
-from table2 as p
- 
+table6 as
+(select p.* , new_1.name as vertical1 , new_2.name as vertical2 , case when vertical1 is null then vertical2 else vertical1 end as first_null_value , case when first_null_value is null then 'Admin' else first_null_value end as second_null_value from table5 as p
+   
 left join ds_mysql_prod_tagelement as new_2
-on p.q1 = new_2.id
+on p.vertical = new_2.id
   
 left join ds_mysql_prod_tagelement as new_1
 on new_2.parent = new_1.id
-
+   
 order by project_code_new asc
-),
+)
 
-table4 as
-(
-select p.projectid , listagg(second_null_value, ',') as verticals from table3 as p
+select distinct second_null_value as verticals from table6
  
- group by p.projectid 
- 
-order by verticals asc
-),
-
-table5 as
-( select p.projectid , verticals from table4 as p)
-
-select * from table3
