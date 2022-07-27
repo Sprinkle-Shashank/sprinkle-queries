@@ -7,8 +7,17 @@ left join profile_61044 AS r
  on m.indicator = r._id
 
 left join profile_62881 AS q
- on m.project_code = q.project_code)
+ on m.project_code = q.project_code),
  
-select m.indicator_ref, m.project_code, m.fy_timerange, SUM(m.progress), m.description, m.indicator, AVG(m.target), m.project_code_new, m.project_name, m.vertical, m.focus, m.state, m.direct_or_partner, m.district, m.entity from temp1 AS m
+temp2 as
+(select p.*, q1 from temp1 as p, p.vertical as q1)
+ 
+select p.indicator_ref, p.project_code, p.fy_timerange, SUM(p.progress), p.description, p.indicator, AVG(p.target), p.project_code_new, p.project_name, p.vertical, p.focus, p.state, p.direct_or_partner, p.district, p.entity, new_2.name AS verticals from temp2 AS p
 
-group by m.indicator_ref, m.project_code, m.fy_timerange, m.description, m.indicator, m.project_code_new, m.project_name, m.vertical, m.focus, m.state, m.direct_or_partner, m.district, m.entity
+left join ds_mysql_prod_tagelement as new_1
+  on p.q1 = new_1.id
+  
+left join ds_mysql_prod_tagelement as new_2
+  on new_1.parent = new_2.id
+  
+group by p.indicator_ref, p.project_code, p.fy_timerange, p.description, p.indicator, p.project_code_new, p.project_name, p.vertical, p.focus, p.state, p.direct_or_partner, p.district, p.entity, new_2.name
