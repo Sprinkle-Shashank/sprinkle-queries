@@ -1,5 +1,10 @@
-select m._id, m.indicator AS indicator_ref, m.project_code, m.fy_timerange, m.progress, r.description, r.indicator, r.target
+with temp1 AS
+(select m._id, m.indicator AS indicator_ref, m.project_code, m.fy_timerange, m.progress, r.description, r.indicator, r.target
 from profile_61046 AS m
 
 left join profile_61044 AS r 
- on m._indicator_ref = r._id
+ on m.indicator = r._id)
+ 
+select m._id, m.indicator_ref, m.project_code, m.fy_timerange, SUM(m.progress), m.description, m.indicator, AVERAGE(m.target) from temp1 AS m
+
+group by m.indicator_ref, m.project_code, m.fy_timerange, m.description, m.indicator
