@@ -1,5 +1,10 @@
 with temp1 AS
-(select m._id, m.indicator AS indicator_ref, m.project_code, m.fy_timerange, m.progress, r.description, r.indicator, r.target, q.name AS project_code_new, q.project_name, q.vertical, q.focus, q.state, q.direct_or_partner, q.district, q.entity
+(select m._id, m.indicator AS indicator_ref, m.project_code, m.fy_timerange, m.progress, r.description, r.indicator, r.target, q.name AS project_code_new, q.project_name, q.vertical, q.focus, q.state, q.direct_or_partner, q.district, q.entity, vert.name AS vertical2, vert_1.name AS vertical1,
+
+case when vert.name IS NULL AND vert_1.name IS NOT NULL THEN vert.name 
+when vert_1.name IS NULL AND vert.name IS NOT NULL THEN vert_1.name
+else 'Admin'
+END AS verticals
 
 from profile_61046 AS m
 
@@ -7,7 +12,13 @@ left join profile_61044 AS r
  on m.indicator = r._id
 
 left join profile_62881 AS q
- on m.project_code = q.project_code),
+ on m.project_code = q.project_code
+
+left join ds_mysql_prod_tagelement as vert
+  on r.vertical = vert.id
+
+left join ds_mysql_prod_tagelement as vert_1
+  on vert.parent = vert_1.id),
  
 temp2 as
 (select p.*, q1 from temp1 as p, p.vertical as q1)
