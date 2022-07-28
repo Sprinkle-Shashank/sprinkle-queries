@@ -18,9 +18,9 @@ ON m.project_code = r.project_code
  left join ds_mysql_prod_tagelement as compl
   on r.completed = compl.id  
   
- )
+ ),
  
- 
+ table3 as (
 select focus, project_code,vertical_new,start_date, progress, completed, fy_1 as fy_timerange, entity/*,
 case when vert1.name is null then vert.name
      else vert1.name end as vertical*/
@@ -29,41 +29,12 @@ from table2 t2,t2.vertical vertical_new
  /*left join ds_mysql_prod_tagelement as vert
   on t2.vertical_new = vert.id 
  left join ds_mysql_prod_tagelement as vert1
-  on vert.parent = vert1.id */
+  on vert.parent = vert1.id */)
+  
+ select vertical_new,case when vert1.name is null then vert.name
+     else vert1.name end as vertical from table3 t3  
+ left join ds_mysql_prod_tagelement as vert
+  on t3.vertical_new = vert.id 
+ left join ds_mysql_prod_tagelement as vert1
+  on vert.parent = vert1.id  
 
-/*
-
-With temp1 AS 
-(SELECT m.projectId, m._id, m.project_name, m.vertical, m.focus, m.start_date, m.project_code, m.entity,
-r.completed, r.fy_timerange AS fy_timerange_r, r.progress , ROW_NUMBER() over (order by m.projectId ) as row
-
-FROM profile_62881 AS m
-
-LEFT JOIN profile_55471 AS r
-ON m.project_code = r.project_code
-
-Group by m.projectId, m._id, m.project_name, m.vertical, m.focus, m.start_date, m.project_code, m.entity, r.completed, r.fy_timerange, r.progress
-)
-
-SELECT * from temp1 where row = 1
-
-
-
-
-
-
-, LISTAGG(CAST(fy_timerange_r.end AS date),',') AS update_date_1, LISTAGG(prog.name,',') AS progress_2, LISTAGG(compl.name,',') AS complete_2,
-
-CASE when compl.name = 'Yes' THEN CAST(fy_timerange_r.end AS date) when compl.name IS NULL Then CAST('2030-01-01' AS date) END AS end_date, CASE when end_date IS NULL Then CAST('2030-01-01' AS date) ELSE end_date END AS end_date_new,
-
-
-left join ds_mysql_prod_tagelement as prog
-  on r.progress = prog.id
-
-left join ds_mysql_prod_tagelement as compl
-  on r.completed = compl.id
-
-, compl.name, end_date, end_date_new
-
-ORDER BY m.project_code ASC, update_date_1 ASC
-*/
