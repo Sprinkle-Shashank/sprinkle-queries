@@ -1,7 +1,7 @@
 with s as(
 SELECT PF.projectid,
 extract(year from cast(PF.fy_allocated_timerange.start as datetime)) AS fy_timerange,
-PF.disbursed_project AS amount_disbursed,
+PF.disbursed_project AS amount_disbursed,PF.allocated
 PDV.project_start_date, PDV.project_end_date AS end_date,PDV.project_name_display, PDV.geography,t.name AS entity
 /*
  PDC.mode, t4.name as partner, t2.name AS state, PF.allocated, t3.name as schedule_7, PDC.local_area, PDC.csr_registration, PDC.csr,
@@ -30,8 +30,7 @@ FROM profile_55749 AS PF
 LEFT JOIN profile_55750 AS PDV
 ON PF.projectid = PDV.projectid
 /*
-LEFT JOIN profile_55752 AS PDC
-ON PF.projectid = PDC.projectid
+
 
 LEFT JOIN profile_81346 AS UA
 ON PDV.projectid = UA.projectid
@@ -45,27 +44,33 @@ ON PDV.funding_entity = t.id
 LEFT JOIN ds_mysql_prod_tagelement AS t2
 ON PDV.geography = t2.id
 /*
-LEFT JOIN ds_mysql_prod_tagelement AS t3
-ON PDC.schedule_7 = t3.id
 
-LEFT JOIN ds_mysql_prod_tagelement AS t4
-ON PDC.partner = t4.id
 
 WHERE  PDC.csr = true
 AND PDC.project_ended = true
 AND result = 1
 */
   ), s2 as(
-SELECT projectid, fy_timerange, amount_disbursed,
+SELECT projectid, fy_timerange, amount_disbursed,allocated,
 project_start_date, end_date,project_name_display,entity,geo
 from s as p, p.geography geo
  )
  SELECT projectid, fy_timerange, amount_disbursed,
-project_start_date, end_date,project_name_display,entity,t.name as geography,nvl(t2.name,t.name) as loc
+project_start_date, end_date,project_name_display,entity,t.name as geography,nvl(t2.name,t.name) as loc,
+PDC.mode, t4.name as partner, allocated, t3.name as schedule_7, PDC.local_area, PDC.csr_registration, PDC.csr,
+PDC.project_ended
+
 from s2
 LEFT JOIN ds_mysql_prod_tagelement AS t
 ON s2.geo= t.id
 LEFT JOIN ds_mysql_prod_tagelement AS t2
 ON t.parent= t2.id
+LEFT JOIN profile_55752 AS PDC
+ON s2.projectid = PDC.projectid
+LEFT JOIN ds_mysql_prod_tagelement AS t3
+ON PDC.schedule_7 = t3.id
+
+LEFT JOIN ds_mysql_prod_tagelement AS t4
+ON PDC.partner = t4.id
 /*GROUP BY PF.projectid, pf.project_code_new, PD.name, PD.start_date, t.name, PD.project_name, t3.name, PD.partner, t2.name, PD.budget_outlay, PD.item, PD.local_area, PD.csr_registration, PD.CSR, PP.completed, PP.date, PF.month_timerange*/
   
