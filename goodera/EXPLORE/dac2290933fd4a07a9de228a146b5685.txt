@@ -1,8 +1,8 @@
-SELECT PF.projectid,
+SELECT p.name as projectid,
 extract(year from cast(PF.fy_allocated_timerange.start as datetime)) AS fy_timerange,
 PF.disbursed_project AS amount_disbursed,
 PDV.project_start_date, PDV.project_end_date AS end_date, t.name AS entity, PDV.project_name_display, PDC.mode, t4.name as partner, t2.name AS state, PF.allocated,  t3.name AS schedule_7, PDC.local_area, PDC.csr_registration, PDC.csr,
-PDC.project_ended, UA.unspent_amount, UA.unspent_amount, UA.cumulative_amount,
+t5.name as project_ended, UA.unspent_amount, UA.unspent_amount, UA.cumulative_amount,
 /*
 CASE 
   WHEN (EXTRACT(month from PDV.project_start_date) <04) THEN (EXTRACT(year from PDV.project_start_date)-1)
@@ -25,7 +25,8 @@ CASE
 
 
 FROM profile_55749 AS PF
-
+left join ds_mysql_prod_project p
+on PF.id=s2.projectid
 LEFT JOIN profile_55750 AS PDV
 ON PF.projectid = PDV.projectid
 
@@ -49,6 +50,9 @@ ON PDC.schedule_7 = t3.id
 
 LEFT JOIN ds_mysql_prod_tagelement AS t4
 ON PDC.partner = t4.id
+
+LEFT JOIN ds_mysql_prod_tagelement AS t5
+ON PDC.project_ended = t5.id
 
 --WHERE  PDC.csr = true
 --AND PDC.project_ended = true
