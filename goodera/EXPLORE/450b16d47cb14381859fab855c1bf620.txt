@@ -1,7 +1,18 @@
 
-with table2 as 
+with table100 as 
+(
+select p.projectid, p.facility_status , facility.name as facility_status_update , case when facility_status_update='Active' then 'Active' else 'Deactive' end as Active_Filter , goodera_facility_name_text , fac_vpid as fac_cl_vpid, parent_vendor_vpid as vendor_ngo_id , pri.name as primary_category  from profile_68161 as p
+  
+left join ds_mysql_prod_tagelement facility 
+on p.facility_status = facility.id
+  
+left join ds_mysql_prod_tagelement pri
+on p.primary_category = pri.id  
+), 
+
+ table2 as 
 ( select p.projectid  , p._id , fac.name as factory , case when nvl2(SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), ven.name)='' then ven.name else nvl2(SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), ven.name) end as vendor
- , cou.name as country ,  p2.fac_cl_vpid, p2.vendor_ngo_id, pri.name as primary_category , count(p3.name) as training , sum(prospect_total) as prospect_total
+ , cou.name as country ,  p2.fac_cl_vpid, p2.vendor_ngo_id, p2.primary_category , count(p3.name) as training , sum(prospect_total) as prospect_total
  
  from profile_64075 as p
 
@@ -14,18 +25,16 @@ on fac.parent = ven.id
 left join ds_mysql_prod_project cou
 on ven.parent = cou.id 
  
- left join profile_52810 p2 on
- p.projectid = p2.projectid
+ left join table100 p2 on
+ fac.name = p2.goodera_facility_name_text
  
-left join ds_mysql_prod_tagelement pri
-on p2.primary_category = pri.id  
  
 left join profile_61498 p3 
 on p.training_id = p3._id
  
  where cou.name != 'Test Country'
  
- group by  p.projectid ,  fac.name , ven.name , cou.name , p2.fac_cl_vpid, p2.vendor_ngo_id,  pri.name , p3.name , p._id
+ group by  p.projectid ,  fac.name , ven.name , cou.name , p2.fac_cl_vpid, p2.vendor_ngo_id,  p2.primary_category , p3.name , p._id
  ),
  
  table11 as
@@ -67,8 +76,8 @@ table31 as
 (
 select * from table21 where row=1
 )
- 
- 
+
+
  select  p.projectid , factory ,  vendor , fy_year 
  , country , fac_cl_vpid, vendor_ngo_id,  primary_category , sum(training) as training , sum(prospect_total) as prospect_total  , t31.date_updated , t31.quarter_new , sum(t31.total_trained) as total_trained  ,  sum(t31.total_employed) as total_employed , 
  case when t31.total_employed != 0 then (t31.total_trained/t31.total_employed)*100  else 0 end as percentage from table2 as p
@@ -80,5 +89,6 @@ group by
  p.projectid , factory ,  vendor , fy_year 
  , country , fac_cl_vpid, vendor_ngo_id,  primary_category  , t31.date_updated , t31.quarter_new ,
   percentage
+  
 
 --where t31.total_employed != 0 and t31.total_trained != 0
