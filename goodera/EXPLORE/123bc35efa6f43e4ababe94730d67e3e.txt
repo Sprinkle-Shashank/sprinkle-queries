@@ -1,5 +1,8 @@
 with temp1 AS
-(select m.projectId, m.project_name, m.vertical, m.focus, cast(m.start_date as date) as start_date, m.project_code, m.entity, r.fy_timerange, compl.name as completed, prog.name as progress
+(select m.projectId, m.project_name, m.vertical, m.focus, cast(m.start_date as date) as start_date, m.project_code, m.entity, CAST(r.fy_timerange.end as date) as update_date, compl.name as completed, prog.name as progress, 
+concat(start_date,'T00:00:00.000Z') as start1,
+concat(update_date,'T00:00:00.000Z') as end2,
+concat(concat(concat(concat('{"start":"',start1),'","end":"'),end2),'"}') as fy_1
   
 from profile_62881 as m
 
@@ -12,10 +15,7 @@ left join ds_mysql_prod_tagelement as prog
 left join ds_mysql_prod_tagelement as compl
   on r.completed = compl.id  )
 
-select m.projectId, m.project_name, m.vertical, m.focus, cast(m.start_date as date) as start_date, m.project_code, m.entity, CAST(m.fy_timerange.end as date) as update_date, m.progress, m.completed,
-concat(start_date,'T00:00:00.000Z') as start1,
-concat(update_date,'T00:00:00.000Z') as end2,
-concat(concat(concat(concat('{"start":"',start1),'","end":"'),end2),'"}') as fy_1
+select m.projectId, m.project_name, m.vertical, m.focus, m.start_date, m.project_code, m.entity, m.update_date, m.progress, m.completed, m.fy_1
 
 from temp1 as m
 
