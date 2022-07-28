@@ -1,7 +1,7 @@
-SELECT PF.projectid,
+with s as (SELECT PF.projectid,
 extract(year from cast(PF.fy_allocated_timerange.start as datetime)) AS fy_timerange,
 PF.disbursed_project AS amount_disbursed,
-PDV.project_start_date, PDV.project_end_date AS end_date, t.name AS entity, PDV.project_name_display, PDC.mode, t4.name as partner, t2.name AS state, PF.allocated, t3.name as schedule_7, PDC.local_area, PDC.csr_registration, PDC.csr,
+PDV.project_start_date, PDV.project_end_date AS end_date, t.name AS entity, PDV.project_name_display, PDC.mode, t4.name as partner, PDV.geography, PF.allocated, t3.name as schedule_7, PDC.local_area, PDC.csr_registration, PDC.csr,
 PDC.project_ended, UA.unspent_amount, IA.agency,
 
 CASE 
@@ -38,17 +38,34 @@ ON PF.projectid = IA.projectid
 LEFT JOIN ds_mysql_prod_tagelement AS t
 ON PDV.funding_entity = t.id
 
-LEFT JOIN ds_mysql_prod_tagelement AS t2
-ON PDV.geography = t2.id
+--LEFT JOIN ds_mysql_prod_tagelement AS t2
+--ON PDV.geography = t2.id
 
 LEFT JOIN ds_mysql_prod_tagelement AS t3
 ON PDC.schedule_7 = t3.id
 
 LEFT JOIN ds_mysql_prod_tagelement AS t4
 ON PDC.partner = t4.id
+/*
+WHERE  PDC.csr = true
+AND PDC.project_ended = true
+AND result = 1*/
+),
+s2 as (
+SELECT projectid, fy_timerange,amount_disbursed,project_start_date, end_date,  entity,project_name_display,mode, partner, geo, allocated, schedule_7, local_area, csr_registration,csr,project_ended, unspent_amount,agency,
+ fy_start_date,
+fy_end_date,result
 
---WHERE  PDC.csr = true
---AND PDC.project_ended = true
---AND result = 1
+FROM s as p, p.geography as geo
+)
+SELECT projectid, fy_timerange,amount_disbursed,project_start_date, end_date,  entity,project_name_display,mode, partner, t2.name as state,t.name as district, allocated, schedule_7, local_area, csr_registration,csr,t5.name as project_ended, unspent_amount,agency,
+ fy_start_date,
+fy_end_date,result
+from s2
 
-/*GROUP BY PF.projectid, pf.project_code_new, PD.name, PD.start_date, t.name, PD.project_name, t3.name, PD.partner, t2.name, PD.budget_outlay, PD.item, PD.local_area, PD.csr_registration, PD.CSR, PP.completed, PP.date, PF.month_timerange*/
+LEFT JOIN ds_mysql_prod_tagelement AS t
+ON s2.geo= t.id
+LEFT JOIN ds_mysql_prod_tagelement AS t2
+ON t.parent= t2.id
+LEFT JOIN ds_mysql_prod_tagelement AS t5
+ON PDC.project_ended = t5.id
