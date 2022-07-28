@@ -1,10 +1,15 @@
 with table1 as
-( select p.project_code,p.completed,p.fy_timerange,p.progress,month from(select p.project_code,p.completed,p.fy_timerange,p.progress,month,row_number() over 
-(partition by p.project_code
- order by p._id desc) as row from profile_55471 p)
+(select p.project_code,p.completed,p.fy_timerange,p.progress,month from(select p.project_code,p.completed,p.fy_timerange,p.progress,month,row_number() over (partition by p.project_code order by p._id desc) as row, vert.name AS vertical2, vert1.name AS vertical1/*,
+
+case when vert.name IS NULL AND vert1.name IS NOT NULL THEN vert1.name 
+when vert1.name IS NULL AND vert.name IS NOT NULL THEN vert.name
+end as vertical*/
+																		 
+from profile_55471 AS p)
   where row = 1
  ),
- table2 as (
+ 
+table2 as (
  select  m.projectId, m._id , m.project_name, m.vertical, m.focus, cast(m.start_date as date) as start_date, m.project_code, m.entity,compl.name as completed ,r.fy_timerange,prog.name as progress,r.month, cast(r.fy_timerange.end as date) as update_date,
  concat(start_date,'T00:00:00.000Z') as start1,
 concat(update_date,'T00:00:00.000Z') as end2,
@@ -22,28 +27,15 @@ ON m.project_code = r.project_code
  
  table3 as (
 select m.focus, m.project_code, m.vertical_new, m.start_date, m.progress, m.completed, m.fy_1 as fy_timerange, m.entity from table2 AS m,
-
-case when vert.name IS NULL AND vert1.name IS NOT NULL THEN vert1.name 
-when vert1.name IS NULL AND vert.name IS NOT NULL THEN vert.name
-end as vertical
    
-from table2 AS t2,t2.vertical vertical_new
+/*from table2 AS t2,t2.vertical vertical_new
 
  left join ds_mysql_prod_tagelement as vert
   on t2.vertical_new = vert.id 
  left join ds_mysql_prod_tagelement as vert1
-  on vert.parent = vert1.id )
+  on vert.parent = vert1.id )*/
   
 select m.focus, m.project_code, m.entity, m.fy_timerange, m.vertical_new, m.count(*) from table3 AS m,
  
-case when vert.name IS NULL AND vert_1.name IS NOT NULL THEN vert.name 
-when vert_1.name IS NULL AND vert.name IS NOT NULL THEN vert_1.name
-
 from table3 AS t3  
-
- left join ds_mysql_prod_tagelement as vert
-  on t3.vertical_new = vert.id 
-  
- left join ds_mysql_prod_tagelement as vert1
-  on vert.parent = vert1.id  
 
