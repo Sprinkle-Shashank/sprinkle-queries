@@ -1,12 +1,18 @@
 with temp1 AS
-(select m.projectId, m.project_name, m.vertical, m.focus, cast(m.start_date as date) as start_date, m.project_code, m.entity, r.completed, r.fy_timerange, r.progress
+(select m.projectId, m.project_name, m.vertical, m.focus, cast(m.start_date as date) as start_date, m.project_code, m.entity, r.completed, r.fy_timerange, r.progress, compl.name as completed, prog.name as progress
   
 from profile_62881 as m
 
 left join profile_55471 AS r
- on m.project_code = r.project_code)
+ on m.project_code = r.project_code
 
-select m.projectId, m.project_name, m.vertical, m.focus, cast(m.start_date as date) as start_date, m.project_code, m.entity, m.completed, CAST(m.fy_timerange.end as date) as update_date, m.progress from temp1 as m
+left join ds_mysql_prod_tagelement as prog
+  on r.progress = prog.id  
+ 
+left join ds_mysql_prod_tagelement as compl
+  on r.completed = compl.id  )
+
+select m.projectId, m.project_name, m.vertical, m.focus, cast(m.start_date as date) as start_date, m.project_code, m.entity, m.completed, CAST(m.fy_timerange.end as date) as update_date, m.progress, m.completed from temp1 as m
 
 order by m.project_code asc, update_date asc
  
