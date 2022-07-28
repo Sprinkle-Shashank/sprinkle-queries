@@ -5,11 +5,11 @@ with table1 as
   where row = 1
  ),
  table2 as (
- select  m.projectId, m._id , project_name, vert.name as vertical2,vert1.name as vertical1, focus, cast(start_date as date) as start_date, m.project_code, entity,compl.name as completed ,r.fy_timerange,prog.name as progress,r.month, cast(r.fy_timerange.end as date) as update_date,
+ select  m.projectId, m._id , project_name, vertical_new, focus, cast(start_date as date) as start_date, m.project_code, entity,compl.name as completed ,r.fy_timerange,prog.name as progress,r.month, cast(r.fy_timerange.end as date) as update_date,
  concat(start_date,'T00:00:00.000Z') as start1,
 concat(update_date,'T00:00:00.000Z') as end2,
 concat(concat(concat(concat('{"start":"',start1),'","end":"'),end2),'"}') as fy_1
-   from profile_62881 as m
+   from profile_62881 as m,m.vertical vertical_new
  
  LEFT JOIN table1 AS r
 ON m.project_code = r.project_code
@@ -17,15 +17,19 @@ ON m.project_code = r.project_code
   on r.progress = prog.id  
  left join ds_mysql_prod_tagelement as compl
   on r.completed = compl.id  
- left join ds_mysql_prod_tagelement as vert
-  on m.vertical = vert.id 
- left join ds_mysql_prod_tagelement as vert1
-  on vert.parent = vert1.id   
+  
  )
  
  
-select * from table2
+select focus, project_code,vertical_new,start_date, progress, completed, update_date, end_date, fy_1 as fy_timerange, entity/*,
+case when vert1.name is null then vert.name
+     else vert1.name end as vertical*/
+from table2 t2
 
+ /*left join ds_mysql_prod_tagelement as vert
+  on t2.vertical_new = vert.id 
+ left join ds_mysql_prod_tagelement as vert1
+  on vert.parent = vert1.id */
 
 /*
 
