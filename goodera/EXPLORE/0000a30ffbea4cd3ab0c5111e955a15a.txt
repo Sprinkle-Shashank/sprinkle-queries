@@ -1,5 +1,5 @@
 with temp1 AS
-(select m._id AS old_id, m.projectId, m.indicator, m.sdgs, m.schedule_vii, m.proj, m.ben_type, m.baseline, m.target, m.name, r._id, r.project_name, r.vertical, r.focus, r.state, r.direct_or_partner, r.project_code, r.entity, partner.name AS partner_1, q.fy_timerange, q.progress, ben_type.name AS ben_type_1, vert.name AS vertical2, vert_1.name AS vertical1, state.name AS state_1, int_indi.name AS indicator_1, 
+(select m._id AS old_id, m.projectId, m.indicator, m.sdgs, m.schedule_vii, m.proj, m.ben_type, m.baseline, m.target, m.name, r._id, r.project_name, r.vertical, r.focus, r.state, r.direct_or_partner, r.project_code, r.entity, partner.name AS partner_1, q.fy_timerange, q.progress, ben_type.name AS ben_type_1, vert.name AS vertical2, vert_1.name AS vertical1, state.name AS state_1, int_indi.name AS indicator_1, l.name, sdgs_1.name AS sdgs_new,
 
 case when vert.name IS NULL AND vert_1.name IS NOT NULL THEN vert.name 
 when vert_1.name IS NULL AND vert.name IS NOT NULL THEN vert_1.name
@@ -31,12 +31,18 @@ left join ds_mysql_prod_tagelement as state
 left join ds_mysql_prod_tagelement as int_indi
   on state.parent = int_indi.id
  
-where r.direct_or_partner = 1132991 AND m.ben_type = 939857),
+left join profile_64961 AS l 
+ on r.state = l.name
+ 
+left join ds_mysql_prod_tagelement as sdgs_1
+  on m.sdgs = sdgs_1.id
+ 
+where r.direct_or_partner = 1132991 AND m.ben_type = 939857 AND q.fy_timerange IS NOT NULL AND m.sdgs IS NOT NULL),
 
 temp2 as
 (select p.*, q1 from temp1 as p, p.vertical as q1)
 
-select p.projectId, p.indicator, p.sdgs, p.schedule_vii, p.proj, p.project_name, p.baseline, p.target, p.name, p.vertical, p.focus, p.state, p.project_code, p.entity, p.partner_1, p.fy_timerange, SUM(p.progress) AS beneficiary, new_2.name AS verticals from temp2 as p 
+select p.projectId, p.indicator, p.sdgs, p.schedule_vii, p.proj, p.project_name, p.baseline, p.target, p.vertical, p.focus, p.state, p.project_code, p.entity, p.partner_1, p.fy_timerange, SUM(p.progress) AS beneficiary, new_2.name AS verticals, p.name from temp2 as p 
 
 left join ds_mysql_prod_tagelement as new_1
   on p.q1 = new_1.id
@@ -44,5 +50,7 @@ left join ds_mysql_prod_tagelement as new_1
 left join ds_mysql_prod_tagelement as new_2
   on new_1.parent = new_2.id
 
-group by p.projectId, p.indicator, p.sdgs, p.schedule_vii, p.vertical, p.focus, p.state, p.fy_timerange, p.entity, p.proj, p.project_name, p.baseline, p.target, p.name, p.project_code, p.partner_1, new_2.name
+group by p.projectId, p.indicator, p.sdgs, p.schedule_vii, p.vertical, p.focus, p.state, p.fy_timerange, p.entity, p.proj, p.project_name, p.baseline, p.target, p.name, p.project_code, p.partner_1, new_2.name, 
+p.indicator_1, p.state_1, p.sdgs_new
 
+Order by sdgs_new ASC
