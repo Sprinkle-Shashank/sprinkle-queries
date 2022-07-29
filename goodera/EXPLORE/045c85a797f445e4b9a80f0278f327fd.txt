@@ -12,7 +12,7 @@ on p.primary_category = pri.id
 
 table1 as
 ( select p.projectid , p._id ,  fac.name as factory , case when nvl2(SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), ven.name)='' then ven.name else nvl2(SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), ven.name) end as vendor
- , cou.name as country , p2.fac_cl_vpid, p2.vendor_ngo_id , pri.name as primary_category , count(p.projectid) as awareness , training_name.name as training_values , case when training_values='Awareness Workshop' then 1 else 0 end as awareness_update , case when training_values='GBV P&R TOT' then 1 else 0 end as gbv_update ,  case when training_values='Awareness Workshop' then  sum(hours) else 0 end as Awareness_hours ,  case when training_values='GBV P&R TOT' then  sum(hours) else 0 end as GBV_hours ,  sum(hours) as hours_update from profile_61572 as p 
+ , cou.name as country , p2.fac_cl_vpid, p2.vendor_ngo_id ,  p2.primary_category , count(p.projectid) as awareness , training_name.name as training_values , case when training_values='Awareness Workshop' then 1 else 0 end as awareness_update , case when training_values='GBV P&R TOT' then 1 else 0 end as gbv_update ,  case when training_values='Awareness Workshop' then  sum(hours) else 0 end as Awareness_hours ,  case when training_values='GBV P&R TOT' then  sum(hours) else 0 end as GBV_hours ,  sum(hours) as hours_update from profile_61572 as p 
  
 left join ds_mysql_prod_project fac
 on p.projectid = fac.id
@@ -23,17 +23,15 @@ on fac.parent = ven.id
 left join ds_mysql_prod_project cou
 on ven.parent = cou.id 
  
- left join profile_52810 p2 on
- p.projectid = p2.projectid
+ left join table100 p2 on
+ fac.name = p2.goodera_facility_name_text
  
-left join ds_mysql_prod_tagelement pri
-on p2.primary_category = pri.id  
  
 left join ds_mysql_prod_tagelement training_name
 on p.training_type = training_name.id  
  
  group by  p.projectid , p._id ,  fac.name , ven.name
- , cou.name  , p2.fac_cl_vpid, p2.vendor_ngo_id , pri.name , training_name.name
+ , cou.name  , p2.fac_cl_vpid, p2.vendor_ngo_id , p2.primary_category , training_name.name
  ),
  
  
@@ -98,11 +96,10 @@ table31 as
 select * from table21 where row=1
 )
  
- select * from table100
- /*
+ 
  select p.projectid  , factory , vendor , country , fy_year , fac_cl_vpid, vendor_ngo_id , primary_category , sum(awareness) as awareness , sum(awareness_update) as awareness_update  , sum(gbv_update) as gbv_update , sum(Awareness_hours) as Awareness_hours , sum(gbv_hours) as gbv_hours , sum(hours_update) as hours_update ,  sum(t31.indepth_workers) as indepth_workers
   , sum(t31.indepth_managers) as indepth_managers , t31.channels_more_update
-  ,  t31.anonymous_channel_update , t31.third_party_channel_update , t31.gbv_policy_update  , t31.response_provided_update , t31.issues_resolved_update , sum(t31.internal_trainers) as internal_trainers , sum(t31.gbv_issues) as gbv_issues, t31.date_updated , t31.quarter_new , training_values from table1 as p
+  ,  t31.anonymous_channel_update , t31.third_party_channel_update , t31.gbv_policy_update  , t31.response_provided_update , t31.issues_resolved_update , sum(t31.internal_trainers) as internal_trainers , sum(t31.gbv_issues) as gbv_issues, t31.date_updated , t31.quarter_new , listagg(training_values,',') as training_values  from table1 as p
  
  left join table31 t31
  on p.projectid = t31.projectid
@@ -112,4 +109,3 @@ select * from table21 where row=1
  group by 
  p.projectid , factory , vendor , country , fy_year , fac_cl_vpid, vendor_ngo_id , primary_category , t31.channels_more_update
   ,  t31.anonymous_channel_update , t31.third_party_channel_update , t31.gbv_policy_update  , t31.response_provided_update , t31.issues_resolved_update , t31.date_updated , t31.quarter_new , training_values 
-  */
