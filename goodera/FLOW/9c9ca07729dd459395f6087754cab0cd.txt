@@ -1,6 +1,6 @@
 drop table if exists dummy001_flow;
  create table dummy001_flow as
-select x1._id as id, x1.profileinstanceid, x1.status, x1.active, x1.data, x1.taskuserid, x2.taskid, x5.projectid, x6.profileid, x4.sectionid, x6.name as section, x7.name as profile, x8.name as project, cast(x1.data.subcat_output as VARCHAR) as subcat_output
+with s1 as (select x1._id as id, x1.profileinstanceid, x1.status, x1.active, x1.data, x1.taskuserid, x2.taskid, x5.projectid, x6.profileid, x4.sectionid, x6.name as section, x7.name as profile, x8.name as project, cast(x1.data.subcat_output as VARCHAR) as subcat_output
 
 from ds_mongo_taskresponse x1 
 
@@ -11,3 +11,8 @@ left join ds_mysql_prod_projectflow x5 on x5.id = x3.projectflowid
 left join ds_mysql_prod_section x6 on x6.id = x4.sectionid
 left join ds_mysql_prod_profile x7 on x7.id = x6.profileid
 left join ds_mysql_prod_project x8 on x8.id = x5.projectid
+left join profile_54963 p1 on p1._id = x1.profileinstanceid
+left join ds_mysql_prod_project p2 on p2.id = s1.projectid 
+left join ds_mysql_prod_project p3 on p3.id = p2.parent
+left join ds_mysql_prod_tagelement t1 on t1.id = p1.fy
+left join ds_mysql_prod_tagelement t2 on t2.id = p1.month
