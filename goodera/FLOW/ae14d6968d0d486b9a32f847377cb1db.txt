@@ -1,0 +1,144 @@
+drop table if exists hdfc_payment_details_flow;
+ create table hdfc_payment_details_flow as
+with sub1 as(
+  select x1._id as id, x1.profileinstanceid, x1.status, x1.active, x1.data, x1.taskuserid, x2.taskid, x5.projectid, x6.profileid, x4.sectionid, x6.name as section, x7.name as profile, x8.name as project, x1.created, x1.modified,
+  
+case
+  when is_array(x1.submissionlog) = false or get_array_length(x1.submissionlog) = 0 then 
+  	   array(x1.submissionlog)
+  else x1.submissionlog
+end as submissionlog_new,
+case
+  when is_array(x1.approvallog) = false or get_array_length(x1.approvallog) = 0 then 
+  	   array(x1.approvallog)
+  else x1.approvallog
+end as approvallog_new
+  
+from ds_mongo_taskresponse x1 
+
+left join ds_mysql_prod_taskuser x2 on x2.id = x1.taskuserid
+left join ds_mysql_prod_task x3 on x3.id = x2.taskid
+left join ds_mysql_prod_flowtask x4 on x4.id = x3.flowtaskid
+left join ds_mysql_prod_projectflow x5 on x5.id = x3.projectflowid
+left join ds_mysql_prod_section x6 on x6.id = x4.sectionid
+left join ds_mysql_prod_profile x7 on x7.id = x6.profileid
+left join ds_mysql_prod_project x8 on x8.id = x5.projectid
+
+where x6.profileid = 27398 and x1.active = 't'
+and x1.status in ('SAVED', 'REJECTED', 'PENDING_APPROVAL', 'SUBMITTED')
+
+group by x1._id, x1.profileinstanceid, x1.status, x1.active, x1.data, x1.taskuserid, x2.taskid, x5.projectid, x6.profileid, x4.sectionid, x6.name, x7.name, x8.name, x1.submissionlog, x1.approvallog, x1.created, x1.modified),
+
+sub2 as(
+  select s1.id, s1.profileinstanceid, s1.status, s1.projectid, s1.data, s1.created, s1.modified, cast(applog."approvalStatus" as VARCHAR) as approve_status,
+
+case
+	when approve_status = 'REJECTED' then 1
+	else 0 
+end as rejection_count
+
+from sub1 s1, s1.approvallog_new applog),
+
+sub3 as(
+  select s2.id, s2.profileinstanceid, s2.status, s2.projectid, s2.data, s2.created, s2.modified, sum(s2.rejection_count) as rejection_count
+
+from sub2 s2
+
+group by s2.id, s2.profileinstanceid, s2.status, s2.projectid, s2.data, s2.created, s2.modified),
+
+sub4 as(
+  select s3.id, s3.profileinstanceid, s3.status, s3.projectid, s3.data.tranche,
+cast(s3.data.uc as VARCHAR) as uc, cast(s3.data.call_report as VARCHAR) as call_report, s3.rejection_count,
+
+nvl(p2.fy, s3.data.fy) as fy,
+nvl(p2.project_name, s3.data.project_name) as project_name,
+nvl(p2.payment_amount, s3.data.payment_amount) as payment_amount,
+nvl(p2.renewal, s3.data.renewal) as renewal,
+nvl(p2.project_renew, s3.data.project_renew) as project_renew,
+nvl(s3.created, p2.created) as created,
+nvl(s3.modified, p2.modified) as modified
+  
+from sub3 s3
+left join profile_27398 p2 on p2._id = s3.profileinstanceid),
+
+sub5 as(
+  select s4.id, s4.profileinstanceid, s4.status, s4.projectid, s4.tranche, s4.uc, s4.call_report, s4.rejection_count, s4.created, s4.fy, s4.project_name, s4.payment_amount, s4.renewal, s4.project_renew, s4.modified,
+  
+case
+  when s4.renewal = 430820 then s4.project_renew
+  else s4.project_name
+end as joincolumn 
+  
+from sub4 s4),
+
+sub6 as(
+  select s5.id, s5.profileinstanceid, s5.status, p5.name as projectid, s5.uc, s5.payment_amount, t1.name as fy, t2.name as tranche, t3.name as renewal, s5.rejection_count, s5.call_report,
+
+cast(timestamp 'epoch' + CAST(s5.created AS BIGINT)/1000 * interval '1 second' as date) as request_date,
+cast(timestamp 'epoch' + CAST(s5.modified AS BIGINT)/1000 * interval '1 second' as date) as modified,
+  
+case
+	when s5.renewal = 430820 then p4.name_project
+	else p3.name_project
+end as project_name,
+
+case
+	when s5.renewal = 430820 then p4.project_code
+	else p3.name
+end as projectcode,
+  
+case
+  when s5.renewal = 430822 and s5.tranche = 432692 then '1st Advance Payment'
+  else '-'
+end as uc_download,
+  
+case
+  when s5.renewal = 430822 and s5.tranche = 432692 then '1st Advance Payment'
+  else '-'
+end as call_report_download
+
+from sub5 s5
+
+left join profile_27396 p3 on p3._id = s5.joincolumn
+left join profile_27420 p4 on p4._id = s5.joincolumn
+
+left join ds_mysql_prod_tagelement t1 on t1.id = s5.fy
+left join ds_mysql_prod_tagelement t2 on t2.id = s5.tranche
+left join ds_mysql_prod_tagelement t3 on t3.id = s5.renewal
+
+left join ds_mysql_prod_project p5 on p5.id = s5.projectid),
+
+sub7 as(
+  select s6.id, s6.status, s6.projectid, s6.uc, s6.payment_amount, s6.rejection_count, s6.request_date, s6.call_report, s6.project_name, s6.fy, s6.projectcode, s6.modified, s6.call_report_download, s6.uc_download,
+  
+nvl(p6.name, s6.projectcode) as projectcode_new
+
+from sub6 s6
+left join profile_27396 p6 on p6._id = s6.projectcode),
+  
+sub8 as(
+  select s7.uc, cast(s7.payment_amount as FLOAT), s7.fy as fy_timerange, s7.project_name, s7.projectcode_new as project_code, s7.rejection_count, s7.call_report,
+
+case 
+	when s7.status = 'SUBMITTED' then 'APPROVED'
+	else s7.status
+end as status_new,
+  
+case
+  when s7.uc is not null then 'Click Here'
+  else s7.uc_download
+end as uc_download,
+  
+case
+  when s7.call_report is not null then 'Click Here'
+  else s7.call_report_download
+end as call_report_download,
+ 
+TO_CHAR(s7.request_date, 'DD-MM-YYYY') as request_date,
+TO_CHAR(s7.modified, 'DD-MM-YYYY') as modified
+
+from sub7 s7
+
+group by s7.uc, s7.payment_amount, s7.fy, s7.request_date, s7.project_name, s7.projectcode_new, s7.rejection_count, s7.call_report, s7.status, s7.modified, s7.uc_download, s7.call_report_download)
+
+select * from sub8
