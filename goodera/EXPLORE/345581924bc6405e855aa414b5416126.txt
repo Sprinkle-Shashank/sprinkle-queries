@@ -8,18 +8,19 @@ with temp as (
   select 'total' as col
   ),
   tab1 as(
-select projectId, q1_timerange, sum(ba2+ba3+ba4) as total,
-case col
-when 'Training_1' then ba2
-when 'Training_2' then ba3
-when 'Training_3' then ba4
-when 'total' then total
-else 0
-end as number,temp.col as Training
-from profile_60829 
+select p.projectId, p.q1_timerange, sum(p.ba2+p.ba3+p.ba4) as total,p.ba2,p.ba3,p.ba4
+from profile_60829 p
 cross join temp
 where q1_timerange is not null
 group by projectId, q1_timerange,ba2,ba3,ba4,temp.col)
 
-select s.projectId, s.q1_timerange,s.number,s.training from tab1 as s
-group by s.projectId, s.q1_timerange,s.training,s.number
+select s.projectId, s.q1_timerange,s.number,
+case col
+when 'Training_1' then s.ba2
+when 'Training_2' then s.ba3
+when 'Training_3' then s.ba4
+when 'total' then s.total
+else 0,temp.col as training
+end as number, from tab1 as s
+cross join temp
+group by s.projectId, s.q1_timerange,s.training
