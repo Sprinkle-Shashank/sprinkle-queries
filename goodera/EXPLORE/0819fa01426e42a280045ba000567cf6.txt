@@ -1,5 +1,5 @@
 with temp1 AS
-(select m._id AS old_id, m.projectId, m.month_timerange, m.project_code_new, m.amount, r.project_name, r.vertical, r.focus, r.state, r.direct_or_partner, r.project_code, r.entity, vert.name AS vertical2, vert_1.name AS vertical1,
+(select m._id AS old_id, m.projectId, m.month_timerange, m.project_code_new, m.amount, r.project_name, r.vertical, r.focus, r.state, r.direct_or_partner, r.project_code, r.entity, vert.name AS vertical2, vert_1.name AS vertical1, q.name
 
 case when vert.name IS NULL AND vert_1.name IS NOT NULL THEN vert.name 
 when vert_1.name IS NULL AND vert.name IS NOT NULL THEN vert_1.name
@@ -15,12 +15,15 @@ left join ds_mysql_prod_tagelement as vert
   on r.vertical = vert.id
 
 left join ds_mysql_prod_tagelement as vert_1
-  on vert.parent = vert_1.id),
+  on vert.parent = vert_1.id
+
+left join profile_64961 as q
+ on r.state = q.state),
  
 temp2 as
 (select m.*, q1 from temp1 as m, m.vertical as q1)
  
-select m.month_timerange AS fy_timerange, m.project_code_new, SUM(m.amount) AS amount, m.project_name, m.vertical, m.focus, m.state, m.project_code, m.entity, new_2.name AS verticals from temp2 AS m
+select m.month_timerange AS fy_timerange, m.project_code_new, SUM(m.amount) AS amount, m.project_name, m.vertical, m.focus, m.state, m.project_code, m.entity, new_2.name AS verticals, m.name, count(*) from temp2 AS m
 
 left join ds_mysql_prod_tagelement as new_1
   on m.q1 = new_1.id
@@ -28,6 +31,6 @@ left join ds_mysql_prod_tagelement as new_1
 left join ds_mysql_prod_tagelement as new_2
   on new_1.parent = new_2.id
 
-group by m.month_timerange, m.project_code_new, m.project_name, m.vertical, m.focus, m.state, m.project_code, m.entity, new_2.name
+group by m.month_timerange, m.project_code_new, m.project_name, m.vertical, m.focus, m.state, m.project_code, m.entity, new_2.name, m.name
 
 order by m.project_code_new asc
