@@ -22,9 +22,10 @@ temp2 as
 concat(ben_name, concat('(',concat(designation, ')'))) AS beneficiary_name, 'Link' AS link from temp1 AS p, p.pic photo),
 
 temp3 as
-(select p.*, q1 from temp2 as p, p.vertical as q1)
+(select p.*, q1 from temp2 as p, p.vertical as q1),
 
-select p._id, p.projectId, p.ben_name, p.doc, p.story, p.fy_timerange, p.title, p.designation, p.photo, p.location, p.project_code, p.project_code_new, focus.name AS focus, state.name AS state, direct_or_partner.name AS direct_or_partner, entity.name AS entity, /*new_2.name AS verticals,*/ p.beneficiary_name, p.link, 
+temp4 as
+(select p._id, p.projectId, p.ben_name, p.doc, p.story, p.fy_timerange, p.title, p.designation, p.photo, p.location, p.project_code, p.project_code_new, focus.name AS focus, state.name AS state, direct_or_partner.name AS direct_or_partner, entity.name AS entity, /*new_2.name AS verticals,*/ p.beneficiary_name, p.link, 
 
 case when vert.name IS NULL AND vert_1.name IS NOT NULL THEN vert.name 
 when vert_1.name IS NULL AND vert.name IS NOT NULL THEN vert_1.name
@@ -49,7 +50,7 @@ left join ds_mysql_prod_tagelement as entity
   on p.entity = entity.id
 
 left join ds_mysql_prod_tagelement as direct_or_partner
-  on p.direct_or_partner = direct_or_partner.id
+  on p.direct_or_partner = direct_or_partner.id)
   
 /*left join ds_mysql_prod_tagelement as new_1
   on p.q1 = new_1.id
@@ -57,8 +58,8 @@ left join ds_mysql_prod_tagelement as direct_or_partner
 left join ds_mysql_prod_tagelement as new_2
   on new_1.parent = new_2.id*/
  
-
-UNION ALL 
+select * from temp4
+UNION ALL
 select p._id, p.projectId, p.ben_name, p.doc, p.story, p.fy_timerange, p.title, p.designation, p.photo, p.location, p.project_code, p.project_code_new, focus.name AS focus, state.name AS state, direct_or_partner.name AS direct_or_partner, entity.name AS entity, p.beneficiary_name, p.link, p.vertical
 from temp2 AS p
 
