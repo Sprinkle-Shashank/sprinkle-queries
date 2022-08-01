@@ -1,5 +1,4 @@
-select * from profile_55194
-/*with table1 AS 
+with table1 AS 
 (SELECT m.projectid, m._id, m.month_timerange AS fy_timerange, m.project_code_new, m.amount, r.project_name, r.vertical, r.focus, r.entity /*, vert.name AS vertical2, vert_1.name AS vertical1,
 
 case when vert.name IS NULL AND vert_1.name IS NOT NULL THEN vert.name 
@@ -24,13 +23,16 @@ left join ds_mysql_prod_tagelement as entity
   
 table2 as 
 --( select p.*, q1 from table1 as p, p.vertical as q1)
-(select p.projectid, p._id, p.fy_timerange, p.project_code_new, p.amount, p.project_name, p.vertical, p.entity, focus.name AS focus from table1 AS p
+(select p.projectid, p._id, p.fy_timerange, p.project_code_new, p.amount, p.project_name, p.vertical, entity.name AS entity, focus.name AS focus from table1 AS p
  
  left join ds_mysql_prod_tagelement as focus
-  on p.focus = focus.id),
+  on p.focus = focus.id
+
+left join ds_mysql_prod_tagelement as entity
+  on p.entity = entity.id),
   
 table3 as
-(select p.projectid, p._id, p.fy_timerange, p.project_code_new, p.amount, p.project_name, p.vertical, p.focus, vertical_new from table2 AS p, p.vertical vertical_new)
+(select p.projectid, p._id, p.fy_timerange, p.project_code_new, p.amount, p.project_name, p.vertical, p.focus, p.entity, vertical_new from table2 AS p, p.vertical vertical_new)
  
 /*select p.*, new_2.name AS verticals From table2
 AS p*/
@@ -41,7 +43,7 @@ case when vert.name IS NULL AND vert1.name IS NOT NULL THEN vert.name
 when vert1.name IS NULL AND vert.name IS NOT NULL THEN vert1.name
 when p.entity IS NULL THEN 'Mylan Pharmaceuticals Private Limited'
 else 'Admin' 
-END AS entity_1
+END AS entity
 
 from table3 AS p
 
@@ -53,4 +55,4 @@ left join ds_mysql_prod_tagelement as vert1
 
 group by fy_timerange, project_code_new, project_name, focus, entity
 
-ORDER BY p.project_code_new ASC*/
+ORDER BY p.project_code_new ASC
