@@ -1,0 +1,17 @@
+with sub1 as(
+  select p1.fy_timerange, t1.name as country, t2.name as region, t3.name as beneficiary, p1.beneficiary_reach, extract(year from cast(p1.fy_timerange.start as date)) as year, 
+cast('Corporate' as VARCHAR) as business_div, p2.brand_text as brand
+
+from profile_64651 p1 
+
+left join ds_mysql_prod_tagelement t1 on t1.id = p1.country
+left join ds_mysql_prod_tagelement t2 on t2.id = t1.parent
+left join ds_mysql_prod_tagelement t3 on t3.id = p1.beneficiary
+ 
+left join profile_81437 p2 on p2.business_division_text = 'Corporate'
+  
+where p1.beneficiary is not null)
+
+select region, business_div, brand, year, sum(beneficiary_reach) as beneficiary_reach
+from sub1
+group by region, business_div, brand, year
