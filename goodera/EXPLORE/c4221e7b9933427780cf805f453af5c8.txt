@@ -1,0 +1,32 @@
+with sub1 as(
+  select source_div_new, country 
+  from profile_60928 p1, p1.source_div source_div_new, p1.region country),
+  
+sub2 as(
+  select t1.name as source_div, nvl(t2.name, t1.name) as business_div, t3.name as country,
+  
+case 
+  when t4.name = 'Community Program' then t5.name 
+  else t4.name
+end as region
+  
+from sub1 s1
+
+left join ds_mysql_prod_tagelement t1 on t1.id = s1.source_div_new
+left join ds_mysql_prod_tagelement t2 on t2.id = t1.parent
+
+left join ds_mysql_prod_tagelement t3 on t3.id = s1.country
+left join ds_mysql_prod_tagelement t4 on t4.id = t3.parent
+left join ds_mysql_prod_tagelement t5 on t5.id = t4.parent),
+
+sub3 as(
+  select business_div, region from sub2
+where region is not null and business_div is not null
+group by business_div, region)
+
+select s3.business_div, s3.region, p2.brand_text as brand
+from sub3 s3
+left join profile_81437 p2 on p2.business_division_text = s3.business_div
+
+where p2.brand_text != 'Heritage Brands'
+order by s3.business_div
