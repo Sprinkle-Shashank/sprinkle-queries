@@ -1,7 +1,18 @@
 with temp1 AS
-(select m._id AS old_id, m.projectId, m.month_timerange, m.project_code_new, m.amount, r.project_name, r.vertical, r.focus, r.state, r.direct_or_partner, r.project_code, r.entity. q.name
+(select m._id AS old_id, m.projectId, m.month_timerange, m.project_code_new, m.amount, r.project_name, r.vertical, r.focus, r.state, r.direct_or_partner, r.project_code, r.entity. q.name, vert.name AS vertical2, vert_1.name AS vertical1, 
+
+case when vert.name IS NULL AND vert_1.name IS NOT NULL THEN vert.name 
+when vert_1.name IS NULL AND vert.name IS NOT NULL THEN vert_1.name
+else 'Admin'
+END AS verticals
  
 from profile_55194 AS m
+ 
+left join ds_mysql_prod_tagelement as vert
+  on m.vertical = vert.id
+
+left join ds_mysql_prod_tagelement as vert_1
+  on vert.parent = vert_1.id
 
 left join profile_62881 AS r 
  on m.project_code_new = r._id
@@ -12,22 +23,10 @@ left join profile_64961 as q
 temp2 as
 (select m.*, q1 from temp1 as m, m.vertical as q1)
  
-select m.month_timerange AS fy_timerange, m.project_code_new, SUM(m.amount) AS amount, m.project_name, m.vertical, m.focus, m.state, m.project_code, m.entity, m.name, count(*), vert.name AS vertical2, vert_1.name AS vertical1, 
+select m.month_timerange AS fy_timerange, m.project_code_new, SUM(m.amount) AS amount, m.project_name, vertical.name AS vertical, focus.name AS focus, state.name AS state, m.project_code, entity.name AS entity, m.name, count(*) from temp2 AS m
 
-case when vert.name IS NULL AND vert_1.name IS NOT NULL THEN vert.name 
-when vert_1.name IS NULL AND vert.name IS NOT NULL THEN vert_1.name
-else 'Admin'
-END AS verticals
-
-from temp2 AS m
-
-left join ds_mysql_prod_tagelement as vert
-  on m.vertical = vert.id
-
-left join ds_mysql_prod_tagelement as vert_1
-  on vert.parent = vert_1.id
   
-/*left join ds_mysql_prod_tagelement as state
+left join ds_mysql_prod_tagelement as state
   on m.state = state.id
   
 left join ds_mysql_prod_tagelement as focus
@@ -37,8 +36,8 @@ left join ds_mysql_prod_tagelement as entity
   on m.entity = entity.id
 
 left join ds_mysql_prod_tagelement as vertical
-  on m.vertical = vertical.id*/
+  on m.vertical = vertical.id
 
-group by m.month_timerange, m.project_code_new, m.project_name, m.vertical, m.focus, m.state, m.project_code, m.entity, new_2.name, m.name
+group by m.month_timerange, m.project_code_new, m.project_name, vertical.name, focus.name, state.name, m.project_code, entity.name, m.name
 
 order by m.project_code_new asc
