@@ -1,21 +1,12 @@
 with sub1 as(
   select p1.fy_timerange, t1.name as country, t2.name as region, t3.name as beneficiary, p1.beneficiary_reach, extract(year from cast(p1.fy_timerange.start as date)) as year,
 
-case 
-	when t3.name = 'Children' and year <  2022 then (p1.beneficiary_reach/60000) * 100
-	when t3.name = 'Children' and year >=  2022 then (p1.beneficiary_reach/65000) * 100
-	when t3.name = 'Youth' then (p1.beneficiary_reach/10000) * 100
-	else NULL
-end as beneficiary_percentage
-
 from profile_64651 p1 
 
 left join ds_mysql_prod_tagelement t1 on t1.id = p1.country
 left join ds_mysql_prod_tagelement t2 on t2.id = t1.parent
 left join ds_mysql_prod_tagelement t3 on t3.id = p1.beneficiary
 
-where p1.beneficiary is not null and t3.name in ('Children', 'Youth'))
+where p1.beneficiary is not null)
 
-select region, beneficiary, year, sum(beneficiary_percentage) as beneficiary_percentage
-from sub1 
-group by region, beneficiary, year
+select * from sub1
