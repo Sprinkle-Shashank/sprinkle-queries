@@ -32,10 +32,19 @@ from table2 AS t2,t2.vertical vertical_new
 
  )
   
-/*select focus, project_code, entity, fy_timerange, vertical_new, count(*) from table3 
+select focus, project_code, entity, fy_timerange,count(*),
+case when vert.name IS NULL AND vert1.name IS NOT NULL THEN vert1.name 
+when vert1.name IS NULL AND vert.name IS NOT NULL THEN vert.name
+end as vertical
 
- 
-group by focus, project_code, entity, fy_timerange*/
+from table3 t3
+left join ds_mysql_prod_tagelement as vert
+  on t3.vertical_new = vert.id
   
- select * from table3 
+left join ds_mysql_prod_tagelement as vert1
+  on vert.parent = vert1.id  
+ 
+group by focus, project_code, entity, fy_timerange,vertical
+  
+ 
 
