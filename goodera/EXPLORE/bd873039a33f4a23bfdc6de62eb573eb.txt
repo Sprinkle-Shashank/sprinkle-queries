@@ -4,13 +4,19 @@ with table1 as
 ),
   
   table2 as
-  ( select p.*, d1 from table1 as p,p.sdg as d1 )
+  ( select p.*, d1 from table1 as p,p.sdg as d1 ),
   
-select p.* , d1 as sdg_values , sta.name as state from table2 as p
+table3 as
+( select p.* , cast(d1 as varchar) as sdg_values , sta.name as state from table2 as p
 
-  
 left join ds_mysql_prod_tagelement ci 
 on p.f1 = ci.id
 
 left join ds_mysql_prod_tagelement sta 
 on ci.parent = sta.id
+ )
+ 
+ select p.projectid , p._id , desc , logo , listagg(sdg_values, ',') as sdg_values  , ngo_names  , listagg(state,',') as state  , proj_duration  from table3
+ 
+ group by  p.projectid , p._id , desc , logo , ngo_names , proj_duration
+
