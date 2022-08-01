@@ -1,1 +1,12 @@
-select source_div_new, country from profile_60928 p1, p1.source_div source_div_new, p1.region country
+with sub1 as(
+  select source_div_new, country 
+  from profile_60928 p1, p1.source_div source_div_new, p1.region country)
+  
+select t1.name as source_div, t2.name as business_div, t3.name as country, t4.name as region
+from sub1 s1
+
+left join ds_mysql_prod_tagelement t1 on t1.id = s1.source_div_new
+left join ds_mysql_prod_tagelement t2 on t2.id = t1.parent
+
+left join ds_mysql_prod_tagelement t3 on t3.id = s1.country
+left join ds_mysql_prod_tagelement t4 on t4.id = t3.parent
