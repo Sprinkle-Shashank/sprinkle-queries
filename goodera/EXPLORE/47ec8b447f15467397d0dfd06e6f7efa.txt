@@ -1,9 +1,17 @@
+WITH table1 AS 
+(
+select p.projectid, p.facility_status , facility.name as facility_status_update , case when facility_status_update='Active' then 'Active' else 'Deactive' end as Active_Filter , goodera_facility_name_text from profile_68161 as p
+  
+left join ds_mysql_prod_tagelement facility 
+on p.facility_status = facility.id
+)
+
 select date, date_2 , date_3 , date_4 , date_5 , date_6 , date_7 , date_8, 
 count (date) as d1 , count(date_2) as d2 , count(date_3) as d3 ,
 count(date_4) as d4 , count(date_5) as d5 , count(date_6) as d6 ,
 count(date_7) as d7 , count(date_8) as d8 ,
 DATEPART(YEAR,date_enrollment) as year_new,
-ven.name as vendor1,
+ven.name as vendor1, t21.active_filter,
 nvl2(SUBSTRING(vendor1, 1, POSITION(' (' in vendor1)), SUBSTRING(vendor1, 1, POSITION(' (' in vendor1)), vendor1) as vendor_name, case when vendor_name='' then vendor1 else vendor_name end as vendor,case when vendor_name='' then vendor1 else vendor_name end as vendor,
 case when p.name_subunit is null or p.name_subunit=' ' then 'N/A' else p.name_subunit end  as unit, cou.name as country , fac.name as factory ,
 case when country in ('India', 'Bangladesh', 'Sri Lanka')
@@ -27,8 +35,9 @@ left join ds_mysql_prod_project ven
 on fac.parent = ven.id
 left join ds_mysql_prod_project cou
 on ven.parent = cou.id
-
+left join table1 t21 on 
+fac.name = t21.goodera_facility_name_text
 
 where cou.name <> 'Test Country'  and  projectId like '%%' and ((p.status <> 437659 and p.status <> 437658) or p.status is null)  and cou.name <> 'GAP Inc.'
 
-group by ven.name , vendor ,  cou.name , fac.name, region , unit, year_new ,  p.projectId , p.date, p.date_2 , p.date_3 , p.date_4 , p.date_5 , p.date_6 , p.date_7 , p.date_8
+group by ven.name , vendor ,  cou.name , fac.name, region , unit, year_new ,  p.projectId , p.date, p.date_2 , p.date_3 , p.date_4 , p.date_5 , p.date_6 , p.date_7 , p.date_8, t21.active_filter
