@@ -1,5 +1,5 @@
 with sub1 as (
-select fy_timerange, extract(year from cast (fy_timerange.start as date)) as year, extract(month from cast (fy_timerange.start as date)) as start_month,sum(disbursed) as disbursed, p.name as projectid, t1.name as choose
+select p1.fy_timerange, extract(year from cast (p1.fy_timerange.start as date)) as year, extract(month from cast (p1.fy_timerange.start as date)) as start_month,sum(disbursed) as disbursed, p.name as projectid, t1.name as choose
   
 from profile_79979 p1
 
@@ -10,6 +10,6 @@ left join profile_41363 p2 on p2._id = p1.project_name
 left join ds_mysql_prod_tagelement t1 on t1.id = p2.project_type  
   
 where disbursed is not NULL
-group by date_disbursal,p.name, t1.name)
+group by p1.fy_timerange,p.name, t1.name)
 
 select fy_timerange,projectid,case when start_month<4 then year-1 else year end as fy_year,choose,disbursed,('FY('||fy_year-2000||'-'||fy_year+1-2000||')') as fy from sub1 s1
