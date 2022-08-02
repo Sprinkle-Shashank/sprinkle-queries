@@ -11,13 +11,18 @@ sub2 as(
   
 sub3 as(
   select s2.*, country_unwind, source_div_unwind
-  from sub2 s2, s2.region country_unwind, s2.source_div source_div_unwind)
+  from sub2 s2, s2.region country_unwind, s2.source_div source_div_unwind),
   
-select s3.id, s3.year, t1.name as country, t2.name as region, t3.name as source_div, nvl(t4.name, t3.name) as business_div, s3.num_females
+sub4 as(
+  select s3.id, s3.year, t1.name as country, t2.name as region, t3.name as source_div, nvl(t4.name, t3.name) as business_div, s3.num_females
 from sub3 s3
 
 left join ds_mysql_prod_tagelement t1 on t1.id = s3.country_unwind
 left join ds_mysql_prod_tagelement t2 on t2.id = t1.parent
 
 left join ds_mysql_prod_tagelement t3 on t3.id = s3.source_div_unwind
-left join ds_mysql_prod_tagelement t4 on t4.id = t3.parent
+left join ds_mysql_prod_tagelement t4 on t4.id = t3.parent)
+
+select s4.id, s4.year, s4.region, s4.business_div, p3.brand_text as brand, s4.num_females
+from sub4 s4
+left join profile_81437 p3 on p3.business_division_text = s4.business_div
