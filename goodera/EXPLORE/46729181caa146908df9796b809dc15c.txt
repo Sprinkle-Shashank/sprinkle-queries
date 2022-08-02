@@ -32,18 +32,18 @@ left join ds_mysql_prod_tagelement as entity
   on p.entity = entity.id),
   
 table3 as
-(select p.projectid, p._id, p.fy_timerange, p.project_code_new, p.amount, p.project_name, p.vertical, p.focus, p.entity, vertical_new from table2 AS p, p.vertical vertical_new)
+(select p.projectid, p._id, p.fy_timerange, p.project_code_new, p.amount, p.project_name, p.vertical, p.focus, p.entity, vertical_new from table2 AS p, p.vertical vertical_new),
  
 /*select p.*, new_2.name AS verticals From table2
 AS p*/
 
-select fy_timerange, project_code_new, project_name, focus, SUM(p.amount) AS amount, vertical_new AS vertical,
+table4 as
+(select fy_timerange, project_code_new, project_name, focus, amount,
 
 case when vert.name IS NULL AND vert1.name IS NOT NULL THEN vert.name 
 when vert1.name IS NULL AND vert.name IS NOT NULL THEN vert1.name
-when p.entity IS NULL THEN 'Mylan Pharmaceuticals Private Limited'
 else 'Admin' 
-END AS entity
+END AS vertical
 
 from table3 AS p
 
@@ -51,8 +51,15 @@ left join ds_mysql_prod_tagelement as vert
   on p.vertical_new = vert.id
   
 left join ds_mysql_prod_tagelement as vert1
-  on vert.parent = vert1.id  
+  on vert.parent = vert1.id)
+  
+select fy_timerange, project_code_new, project_name, focus, SUM(p.amount) AS amount, p.vertical,
 
-group by fy_timerange, project_code_new, project_name, focus, entity, vert.name, vert1.name, p.vertical_new
+case when p.entity IS NULL THEN 'Mylan Pharmaceuticals Private Limited'
+end as entity
+
+from table4 as p
+
+group by fy_timerange, project_code_new, project_name, focus, entity,  p.vertical
 
 ORDER BY p.project_code_new ASC
