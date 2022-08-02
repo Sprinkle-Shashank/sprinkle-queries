@@ -1,22 +1,24 @@
 with sub1 as (
-select p.name as projectId, sched7, fy_timerange, extract(year from cast(fy_timerange.start as date)) as start_year, extract(month from cast(fy_timerange.start as date)) as start_month, sum(budget_approved) as budget_approved, t1.name as choose 
+select p.name as projectId, sched7, focus_area, fy_timerange, extract(year from cast(fy_timerange.start as date)) as start_year, extract(month from cast(fy_timerange.start as date)) as start_month, sum(budget_approved) as budget_approved, t1.name as choose 
 from profile_41363
   
 left join ds_mysql_prod_project p
 on p.id=projectid
 left join ds_mysql_prod_tagelement t1 on t1.id = project_type
-group by p.name, sched7, fy_timerange, t1.name),
+group by p.name, sched7, fy_timerange, t1.name, focus_area),
 
 sub2 as (
-select projectId, sched7_1, fy_timerange,budget_approved, choose,
+select projectId, sched7_1, fy_timerange,budget_approved, choose, focus_area_unwind,
 case 
   	when start_year < 4 then ('FY(' || start_year-1-2000 || '-' || start_year-2000 || ')')
 	else ('FY(' || start_year-2000 || '-' || start_year+1-2000 || ')')
 end as fy 
-from sub1 a, a.sched7 sched7_1),
+from sub1 a, a.sched7 sched7_1, a.focus_area focus_area_unwind),
 
 sub3 as (
-select projectId, t.name as sched7, fy_timerange,budget_approved,fy, choose from sub2
+select projectId, t.name as sched7, t2.name as focus_area, fy_timerange,budget_approved,fy, choose 
+from sub2
 left join ds_mysql_prod_tagelement t
-on t.id=sched7_1)
+on t.id=sched7_1
+left join ds_mysql_prod_tagelement t2 on t2.id = focus_area_unwind)
 select * from sub3 as s3
