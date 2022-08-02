@@ -2,25 +2,20 @@ with table1 as
 ( 
   select p.* , f1 from profile_81523 as p, p.location as f1
 ),
-  
-  table2 as
-  ( select p.*, d1 from table1 as p,p.sdg as d1 ),
-  
-table3 as
-( select p.* , cast(d1 as varchar) as sdg_values , sta.name as state from table2 as p
 
+  table2 as
+  ( select p.*, d1 , d2 from table1 as p,p.sdg_icon as d1, p.location as d2 ),
+  
+ table3 as
+ (select p.projectid , logo , desci , cast(d1 as varchar) as sdg_values  ,  sta.name as state  , proj_duration , proj_image , fy_timerange from table2 as p
+  
 left join ds_mysql_prod_tagelement ci 
-on p.f1 = ci.id
+on p.d2 = ci.id
 
 left join ds_mysql_prod_tagelement sta 
 on ci.parent = sta.id
- ),
- 
- table4 as
- (
- select p.projectid , p._id , listagg(distinct sdg_values, ',') as sdg_values  ,  listagg(distinct state, ',') state  , proj_duration , desci as description , logo , ngo_names from table3 as p
- 
- group by  p.projectid , p._id , proj_duration , desci , logo  , ngo_names
-)
-
-select * from table4
+  )
+  
+  select p.projectid , logo , desci , listagg(distinct sdg_values,',') as  sdg_values, listagg(distinct state,',') as state , proj_duration , proj_image , fy_timerange from table3 as p
+  
+  group by p.projectid ,  logo , desci , proj_duration , proj_image , fy_timerange
