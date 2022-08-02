@@ -29,7 +29,7 @@ sub3 as(
   select s2.*, country_unwind, source_div_unwind
 from sub2 s2, s2.region country_unwind, s2.source_div source_div_unwind)
 
-select s3.id, s3.project_name, s3.program_type, s3.fy_timerange, s3.num_females, s3.batch_status, t1.name as country,
+select s3.id, s3.project_name, s3.program_type, s3.fy_timerange, s3.num_females, s3.batch_status, t1.name as country, extract(year from cast(s3.fy_timerange.start as date)) as year, nvl(t5.name, t4.name) as business_div,
 
 case 
 	when t2.name = 'Community Program' then t3.name
@@ -41,3 +41,6 @@ from sub3 s3
 left join ds_mysql_prod_tagelement t1 on t1.id = s3.country_unwind
 left join ds_mysql_prod_tagelement t2 on t2.id = t1.parent
 left join ds_mysql_prod_tagelement t3 on t3.id = t2.parent
+
+left join ds_mysql_prod_tagelement t4 on t4.id = s3.source_div_unwind
+left join ds_mysql_prod_tagelement t5 on t5.id = t4.parent
