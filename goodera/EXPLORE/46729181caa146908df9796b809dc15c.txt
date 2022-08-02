@@ -1,5 +1,5 @@
 with table1 AS 
-(SELECT m.projectid, m._id, m.month_timerange AS fy_timerange, m.project_code_new, m.amount, r.project_name, r.vertical, r.focus, entity.name AS entity /*, vert.name AS vertical2, vert_1.name AS vertical1,
+(SELECT m.projectid, m._id, m.month_timerange AS fy_timerange, m.project_code_new, m.amount, r.project_name, r.vertical, r.focus, r.entity /*, vert.name AS vertical2, vert_1.name AS vertical1,
 
 case when vert.name IS NULL AND vert_1.name IS NOT NULL THEN vert.name 
 when vert_1.name IS NULL AND vert.name IS NOT NULL THEN vert_1.name
@@ -10,10 +10,7 @@ END AS entity*/
 FROM profile_55194 AS m
 
 LEFT JOIN profile_62881 AS r 
- ON m.project_code_new = r._id
-
-left join ds_mysql_prod_tagelement as entity
-  on r.entity = entity.id),
+ ON m.project_code_new = r._id),
 
 /*left join ds_mysql_prod_tagelement as vert
   on r.vertical = vert.id
@@ -33,11 +30,11 @@ end as entity
  
 from table1 AS p
  
- left join ds_mysql_prod_tagelement as focus
+left join ds_mysql_prod_tagelement as focus
   on p.focus = focus.id),
   
 table3 as
-(select p.projectid, p._id, p.fy_timerange, p.project_code_new, p.amount, p.project_name, p.vertical, p.focus, p.entity, vertical_new
+(select p.projectid, p._id, p.fy_timerange, p.project_code_new, p.amount, p.project_name, p.vertical, p.focus, entity, vertical_new
  
 from table2 AS p, p.vertical vertical_new),
  
@@ -64,6 +61,6 @@ select fy_timerange, project_code_new, project_name, focus, SUM(p.amount) AS amo
 
 from table4 as p
 
-group by fy_timerange, project_code_new, project_name, focus, entity,  p.vertical
+group by fy_timerange, project_code_new, project_name, focus, entity,  p.vertical, entity
 
 ORDER BY p.project_code_new ASC
