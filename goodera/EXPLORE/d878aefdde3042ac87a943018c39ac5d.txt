@@ -1,18 +1,18 @@
 with sub1 as (
-select p.name as projectid, date_disbursal as fy_timerange, extract(year from cast (date_disbursal as date)) as year,extract(month from cast (date_disbursal as date)) as start_month,sched7,sum(disbursed) as disbursed, p2.project_type from profile_79979 p1
+select p.name as projectid, p1.fy_timerange, extract(year from cast (p1.fy_timerange as date)) as year,extract(month from cast (p1.fy_timerange as date)) as start_month,focus_area,sum(disbursed) as disbursed, p2.project_type from profile_79979 p1
 left join ds_mysql_prod_project p
 on p.id=projectid
-left join profile_41363 p2 on p2.projectid=p1.projectid  
-group by p.name,date_disbursal,disbursed,sched7, p2.project_type),
+left join profile_41363 p2 on p2._id=p1.project_name  
+group by p.name,p1.fy_timerange,disbursed,focus_area, p2.project_type),
 
 sub2 as (
-select s1.*, case when start_month<4 then year-1 else year end as fy_year,sched from sub1 s1, s1.sched7 sched)
+select s1.*, case when start_month<4 then year-1 else year end as fy_year, focus_area_unwind from sub1 s1, s1.focus_area focus_area_unwind)
 
-select s2.projectid, s2.fy_timerange, t1.name as sched7, s2.disbursed, 
+select s2.projectid, s2.fy_timerange, t1.name as focus_area, s2.disbursed, 
 ('FY('||s2.fy_year-2000||'-'||s2.fy_year+1-2000||')') as fy, t2.name as choose 
 
 from sub2 as s2
 
-left join ds_mysql_prod_tagelement t1 on t1.id=s2.sched
+left join ds_mysql_prod_tagelement t1 on t1.id=s2.focus_area_unwind
 left join ds_mysql_prod_tagelement t2 on t2.id = s2.project_type
 where disbursed is not NULL
