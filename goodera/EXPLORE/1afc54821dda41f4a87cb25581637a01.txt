@@ -1,7 +1,14 @@
+WITH table1 AS 
+(
+select p.projectid, p.facility_status , facility.name as facility_status_update , case when facility_status_update='Active' then 'Active' else 'Deactive' end as Active_Filter , goodera_facility_name_text from profile_68161 as p
+  
+left join ds_mysql_prod_tagelement facility 
+on p.facility_status = facility.id
+)
 with table1 as
 (
   select p1.projectId , p1._id , p1.total_workers , f_y.name as year_new , cou.name as country , 
-nvl2(SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)),ven.name) as vendor_name, case when vendor_name='' then ven.name else vendor_name end as vendor,  fac.name as factory , 
+nvl2(SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)),ven.name) as vendor_name, case when vendor_name='' then ven.name else vendor_name end as vendor,  fac.name as factory , t21.active_filter, 
 case when country in ('India', 'Bangladesh', 'Sri Lanka')
 then 'South Asia'
 when country in ('China')
@@ -21,8 +28,10 @@ left join ds_mysql_prod_project cou
 on ven.parent = cou.id 
 left join ds_mysql_prod_tagelement f_y
 on p1.fy = f_y.id
+left join table1 t21 on 
+fac.name = t21.goodera_facility_name_text
   
-  group by p1.projectId , p1._id , p1.total_workers , f_y.name , ven.name , cou.name , fac.name 
+  group by p1.projectId , p1._id , p1.total_workers , f_y.name , ven.name , cou.name , fac.name , t21.active_filter
  ),
  
  table2 as
@@ -46,7 +55,7 @@ on p1.fy = f_y.id
   where row1 = 1 
    )
    
-   select t2.projectId , t5.status ,t2.total_workers , t2.year_new, t2.country , t2.factory , t2.region , t2.vendor ,t5.unit , t5.status
+   select t2.projectId , t5.status ,t2.total_workers , t2.year_new, t2.country , t2.factory , t2.region , t2.vendor ,t5.unit , t5.status, t2.active_filter
     from table5 t5 
    
 left join table2 t2 
@@ -54,4 +63,4 @@ on t5.projectid = t2.projectid
   
   where  t2.country <> 'Test Country' and t2.country <> 'GAP Inc.' and t2.projectId like '%%'
   
-  group by t2.projectId , t5.status ,t2.total_workers , t2.year_new, t2.country , t2.factory , t2.region , t2.vendor ,t5.unit, t5.status
+  group by t2.projectId , t5.status ,t2.total_workers , t2.year_new, t2.country , t2.factory , t2.region , t2.vendor ,t5.unit, t5.status, t2.active_filter
