@@ -1,4 +1,4 @@
-With AF as (Select p2.name, t3.name as destination, t2.name as source, t1.name as financial_year , t4.name as month, t5.name as client, Sum((equivalent+equivalent_2)/1000) as emission
+With AF as (Select p2.name as projectid, t3.name as destination, t2.name as source, t1.name as financial_year , t4.name as month, t5.name as client, Sum((equivalent+equivalent_2)/1000) as emission
  from profile_48725 p1
 left join ds_mysql_prod_project p2 on p2.id=projectid
 left join ds_mysql_prod_tagelement t1 on t1.id = financial_year
@@ -12,7 +12,7 @@ left join profile_48724 t3 on t3._id=p1.destination
  /*air freight*/
  
  
-RF as (select p2.name , t1.name as financial_year, t4.name as month, t5.name as client, t3.name as destination,  t2.name as source, sum(equivalent) as emission 
+RF as (select p2.name as  projectid , t1.name as financial_year, t4.name as month, t5.name as client, t3.name as destination,  t2.name as source, sum(equivalent) as emission 
 from profile_60035 p1
 left join ds_mysql_prod_project p2 on p2.id=projectid
 left join ds_mysql_prod_tagelement t1 on t1.id = financial_year
@@ -25,4 +25,4 @@ group by p2.name, t1.name, t4.name, t5.name, t3.name, t2.name)
 
 /*road freight*/
 
-Select (AF.emission + RF.emission), as emission,AF.p2.name as projectid from AF,RF 
+Select (AF.emission + RF.emission), as emission, AF.projectid, AF.client, AF.month,AF.source,AF.destination from AF,RF  where AF.projectid=RF.projectid
