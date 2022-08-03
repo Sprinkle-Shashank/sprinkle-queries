@@ -1,19 +1,24 @@
 with table1 as (
 Select  timerange_timerange , SUM(amt_apprvd) as amt_apprvd from profile_56375
-  
   GROUP BY 
    timerange_timerange
 ),
 table2 as (
   Select timerange_timerange  , amt_apprvd as amt_apprvd ,
-  /*,
-  SUM(amt_apprvd)  over ( order by timerange_timerange rows between unbounded PRECEDING and current row) AS new_amt_approved from table1 
-		   	   ORDER BY timerange_timerange asc*/
  lag(amt_apprvd,1) over ( order by timerange_timerange asc ) as new_amt_apprvd from table1
-
+  ),
   
-  )
-   Select timerange_timerange , SUM(amt_apprvd) as amt_approved , SUM(new_amt_apprvd) new_amount_approved
+  table3 as
+  (
+   Select timerange_timerange , SUM(amt_apprvd) as amt_approved , SUM(new_amt_apprvd) as new_amount_approved
    from table2 
    GROUP BY timerange_timerange 
    ORDER BY timerange_timerange asc
+	)
+	
+	select timerange_timerange as fy_timerange , case when amt_approved is null then 0 else amt_approved end as amt_approved, case when new_amount_approved is null then 0 else new_amount_approved end as new_amount_approved from table3
+   
+    /*,
+  SUM(amt_apprvd)  over ( order by timerange_timerange rows between unbounded PRECEDING and current row) AS new_amt_approved from table1 
+		   	   ORDER BY timerange_timerange asc
+			   */
