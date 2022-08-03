@@ -1,16 +1,47 @@
 with sub1 as(
-select projectId, spoc_name, location, project_duration, 
-  case when get_array_length(location) is NULL then array(0)
-  else COALESCE(location,array(0)) end location11,
-  case when get_array_length(project_duration) is NULL then array(0)
-  else COALESCE(project_duration,array(0)) end project_duration11
-  , logo_image, project_descrip, project_name, spoc_email, project_status, fy_timerange, budget_approved, bene_num, spoc_number, name from profile_41363),
+  select p1.projectid, p1.fy_timerange, p1.partner_name, p1.project_name, p1.project_status, p1.logo_image, p1.project_descrip, p1.benef_actual, p1.bene_num, p1.spoc_name, p1.spoc_number, p1.spoc_email, p1.project_type, p1.budget_approved, 
+
+case
+	when IS_ARRAY(p1.location) = false or GET_ARRAY_LENGTH(p1.location) = 0 then ARRAY(p1.location)
+	else p1.location
+end as location_new,
+
+case
+	when IS_ARRAY(p1.sched7) = false or GET_ARRAY_LENGTH(p1.sched7) = 0 then ARRAY(p1.sched7)
+	else p1.sched7
+end as sched7_new,
+
+case
+	when IS_ARRAY(p1.focus_area) = false or GET_ARRAY_LENGTH(p1.focus_area) = 0 then ARRAY(p1.focus_area)
+	else p1.focus_area
+end as focus_area_new,
+
+case
+	when IS_ARRAY(p1.project_duration) = false or GET_ARRAY_LENGTH(p1.project_duration) = 0 then ARRAY(p1.project_duration)
+	else p1.project_duration
+end as project_duration_new
+
+from profile_41363 p1),
+
 sub2 as(
-  select projectId, spoc_name, location1, project_duration1, logo_image, project_descrip, project_name, spoc_email, project_status, fy_timerange, budget_approved, bene_num, spoc_number, name from sub1 s1, s1.location11 location1, s1.project_duration11 project_duration1),
-  sub3 as(
-  select t2.name as projectId, spoc_name, t.name as location, t1.name as project_duration, logo_image, project_descrip, project_name, spoc_email, project_status, fy_timerange, budget_approved, bene_num, spoc_number, a.name from sub2 a
-  left join ds_mysql_prod_tagelement t on t.id=a.location1
-  left join ds_mysql_prod_tagelement t1 on t1.id=a.project_duration1
-  left join ds_mysql_prod_project t2 on t2.id=a.projectId)
-  select projectId, spoc_name, location, name, project_duration, logo_image, project_descrip, project_name, spoc_email, project_status, fy_timerange, budget_approved, bene_num, spoc_number, count(*) from sub3 group by projectId, sched7, spoc_name, location, name, project_duration, logo_image, project_descrip, project_name, spoc_email, project_status, fy_timerange, budget_approved, bene_num, spoc_number
-  --select * from sub1
+  select s1.*, location_unwind, sched7_unwind, focus_area_unwind, project_duration_unwind
+from sub1 s1, s1.location_new location_unwind, s1.sched7_new sched7_unwind, s1.focus_area_new focus_area_unwind, s1.project_duration_new project_duration_unwind)
+
+select p2.name as projectid, s2.fy_timerange, s2.partner_name, s2.project_name, t1.name as project_status, s2.logo_image, s2.project_descrip, s2.benef_actual, s2.bene_num, s2.spoc_name, s2.spoc_number, s2.spoc_email, t2.name as project_type, s2.budget_approved,
+
+listagg(distinct t3.name, ', ') as location,
+listagg(distinct t4.name, ', ') as sched7,
+listagg(distinct t5.name, ', ') as focus_area,
+listagg(distinct t6.name, ', ') as project_duration
+
+from sub2 s2
+
+left join ds_mysql_prod_project p2 on p2.id = s2.projectid 
+left join ds_mysql_prod_tagelement t1 on t1.id = s2.project_status
+left join ds_mysql_prod_tagelement t2 on t2.id = s2.project_type
+left join ds_mysql_prod_tagelement t3 on t3.id = location_unwind
+left join ds_mysql_prod_tagelement t4 on t4.id = sched7_unwind
+left join ds_mysql_prod_tagelement t5 on t5.id = focus_area_unwind
+left join ds_mysql_prod_tagelement t6 on t6.id = project_duration_unwind
+
+group by p2.name, s2.fy_timerange, s2.partner_name, s2.project_name, t1.name, s2.logo_image, s2.project_descrip, s2.benef_actual, s2.bene_num, s2.spoc_name, s2.spoc_number, s2.spoc_email, t2.name, s2.budget_approved
