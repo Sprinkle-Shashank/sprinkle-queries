@@ -26,6 +26,7 @@ table2 as
 (select p.projectid, p._id, p.fy_timerange, p.project_code_new, p.amount, p.project_name, p.vertical, focus.name AS focus, 
  
  case when p.entity IS NULL THEN 'Mylan Pharmaceuticals Private Limited'
+ else p.entity
  end as entity
  
 from table1 AS p
@@ -56,11 +57,17 @@ left join ds_mysql_prod_tagelement as vert
   
 left join ds_mysql_prod_tagelement as vert1
   on vert.parent = vert1.id)
- select * from table3
-/*select fy_timerange, project_code_new, project_name, focus, SUM(p.amount) AS amount, p.vertical, entity
+  
+select fy_timerange, project_code_new, project_name, focus, SUM(p.amount) AS amount, p.vertical, entity
 
 from table4 as p
 
 group by fy_timerange, project_code_new, project_name, focus, entity,  p.vertical, entity
 
-ORDER BY p.project_code_new ASC*/
+UNION ALL  
+select fy_timerange, project_code_new, project_name, focus, SUM(p.amount) AS amount, p.vertical, entity
+from table2
+
+group by fy_timerange, project_code_new, project_name, focus, entity,  p.vertical, entity
+
+ORDER BY p.project_code_new ASC
