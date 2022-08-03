@@ -1,6 +1,6 @@
 with temp1 AS
-(select m.projectId, m.project_name, m.vertical, m.focus, cast(m.start_date as date) as start_date, m.project_code, m.entity, CAST(r.fy_timerange.end as date) as update_date, compl.name as completed, prog.name as progress, 
-concat(start_date,'T00:00:00.000Z') as start1,
+(select m.projectId, m.project_name, m.vertical, m.focus, cast(m.start_date as date) as start_date1, m.project_code, m.entity, CAST(r.fy_timerange.end as date) as update_date, compl.name as completed, prog.name as progress, 
+concat(start_date1,'T00:00:00.000Z') as start1,
 concat(update_date,'T00:00:00.000Z') as end2,
 concat(concat(concat(concat('{"start":"',start1),'","end":"'),end2),'"}') as fy_1,
 vert.name AS vertical2, vert1.name AS vertical1, m.description, month,row_number() over (partition by m.project_code order by m._id desc) as row,
@@ -29,7 +29,7 @@ left join ds_mysql_prod_tagelement as vert1
 temp2 as
 (select m.*, q1 from temp1 as m, m.vertical as q1)
 
-select m.project_name, m.vertical, m.focus, m.start_date, m.project_code, m.entity, m.update_date, m.progress, m.completed, m.fy_1 AS fy_timerange, new_2.name AS verticals, CAST(EXTRACT (MONTH from update_date) AS INT) AS month_1 , EXTRACT(YEAR from update_date) AS year,
+select m.project_name, focus.name AS focus, m.start_date1, m.project_code, entity.name AS entity, m.update_date, m.progress, m.completed, m.fy_1 AS fy_timerange, m.description, new_2.name AS verticals, CAST(EXTRACT (MONTH from update_date) AS INT) AS month_1 , EXTRACT(YEAR from update_date) AS year,
 
 case when month_1 = 1 then 'Jan'
 when month_1 = 2 then 'Feb'
@@ -53,9 +53,14 @@ left join ds_mysql_prod_tagelement as new_1
   
 left join ds_mysql_prod_tagelement as new_2
   on new_1.parent = new_2.id
+  
+left join ds_mysql_prod_tagelement as focus
+  on m.focus = focus.id
 
+left join ds_mysql_prod_tagelement as entity
+  on m.entity = entity.id
 
-/*group by m.project_name, m.projectId, m.vertical, m.focus, m.project_code, m.entity, m.progress, m.completed, m.start_date, m.update_date, m.fy_1, new_2.name*/
+group by m.project_name, m.projectId, m.vertical, m.focus, m.project_code, m.entity, m.progress, m.completed, m.start_date1, m.update_date, m.fy_1, new_2.name
 
 order by m.project_code asc, update_date desc
  
