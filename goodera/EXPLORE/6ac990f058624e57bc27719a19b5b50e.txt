@@ -1,19 +1,64 @@
 
-with table1 as ( select p.projectid , p._id , p.fy_timerange , 'Enrolled' as status from profile_81439 as p),
+with table1 as ( select p.projectid , p._id , p.fy_timerange , bat.name as batch_name , sta.name as state , cen.name as center , 'Enrolled' as status from profile_81439 as p
+
+left join ds_mysql_prod_tagelement bat
+on p.batch = bat.id
+				
+left join profile_81436 p1 
+on p.projectid = p1.projectid
+
+left join ds_mysql_prod_tagelement ci 
+on p1.center_loc = ci.id
+
+left join ds_mysql_prod_tagelement sta 
+on ci.parent = sta.id
+			   
+left join ds_mysql_prod_tagelement cen 
+on p1.center_name = cen.id),
 
 table2 as 
-(  select p.projectid , p._id , p.fy_timerange , 'Certified' as status from profile_81439 as p 
+(  select p.projectid , p._id , p.fy_timerange , 'Certified' as status , p.fy_timerange , bat.name as batch_name , sta.name as state , cen.name as center  from profile_81439 as p 
 
 left join ds_mysql_prod_tagelement cer
 on p.certified = cer.name 
+ 
+left join ds_mysql_prod_tagelement bat
+on p.batch = bat.id
+				
+left join profile_81436 p1 
+on p.projectid = p1.projectid
+
+left join ds_mysql_prod_tagelement ci 
+on p1.center_loc = ci.id
+
+left join ds_mysql_prod_tagelement sta 
+on ci.parent = sta.id
+			   
+left join ds_mysql_prod_tagelement cen 
+on p1.center_name = cen.id
 
 where cer.name ='Yes'),
 
 table3 as 
-(  select p.projectid , p._id , p.fy_timerange , 'Placed' as status from profile_81439 as p 
+(  select p.projectid , p._id , p.fy_timerange , p.fy_timerange , bat.name as batch_name , sta.name as state , cen.name as center ,   'Placed' as status from profile_81439 as p 
 
 left join ds_mysql_prod_tagelement ben
 on p.ben_status = ben.name 
+ 
+left join ds_mysql_prod_tagelement bat
+on p.batch = bat.id
+				
+left join profile_81436 p1 
+on p.projectid = p1.projectid
+
+left join ds_mysql_prod_tagelement ci 
+on p1.center_loc = ci.id
+
+left join ds_mysql_prod_tagelement sta 
+on ci.parent = sta.id
+			   
+left join ds_mysql_prod_tagelement cen 
+on p1.center_name = cen.id
 
 where ben.name ='Placed'),
  
@@ -21,9 +66,10 @@ where ben.name ='Placed'),
 (
 select * from table1
 union all
-  select * from table2 
-  union all 
-  select * from table3 
-  )
+select * from table2 
+union all 
+select * from table3 
+)
   
-  select * from table4
+ 
+select * from table4
