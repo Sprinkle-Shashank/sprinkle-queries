@@ -1,0 +1,36 @@
+SELECT
+THY.fy_timerange, THY.value, 
+KPI.name AS indicator,
+T1.name AS frequency,
+T2.name AS type,
+P1.name AS projectname,
+P2.name AS partner,
+P3.name AS projectcategory,
+P4.name AS vertical
+
+FROM profile_81630 AS THY
+
+LEFT JOIN profile_81628 AS KPI
+ON THY.indicator = KPI._id
+
+LEFT JOIN ds_mysql_prod_tagelement AS T1
+ON KPI.frequency = T1.id
+
+LEFT JOIN ds_mysql_prod_tagelement AS T2
+ON KPI.type = T2.id
+
+LEFT JOIN ds_mysql_prod_project AS P1
+ON THY.projectid = P1.id
+
+LEFT JOIN ds_mysql_prod_project AS P2
+ON P1.parent = P2.id
+
+LEFT JOIN ds_mysql_prod_project AS P3
+ON P2.parent = P3.id
+
+LEFT JOIN ds_mysql_prod_project AS P4
+ON P3.parent = P4.id
+
+WHERE T2.name = 'Primary'
+
+GROUP BY THY.fy_timerange, THY.value, P1.name, KPI.name, T1.name, T2.name, P2.name, P3.name, P4.name
