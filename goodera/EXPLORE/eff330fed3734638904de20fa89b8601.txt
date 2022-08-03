@@ -1,7 +1,7 @@
-Select projectid, pro.name as projectname , fy_timerange, title , photo_1, description__story ,file_upload , 'download' as label , 
+with table1 as
+(Select projectid, pro.name as projectname , fy_timerange, title , photo_1, description__story ,file_upload , 'download' as label , 
 
-INITCAP(ent.name) as entity , 
- proj.name AS projectname  from profile_80415 p
+INITCAP(ent.name) as entity from profile_80415 p
 
 left join ds_mysql_prod_project as pro
   on p.projectid = pro.id
@@ -9,8 +9,12 @@ left join ds_mysql_prod_project as pro
 left join ds_mysql_prod_tagelement ent 
 on p.entity = ent.id
 
-LEFT JOIN ds_mysql_prod_project AS proj
-on p.projectid = proj.id
 
   
-GROUP BY projectid, pro.name , fy_timerange , title , photo_1 , description__story , file_upload , ent.name , proj.name
+GROUP BY projectid, pro.name , fy_timerange , title , photo_1 , description__story , file_upload , ent.name
+ ),
+ 
+ table2 as
+ ( select p.*, from table1 as p, p.photo_1 as f1),
+ 
+ select p.projectid , projectname , fy_timerange , title , description_story , file_upload , label , entity , cast(f1 as varchar) as photo_1
