@@ -1,0 +1,30 @@
+with temp as ( 
+select 'enrolled_in_schools' as c
+  Union all 
+select 'sessions_conducted_for_children' as c
+  Union all 
+select 'number_of_participants' as c 
+  Union all 
+  select 'sessions_conducted_for_families' as c
+  Union all 
+  select 'no_of_par' as c 
+  Union all 
+  select 'attain_legal_documents' as c   )
+  
+  select pro.name as projectid, fy_timerange,
+sum( case c when 'enrolled_in_schools' then p.enrolled_in_schools
+	        when 'sessions_conducted_for_children' then p.sessions_conducted_for_children
+	        when 'number_of_participants' then p.number_of_participants
+	        when 'sessions_conducted_for_families' then p.sessions_conducted_for_families
+	        when 'no_of_par' then p.no_of_par
+	        when 'attain_legal_documents' then p.attain_legal_documents
+	     
+	
+	        else null end ) as val, temp.c as dim from profile_81419 p
+			
+			left join ds_mysql_prod_project pro
+             on p.projectid = pro.id
+			cross join temp
+			
+group by projectid,fy_timerange,temp.c,pro.name			
+			
