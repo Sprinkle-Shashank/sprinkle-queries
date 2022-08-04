@@ -1,4 +1,5 @@
-select m._id AS old_id, progress.name as progress, completed.name as completed, m.project_code, fy_year_timerange , Extract(month from CAST(m.fy_timerange.start AS date)) AS month_1, r._id, r.name, project_name, CAST(vertical AS VARCHAR), focus.name as focus, state, start_date, direct_or_partner.name as direct_or_partner, entity.name as entity,
+with temp1 AS
+(select m._id AS old_id, progress.name as progress, completed.name as completed, m.project_code, fy_year_timerange , Extract(month from CAST(m.fy_timerange.start AS date)) AS month_1, r._id, r.name, project_name, vertical, focus.name as focus, state, EXTRACT(year from start_date) AS start_year, EXTRACT(month from start_date) AS start_month, direct_or_partner.name as direct_or_partner, entity.name as entity,
 
 case when month_1 = 1 then 'Jan'
 when month_1 = 2 then 'Feb'
@@ -36,5 +37,14 @@ left join ds_mysql_prod_tagelement as direct_or_partner
   on r.direct_or_partner = direct_or_partner.id
   
 left join ds_mysql_prod_tagelement as entity
-  on r.entity = entity.id
+  on r.entity = entity.id),
   
+ temp2 as
+(select old_id, progress, completed, project_code, fy_year_timerange, month_1, completed_text.name as completed_text, _id, name, project_name, vertical, focus, state, start_date, direct_or_partner, entity, start_year, start_month, report_year,
+ concat(month_1, '-', completed_text) as month_2
+ from temp1
+ 
+ left join ds_mysql_prod_tagelement as completed_text
+  on completed_text.name = completed)
+  
+  select * from temp2
