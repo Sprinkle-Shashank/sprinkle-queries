@@ -1,0 +1,33 @@
+with temp as ( 
+select 'children_onboarded' as c
+  Union all 
+select 'dropped_off' as c
+  Union all 
+select '3-6 yrs' as c 
+  Union all 
+  select '7-10 yrs' as c
+  Union all 
+  select '11-14 yrs' as c 
+  Union all 
+  select 'male_children' as c 
+  Union all 
+  select 'female_children' as c  )
+  
+  select pro.name as projectid, fy_timerange,
+sum( case c when 'children_onboarded' then p.children_onboarded
+	        when 'dropped_off' then p.dropped_off
+	        when '3-6 yrs' then p.ages_36
+	        when '7-10 yrs' then p.age_710
+	        when '11-14 yrs' then p.ages_1114
+	        when 'male_children' then p.male_children
+	        when 'female_children' then p.female_children
+	       
+	
+	        else null end ) as val, temp.c as dim from profile_81373 p
+			
+			left join ds_mysql_prod_project pro
+             on p.projectid = pro.id
+			cross join temp
+			
+group by projectid,fy_timerange,temp.c,pro.name			
+			
