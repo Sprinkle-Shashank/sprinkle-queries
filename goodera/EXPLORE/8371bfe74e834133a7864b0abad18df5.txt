@@ -1,8 +1,19 @@
-select p.name as projectId, a.fy_timerange,p1.name as beneficiary,count(*)
-from profile_81392 a
-left join ds_mysql_prod_project p on p.id=projectid
+with sub1  as(
+  select b.*,unwind_training_module
+  from profile_81392 b , b.training_modules as unwind_training_module)
 
+
+select p.name as projectId, a.fy_timerange,p1.name as beneficiary,t1.name as bene_dropped,t2.name as training_status,a.training_end_date,
+listagg(distinct t3.name, ', ') as training_modules
+count(*)
+from sub1 a
+
+left join ds_mysql_prod_project p on p.id=projectid
 left join profile_81375 p1 on p1._id= a.beneficiary
 
+left join ds_mysql_prod_tagelement t1 on t1.id = a.bene_dropped
+left join ds_mysql_prod_tagelement t2 on t2.id = a.training_status
+left join ds_mysql_prod_tagelement t3 on t3.id=a.unwind_training_module
 
-group by p.name,a.fy_timerange,p1.name
+
+group by p.name,a.fy_timerange,p1.name,t1.name,t2.name,a.training_end_date,t3.name
