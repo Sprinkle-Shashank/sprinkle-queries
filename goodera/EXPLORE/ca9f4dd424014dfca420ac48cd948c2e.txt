@@ -1,60 +1,30 @@
-with table1 as
-(select p.projectid , p._id , amount , 'Amount Allocated' as category , p.fy_timerange , bat.name as batch_name , sta.name as state , cen.name as center  from profile_81452 as p
+select p.projectId as project,fac.name as factory,ven.name as vendor1,nvl2(SUBSTRING(vendor1, 1, POSITION(' (' in vendor1)), SUBSTRING(vendor1, 1, POSITION(' (' in vendor1)), vendor1) as vendor_name, case when vendor_name='' then vendor1 else vendor_name end as vendor,case when vendor_name='' then vendor1 else vendor_name end as vendor,cou.name as country,case when country in ('India', 'Bangladesh', 'Sri Lanka')
+then 'South Asia'
+when country in ('China')
+then 'North Asia'
+when country in ('Guatemala', 'El Salvador', 'Dominican Republic')
+then 'Americas'
+when country in ('Philippines', 'Cambodia',  'Vietnam',  'Indonesia', 'Myanmar')
+then 'South East Asia'
+end as region,DATEPART(YEAR,p.event_date) as year_new,type.name as event_type,p.description,p.doc,p.pic,p.pic_2,p.caption,p.caption_2,count(p.projectId) as event_count from profile_17524 p
 
 
-left join profile_81439 p2 
-on p.projectid = p2.projectid
+		  
+left join ds_mysql_prod_project fac
+on p.projectid = fac.id
+left join ds_mysql_prod_project ven
+on fac.parent = ven.id
+left join ds_mysql_prod_project cou
+on ven.parent = cou.id
+			
 
-left join ds_mysql_prod_tagelement bat
-on p2.batch = bat.id
+left join ds_mysql_prod_tagelement type
+on p.event_type = type.id
+			
 
-left join profile_81436 p1 
-on p.projectid = p1.projectid
- 
-left join ds_mysql_prod_tagelement ci 
-on p1.center_loc = ci.id
+			
+where (cou.name <> 'Test Country' and cou.name <> 'GAP Inc.')  and project like '%%'
+			
+group by project,fac.name,cou.name,ven.name,vendor,year_new,type.name,p.description,p.doc,p.pic,p.pic_2,p.caption,p.caption_2,region
+order by year_new desc
 
-left join ds_mysql_prod_tagelement sta 
-on ci.parent = sta.id
-
-left join ds_mysql_prod_tagelement cen 
-on p1.center_name = cen.id),
-
-table2 as
-(
-  select p.projectid , p._id , expense as amount , 'Amount Utilization' as category , p.fy_timerange , bat.name as batch_name , sta.name as state , cen.name as center from profile_81454 as p
-  
-left join profile_81439 p2 
-on p.projectid = p2.projectid
-
-left join ds_mysql_prod_tagelement bat
-on p2.batch = bat.id
-
-left join profile_81436 p1 
-on p.projectid = p1.projectid
- 
-left join ds_mysql_prod_tagelement ci 
-on p1.center_loc = ci.id
-
-left join ds_mysql_prod_tagelement sta 
-on ci.parent = sta.id
-
-left join ds_mysql_prod_tagelement cen 
-on p1.center_name = cen.id
-  ),
-  
-  table3 as 
-  (
-	select * from table1 
-	union all
-	select * from table2 
-	),
-
-table4 as
-(
-select p.projectid, p._id ,  amount ,  category , cast(p.fy_timerange.start as date) as date_update , extract(year from date_update) as year ,  batch_name , state , center  from table3 as p
-  )
-  
-  select p.projectid , p._id , amount , category , year , batch_name , state , center from table4 as p
-
--- extract(year from ) as year_update , 
