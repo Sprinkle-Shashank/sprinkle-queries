@@ -1,1 +1,47 @@
-select * from profile_56375
+
+with table1 as (
+Select  timerange_timerange , COUNT( projectid) as projectid , reg.name as region , cat.name as category from profile_56375 as p
+  
+left join ds_mysql_prod_tagelement reg
+on P.region= reg.id
+
+left join ds_mysql_prod_tagelement cat
+on P.category= cat.id
+  
+  GROUP BY 
+   timerange_timerange , cat.name , reg.name 
+),
+
+table2 as (
+  Select timerange_timerange  , projectid as projectid ,
+ lag(projectid,1) over ( order by timerange_timerange asc ,category ) as new_projectid , region ,category  from table1
+  ),
+  
+ /* table3 as
+  (
+   Select timerange_timerange , COUNT( projectid) as projectid , COUNT( new_projectid) as new_projectid
+, category , region   from table2 
+   GROUP BY timerange_timerange , category , region  
+   ORDER BY timerange_timerange asc
+	),
+	*/
+	table3 as
+	(
+	select timerange_timerange, projectid,new_projectid,region,category, 
+	  ((projectid - new_projectid)*100)/new_projectid as differ from table2
+	)
+	/*table4 as
+	(
+	select timerange_timerange as fy_timerange ,
+	SUM(case when projectid is null then 0 else projectid end ) as projectid1,
+	
+	SUM(case when new_projectid is null then 0 else new_projectid end) as new_projectid1 ,
+	
+	
+	  region , category
+	
+	from table3 as p
+	GROUP BY timerange_timerange , category , region 
+	)
+	*/
+	select * from table3
