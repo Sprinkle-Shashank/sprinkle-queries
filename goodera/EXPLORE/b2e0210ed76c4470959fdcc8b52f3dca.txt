@@ -1,1 +1,47 @@
-select * from esgv
+
+with table1 as (
+Select  timerange_timerange , COUNT(DISTINCT eve_city) as eve_city , reg.name as region , cat.name as category from profile_56375 as p
+  
+left join ds_mysql_prod_tagelement reg
+on P.region= reg.id
+
+left join ds_mysql_prod_tagelement cat
+on P.category= cat.id
+  
+  GROUP BY 
+   timerange_timerange , cat.name , reg.name 
+),
+
+table2 as (
+  Select timerange_timerange  , eve_city as eve_city ,
+ lag(eve_city,1) over ( order by timerange_timerange asc ,category ) as new_eve_city , region ,category  from table1
+  ),
+  
+ /* table3 as
+  (
+   Select timerange_timerange , COUNT(DISTINCT eve_city) as eve_city , COUNT(DISTINCT new_eve_city) as new_eve_city
+, category , region   from table2 
+   GROUP BY timerange_timerange , category , region  
+   ORDER BY timerange_timerange asc
+	),
+	*/
+	table3 as
+	(
+	select timerange_timerange, eve_city,new_eve_city,region,category, 
+	  ((eve_city - new_eve_city)*100)/new_eve_city as differ from table2
+	)
+	/*table4 as
+	(
+	select timerange_timerange as fy_timerange ,
+	SUM(case when eve_city is null then 0 else eve_city end ) as eve_city1,
+	
+	SUM(case when new_eve_city is null then 0 else new_eve_city end) as new_eve_city1 ,
+	
+	
+	  region , category
+	
+	from table3 as p
+	GROUP BY timerange_timerange , category , region 
+	)
+	*/
+	select * from table3
