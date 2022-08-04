@@ -5,6 +5,8 @@ with sub1  as(
 
 select p.name as projectId, a.fy_timerange,p1.name as beneficiary,t1.name as bene_dropped,t2.name as training_completed,a.training_end_date,
 listagg(distinct t3.name, ', ') as training_modules,
+t4.name as placement_status,t5.name as retention_still_with_employer,
+t6.name as placement_status_retention,
 count(*)
 from sub1 a
 
@@ -14,6 +16,10 @@ left join profile_81375 p1 on p1._id= a.beneficiary
 left join ds_mysql_prod_tagelement t1 on t1.id = a.bene_dropped
 left join ds_mysql_prod_tagelement t2 on t2.id = a.training_status
 left join ds_mysql_prod_tagelement t3 on t3.id=a.unwind_training_module
+left join ds_mysql_prod_tagelement t4 on t4.id=a.placement_status
+left join ds_mysql_prod_tagelement t5 on t5.id=a.still_with_employer
+left join ds_mysql_prod_tagelement t6 on t6.id=a.placement_status_retention
 
 
-group by p.name,a.fy_timerange,p1.name,t1.name,t2.name,a.training_end_date,t3.name
+
+group by p.name,a.fy_timerange,p1.name,t1.name,t2.name,a.training_end_date,t3.name,t4.name,t5.name,t6.name
