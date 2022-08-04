@@ -1,10 +1,18 @@
-select p2.name as projectid, p1.fy_timerange, sum(p1.amount_utilized) as amount_utilized
-from profile_79977 p1
+with sub1 as(
+  select p1.*,
+case
+	when IS_ARRAY(p1.sched7) = false or GET_ARRAY_LENGTH(p1.sched7) = 0 then ARRAY(p1.sched7)
+	else p1.sched7
+end as sched7_new,
+case
+	when IS_ARRAY(p1.focus_area) = false or GET_ARRAY_LENGTH(p1.focus_area) = 0 then ARRAY(p1.focus_area)
+	else p1.focus_area
+end as focus_area_new
 
-left join ds_mysql_prod_project p2 on p2.id = p1.projectid
-left join profile_41363 p3 on p3._id = p1.project_name
-left join ds_mysql_prod_tagelement t1 on t1.id = p3.project_type
+from profile_41363 p1),
 
-where t1.name = 'Long Term Projects'
+sub2 as(
+  elect s1.*, sched7_unwind, focus_area_unwind
+from sub1 s1, s1.sched7_new sched7_unwind, s1.focus_area_new focus_area_unwind)
 
-group by p2.name, p1.fy_timerange
+select * from sub2
