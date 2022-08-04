@@ -1,15 +1,50 @@
-with base1 as(
-  select projectid, substring(cast(p.start_date as varchar),1,10)||'T00:00:00.000Z'||'|'||substring(cast(current_date as varchar),1,10)||'T00:00:00.000Z' as fy_timerange, extract(year from p.start_date) as fy, 'shg_member_train' as type, shg1 as beneficiaries from profile_58864 p,p.shg_member_train shg1
-union all
-select projectid,substring(cast(p.start_date as varchar),1,10)||'T00:00:00.000Z'||'|'||substring(cast(current_date as varchar),1,10)||'T00:00:00.000Z' as fy_timerange, extract(year from p.start_date) as fy, 'shg_non_member_training' as type, shg2 as beneficiaries from profile_58864 p, p.shg_non_member_training shg2
+WITH sub1 AS (
+  
+  SELECT projectid,
+  substring(CAST(P1.start_date AS varchar),1,10)||'T00:00:00.000Z'||'|'||substring(CAST(CURRENT_DATE AS varchar),1,10)||'T00:00:00.000Z' AS fy_timerange,
+  EXTRACT(YEAR FROM P1.start_date) AS fy,
+  'shg_member_train' AS type,
+  shg1 AS beneficiaries
+  
+  FROM profile_58864 AS P1, 
+  
+  P1.shg_member_train AS shg1
+
+  UNION ALL
+  
+  SELECT projectid,
+  substring(CAST(P1.start_date AS varchar),1,10)||'T00:00:00.000Z'||'|'||substring(CAST(CURRENT_DATE AS varchar),1,10)||'T00:00:00.000Z' AS fy_timerange,
+  EXTRACT(YEAR FROM P1.start_date) AS fy,
+  'shg_non_member_training' AS type,
+  shg2 AS beneficiaries
+  
+  FROM profile_58864 AS P1,
+  
+  p1.shg_non_member_training AS shg2
+  
+  ),
+  
+  sub2 AS (
+	
+	SELECT proj.name AS projectid, sub1.fy_timerange, sub1.fy, sub1.type,
+	CAST(beneficiaries AS varchar) AS beneficiaries,
+	P2.name AS beneficiaries_new,
+	1 AS count
+	
+	FROM sub1
+	
+	LEFT JOIN ds_mysql_prod_project AS proj
+	ON sub1.projectId = proj.id
+	
+	LEFT JOIN profile_58858 AS P2
+	ON P2._id = beneficiaries
+	
+	WHERE beneficiaries IS NOT NULL
+	
+	GROUP BY 1,2,3,4,5,6
+  
   )
   
-  , s2 as (
-  select  proj.name as projectid, p.fy_timeranges, cast(beneficiaries as varchar) as beneficiaries ,fy, type, 1 as count
-	from base1 p
-left join ds_mysql_prod_project proj on p.projectId=proj.id where beneficiaries is not null group by 1,2,3,4,5,6)
-
-Select *, T.name AS beneficiaries_new from s2
-
-LEFT JOIN profile_58858 AS T
-ON T._id = s2.beneficiaries
+  SELECT *
+  
+  FROM sub2
