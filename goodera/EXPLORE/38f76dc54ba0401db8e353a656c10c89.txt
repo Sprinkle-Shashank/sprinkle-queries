@@ -1,5 +1,8 @@
+
+
+
 with table1 as (
-Select  timerange_timerange , SUM(amt_apprvd) as amt_apprvd , reg.name as region , cat.name as category from profile_56375 as p
+Select  timerange_timerange , COUNT(DISTINCT org_name) as org_name , reg.name as region , cat.name as category from profile_56375 as p
   
 left join ds_mysql_prod_tagelement reg
 on P.region= reg.id
@@ -10,31 +13,38 @@ on P.category= cat.id
   GROUP BY 
    timerange_timerange , cat.name , reg.name 
 ),
+
 table2 as (
-  Select timerange_timerange  , amt_apprvd as amt_apprvd ,
- lag(amt_apprvd,1) over ( order by timerange_timerange asc ) as new_amt_apprvd , region , category  from table1
+  Select timerange_timerange  , org_name as org_name ,
+ lag(org_name,1) over ( order by timerange_timerange asc ,category ) as new_org_name , region ,category  from table1
   ),
   
-  table3 as
+ /* table3 as
   (
-   Select timerange_timerange , SUM(amt_apprvd) as amt_approved , SUM(new_amt_apprvd) as new_amount_approved
+   Select timerange_timerange , COUNT(DISTINCT org_name) as org_name , COUNT(DISTINCT new_org_name) as new_org_name
 , category , region   from table2 
    GROUP BY timerange_timerange , category , region  
    ORDER BY timerange_timerange asc
+	),
+	*/
+	table3 as
+	(
+	select timerange_timerange, org_name,new_org_name,region,category, 
+	  ((org_name - new_org_name)*100)/new_org_name as differ from table2
 	)
-	
+	/*table4 as
+	(
 	select timerange_timerange as fy_timerange ,
-	case when amt_approved is null then 0 else amt_approved end as amt_approved,
+	SUM(case when org_name is null then 0 else org_name end ) as org_name1,
 	
-	case when new_amount_approved is null then 0 else new_amount_approved end as new_amount_approved , 
+	SUM(case when new_org_name is null then 0 else new_org_name end) as new_org_name1 ,
 	
 	
-	((amt_approved - new_amount_approved)*100)/new_amount_approved as differ , case when differ is null then 0 else differ end as differ_updated ,  region , category  from table3 as p
-   
-   
-   
-   
-    /*,
-  SUM(amt_apprvd)  over ( order by timerange_timerange rows between unbounded PRECEDING and current row) AS new_amt_approved from table1 
-		   	   ORDER BY timerange_timerange asc
-			   */
+	  region , category
+	
+	from table3 as p
+	GROUP BY timerange_timerange , category , region 
+	)
+	*/
+	select * from table3
+	
