@@ -1,11 +1,32 @@
 with sub1 as(
-  select p.name as projectId, sched7, spoc_name, a.name, spoc_email, remarks, project_status, fy_timerange, budget_approved, spoc_number, count(*) from profile_41363 a
-  left join ds_mysql_prod_project p
-on p.id=projectid
-where p.name in ('Prasanna Trust', 'Kashtakari Panchayat', 'Shishu Mandir', 'SOUL', 'Narayanaamruta Medicare Foundation', 'SGBS Unnati Foundation','Makkala Jagariti', 'Reefwatch Marine Conservation', 'Nirvanavan Foundation', 'Win over cancer', 'Vipasana', 'Selco Foundation', 'CII Foundation+ Disha')
-  group by p.name, sched7, spoc_name, a.name, spoc_email, remarks, project_status, fy_timerange, budget_approved, spoc_number),
-    sub2 as (
-  select projectId, sched7_1, spoc_name, a.name, spoc_email, remarks, project_status, fy_timerange, budget_approved, spoc_number, count from sub1 a, a.sched7 sched7_1)
-  select projectId, t.name as sched7, spoc_name, a.name, spoc_email, remarks, t1.name as project_status, fy_timerange, budget_approved, substring(json_serialize(spoc_number),1,10) as spoc_number, count from sub2 a
-  left join ds_mysql_prod_tagelement t on t.id=sched7_1
-  left join ds_mysql_prod_tagelement t1 on t1.id=project_status
+  select p1.*,
+case
+	when IS_ARRAY(p1.sched7) = false or GET_ARRAY_LENGTH(p1.sched7) = 0 then ARRAY(p1.sched7)
+	else p1.sched7
+end as sched7_new,
+case
+	when IS_ARRAY(p1.focus_area) = false or GET_ARRAY_LENGTH(p1.focus_area) = 0 then ARRAY(p1.focus_area)
+	else p1.focus_area
+end as focus_area_new
+
+from profile_41363 p1),
+
+sub2 as(
+  select s1.*, sched7_unwind, focus_area_unwind
+from sub1 s1, s1.sched7_new sched7_unwind, s1.focus_area_new focus_area_unwind)
+
+select p2.name as projectid, s2.project_name, s2.partner_name, s2.fy_timerange, s2.budget_approved, t1.name as project_status, s2.spoc_name, s2.spoc_number, s2.spoc_email, 
+listagg(distinct t2.name, ', ') as sched7, listagg(distinct t3.name, ', ') as focus_area, t4.name as project_type
+
+from sub2 s2
+
+left join ds_mysql_prod_project p2 on p2.id = s2.projectid
+
+left join ds_mysql_prod_tagelement t1 on t1.id = s2.project_status
+left join ds_mysql_prod_tagelement t2 on t2.id = s2.sched7_unwind
+left join ds_mysql_prod_tagelement t3 on t3.id = s2.focus_area_unwind
+left join ds_mysql_prod_tagelement t4 on t4.id = s2.project_type
+
+where t4.name = 'Short Term Projects'
+
+group by p2.name, s2.project_name, s2.partner_name, s2.fy_timerange, s2.budget_approved, t1.name, s2.spoc_name, s2.spoc_number, s2.spoc_email, t4.name
