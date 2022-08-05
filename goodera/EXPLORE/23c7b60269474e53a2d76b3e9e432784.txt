@@ -1,33 +1,18 @@
-with item as 
-(
-select 'pre_assessment' as Assessment
-union all
-select 'post_assessment' as Assessment
-),
+select p2.name as projectId, p3.name as partner, p1.end_date, p1.name, t5.name as clinic_type, p1.fy_timerange,  t4.name as plant, t2.name as city, t3.name as state, count(*),
 
-t1 as 
-(select tag1.name as projectId, p1.fy_timerange,p2.name as beneficiary, tag2.name as location, tag3.name as batch,
-avg(case Assessment
-when 'pre_assessment' then p1.pre_assessment
-when 'post_assessment' then p1.post_assessment
-else null
-end) as Val, item.assessment as item
-from profile_61656 p1
-left join ds_mysql_prod_project tag1
-on p1.projectId = tag1.id
-left join profile_61651 p2
-on p1.beneficiary = p2._id
-left join ds_mysql_prod_tagelement tag2
-on p2.location = tag2.id
-left join ds_mysql_prod_tagelement tag3
-on p2.batch = tag3.id
-cross join item 
-group by tag1.name , p1.fy_timerange, p2.name , tag2.name, tag3.name , item
-)
+case 
+	when end_date is null then 'active' 
+	else 'inactive'
+end as clinic_status
 
-select * from t1
+from profile_73658 p1
+left join ds_mysql_prod_project p2 on p2.id = p1.projectid
+left join ds_mysql_prod_tagelement t1 on t1.id=p1.location
+left join ds_mysql_prod_tagelement t2 on t2.id = t1.parent
+left join ds_mysql_prod_tagelement t3 on t3.id = t2.parent
+left join ds_mysql_prod_project p3 on p3.id= p2.parent
+left join ds_mysql_prod_tagelement t4 on t4.id = p1.plant
+left join ds_mysql_prod_tagelement t5 on t5.id = p1.clinic_type
+where p1.projectid like '%%' 
 
-
-
-  
-
+group by p2.name, p3.name, p1.clinic_type, p1.fy_timerange, t4.name,t5.name, t3.name,t2.name, p1.end_date, p1.name
