@@ -1,57 +1,7 @@
-with sub1 as(
-  select r1.*,
-  case
-  		when extract(year from cast(r1.end_date as date)) > extract(year from cast(r1.start_date as date))
-		then r1.participation_date
-		else r1.start_date
-  end as start_date_new
-  from rb_volhours r1),
-  
-sub2 as(
-  select cast(s1.event_id as varchar) as id, t1.name as focus_area, p3.name as country, p3.map_code, s1.participation_date,
-(cast(s1.start_date_new as date)||'|'||cast(s1.start_date_new as date)) as fy_timerange,
-s1.vol_hours, s1.vol_hours*p4.vol_conversion_factor as volunteering_cost,
-extract(year from cast(s1.start_date_new as date)) as year_check,
-('FY'||' '||extract(year from cast(s1.start_date_new as date))) as x_axis2, 
-cast('Volunteering' as varchar) as x_axis,
-cast('Reckitt Global' as varchar) as prod_brand, s1.opportunityType,
-	case
-  		when(year_check = extract(year from current_date)) then 'Current year'
-  		when(year_check = extract(year from current_date)-1) then 'Previous year'
-  	else 'Not Applicable'
-  	end as year_status
-from sub1 s1
-left join profile_78929 p2 on p2.vol_focus_area_full = s1.focus_area
-left join ds_mysql_prod_tagelement t1 on t1.id = p2.focus_area
-left join profile_78788 p3 on p3.vol_country = s1.country
-left join profile_78933 p4 on p4.name = extract(year from cast(s1.start_date_new as date))
-where year_check > 2017 and year_check < 2026),
-
--- Volunteering Hours xx--
-
-sub3 as(
-  select r2.id, t2.name as focus_area, p6.name as country, p6.map_code, cast('LOG' as varchar) as opportunityType,
-cast(r2.start_date as date) as participation_date,
-(cast(r2.start_date as date)||'|'||cast(r2.start_date as date)) as fy_timerange,
-r2.hours as vol_hours, r2.hours*p7.vol_conversion_factor as volunteering_cost,
-extract(year from cast(r2.start_date as date)) as year_check,
-('FY'||' '||extract(year from cast(r2.start_date as date))) as x_axis2, 
-cast('Volunteering' as varchar) as x_axis,
-cast('Reckitt Global' as varchar) as prod_brand,
-	case
-  		when(year_check = extract(year from current_date)) then 'Current year'
-  		when(year_check = extract(year from current_date)-1) then 'Previous year'
-  	else 'Not Applicable'
-  	end as year_status
-from rb_loghours r2
-left join profile_78929 p5 on UPPER(p5.vol_focus_area_full) = UPPER(r2.focus_area)
-left join ds_mysql_prod_tagelement t2 on t2.id = p5.focus_area
-left join profile_78788 p6 on p6.vol_country = r2.country
-left join profile_78933 p7 on p7.name = extract(year from cast(r2.start_date as date))
-where year_check > 2017 and year_check < 2026)
-
--- Log Hours xx--
-
-select id, fy_timerange, participation_date, focus_area, country, map_code, prod_brand, year_check, year_status, x_axis, x_axis2, vol_hours, volunteering_cost, opportunityType from sub2
-union all
-select id, fy_timerange, participation_date, focus_area, country, map_code, prod_brand, year_check, year_status, x_axis, x_axis2, vol_hours, volunteering_cost, opportunityType from sub3
+select p2.name as projectid, p1.name, p1.fy_timerange, t1.name as document_type, p1.doc, 
+(extract(year from cast(p1.fy_timerange.start as date)) || '-' || extract(year from cast(p1.fy_timerange.end as date)) as year, p3.project_name, p3.partner_name
+ 
+ from profile_41431 p1
+ left join ds_mysql_prod_tagelement t1 on t1.id = p1.document_type
+ left join ds_mysql_prod_project p2 on p2.id = p1.projectid
+ left join profile_41363 p3 on p3.projectid = p1.projectid
