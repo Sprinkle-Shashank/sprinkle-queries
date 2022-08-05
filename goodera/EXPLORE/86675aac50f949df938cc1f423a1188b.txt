@@ -1,12 +1,15 @@
 with sub1 as(
   select p2.name as projectid,  p1._id as id, p1.name, p1.fy_timerange, t1.name as document_type, p1.doc, 
-(extract(year from cast(p1.fy_timerange.start as date)) || '-' || extract(year from cast(p1.fy_timerange.end as date))) as year, nvl(p3.project_name, p2.name) as project_name, nvl(p3.partner_name, p2.name) as partner_name
+(extract(year from cast(p1.fy_timerange.start as date)) || '-' || extract(year from cast(p1.fy_timerange.end as date))) as year, 
+nvl(TRIM(' ' from p3.project_name), p2.name) as project_name, 
+nvl(TRIM(' ' from p3.partner_name), p2.name) as partner_name
  
  from profile_41431 p1
  left join ds_mysql_prod_tagelement t1 on t1.id = p1.document_type
  left join ds_mysql_prod_project p2 on p2.id = p1.projectid
- left join profile_41363 p3 on p3.projectid = p1.projectid
+ left join profile_41363 p3 on p3.projectid = p1.projectid)
  
- group by p2.name, p1.name, p1.fy_timerange, t1.name, p1.doc, p1._id, p3.project_name, p3.partner_name)
+ select projectid, id, name, fy_timerange, document_type, doc, year, project_name, partner_name 
+ from sub1
  
- select distinct TRIM(' ' from partner_name) from sub1
+group by projectid, id, name, fy_timerange, document_type, doc, year, project_name, partner_name
