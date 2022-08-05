@@ -1,4 +1,5 @@
-select p2.name as projectid,  p1._id as id, p1.name, p1.fy_timerange, t1.name as document_type, p1.doc, 
+with sub1 as(
+  select p2.name as projectid,  p1._id as id, p1.name, p1.fy_timerange, t1.name as document_type, p1.doc, 
 (extract(year from cast(p1.fy_timerange.start as date)) || '-' || extract(year from cast(p1.fy_timerange.end as date))) as year, p3.project_name, p3.partner_name
  
  from profile_41431 p1
@@ -6,4 +7,6 @@ select p2.name as projectid,  p1._id as id, p1.name, p1.fy_timerange, t1.name as
  left join ds_mysql_prod_project p2 on p2.id = p1.projectid
  left join profile_41363 p3 on p3.projectid = p1.projectid
  
- group by p2.name, p1.name, p1.fy_timerange, t1.name, p1.doc, p1._id, p3.project_name, p3.partner_name
+ group by p2.name, p1.name, p1.fy_timerange, t1.name, p1.doc, p1._id, p3.project_name, p3.partner_name)
+ 
+ select distinct project_name from sub1
