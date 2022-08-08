@@ -23,12 +23,13 @@ left join ds_mysql_prod_tagelement as state
 where direct_or_partner = 1132991),
  
 temp2 as
- (select _id, projectId, caption, fy_timerange, pic, project_code_new, focus, state, direct_or_partner, entity, vertical, vert.name AS vertical2, vert_1.name AS vertical1,
+ (select _id, projectId, caption, fy_timerange, pic, project_code_new, focus, state, direct_or_partner, entity,/* vertical, */ vert.name AS vertical2, vert1.name AS vertical1,
   
-case when vert.name IS NULL AND vert_1.name IS NOT NULL THEN vert_1.name 
-when vert_1.name IS NULL AND vert.name IS NOT NULL THEN vert.name
-else 'Admin' 
-end AS verticals
+case 
+when vert1.name IS NULL AND vert.name IS NOT NULL THEN vert.name
+when vert1.name IS NULL AND vert.name IS NULL then 'Admin'
+else vert1.name 
+END AS vertical
   
   from temp1 as m
   
@@ -38,7 +39,7 @@ end AS verticals
   left join ds_mysql_prod_tagelement as vert_1
   on vert.parent = vert_1.id)
   
-  select _id, projectId, caption, fy_timerange, pic, project_code_new, focus, state, direct_or_partner, entity, vertical2, vertical1, verticals
+select _id, projectId, caption, fy_timerange, pic, project_code_new, focus, state, direct_or_partner, entity, vertical2, vertical1, vertical
   from temp2 as m
  
   order by fy_timerange desc
