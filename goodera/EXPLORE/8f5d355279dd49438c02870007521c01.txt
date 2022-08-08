@@ -1,6 +1,16 @@
 with table1 as
 ( select p.*, fac.name as factory , case when nvl2(SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), ven.name)='' then ven.name else nvl2(SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), ven.name) end as vendor
- , cou.name as country from profile_16864 as p
+ , cou.name as country, 
+case when country in ('India', 'Bangladesh', 'Sri Lanka')
+then 'South Asia'
+when country in ('China')
+then 'North Asia'
+when country in ('Guatemala', 'El Salvador', 'Dominican Republic')
+then 'Americas'
+when country in ('Philippines', 'Cambodia',  'Vietnam',  'Indonesia', 'Myanmar')
+then 'South East Asia'
+end as region, 
+case when p.name_subunit is null or p.name_subunit=' ' then 'N/A' else p.name_subunit end  as unit from profile_16864 as p
  
 left join ds_mysql_prod_project fac
 on p.projectid = fac.id
