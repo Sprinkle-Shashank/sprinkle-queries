@@ -1,19 +1,19 @@
 with temp1 as
-(select _id as old_id, projectId, project_code_new, amount, month_timerange, project_name, vertical, focus, direct_or_partner
+(select _id as old_id, projectId, project_code_new, amount, month_timerange, project_name, vertical, focus, direct_or_partner, entity
 
  from profile_55194 as m
  
  left join profile_62881 AS r 
  on m.project_code_new = r._id
  
- where m.project_code_new IS NOT NULL AND r.project_name IS NOT NULL),
+ where m.project_code_new IS NOT NULL AND r.project_name IS NOT NULL AND r.direct_or_partner = 1132991),
  
 temp2 as
-(select project_code_new, amount, month_timerange, project_name, vertical, focus, vertical_new
+(select project_code_new, amount, month_timerange, project_name, vertical, focus, direct_or_partner, entity, vertical_new
  from temp1 as m, m.vertical vertical_new),
  
 temp3 as
-(select project_code_new, amount, month_timerange, project_name, focus,
+(select project_code_new, amount, month_timerange, project_name, focus, direct_or_partner, entity,
  
  case 
 when vert1.name IS NULL AND vert.name IS NOT NULL THEN vert.name
@@ -30,4 +30,15 @@ left join ds_mysql_prod_tagelement as vert1
   on vert.parent = vert1.id),
   
  temp4 as
-(select 
+(select project_code_new, SUM(amount) as amount, month_timerange as fy_timerange, project_name, focus, vertical, entity, direct_or_partner
+ from temp3 as m
+ group by project_code_new, fy_timerange, project_name, focus, vertical, entity, direct_or_partner)
+ 
+ select project_code_new, SUM(m.amount) as amount, fy_timerange, project_name, focus, m.vertical, entity, direct_or_partner
+ from temp3 as m
+ 
+ group by project_code_new, fy_timerange, project_name, focus, vertical, entity, direct_or_partner
+ 
+ UNION ALL
+ select project_code_new, amount, fy_timerange, project_name, focus, vertical, entity, direct_or_partner
+ from temp4 as m
