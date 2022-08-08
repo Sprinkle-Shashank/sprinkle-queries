@@ -1,17 +1,31 @@
 with temp1 as
-(select m._id, m.projectId, m.project_code as project_code_new, m.caption, m.date as fy_timerange, m.pic, r.name, r.vertical, r.focus, r.state, r.direct_or_partner, r.entity
+(select m._id, m.projectId, m.project_code as project_code_new, m.caption, m.date as fy_timerange, m.pic, r.vertical, focus.name as focus, state.name as state, direct_or_partner.name as direct_or_partner , entity.name as entity
 from profile_55179 as m
+ 
 left join profile_62881 AS r
  on m.project_code = r.project_code
+ 
+left join ds_mysql_prod_tagelement as focus
+  on m.focus = focus.id
+
+left join ds_mysql_prod_tagelement as direct_or_partner
+  on m.direct_or_partner = direct_or_partner.id
+  
+left join ds_mysql_prod_tagelement as entity
+  on m.entity = entity.id
+
+left join ds_mysql_prod_tagelement as state
+  on m.state = state.id
+ 
 where direct_or_partner = 1132991),
  
 temp2 as
- (select _id, projectId, caption, fy_timerange, pic, project_code_new, name, focus, state, direct_or_partner, entity, vertical,vert.name AS vertical2, vert_1.name AS vertical1,
+ (select _id, projectId, caption, fy_timerange, pic, project_code_new, focus, state, direct_or_partner, entity, vertical,vert.name AS vertical2, vert_1.name AS vertical1,
   
 case when vert.name IS NULL AND vert_1.name IS NOT NULL THEN vert_1.name 
 when vert_1.name IS NULL AND vert.name IS NOT NULL THEN vert.name
 else 'Admin' 
-end AS vertical
+end AS verticals
   
   from temp1 as m
   
@@ -21,7 +35,7 @@ end AS vertical
   left join ds_mysql_prod_tagelement as vert_1
   on vert.parent = vert_1.id)
   
-  select _id, projectId, caption, fy_timerange, pic, project_code_new, name, focus, state, direct_or_partner, entity, vertical2, vertical1, vertical
+  select _id, projectId, caption, fy_timerange, pic, project_code_new, focus, state, direct_or_partner, entity, vertical2, vertical1, verticals
   from temp2 as m
  
   order by fy_timerange desc
