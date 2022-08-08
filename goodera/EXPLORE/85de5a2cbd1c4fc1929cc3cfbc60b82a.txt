@@ -1,8 +1,11 @@
 with table1 as
-( select p.* , bat.name as batch_name from profile_81612 as p
+( select p.* , bat.name as batch_name , act.name as activtiy_name_update from profile_81612 as p
 
 left join ds_mysql_prod_tagelement bat
-on p.batch = bat.id ), 
+on p.batch = bat.id 
+
+left join ds_mysql_prod_tagelement act
+on p.activity_names = act.id ), 
 
 table2 as
 (
@@ -10,9 +13,9 @@ select p.*, cast(d1 as varchar) as d1_updated from table1 as p , p.images as d1
 ),
 
 table3 as
-( select p.projectid , p._id , fy_timerange , batch_name , activity_date , activity_names , guest_name , desci , listagg(distinct d1_updated, ',') as image_updates from table2 as p
+( select p.projectid , p._id , fy_timerange , batch_name , activity_date , activtiy_name_update , guest_name , desci , listagg(distinct d1_updated, ',') as image_updates from table2 as p
  
- group by  p.projectid , p._id , fy_timerange , batch_name , activity_date , activity_names , guest_name , desci 
+ group by  p.projectid , p._id , fy_timerange , batch_name , activity_date , activtiy_name_update , guest_name , desci 
  )
 
 select * from table3
