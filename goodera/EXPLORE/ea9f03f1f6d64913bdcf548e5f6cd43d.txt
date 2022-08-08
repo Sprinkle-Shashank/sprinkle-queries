@@ -17,6 +17,7 @@ with table1 as (Select
 				hours as average_hours,
 				hours as total_hours, 
 				num_males as total_males,
+				p._id as id1,
 				case when end_date_2 is null then num_males else 0 end as total_males_ongoing,
 				num_males_graduated as total_males_graduated,
 				num_males_dropout as total_males_dropout,
@@ -37,17 +38,17 @@ left join profile_54646 table_54646 on
 table_54646.projectId = p.projectId
 ),
 
-table2 as (select sum(total_females_graduation_rate) as total_females_graduation_rate, brand, lg, tab, max(total_females) as total_females, sum(total_females_dropout) as total_females_dropout, sum(total_females_graduated) as total_females_graduated, sum(total_females_completed) as total_females_completed, sum(total_females_ongoing) as total_females_ongoing, sum(total_batches_ongoing) as total_batches_ongoing, sum(total_batches_completed) as total_batches_completed,avg(average_hours) as average_hours, name, sum(total_hours) as total_hours, sum(total_males) as total_males, sum(total_males_ongoing) as total_males_ongoing, sum(total_males_graduated) as total_males_graduated, sum(total_males_dropout) as total_males_dropout, sum(dropout_pregnancy) as dropout_pregnancy, sum(dropout_left) as dropout_left, sum(dropout_interest) as dropout_interest, sum(dropout_pressure) as dropout_pressure, sum(dropout_other) as dropout_other, start_date1,projectId1,select_modules
+table2 as (select sum(total_females_graduation_rate) as total_females_graduation_rate, brand, lg, tab, max(total_females) as total_females, sum(total_females_dropout) as total_females_dropout, sum(total_females_graduated) as total_females_graduated, sum(total_females_completed) as total_females_completed, sum(total_females_ongoing) as total_females_ongoing, sum(total_batches_ongoing) as total_batches_ongoing, sum(total_batches_completed) as total_batches_completed,avg(average_hours) as average_hours, name, sum(total_hours) as total_hours, sum(total_males) as total_males, sum(total_males_ongoing) as total_males_ongoing, sum(total_males_graduated) as total_males_graduated, sum(total_males_dropout) as total_males_dropout, sum(dropout_pregnancy) as dropout_pregnancy, sum(dropout_left) as dropout_left, sum(dropout_interest) as dropout_interest, sum(dropout_pressure) as dropout_pressure, sum(dropout_other) as dropout_other, start_date1,projectId1,select_modules,id1
 		from table1 p
 
 
-group by  brand, lg, tab,name, start_date1,projectId1,select_modules
+group by  brand, lg, tab,name, start_date1,projectId1,select_modules,id1
 
 ),
-table3 as (select brand, lg, tab, sum(total_females_graduation_rate) as total_females_graduation_rate, sum(total_females) as total_females, sum(total_females_dropout) as total_females_dropout, sum(total_females_graduated)as total_females_graduated, sum(total_females_completed) as total_females_completed, sum(total_females_ongoing) as total_females_ongoing, sum(total_batches_ongoing) as total_batches_ongoing, sum(total_batches_completed) as total_batches_completed, sum(average_hours) as average_hours , sum(total_hours) as total_hours, sum(total_males) as total_males, sum(total_males_ongoing) as total_males_ongoing, sum(total_males_graduated) as total_males_graduated, sum(total_males_dropout) as total_males_dropout, sum(dropout_pregnancy) as dropout_pregnancy, sum(dropout_left) as dropout_left, sum(dropout_interest) as dropout_interest, sum(dropout_pressure) as dropout_pressure, sum(dropout_other) as dropout_other, start_date1,projectId1,select_modules
+table3 as (select brand, lg, tab, sum(total_females_graduation_rate) as total_females_graduation_rate, sum(total_females) as total_females, sum(total_females_dropout) as total_females_dropout, sum(total_females_graduated)as total_females_graduated, sum(total_females_completed) as total_females_completed, sum(total_females_ongoing) as total_females_ongoing, sum(total_batches_ongoing) as total_batches_ongoing, sum(total_batches_completed) as total_batches_completed, sum(average_hours) as average_hours , sum(total_hours) as total_hours, sum(total_males) as total_males, sum(total_males_ongoing) as total_males_ongoing, sum(total_males_graduated) as total_males_graduated, sum(total_males_dropout) as total_males_dropout, sum(dropout_pregnancy) as dropout_pregnancy, sum(dropout_left) as dropout_left, sum(dropout_interest) as dropout_interest, sum(dropout_pressure) as dropout_pressure, sum(dropout_other) as dropout_other, start_date1,projectId1,select_modules,id1
 
 			from table2 p
-group by brand, lg, tab, start_date1,projectId1,select_modules
+group by brand, lg, tab, start_date1,projectId1,select_modules,id1
 ),
 
 table4 as (select t3.*,CAST(select_module as int) from table3 t3,t3.select_modules select_module
@@ -56,7 +57,7 @@ table4 as (select t3.*,CAST(select_module as int) from table3 t3,t3.select_modul
 table4_1 as (select 
 			 brand, lg, tab,total_females_graduation_rate, total_females, total_females_dropout, total_females_graduated,total_females_completed,total_females_ongoing,
 			 total_batches_ongoing,total_batches_completed,average_hours, total_males_graduated,total_hours,total_males, total_males_ongoing, total_males_dropout,dropout_pregnancy, dropout_left,dropout_interest,dropout_pressure,dropout_other, start_date1,projectId1,
-			 select_module--, t1.parent as m_parent
+			 select_module,id1--, t1.parent as m_parent
 		from table4 p
 --left join ds_mysql_prod_tagelement t1 on t1.id = p.select_module
 			 
@@ -90,11 +91,11 @@ table5 as(select brand, lg, tab,
 		  min(dropout_pressure) as dropout_pressure,
 		  min(dropout_other) as dropout_other, 
 		  start_date1 as start_date,
-		  projectId1 as projectid
+		  projectId1 as projectid,id1
 		, listagg(distinct select_module, ',') as select_modules--,listagg( distinct m_parent,',') as m_parent
 		  from table4_1 p
 
-group by brand, lg, tab,start_date1,projectId1
+group by brand, lg, tab,start_date1,projectId1,id1
 )
 
 Select cast(total_females_graduation_rate as int4), cast(total_females as int4),cast(total_females_dropout as int4), cast(total_females_graduated as int4), cast(total_females_completed as int4), cast(total_females_ongoing as int4), cast(total_batches_ongoing as int4), cast(total_batches_completed as int4),
