@@ -2,7 +2,7 @@ with sub1 as(
   select p1.*, cast(docs as VARCHAR) from profile_41431 p1, p1.doc docs),
   
 sub2 as(
-  select p2.name as projectid, s1.fy_timerange, t1.name as type, p3.project_name, listagg(distinct s1.docs, ', ') as docs, cast('Click Here' as VARCHAR) as doc_download,
+  select p2.name as projectid, s1.fy_timerange, t1.name as type, p3.project_name, listagg(distinct s1.docs, ', ') as docs, cast('Click Here' as VARCHAR) as doc_download, p3.partner_name, 
 (extract(year from cast(s1.fy_timerange.start as date)) || '-' ||  extract(year from cast(s1.fy_timerange.end as date))) as year,
 split_part(p2.name, ' - ', 1) as project
   
@@ -12,28 +12,28 @@ left join ds_mysql_prod_project p2 on p2.id = s1.projectid
 left join ds_mysql_prod_tagelement t1 on t1.id = s1.document_type
 left join profile_41363 p3 on p3._id = s1.project_name
 
-group by p2.name, s1.fy_timerange, t1.name, s1.file_name, p3.project_name),
+group by p2.name, s1.fy_timerange, t1.name, s1.file_name, p3.project_name, p3.partner_name),
 
 sub3 as(
-  select projectid, fy_timerange, cast('MOU' as VARCHAR) as type, project_name, signed_mou as docs
+  select projectid, fy_timerange, cast('MOU' as VARCHAR) as type, project_name, signed_mou as docs, partner_name
 from profile_41363
 where signed_mou != ' '
   
 union all
   
-select projectid, fy_timerange, cast('Project Proposal' as VARCHAR) as type, project_name, proposal_file as docs
+select projectid, fy_timerange, cast('Project Proposal' as VARCHAR) as type, project_name, proposal_file as docs, partner_name
 from profile_41363
 where proposal_file != ' ' ),
 
 sub4 as(
-  select p4.name as projectid, s3.fy_timerange, s3.type, s3.project_name, s3.docs, cast('Click Here' as VARCHAR) as doc_download,
+  select p4.name as projectid, s3.fy_timerange, s3.type, s3.project_name, s3.docs, cast('Click Here' as VARCHAR) as doc_download, s3.partner_name, 
 (extract(year from cast(s3.fy_timerange.start as date)) || '-' ||  extract(year from cast(s3.fy_timerange.end as date))) as year,
 split_part(p4.name, ' - ', 1) as project
 from sub3 s3
 left join ds_mysql_prod_project p4 on p4.id = s3.projectid)
 
-select projectid, fy_timerange, type, project_name, docs, doc_download, year, project
+select projectid, fy_timerange, type, project_name, partner_name, docs, doc_download, year, project
 from sub2 
 union all
-select projectid, fy_timerange, type, project_name, docs, doc_download, year, project
+select projectid, fy_timerange, type, project_name, partner_name, docs, doc_download, year, project
 from sub4
