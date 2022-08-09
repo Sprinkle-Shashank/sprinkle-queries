@@ -1,0 +1,50 @@
+with table1 as(
+(select project_code, completed, fy_timerange, progress, direct_or_partner, month from(select p.project_code,p.completed,p.fy_timerange,p.progress,month,row_number() over (partition by p.project_code order by p._id desc) as row
+																		 
+from profile_55471 AS p)
+  where row = 1
+ )
+),
+ 
+table2 as (
+ select  m.projectId, m._id , m.project_name, direct_or_partner.name as direct_or_partner, m.vertical, m.focus, cast(m.start_date as date) as start_date1, m.project_code, entity.name as entity,compl.name as completed ,r.fy_timerange,prog.name as progress,r.month, cast(r.fy_timerange.end as date) as update_date,
+ concat(start_date1,'T00:00:00.000Z') as start1,
+concat(update_date,'T00:00:00.000Z') as end2,
+concat(concat(concat(concat('{"start":"',start1),'","end":"'),end2),'"}') as fy_1
+   from profile_62881 as m
+ 
+ LEFT JOIN table1 AS r
+ON m.project_code = r.project_code
+ left join ds_mysql_prod_tagelement as prog
+  on r.progress = prog.id  
+ left join ds_mysql_prod_tagelement as compl
+  on r.completed = compl.id  
+ left join ds_mysql_prod_tagelement as entity
+  on m.entity = entity.id   
+ left join ds_mysql_prod_tagelement as direct_or_partner
+  on m.direct_or_partner = direct_or_partner.id   
+  
+ ),
+ 
+ table3 as (
+select t2.focus, t2.project_code as project_code_new, vertical_new, t2.start_date1, t2.progress, t2.completed, t2.fy_1 as fy_timerange, t2.entity, t2.direct_or_partner    
+from table2 AS t2,t2.vertical vertical_new
+
+ )
+
+select focus, direct_or_partner, project_code_new, fy_timerange, count(*), entity, 
+case when vert1.name IS NULL AND vert.name IS NOT NULL THEN vert.name
+else vert1.name
+end as vertical
+
+from table3 t3
+left join ds_mysql_prod_tagelement as vert
+  on t3.vertical_new = vert.id
+  
+left join ds_mysql_prod_tagelement as vert1
+  on vert.parent = vert1.id  
+ 
+group by focus, project_code_new, entity, fy_timerange,vertical, direct_or_partner
+  
+ 
+
