@@ -1,4 +1,6 @@
-select tag1.name as projectId, p1.date as fy_timerange, p6.project_name, tag2.name as theme_session, tag3.name as type_session, p1.area_name, p1.platform, tag4.name as theme, tag5.name as imp_partner, tag6.name as bu, p3.name as location, sum(p1.no_benf) as no_benf, sum(p1.no_areas) as no_areas, count(*) as no_sessions, sum(p1.no_hrs) as no_seshrs, sum(p1.ntp_bags) as ntp_bags, sum(p1.cl_waste) as area_covered_in_waste_collection, sum(p1.cl_areacleaned) as area_cleaned, sum(p1.cl_areapainted) as area_painted, sum(p1.cl_wastecollect) as cl_waste, sum(p1.wb_bins) as wb_bins, sum(p1.wb_wetwaste) as wb_wetwaste, sum(p1.wb_compost) as wb_compost, sum(p1.no_volunteers) as no_volunteers
+
+with t1 as 
+(select tag1.name as projectId, p1.date as fy_timerange, p6.project_name, tag2.name as theme_session, tag3.name as type_session, p1.area_name, p1.platform, tag4.name as theme, tag5.name as imp_partner, tag6.name as bu, p3.name as location, sum(p1.no_benf) as no_benf, sum(p1.no_areas) as no_areas, count(*) as no_sessions, sum(p1.no_hrs) as no_seshrs, sum(p1.ntp_bags) as ntp_bags, sum(p1.cl_waste) as area_covered_in_waste_collection, sum(p1.cl_areacleaned) as area_cleaned, sum(p1.cl_areapainted) as area_painted, sum(p1.cl_wastecollect) as cl_waste, sum(p1.wb_bins) as wb_bins, sum(p1.wb_wetwaste) as wb_wetwaste, sum(p1.wb_compost) as wb_compost, sum(p1.no_volunteers) as no_volunteers
 from profile_71835 p1
 left join ds_mysql_prod_project p2
 on p2.id = p1.projectId
@@ -22,4 +24,56 @@ left join ds_mysql_prod_tagelement tag5
 on p6.imp_partner = tag5.id 
 left join ds_mysql_prod_tagelement tag6
 on p6.bu = tag6.id
-group by tag1.name, p1.date , p6.project_name, tag2.name, tag3.name, p1.area_name, p1.platform, tag4.name, tag5.name, tag6.name, p3.name 
+group by tag1.name, p1.date , p6.project_name, tag2.name, tag3.name, p1.area_name, p1.platform, tag4.name, tag5.name, tag6.name, p3.name)
+
+item as 
+(
+select 'no_benf' as c
+union all
+select 'no_areas' as c
+union all
+select 'no_sessions' as c
+union all
+select 'no_seshrs' as c
+union all
+select 'ntp_bags' as c
+union all
+select 'area_covered_in_waste_collection' as c
+union all
+select 'area_cleaned' as c
+union all
+select 'area_painted' as c
+union all
+select 'cl_waste' as c
+union all
+select 'wb_bins' as c
+union all
+select 'wb_wetwaste' as c
+union all
+select 'no_volunteers' as c
+union all
+select 'wb_compost' as c
+),
+
+t2 as 
+(select projectId,
+ case c
+ when 'no_benf'  then t1.no_benf
+ when 'no_areas' then t1.no_areas
+ when 'no_sessions' then t1.no_sessions
+ when 'no_seshrs' then t1.no_seshrs
+ when 'ntp_bags' then t1.ntp_bags
+ when 'area_covered_in_waste_collection' then t1.area_covered_in_waste_collection
+ when 'area_cleaned' then t1.area_cleaned
+ when 'area_painted' then t1.area_painted
+ when 'cl_waste' then t1.cl_waste
+ when 'wb_bins' then t1.wb_bins
+ when 'wb_wetwaste' then t1.wb_wetwaste
+ when 'no_volunteers' then t1.no_volunteers
+ when 'wb_compost' the t1.wb_compost
+ else null
+ end as val, item.c as item
+ from t1 cross join item
+ group by projectId, item, no_benf, no_areas, no_sessions, no_seshrs, ntp_bags, area_covered_in_waste_collection, area_cleaned, area_painted, cl_waste, wb_bins, wb_wetwaste, no_volunteers, wb_compost)
+ 
+ select * from t2
