@@ -1,5 +1,11 @@
-with sub1 as (select projectId, name, rtrim(ltrim(json_serialize(photo),'"'),'"') as photo1, fy_timerange from profile_60455 a, a.photo_1 photo)
-select p.name as projectId, a.name, photo1 as photo_1, fy_timerange from sub1 a
+with sub1 as (select projectId, cast(photo as VARCHAR) as photo1, fy_timerange, project_name 
+from profile_60455 a, a.photo_1 photo)
+
+select p.name as projectId, a.name, photo1 as photo_1, fy_timerange, p2.project_name, t1.name as choose 
+from sub1 a
+
 left join ds_mysql_prod_project p
 on p.id=projectid
-where p.name in ('Prasanna Trust','Kashtakari Panchayat','Shishu Mandir','SOUL','Narayanaamruta Medicare Foundation','SGBS Unnati Foundation','Makkala Jagariti','CII Foundation', 'Disha','Reefwatch Marine Conservation','Nirvanavan Foundation','Win over cancer ','Vipasana', 'Selco Foundation')
+
+left join profile_41363 p2 on p2._id = a.project_name
+left join ds_mysql_prod_tagelement t1 on t1.id = p2.project_type
