@@ -1,3 +1,13 @@
-select fy_timerange, projectid, partner_db, zone_db from profile_196
+with sub1 as(
+  select fy_timerange, projectid, partner_db, zone_db from profile_196
 union all
-select fy_timerange, projectid, partner_db, zone_db from profile_36904
+select fy_timerange, projectid, partner_db, zone_db from profile_36904)
+
+select s1.fy_timerange, p3.name as project, s1.partner_db as partner_name, s1.zone_db as zone 
+from sub1 s1
+
+left join ds_mysql_prod_project p1 on p1.id = s1.projectid
+left join ds_mysql_prod_project p2 on p2.id = p1.parent
+left join ds_mysql_prod_project p3 on p3.id = p2.parent
+
+order by s1.partner_db
