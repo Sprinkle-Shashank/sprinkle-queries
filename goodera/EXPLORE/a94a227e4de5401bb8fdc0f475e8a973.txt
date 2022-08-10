@@ -1,3 +1,23 @@
-SELECT * from  profile_29976
-PIVOT
-((cost_yearly) FOR budget_head IN (Admin Cost,Human Resource,NGO Management Cost)) AS PivotTable
+SELECT p.village,t.name as fy,q.name as project_code,t2.name as project_manager,
+       Sum(CASE 
+             WHEN p.budget_head = 'Admin Cost' THEN p.cost_yearly 
+             ELSE 0 
+           END) AS Admin_cost, 
+       Sum(CASE 
+             WHEN p.budget_head = 'Human Resource' THEN p.cost_yearly
+             ELSE 0 
+           END) AS Human_resource,
+		   Sum(CASE 
+             WHEN p.budget_head = 'NGO Management Cost' THEN p.cost_yearly
+             ELSE 0 
+           END) AS NGO_Management_Cost 
+FROM   profile_29976 p
+left join ds_mysql_prod_tagelement t on
+p.fy=t.id
+left join profile_27396 q on
+p.prj_code=q._id
+left join ds_mysql_prod_tagelement t2 on
+q.project_manager=t2.id
+
+GROUP  BY 1, 
+          2,3,4;  
