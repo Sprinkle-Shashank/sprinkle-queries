@@ -1,4 +1,4 @@
-select p.projectid  , p._id ,  p.fy_timerange ,  b_sta.name as beneficiary_status ,  cen.name as center , course.name as course_name_update  from profile_81439 as p
+select p.projectid  , p._id ,  p.fy_timerange ,  b_sta.name as beneficiary_status , course.name as course_name_update , bat.name as batch_name , concat(concat(course_name_update, ' '), cast(batch_name as varchar)) as batch_value , sta.name as state from profile_81439 as p
 
 left join ds_mysql_prod_tagelement b_sta
 on p.ben_status = b_sta.id
@@ -12,6 +12,14 @@ on p2.center_name = cen.id
 left join ds_mysql_prod_tagelement course
 on p2.course_name = course.id
 
+left join ds_mysql_prod_tagelement bat
+on p2.batch = bat.id
+
+left join profile_81436 p3 
+on p2.center = p3._id 
+
+left join ds_mysql_prod_tagelement sta
+on p3.center_loc = sta.id
 
 where beneficiary_status='Placed'
 
