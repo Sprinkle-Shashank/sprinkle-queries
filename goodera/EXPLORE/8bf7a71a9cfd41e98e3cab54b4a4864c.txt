@@ -1,9 +1,12 @@
 with table1 as
-(select p.projectid , p._id , amount , 'Amount Allocated' as category , p.fy_timerange , bat.name as batch_name , sta.name as state , cen.name as center  from profile_81452 as p
+(select p.projectid , p._id , amount , 'Amount Allocated' as category , p.fy_timerange , sta.name as state , cen.name as center ,  course.name as course_name_update , bat.name as batch_name , concat(concat(course_name_update, ' '), cast(batch_name as varchar)) as batch_value from profile_81452 as p
 
 
-left join profile_81439 p2 
+left join profile_81438 p2 
 on p.projectid = p2.projectid
+
+left join ds_mysql_prod_tagelement course
+on p2.course_name = course.id
 
 left join ds_mysql_prod_tagelement bat
 on p2.batch = bat.id
@@ -11,21 +14,27 @@ on p2.batch = bat.id
 left join profile_81436 p1 
 on p.projectid = p1.projectid
  
-left join ds_mysql_prod_tagelement ci 
-on p1.center_loc = ci.id
-
 left join ds_mysql_prod_tagelement sta 
-on ci.parent = sta.id
+on p1.center_loc = sta.id
 
 left join ds_mysql_prod_tagelement cen 
 on p1.center_name = cen.id),
 
+
+table11 as
+( select p.projectid , p._id , state , fy_timerange , center , amount , category , batch_value from table1 as p
+ ),
+ 
+
 table2 as
 (
-  select p.projectid , p._id , expense as amount , 'Amount Utilization' as category , p.fy_timerange , bat.name as batch_name , sta.name as state , cen.name as center from profile_81454 as p
+  select p.projectid , p._id , expense as amount , 'Amount Utilization' as category , p.fy_timerange , sta.name as state , cen.name as center ,  course.name as course_name_update , bat.name as batch_name , concat(concat(course_name_update, ' '), cast(batch_name as varchar)) as batch_value from profile_81454 as p
   
-left join profile_81439 p2 
+left join profile_81438 p2 
 on p.projectid = p2.projectid
+
+left join ds_mysql_prod_tagelement course
+on p2.course_name = course.id
 
 left join ds_mysql_prod_tagelement bat
 on p2.batch = bat.id
@@ -33,21 +42,21 @@ on p2.batch = bat.id
 left join profile_81436 p1 
 on p.projectid = p1.projectid
  
-left join ds_mysql_prod_tagelement ci 
-on p1.center_loc = ci.id
-
 left join ds_mysql_prod_tagelement sta 
-on ci.parent = sta.id
+on p1.center_loc = sta.id
 
 left join ds_mysql_prod_tagelement cen 
-on p1.center_name = cen.id
-  ),
+on p1.center_name = cen.id  ),
   
+  table21 as
+  ( select p.projectid , p._id ,amount , center , category , fy_timerange , state , center , batch_value from table2 as p
+   )
+   
  table3 as 
 (
-	select * from table1 
+	select * from table11 
 	union all
-	select * from table2 
+	select * from table21
 ),
 
 table4 as
