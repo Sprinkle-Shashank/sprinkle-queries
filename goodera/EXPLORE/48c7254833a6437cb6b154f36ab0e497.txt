@@ -1,16 +1,20 @@
-select p.projectid , p._id , income , cen.name as center , sta.name as state , bat.name as batch_name , p.fy_timerange from profile_81439 as p
+select p.projectid  , p._id ,  p.fy_timerange , income , course.name as course_name_update , bat.name as batch_name , concat(concat(course_name_update, ' '), cast(batch_name as varchar)) as batch_value , sta.name as state from profile_81439 as p
+
+left join profile_81438 p2 
+on p.batch = p2._id
+
+left join ds_mysql_prod_tagelement cen
+on p2.center_name = cen.id
+
+left join ds_mysql_prod_tagelement course
+on p2.course_name = course.id
 
 left join ds_mysql_prod_tagelement bat
-on p.batch = bat.id
+on p2.batch = bat.id
 
-left join profile_81436 p1 
-on p.projectid = p1.projectid
+left join profile_81436 p3 
+on p2.center = p3._id 
 
-left join ds_mysql_prod_tagelement ci 
-on p1.center_loc = ci.id
+left join ds_mysql_prod_tagelement sta
+on p3.center_loc = sta.id
 
-left join ds_mysql_prod_tagelement sta 
-on ci.parent = sta.id
-
-left join ds_mysql_prod_tagelement cen 
-on p1.center_name = cen.id
