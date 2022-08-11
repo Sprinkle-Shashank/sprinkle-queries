@@ -24,11 +24,11 @@ with temp1 as
  where r.direct_or_partner = 1132990 AND q.completed = 939857 AND m.ben_type = 939857),
  
  temp2 as
- (select m.projectId, m.indicator, m.schedule_vii, m.focus, m.fy_timerange, m.entity, m.vertical,  m.state, m.name, m.sdgs, vertical_new
+ (select m.projectId, m.indicator, m.schedule_vii, m.focus, m.fy_timerange, m.entity, m.vertical,  m.state, m.name, m.target, m.sdgs, vertical_new, _id
  from temp1 as m, m.vertical vertical_new),
  
  temp3 as
- (select m.projectId, m.indicator, m.schedule_vii, m.focus, m.fy_timerange, m.entity, m.state, m.name, m.sdgs,
+ (select m.projectId, m.indicator, m.schedule_vii, m.focus, m.fy_timerange, m.entity, m.state, m.name, m.sdgs, m.target,
   
    case 
 when vert1.name IS NULL AND vert.name IS NOT NULL THEN vert.name
@@ -44,4 +44,7 @@ left join ds_mysql_prod_tagelement as vert1
   on vert.parent = vert1.id),
   
   temp4 as
- (
+ (select m.projectId, m.indicator, m.schedule_vii, m.focus, m.fy_timerange, m.entity, m.state, m.name, m.sdgs, m.vertical, m._id, SUM(m.target) as beneficiary
+  from temp1 as m
+   where _id NOT IN (select _id from temp2)
+  group by m.projectId, m.indicator, m.schedule_vii, m.focus, m.fy_timerange, m.entity, m.state, m.name, m.sdgs, m.vertical, m._id)
