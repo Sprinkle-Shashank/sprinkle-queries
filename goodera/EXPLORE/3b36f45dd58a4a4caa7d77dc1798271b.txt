@@ -1,5 +1,5 @@
 with temp1 as
-(select m.projectId, m.indicator, m.sdgs, m.schedule_vii, m.project_name, m.ben_type, m.baseline, m.target, m.proj, r._id, r.fy_timerange, r.project_name, r.vertical, r.focus, r.state, r.direct_or_partner, r.project_code, r.start_date, site.name as site, q.completed, q.fy_timerange, complete.name as complete, ben_type.name as ben_type, entity
+(select m.projectId, m.indicator, m.sdgs, m.schedule_vii, m.project_name, m.ben_type, m.baseline, m.target, m.proj, r._id, r.fy_timerange, r.project_name, r.vertical, r.focus, r.state, r.direct_or_partner, r.project_code, r.start_date, site.name as site, q.completed, q.fy_timerange, complete.name as complete, ben_type.name as ben_type, r.entity, l.name
  
  from profile_61044 as m
 
@@ -8,6 +8,9 @@ with temp1 as
  
  left join profile_55471 AS q 
  on r.project_code = q.project_code
+ 
+ left join profile_64961 AS l 
+ on l.state = r.state
  
  left join ds_mysql_prod_tagelement as site
   on r.direct_or_partner = site.id
@@ -21,4 +24,24 @@ with temp1 as
  where r.direct_or_partner = 1132990 AND q.completed = 939857 AND m.ben_type = 939857),
  
  temp2 as
- (select m.projectId, m.indicator, m.schedule_vii, m.focus, m.fy_timerange, m.entity, m.vertical, m.state, m.sdgs
+ (select m.projectId, m.indicator, m.schedule_vii, m.focus, m.fy_timerange, m.entity, m.vertical,  m.state, m.name, m.sdgs, vertical_new
+ from temp1 as m, m.vertical vertical_new),
+ 
+ temp3 as
+ (select m.projectId, m.indicator, m.schedule_vii, m.focus, m.fy_timerange, m.entity, m.state, m.name, m.sdgs,
+  
+   case 
+when vert1.name IS NULL AND vert.name IS NOT NULL THEN vert.name
+else vert1.name 
+END AS vertical
+
+from temp2 AS m
+
+left join ds_mysql_prod_tagelement as vert
+  on m.vertical_new = vert.id
+  
+left join ds_mysql_prod_tagelement as vert1
+  on vert.parent = vert1.id),
+  
+  temp4 as
+ (
