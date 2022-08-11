@@ -1,10 +1,13 @@
 with temp1 as
-(select m._id as old_id, projectId, indicator, sdgs, schedule_vii, proj, project_name, ben_type.name as ben_type, baseline, target, name, r._id, fy_timerange, project_name, vertical, focus, direct_or_partner, project_code, state, partner.name as partner
+(select m._id as old_id, projectId, indicator, sdgs, schedule_vii, proj, project_name, ben_type.name as ben_type, baseline, target, name, r._id as project_code_new, project_name, vertical, focus, direct_or_partner, project_code, state, partner.name as partner, fy_timerange, progress
 
  from profile_61044 as m
  
  left join profile_62881 AS r 
  on m.proj = r._id
+ 
+  left join profile_61046 AS q 
+ on m.old_id = q.indicator
  
  left join ds_mysql_prod_tagelement as partner
   on r.direct_or_partner = partner.id
@@ -13,4 +16,15 @@ with temp1 as
   on m.ben_type = ben_type.id
  
 where m.direct_or_partner = 1132991 AND m.ben_type = 939857),
+
+temp 2 as
+(select old_id, projectId, indicator, sdgs, schedule_vii, proj, project_name, ben_type, baseline, target, name, project_code_new, project_name, vertical, focus, direct_or_partner, project_code, state, partner, fy_timerange, progress, name
+ 
+ from temp1 as m 
+ 
+  left join profile_64961 AS r 
+ on m.state = r.state),
+ 
+temp3 as
+(
  
