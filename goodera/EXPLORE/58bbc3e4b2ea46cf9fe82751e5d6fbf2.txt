@@ -1,24 +1,24 @@
 with temp1 as
-(select m._id, m.indicator as indicator_ref, m.project_code, m.fy_timerange, m.progress, r.description, indicator.name as indicator, r.target
+(select m._id, m.indicator as indicator_ref, m.project_code, m.fy_timerange, m.progress
 
- from profile_61046 as m
+ from profile_61046 as m),
+  
+ temp2 as
+(select m.indicator_ref, m.project_code, m.fy_timerange, m.progress, r.description, indicator.name as indicator, r.target, q.name as project_code_new, q.project_name, q.vertical, focus.name as focus, state.name as state, direct_or_partner.name as direct_or_partner, q.district, entity.name as entity
+ 
+ from temp1 as m
  
  left join profile_61044 AS r
  on m.indicator = r._id
-
- left join ds_mysql_prod_tagelement as indicator
-  on r.indicator = indicator.id),
-  
- temp2 as
-(select m.indicator_ref, m.project_code, m.fy_timerange, m.progress, m.description, m.indicator, m.target, q.name as project_code_new, q.project_name, q.vertical, focus.name as focus, state.name as state, direct_or_partner.name as direct_or_partner, q.district, entity.name as entity
- 
- from temp1 as m
  
  left join profile_62881 AS q
  on m.project_code = q.project_code
  
 -- left join ds_mysql_prod_tagelement as indicator_ref
 -- on m.indicator_ref = indicator_ref.id
+ 
+ left join ds_mysql_prod_tagelement as indicator
+  on r.indicator = indicator.id
  
  left join ds_mysql_prod_tagelement as focus
   on q.focus = focus.id 
