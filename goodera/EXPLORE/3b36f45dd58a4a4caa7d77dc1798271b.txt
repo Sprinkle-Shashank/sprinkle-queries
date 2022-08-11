@@ -1,9 +1,9 @@
-select l.name from profile_64961 as l
-
-/*with temp1 as
-(select projectId.name as projectId, indicator.name as indicator, sdgs.name as sdgs, schedule_vii.name as schedule_vii, m.project_name, m.ben_type, m.baseline, m.target, m.proj, r._id, r.project_name, r.vertical, focus.name as focus, state.name as state, r.direct_or_partner, r.project_code, r.start_date, site.name as site, q.completed, q.fy_timerange, complete.name as complete, ben_type.name as ben_type, entity.name as entity, l.name, int_indi.name as int_indi
+with temp1 as
+(select projectId.name as projectId, indicator.name as indicator, sdgs.name as sdgs, schedule_vii.name as schedule_vii, m.project_name, m.ben_type, m.baseline, m.target, m.proj, r._id, r.project_name, r.vertical, focus.name as focus, state.name as state, r.direct_or_partner, r.project_code, r.start_date, site.name as site, q.completed, q.fy_timerange, complete.name as complete, ben_type.name as ben_type, entity.name as entity, int_indi.name as int_indi
+ --, l.name 
  
  from profile_61044 as m
+ --, m.indicator int_indi
 
  left join profile_62881 AS r 
  on m.proj = r._id
@@ -11,8 +11,8 @@ select l.name from profile_64961 as l
  left join profile_55471 AS q 
  on r.project_code = q.project_code
  
- left join profile_64961 AS l 
- on l.state = r.state
+/*left join profile_64961 AS l 
+ on l.state = r.state*/
  
  left join ds_mysql_prod_tagelement as site
   on r.direct_or_partner = site.id
@@ -50,10 +50,19 @@ select l.name from profile_64961 as l
  where r.direct_or_partner = 1132990 AND q.completed = 939857 AND m.ben_type = 939857 AND m.sdgs IS NOT NULL),
  
  temp2 as
- (select m.projectId, m.indicator, m.schedule_vii, m.focus, m.fy_timerange, m.entity, m.vertical,  m.state, m.name, m.target, m.sdgs, vertical_new, m._id, m.int_indi 
- from temp1 as m, m.vertical vertical_new),
+(select m.projectId, m.indicator, m.schedule_vii, m.focus, m.fy_timerange, m.entity, m.vertical,  m.state, l.name, m.target, m.sdgs, m._id from temp1 as m
+  
+  left join profile_64961 AS l 
+ on m.state = l.state
+ 
+ /*left join ds_mysql_prod_tagelement as int_indi
+  on m.indicator = int_indi.id */),
  
  temp3 as
+ (select m.projectId, m.indicator, m.schedule_vii, m.focus, m.fy_timerange, m.entity, m.vertical,  m.state, m.name, m.target, m.sdgs, vertical_new, m._id, m.int_indi 
+ from temp2 as m, m.vertical vertical_new),
+ 
+ temp4 as
  (select m.projectId, m.indicator, m.schedule_vii, m.focus, m.fy_timerange, m.entity, m.state, m.name, m.sdgs, m.target, m.int_indi,
   
    case 
@@ -61,7 +70,7 @@ when vert1.name IS NULL AND vert.name IS NOT NULL THEN vert.name
 else vert1.name 
 END AS vertical
 
-from temp2 AS m
+from temp3 AS m
 
 left join ds_mysql_prod_tagelement as vert
   on m.vertical_new = vert.id
@@ -69,16 +78,16 @@ left join ds_mysql_prod_tagelement as vert
 left join ds_mysql_prod_tagelement as vert1
   on vert.parent = vert1.id),
   
-  temp4 as
+  temp5 as
  (select m.projectId, m.indicator, m.schedule_vii, m.focus, m.fy_timerange, m.entity, m.state, m.name, m.sdgs, m.vertical, m._id, SUM(m.target) as beneficiary, m.int_indi
-  from temp1 as m
+  from temp2 as m
    where _id NOT IN (select _id from temp2)
   group by m.projectId, m.indicator, m.schedule_vii, m.focus, m.fy_timerange, m.entity, m.state, m.name, m.sdgs, m.vertical, m._id, m.int_indi)
   
   select projectId, indicator, schedule_vii, focus, fy_timerange, entity, SUM(m.target) as beneficiary, vertical, int_indi, state, name, sdgs
-  from temp3 as m
+  from temp4 as m
   group by projectId, indicator, schedule_vii, focus, fy_timerange, entity, vertical, int_indi, state, name, sdgs
   
   UNION ALL
   select projectId, indicator, schedule_vii, focus, fy_timerange, entity, beneficiary, vertical, int_indi, state, name, sdgs
-  from temp4 as m*/
+  from temp5 as m
