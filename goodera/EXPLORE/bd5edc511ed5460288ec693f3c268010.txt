@@ -1,4 +1,4 @@
-select distinct p1.name  , p7.name as ImplementingAgency,  p9.name as ProjectLive, p8.name as intervention_type, p10.name as CoreArea , concat(concat(split_part(p1.start_date,' ',1),' to '), split_part(p1.end_date,' ',1)) as duration
+select distinct p1.name  , p7.name as ImplementingAgency,  p9.name as ProjectLive, p8.name as intervention_type, p10.name as CoreArea , concat(concat(split_part(p1.start_date,' ',1),' to '), split_part(p1.end_date,' ',1)) as duration, (p2.hdfc_cost_monthly+p6.monthly_cost+p4.curr_yr_budget) as 'Amount allocated for the current FY (in INR)'
 from profile_27396 p1
 left join profile_27420 p3 on
 p1._id=p3.project_code 
@@ -9,7 +9,8 @@ p4._id=split_part(p5.project_renew,'[',1)
 left join profile_29974 p2 on
 p5._id=p2.prj_code
 
-
+left join profile_30171 p6 on
+p1._id=p6.prj_code
 left join profile_27395 p7
 on p7._id=p1.ngo_partner
 left join profile_28235 p8
@@ -18,6 +19,7 @@ left join ds_mysql_prod_tagelement p9
 on p9.id=p1.monitoring_live
 left join ds_mysql_prod_tagelement p10
 on p10.id=p1.focus_area
+where p8.name not in('Indirect')
 
 
 /*select distinct p1.name from profile_27396 p1
