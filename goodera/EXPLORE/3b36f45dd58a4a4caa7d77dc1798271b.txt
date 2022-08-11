@@ -1,59 +1,16 @@
-with temp1 AS
-(select m.projectId, m.indicator, m.sdgs, m.schedule_vii, m.project_name, m.ben_type, m.baseline, m.target, m.proj, r._id, r.vertical, r.focus, r.state, r.direct_or_partner, r.project_code, r.start_date, r.entity, site.name AS site_1, q.completed, q.fy_timerange, complete.name AS complete_1, ben_type.name AS ben_type_1, vert.name AS vertical2, vert_1.name AS vertical1, state.name AS state_1, int_indi.name AS indicator_1, l.name, sdgs_1.name AS sdgs_new,
- 
-case when vert.name IS NULL AND vert_1.name IS NOT NULL THEN vert.name 
-when vert_1.name IS NULL AND vert.name IS NOT NULL THEN vert_1.name
-end AS verticals
- 
-from profile_61044 AS m
+with temp1 as
+(select m.projectId, m.indicator, m.sdgs, m.schedule_vii, m.project_name, m.ben_type, m.baseline, m.target, m.proj, r._id, r.fy_timerange, r.project_name, r.vertical, r.focus, r.state, r.direct_or_partner, r.project_code, r.start_date, site.name as site, q.completed, q.fy_timerange, complete.name as complete,
 
-left join profile_62881 AS r 
+ left join profile_62881 AS r 
  on m.proj = r._id
-
-left join ds_mysql_prod_tagelement as site
-  on r.direct_or_partner = site.id
-  
-left join profile_55471 AS q
+ 
+ left join profile_55471 AS q 
  on r.project_code = q.project_code
-
-left join ds_mysql_prod_tagelement as ben_type
-  on m.ben_type = ben_type.id
-
-left join ds_mysql_prod_tagelement as complete
+ 
+ left join ds_mysql_prod_tagelement as site
+  on r.direct_or_partner = site.id
+ 
+ left join ds_mysql_prod_tagelement as complete
   on q.completed = complete.id
  
-left join ds_mysql_prod_tagelement as vert
-  on r.vertical = vert.id
-
-left join ds_mysql_prod_tagelement as vert_1
-  on vert.parent = vert_1.id
-
-left join ds_mysql_prod_tagelement as state
-  on r.state = state.id
-
-left join ds_mysql_prod_tagelement as int_indi
-  on state.parent = int_indi.id
- 
-left join profile_64961 AS l 
- on l.state = r.state
-
-left join ds_mysql_prod_tagelement as sdgs_1
-  on m.sdgs = sdgs_1.id
-
-Where r.direct_or_partner = 1132990 AND q.completed = 939857 AND m.ben_type = 939857 AND m.sdgs IS NOT NULL),
-
-temp2 as
-(select p.*, q1 from temp1 as p, p.vertical as q1)
-
-Select p.projectId, p.indicator, p.sdgs, p.schedule_vii, p.focus, p.state, p.fy_timerange, p.entity, SUM(p.target) AS beneficiary, p.indicator_1, p.state_1, p.name, p.sdgs_new, new_2.name AS verticals from temp2 as p 
-
-left join ds_mysql_prod_tagelement as new_1
-  on p.q1 = new_1.id
-  
-left join ds_mysql_prod_tagelement as new_2
-  on new_1.parent = new_2.id
-  
-Group by p.projectId, p.indicator, p.sdgs, p.schedule_vii, p.focus, p.state, p.entity, p.fy_timerange, p.indicator_1, p.state_1, p.name, p.sdgs_new, new_2.name
-
-Order by sdgs_new ASC
-
+ where r.direct_or_partner = 1132990
