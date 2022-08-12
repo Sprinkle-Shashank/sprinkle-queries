@@ -1,18 +1,20 @@
-with tab1 as (select t.name as project_code,f.name as fy,m.name as manager from profile_27420 p
-left join profile_27396 t on
-p.project_code=t.name
+with tab1 as (select cast(q.name as varchar) as ProjectCode,f.name as fy_timerange,m.name as manager
+from profile_27420 d
 left join ds_mysql_prod_tagelement f on
-p.fy=f.id
+d.fy=f.id
 left join ds_mysql_prod_tagelement m on
-p.project_manager=m.id
-Union all
-select q.name as project_code,t.name as fy,t2.name as manager from profile_29973 p
-left join ds_mysql_prod_tagelement t on
-p.fy=t.id
+d.project_manager=m.id
 left join profile_27396 q on
-p.prj_code=q.name
-left join ds_mysql_prod_tagelement t2 on
-q.project_manager=t2.id),
+d.project_code=q._id
+		   
+union all
+		   
+select cast(c.name as varchar)as ProjectCode,f.name as fy_timerange,m.name as manager 
+from profile_27396 c	
+left join ds_mysql_prod_tagelement f on
+c.fy=f.id
+left join ds_mysql_prod_tagelement m on
+c.project_manager=m.id),
 
 tab2 as(select split_part(prod.name,'|',3) as CensusCode,k.village,t.name as fy , q.name project_code
 		from profile_29974 p
@@ -23,7 +25,7 @@ split_part(prod.name,'|',3)=k.name
 left join ds_mysql_prod_tagelement t on
 p.fy=t.id
 left join profile_27396 q
-on q.name=p.prj_code		
+on p.prj_code=q._id		
 group by k.village,split_part(prod.name,'|',3),t.name,q.name),
 
 tab3 as (select p.total_cost_yearly as Total_Direct_Budget, p.hdfc_cost_yearly as HDFC_Bank_Contribution, p.gov_cost_yearly as Government_Contribution, p.comm_cost_yearly as  Community_Contribution_by_fy,q.name project_code, t.name as fy 
