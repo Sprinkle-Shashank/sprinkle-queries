@@ -10,12 +10,12 @@ p.xprojectid = pro.id
 left join ds_mysql_prod_project cou on 
 pro.parent = cou.id
 
-where keyword in ('scope1_emission','scope1_emission_2122onwards') 
+where keyword in ('scope1_emission','scope1_emission_2122onwards','gross_scope_1_emission_2223onwards') 
 
 order by fy_timerange asc
   
 ) PIVOT (
-   sum(datanum) FOR keyword IN ('scope1_emission','scope1_emission_2122onwards')
+   sum(datanum) FOR keyword IN ('scope1_emission','scope1_emission_2122onwards','gross_scope_1_emission_2223onwards')
 ) 
 				),
 				table2 as (
@@ -33,7 +33,8 @@ concat(start,'-04-01T00:00:00.000Z') as start1,
 concat(end1,'-04-01T00:00:00.000Z') as end2,
 concat(concat(concat(concat('{"start":"',start1),'","end":"'),end2),'"}') as fy_1,
 concat('FY(',concat(start,concat('-',concat(end1,')')))) as fy_2,
-case when start >= 2021 then scope1_emission_2122onwards  
+case when start = 2021 then scope1_emission_2122onwards 
+	 when start >= 2022 then gross_scope_1_emission_2223onwards			  
 	 else scope1_emission		  
      end as total_emission1
 from table1 t1
