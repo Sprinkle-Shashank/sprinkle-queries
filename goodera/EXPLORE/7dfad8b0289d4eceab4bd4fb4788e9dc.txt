@@ -1,4 +1,5 @@
-select tag1.name as projectId, tag2.name as infra_type, p1.infra_photo, p1.name, p1.project_name, p1.fy_timerange, p1.remarks, sum(p1.no_units) as no_units, sum(p1.no_area) as no_area, p5.theme, p3.name as location, tag4.name as imp_partner, tag3.name as bu 
+with t1 as 
+(select tag1.name as projectId, tag2.name as infra_type, p1.infra_photo, p1.name, p1.project_name, p1.fy_timerange, p1.remarks, sum(p1.no_units) as no_units, sum(p1.no_area) as no_area, p5.theme, p3.name as location, tag4.name as imp_partner, tag3.name as bu 
 from profile_71849 p1
 left join ds_mysql_prod_project p2
 on p2.id = p1.projectId
@@ -19,4 +20,24 @@ on p6.bu = tag3.id
 left join ds_mysql_prod_tagelement tag4
 on p6.imp_partner = tag4.id
 group by 
-tag1.name, tag2.name, p1.infra_photo, p1.name, p1.project_name, p1.fy_timerange, p1.remarks, p5.theme, p3.name, tag4.name, tag3.name
+tag1.name, tag2.name, p1.infra_photo, p1.name, p1.project_name, p1.fy_timerange, p1.remarks, p5.theme, p3.name, tag4.name, tag3.name)
+
+item as 
+(
+select 'no_units' as c
+union all
+select 'no_area' as c
+),
+
+t2 as 
+(select projectId,
+case c
+when 'no_units' then t1.no_units
+when 'no_area' then t1.no_area
+else null
+end as val. item.c as item
+from t1 cross join item
+group by projectId, item, no_units, no_area)
+
+select * from t2
+  
