@@ -23,13 +23,16 @@ left join ds_mysql_prod_tagelement t on
 p.fy=t.id
 group by k.village,split_part(prod.name,'|',3),t.name),
 
-tab3 as (select p.total_cost_yearly as Total_Direct_Budget, p.hdfc_cost_yearly as HDFC_Bank_Contribution, p.gov_cost_yearly as Government_Contribution, p.comm_cost_yearly as  Community_Contribution_by_fy,t.name as fy from profile_29973 p 
+tab3 as (select p.total_cost_yearly as Total_Direct_Budget, p.hdfc_cost_yearly as HDFC_Bank_Contribution, p.gov_cost_yearly as Government_Contribution, p.comm_cost_yearly as  Community_Contribution_by_fy,q.name project_code, t.name as fy 
+		 from profile_29973 p 
 left join ds_mysql_prod_tagelement t on
-p.fy=t.id)
+p.fy=t.id
+left join profile_27396 q
+		 on q._id=p.prj_code
+		)
 
 select t1.project_code,t1.fy,t1.manager,t2.village,t3.Total_Direct_Budget,t3.HDFC_Bank_Contribution,t3.Government_Contribution,t3.Community_Contribution_by_fy from tab1 t1
 left join tab2 t2 on
 t1.fy=t2.fy
 left join tab3 t3 on 
-t2.fy=t3.fy
-
+t1.fy=t3.fy
