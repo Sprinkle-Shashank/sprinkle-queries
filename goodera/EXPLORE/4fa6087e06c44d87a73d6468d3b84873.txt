@@ -8,13 +8,13 @@ ELSE
 YEAR1
 END AS start,
 case when keyword in ('consumption_diesel','consumption_fo','pur_electricity_nr_auto',
-					'consumption_petrol','consumption_natural_gas','consumption_diesel_21_22' )then 'Non-Renewable'
+					'consumption_petrol','consumption_natural_gas','consumption_diesel_21_22','consumption_natural_gas22_23' )then 'Non-Renewable'
 	when keyword = 'consumption_biodiesel' and start >2021 then 'Renewable'
 	when keyword = 'consumption_biodiesel' and start = 2021 then 'Non-Renewable'
 	else 'Renewable' end as ren_and_non,
 case when keyword in ('consumption_diesel','consumption_fo','consumption_bio',
-					 'consumption_biodiesel','consumption_natural_gas','consumption_petrol','consumption_diesel_21_22'
-					 ) then 'Thermal Energy' 				 
+'consumption_biodiesel','consumption_natural_gas','consumption_petrol','consumption_diesel_21_22',
+'consumption_natural_gas22_23'	) then 'Thermal Energy' 				 
 else 'Electrical Energy' end as energy_type
 
 from sus_80478 p
@@ -25,7 +25,7 @@ p.xprojectid = pro.id
 left join ds_mysql_prod_project cou on 
 pro.parent = cou.id
 
-where keyword in ('consumption_diesel','consumption_fo','consumption_bio','pur_electricity_r','pur_electricity_nr_auto','in_electricity_solar_auto','consumption_biodiesel','consumption_petrol','consumption_natural_gas','consumption_diesel_21_22') 
+where keyword in ('consumption_diesel','consumption_fo','consumption_bio','pur_electricity_r','pur_electricity_nr_auto','in_electricity_solar_auto','consumption_biodiesel','consumption_petrol','consumption_natural_gas','consumption_diesel_21_22','consumption_natural_gas22_23') 
 
 order by fy_timerange asc
 
@@ -36,43 +36,3 @@ select country,name,fy_timerange,keyword,datanum,datanumbase,ren_and_non,energy_
 
 
 
-/*with table1 as (SELECT *
-FROM (
-select cou.name as country,p.name,p.fy_timerange,keyword,datanum/*,datanumbase
-lag(datanum,1) over (order by  p.fy_timerange) as prev_qty,
-(prev_qty-datanum)*100.0/prev_qty as per */
-
-from sus_80478 p
-
-left join ds_mysql_prod_project pro on 
-p.xprojectid = pro.id
-
-left join ds_mysql_prod_project cou on 
-pro.parent = cou.id
-
-where keyword in ('total_renew_consum', 'total_energy_auto') 
-
-order by fy_timerange asc
-  
-) PIVOT (
-   sum(datanum) FOR keyword IN ('total_renew_consum', 'total_energy_auto')
-) 
-				), 
-				
-temp as (  select 'Renewable' as c
-		    Union all 
-		    select 'Non-Renewable' as c 
-          
-)				
-				
-select country, name,fy_timerange,	
-sum(case c 
-	when 'Renewable' then tab1.total_renew_consum
-	when 'Non-Renewable' then tab1.total_energy_auto - tab1.total_renew_consum
-	else null end ) as val, temp.c as dim 
-from table1	tab1
-
-cross join temp
-
-group by country, name, fy_timerange,temp.c
-*/
