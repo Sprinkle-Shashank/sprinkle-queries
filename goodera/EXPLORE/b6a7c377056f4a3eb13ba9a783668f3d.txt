@@ -29,13 +29,14 @@ ON m.project_code = r.project_code
  table3 as (
 select t2.focus, t2.project_code, vertical_new, t2.start_date, t2.progress, t2.completed, t2.fy_1 as fy_timerange, t2.entity    
 from table2 AS t2,t2.vertical vertical_new
-
- )
+ ),
   
-select focus.name AS focus, project_code, entity.name AS entity, start_date, fy_timerange,count(*),
+ table4 as 
+ (
+select focus.name AS focus, project_code, entity.name AS entity, start_date, fy_timerange ,
 case when vert1.name IS NULL AND vert.name IS NOT NULL THEN vert.name
 else vert1.name
-end as vertical
+end as vertical , cast(fy_timerange.start as date) as new_date , extract(year from new_date) as year_new  
 
 from table3 t3
 left join ds_mysql_prod_tagelement as vert
@@ -49,8 +50,15 @@ left join ds_mysql_prod_tagelement as focus
   
 left join ds_mysql_prod_tagelement as entity
   on t3.entity = entity.id
- 
-group by focus.name, project_code, entity.name, fy_timerange,vertical, start_date
+)
+
+select focus , project_code , entity , start_date , fy_timerange , count(*) , vertical , year_new from table4 as p
+
+group by focus , project_code , entity , start_date , fy_timerange , vertical , year_new
+
+
+
+---group by focus.name, project_code, entity.name, fy_timerange,vertical, start_date
   
  
 
