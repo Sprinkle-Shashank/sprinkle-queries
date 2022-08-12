@@ -7,7 +7,7 @@ with temp1 as
  on m.proj = r._id
  
   left join profile_61046 AS q 
- on m.old_id = q.indicator
+ on m._id = q.indicator
  
  left join ds_mysql_prod_tagelement as partner
   on r.direct_or_partner = partner.id
@@ -26,5 +26,24 @@ temp 2 as
  on m.state = r.state),
  
 temp3 as
-(
+(select projectId, indicator, schedule_vii, proj, project_name, project_code_new, focus, project_code, fy_timerange, progress, state, vertical, sdgs, entity, vertical_new 
+ from temp2 as m, m.vertical vertical_new),
+ 
+ temp4 as
+ (select projectId, indicator, schedule_vii, proj, project_name, project_code_new, focus, project_code, fy_timerange, progress, state, sdgs, entity,
+  
+  case 
+when vert1.name IS NULL AND vert.name IS NOT NULL THEN vert.name
+when vert1.name IS NULL AND vert.name IS NULL then 'Admin'
+else vert1.name 
+END AS vertical
+
+from temp3 AS m
+
+left join ds_mysql_prod_tagelement as vert
+  on m.vertical_new = vert.id
+  
+left join ds_mysql_prod_tagelement as vert1
+  on vert.parent = vert1.id),
+  
  
