@@ -7,23 +7,29 @@ WITH temp AS (
   
   )											--Pivot column names
 
-SELECT year.name as year, indi.name as indicator, ngo.name as Partner,			--Select values
+SELECT indi.name as indicator, ngo.name as Partner,			--Select values
 SUM(Case C
-	When 'Program Target' then p.prog_target
+	When 'Program Target' then (p.prog_target-(p.target21+p.target22))
 	When 'Target 2021' then p.target21
 	When 'Target 2022' then p.target22
 	Else Null
 END) as val , temp.C as Dim
+,
+CASE
+	WHEN Dim = 'Program Target' then '2020'
+	WHEN Dim = 'Target 2021' then '2021'
+	WHEN Dim = 'Target 2022' then '2022'
+	END) AS year
 
-from profile_26656 p
+from profile_77047 p
   cross join temp							--pivot cross join
  
-left join ds_mysql_prod_tagelement year
- on p.year = year.id 
+/*left join ds_mysql_prod_tagelement year
+ on p.year = year.id */
 left join ds_mysql_prod_tagelement indi
  on p.indicator = indi.id 
 left join ds_mysql_prod_tagelement ngo
  on indi.parent = ngo.id 
  
 
- GROUP BY projectid, year.name,indi.name,ngo.name,temp.C 
+ GROUP BY projectid, year,indi.name,ngo.name,temp.C 
