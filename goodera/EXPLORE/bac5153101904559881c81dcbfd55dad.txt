@@ -10,12 +10,12 @@ p.xprojectid = pro.id
 left join ds_mysql_prod_project cou on 
 pro.parent = cou.id
 
-where keyword in ('consumption_bio','total_energy','consumption_biodiesel','total_thermal_2122') 
+where keyword in ('consumption_bio','total_energy','consumption_biodiesel','total_thermal_2122','total_thermal_consumption_2223') 
 
 order by fy_timerange asc
   
 ) PIVOT (
-   sum(datanum) FOR keyword IN ('consumption_bio','total_energy','consumption_biodiesel','total_thermal_2122')
+   sum(datanum) FOR keyword IN ('consumption_bio','total_energy','consumption_biodiesel','total_thermal_2122','total_thermal_consumption_2223')
 ) 
 				),
 				table2 as (
@@ -36,7 +36,8 @@ case when start < 2021 then consumption_bio
 	 when start >= 2021 and consumption_bio is null then consumption_biodiesel
 	 when start >= 2021 and consumption_biodiesel is null then 	consumption_bio		  
      else consumption_biodiesel+consumption_bio	end  as total_renew_thermal1,
-case when start >= 2021 then total_thermal_2122
+case when start = 2021 then total_thermal_2122
+	 when start >= 2022 then total_thermal_consumption_2223			  
 	 else  total_energy end as total_energy			  
 				  
 
