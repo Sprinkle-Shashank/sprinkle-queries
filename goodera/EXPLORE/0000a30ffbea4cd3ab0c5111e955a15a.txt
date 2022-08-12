@@ -1,11 +1,5 @@
 with temp1 AS
-(select m._id AS old_id, m.projectId, m.indicator, sdgs.name AS sdgs, m.schedule_vii, m.proj,  m.baseline, m.target, r._id, r.project_name, r.vertical, r.focus, r.direct_or_partner, r.project_code, r.entity, partner.name AS partner_1, q.fy_timerange, q.progress, ben_type.name AS ben_type/*, vert.name AS vertical2, vert_1.name AS vertical1*/, state.name AS state, int_indi.name AS indicator_1, l.name
- 
- /*,
-
-case when vert.name IS NULL AND vert_1.name IS NOT NULL THEN vert_1.name 
-when vert_1.name IS NULL AND vert.name IS NOT NULL THEN vert.name
-end AS verticals*/
+(select m._id AS old_id, m.projectId, m.indicator, sdgs.name AS sdgs, m.schedule_vii, m.proj,  m.baseline, m.target, r._id, r.project_name, r.vertical, r.focus, r.direct_or_partner, r.project_code, r.entity, partner.name AS partner_1, q.fy_timerange, q.progress, ben_type.name AS ben_type, state_1.name AS state, int_indi.name AS indicator_1, l.name as name
  
 from profile_61044 AS m
 
@@ -18,23 +12,20 @@ left join ds_mysql_prod_tagelement as partner
 left join profile_61046 AS q 
  on m._id = q.indicator
  
+left join ds_mysql_prod_tagelement as ind
+  on m.indicator = ind.id
+ 
+left join ds_mysql_prod_tagelement as int_indi
+  on ind.parent = int_indi.id
+ 
 left join ds_mysql_prod_tagelement as ben_type
   on m.ben_type = ben_type.id
- 
-/*left join ds_mysql_prod_tagelement as vert
-  on r.vertical = vert.id
 
-left join ds_mysql_prod_tagelement as vert_1
-  on vert.parent = vert_1.id*/
-
-left join ds_mysql_prod_tagelement as state
-  on r.state = state.id
-
-left join ds_mysql_prod_tagelement as int_indi
-  on state.parent = int_indi.id
+left join ds_mysql_prod_tagelement as state_1
+  on r.state = state_1.id
  
 left join profile_64961 AS l 
- on r.state = l.name
+ on state_1.name = l.state
  
 left join ds_mysql_prod_tagelement as sdgs
   on m.sdgs = sdgs.id
@@ -44,7 +35,7 @@ where r.direct_or_partner = 1132991 AND m.ben_type = 939857 AND q.fy_timerange I
 temp2 as
 (select p.*, q1 from temp1 as p, p.vertical as q1)
 
-select projectid.name AS projectid, indicator.name AS indicator, sdgs.name AS sdgs, schedule_vii.name AS schedule_vii, p.project_name, p.baseline, p.target, vertical.name AS vertical, focus.name AS focus, state.name AS state, entity.name AS entity, p.partner_1, p.fy_timerange, SUM(p.progress) AS beneficiary, new_2.name AS verticals, p.name from temp2 as p 
+select projectid.name AS projectid, indicator.name AS indicator, sdgs.name AS sdgs, schedule_vii.name AS schedule_vii, p.project_name, p.baseline, p.target, vertical.name AS vertical, focus.name AS focus, state, entity.name AS entity, p.partner_1, p.fy_timerange, SUM(p.progress) AS beneficiary, new_2.name AS verticals, p.name from temp2 as p 
 
 left join ds_mysql_prod_tagelement as new_1
   on p.q1 = new_1.id
@@ -52,8 +43,6 @@ left join ds_mysql_prod_tagelement as new_1
 left join ds_mysql_prod_tagelement as new_2
   on new_1.parent = new_2.id
 
-left join ds_mysql_prod_tagelement as state
-  on p.state = state.id
   
 left join ds_mysql_prod_tagelement as focus
   on p.focus = focus.id
@@ -73,7 +62,7 @@ left join ds_mysql_prod_tagelement as sdgs
 left join ds_mysql_prod_tagelement as schedule_vii
   on p.schedule_vii = schedule_vii.id
   
-group by projectid.name, indicator.name, sdgs.name, schedule_vii.name, vertical.name, focus.name, state.name, p.fy_timerange, entity.name, p.project_name, p.baseline, p.target, p.name, p.partner_1, new_2.name, 
+group by projectid.name, indicator.name, sdgs.name, schedule_vii.name, vertical.name, focus.name, state, p.fy_timerange, entity.name, p.project_name, p.baseline, p.target, p.name, p.partner_1, new_2.name, 
 p.indicator_1
 
 Order by sdgs.name ASC
