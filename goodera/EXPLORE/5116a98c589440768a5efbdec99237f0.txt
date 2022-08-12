@@ -55,8 +55,7 @@ With table1 as (
   
   
   
- table3 as ( Select _id, case when st1.name is null then st.name else st1.name end as state , count (distinct state) as count_state  from table1
-
+ table3 as ( Select _id, case when st1.name is null then st.name else st1.name end as state from table1
   
 LEFT JOIN ds_mysql_prod_tagelement AS st
 ON table1.location_unwind = st.id
@@ -64,13 +63,17 @@ ON table1.location_unwind = st.id
 LEFT JOIN ds_mysql_prod_tagelement AS st1
 ON st.parent = st1.id
 		
-GROUP BY _id , st.name , st1.name )
+GROUP BY _id , st.name , st1.name ),
+
+table4 as
+( select _id , count(distinct state) as count_state from table3 as p
+ 
+ group by _id)
   
-  
-Select p.*, tob3.count_state from table2 as p
+Select p.*, tob4.count_state from table2 as p
 	
-LEFT JOIN table3 as tob3
-on p._id = tob3._id
+LEFT JOIN table4 as tob4
+on p._id = tob4._id
 
 	
 -- , sum(count_state) as state_count_update 
