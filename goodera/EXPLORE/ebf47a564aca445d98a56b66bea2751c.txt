@@ -15,8 +15,8 @@ left join ds_mysql_prod_tagelement f on
 c.fy=f.id
 left join ds_mysql_prod_tagelement m on
 c.project_manager=m.id
-group by project_code,f.name,m.name		 
-			 ),
+where manager is not null
+group by project_code,f.name,m.name),
 
 tab2 as(select split_part(prod.name,'|',3) as CensusCode,k.village, cast(q.name as varchar) project_code,q1.name as fy from profile_29974 p 
 left join profile_27396 q
@@ -27,6 +27,8 @@ left join ds_mysql_prod_tagelement q1 on
 q1.id=p.fy
 left join profile_27489 k on
 split_part(prod.name,'|',3)=k.name
+		
+where k.village is not null
 group by project_code,q1.name,split_part(prod.name,'|',3),k.village),
 
 tab3 as (select p.total_cost_yearly as Total_Direct_Budget, p.hdfc_cost_yearly as HDFC_Bank_Contribution, p.gov_cost_yearly as Government_Contribution, p.comm_cost_yearly as Community_Contribution_by_fy,cast(q.name as varchar) as project_code,q1.name as fy from profile_29973 p 
