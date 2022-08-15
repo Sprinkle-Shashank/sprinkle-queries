@@ -52,7 +52,7 @@ with temp1 as
  from temp2 as m, m.vertical vertical_new),
  
  temp4 as
- (select m.projectId, m.indicator, m.schedule_vii, m.focus, m.fy_timerange, m.entity, m.state, m.name, m.sdgs, m.target, m.int_indi, m.progress,
+ (select m.projectId, m.indicator, m.schedule_vii, m.focus, m.fy_timerange, m.entity, m.state, m.name, m.sdgs, m.target, m.int_indi, m.progress, m._id , 
   
 case 
 when vert1.name IS NULL AND vert.name IS NOT NULL THEN vert.name
@@ -71,17 +71,26 @@ on vert.parent = vert1.id),
  (select m.projectId, m.indicator, m.schedule_vii, m.focus, m.fy_timerange, m.entity, m.state, m.name, m.sdgs, m.vertical, m._id, SUM(m.progress) as beneficiary, m.int_indi
   from temp2 as m
   where _id NOT IN (select _id from temp3)
-  group by m.projectId, m.indicator, m.schedule_vii, m.focus, m.fy_timerange, m.entity, m.state, m.name, m.sdgs, m.vertical, m._id, m.int_indi)
+  group by m.projectId, m.indicator, m.schedule_vii, m.focus, m.fy_timerange, m.entity, m.state, m.name, m.sdgs, m.vertical, m._id, m.int_indi),
   
   table6 as
   (
-  select projectId, indicator, schedule_vii, focus, fy_timerange, entity, SUM(m.progress) as beneficiary, vertical, int_indi, state, name, sdgs
+  select projectId, indicator, schedule_vii, focus, fy_timerange, entity, SUM(m.progress) as beneficiary, vertical, int_indi, state, name, sdgs , _id
   from temp4 as m
-  group by projectId, indicator, schedule_vii, focus, fy_timerange, entity, vertical, int_indi, state, name, sdgs
-  
-  UNION ALL
-  select projectId, indicator, schedule_vii, focus, fy_timerange, entity, beneficiary, vertical, int_indi, state, name, sdgs
-  from temp5 as m
-	)
+  group by projectId, indicator, schedule_vii, focus, fy_timerange, entity, vertical, int_indi, state, name, sdgs , _id 
+	),
 	
-	select * from table6
+	table7 as
+	(
+	  select projectId, indicator, schedule_vii, focus, fy_timerange, entity, beneficiary, vertical,               int_indi, state, name, sdgs
+     from temp5 as m
+	  )
+  
+  select * from table6
+ 
+ /*
+ 
+ UNION ALL
+  select * from table7
+  
+  */
