@@ -42,7 +42,7 @@ with temp1 as
 where r.direct_or_partner = 1132991 AND m.ben_type = 939857  AND m.sdgs IS NOT NULL AND q.fy_timerange IS NOT NULL),
 
 temp2 as
-(select _id, old_id, projectId, indicator, sdgs, schedule_vii, proj, project_name, ben_type, baseline, target, project_code_new, vertical, focus, direct_or_partner, project_code, state, partner, fy_timerange, progress, name
+(select _id, old_id, m.projectId, indicator, sdgs, schedule_vii, proj, project_name, ben_type, baseline, target, project_code_new, vertical, focus, direct_or_partner, project_code, state, partner, fy_timerange, progress, name
  
  from temp1 as m 
  
@@ -50,11 +50,11 @@ temp2 as
  on m.state = r.state),
  
 temp3 as
-(select _id, projectId, indicator, schedule_vii, proj, project_name, project_code_new, focus, project_code, fy_timerange, progress, state, vertical, sdgs, entity, vertical_new 
+(select _id, m.projectId, indicator, schedule_vii, proj, project_name, project_code_new, focus, project_code, fy_timerange, progress, state, vertical, sdgs, entity, vertical_new 
  from temp2 as m, m.vertical vertical_new),
  
  temp4 as
- (select _id, projectId, indicator, schedule_vii, proj, project_name, project_code_new, focus, project_code, fy_timerange, progress, state, sdgs, entity,
+ (select _id, m.projectId, indicator, schedule_vii, proj, project_name, project_code_new, focus, project_code, fy_timerange, progress, state, sdgs, entity,
   
   case 
 when vert1.name IS NULL AND vert.name IS NOT NULL THEN vert.name
@@ -71,15 +71,15 @@ left join ds_mysql_prod_tagelement as vert1
   on vert.parent = vert1.id),
   
 temp5 as
-(select projectId, indicator, schedule_vii, proj, project_name, project_code_new, focus, project_code, fy_timerange, SUM(m.progress) as beneficiary, state, vertical sdgs, entity
+(select m.projectId, indicator, schedule_vii, proj, project_name, project_code_new, focus, project_code, fy_timerange, SUM(m.progress) as beneficiary, state, vertical sdgs, entity
  from temp2 as m
    where _id NOT IN (select _id from temp3)
-group by projectId, indicator, schedule_vii, proj, project_name, project_code_new, focus, project_code, fy_timerange, state, vertical, sdgs, entity)
+group by m.projectId, indicator, schedule_vii, proj, project_name, project_code_new, focus, project_code, fy_timerange, state, vertical, sdgs, entity)
 
-select projectId, indicator, schedule_vii, proj, project_name, project_code_new, focus, project_code, fy_timerange, SUM(m.progress) as beneficiary, state, vertical, sdgs, entity
+select m.projectId, indicator, schedule_vii, proj, project_name, project_code_new, focus, project_code, fy_timerange, SUM(m.progress) as beneficiary, state, vertical, sdgs, entity
 from temp4 as m
-group by projectId, indicator, schedule_vii, proj, project_name, project_code_new, focus, project_code, fy_timerange, state, vertical, sdgs, entity
+group by m.projectId, indicator, schedule_vii, proj, project_name, project_code_new, focus, project_code, fy_timerange, state, vertical, sdgs, entity
 
 UNION ALL
-select projectId, indicator, schedule_vii, proj, project_name, project_code_new, focus, project_code, fy_timerange, beneficiary, state, vertical, sdgs, entity
+select m.projectId, indicator, schedule_vii, proj, project_name, project_code_new, focus, project_code, fy_timerange, beneficiary, state, vertical, sdgs, entity
 from temp5 as m
