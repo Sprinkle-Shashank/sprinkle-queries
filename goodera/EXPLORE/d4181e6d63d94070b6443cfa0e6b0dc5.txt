@@ -1,6 +1,6 @@
 with table1 as (SELECT *
 FROM (
-select cou.name as country,p.name,p.fy_timerange,keyword,datanum/*,datanumbase
+select cou.name as country,p.name,p.fy_timerange,keyword,datanum,startdate/*,datanumbase
 lag(datanum,1) over (order by  p.fy_timerange) as prev_qty,
 (prev_qty-datanum)*100.0/prev_qty as per */
 
@@ -12,20 +12,29 @@ p.xprojectid = pro.id
 left join ds_mysql_prod_project cou on 
 pro.parent = cou.id
 
-where keyword in ('scope1_2_intensity', 'scope3_intensity','biogenic_intensity') 
+where keyword in ( 'scope3_intensity','scope3_emission','turnover') 
 
 order by fy_timerange asc
   
 ) PIVOT (
-   sum(datanum) FOR keyword IN ('scope1_2_intensity','scope3_intensity','biogenic_intensity')
+   sum(datanum) FOR keyword IN ('scope3_intensity','scope3_emission','turnover')
 ) 
-				)
+				),
+table2 as (
+select country,name,fy_timerange,scope3_emission,turnover,
+concat('FY(',concat(start,concat('-',concat(end1,')')))) as fy_2  
+  
+  from table2
+
+)				
 				
-select country,name,fy_timerange,scope3_intensity ,
+/*select country,name,fy_timerange,scope3_intensity ,
 /*lag(scope1_2_intensity,1) over (order by  fy_timerange) as prev_intensity,
 prev_intensity-scope1_2_intensity as diff_prev
 , */
 (select scope3_intensity from table1
 	order by fy_timerange asc limit 1) as base_value, 
 
-(base_value-scope3_intensity)*100.0/base_value as base_perc from table1				
+(base_value-scope3_intensity)*100.0/base_value as base_perc from table1	*/
+
+select * from table2
