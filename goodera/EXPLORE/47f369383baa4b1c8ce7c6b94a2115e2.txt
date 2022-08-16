@@ -1,4 +1,5 @@
-select tag1.name as projectId, p5.project_name, p1.fy_timerange, tag2.name as infra_type, tag3.name as imp_partner, tag4.name as bu, tag5.name as theme, p3.name as location, sum(no_area) as no_area, sum(no_units) as no_units
+with t1 as 
+(select tag1.name as projectId, p5.project_name, p1.fy_timerange, tag2.name as infra_type, tag3.name as imp_partner, tag4.name as bu, tag5.name as theme, p3.name as location, sum(no_area) as no_area, sum(no_units) as no_units
 from profile_71861 p1
 left join ds_mysql_prod_project p2
 on p2.id = p1.projectId
@@ -21,4 +22,23 @@ on p5.bu = tag4.id
 left join ds_mysql_prod_tagelement tag5
 on p6.theme = tag5.id
 group by 
-tag1.name, p5.project_name, p1.fy_timerange, tag2.name, tag3.name, tag4.name, tag5.name, p3.name
+tag1.name, p5.project_name, p1.fy_timerange, tag2.name, tag3.name, tag4.name, tag5.name, p3.name),
+
+item as 
+(
+  select 'no_area' as c
+  union all
+  select 'no_units' as c
+),
+
+t2 as 
+(select projectId,
+case c 
+when 'no_area' then t1.no_area
+when 'no_units' then t1.no_units
+else null
+end as count, item.c as item
+from t1 cross join item
+group by projectId, no_area, no_units, item.c)
+
+select * from t2
