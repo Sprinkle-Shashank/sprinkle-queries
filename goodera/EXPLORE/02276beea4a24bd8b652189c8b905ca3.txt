@@ -1,5 +1,5 @@
 with temp1 as
-(select m._id, projectId.name as projectId, m.name as activity, m.description, m.start, m.end, m.astart, m.aend, m.project_code, r.name as project_code_new, r.vertical, r.focus, r.state, r.direct_or_partner, entity.name as entity
+(select m._id, projectId.name as projectId, m.name as activity, m.description, m.start, m.end, m.astart, m.aend, m.project_code, r.name as project_code_new, r.vertical, r.focus, r.state, r.direct_or_partner, entity.name as entity, 
 
  from profile_61043 as m
  
@@ -15,6 +15,15 @@ with temp1 as
  where m.astart IS NOT NULL and m.aend IS NOT NULL and r.direct_or_partner = 1132991),
  
  temp2 as
+ (select m._id, m.projectId, m.activity, m.description, cast(m.start as date) as start_1, m.end, m.astart, cast(m.aend as date) as aend_1, m.project_code, m.project_code_new, m.vertical, m.focus, m.state, m.direct_or_partner, m.entity, 
+  
+concat(start_1,'T00:00:00.000Z') as start_2,
+concat(aend_1,'T00:00:00.000Z') as aend_2,
+concat(concat(concat(concat('{"start":"',start_2),'","end":"'),aend_2),'"}') as fy_timerange
+  
+  from temp1 as m),
+ 
+ temp3 as
  (select m._id, m.projectId, m.activity, m.description, m.start, m.end, m.astart, m.aend, m.project_code, m.project_code_new, m.vertical, m.focus, m.state, m.direct_or_partner, m.entity, vertical_new from temp1 as m, m.vertical vertical_new),
  
  temp3 as
