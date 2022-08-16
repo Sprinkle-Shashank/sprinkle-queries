@@ -1,0 +1,70 @@
+with temp1 AS
+(select m._id, m.projectId, m.ben_name, m.doc, m.story, m.month_timerange AS fy_timerange, m.title, m.designation, m.pic, m.location, m.project_code, r.name AS project_code_new, r.vertical, r.focus, r.state, r.direct_or_partner, r.entity
+
+from profile_55182 AS m
+
+left join profile_62881 AS r
+ on m.project_code = r.project_code
+
+where r.direct_or_partner = 1132991),
+
+temp2 as
+(select p._id, p.projectId, p.ben_name, p.doc, p.story, p.fy_timerange, p.title, p.designation, CAST(photo AS VARCHAR), p.location, p.project_code, p.project_code_new, p.focus, p.state, p.direct_or_partner, p.entity, p.vertical,
+concat(ben_name, concat('(',concat(designation, ')'))) AS beneficiary_name, 'Link' AS link from temp1 AS p, p.pic photo),
+
+temp3 as
+(select p.*, q1 from temp2 as p, p.vertical as q1),
+
+temp4 as
+(select p._id, p.projectId, p.ben_name, p.doc, p.story, p.fy_timerange, p.title, p.designation, p.photo, p.location, p.project_code, p.project_code_new, focus.name AS focus, state.name AS state, direct_or_partner.name AS direct_or_partner, entity.name AS entity, p.beneficiary_name, p.link, 
+
+case when vert.name IS NULL AND vert_1.name IS NOT NULL THEN vert.name 
+when vert_1.name IS NULL AND vert.name IS NOT NULL THEN vert_1.name
+else 'Admin' 
+END AS verticals
+
+from temp3 as p
+
+left join ds_mysql_prod_tagelement as vert
+  on p.vertical = vert.id
+
+left join ds_mysql_prod_tagelement as vert_1
+  on vert.parent = vert_1.id
+
+left join ds_mysql_prod_tagelement as state
+  on p.state = state.id
+  
+left join ds_mysql_prod_tagelement as focus
+  on p.focus = focus.id
+
+left join ds_mysql_prod_tagelement as entity
+  on p.entity = entity.id
+
+left join ds_mysql_prod_tagelement as direct_or_partner
+  on p.direct_or_partner = direct_or_partner.id
+order by fy_timerange desc
+),
+  
+temp5 as (
+select p._id, p.projectId, p.ben_name, p.doc, p.story, p.fy_timerange, p.title, p.designation, p.photo, p.location, p.project_code, p.project_code_new, focus.name AS focus, state.name AS state, direct_or_partner.name AS direct_or_partner, entity.name AS entity, p.beneficiary_name, p.link, p.vertical
+from temp2 AS p
+
+left join ds_mysql_prod_tagelement as state
+  on p.state = state.id
+  
+left join ds_mysql_prod_tagelement as focus
+  on p.focus = focus.id
+
+left join ds_mysql_prod_tagelement as entity
+  on p.entity = entity.id
+
+left join ds_mysql_prod_tagelement as direct_or_partner
+  on p.direct_or_partner = direct_or_partner.id
+  
+where p._id NOT IN (select _id from temp3)
+order by fy_timerange desc 
+)
+
+select * from temp4
+union all 
+select * from temp5
