@@ -14,7 +14,7 @@ when month_1 = 10 then 'Oct'
 when month_1 = 11 then 'Nov'
 when month_1 = 12 then 'Dec'
 else NULL
-END AS month_name
+END AS month_name , fy_timerange
 
 from profile_55471 as m
 
@@ -24,13 +24,9 @@ left join profile_62881 AS r
 left join ds_mysql_prod_tagelement as completed_text
   on m.completed = completed_text.id),
 
-
-/*left join ds_mysql_prod_tagelement as vertical
-  on r.vertical = vertical.id*/
-
   
  temp2 as
-(select old_id, progress.name as progress, completed.name as completed, project_code, EXTRACT(year from CAST(m.fy_year_timerange.start as date)) as report_year, month_1, _id, m.name, project_name, vertical, focus.name as focus, state.name as state, start_date, direct_or_partner.name as direct_or_partner, entity.name as entity, start_year, start_month, completed_text, month_2,  
+(select old_id, progress.name as progress, completed_update.name as completed_new, project_code, EXTRACT(year from CAST(m.fy_year_timerange.start as date)) as report_year, month_1, _id, m.name, project_name, vertical, focus_update.name as focus_new, state_update.name as state_new, start_date, direct_or_partner_update.name as direct_or_partner_new, entity_update.name as entity_new, start_year, start_month, completed_text, month_2,  
  
  case when start_month = 1 then 'Jan'
 when start_month = 2 then 'Feb'
@@ -45,35 +41,37 @@ when start_month = 10 then 'Oct'
 when start_month = 11 then 'Nov'
 when start_month = 12 then 'Dec'
 else NULL
-END AS start_month_1
+END AS start_month_1 , fy_timerange
  
  from temp1 AS m
 
-left join ds_mysql_prod_tagelement as progress
-  on m.progress = progress.id
+left join ds_mysql_prod_tagelement as progress_update
+  on m.progress = progress_update.id
   
-left join ds_mysql_prod_tagelement as completed
-  on m.completed = completed.id
+left join ds_mysql_prod_tagelement as completed_update
+  on m.completed = completed_update.id
   
-left join ds_mysql_prod_tagelement as focus
-  on m.focus = focus.id
+left join ds_mysql_prod_tagelement as focus_update
+  on m.focus = focus_update.id
 
-left join ds_mysql_prod_tagelement as direct_or_partner
-  on m.direct_or_partner = direct_or_partner.id
+left join ds_mysql_prod_tagelement as direct_or_partner_update
+  on m.direct_or_partner = direct_or_partner_update.id
   
-left join ds_mysql_prod_tagelement as entity
-  on m.entity = entity.id
+left join ds_mysql_prod_tagelement as entity_update
+  on m.entity = entity_update.id
 
-left join ds_mysql_prod_tagelement as state
-  on m.state = state.id),
+left join ds_mysql_prod_tagelement as state_update
+  on m.state = state_update.id),
   
 temp3 as(
-select project_code, report_year, month_1, project_name, start_month, start_year,
+select project_code, project_name , report_year, month_1, , start_month, start_year,
+  
   case when month_1 = 1 and start_month = 1 and report_year = start_year and completed = 'Yes' then 'Started, Reported & Completed'
   when start_month = 1 then 'Started'
   when month_1 = 1 and completed = 'Yes' then 'Reported & Completed'
   else '-'
   end AS January
+  
 from temp2)
   
   
