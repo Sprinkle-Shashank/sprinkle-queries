@@ -1,5 +1,31 @@
 with temp1 as
-(select m.projectId, m.name, m.description, m.start, m.end, m.astart, m.aend, m.project_code
+(select m.projectId, m.name as activity, m.description, m.start, m.end, m.astart, m.aend, m.project_code,
+ r.name as project_code_new, r.vertical, r.focus, r.state, r.direct_or_partner, r.entity
+
  from profile_61043 as m
  
+ left join profile_62881 AS r 
+ on m.project_code = r.project_code
+
  
+ where m.astart IS NOT NULL and m.aend IS NOT NULL and r.direct_or_partner = 1132991),
+ 
+ temp2 as
+ (select _id, projectId, activity, description, start, end, astart, aend, project_code, project_code_new, vertical, focus, state, direct_or_partner, entity, vertical_new from temp1 as m, m.vertical vertical_new),
+ 
+ temp3 as
+ (select _id, projectId, activity, description, start, end, astart, aend, project_code, project_code_new, focus, state, direct_or_partner, entity, 
+  
+  case 
+when vert1.name IS NULL AND vert.name IS NOT NULL THEN vert.name
+else vert1.name 
+END AS vertical
+
+from temp2 AS m
+
+left join ds_mysql_prod_tagelement as vert
+on m.vertical_new = vert.id
+  
+left join ds_mysql_prod_tagelement as vert1
+on vert.parent = vert1.id),
+
