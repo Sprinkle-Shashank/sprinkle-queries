@@ -1,78 +1,52 @@
 with temp1 AS
-(select m.projectId, m.project_name, m.vertical, m.focus, cast(m.start_date as date) as start_date1, m.project_code, m.entity, CAST(r.fy_timerange.end as date) as update_date, compl.name as completed, prog.name as progress, 
-concat(start_date1,'T00:00:00.000Z') as start1,
-concat(update_date,'T00:00:00.000Z') as end2,
-concat(concat(concat(concat('{"start":"',start1),'","end":"'),end2),'"}') as fy_1,
- m.description, month,row_number() over (partition by m.project_code order by m._id desc) as row , m._id
-  
-from profile_62881 as m
-
-left join profile_55471 AS r
- on m.project_code = r.project_code
-
-left join ds_mysql_prod_tagelement as prog
-  on r.progress = prog.id  
+(select m._id AS old_id, m.projectId, m.month_timerange, m.project_code_new, m.amount, r.project_name, r.vertical, r.focus, r.state, r.direct_or_partner, r.project_code, r.entity
  
-left join ds_mysql_prod_tagelement as compl
-  on r.completed = compl.id
+from profile_55194 AS m
+ 
+left join profile_62881 AS r 
+ on r._id = m.project_code_new),
+  
+--(select m.*, q1 from temp1 as m, m.vertical as q1)
+ 
+temp2 as
+(select m.month_timerange AS fy_timerange, m.project_code_new, m.amount, m.project_name, m.vertical, focus_update.name AS focus_new , state_update.name AS state_new, m.project_code, entity_update.name AS entity_new, q.name as name_update from temp1 AS m
+
+left join ds_mysql_prod_tagelement as state_update
+  on m.state = state_update.id
+  
+left join ds_mysql_prod_tagelement as entity_update
+  on m.entity = entity_update.id
+ 
+left join ds_mysql_prod_tagelement as focus_update
+  on m.focus = focus_update.id
+ 
+left join profile_64961 as q
+ on state.name = q.state
 ),
   
-temp2 as
-(select m.*, vertical_new from temp1 as m, m.vertical vertical_new),
+temp3 as
+(select m.fy_timerange, m.project_code_new, m.amount, m.project_name, vertical_new, m.focus, m.state, m.project_code, m.entity, m.name from temp2 AS m, m.vertical vertical_new)
 
-table3 as
+
+temp4 as
 (
-select m.project_name, focus.name AS focus, m.start_date1, m.project_code, entity.name AS entity, m.update_date, m.progress, m.completed, m.fy_1 AS fy_timerange, m.description, CAST(EXTRACT (MONTH from update_date) AS INT) AS month_1 , EXTRACT(YEAR from update_date) AS year,
+select fy_timerange, project_code_new, project_name, focus_new, entity_new, SUM(amount) AS amount, m.name_update, count(*),
+case when vert.name IS NULL AND vert1.name IS NOT NULL THEN vert.name 
+when vert1.name IS NULL AND vert.name IS NOT NULL THEN vert1.name
+else 'Admin'
+END AS vertical 
 
-case when month_1 = 1 then 'Jan'
-when month_1 = 2 then 'Feb'
-when month_1 = 3 then 'Mar'
-when month_1 = 4 then 'Apr'
-when month_1 = 5 then 'May'
-when month_1 = 6 then 'Jun'
-when month_1 = 7 then 'Jul'
-when month_1 = 8 then 'Aug'
-when month_1 = 9 then 'Sep'
-when month_1 = 10 then 'Oct'
-when month_1 = 11 then 'Nov'
-when month_1 = 12 then 'Dec'
-else NULL
-END AS month_name
-, concat(month_name,concat('-',year)) as update_month ,   case 
-when vert1.name IS NULL AND vert.name IS NOT NULL THEN vert.name
-else vert1.name 
-END AS vertical , m._id
-
-from temp2 as m
+from temp3 AS m
 
 left join ds_mysql_prod_tagelement as vert
   on m.vertical_new = vert.id
   
 left join ds_mysql_prod_tagelement as vert1
-  on vert.parent = vert1.id
+  on vert.parent = vert1.id  
+ 
+group by m.fy_timerange, m.project_code_new, m.project_name, m.focus_new, m.entity_new, m.name_update, vertical
+
+order by m.project_code_new asc
+  )
   
-left join ds_mysql_prod_tagelement as focus
-  on m.focus = focus.id
-
-left join ds_mysql_prod_tagelement as entity
-  on m.entity = entity.id
-
-group by m.project_name, m.projectId, focus.name, m.project_code, entity.name, m.progress, m.completed, m.start_date1, m.update_date, m.fy_1,m.description , vertical , vert1.name , vert.name , m._id , update_month
-
-order by m.project_code asc, update_date desc
- ),
-
-table4 as
-(
-select m.project_name, focus, m.project_code, entity, progress , completed , update_date , m.start_date1, fy_timerange ,m.description , vertical , _id , update_month from table3 as m
-
-)
-
-select m._id , project_code , fy_timerange , description , update_month, vertical , entity , start_date1 , listagg(distinct m.completed, ' , ') as complete_update , listagg(distinct m.update_date, ',') as update_date_new , listagg(distinct m.progress, ',') as progress_update , p2.direct_or_partner from table4 as m 
-
-left join profile_62881 p2
-on m.project_code = p2.project_code
-
-group by  m._id , project_code , fy_timerange , description , update_month , entity , start_date1 , vertical , p2.direct_or_partner
-  
---- , focus, project_code, entity, start_date1, fy_timerange , description , vertical , update_month
+  select * from temp4
