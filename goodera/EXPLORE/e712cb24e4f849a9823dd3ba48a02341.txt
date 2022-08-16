@@ -53,18 +53,18 @@ group by fy_2
 ),				
 				
 table3 as (
-select country,name,t2.fy_1 as fy_timerange,sum(t2.total_emission1) as total_emission,turn.turnover as turnover1,total_emission/turnover1 as intensity,t2.fy_2 from table2 t2
+select country,t2.fy_1 as fy_timerange,sum(t2.total_emission1) as total_emission,turn.turnover as turnover1,total_emission/turnover1 as intensity,t2.fy_2 from table2 t2
 left join turnover turn on 
  t2.fy_2=turn.fy_2 
-group by country,name,fy_1,t2.fy_2,turn.turnover),
+group by country,fy_1,t2.fy_2,turn.turnover),
 
 table4 as (select name,intensity as base_value from(select name,intensity, row_number() over(partition by name order by fy_timerange asc) as row from table3)
 where row = 1 )
 
-select country,t3.name,t3.fy_timerange,t3.intensity,fy_2/*,lag(total_emission,1) over (order by  fy_timerange) as prev_emission*/,
+/*select country,t3.name,t3.fy_timerange,t3.intensity,fy_2/*,lag(total_emission,1) over (order by  fy_timerange) as prev_emission*/,
 case when t4.base_value = 0 then null
      else t4.base_value end as base_value1,(base_value1-t3.intensity)*100.0/base_value1 as base_perc,turnover1 from table3 t3
 	
 left join table4 t4 on
-t3.name = t4.name 
---select * from table2
+t3.name = t4.name */
+select * from table3
