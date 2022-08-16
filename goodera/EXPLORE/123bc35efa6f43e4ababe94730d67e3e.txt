@@ -3,11 +3,7 @@ with temp1 AS
 concat(start_date1,'T00:00:00.000Z') as start1,
 concat(update_date,'T00:00:00.000Z') as end2,
 concat(concat(concat(concat('{"start":"',start1),'","end":"'),end2),'"}') as fy_1,
-vert.name AS vertical2, vert1.name AS vertical1, m.description, month,row_number() over (partition by m.project_code order by m._id desc) as row,
-
-case when vert.name IS NULL AND vert1.name IS NOT NULL THEN vert1.name 
-when vert1.name IS NULL AND vert.name IS NOT NULL THEN vert.name
-end as verticals
+ m.description, month,row_number() over (partition by m.project_code order by m._id desc) as row 
   
 from profile_62881 as m
 
@@ -19,17 +15,14 @@ left join ds_mysql_prod_tagelement as prog
  
 left join ds_mysql_prod_tagelement as compl
   on r.completed = compl.id
-
-left join ds_mysql_prod_tagelement as vert
-  on m.vertical = vert.id
-
-left join ds_mysql_prod_tagelement as vert1
-  on vert.parent = vert1.id),
+),
   
 temp2 as
-(select m.*, q1 from temp1 as m, m.vertical as q1)
+(select m.*, vertical_new from temp1 as m, m.vertical vertical_new),
 
-select m.project_name, focus.name AS focus, m.start_date1, m.project_code, entity.name AS entity, m.update_date, m.progress, m.completed, m.fy_1 AS fy_timerange, m.description, new_2.name AS verticals, CAST(EXTRACT (MONTH from update_date) AS INT) AS month_1 , EXTRACT(YEAR from update_date) AS year,
+table3 as
+(
+select m.project_name, focus.name AS focus, m.start_date1, m.project_code, entity.name AS entity, m.update_date, m.progress, m.completed, m.fy_1 AS fy_timerange, m.description, CAST(EXTRACT (MONTH from update_date) AS INT) AS month_1 , EXTRACT(YEAR from update_date) AS year,
 
 case when month_1 = 1 then 'Jan'
 when month_1 = 2 then 'Feb'
@@ -45,14 +38,18 @@ when month_1 = 11 then 'Nov'
 when month_1 = 12 then 'Dec'
 else NULL
 END AS month_name
-, concat(month_name,concat('-',year))
+, concat(month_name,concat('-',year)) ,   case 
+when vert1.name IS NULL AND vert.name IS NOT NULL THEN vert.name
+else vert1.name 
+END AS vertical
+
 from temp2 as m
 
-left join ds_mysql_prod_tagelement as new_1
-  on m.q1 = new_1.id
+left join ds_mysql_prod_tagelement as vert
+  on m.vertical_new = vert.id
   
-left join ds_mysql_prod_tagelement as new_2
-  on new_1.parent = new_2.id
+left join ds_mysql_prod_tagelement as vert1
+  on vert.parent = vert1.id
   
 left join ds_mysql_prod_tagelement as focus
   on m.focus = focus.id
@@ -60,7 +57,10 @@ left join ds_mysql_prod_tagelement as focus
 left join ds_mysql_prod_tagelement as entity
   on m.entity = entity.id
 
-group by m.project_name, m.projectId, m.vertical, focus.name, m.project_code, entity.name, m.progress, m.completed, m.start_date1, m.update_date, m.fy_1, new_2.name,m.description
+group by m.project_name, m.projectId, focus.name, m.project_code, entity.name, m.progress, m.completed, m.start_date1, m.update_date, m.fy_1,m.description , vertical , vert1.name , vert.name
 
 order by m.project_code asc, update_date desc
- 
+ )
+
+
+select * from table3
