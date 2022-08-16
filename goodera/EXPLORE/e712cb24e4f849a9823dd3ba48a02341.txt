@@ -10,12 +10,12 @@ p.xprojectid = pro.id
 left join ds_mysql_prod_project cou on 
 pro.parent = cou.id
 
-where keyword in ('scope1_emission','scope1_emission_2122onwards','scope2_emission','turnover') 
+where keyword in ('scope1_emission','scope1_emission_2122onwards','scope2_emission','scope2_emission_21_22','turnover') 
 
 order by fy_timerange asc
   
 ) PIVOT (
-   sum(datanum) FOR keyword IN ('scope1_emission','scope1_emission_2122onwards','scope2_emission','turnover')
+   sum(datanum) FOR keyword IN ('scope1_emission','scope1_emission_2122onwards','scope2_emission','scope2_emission_21_22','turnover')
 ) 
 				),
 				table2 as (
@@ -34,17 +34,21 @@ concat(start,'-04-01T00:00:00.000Z') as start1,
 concat(end1,'-03-31T00:00:00.000Z') as end2,
 concat(concat(concat(concat('{"start":"',start1),'","end":"'),end2),'"}') as fy_1,turnover,			concat('FY(',concat(start,concat('-',concat(end1,')')))) as fy_2,
 case when start >= 2021 then scope1_emission_2122onwards
-	 else scope1_emission end as scope1_emission1,			  
-case when scope1_emission1 is null and scope2_emission is not null then scope2_emission
-	 when scope2_emission is null and scope1_emission1 is not null then scope1_emission1
-	 else scope1_emission1+scope2_emission	end	 as total_emission1	,
-	scope1_emission,scope1_emission_2122onwards,scope2_emission			  
+	 else scope1_emission end as scope1_emission1,	
+case when start >= 2021 then scope2_emission_21_22
+	 else scope2_emission end as scope2_emission1				  
+				  ,		  
+case when scope1_emission1 is null and scope2_emission1 is not null then scope2_emission1
+	 when scope2_emission1 is null and scope1_emission1 is not null then scope1_emission1
+	 else scope1_emission1+scope2_emission1	end	 as total_emission1	
+	--scope1_emission,scope1_emission_2122onwards,scope2_emission			  
 				  
 
 from table1 t1
 				),
-turnover as ( select fy_2 , turnover from table2
+turnover as ( select fy_2 , sum(turnover) as turnover from table2
 where turnover is not null
+group by fy_2			 
 
 ),				
 				
@@ -57,10 +61,10 @@ group by country,name,fy_1,t2.fy_2,turn.turnover),
 table4 as (select name,intensity as base_value from(select name,intensity, row_number() over(partition by name order by fy_timerange asc) as row from table3)
 where row = 1 )
 
-/*select country,t3.name,t3.fy_timerange,t3.intensity,fy_2/*,lag(total_emission,1) over (order by  fy_timerange) as prev_emission*/,
+select country,t3.name,t3.fy_timerange,t3.intensity,fy_2/*,lag(total_emission,1) over (order by  fy_timerange) as prev_emission*/,
 case when t4.base_value = 0 then null
      else t4.base_value end as base_value1,(base_value1-t3.intensity)*100.0/base_value1 as base_perc,turnover1 from table3 t3
 	
 left join table4 t4 on
-t3.name = t4.name */
-select * from table2
+t3.name = t4.name 
+--select * from table2
