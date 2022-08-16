@@ -9,7 +9,7 @@ left join profile_62881 AS r
 --(select m.*, q1 from temp1 as m, m.vertical as q1)
  
 temp2 as
-(select m.month_timerange AS fy_timerange, m.project_code_new, m.amount, m.project_name, m.vertical, focus_update.name AS focus_new , state_update.name AS state_new, m.project_code, entity_update.name AS entity_new, q.name as name_update from temp1 AS m
+(select m.month_timerange AS fy_timerange, m.project_code_new, m.amount, m.project_name, m.vertical, focus_update.name AS focus_new , state_update.name AS state_new, m.project_code, entity_update.name AS entity_new, q.name as name_new from temp1 AS m
 
 left join ds_mysql_prod_tagelement as state_update
   on m.state = state_update.id
@@ -25,12 +25,12 @@ left join profile_64961 as q
 ),
   
 temp3 as
-(select m.fy_timerange, m.project_code_new, m.amount, m.project_name, vertical_new, m.focus_update, m.state_update, m.project_code, m.entity_update, m.name_update from temp2 AS m, m.vertical vertical_new),
+(select m.fy_timerange, m.project_code_new, m.amount, m.project_name, vertical_new, m.focus_new, m.state_new, m.project_code, m.entity_new, m.name_new from temp2 AS m, m.vertical vertical_new),
 
 
 temp4 as
 (
-select fy_timerange, project_code_new, project_name, focus_new, entity_new, SUM(amount) AS amount, m.name_update, state_update , count(*) ,
+select fy_timerange, project_code_new, project_name, focus_new, entity_new, SUM(amount) AS amount, m.name_new, state_new , count(*) ,
   
    case 
 when vert1.name IS NULL AND vert.name IS NOT NULL THEN vert.name
@@ -46,7 +46,7 @@ left join ds_mysql_prod_tagelement as vert
 left join ds_mysql_prod_tagelement as vert1
   on vert.parent = vert1.id  
  
-group by m.fy_timerange, m.project_code_new, m.project_name, m.focus_new, m.entity_new, m.name_update, vertical , vert1.name , vert.name
+group by m.fy_timerange, m.project_code_new, m.project_name, m.focus_new, m.entity_new, m.name_new, vertical , vert1.name , vert.name , state_new
 
 order by m.project_code_new asc
   )
