@@ -11,10 +11,10 @@ with temp1 as
  where m.astart IS NOT NULL and m.aend IS NOT NULL and r.direct_or_partner = 1132991),
  
  temp2 as
- (select _id, projectId, activity, description, start, end, astart, aend, project_code, project_code_new, vertical, focus, state, direct_or_partner, entity, vertical_new from temp1 as m, m.vertical vertical_new),
+ (select _id, projectId, activity, description, start, m.end, astart, aend, project_code, project_code_new, vertical, focus, state, direct_or_partner, entity, vertical_new from temp1 as m, m.vertical vertical_new),
  
  temp3 as
- (select _id, projectId, activity, description, start, end, astart, aend, project_code, project_code_new, focus, state, direct_or_partner, entity, 
+ (select _id, projectId, activity, description, start, m.end, astart, aend, project_code, project_code_new, focus, state, direct_or_partner, entity, 
   
   case 
 when vert1.name IS NULL AND vert.name IS NOT NULL THEN vert.name
@@ -30,15 +30,15 @@ left join ds_mysql_prod_tagelement as vert1
 on vert.parent = vert1.id),
 
  temp4 as
- (select _id, projectId, activity, description, start, end, astart, aend, project_code, project_code_new, focus, state, direct_or_partner, entity, vertical
+ (select _id, projectId, activity, description, start, m.end, astart, aend, project_code, project_code_new, focus, state, direct_or_partner, entity, vertical
   from temp1 as m
   where _id NOT IN (select _id from temp2))
   
-select _id, projectId, activity, description, start, end, astart, aend, project_code, project_code_new, focus, state, direct_or_partner, entity, vertical, count(*)
+select _id, projectId, activity, description, start, m.end, astart, aend, project_code, project_code_new, focus, state, direct_or_partner, entity, vertical, count(*)
 from temp3 as m
-group by _id, projectId, activity, description, start, end, astart, aend, project_code, project_code_new, focus, state, direct_or_partner, entity, vertical
+group by _id, projectId, activity, description, start, m.end, astart, aend, project_code, project_code_new, focus, state, direct_or_partner, entity, vertical
 
 UNION ALL
-select _id, projectId, activity, description, start, end, astart, aend, project_code, project_code_new, focus, state, direct_or_partner, entity, vertical, count(*)
+select _id, projectId, activity, description, start, m.end, astart, aend, project_code, project_code_new, focus, state, direct_or_partner, entity, vertical, count(*)
 from temp4
   
