@@ -8,7 +8,6 @@ left join ds_mysql_prod_tagelement f on
 p.fy=f.id 
 left join profile_29974 r on
 r.prj_code = p._id
- 
 union 
 select p.name as ProjectCode,f.name as fy_timerange,p.name_project as Project_Name,l.name as NGO,p.start_date as start_date,p.end_date  as End_Date,m.name  as Project_Manager,p.state as State,r.hdfc_cost_monthly from profile_27396 p
 left join profile_27395 l on
@@ -22,7 +21,7 @@ r.prj_code = p._id
 ),
 Base1 as(select b.ProjectCode,b.fy_timerange,b.Project_Name,b.NGO,b.start_date,b.End_Date,b.Project_Manager,b.hdfc_cost_monthly,State from lookup b ,b.State State
 )
-, Base2 as(select l.name as ProjectCode,f.name as fy_timerange,p.name_project Project_Name,p.ngo as NGO,p.start_date as start_date,p.end_date  as End_Date,m.name as Project_Manager,r.hdfc_cost_monthly
+, Base2 as(select l.name as ProjectCode,f.name as fy_timerange,p.name_project Project_Name,p.ngo as NGO,p.start_date as start_date,p.end_date  as End_Date,m.name as Project_Manager,r.hdfc_cost_monthly,split_part(prod.name,'|',3) as CensusCode,k.village
 from profile_27420 p
 left join profile_27396 l on
 p.project_code=l._id
@@ -31,9 +30,12 @@ p.project_manager=m.id
 left join ds_mysql_prod_tagelement f on
 p.fy=f.id
 left join profile_29974 r on
-r.prj_code = l._id)
-,Base3 as(select p.ProjectCode,p.fy_timerange,p.Project_Name,p.NGO,p.start_date,p.End_Date,p.Project_Manager,l.State as State,l.hdfc_cost_monthly from Base2 p left join Base1 l on p.ProjectCode=l.ProjectCode
+r.prj_code = l._id
+left join ds_mysql_prod_project prod on
+prod.id=rleft join profile_27489 k on
+split_part(prod.name,'|',3)=k.name.projectid),
+Base3 as(select p.ProjectCode,p.fy_timerange,p.Project_Name,p.NGO,p.start_date,p.End_Date,p.Project_Manager,l.State as State,l.hdfc_cost_monthly,p.village from Base2 p left join Base1 l on p.ProjectCode=l.ProjectCode
 )
 
-select trim(p.ProjectCode) as ProjectCode,p.fy_timerange,p.Project_Manager,p.NGO,p.Project_Name,p.start_date,p.End_Date,t1.name as State,p.hdfc_cost_monthly from Base3 p
+select trim(p.ProjectCode) as ProjectCode,p.fy_timerange,p.Project_Manager,p.NGO,p.Project_Name,p.start_date,p.End_Date,t1.name as State,p.hdfc_cost_monthly,p.village from Base3 p
 left join ds_mysql_prod_tagelement t1 on t1.id=p.State group by  trim(p.ProjectCode),p.fy_timerange,p.Project_Manager,p.NGO,p.Project_Name,p.start_date,p.End_Date,t1.name,p.hdfc_cost_monthly
