@@ -1,7 +1,6 @@
-select p1.name as Project_code, '' as ImplementingAgency,  '' as ProjectLive, '' as intervention_type, '' as CoreArea , '' as duration, '' as AmountallocatedforthecurrentFYinINR, '' as project_manager , '' as fy_timerange from profile_29974 p2
-left join profile_27396  p1 on p1._id=p2.prj_code
 
-/*with x as (select name as Project_code from profile_27396 
+
+with x as (select name as Project_code from profile_27396 
 union all
 select p1.name as Project_code from profile_29974 p2
 left join profile_27396  p1 on p1._id=p2.prj_code
@@ -17,7 +16,7 @@ left join profile_27396  p1 on p1._id=split_part(p5.project_renew,'[',1)
 ), /* project code from all profiles*/
 
 
-y as  (Select p7.name as ImplementingAgency,  p9.name as ProjectLive, p8.name as intervention_type, p10.name as CoreArea , concat(concat(split_part(p1.start_date,' ',1),' to '), split_part(p1.end_date,' ',1)) as duration, (p2.hdfc_cost_monthly+p6.monthly_cost+p4.curr_yr_budget) as AmountallocatedforthecurrentFYinINR
+y as  (Select p1.name as Project_Code, p7.name as ImplementingAgency,  p9.name as ProjectLive, p8.name as intervention_type, p10.name as CoreArea , concat(concat(split_part(p1.start_date,' ',1),' to '), split_part(p1.end_date,' ',1)) as duration, (p2.hdfc_cost_monthly+p6.monthly_cost+p4.curr_yr_budget) as AmountallocatedforthecurrentFYinINR,m.name as project_manager ,f.name as fy_timerange
 from profile_27396 p1
 left join profile_30171 p6 on
 p1._id=p6.prj_code
@@ -32,9 +31,16 @@ on p10.id=p1.focus_area
 left join profile_29974 p2 on
 p1._id=p2.prj_code
 left join profile_27420 p4 on
-p1._id=p4.project_code ),
+p1._id=p4.project_code
+left join ds_mysql_prod_tagelement f on
+p1.fy=f.id
+left join ds_mysql_prod_tagelement m on
+p1.project_manager=m.id)
 
-z as(select m.name as project_manager ,f.name as fy_timerange from profile_27396 p1
+select x.*, y.* from x 
+left join y on y.Project_Code=x.Project_code
+
+/*z as(select m.name as project_manager ,f.name as fy_timerange from profile_27396 p1
 left join ds_mysql_prod_tagelement f on
 p1.fy=f.id
 left join ds_mysql_prod_tagelement m on
