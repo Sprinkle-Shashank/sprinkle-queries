@@ -57,7 +57,7 @@ With table1 as (
   
  table3 as ( Select _id, st.name as distrcit_name_update , st1.name as state_name_update , 
 			
-case when state_name_update is not null then state_name_update else distrcit_name_update end as total_location_covered
+case when state_name_update is not null then state_name_update else distrcit_name_update end as total_location_covered , projectname
 			
 from table1
 
@@ -66,9 +66,14 @@ ON table1.location_unwind = st.id
    
 LEFT JOIN ds_mysql_prod_tagelement AS st1
 ON st.parent = st1.id
-)
+),
 
-select * from table3
+table4 as
+( select _id , count( distinct total_location_covered) as count_state , projectname from table3 as p
+ 
+ group by _id , projectname )
+
+select * from table4
   
 /*  
 Select p.*, tob3.count_state from table2 as p
