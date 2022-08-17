@@ -8,38 +8,37 @@
   ),
 
  table2 AS ( 
-  SELECT  table1.projectid, ng.name as ngo ,  table1.s_date, table1.e_date,
+  SELECT  p.projectid, ng.name as ngo ,  p.s_date, p.e_date,
   
-listagg(distinct cast(st.name as varchar),',') AS location_unwind
+listagg(distinct cast(st.name as varchar),',') AS location_unwind  , INITCAP(ent.name) as entity ,  fy_timerange , proj.name AS projectname
  
-  from table1
+  from table1 as p
   
-      LEFT JOIN ds_mysql_prod_tagelement AS st
-  ON st.id = table1.location_unwind
+LEFT JOIN ds_mysql_prod_tagelement AS st
+ON st.id = p.location_unwind
    
-    LEFT JOIN ds_mysql_prod_tagelement AS st1
-  ON st.parent = st1.id
+LEFT JOIN ds_mysql_prod_tagelement AS st1
+ON st.parent = st1.id
+     
+LEFT JOIN ds_mysql_prod_tagelement AS ng
+ON ng.id = p.ngo
    
-  
-      LEFT JOIN ds_mysql_prod_tagelement AS ng
-  ON ng.id = table1.ngo
-   
-  
-  GROUP BY 
-      table1.projectid, table1.ngo ,table1.s_date, table1.e_date,  ng.name), 
-
-
- table3 as ( SELECT projectid, fy_timerange, proj.name AS projectname, COUNT(unique_id) AS num_ben , INITCAP(ent.name) as entity  from profile_80536 p
-
 LEFT JOIN ds_mysql_prod_project AS proj
 ON p.projectid = proj.id
 			
 left join ds_mysql_prod_tagelement ent 
-on p.gsk_entity = ent.id
+on p.entity = ent.id
 			
-GROUP BY projectid, fy_timerange, proj.name ,  ent.name 
- )
-	Select *  from table3 
-	
-	LEFT JOIN table2 as tab2
-	on table3.projectid = tab2.projectid
+   
+GROUP BY 
+   p.projectid, p.ngo ,p.s_date, p.e_date,  ng.name , ent.name , proj.name , fy_timerange ),
+
+ table3 as ( SELECT projectid , COUNT(unique_id) AS num_ben from profile_80536 p
+
+GROUP BY projectid )
+
+select p.*, tab3.num_ben , tab3.projectid from table2 as p
+
+LEFT JOIN table3 as tab3
+on p.projectid = tab3.projectid
+
