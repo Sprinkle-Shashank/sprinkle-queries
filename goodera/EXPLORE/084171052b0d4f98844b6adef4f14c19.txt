@@ -10,12 +10,25 @@ with temp1 as
  
  temp2 as
  (
- select p._id, projectId , fy_timerange, vertical, focus, description, state_update, to_char(start_date ,'Month') as month_update , to_char(start_date ,'YY') as year_update , concat(month_update , concat(' ',  year_update)) as start_date_project , direct_or_partner, partner, place, district, project_code_new , entity_name as entity, verticals from temp1 as p, p.vertical verticals
-   )
+ select p._id, projectId , fy_timerange, vertical, focus, description, state_update, to_char(start_date ,'Month') as month_update , to_char(start_date ,'YY') as year_update , concat(month_update , year_update) as start_date_project , direct_or_partner, partner, place, district, project_code_new , entity_name as entity, vertical_new from temp1 as p, p.vertical vertical_new
+   ),
    
-   select _id, projectId , fy_timerange, vertical, focus, description, state_update, month_update , start_date_project , direct_or_partner, partner, place, district, project_code_new , entity, verticals.name as verticals from temp2 as p
+  temp3 as
+  (
+   select _id, projectId , fy_timerange, focus, description, state_update , start_date_project , direct_or_partner, partner, place, district, project_code_new as project_code , entity, 
+  
+case 
+when vert1.name IS NULL AND vert.name IS NOT NULL THEN vert.name
+else vert1.name 
+END AS vertical
+from temp2 as p 
    
-   
-   left join ds_mysql_prod_tagelement verticals
- on p.verticals = verticals.id
+left join ds_mysql_prod_tagelement as vert
+  on m.vertical_new = vert.id
+  
+left join ds_mysql_prod_tagelement as vert1
+  on vert.parent = vert1.id
+)
+	
+select * from temp3
    
