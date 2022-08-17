@@ -1,4 +1,18 @@
-select p2.name as partner,p.bene_name,p.fy_timerange,p.aadhar_id,t1.name as gender,t3.name as district, t4.name as state,p.bene_dob,t2.name as ed_qualification,t5.name as economic_status,t6.name as disability,t8.name as domain,t7.name as caste,p.bene_income,p3.name as batch, datediff(year,p.bene_dob,getdate()) as age from profile_81359 p
+select p2.name as partner,p.bene_name,p.fy_timerange,p.aadhar_id,t1.name as gender,t3.name as district, t4.name as state,p.bene_dob,t2.name as ed_qualification,t5.name as economic_status,t6.name as disability,t8.name as domain,t7.name as caste,p.bene_income,p3.name as batch, datediff(year,p.bene_dob,getdate()) as age,
+case
+	when age < 18 then 'Below 18'
+	when age >=18 and age <25 then '18 - 25'
+	when age >=25 and age <=30 then '25 - 30'
+	when age > 30 then 'Above 30'
+	else null end as age_bucket,
+case
+	when age_bucket='Below 18' then 1
+	when age_bucket='18 - 25' then 2
+	when age_bucket='25 - 30' then 3
+	when age_bucket='Above 30' then 4
+	else null end as age_sort
+	
+from profile_81359 p
 
 left join ds_mysql_prod_project p1 on p1.id = p.projectid
 left join ds_mysql_prod_project p2 on p2.id = p1.parent
