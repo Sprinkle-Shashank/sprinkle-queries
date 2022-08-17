@@ -10,43 +10,36 @@ WITH table1 AS (
  table2 AS ( 
   SELECT  table1.projectid, ng.name as ngo ,  table1.s_date, table1.e_date,
   
-listagg(distinct cast(st.name as varchar),',') AS location_unwind
+listagg(distinct cast(st.name as varchar),',') AS location_unwind , INITCAP(ent.name) as entity ,  fy_timerange , proj.name AS projectname
  
-  from table1
+from table1
   
-      LEFT JOIN ds_mysql_prod_tagelement AS st
-  ON st.id = table1.location_unwind
+LEFT JOIN ds_mysql_prod_tagelement AS st
+ON st.id = table1.location_unwind
    
-    LEFT JOIN ds_mysql_prod_tagelement AS st1
-  ON st.parent = st1.id
+LEFT JOIN ds_mysql_prod_tagelement AS st1
+ON st.parent = st1.id
    
-  
-      LEFT JOIN ds_mysql_prod_tagelement AS ng
-  ON ng.id = table1.ngo
+LEFT JOIN ds_mysql_prod_tagelement AS ng
+ON ng.id = table1.ngo
    
-  
-  GROUP BY 
-      table1.projectid, table1.ngo ,table1.s_date, table1.e_date,  ng.name ), 
-
-
- table3 as ( select projectid, fy_timerange, proj.name AS projectname, num_ben , 
-INITCAP(ent.name) as entity  from profile_80981 p
-
 LEFT JOIN ds_mysql_prod_project AS proj
 ON p.projectid = proj.id
 			
 left join ds_mysql_prod_tagelement ent 
 on p.entity = ent.id
- ),
+   
+  
+  GROUP BY 
+      table1.projectid, table1.ngo ,table1.s_date, table1.e_date,  ng.name ,  location_unwind ,entity ,  fy_timerange , projectname ), 
+
+
+ table3 as ( select projectid, COUNT(unique_id) as num_ben  from profile_80981 p group by projectid),
  
  table4 as (
-	Select table3.projectid, fy_timerange,  projectname, sum(num_ben) as num_ben , entity , tab2.ngo , tab2.s_date, tab2.e_date, tab2.location_unwind from table3 
+Select p.*, tab3.num_ben , tab3.projectid from table2 as p
 	
-LEFT JOIN table2  tab2
-on table3.projectid = tab2.projectid
-   
-   group by table3.projectid, fy_timerange,  projectname, entity , tab2.ngo , tab2.s_date, tab2.e_date,
-   tab2.location_unwind
-   )
+LEFT JOIN table3  tab3
+on p.projectid = tab3.projectid )
 			
 select * from table4
