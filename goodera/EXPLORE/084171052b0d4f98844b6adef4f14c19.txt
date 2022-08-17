@@ -1,13 +1,16 @@
 with temp1 as
-( select  id, projectId, fy_timerange, vertical, focus, description, state, start_date, direct_or_partner, partner, place, district, project_code, entity , p.name as project_code_new , ent.name as entity_name from profile_62881 as p
+( select  id, projectId, fy_timerange, vertical, focus, description, sta.name as state_update, start_date, direct_or_partner, partner, place, district, project_code, entity , p.name as project_code_new , ent.name as entity_name from profile_62881 as p
  
  left join ds_mysql_prod_tagelement ent
  on p.entity = ent.id
+ 
+ left join ds_mysql_prod_tagelement sta
+ on p.state = sta.id
  ),
  
  temp2 as
  (
- select id, projectId , fy_timerange, vertical, focus, description, state, start_date, direct_or_partner, partner, place, district, project_code_new as project_code , entity_name as entity from temp1 as p, p.vertical vertical_new
+ select id, projectId , fy_timerange, vertical, focus, description, state, extract(month from start_date) as start_date , direct_or_partner, partner, place, district, project_code_new as project_code , entity_name as entity from temp1 as p, p.vertical vertical_new
    )
    
    select * from temp2
