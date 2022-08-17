@@ -1,0 +1,20 @@
+drop table if exists TRRAIN_Parnter_Filter_NEW;
+ create table TRRAIN_Parnter_Filter_NEW as
+
+with sub1 as(
+  select fy_timerange, projectid, partner_db, zone_db from profile_196
+union all
+select fy_timerange, projectid, partner_db, zone_db from profile_36904)
+
+select s1.fy_timerange, p3.name as project, s1.partner_db as partner_name, s1.zone_db as zone 
+from sub1 s1
+
+left join ds_mysql_prod_project p1 on p1.id = s1.projectid
+left join ds_mysql_prod_project p2 on p2.id = p1.parent
+left join ds_mysql_prod_project p3 on p3.id = p2.parent
+
+where p3.name is not null and s1.projectid like '%%'
+
+group by s1.fy_timerange, p3.name, s1.partner_db, s1.zone_db
+
+order by s1.partner_db
