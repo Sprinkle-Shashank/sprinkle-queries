@@ -29,7 +29,7 @@ listagg(distinct cast(st.name as varchar),',') AS location_unwind
       table1.projectid, table1.ngo ,table1.s_date, table1.e_date,  ng.name), 
 
 
- table3 as ( SELECT projectid, fy_timerange, proj.name AS projectname, p._id , COUNT(unique_id) AS num_ben , INITCAP(ent.name) as entity  from profile_80536 p
+ table3 as ( SELECT projectid, fy_timerange, proj.name AS projectname, p._id , Sum(unique_id) AS num_ben , INITCAP(ent.name) as entity  from profile_80536 p
 
 LEFT JOIN ds_mysql_prod_project AS proj
 ON p.projectid = proj.id
@@ -37,12 +37,17 @@ ON p.projectid = proj.id
 left join ds_mysql_prod_tagelement ent 
 on p.gsk_entity = ent.id
 			
-GROUP BY projectid, fy_timerange, proj.name ,  ent.name , p._id
+GROUP BY projectid, fy_timerange, proj.name ,  ent.name , p._id , entity
  )
  
+ select * from table3
+ 
+ 
+ /*
 Select table3.projectid, fy_timerange, projectname , sum(num_ben) as num_ben , entity , ngo ,  tab2.s_date, tab2.e_date, tab2.location_unwind from table3 
 	
 LEFT JOIN table2 as tab2
 on table3.projectid = tab2.projectid
 	
-group by  projectid, fy_timerange, projectname , entity , ngo ,  tab2.s_date, tab2.e_date, tab2.location_unwind 
+group by  table3.projectid, fy_timerange, projectname , entity , ngo ,  tab2.s_date, tab2.e_date, tab2.location_unwind 
+*/
