@@ -1,0 +1,15 @@
+with sub1 as(
+  select projectid, zone_db from profile_196
+union all
+select projectid, zone_db from profile_36904)
+
+select p3.name as project, s1.zone_db as zone 
+from sub1 s1
+
+left join ds_mysql_prod_project p1 on p1.id = s1.projectid
+left join ds_mysql_prod_project p2 on p2.id = p1.parent
+left join ds_mysql_prod_project p3 on p3.id = p2.parent
+
+where p3.name is not null and s1.projectid like '%%'
+
+group by p3.name, s1.zone_db
