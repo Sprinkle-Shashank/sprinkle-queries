@@ -18,7 +18,7 @@ c.project_manager=m.id
 where manager is not null
 group by project_code,f.name,m.name),
 
-tab2 as(select split_part(prod.name,'|',3) as CensusCode,k.village, cast(q.name as varchar) project_code,q1.name as fy,p.total_cost_yearly as Total_Direct_Budget, p.hdfc_cost_yearly as HDFC_Bank_Contribution, p.gov_cost_yearly as Government_Contribution, p.comm_cost_yearly as Community_Contribution_by_fy from profile_29973 p 
+tab2 as(select distinct(k.village),split_part(prod.name,'|',3) as CensusCode, cast(q.name as varchar) project_code,q1.name as fy,sum(p.total_cost_yearly) as Total_Direct_Budget, sum(p.hdfc_cost_yearly) as HDFC_Bank_Contribution, sum(p.gov_cost_yearly) as Government_Contribution, sum(p.comm_cost_yearly) as Community_Contribution_by_fy from profile_29973 p 
 left join profile_27396 q
 on q._id=p.prj_code
 left join ds_mysql_prod_project prod on
@@ -27,7 +27,7 @@ left join ds_mysql_prod_tagelement q1 on
 q1.id=p.fy
 left join profile_27489 k on
 split_part(prod.name,'|',3)=k.name
-group by project_code,q1.name,split_part(prod.name,'|',3),k.village,p.total_cost_yearly, p.hdfc_cost_yearly, p.gov_cost_yearly, p.comm_cost_yearly)
+group by project_code,q1.name,split_part(prod.name,'|',3),k.village)
 
 select distinct(t2.village),t1.project_code,t1.fy,t1.manager,t2.Total_Direct_Budget,t2.HDFC_Bank_Contribution,t2.Government_Contribution,t2.Community_Contribution_by_fy from tab1 t1
 left join tab2 t2 on
