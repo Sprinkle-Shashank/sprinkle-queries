@@ -37,7 +37,7 @@ temp4 as
 when vert1.name IS NULL AND vert.name IS NOT NULL THEN vert.name
 when vert1.name IS NULL AND vert.name IS NULL then 'Admin'
 else vert1.name 
-END AS verticals
+END AS vertical
 
 from temp3 AS m
 
@@ -48,16 +48,16 @@ left join ds_mysql_prod_tagelement as vert1
   on vert.parent = vert1.id),
   
  temp5 as
-(select project_code_new, SUM(amount) as amount, fy_timerange, project_name, focus, 'Admin' as vertical, entity, direct_or_partner, _id
+(select project_code_new, SUM(amount) as amount, fy_timerange, project_name, focus, 'Admin' as verticals, entity, direct_or_partner, _id
  from temp2 as m
  where _id NOT IN (select _id from temp3)
  group by _id, project_code_new, fy_timerange, project_name, focus, vertical, entity, direct_or_partner)
  
- select project_code_new, SUM(m.amount) as amount, fy_timerange, project_name, focus, m.verticals, entity, direct_or_partner
+ select project_code_new, SUM(m.amount) as amount, fy_timerange, project_name, focus, m.vertical as verticals, entity, direct_or_partner
  from temp4 as m
  
- group by project_code_new, fy_timerange, project_name, focus, verticals, entity, direct_or_partner
+ group by project_code_new, fy_timerange, project_name, focus, vertical, entity, direct_or_partner
  
  UNION ALL
- select project_code_new, amount, fy_timerange, project_name, focus, verticals, entity, direct_or_partner
+ select project_code_new, amount, fy_timerange, project_name, focus, vertical, entity, direct_or_partner
  from temp5 as m
