@@ -1,4 +1,4 @@
-with table1 as (select bene_batch, date_enroll as fy_timerange, gen.name as gender, t.name as proj_location, t1.name as partner, t2.name as projectId, t3.name as project, profile_75455.state as state_codes, st.name as state
+with table1 as (select bene_batch, date_enroll as fy_timerange, gen.name as gender, t.name as proj_location, t1.name as partner, t2.name as projectId, t3.name as project, t0.code as state_codes, st.name as state
 
 from profile_56630
 
@@ -22,6 +22,8 @@ on profile_75455.projectId=profile_56630.projectId
 
 left join ds_mysql_prod_tagelement st
 on  profile_75455.state = st.id
+				
+left join ds_mongo_reftagelementmetadata t0 on t0._id = st.reftagelementmetadataid
 ),
 table2 as (
   select t.name as projectid,  proj_start_date, proj_end_date,fa.name as focus_area, pp.name as project_pillar, pt.name as project_type from profile_65552
@@ -50,5 +52,6 @@ select table1.projectId, NVL2(gender,gender,'Not known') as gender, fy_timerange
 
 left join table2
 on table2.projectId = table1.partner
+where state_code is not null
 
 group by  table1.projectId, gender, fy_timerange, partner,project,  proj_start_date, proj_end_date, focus_area, project_pillar, project_type, state, state_code, filter, gender
