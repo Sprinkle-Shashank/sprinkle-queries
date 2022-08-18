@@ -1,5 +1,5 @@
 			
-with table1 as ( select ('{"start":"'||start_date || '","end":"' || end_date|| '"}') as fy_timerange, gen.name as gender, t.name as proj_location, t1.name as partner, t2.name as projectId, t3.name as project, profile_1580.state as state_codes, st.name as state,Substring(start_date,0,5) as FY
+with table1 as ( select ('{"start":"'||start_date || '","end":"' || end_date|| '"}') as fy_timerange, gen.name as gender, t.name as proj_location, t1.name as partner, t2.name as projectId, t3.name as project, tag.code as state_codes, st.name as state,Substring(start_date,0,5) as FY
 
 from profile_1580
 
@@ -21,8 +21,10 @@ on  profile_1580.gender = gen.id
 left join profile_75455
 on profile_75455.projectId=profile_1580.projectId
 
-left join ds_mysql_prod_tagelement st
+left join ds_mysql_prod_tagelement st reftagelementmetadataid
 on  profile_1580.state = st.id
+				
+left join ds_mongo_reftagelementmetadata tag on tag.id = st.reftagelementmetadataid
 ),
 table2 as (
   select t.name as projectid,  proj_start_date, proj_end_date,fa.name as focus_area, pp.name as project_pillar, pt.name as project_type from profile_65552
