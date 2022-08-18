@@ -1,4 +1,6 @@
-select tag1.name as projectId, p1.name, tag2.name as theme_session, p1.sess_photo, p1.date as fy_timerange, p1.project_name, p1.sess_desc, p1.area_name, sum(p1.no_benf) as no_benf, sum(p1.no_hrs) as no_hrs, sum(p1.no_areas) as no_areas, sum(p1.no_volunteers) as no_volunteers, tag3.name as imp_partner, tag4.name as bu, tag5.name as theme, p3.name as location, count(*) as no_sessions
+
+with t1 as 
+(select tag1.name as projectId, p1.name, tag2.name as theme_session, p1.sess_photo, p1.date as fy_timerange, p1.project_name, p1.sess_desc, p1.area_name, sum(p1.no_benf) as no_benf, sum(p1.no_hrs) as no_hrs, sum(p1.no_areas) as no_areas, sum(p1.no_volunteers) as no_volunteers, tag3.name as imp_partner, tag4.name as bu, tag5.name as theme, p3.name as location, count(*) as no_sessions
 from profile_71857 p1
 left join ds_mysql_prod_project p2
 on p2.id = p1.projectId
@@ -21,5 +23,35 @@ on p5.bu = tag4.id
 left join ds_mysql_prod_tagelement tag5
 on p6.theme = tag5.id
 group by 
-tag1.name, p1.name, tag2.name , p1.sess_photo, p1.date, p1.project_name, p1.sess_desc, p1.area_name, tag3.name, tag4.name, tag5.name, p3.name
+tag1.name, p1.name, tag2.name, p1.sess_photo, p1.date, p1.project_name, p1.sess_desc, p1.area_name, tag3.name, tag4.name, tag5.name, p3.name),
+
+item as 
+(
+select 'no_sessions' as c
+union all
+select 'no_benf' as c
+union all 
+select 'no_hrs' as c
+union all
+select 'no_areas' as c
+union all
+select 'no_volunteers' as c
+),
+
+t2 as 
+(select projectId,
+ case c 
+ when 'no_sessions' then t1.no_sessions
+ when 'no_benf' then t1.no_benf
+ when 'no_hrs' then t1.no_hrs
+ when 'no_areas' then t1.no_areas
+ when 'no_volunteers' then t1.no_volunteers
+ else null
+ end as count, item.c as item
+ from t1 cross join item
+ group by projectId, no_session, no_benf, no_hrs, no_areas, no_volunteers, item.c
+
+
+
+
 
