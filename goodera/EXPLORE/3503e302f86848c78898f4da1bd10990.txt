@@ -45,7 +45,7 @@ on  profile_65552.project_type = pt.id
   
 
 )
-select table3.projectId, fy_timerange, project, partner,stcd.name as state, table3.state as state_code, proj_start_date, proj_end_date, focus_area, project_pillar, project_type, case when project_type is not null then 'Beneficiaries' end as filter, case when project_type is not null then 'Not known' end as gender,sum(no_beneficiaries) as count,concat('FY',FY) as FY from table3
+select table3.projectId, fy_timerange, project, partner,stcd.name as state, t0.code as state_code, proj_start_date, proj_end_date, focus_area, project_pillar, project_type, case when project_type is not null then 'Beneficiaries' end as filter, case when project_type is not null then 'Not known' end as gender,sum(no_beneficiaries) as count,concat('FY',FY) as FY from table3
 
 
 left join ds_mysql_prod_tagelement st
@@ -54,9 +54,13 @@ on  table3.state = st.id
 left join ds_mysql_prod_tagelement stcd
 on  st.parent = stcd.id
 
+left join ds_mongo_reftagelementmetadata t0 on t0._id = stcd.reftagelementmetadataid
+
+
 --left join profile_73573 st on table1.state_codes = st.nptel_loc
 
 left join table2
 on table2.projectId = table3.partner
+where state_code is not null
 
 group by  table3.projectId, fy_timerange, partner,project,  proj_start_date, proj_end_date, focus_area, project_pillar, project_type, stcd.name, state_code, filter, gender,fy
