@@ -1,0 +1,41 @@
+drop table if exists GAP_SST_SBSTR_Endline;
+ create table GAP_SST_SBSTR_Endline as
+
+with table1 as 
+(
+   select p1.*,cast(survey as varchar), trainer_organization as trainer_org from profile_63439 as p1, p1.survey_arr survey
+ ),
+ 
+table21 as 
+(
+select p.projectid, p.facility_status , facility.name as facility_status_update , case when facility_status_update='Active' then 'Active' else 'Deactive' end as Active_Filter , goodera_facility_name_text from profile_68161 as p
+  
+left join ds_mysql_prod_tagelement facility 
+on p.facility_status = facility.id
+)
+ 
+select fac.name as projectid, ven.name as vendor, cou.name as country , tra_i.name as training_id ,  case when extract(month from table1.date)=1 then (extract(year from table1.date)-1) else extract(year from table1.date) end as year, table1.trainer_org as trainer_organization , count(p.projectId) as post_supervisor_total_respondents , t21.active_filter from profile_65222 as p
+
+left join table1 on 
+p._id = table1.survey
+
+left join profile_61498 tra_i 
+on table1.training_id = tra_i._id
+
+left join ds_mysql_prod_project fac
+on p.projectid = fac.id
+
+left join ds_mysql_prod_project ven
+on fac.parent = ven.id
+
+left join ds_mysql_prod_project cou
+on ven.parent = cou.id
+
+left join table21 t21 on 
+fac.name = t21.goodera_facility_name_text
+
+where t21.active_filter is not null and country <> 'Test Country'
+
+group by  fac.name, score_total, country, vendor, year, p.projectId , table1.trainer_org , tra_i.name , t21.active_filter
+
+-- projectId, score_total, country, vendor, year, trainer_organization
