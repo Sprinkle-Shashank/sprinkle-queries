@@ -1,11 +1,20 @@
-
-Select * from profile_82026
-
-/*
 with temp as (
-  select 'beneficiary_reach' as C
+  select 'aq_machine' as C
   Union all 
-  select 'philips_partcipants' as C
+  select 'num_machines' as C
   )
-	   
-*/
+Select projectid , fy_timerange , loc.name as location_machine ,
+SUM(Case C
+	When 'aq_machine' then p.aq_machine
+	When 'num_machines' then p.num_machines
+	Else Null
+END) as values , temp.C as dimensions
+
+from profile_82026 p
+cross join temp
+left join ds_mysql_prod_tagelement loc
+ on p.location_machine = loc.id
+
+GROUP BY projectid , fy_timerange , loc.name , temp.C 
+
+
