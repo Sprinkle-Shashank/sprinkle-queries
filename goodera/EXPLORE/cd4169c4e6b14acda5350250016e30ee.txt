@@ -2,13 +2,8 @@ with sub1 as(
   select p1.*, cast(docs as VARCHAR) from profile_41431 p1, p1.doc docs),
   
 sub2 as(
-  select s1.fy_timerange, t1.name as type, listagg(distinct s1.docs, ', ') as docs, cast('Click Here' as VARCHAR) as doc_download,
+  select s1.fy_timerange, t1.name as type, listagg(distinct s1.docs, ', ') as docs, cast('Click Here' as VARCHAR) as doc_download, p2.name as projectid
 (extract(year from cast(s1.fy_timerange.start as date)) || '-' ||  extract(year from cast(s1.fy_timerange.end as date))) as year,
-  
-case
-	when p2.name like '%COVID-19%' then split_part(p2.name, ' - ', 1)
-	else p2.name
-end as projectid
   
 from sub1 s1
 
@@ -30,12 +25,7 @@ where proposal_file != ' ' ),
 
 sub4 as(
   select s3.fy_timerange, s3.type, s3.docs, cast('Click Here' as VARCHAR) as doc_download, 
-(extract(year from cast(s3.fy_timerange.start as date)) || '-' ||  extract(year from cast(s3.fy_timerange.end as date))) as year,
-  
-case
-	when p4.name like '%COVID-19%' then split_part(p4.name, ' - ', 1)
-	else p4.name
-end as projectid
+(extract(year from cast(s3.fy_timerange.start as date)) || '-' ||  extract(year from cast(s3.fy_timerange.end as date))) as year, p4.name as projectid
   
 from sub3 s3
 left join ds_mysql_prod_project p4 on p4.id = s3.projectid)
