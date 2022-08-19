@@ -68,7 +68,8 @@ sub4 as(
   select 'self_declaration' as col),
   
 sub5 as(
-  select s5.id, s5.partner, s5.fy, s5.fy_timerange, s5.spoc_name, s5.spoc_number, sub4.col as doc_type, case sub4.col
+  select s5.id, s5.projectid, s5.partner, s5.fy, s5.fy_timerange, s5.spoc_name, s5.spoc_number, s5.spoc_mail, sub4.col as doc_type, 
+  case sub4.col
 	when 'doc_80_g' then s5.doc_80_g
 	when 'doc_12_a' then s5.doc_12_a
 	when 'doc_35_ac' then s5.doc_35_ac
@@ -88,4 +89,6 @@ from sub3 s5
 cross join sub4
 where docs != ' ')
 
-select * from sub5
+select partner, projectid, fy, fy_timerange, spoc_name, spoc_number, spoc_mail, 'Download' as download, listagg(docs, ', ')
+from sub5 
+group by partner, projectid, fy, fy_timerange, spoc_name, spoc_number, spoc_mail
