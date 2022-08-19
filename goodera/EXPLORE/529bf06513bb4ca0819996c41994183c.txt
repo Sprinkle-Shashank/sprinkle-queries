@@ -1,5 +1,5 @@
 
-with table1 as (select pro.name as projectid,p.name,fy_timerange,new_equipment,installed,stat.name as state,old_equipment,replaced,cur_equipment,upgraded,phc_handover ,
+with table1 as (select pro.name as projectid,p.name,fy_timerange,new_equipment,installed,stat.name as state,old_equipment,replaced,cur_equipment,upgraded,phc_handover ,hfa,hfa_initiated,
 				case when phc_handover = 1547274 then 1
 				 else 0 end as temp
 				from profile_79423 p
@@ -22,6 +22,8 @@ left join ds_mysql_prod_tagelement as stat
 		  Union all
 		  select 'phc_handover' as c
 		  Union all
+		  select 'HFA Initiated' as c
+		  Union all
 		  select 'HFA Report' as c
 )
 	
@@ -35,6 +37,8 @@ sum ( case c when 'new_equipment' then t1.new_equipment
 	         when  'upgraded' then t1.upgraded
 	         when  'phc_handover' then t1.temp
 	 		 when  'HFA Report' then t1.hfa	
+	 		 when  'HFA Initiated' then t1.hfa_initiated	
+	 			
 	         else null 
 	         end ) as values , temp.c as dimension from table1 t1
 cross join temp
