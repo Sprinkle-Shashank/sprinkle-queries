@@ -1,4 +1,111 @@
-Select distinct(_id) from profile_27396
+with main as (select p.subcat_output,n1.name as focus,r.name as fy_timerange, cast((split_part(split_part(prod.name,'|',1),'.',1)) as varchar) as ProjectCode from profile_54963 p
+left join ds_mysql_prod_project prod on
+prod.id=p.projectid
+left join ds_mysql_prod_tagelement r on
+r.id=p.fy
+
+			  
+left join ds_mysql_prod_tagelement n1 on
+n1.id=p.focus_area),
+
+
+lookup as (select cast(q.name as varchar)as ProjectCode,f.name as fy_timerange,m.name as Project_Manager,' ' as ngo_partners,f1.name as focus_area,'' as state
+from profile_27420 d
+left join ds_mysql_prod_tagelement f on
+d.fy=f.id
+left join ds_mysql_prod_tagelement m on
+d.project_manager=m.id
+left join ds_mysql_prod_tagelement f1 on
+d.focus_area=f1.id
+left join profile_27396 q on
+d.project_code=q._id
+		   
+		   
+union all
+
+select cast(c.name as varchar)as ProjectCode,f.name as fy_timerange,m.name as Project_Manager,p2.name as ngo_partners,f1.name as focus_area,state
+from profile_27396 c
+		   
+left join ds_mysql_prod_tagelement f on
+c.fy=f.id
+left join ds_mysql_prod_tagelement m on
+c.project_manager=m.id
+left join profile_27395 p2
+on c.ngo_partner = p2._id
+left join ds_mysql_prod_tagelement f1 on
+c.focus_area=f1.id
+		   
+union all
+		   
+select f.name as fy_timerange,f1.name as focus_area,m.name as Project_Manager,p2.name as ngo_partners,cast(p.name as varchar)as ProjectCode,p.state
+from profile_27396 p
+left join ds_mysql_prod_tagelement f on
+p.fy=f.id
+left join profile_80183 p2
+on p.ngo_partner = p2._id
+left join ds_mysql_prod_tagelement m on
+p.project_manager=m.id
+left join ds_mysql_prod_tagelement f1 on
+p.focus_area=f1.id),
+
+main2 as (
+select b.fy_timerange as fy,b.ProjectCode,q.Project_Manager as level1,b.focus,q.ngo_partners,q.state from main b
+left join lookup q on
+q.ProjectCode = b.ProjectCode
+group by b.fy_timerange,b.ProjectCode,q.Project_Manager,b.focus,q.ngo_partners,q.state),
+
+level1tab as (select m.name as level1 ,p.approver as level2,p.name as level1email from profile_27424 p
+left join ds_mysql_prod_tagelement m on
+m.id = p.pm_name),
+
+level2tab as (select m.name as level1 , z.level1 as level2 from profile_27424 p
+left join ds_mysql_prod_tagelement m on
+m.id = p.pm_name
+left join level1tab z on
+z.level1email = p.approver),
+
+newtab as (Select t.name as project_code from profile_29974 p
+left join profile_27396 t
+on t._id=p.prj_code),
+
+newtab1 as (select distinct(newtab.project_code) as project_code from newtab)
+, ss as (
+select fy,ProjectCode,p.level1,focus,ngo_partners,level2, state,
+case when s.project_code is NULL
+then 'initiated' else 'renewed' end as status from main2 p
+
+left join newtab1 s on
+p.ProjectCode=s.project_code
+left join level2tab d on
+d.level1 = p.level1
+),
+sss as (
+Select fy, ProjectCode,level1,focus,ngo_partners,level2,st,status
+from ss as sp, sp.state st
+  ),
+  ss1 as(
+  Select fy,level1,ngo_partners,level2,t.name as state,status
+from sss
+left join ds_mysql_prod_tagelement t on
+t.id=st
+	)
+Select *
+from ss1
+group by fy,level1,level2,status,state, ngo_partners
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 /*
 Select (split_part(split_part(p9._id,'|',1),'-',1))
