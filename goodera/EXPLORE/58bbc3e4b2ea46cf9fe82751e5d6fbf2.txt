@@ -69,6 +69,22 @@ group by indicator_ref, project_code, fy_timerange, description, indicator, proj
 
 temp7 as
 (select indicator_ref, project_code, fy_timerange, progress, description, indicator, target, project_code_new, project_name, focus, state, direct_or_partner, district, entity, verticals
-from temp5 as m)
+from temp5 as m, m.verticals as vertical_new),
+
+temp8 as
+(select indicator_ref, project_code, fy_timerange, progress, description, indicator, target, project_code_new, project_name, focus, state, direct_or_partner, district, entity,
+ 
+ case 
+when vert1.name IS NULL AND vert.name IS NOT NULL THEN vert.name
+else vert1.name 
+END AS verticals
+ 
+from temp5 as m
+
+left join ds_mysql_prod_tagelement as vert
+on m.vertical_new = vert.id
+  
+left join ds_mysql_prod_tagelement as vert1
+on vert.parent = vert1.id)
 
 select * from temp7
