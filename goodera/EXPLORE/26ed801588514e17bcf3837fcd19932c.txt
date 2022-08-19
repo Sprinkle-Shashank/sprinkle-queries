@@ -1,36 +1,22 @@
-with temp as (
-Select 'shg_member_train' as col
-  union all
-Select 'shg_non_member_training' as col
-)
-,
-base1 as(
-  select projectid, substring(cast(p.start_date as varchar),1,10)||'T00:00:00.000Z'||'|'||substring(cast(current_date as varchar),1,10)||'T00:00:00.000Z' as fy_timerange, extract(year from p.start_date) as fy ,p2.name as beneficiaries,p3.name as benef1
-  from profile_58864 p
-  left join profile_58858 p2
-  on p2._id=p.shg_member_train
-  left join profile_58859 p3
-  on p3._id=p.shg_non_member_training
-  
-  )
-  Select * from base1
-  
- /* 
- ,
- s2 as (
- Select  projectid, fy_timerange ,fy, base1.beneficiaries1 as shg_member_train, base1.beneficiaries2 as shg_non_member_training
-   from base1
- 
- )
-  Select  projectid, fy_timerange ,fy,temp.col as type,
-  (case col
-  when 'shg_member_train' then s2.shg_member_train
-  when 'shg_non_member_training' then s2.shg_non_member_training
-  else 0
-  end )as Count
-  
-  from s2
-  cross join temp
-  group by 1,2,3,4,5
-  
-  */
+select p.name as projectId, a.fy_timerange,p1.name as beneficiary,
+a.monthly_salary ,
+case 
+when t1.name = 'Yes with Other eateries' then a.monthly_salary
+when t1.name = 'Yes with Food Truck' then (p2.avg_income+p2.stipend_amount)
+end as avg_income_after,
+
+t1.name as status, '' as Intervention,
+case 
+when t1.name = 'Yes with Food Truck' then 'Placed with Food Truck'
+when t1.name = 'Yes with Other eateries' then 'Placed with Other Eateries'
+end as dimensions
+from profile_81392 a 
+--where t1.name = 
+left join ds_mysql_prod_project p on p.id = a.projectid
+left join profile_81375 p1 on p1._id= a.beneficiary
+left join ds_mysql_prod_tagelement t1 on t1.id=a.placement_status
+left join profile_81394 p2 on p2.projectid= a.projectid
+
+where t1.name = 'Yes with Food Truck' or t1.name = 'Yes with Other eateries'
+
+group by p.name,a.fy_timerange,p1.name,p1.avg_monthly_income,a.monthly_salary,t1.name,p2.avg_income,p2.stipend_amount
