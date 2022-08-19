@@ -43,7 +43,7 @@ temp4 as
  
  case 
 when vert1.name IS NULL AND vert.name IS NOT NULL THEN vert.name
-when vert1.name IS NULL AND vert.name IS NULL then 'Admin'
+--when vert1.name IS NULL AND vert.name IS NULL then 'Admin'
 else vert1.name 
 END AS vertical
 
@@ -54,6 +54,21 @@ left join ds_mysql_prod_tagelement as vert
   
 left join ds_mysql_prod_tagelement as vert1
   on vert.parent = vert1.id),
- 
   
-select * from temp2
+temp5 as
+(select _id, indicator_ref, project_code, fy_timerange, SUM(progress) as progress, description, indicator, AVG(target) as target, project_code_new, project_name, focus, state, direct_or_partner, district, entity, vertical as verticals
+ from temp2 as m
+ where _id NOT IN (select _id from temp3)
+ group by _id, indicator_ref, project_code, fy_timerange, description, indicator, project_code_new, project_name, focus, state, direct_or_partner, district, entity, vertical),
+ 
+temp6 as 
+(select indicator_ref, project_code, fy_timerange, SUM(m.progress) as progress, description, indicator, AVG(m.target) as target, project_code_new, project_name, focus, state, direct_or_partner, district, entity, m.vertical as verticals
+
+from temp4 as m
+group by indicator_ref, project_code, fy_timerange, description, indicator, project_code_new, project_name, focus, state, direct_or_partner, district, entity, vertical),
+
+temp7 as
+(select indicator_ref, project_code, fy_timerange, progress, description, indicator, target, project_code_new, project_name, focus, state, direct_or_partner, district, entity, verticals
+from temp5 as m)
+
+select * from temp6
