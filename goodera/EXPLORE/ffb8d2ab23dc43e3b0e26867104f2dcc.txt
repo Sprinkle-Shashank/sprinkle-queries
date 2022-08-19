@@ -6,7 +6,18 @@ with temp as (
   select '11 goat model' as C
   )
 
-Select projectid , fy_timerange ,
+Select projectid , EXTRACT(MONTH FROM(CAST(p.fy_timerange.start AS datetime)))AS month1,
+EXTRACT(YEAR FROM(CAST(p.fy_timerange.start AS datetime)))AS year1,
+CASE
+WHEN MONTH1 <= 3
+THEN YEAR1-1
+ELSE
+YEAR1
+END AS start,
+start+1 as end1,
+concat(start,'-04-01T00:00:00.000Z') as start1,
+concat(end1,'-04-01T00:00:00.000Z') as end2,
+concat(concat(concat(concat('{"start":"',start1),'","end":"'),end2),'"}') as fy_timerange ,
 SUM(Case C
 	When '2 goat model' then p.hh_2_goatmodel
 	When '5 goat model' then p.hh_5_goatmodel
