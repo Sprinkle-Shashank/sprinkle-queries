@@ -1,9 +1,11 @@
 with s as (Select 
-data.name,data.project_code,data.project_manager,data.focus_area,data.start_date,data.end_date,
-data.submissionlog."timestamp",substring(t.name,1,4) as fy
+data.name,data.project_code,t1.name as project_manager,data.focus_area,data.start_date,data.end_date,
+data.submissionlog,substring(t.name,1,4) as fy,approvallog
 from ds_mongo_taskresponse 	
 left join ds_mysql_prod_tagelement t
 on t.id=data.fy
+left join ds_mysql_prod_tagelement t1
+on t1.id=data.project_manager
 where profileId=27420
 order by fy
 )
@@ -11,7 +13,7 @@ order by fy
 ,
 s2 as(
 Select name,project_code,project_manager,focus_area,start_date,end_date,profileinstanceid,sl."timestamp" as submissiondate
-from s as p,p.submissionlog sl
+from s as p,p.submissionlog sl,p.approvallog al
 )
 Select max(s2.name) as name,max(ngo_partner) as ngo_partner,max(t.name) as project_manager,max(t1.name) as focus_area,max(ss.name) as intervention_type,max(start_date) as start_date,max(end_date) as end_date,profileinstanceid,(al) as approvallog, max(status2) as status2,max(submissiondate) as submissiondate
 from s2
