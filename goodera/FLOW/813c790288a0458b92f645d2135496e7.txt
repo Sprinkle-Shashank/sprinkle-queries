@@ -1,0 +1,28 @@
+with table1 as 
+(
+   select p1.*,cast(survey as varchar) from profile_63438 p1, p1.survey_arr survey
+ )
+ 
+select fac.name as projectId,p.projectid as project, cou.name as country, total_score ,t1.trainer_organization , 
+--SUBSTRING(t1.date,0,5) as year,
+case when extract(month from t1.date)=1 then (extract(year from t1.date)-1) else extract(year from t1.date) end as year,  ven.name as vendor,
+count(*) as post_worker_respondents_total ,t1.training_id,p.timeline_miss, p.supervisor_overall,p.wages,p.worker_leave,p.supervisor_loud,p.conflict,p.worker_late,  p.discussion,'Post-Training Survey' as survey_type
+from profile_65221 p
+
+left join table1 t1 on 
+p._id = t1.survey
+
+
+left join ds_mysql_prod_project fac
+on p.projectid = fac.id
+
+left join ds_mysql_prod_project ven
+on fac.parent = ven.id
+
+left join ds_mysql_prod_project cou
+on ven.parent = cou.id
+
+where (p.worker_leave = 1060749) and (project like '%%') and (cou.name <> 'Test Country')
+
+ group by  fac.name,cou.name,project, total_score ,t1.trainer_organization ,year, 
+  ven.name ,t1.training_id,p.timeline_miss, p.supervisor_overall,p.wages,p.worker_leave,p.supervisor_loud,p.conflict,p.worker_late,  p.discussion,survey_type
