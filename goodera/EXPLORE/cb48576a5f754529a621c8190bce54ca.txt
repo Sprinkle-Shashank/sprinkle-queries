@@ -197,15 +197,18 @@ sub6 as(
 
 from sub5),
 
-sub7 as (
-  select vendor, vendor_vms_id, sum(meet_target) as meet_target, year
+sub7 as(
+  select vendor, vendor_vms_id, year, 
+SPLIT_TO_ARRAY(LISTAGG(distinct factory, '||'), '||') as factories_met_target,
+GET_ARRAY_LENGTH(factories_met_target) as factories_count
 from sub6
+where meet_target = 1
 group by vendor, vendor_vms_id, year)
 
 select s7.vendor, s7.vendor_vms_id, s7.year,
 
 case
-	when s7.meet_target = s2.vendor_factories then 1
+	when s7.factories_count = s2.vendor_factories then 1
 	else 0
 end as vendor_target
 
