@@ -1,4 +1,18 @@
-select  split_part(split_part(prj_code,'|',1),'.',1)  as projectcode , prj_code from  profile_30171 p
+
+
+with x as (select sum(p2.payment_amount) as DisbursedAmount, f.name  as financial_year from profile_27398 p2
+left join ds_mysql_prod_tagelement f on
+p2.fy=f.id
+group by f.name), 
+
+y as  (Select sum(p1.two_percent) as TwoPercentAmount,f.name  as financial_year from profile_36762 p1
+left join ds_mysql_prod_tagelement f on
+p1.fy=f.id
+group by f.name) 
+
+select x.DisbursedAmount, y.TwoPercentAmount, y.financial_year from y left join x on y.financial_year=x.financial_year
+
+/*select  split_part(split_part(prj_code,'|',1),'.',1)  as projectcode , prj_code from  profile_30171 p*/
 /*select p1.name as Project_code  ,p7.name as ImplementingAgency,  p9.name as ProjectLive, p8.name as intervention_type, p10.name as CoreArea , concat(concat(split_part(p1.start_date,' ',1),' to '), split_part(p1.end_date,' ',1)) as duration, m.name as project_manager ,f.name as fy_timerange ,sum(p2.hdfc_cost_monthly+p6.monthly_cost+p4.curr_yr_budget) as AmountallocatedforthecurrentFYinINR/*,sum(p2.hdfc_cost_monthly+p6.monthly_cost) as AmountallocatedforQ1inINR, p6.month_number as quarter*/
 from profile_27396 p1
 left join profile_30171 p6 on
