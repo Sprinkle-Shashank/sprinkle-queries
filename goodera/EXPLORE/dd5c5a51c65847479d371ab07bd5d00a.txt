@@ -1,11 +1,12 @@
 with s as (Select 
-data.name,data.project_code,t1.name as project_manager,data.focus_area,data.start_date,data.end_date,
-data.submissionlog,substring(t.name,1,4) as fy,approvallog,status
+maxdata.name) as name,data.project_code,max(t1.name) as project_manager,max(data.focus_area) as focus_area,max(data.start_date) as start_date,max(data.end_date) as end_date,
+submissionlog,substring(t.name,1,4) as fy,approvallog,max(status) as status
 from ds_mongo_taskresponse 	
 left join ds_mysql_prod_tagelement t
 on t.id=data.fy
 left join ds_mysql_prod_tagelement t1
 on t1.id=data.project_manager
+group by data.project_code,fy,approvallog,submissionlog
 where profileId=27420
 order by fy
 )
