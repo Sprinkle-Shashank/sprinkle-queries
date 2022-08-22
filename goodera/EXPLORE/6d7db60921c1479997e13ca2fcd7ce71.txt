@@ -215,12 +215,15 @@ end as vendor_target
 
 from sub7 s7
 left join sub2 s2 on s2.vendor_vms_id = s7.vendor_vms_id
-where vendor_target = 1)
+where vendor_target = 1),
 
 ----x--
 
-select s8.id, s8.factory, s8.factory_cdms_id, s8.vendor, s8.vendor_vms_id, p4.source_div, p4.timeperiod_timerange,
+sub9 as(
+  select s8.id, s8.factory, s8.factory_cdms_id, s8.vendor, s8.vendor_vms_id, p4.source_div, p4.timeperiod_timerange,
 row_number() over(partition by s8.id order by cast(p4.timeperiod_timerange.start as date) desc) as row
 
 from sub4 s8
-left join profile_60928 p4 on p4.factory_id = s8.factory_cdms_id
+left join profile_60928 p4 on p4.factory_id = s8.factory_cdms_id)
+
+select * from sub9 where row = 1
