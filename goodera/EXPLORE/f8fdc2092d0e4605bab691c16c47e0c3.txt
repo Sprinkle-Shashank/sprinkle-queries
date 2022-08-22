@@ -1,5 +1,5 @@
 with temp1 as 
-(select m.completed, m.project_code, m.fy_timerange, m.remarks, r.project_name, r.vertical, r.focus
+(select m.completed, m.project_code, m.fy_timerange, m.remarks, r.project_name, r.vertical, r.focus, r._id
  from profile_55471 as m
  
  left join profile_62881 AS r 
@@ -8,6 +8,58 @@ with temp1 as
  where completed = 939857 and project_name IS NOT NULL),
  
  temp2 as
- (select completed, project_code, fy_timerange, remarks, project_name, vertical,  focus from temp1 as m)
+ (select completed, project_code, fy_timerange, remarks, project_name, vertical, _id,
   
-  select * from temp2
+ case when m.focus IS NULL THEN 'Admin'
+ else m.focus
+ end as focus
+ from temp1 as m),
+ 
+ temp3 as
+ (select completed, project_code, fy_timerange, focus, project_name, vertical, _id,
+  
+ case when m.remarks IS NULL THEN '-'
+ else m.remarks
+ end as remarks
+ from temp2 as m),
+ 
+ temp4 as
+ (select completed, project_code, fy_timerange, focus, project_name, vertical, remarks, _id, vertical_new 
+ 
+  from temp3 as m, m.vertical vertical_new),
+  
+  temp5 as 
+  (select completed, project_code, fy_timerange, focus, project_name, remarks,
+   
+   case 
+   when vert1.name IS NULL AND vert.name IS NOT NULL THEN vert.name
+   when vert1.name IS NULL AND vert.name IS NULL then 'Admin'
+   else vert1.name 
+   END AS vertical
+
+   from temp4 AS m
+
+left join ds_mysql_prod_tagelement as vert
+  on m.vertical_new = vert.id
+  
+left join ds_mysql_prod_tagelement as vert1
+  on vert.parent = vert1.id),
+  
+  temp6 as
+  (select completed, project_code, fy_timerange, focus, project_name, remarks, vertical, _id, count(*) as total
+   from temp3 as m
+   where _id NOT IN (select _id from temp4)
+   group by completed, project_code, fy_timerange, focus, project_name, remarks, vertical, _id),
+   
+   temp7 as 
+   (select completed, project_code, fy_timerange, focus, project_name, remarks, m.vertical, count(*) as total
+  
+	from temp5 as m
+	
+	group by completed, project_code, fy_timerange, focus, project_name, remarks, m.vertical
+	
+	UNION ALL
+	select completed, project_code, fy_timerange, focus, project_name, remarks, vertical, total
+	from temp6)
+	
+  select * from temp7
