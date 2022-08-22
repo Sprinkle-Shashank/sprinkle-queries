@@ -1,5 +1,5 @@
 with s as(
-Select p.name as projectId,p2.name as food_truck,p2.food_truck_employee, (avg_income+stipend_amount) as  avg_income_after
+Select p.name as projectId,a.fy_timerange,p2.name as food_truck,p2.food_truck_employee, (avg_income+stipend_amount) as  avg_income_after
 --p3.bene_name as beneficiary
 
 from profile_81394 a
@@ -7,15 +7,16 @@ left join ds_mysql_prod_project p on p.id = a.projectid
 left join profile_81393 p2 on p2._id= a.food_truck
 ),
 s2 as(
-Select projectId,food_truck,f_emp, avg_income_after
+Select projectId,fy_timerange,food_truck,f_emp, avg_income_after
   from s as p,p.food_truck_employee as f_emp
 )
 , s3 as (
-Select  projectId,food_truck,f_emp,count(f_emp) as No_of_people_in_truck, avg_income_after from s2
+Select  projectId,fy_timerange,food_truck,f_emp,count(f_emp) as No_of_people_in_truck, avg_income_after from s2
 group by projectId,food_truck,avg_income_after,f_emp
 ),
 s4 as (
-Select  s3.projectId,food_truck,ss.name as f_emp,avg_income_after*No_of_people_in_truck as tot_avg_income
+Select  s3.projectId,fy_timerange,ss.name as beneficiary,avg_income_after*No_of_people_in_truck as avg_income_after,
+  'Yes with Food Truck' as status, '' as intervention,'Placed with Food Truck' as dimensions
 from s3
 left join profile_81392 ss
 on s3.f_emp=ss._id
