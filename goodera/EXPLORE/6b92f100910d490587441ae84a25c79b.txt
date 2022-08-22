@@ -1,4 +1,4 @@
-Select CASE WHEN p5.name = 'Indirect' THEN sum(p2.hdfc_cost_monthly + p3.monthly_cost) else sum(p1.curr_yr_budget + p2.hdfc_cost_monthly + p3.monthly_cost) END AS Allocated_Amount ,p5.name as Intervention_Type
+Select CASE WHEN p5.name = 'Indirect' THEN sum(p2.hdfc_cost_monthly + p3.monthly_cost) else sum(p1.curr_yr_budget + p2.hdfc_cost_monthly + p3.monthly_cost) END AS Allocated_Amount ,p5.name as Intervention_Type,p1.name,t1.name as Project_Manager,t2.name as Financial_Year
 from profile_27396 p1
 left join profile_27420 p4
 on p1._id = p4.project_code
@@ -8,23 +8,48 @@ left join profile_30171 p3
 on p1._id = p3.prj_code
 left join profile_28235 p5
 on p5._id = p1.intervention_type
-group by p5.name;
+left join ds_mysql_prod_tagelement t1
+on p1.project_manager = t1.id
+left join ds_mysql_prod_tagelement t2
+on p1.fy = t2.id
+group by p5.name,p1.name,t1.name,t2.name;
 
 
 
 
-
-/* Select sum(p1.curr_yr_budget) as current_year_budget,sum(p2.hdfc_cost_monthly) as Hdfc_cost,sum(p3.monthly_cost) as Monthly_cost,p4.name as intervention_type 
+/*Select p1.name,p4.name as intervention_type,sum(p3.payment_amount) as Disbursed_Amount,t1.name as Project_Manager,t2.name as Financial_Year
 from profile_27396 p1
-left join profile_27420 p5
-on p1._id = p5.project_code
+left join profile_27420 p2
+on p1._id = p2.project_code
+left join profile_27398 p3
+on p2._id = p3.project_renew
+left join profile_28235 p4
+on p4._id = p1.intervention_type
+left join ds_mysql_prod_tagelement t1
+on p1.project_manager = t1.id
+left join ds_mysql_prod_tagelement t2
+on p3.fy = t2.id
+group by p4.name,p1.name,t1.name,t2.name;*/
+
+
+
+
+/*chart_11
+Select CASE WHEN p5.name = 'Indirect' THEN sum(p2.hdfc_cost_monthly + p3.monthly_cost) else sum(p1.curr_yr_budget + p2.hdfc_cost_monthly + p3.monthly_cost) END AS Allocated_Amount ,p5.name as Intervention_Type,p1.name,t1.name as Project_Manager,t2.name as Financial_Year
+from profile_27396 p1
+left join profile_27420 p4
+on p1._id = p4.project_code
 left join profile_29974 p2
 on p1._id = p2.prj_code
 left join profile_30171 p3
 on p1._id = p3.prj_code
-left join profile_28235 p4
-on p1.intervention_type=p4._id
-group by p4.name */
+left join profile_28235 p5
+on p5._id = p1.intervention_type
+left join ds_mysql_prod_tagelement t1
+on p1.project_manager = t1.id
+left join ds_mysql_prod_tagelement t2
+on p1.fy = t2.id
+group by p5.name,p1.name,t1.name,t2.name; */
 
 
 
@@ -67,39 +92,6 @@ on q.project_code=p.name
 */
 
 
-
-
-
-
-
-/* chart_11
-Select sum(p1.curr_yr_budget) as current_year_budget,sum(p2.hdfc_cost_monthly) as Hdfc_cost,sum(p3.monthly_cost) as Monthly_cost,p4.name as intervention_type 
-from profile_27396 p1
-left join profile_27420 p5
-on p1._id = p5.project_code
-left join profile_29974 p2
-on p1._id = p2.prj_code
-left join profile_30171 p3
-on p1._id = p3.prj_code
-left join profile_28235 p4
-on p1.intervention_type=p4._id
-group by p4.name */ 
-
-
-/*Select sum(p1.curr_yr_budget) as current_year_budget,sum(p2.hdfc_cost_monthly) as Hdfc_cost,sum(p3.monthly_cost) as Monthly_cost,p4.name as intervention_type 
-from profile_27396 p1
-left join profile_27420 p4
-on p1._id = p4.project_code
-left join profile_29974 p2
-on p1._id = p2.prj_code
-left join profile_30171 p3
-on p1._id = p3.prj_code;
-left join profile_28235 p4
-on p1.intervention_type=p4._id
-group by p4.name;*/
-
- 
- 
  /*Select p4.name as intervention_type,sum(p1.curr_yr_budget) as current_year_budget,sum(p2.hdfc_cost_monthly) as Hdfc_cost,sum(p3.monthly_cost) as Monthly_cost from profile_27396 p1
 left join profile_27420 p4
 on p1._id = p4.project_code
@@ -112,18 +104,13 @@ on p1.intervention_type=p4._id
 group by p4.name;*/
  
  
- 
- 
- 
 /* Select p2.name as intervention_type from profile_27396 p1
  left join profile_28235 p2
 on p1.intervention_type=p2._id
  limit 3;*/
 
 
-
 /* cast((split_part(split_part(prod.name,'|',1),'.',1)) as varchar) as ProjectCode*/
-
 
 
 /* filter select interventionn type
@@ -132,17 +119,6 @@ left join profile_28235 p2
 on p1.intervention_type = p2.name
 limit 7;
 */
-
-
-
-
-
-
-
-
-
-
-
 
 
 /* select tag2.name as projectId, tag1.name as category, fy_timerange, student_name, count(*)
@@ -165,11 +141,6 @@ left join profile_27420 p2
 on c._id = p2.prj_code;*/
 
 
-
-
-
-
-
 /* Project document
 Select p.fy, p.project_proposal from profile_27396 p
 left join profile_27420 q 
@@ -180,8 +151,6 @@ on q.project_code=p.name */
 left join ds_mysql_prod_tagelement t
 on p.fy = t.id
 limit 7;*/
-
-
 
 
 /*
