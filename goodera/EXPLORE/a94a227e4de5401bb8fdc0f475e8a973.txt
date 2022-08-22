@@ -1,4 +1,4 @@
-with tab1 as(SELECT t2.name as project_manager,q.name as project_code,t.name as fy,
+with tab1 as(SELECT q.name as project_code,t.name as fy,
        sum(CASE 
              WHEN p.budget_head = 'Admin Cost' THEN p.cost_yearly 
              ELSE 0 
@@ -20,13 +20,15 @@ left join ds_mysql_prod_tagelement t2 on
 q.project_manager=t2.id
 
 GROUP  BY 1,2,3),
-tab2 as(select distinct(k.village),q.name as project_code
+tab2 as(select distinct(k.village),q.name as project_code,t2.name as project_manager
 		  from profile_29973 p
 		  left join profile_27489 k
           on p.census_code=k._id
 		  left join profile_27396 q on
           p.prj_code=q._id
-		  group by 1,2),
+		  left join ds_mysql_prod_tagelement t2 on
+          q.project_manager=t2.id
+		  group by 1,2,3),
 		  
 		  
 tab3 as(select count(distinct(t1.village))as number_of_villages,t1.village,t1.project_code,t.fy,t.project_manager,t.Admin_cost,t.Human_resource,t.NGO_Management_Cost from tab1 t
