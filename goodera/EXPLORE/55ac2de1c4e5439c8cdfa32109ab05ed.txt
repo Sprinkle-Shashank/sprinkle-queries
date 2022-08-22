@@ -30,7 +30,7 @@ prod.id=r.projectid
 left join profile_27489 k on
 split_part(prod.name,'|',3)=k.name
 group by l.name ,f.name,p.name_project,p.ngo,m.name,split_part(prod.name,'|',3),k.village,k.state_code
-Base3 as(select p.ProjectCode,p.fy_timerange,p.NGO,p.Project_Manager,l.State as State,p.village
+Base3 as(select p.ProjectCode,p.fy_timerange,p.NGO,p.Project_Manager,l.State as State,p.village,p.state_code
 		 from Base2 p left join Base1 l on p.ProjectCode=l.ProjectCode
 ),
 level1tab as (select m.name as level1 ,p.approver as level2,p.name as level1email from profile_27424 p
@@ -44,17 +44,17 @@ left join level1tab z on
 z.level1email = p.approver),
 
 newtab1 as (
-   Select t.ProjectCode,t.fy_timerange,t.NGO,t.village,d.level1, d.level2,t.State,t.state_code from base3 t
+   Select t.ProjectCode,t.fy_timerange,t.NGO,t.village,d.level1, d.level2,t.state_code,t.State from base3 t
   --t, t.state st
 left join level2tab d on
 d.level1 = t.Project_Manager
 )
   
-Select count(distinct(t.village)) as number_of_village,t.ProjectCode,t.fy_timerange,t.NGO,t.level1, t.level2,t.state_code,t1.name as state
+Select distinct(t.village),t.ProjectCode,t.fy_timerange,t.NGO,t.level1, t.level2,t.state_code,t1.name as state
 from newtab1 t
 left join ds_mysql_prod_tagelement t1
 on t1.id=t.State
-group by t.ProjectCode,t.fy_timerange,t1.name,t.NGO,t.level1, t.level2,t.state_code
+group by t.ProjectCode,t.fy_timerange,t1.name,t.NGO,t.level1, t.level2,t.state_code,t.village
 
 
 
