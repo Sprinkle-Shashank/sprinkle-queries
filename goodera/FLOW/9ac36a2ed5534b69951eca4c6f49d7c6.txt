@@ -1,0 +1,33 @@
+drop table if exists GAP_SST_SBSTRCW_Pre_Training;
+ create table GAP_SST_SBSTRCW_Pre_Training as
+ 
+
+with table1 as 
+(
+   select p1.*,cast(survey as varchar) from profile_60632 p1, p1.survey_arr survey
+ )
+ 
+select fac.name as projectId,p.projectid as project, cou.name as country, t1.trainer_organization , 
+--SUBSTRING(t1.date,0,5) as year,
+case when extract(month from t1.date)=1 then (extract(year from t1.date)-1) else extract(year from t1.date) end as year,  ven.name as vendor, 
+count(*) as pre_supervisor_respondents_total,t1.training_id,p.timeline_miss, 'Pre-Training Survey' as survey_type, p.work_ex, p.gender, p.work_area, p.worker_not_paid, p.age, p.education, p.belief,p.marital_status,p.fair_baised,p.worker_late,p.to_do_list, p.assign_job,p.worker_leave,p.conflict_worker,p.score_total_pre
+from profile_65220 p
+
+left join table1 t1 on 
+p._id = t1.survey
+
+
+left join ds_mysql_prod_project fac
+on p.projectid = fac.id
+
+left join ds_mysql_prod_project ven
+on fac.parent = ven.id
+
+left join ds_mysql_prod_project cou
+on ven.parent = cou.id
+
+
+where (p.conflict_worker = 1060835) and (project like '%%') and (cou.name <> 'Test Country')
+
+ group by  fac.name,cou.name,project,t1.trainer_organization ,year, 
+  ven.name ,t1.training_id,p.timeline_miss,survey_type, p.work_ex, p.gender, p.work_area, p.worker_not_paid, p.age, p.education, p.belief,p.marital_status,p.fair_baised,p.worker_late,p.to_do_list, p.assign_job,p.worker_leave,p.conflict_worker,p.score_total_pre
