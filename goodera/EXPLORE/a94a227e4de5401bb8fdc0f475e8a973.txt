@@ -1,14 +1,13 @@
---with tab1 as (
-  SELECT t.name as fy,q.name as project_code,t2.name as project_manager,
-       (CASE 
+with tab1 as(SELECT t2.name as project_manager,q.name as project_code,t.name as fy,
+       sum(CASE 
              WHEN p.budget_head = 'Admin Cost' THEN p.cost_yearly 
              ELSE 0 
-           END) AS Admin_cost, 
-       (CASE 
+           END) AS Admin_cost,
+       sum(CASE 
              WHEN p.budget_head = 'Human Resource' THEN p.cost_yearly
              ELSE 0 
            END) AS Human_resource,
-		(CASE 
+		sum(CASE 
              WHEN p.budget_head = 'NGO Management Cost' THEN p.cost_yearly
              ELSE 0 
            END) AS NGO_Management_Cost 
@@ -20,15 +19,21 @@ p.prj_code=q._id
 left join ds_mysql_prod_tagelement t2 on
 q.project_manager=t2.id
 
-GROUP  BY 1, 
-          2,3,p.budget_head,p.cost_yearly
-		  ---),
-		  /*
-tab2 as( select p.village_name,q.name as project_codes from profile_29973 p
-			 left join profile_27396 q on
-p.prj_code=q._id)
-
-select  t.fy,t.project_code,t1.village_name,t.Admin_cost,t.Human_resource,t.NGO_Management_Cost,t.project_manager from tab1 t
+GROUP  BY 1,2,3),
+tab2 as(select distinct(k.village),q.name as project_code
+		  from profile_29973 p
+		  left join profile_27489 k
+          on p.census_code=k._id
+		  left join profile_27396 q on
+          p.prj_code=q._id
+		  group by 1,2),
+		  
+		  
+tab3 as(select count(distinct(t1.village))as number_of_villages,t1.project_code,t.fy,t.project_manager,t.Admin_cost,t.Human_resource,t.NGO_Management_Cost from tab1 t
 left join tab2 t1 on
-t.project_code=t1.project_codes
-*/
+t.project_code=t1.project_code
+group by 2,3,4,t.Admin_cost,t.Human_resource,t.NGO_Management_Cost)
+
+select t2.number_of_villages,t2.project_code,t2.fy,t2.project_manager,(t2.Admin_cost/t2.number_of_villages) as Admin,(t2.Human_resource/t2.number_of_villages) as human,(t2.NGO_Management_Cost/t2.number_of_villages) as NGO from tab3 t2
+where t2.number_of_villages!=0
+
