@@ -198,15 +198,15 @@ sub6 as(
 from sub5),
 
 sub7 as(
-  select vendor, vendor_vms_id, year, 
+  select vendor, vendor_vms_id, year, vendor_region,
 SPLIT_TO_ARRAY(LISTAGG(distinct factory, '||'), '||') as factories_met_target,
 GET_ARRAY_LENGTH(factories_met_target) as factories_count
 from sub6
 where meet_target = 1
-group by vendor, vendor_vms_id, year),
+group by vendor, vendor_vms_id, year, vendor_region),
 
 sub8 as(
-  select s7.vendor, s7.vendor_vms_id, s7.year,
+  select s7.vendor, s7.vendor_vms_id, s7.year, s7.vendor_region,
 
 case
 	when s7.factories_count = s2.vendor_factories then 1
@@ -230,10 +230,21 @@ sub10 as(
   select * from sub9 where row = 1),
   
 sub11 as(
-  select s10.*, source_div_unwind from sub10 s10, s10.source_div source_div_unwind)
+  select s10.*, source_div_unwind from sub10 s10, s10.source_div source_div_unwind),
   
-select s11.factory, s11.factory_cdms_id, s11.vendor, s11.vendor_vms_id, t1.name as source_div, 
+sub12 as(
+  select s11.factory, s11.factory_cdms_id, s11.vendor, s11.vendor_vms_id, t1.name as source_div, 
 nvl(t2.name, t1.name) as business_div
 from sub11 s11
 left join ds_mysql_prod_tagelement t1 on t1.id = s11.source_div_unwind
-left join ds_mysql_prod_tagelement t2 on t2.id = t1.parent
+left join ds_mysql_prod_tagelement t2 on t2.id = t1.parent),
+
+sub13 as(
+  select s12.vendor, s12.vendor_vms_id, s12.business_div, p5.brand_text as brand
+from sub12 s12
+left join profile_81437 p5 on p5.business_division_text = s12.business_div
+group by s12.vendor, s12.vendor_vms_id, s12.business_div, p5.brand_text)
+
+select s8.vendor, s8.vendor_vms_id, s8.year, s8.vendor_region, s13.business_div, s13.brand
+from sub8 s8
+left join sub13 s13 on s13.vendor_vms_id = s8.vendor_vms_id
