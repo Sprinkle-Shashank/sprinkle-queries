@@ -1,45 +1,14 @@
-with s as(
-Select p.name as projectId,a.fy_timerange,p2.name as food_truck,p2.food_truck_employee, (avg_income+stipend_amount) as  avg_income_after
---p3.bene_name as beneficiary
-
-from profile_81394 a
-left join ds_mysql_prod_project p on p.id = a.projectid
-left join profile_81393 p2 on p2._id= a.food_truck
-),
-s2 as(
-Select projectId,fy_timerange,food_truck,f_emp, avg_income_after
-  from s as p,p.food_truck_employee as f_emp
-)
-, s3 as (
-Select  projectId,fy_timerange,food_truck,f_emp,count(f_emp) as No_of_people_in_truck, avg_income_after from s2
-group by projectId,food_truck,avg_income_after,f_emp,fy_timerange
-),
-s4 as (
-Select  s3.projectId,s3.fy_timerange,ss.name as beneficiary,avg_income_after*No_of_people_in_truck as avg_income_after,
-  'Yes with Food Truck' as status, '' as intervention,'Placed with Food Truck' as dimensions
-from s3
-left join profile_81392 ss
-on s3.f_emp=ss._id
-)
-Select * from s4
-/*
-Select  projectId,food_truck,(f_emp), tot_avg_income
-from s4
-group by projectId,food_truck,tot_avg_income
-
---left join profile_81375 p3 on p3.projectid=a.projectid
-
-
-select p.name as projectId, a.fy_timerange,p1.bene_name as beneficiary,(p3.avg_income+p3.stipend_amount)
-avg_income_after,t1.name as status, '' as Intervention
+select p.name as projectId, a.fy_timerange,p1.name as beneficiary,a.monthly_salary as avg_income_after,t1.name as status, 'Avg. Income After' as intervention,
+case 
+when t1.name = 'Yes with Food Truck' then 'Placed with Food Truck'
+when t1.name = 'Yes with Other eateries' then 'Placed with Other Eateries'
+end as dimensions
 from profile_81392 a 
+--where t1.name = 
 left join ds_mysql_prod_project p on p.id = a.projectid
 left join profile_81375 p1 on p1._id= a.beneficiary
 left join ds_mysql_prod_tagelement t1 on t1.id=a.placement_status
-left join profile_81393 p2 on p2.food_truck_employee= a._id
-left join profile_81394 p3 on p3.food_truck= p2._id
 
+where t1.name = 'Yes with Other eateries'
 
-where t1.name = 'Yes with Food Truck'
-group by p.name,a.fy_timerange,p1.bene_name,t1.name,p3.avg_income,p3.stipend_amount
-*/
+--group by p.name,a.fy_timerange,p1.name,p1.avg_monthly_income,a.monthly_salary,t1.name
