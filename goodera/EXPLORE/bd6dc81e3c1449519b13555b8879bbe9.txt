@@ -13,7 +13,7 @@ on r.projectid=prod.id
 ),
 Base1 as(select b.ProjectCode,b.fy_timerange,b.Project_Name,b.NGO,b.start_date,b.End_Date,b.Project_Manager,State,b.prj1 from lookup b ,b.State State
 )
-,  Base2 as(select l.name as ProjectCode,f.name as fy_timerange,p.name_project Project_Name,p.ngo as NGO,m.name as Project_Manager,split_part(prod.name,'|',3) as CensusCode,k.village,k.state_code
+,  Base2 as(select l.name as ProjectCode,f.name as fy_timerange,p.name_project Project_Name,p.ngo as NGO,p.start_date as start_date,p.end_date  as End_Date,m.name as Project_Manager,split_part(prod.name,'|',3) as CensusCode,k.village,k.state_code
 from profile_27420 p
 left join profile_27396 l on
 p.project_code=l._id
@@ -29,39 +29,29 @@ left join ds_mysql_prod_project prod on
 prod.id=r.projectid
 left join profile_27489 k on
 split_part(prod.name,'|',3)=k.name
-group by l.name ,f.name,p.name_project,p.ngo,m.name,split_part(prod.name,'|',3),k.village,k.state_code),
-Base3 as(select p.ProjectCode,p.fy_timerange,p.NGO,p.Project_Manager,l.State as State,p.village,p.state_code
-		 from Base2 p 
-		 left join Base1 l on p.ProjectCode=l.ProjectCode
-),
-level1tab as (select m.name as level1 ,p.approver as level2,p.name as level1email from profile_27424 p
-left join ds_mysql_prod_tagelement m on
-m.id = p.pm_name),
-
-level2tab as (select m.name as level1 , z.level1 as level2 from profile_27424 p
-left join ds_mysql_prod_tagelement m on
-m.id = p.pm_name
-left join level1tab z on
-z.level1email = p.approver),
-
-newtab1 as (
-   Select t.ProjectCode,t.fy_timerange,t.NGO,t.village,d.level1, d.level2,t.state_code,t.State from Base3 t
-  --t, t.state st
-left join level2tab d on
-d.level1 = t.Project_Manager
+group by l.name ,f.name,p.name_project,p.ngo,p.start_date,p.end_date,m.name,split_part(prod.name,'|',3),k.village,k.state_code),
+Base3 as(select p.ProjectCode,p.fy_timerange,p.Project_Name,p.NGO,p.start_date,p.End_Date,p.Project_Manager,l.State as State,p.village,p.state_code
+		 from Base2 p left join Base1 l on p.ProjectCode=l.ProjectCode
 )
-  
-Select distinct(t.village),t.fy_timerange,t.NGO,t.level1, t.level2,t.state_code,t1.name as state,ttt.code as map_code
-from newtab1 t
+Select t.ProjectCode,t.fy_timerange,t.NGO,t1.name as state,t.state_code
+from Base3 t
 left join ds_mysql_prod_tagelement t1
 on t1.id=t.State
-left join ds_mongo_reftagelementmetadata ttt
-on t1.reftagelementmetadataid=ttt._id
-group by t.fy_timerange,t1.name,t.NGO,t.level1, t.level2,t.state_code,t.village,ttt.code
+group by t.ProjectCode,t.fy_timerange,t1.name,t.NGO,t.state_code
+
+
+
+/*Select distinct(lower(state)), state_code 
+from profile_27489
+where state_code IS NOT NULL
+*/
 
 
 
 
- 
-
- 
+/*
+select ta.name, reftag.code , reftagelementmetadataid  from ds_mysql_prod_tagelement ta
+left join ds_mongo_reftagelementmetadata reftag
+on ta.reftagelementmetadataid = reftag._id
+where ta.tagid = 30088
+*/
