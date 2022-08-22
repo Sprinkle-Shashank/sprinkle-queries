@@ -1,7 +1,17 @@
- select p8.name as intervention_type,p1.name as projectcode from profile_27396 p1
+ with x as (select p8.name as intervention_type,p1.name as projectcode from profile_27396 p1
  left join profile_28235 p8
-on p8._id=p1.intervention_type
+on p8._id=p1.intervention_type),
+y as (select case x.intervention_type when 'Indirect' then sum(p2.hdfc_cost_monthly+p6.monthly_cost)
+                                      else sum(p2.hdfc_cost_monthly+p6.monthly_cost+p4.curr_yr_budget)
+	                                  end as AllocatedAmount ,f.name as financial_year from profile_29974 p2 
+left join profile_27420 p4 on
+p2.prj_code=p4.project_code 
+left join profile_30171 p6 on
+p2.prj_code=p6.prj_code
 
+left join ds_mysql_prod_tagelement f on
+p2.fy=f.id ) 
+select * from y
 
 /*join profile_29974 p2 on
 p1._id=p2.prj_code
