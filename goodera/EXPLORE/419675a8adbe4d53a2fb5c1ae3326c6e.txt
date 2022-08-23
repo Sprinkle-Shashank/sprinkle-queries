@@ -67,5 +67,80 @@ group by project_code, renewed, project_manager, tempstatus, ngo_partner, core_a
 
 
 )
+,
+
+
+
+
+s4 as (Select 
+data.name as project_code,
+case
+	when data.end_date is not null then 'NA'
+	else ''
+	end as renewed,
+	submissionlog,approvallog,
+  status as tempstatus,
+case
+	when data.project_manager is not null then data.project_manager
+	else ''
+	  end as project_manager,
+case
+	when data.ngo_partner is not null then data.ngo_partner
+	else ''
+	  end as ngo_partner,
+t.name as monitoring_live,
+case
+	when data.focus_area is not null then data.focus_area
+	else ''
+	  end as core_area,
+case
+	when data.intervention_type is not null then data.intervention_type
+	else ''
+	  end as intervention_type,
+case
+	when data.start_date is not null then data.start_date
+	else ''
+	  end as start_date,
+case
+	when data.end_date is not null then data.end_date
+	else ''
+	  end as end_date
+from ds_mongo_taskresponse
+left join ds_mysql_prod_tagelement t on 
+t.id=data.monitoring_live
+where profileid=27420)
+,
+s2 as
+(
+Select project_code, monitoring_live, renewed, project_manager, tempstatus, ngo_partner, core_area, intervention_type, start_date, end_date, al."approvalStatus" as status,al."approverEmail" as approverEmail,al."timestamp" as apptimestamp,sl."timestamp" as submissiondate
+from s as hdfc, hdfc.approvallog al,hdfc.submissionlog sl
+)
+,
+s3 as(
+Select project_code, renewed, project_manager, tempstatus, ngo_partner, core_area, intervention_type, start_date, end_date, status, approverEmail, apptimestamp, submissiondate,
+case 
+  when approverEmail != 'nusrat.pathan@hdfcbank.com' then apptimestamp
+  else null
+  end as Date_of_Action_by_Goodera,
+case 
+  when approverEmail = 'nusrat.pathan@hdfcbank.com' then apptimestamp
+  else null
+  end as Date_of_Action_by_CSR_head,
+case
+  when status is not null then status
+  else tempstatus
+  end as status_at_goodera,
+case
+  when status is not null then tempstatus
+  else ' '
+  end as status_at_csr_head
+  
+from s2
+group by project_code, renewed, project_manager, tempstatus, ngo_partner, core_area, intervention_type, start_date, end_date, status, approverEmail, apptimestamp, submissiondate,Date_of_Action_by_Goodera,Date_of_Action_by_CSR_head,status_at_goodera,status_at_csr_head
+
+
+)
+
+
 
 Select * from s3
