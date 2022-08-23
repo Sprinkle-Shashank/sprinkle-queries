@@ -1,22 +1,21 @@
 with tab1 as(
-Select cast((split_part(split_part(prod.name,'|',1),'.',1)) as varchar) as prj_code, projectid, cast((split_part(prod.name,'|',1)) as varchar) as prj1
+  Select cast((split_part(split_part(prod.name,'|',1),'.',1)) as varchar) as prj_code,split_to_array(listagg(distinct split_part(prod.name,'|',2),','),',') as c,get_array_length(c) as village_count
 from profile_29974 r
 left join ds_mysql_prod_project prod
 on r.projectid=prod.id
+group by 1
+  
   ),
   t2 as(
 	Select  fy, name, curr_yr_budget, State, ngo_partner, Project_Manager
 	from profile_27396 sq, sq.state State
  ),
  t3 as (
-Select f.name as fy, p.prj_code project_code, curr_yr_budget, m1.name state, l.name as implementing_agency, m.name  as Project_Manager, split_part(p2.name,'|',2) as project_name
+Select f.name as fy, p.prj_code project_code, curr_yr_budget, m1.name state, l.name as implementing_agency, m.name  as Project_Manager,p.village_count
 from t2 sq 
 left join tab1 p
 on p.prj_code=sq.name
-left join ds_mysql_prod_project p1
-on p.projectid=p1.id
-left join ds_mysql_prod_project p2
-on p1.parent=p2.id
+
 left join ds_mysql_prod_tagelement f on
 sq.fy=f.id 
 left join profile_27395 l on
@@ -28,21 +27,17 @@ left join ds_mysql_prod_tagelement m1 on
  
 union all
 
-Select f.name as fy, p.prj_code project_code, curr_yr_budget, ' ' state, ' ' as implementing_agency, m.name  as Project_Manager, split_part(p2.name,'|',2) as project_name
+Select f.name as fy, p.prj_code project_code, curr_yr_budget, ' ' state, ' ' as implementing_agency, m.name  as Project_Manager,p.village_count
 from profile_27420 sq
 left join tab1 p
 on p.prj_code=(split_part(sq.name,'[',1))
-left join ds_mysql_prod_project p1
-on p.projectid=p1.id
-left join ds_mysql_prod_project p2
-on p1.parent=p2.id
 left join ds_mysql_prod_tagelement f on
 sq.fy=f.id 
 left join ds_mysql_prod_tagelement m on
 sq.project_manager=m.id
  )
 	
-Select distinct(project_code),fy, curr_yr_budget,state, implementing_agency, Project_Manager, project_name 
+Select distinct(project_code),fy, curr_yr_budget,state, implementing_agency, Project_Manager, project_name, village_count
 from t3
  
  
