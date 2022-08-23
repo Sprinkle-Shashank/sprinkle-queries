@@ -1,4 +1,4 @@
-Select distinct(p.village), p3.name fy, sum(total_cost_yearly) as tcy, p1.name as project_code, p2.name as project_manager
+with tab1 as(Select distinct(p.village), p3.name fy, sum(total_cost_yearly) as tcy, p1.name as project_code, p2.name as project_manager
 from profile_29973 sq
 left join profile_27489 p
 on sq.census_code=p._id
@@ -8,5 +8,13 @@ left join ds_mysql_prod_tagelement p2
 on p1.project_manager=p2.id
 left join ds_mysql_prod_tagelement p3
 on p3.id=sq.fy
-group by p.village,p1.name,p2.name,p3.name
+group by p.village,p1.name,p2.name,p3.name), 
+tab2 as(select sum(p.cost_yearly) as cy,p1.name as project_code from profile_29976 p
+left join profile_27396 p1
+on p.prj_code=p1._id
+group by p1.name)
+select distinct(t.village),t.tcy,t1.cy,t.fy,t.project_code,t.project_manager from tab1 t
+left join tab2 t1 on
+t.project_code=t1.project_code
+
 
