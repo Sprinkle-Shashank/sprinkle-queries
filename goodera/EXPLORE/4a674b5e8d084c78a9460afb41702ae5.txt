@@ -1,0 +1,20 @@
+SELECT * 
+FROM (SELECT pro.name AS projectid, cou.name AS country, date, fy_timerange, cat.name AS category, prod_name, sku_name, e_score, footprint_lca, circularity_score, recyclable_share, biodegradable_share, pcr_plastic_share, hazardous_rm_pm, eol_reprocessing, biodiversity_score, deforestation_free, biodiversity_impact, legally_compliant, 
+
+ROW_NUMBER() OVER (PARTITION BY sku_name ORDER BY date DESC)
+
+FROM profile_82025 p  
+LEFT JOIN ds_mysql_prod_project pro
+on p.projectid = pro.id
+
+LEFT JOIN ds_mysql_prod_project cou
+on pro.parent = cou.id
+			   
+LEFT JOIN ds_mysql_prod_tagelement cat
+on p.category = cat.id
+) 
+UNPIVOT (
+    val FOR dim IN (e_score, footprint_lca, circularity_score, recyclable_share, biodegradable_share, pcr_plastic_share, hazardous_rm_pm, eol_reprocessing, biodiversity_score, deforestation_free, biodiversity_impact, legally_compliant)
+)
+
+WHERE row_number = 1
