@@ -2,7 +2,10 @@ drop table if exists Marico_ESG_PSI_E_score;
  create table Marico_ESG_PSI_E_score as
 
 SELECT * 
-FROM (SELECT pro.name AS projectid, cou.name AS country, date, fy_timerange, cat.name AS category, prod_name, sku_name, e_score, fl.name AS footprint_lca, circularity_score, rs.name AS recyclable_share, bs.name AS biodegradable_share, ps.name AS pcr_plastic_share, hrm.name AS hazardous_rm_pm, eol.name AS eol_reprocessing, biodiversity_score, df.name AS deforestation_free, bi.name AS biodiversity_impact, lc.name AS legally_compliant, 
+FROM (SELECT pro.name AS projectid, cou.name AS country, date, fy_timerange, cat.name AS category, prod_name, sku_name, e_score AS 'E Score', fl.name AS 'Environment footprint through LCA'
+, circularity_score AS 'Circularity score'
+, rs.name AS 'Recyclable packaging material share'
+, bs.name AS 'Biodegradable raw materials share', ps.name AS 'PCR plastic share', hrm.name AS 'Hazardous material share in RM & PM', eol.name AS 'EoL reprocessing potential of products/finished goods', biodiversity_score AS 'Biodiversity score', df.name AS 'Deforestation-free raw material/Cruelty-free materials or products', bi.name AS 'Study conducted for products on biodiversity impact', lc.name AS 'Use of legally compliant forest produce or extracts in product formulations', 
 
 ROW_NUMBER() OVER (PARTITION BY sku_name ORDER BY date DESC)
 
@@ -46,7 +49,7 @@ on p.legally_compliant = lc.id
 	  
 ) 
 UNPIVOT (
-    val FOR dim IN (e_score, footprint_lca, circularity_score, recyclable_share, biodegradable_share, pcr_plastic_share, hazardous_rm_pm, eol_reprocessing, biodiversity_score, deforestation_free, biodiversity_impact, legally_compliant)
+    val FOR dim IN ('E Score', 'Environment footprint through LCA', 'Circularity score', 'Recyclable packaging material share', 'Biodegradable raw materials share', 'PCR plastic share', 'Hazardous material share in RM & PM', 'EoL reprocessing potential of products/finished goods', 'Biodiversity score', 'Deforestation-free raw material/Cruelty-free materials or products', 'Study conducted for products on biodiversity impact', 'Use of legally compliant forest produce or extracts in product formulations')
 )
 
 WHERE row_number = 1
