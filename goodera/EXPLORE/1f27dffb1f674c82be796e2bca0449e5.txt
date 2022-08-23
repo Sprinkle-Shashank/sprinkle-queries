@@ -1,0 +1,61 @@
+
+with table1 as
+( select p.batch, daily_wage, p.state , p1.fy as name_update , sta.name as state_update, avg_working_days , CAST('Endline' as varchar) as assessment  from profile_30527 as p
+ 
+ left join profile_30532 p1 on
+ p.batch = p1._id
+ 
+ left join ds_mysql_prod_tagelement sta 
+ on p.state = sta.id 
+ ),
+ 
+  table2 as
+ (
+    select state_update, avg(avg_working_days*daily_wage*12) as income , assessment  from table1
+   
+    group by state_update , name_update , assessment
+   
+   --  , name_update ,  ,indicator_update 
+  )
+ 
+ select * from table2
+ 
+ 
+ /*,
+
+ select * from table2
+ */
+ 
+/*
+ 
+select p.projectid , sum(avg_working_days*daily_wage*12) , p1.fy as name_update from profile_30527 as p
+
+ left join profile_30532 p1 on
+ p.batch = p1._id
+
+group by p.projectid , p1.fy 
+ 
+ 
+with table1 as 
+(
+select P.batch, sta.name as state_update, profile_30532.fy as name, 
+avg(P.ind_income_post_tr*12) as income,
+'Endline' as assessment, 'Average Annual Income' as indicator
+
+FROM Profile_30527 as P
+
+LEFT JOIN profile_30532
+ON P.batch = profile_30532._id
+
+LEFT JOIN ds_mysql_prod_tagelement AS sta
+ON P.state = sta.id
+
+GROUP BY profile_30532.fy, assessment, indicator, sta.name, batch
+
+ORDER BY profile_30532.fy ASC
+)
+select state_update, name, income, assessment, indicator
+from table1
+
+
+*/
