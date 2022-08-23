@@ -7,7 +7,7 @@ when country in ('Guatemala', 'El Salvador', 'Dominican Republic')
 then 'Americas'
 when country in ('Philippines', 'Cambodia',  'Vietnam',  'Indonesia', 'Myanmar')
 then 'South East Asia'
-end as region,f_y.name as year_update,mth.name as month,p.sustainability_rating
+end as region,f_y.name as year_update,mth.name as month_name,p.sustainability_rating
  
  , row_number() over 
 (partition by p.projectId 
@@ -38,9 +38,19 @@ on p.month = mth.id
   ),
   
   table3 as
-  ( select p.projectid , DATEPART(YEAR,createddate) as year_new, sta.name as status_update , case when name_subunit is null or name_subunit=' ' then 'N/A' else name_subunit end as unit   from profile_16619 as p
+  ( select p.projectid , DATEPART(YEAR,createddate) as year_new, sta.name as status_update , case when name_subunit is null or name_subunit=' ' then 'N/A' else name_subunit end as unit from profile_16619 as p
   
   left join ds_mysql_prod_tagelement sta
-  on p.status = sta.id )
+  on p.status = sta.id 
+  ),
+  
+  table4 as
+  (
+	select  project, factory, vendor , country, region , year_update, month_name , sustainability_rating , t3.year_new , t3.status_update , t3.unit 
+    from table2 as p
+	
+	left join table3 t3 on
+	p.project = t3.projectid 
+  )
    
    select * from table3
