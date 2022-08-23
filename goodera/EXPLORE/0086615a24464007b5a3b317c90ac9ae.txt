@@ -38,7 +38,7 @@ on p.month = mth.id
   ),
   
   table3 as
-  ( select p.projectid , DATEPART(YEAR,createddate) as year_new, sta.name as status_update , case when name_subunit is null or name_subunit=' ' then 'N/A' else name_subunit end as unit from profile_16619 as p
+  ( select p.projectid , DATEPART(YEAR,createddate) as year_new, sta.name as status_update , case when status_update is null then '0' else status_update end as status_update_new from profile_16619 as p
   
   left join ds_mysql_prod_tagelement sta
   on p.status = sta.id 
@@ -46,13 +46,13 @@ on p.month = mth.id
   
   table4 as
   (
-	select  project, factory, vendor , country, region , year_update, month_name , sustainability_rating , t3.year_new , t3.status_update , t3.unit 
+	select  project, factory, vendor , country, region , year_update, month_name , sustainability_rating , t3.year_new , t3.status_update_new  
     from table2 as p
 	
 	left join table3 t3 on
 	p.project = t3.projectid 
 	
-	where country != 'Test Country' and (t3.status_update != 'Dropped' or t3.status_update != 'on hold')
+	where country != 'Test Country' and (t3.status_update_new = 'Completed' or t3.status_update_new = '0' )
   )
    
    select * from table4
