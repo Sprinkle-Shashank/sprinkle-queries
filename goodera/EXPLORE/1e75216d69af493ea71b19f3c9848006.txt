@@ -1,9 +1,11 @@
-with tab1 as(select split_part(split_part(prod.name,'|',1),'.',1) as ProjectCode,f.name as fy_timerange,concat(ProjectCode,fy_timerange) as CODE,split_part(prod.name,'|',3) as census,p.task,p.cost_monthly as cost_per_unit,sum(units_monthly) as number_of_units_cover,sum(hdfc_cost_monthly) as total_hdfc_bank_contribution,(p.cost_monthly*sum(units_monthly)) as cost from profile_29974 p
+with tab1 as(select split_part(split_part(prod.name,'|',1),'.',1) as ProjectCode,f.name as fy_timerange,concat(ProjectCode,fy_timerange) as CODE,split_part(prod.name,'|',3) as census,p.task,p.cost_monthly as cost_per_unit,sum(units_monthly) as number_of_units_cover,sum(hdfc_cost_monthly) as total_hdfc_bank_contribution,(p.cost_monthly*sum(units_monthly)) as cost,p.activity 
+from profile_29974 p
 left join ds_mysql_prod_project prod on
 prod.id=p.projectid
 left join ds_mysql_prod_tagelement f on
 p.fy=f.id
-group by  split_part(split_part(prod.name,'|',1),'.',1),f.name,split_part(prod.name,'|',3),p.task,p.cost_monthly),
+group by  split_part(split_part(prod.name,'|',1),'.',1),f.name,split_part(prod.name,'|',3),p.task,p.cost_monthly,
+p.activity),
 
 Base1 as
 (select p.name as ProjectCode,f.name as fy_timerange,concat(ProjectCode,fy_timerange) as CODE,m.name  as Project_Manager from profile_27396 p
@@ -21,5 +23,6 @@ p.project_manager=m.id
 left join ds_mysql_prod_tagelement f on
 p.fy=f.id
 ),
-Base2 as(select p.ProjectCode,p.fy_timerange,p.CODE,l.village as Village,p.task,p.cost_per_unit,p.number_of_units_cover,p.total_hdfc_bank_contribution,p.cost from tab1 p left join profile_27489 l on p.census=l.name),Base3 as(select p.ProjectCode,p.fy_timerange,l.Project_Manager,upper(p.Village) as Village,p.task,p.cost_per_unit,p.number_of_units_cover,p.total_hdfc_bank_contribution,p.cost from Base2 p left join Base1 l on p.CODE=l.CODE)
+Base2 as(select p.ProjectCode,p.fy_timerange,p.CODE,l.village as Village,p.task,p.cost_per_unit,p.number_of_units_cover,p.total_hdfc_bank_contribution,p.cost,p.activity from tab1 p left join profile_27489 l on p.census=l.name),Base3 as(select p.ProjectCode,p.fy_timerange,l.Project_Manager,upper(p.Village) as Village,p.task,p.cost_per_unit,p.number_of_units_cover,p.total_hdfc_bank_contribution,p.cost,p.activity
+from Base2 p left join Base1 l on p.CODE=l.CODE)
 select * from Base3
