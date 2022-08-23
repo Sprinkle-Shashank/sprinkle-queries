@@ -1,13 +1,18 @@
 with table1 as
-( select batch, avg_working_days, daily_wage, p.state from profile_30527 as p
+( select batch, avg_working_days, daily_wage, p.state , p1.fy as name_update , sta.name as state_update, (daily_wage*avg_working_days*12) as salary , 'Endline' as assessment, 'Average Annual Income' as indicator from profile_30527 as p
  
  left join profile_30532 p1 on
  p.batch = p1._id
+ 
+ left join ds_mysql_prod_tagelement sta 
+ on p.state = sta.id 
  ),
  
  table2 as
  (
-    select avg_working_days, daily_wage, p.state from table1 as p
+    select state_update , name_update , avg(salary) as income , assessment ,indicator from table1 as p
+   
+   group by state_update , name_update , assessment ,indicator
   )
  
  
