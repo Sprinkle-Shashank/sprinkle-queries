@@ -3,10 +3,14 @@ Select cast((split_part(split_part(prod.name,'|',1),'.',1)) as varchar) as prj_c
 from profile_29974 r
 left join ds_mysql_prod_project prod
 on r.projectid=prod.id
-  )
+  ),
+  t2 as(
+	Select  fy, curr_yr_budget, State, ngo_partner, Project_Manager
+	from profile_27396 sq, sq.state State
+ )
   
-Select f.name as fy,sq.fy, sq.name project_code, curr_yr_budget, state, l.name as implementing_agency, cast((split_part(split_part(p2.name,'|',1),'.',1)) as varchar) as prj_code,state
-from profile_27396 sq
+Select f.name as fy, p.name project_code, curr_yr_budget, state, l.name as implementing_agency, m.name  as Project_Manager
+from t2 sq
 left join tab1 p
 on p.prj_code=sq.name
 left join ds_mysql_prod_project p1
@@ -17,7 +21,8 @@ left join ds_mysql_prod_tagelement f on
 sq.fy=f.id 
 left join profile_27395 l on
 l._id=sq.ngo_partner
-
+left join ds_mysql_prod_tagelement m on
+sq.project_manager=m.id
  
 
 
