@@ -1,0 +1,21 @@
+
+with table1 as 
+(
+select P.batch, sta.name as state_update, profile_30532.fy as name, 
+avg(P.ind_income_post_tr*12) as income,
+'Endline' as assessment, 'Average Annual Income' as indicator
+
+FROM Profile_30527 as P
+
+LEFT JOIN profile_30532
+ON P.batch = profile_30532._id
+
+LEFT JOIN ds_mysql_prod_tagelement AS sta
+ON P.state = sta.id
+
+GROUP BY profile_30532.fy, assessment, indicator, sta.name, batch
+
+ORDER BY profile_30532.fy ASC
+)
+select state_update, name, income, assessment, indicator
+from table1
