@@ -15,6 +15,7 @@ case
 	when data.ngo_partner is not null then data.ngo_partner
 	else ''
 	  end as ngo_partner,
+t.name as monitoring_live,
 case
 	when data.focus_area is not null then data.focus_area
 	else ''
@@ -32,11 +33,13 @@ case
 	else ''
 	  end as end_date
 from ds_mongo_taskresponse
+left join ds_mysql_prod_tagelement on 
+t.id=monitoring_live
 where profileid=27396)
 ,
 s2 as
 (
-Select project_code, renewed, project_manager, tempstatus, ngo_partner, core_area, intervention_type, start_date, end_date, al."approvalStatus" as status,al."approverEmail" as approverEmail,al."timestamp" as apptimestamp,sl."timestamp" as submissiondate
+Select project_code, monitoring_live, renewed, project_manager, tempstatus, ngo_partner, core_area, intervention_type, start_date, end_date, al."approvalStatus" as status,al."approverEmail" as approverEmail,al."timestamp" as apptimestamp,sl."timestamp" as submissiondate
 from s as hdfc, hdfc.approvallog al,hdfc.submissionlog sl
 )
 ,
@@ -49,7 +52,20 @@ case
 case 
   when approverEmail = 'nusrat.pathan@hdfcbank.com' then apptimestamp
   else null
-  end as Date_of_Action_by_CSR_head
+  end as Date_of_Action_by_CSR_head,
+case
+  when status is not null then status
+  else tempstatus
+  end as status_at_goodera,
+case
+  when status is not null then tempstatus
+  else ' '
+  end as status_at_csr_head,  
+  
+case 
+  when monitoring_live='' then 'No' and   status_at_goodera = 'PENDING_APPROVAL' or status_at_goodera = 'REJECTED' or status_at_csr_head = 'PENDING_APPROVAL' or status_at_csr_head = 'REJECTED' then 'No'
+  else 'Yes'
+  end as project_live
   
 from s2
 
