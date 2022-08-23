@@ -36,7 +36,23 @@ where profileid=27396)
 ,
 s2 as
 (
-Select project_code, renewed, project_manager, tempstatus, ngo_partner, core_area, intervention_type, start_date, end_date, al."approvalStatus" as status,al."approverEmail" as approverEmail,sl."timestamp" as submissiondate
+Select project_code, renewed, project_manager, tempstatus, ngo_partner, core_area, intervention_type, start_date, end_date, al."approvalStatus" as status,al."approverEmail" as approverEmail,al."timestamp" as apptimestamp,sl."timestamp" as submissiondate
 from s as hdfc, hdfc.approvallog al,hdfc.submissionlog sl
 )
-Select * from s2
+,
+s3 as(
+Select project_code, renewed, project_manager, tempstatus, ngo_partner, core_area, intervention_type, start_date, end_date, status, approverEmail, apptimestamp, submissiondate,
+case 
+  when approverEmail!="nusrat.pathan@hdfcbank.com" then apptimestamp
+  else null
+  end as Date_of_Action_by_Goodera,
+case 
+  when approverEmail=="nusrat.pathan@hdfcbank.com" then apptimestamp
+  else null
+  end as Date_of_Action_by_CSR_head
+  
+from s2
+
+)
+
+Select * from s3
