@@ -1,0 +1,19 @@
+SELECT * 
+FROM (SELECT pro.name AS projectid, cou.name AS country, date, fy_timerange, cat.name AS category, prod_name, sku_name, prod_revenue, e_score, s_score, g_score, psi_score,(e_score+s_score+g_score) AS total, 
+
+ROW_NUMBER() OVER (PARTITION BY sku_name ORDER BY date DESC)
+
+FROM profile_82025 p  
+LEFT JOIN ds_mysql_prod_project pro
+on p.projectid = pro.id
+
+LEFT JOIN ds_mysql_prod_project cou
+on pro.parent = cou.id
+			   
+LEFT JOIN ds_mysql_prod_tagelement cat
+on p.category = cat.id
+) 
+UNPIVOT (
+    val FOR dim IN (e_score, s_score, g_score, psi_score,total)
+)
+
