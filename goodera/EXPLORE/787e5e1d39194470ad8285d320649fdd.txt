@@ -1,3 +1,13 @@
+with temp as(
+Select 'HDFC Contribution' as col
+union all
+Select 'Community Contribution' as col
+union all
+Select 'Government Contribution' as col
+union all
+),
+s as (
+
 Select distinct(p.village), p3.name fy_timerange, sum(hdfc_cost_yearly) hdfc_cost_yearly,sum(gov_cost_yearly) as gov_cost_yearly,sum(comm_cost_yearly) comm_cost_yearly, p1.name as projectcode, p2.name as project_manager
 from profile_29973 sq
 left join profile_27489 p
@@ -9,5 +19,20 @@ on p1.project_manager=p2.id
 left join ds_mysql_prod_tagelement p3
 on p3.id=sq.fy
 group by p.village,p1.name,p2.name,p3.name
+)
+Select village, fy_timerange, 
+case col
+		when 'HDFC Contribution' then s.hdfc_cost_yearly
+		when 'Community Contribution' then  s.comm_cost_yearly
+		when 'Government Contribution' then s.gov_cost_yearly
+	else 0
+	end as values,
+	temp.col as contri_types
+
+
+projectcode, project_manager
+from s
+cross join temp
+
 
 
