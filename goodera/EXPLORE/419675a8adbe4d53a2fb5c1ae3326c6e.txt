@@ -44,7 +44,7 @@ from s as hdfc, hdfc.approvallog al,hdfc.submissionlog sl
 )
 ,
 s3 as(
-Select project_code, renewed, project_manager, tempstatus, ngo_partner, core_area, intervention_type, start_date, end_date, status, approverEmail, apptimestamp, submissiondate,
+Select project_code, renewed, project_manager, tempstatus, ngo_partner, t1.name as core_area, intervention_type, start_date, end_date, status, approverEmail, apptimestamp, submissiondate,
 case 
   when approverEmail != 'nusrat.pathan@hdfcbank.com' then apptimestamp
   else null
@@ -65,7 +65,9 @@ case
 from s2
 left join ds_mysql_prod_tagelement t
 on t.id=project_manager
-group by project_code, renewed, t.name, tempstatus, ngo_partner, core_area, intervention_type, start_date, end_date, status, approverEmail, apptimestamp, submissiondate,Date_of_Action_by_Goodera,Date_of_Action_by_CSR_head,status_at_goodera,status_at_csr_head
+left join ds_mysql_prod_tagelement t1
+on t1.id=core_area
+group by project_code, renewed, t.name, tempstatus, ngo_partner, t1.name, intervention_type, start_date, end_date, status, approverEmail, apptimestamp, submissiondate,Date_of_Action_by_Goodera,Date_of_Action_by_CSR_head,status_at_goodera,status_at_csr_head
 
 
 )
@@ -114,7 +116,7 @@ where profileid=27420)
 ,
 s5 as
 (
-Select project_code, monitoring_live, renewed, project_manager, tempstatus, ngo_partner, core_area, intervention_type, start_date, end_date, al."approvalStatus" as status,al."approverEmail" as approverEmail,al."timestamp" as apptimestamp,sl."timestamp" as submissiondate
+Select project_code, monitoring_live, renewed, project_manager, tempstatus, ngo_partner, t1.name as core_area, intervention_type, start_date, end_date, al."approvalStatus" as status,al."approverEmail" as approverEmail,al."timestamp" as apptimestamp,sl."timestamp" as submissiondate
 from s4 as hdfc, hdfc.approvallog al,hdfc.submissionlog sl
 )
 ,
@@ -140,7 +142,9 @@ case
 from s5
 left join ds_mysql_prod_tagelement t
 on t.id=project_manager
-group by project_code, renewed, t.name, tempstatus, ngo_partner, core_area, intervention_type, start_date, end_date, status, approverEmail, apptimestamp, submissiondate,Date_of_Action_by_Goodera,Date_of_Action_by_CSR_head,status_at_goodera,status_at_csr_head
+left join ds_mysql_prod_tagelement t1
+on t1.id=core_area
+group by project_code, renewed, t.name, tempstatus, ngo_partner, t1.name, intervention_type, start_date, end_date, status, approverEmail, apptimestamp, submissiondate,Date_of_Action_by_Goodera,Date_of_Action_by_CSR_head,status_at_goodera,status_at_csr_head
 
 
 )
