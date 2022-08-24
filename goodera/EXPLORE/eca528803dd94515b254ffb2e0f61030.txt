@@ -1,4 +1,5 @@
-with temp1 as
+select * from profile_55194
+/*with temp1 as
 (select m.month, m.month_timerange as fy_timerange, m.project_code_new, m.amount, r.vertical, focus.name as focus, r._id, q.budget
  
  from profile_55194 as m 
@@ -24,7 +25,7 @@ where m.month_timerange IS NOT NULL),
  from temp1 as m, m.vertical vertical_new),
  
  temp3 as
- (select month, fy_timerange, project_code_new, amount, vertical, _id, budget, month_1, CAST(EXTRACT(month from month_1) AS INT) as month_2, 
+ (select month, fy_timerange, project_code_new, amount, _id, focus, budget, month_1, CAST(EXTRACT(month from month_1) AS INT) as month_2, 
   
   case when month_1 = 1 then 'Q1'
 when month_1 = 2 then 'Q1'
@@ -39,4 +40,38 @@ when month_1 = 10 then 'Q4'
 when month_1 = 11 then 'Q4'
 when month_1 = 12 then 'Q4'
 else NULL
-END AS quarter
+END AS quarter,
+  
+  case 
+when vert1.name IS NULL AND vert.name IS NOT NULL THEN vert.name
+else vert1.name 
+END AS vertical 
+  
+  from temp2 as m
+  
+left join ds_mysql_prod_tagelement as vert
+  on m.vertical_new = vert.id
+  
+left join ds_mysql_prod_tagelement as vert1
+  on vert.parent = vert1.id),
+  
+  temp4 as
+  (select month, fy_timerange, project_code_new, SUM(amount) as Spend, _id, focus, SUM(budget) as Budget, month_1, 'Admin' as vertical
+   from temp2 as m
+   where _id NOT IN (select _id from temp2)
+   group by month, fy_timerange, project_code_new, _id, month_1, vertical, focus),
+   
+   temp5 as
+   (select month, fy_timerange, project_code_new, SUM(amount) as Spend, focus, SUM(budget) as Budget, month_1, m.vertical
+	
+	from temp3 as m
+	
+	group by month, fy_timerange, project_code_new, focus, month_1, vertical
+	
+	UNION ALL
+	select month, fy_timerange, project_code_new, Spend, focus, Budget, month_1, vertical
+	from temp4 as m)
+	
+	select * from temp5
+	
+	order by fy_timerange desc AND quarter asc AND vertical asc AND focus asc*/
