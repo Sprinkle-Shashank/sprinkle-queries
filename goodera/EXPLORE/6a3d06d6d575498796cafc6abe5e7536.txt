@@ -3,17 +3,18 @@ with t1 as
 FROM
 (Select _id, projectId, fy_timerange, state, phc, topic, hw_type, pic_1, cap_1, count_trainings, attendees from profile_76557 p 
 
-left join ds_mysql_prod_tagelement reg
-on P.state= reg.id
- where attendees is not null
+
 
 )
 UNPIVOT (
     val FOR dim IN (attendees, count_trainings))
 
 )
-select * from t1
+select _id, projectId, fy_timerange, state, phc, topic, hw_type, pic_1, cap_1, count_trainings, attendees from t1
+left join ds_mysql_prod_tagelement reg
+on P.state= reg.id
+ where attendees is not null
 
-
+  Group By projectId, fy_timerange,  phc, topic, hw_type, state, reg.name, dim
 
 
