@@ -1,0 +1,18 @@
+WITH TABLE1 AS(SELECT pro.name AS projectid, cou.name AS country, date, fy_timerange, cat.name AS category, MIN(psi_score) AS Min, MAX(psi_score) AS Max,
+
+ROW_NUMBER() OVER (PARTITION BY sku_name ORDER BY date DESC)
+
+FROM profile_82025 p 
+
+LEFT JOIN ds_mysql_prod_project pro
+on p.projectid = pro.id
+
+LEFT JOIN ds_mysql_prod_project cou
+on pro.parent = cou.id
+			   
+LEFT JOIN ds_mysql_prod_tagelement cat
+on p.category = cat.id
+)
+SELECT * FROM TABLE1
+WHERE row_number = 1
+GROUP BY pro.name, cou.name, date, fy_timerange, cat.name
