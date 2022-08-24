@@ -1,24 +1,23 @@
-with tab1 as(select p3.name fy_timerange, sum(sq.cost_yearly) as total_direct , p1.name as projectcode, p2.name as project_manager
+with tab1 as(select p3.name fy_timerange, sq.cost_yearly, p1.name as projectcode, p2.name as project_manager
 from profile_29976 sq
 left join profile_27396 p1
 on sq.prj_code=p1._id
 left join ds_mysql_prod_tagelement p2
 on p1.project_manager=p2.id
 left join ds_mysql_prod_tagelement p3
-on p3.id=sq.fy
-group by p1.name,p2.name,p3.name),
-tab2 as(select distinct(k.village),q.name as projectcode,t2.name as project_manager,sum(p.total_cost_yearly) as total_indirect
+on p3.id=sq.fy),
+tab2 as(select distinct(k.village),q.name as projectcode,t2.name as project_manager,p.total_cost_yearly
 		  from profile_29973 p
 		  left join profile_27489 k
           on p.census_code=k._id
 		  left join profile_27396 q on
           p.prj_code=q._id
 		  left join ds_mysql_prod_tagelement t2 on
-          q.project_manager=t2.id
-		  group by 1,2,3)
-select t.total_direct,t1.total_indirect,t1.village,t.projectcode,t.project_manager,t.fy_timerange from tab1 t
+          q.project_manager=t2.id)
+select distinct(t1.village),sum(t.cost_yearly) as Id,sum(t1.total_cost_yearly) as d,t.projectcode,t.project_manager,t.fy_timerange from tab1 t
 left join tab2 t1 on
 t.projectcode=t1.projectcode
+group by 1,4,5,6
 
 
 
