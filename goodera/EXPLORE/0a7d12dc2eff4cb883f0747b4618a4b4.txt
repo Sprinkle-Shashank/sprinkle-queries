@@ -1,4 +1,4 @@
-WITH TABLE1 AS(SELECT pro.name AS projectid, cou.name AS country, date, fy_timerange, cat.name AS category, MIN(psi_score) AS Min, MAX(psi_score) AS Max,
+WITH TABLE1 AS(SELECT pro.name AS projectid, cou.name AS country, date, fy_timerange, cat.name AS category, sku_name, psi_score,
 
 ROW_NUMBER() OVER (PARTITION BY sku_name ORDER BY date DESC)
 
@@ -12,7 +12,9 @@ on pro.parent = cou.id
 			   
 LEFT JOIN ds_mysql_prod_tagelement cat
 on p.category = cat.id
+			   
+
 )
-SELECT * FROM TABLE1
+SELECT TABLE1.projectid, TABLE1.country, TABLE1.date, TABLE1.fy_timerange, TABLE1.category, MIN(TABLE1.psi_score) AS Min, MAX(TABLE1.psi_score) AS Max, TABLE1.row_number FROM TABLE1
 WHERE row_number = 1
-GROUP BY projectid, cou.name, date, fy_timerange, cat.name
+GROUP BY TABLE1.projectid, TABLE1.country, TABLE1.date, TABLE1.fy_timerange, TABLE1.category
