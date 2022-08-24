@@ -1,8 +1,6 @@
 
 
 
-
-
 with x as (select name as Project_code from profile_27396 
 /*union all
 select p1.name as Project_code from profile_29974 p2
@@ -42,7 +40,7 @@ left join ds_mysql_prod_tagelement m on
 p1.project_manager=m.id
 	 group by  p1.name,p7.name, p9.name,p8.name ,p10.name,duration,m.name ,f.name),
 	 
-z as (select  p1.name as Project_Code ,sum(p2.hdfc_cost_monthly+p6.monthly_cost+p4.curr_yr_budget) as AmountallocatedforthecurrentFYinINR
+z as (select  p1.name as Project_Code ,sum(p2.hdfc_cost_monthly+p6.monthly_cost+p4.curr_yr_budget) as AmountallocatedforthecurrentFYinINR, t2.name as Quarter
 	 from profile_27396 p1
 	  left join profile_30171 p6 on
 p1._id=p6.prj_code
@@ -50,12 +48,31 @@ p1._id=p6.prj_code
 p1._id=p2.prj_code
 left join profile_27420 p4 on
 p1._id=p4.project_code 
-	 group by p1.name)
+	
+left join ds_mysql_prod_tagelement t1
+on p2.month_number=t1.id
+left join ds_mysql_prod_tagelement t2
+on t1.parent=t2.id
+	  group by p1.name,t2.name)
 	 
 
 	  
+select  distinct x.*, y.ImplementingAgency, y.ProjectLive, y.intervention_type, y.CoreArea ,y.duration, y.project_manager, y.fy_timerange,z.AmountallocatedforthecurrentFYinINR,z.Quarter ,
+sum( case when z.Quarter='Quarter 1' then 'allocatedamountforquarter1'
+else '0'
+	end) as AllocatedAmountforQ1,
+	sum( case when z.Quarter='Quarter 2' then 'allocatedamountforquarter2'
+else '0'
+	end) as AllocatedAmountforQ2,
+	sum( case when z.Quarter='Quarter 3' then 'allocatedamountforquarter3'
+else '0'
+	end) as AllocatedAmountforQ3,
+	sum( case when z.Quarter='Quarter 4' then 'allocatedamountforquarter4'
+else '0'
+	end) as AllocatedAmountforQ4
+	
 
-select  distinct x.*, y.ImplementingAgency, y.ProjectLive, y.intervention_type, y.CoreArea ,y.duration, z.AmountallocatedforthecurrentFYinINR,y.project_manager ,y.fy_timerange from x 
+from x 
 left join y on y.Project_Code=x.Project_code
 left join z on z.Project_Code=x.Project_code
 
@@ -68,6 +85,12 @@ left join z on z.Project_Code=x.Project_code
   ,'AmountallocatedforQ3' as col3
   ,'AmountallocatedforQ2' as col4)*/
 
+/*left join ds_mysql_prod_tagelement t1
+on p2.month_number=t1.id
+left join ds_mysql_prod_tagelement t2
+on t1.parent=t2.id
+p2 is 29974
+it can be 30171 also*/
 
 
 
