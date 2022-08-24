@@ -1,0 +1,50 @@
+drop table if exists Marico_ESG_PSI_G_score;
+ create table Marico_ESG_PSI_G_score as
+SELECT * 
+FROM (SELECT pro.name AS projectid, cou.name AS country, date, fy_timerange, cat.name AS category, prod_name, sku_name, g_score, certifications, cpm.name AS certified_products_material, cfp.name AS certified_facility_process, cs.name AS certified_suppliers, product_based_systems, is.name AS ingredient_safety, pr.name AS product_recall, trm.name AS traceability_rm, tpm.name AS traceability_pm, product_communications, pi.name AS product_information,tr.name AS transparency,
+ROW_NUMBER() OVER (PARTITION BY sku_name ORDER BY date DESC)
+
+FROM profile_82025 p  
+	  
+LEFT JOIN ds_mysql_prod_project pro
+on p.projectid = pro.id
+
+LEFT JOIN ds_mysql_prod_project cou
+on pro.parent = cou.id
+			   
+LEFT JOIN ds_mysql_prod_tagelement cat
+on p.category = cat.id
+
+LEFT JOIN ds_mysql_prod_tagelement cpm
+on p.certified_products_material = cpm.id
+	  
+LEFT JOIN ds_mysql_prod_tagelement cfp
+on p.certified_facility_process = cfp.id
+	  
+LEFT JOIN ds_mysql_prod_tagelement cs
+on p.certified_suppliers = cs.id
+	  
+LEFT JOIN ds_mysql_prod_tagelement is
+on p.ingredient_safety = is.id
+	  
+LEFT JOIN ds_mysql_prod_tagelement pr
+on p.product_recall = pr.id
+	  
+LEFT JOIN ds_mysql_prod_tagelement trm
+on p.traceability_rm = trm.id
+	  
+LEFT JOIN ds_mysql_prod_tagelement tpm
+on p.traceability_pm = tpm.id
+	  	  
+LEFT JOIN ds_mysql_prod_tagelement pi
+on p.product_information = pi.id
+	  	  
+LEFT JOIN ds_mysql_prod_tagelement tr
+on p.transparency = tr.id
+	  
+) 
+UNPIVOT (
+    val FOR dim IN (g_score, certifications, certified_products_material, certified_facility_process, certified_suppliers, product_based_systems, ingredient_safety, product_recall, traceability_rm, traceability_pm, product_communications, product_information,transparency)
+)
+
+WHERE row_number = 1
