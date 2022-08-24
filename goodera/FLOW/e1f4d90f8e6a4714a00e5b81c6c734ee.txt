@@ -1,0 +1,51 @@
+drop table if exists Marico_ESG_PSI_E_score;
+ create table Marico_ESG_PSI_E_score as
+SELECT * 
+FROM (SELECT pro.name AS projectid, cou.name AS country, date, fy_timerange, cat.name AS category, prod_name, sku_name, s_score, product_benefits, nwb.name AS nutrition_wellness_benefits, pr.name AS publicly_recognize, purpose, bp.name AS brand_purpose, si.name AS sdg_impacted, sustainable_sourcing, rm.name AS raw_materials, pm.name AS packaging_materials, consumer_satisfaction, nc.name AS nature_complaints, cf.name AS consumer_feedback, ce.name AS consumer_education, 
+
+ROW_NUMBER() OVER (PARTITION BY sku_name ORDER BY date DESC)
+
+FROM profile_82025 p  
+	  
+LEFT JOIN ds_mysql_prod_project pro
+on p.projectid = pro.id
+
+LEFT JOIN ds_mysql_prod_project cou
+on pro.parent = cou.id
+			   
+LEFT JOIN ds_mysql_prod_tagelement cat
+on p.category = cat.id
+	  
+LEFT JOIN ds_mysql_prod_tagelement nwb
+on p.nutrition_wellness_benefits = nwb.id
+	  
+LEFT JOIN ds_mysql_prod_tagelement pr
+on p.publicly_recognize = pr.id
+	  
+LEFT JOIN ds_mysql_prod_tagelement bp
+on p.brand_purpose = bp.id
+	  
+LEFT JOIN ds_mysql_prod_tagelement si
+on p.sdg_impacted = si.id
+	  
+LEFT JOIN ds_mysql_prod_tagelement rm
+on p.raw_materials = rm.id
+	  
+LEFT JOIN ds_mysql_prod_tagelement pm
+on p.packaging_materials = pm.id
+	  
+LEFT JOIN ds_mysql_prod_tagelement nc
+on p.nature_complaints = nc.id
+	  	  
+LEFT JOIN ds_mysql_prod_tagelement cf
+on p.consumer_feedback = cf.id
+	  	  
+LEFT JOIN ds_mysql_prod_tagelement ce
+on p.consumer_education = ce.id
+	  
+) 
+UNPIVOT (
+    val FOR dim IN (s_score, product_benefits, nutrition_wellness_benefits, publicly_recognize, purpose, brand_purpose, sdg_impacted, sustainable_sourcing, raw_materials, packaging_materials, consumer_satisfaction, nature_complaints, consumer_feedback, consumer_education)
+)
+
+WHERE row_number = 1
