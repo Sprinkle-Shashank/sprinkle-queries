@@ -1,1 +1,15 @@
-select split_part(submission_date,'Z',1) from profile_27398
+select split_part(p.submission_date,'T',1) as Date,t5.name as fy_timerange,(t.name) as response,case when response='Yes' then split_part(t2.name,'[',1) else t3.name end as projectcode,case when response='Yes' then m.name else n.name end as project_manager,t4.name as Payment_tranche,p.uc as utilisation_certificate_from_last_payment,case when p.amnt_nt_utlzd is null then 0 else p.amnt_nt_utlzd  end as Amount_not_utilised,case when p.payment_amount is null then 0 else p.payment_amount  end as Amount_Disbursed from profile_27398 p
+left join ds_mysql_prod_tagelement t
+on p.renewal=t.id
+left join profile_27396 t3 on
+p.project_name=t3._id
+left join profile_27420 t2 on
+p.project_renew=t2._id
+left join ds_mysql_prod_tagelement n on
+t3.project_manager=n.id
+left join ds_mysql_prod_tagelement m on
+t2.project_manager=m.id
+left join ds_mysql_prod_tagelement t4
+on p.tranche=t4.id
+left join ds_mysql_prod_tagelement t5
+on p.fy=t5.id
