@@ -6,7 +6,7 @@ Select 'Total Indirect Budget' as col
 ),
 
 
-tab1 as(Select distinct(p.village), p3.name fy_timerange,sum(sq.total_cost_yearly) as total_direct , p1.name as projectcode, p2.name as project_manager
+tab1 as(Select distinct(p.village), p3.name fy_timerange,total_cost_yearly , p1.name as projectcode, p2.name as project_manager
 from profile_29973 sq
 left join profile_27489 p
 on sq.census_code=p._id
@@ -15,8 +15,7 @@ on sq.prj_code=p1._id
 left join ds_mysql_prod_tagelement p2
 on p1.project_manager=p2.id
 left join ds_mysql_prod_tagelement p3
-on p3.id=sq.fy
-group by p.village,p1.name,p2.name,p3.name),
+on p3.id=sq.fy),
 
 tab3 as(SELECT q.name as projectcode,t.name as fy_timerange,
        sum(CASE 
@@ -66,9 +65,9 @@ group by t.fy_timerange,t.project_manager,t.projectcode,t.village)
 
 Select distinct(t.village), t.fy_timerange, 
 case col
-		when 'Total Direct Budget' then t1.total_direct
+		when 'Total Direct Budget' then sum(t1.total_cost_yearly)
+		 
 		when 'Total Indirect Budget' then  t.total_indirect
-		
 	else 0
 	end as values,
 	temp.col as contri_types,
@@ -77,6 +76,7 @@ from tab7 t
 left join tab1 t1 on
 t1.projectcode=t.projectcode
 cross join temp
+group by t.village,t.fy_timerange,t.projectcode,t.project_manager,t.total_indirect
 
 
 
