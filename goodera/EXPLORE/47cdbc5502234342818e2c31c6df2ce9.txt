@@ -1,33 +1,33 @@
-select sum(p1.payment_amount) as DisbursedAmount, f.name  as fy , p1.name ,
+select sum(p2.payment_amount) as DisbursedAmount, f.name  as fy , p1.name ,
 t2.name as Quarter,
-sum( case when Quarter='Quarter 1' then p1.payment_amount
+case when t2.name='Quarter 1' then sum(p2.payment_amount)
 else '0'
-	end) as DisbursedAmountforQ1,
-	sum( case when Quarter='Quarter 2' then p1.payment_amount
+	end as DisbursedAmountforQ1,
+case when t2.name='Quarter 2' then sum(p2.payment_amount)
 else '0'
-	end) as DisbursedAmountforQ2,
-	sum( case when Quarter='Quarter 3' then p1.payment_amount
+	end as DisbursedAmountforQ2,
+case when t2.name='Quarter 3' then sum(p2.payment_amount)
 else '0'
-	end) as DisbursedAmountforQ3,
-	sum( case when Quarter='Quarter 4' then p1.payment_amount
+	end as DisbursedAmountforQ3,
+case when t2.name='Quarter 4' then sum(p2.payment_amount)
 else '0'
-	end) as DisbursedAmountforQ4
+	end as DisbursedAmountforQ4
 	
-	
-from profile_27398 p1
+from profile_27396 p1
 left join profile_29974 p3 on
 p1._id=p3.prj_code
 left join ds_mysql_prod_tagelement t1
 on p3.month_number=t1.id
 left join ds_mysql_prod_tagelement t2
 on t1.parent=t2.id
-
-
-
+left join profile_27398 p2 on
+p1._id=p2.project_name	
 left join ds_mysql_prod_tagelement f on
 p1.fy=f.id
 where f.name not in ('2015-2016','2016-2017','2017-2018')
 group by f.name , p1.name, t2.name
+/* quarter wise disbursed amount fr projectwise financies with pivot*/
+
 
 /*select p8.name, case p8.name  when 'Indirect' then sum(p2.hdfc_cost_monthly+p6.monthly_cost)
   else sum(p3.curr_yr_budget+p1.curr_yr_budget)  end as AllocatedAmount , f.name  as financial_year from profile_27396 p1
@@ -174,37 +174,5 @@ left join ds_mysql_prod_tagelement f on
 p1.fy=f.id
 left join ds_mysql_prod_tagelement m on
 p1.project_manager=m.id
-group by  p1.name,p7.name, p9.name,p8.name ,p10.name,duration,m.name ,f.name
-
-
-union all
-select p1.name as Project_code, '' as ImplementingAgency,  '' as ProjectLive, '' as intervention_type, '' as CoreArea , '' as duration,'' as project_manager , '' as fy_timerange , 0 as AmountallocatedforthecurrentFYinINR
-/*, 0 as  AmountallocatedforQ1inINR,0 as quarter*/ from profile_29974 p2 
-left join profile_27396  p1 on p1._id=p2.prj_code
-union all
-select  p1.name as Project_code, '' as ImplementingAgency,  '' as ProjectLive, '' as intervention_type, '' as CoreArea , '' as duration,'' as project_manager , '' as fy_timerange , 0 as AmountallocatedforthecurrentFYinINR
-/*,0 as  AmountallocatedforQ1inINR,0 as quarter*/ from profile_27420 p3
-left join profile_27396  p1 on p1._id=p3.project_code
-union all
-select p1.name as Project_code,  '' as ImplementingAgency,  '' as ProjectLive, '' as intervention_type, '' as CoreArea , '' as duration, '' as project_manager , '' as fy_timerange, 0 as AmountallocatedforthecurrentFYinINR
-/*, 0 as  AmountallocatedforQ1inINR,0 as quarter*/ from profile_27398 p4
-left join profile_27396  p1 on p1._id=p4.project_name 
-union all
-select p1.name as Project_code, '' as ImplementingAgency,  '' as ProjectLive, '' as intervention_type, '' as CoreArea , '' as duration, '' as project_manager , '' as fy_timerange, 0 as AmountallocatedforthecurrentFYinINR
-/*,0 as  AmountallocatedforQ1inINR,0 as quarter*/ from profile_27398 p5
-left join profile_27396  p1 on p1._id=split_part(p5.project_renew,'[',1)*/
-
-
-
-
-
-
-
-
-
-
-	
-
-
-
+group by  p1.name,p7.name, p9.name,p8.name ,p10.name,duration,m.name ,f.name*/
 
