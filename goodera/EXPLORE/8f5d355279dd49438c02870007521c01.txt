@@ -1,56 +1,66 @@
 with table1 as
-( select p.*, fac.name as factory , case when nvl2(SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), ven.name)='' then ven.name else nvl2(SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), ven.name) end as vendor
- , cou.name as country, 
-case when country in ('India', 'Bangladesh', 'Sri Lanka')
-then 'South Asia'
-when country in ('China')
-then 'North Asia'
-when country in ('Guatemala', 'El Salvador', 'Dominican Republic')
-then 'Americas'
-when country in ('Philippines', 'Cambodia',  'Vietnam',  'Indonesia', 'Myanmar')
-then 'South East Asia'
-end as region , p2.name as name_subunit , case when name_subunit is null or name_subunit=' ' then 'N/A' else name_subunit end  as unit 
-from profile_16864 as p
+( select p.projectid , fac.name as factory , ven.name as vendor , cou.name as country , p.name as Submission , p2.factory_id as Facility_id , aaditional_comments as add_comment , job.name as job_p , op.name as opport , know.name as knowled , rate.name as rating_update , sta.name as status_update ,
  
+ case when status_update is null and p3.date_enrollment is not null and p3.date_completion is null then 'ongoing' when status_update is null and p3.date_enrollment is not null and p3.date_completion is not null then 'completed' else  status_update end as wcp_status
+ 
+ , p4.vpid as vendor_id , sub.name as sub_unit_update , case when sub_unit_update is not null then sub_unit_update else 'No' end as multiple_BCs , p3.date_enrollment , extract(year from p3.date_enrollment) as wcp_start_year , module
+ 
+ from profile_16864 as p
+ 
+   
 left join ds_mysql_prod_project fac
 on p.projectid = fac.id
-
+ 
 left join ds_mysql_prod_project ven
 on fac.parent = ven.id
-
+ 
 left join ds_mysql_prod_project cou
-on ven.parent = cou.id 
+on ven.parent = cou.id
  
-left join profile_16619 p2 on
-p.sub_unit = p2._id
+left join ds_mysql_prod_tagelement job
+on p.job_part = job.id
  
-where country != 'Test Country'
+left join ds_mysql_prod_tagelement op
+on p.opportunities = op.id
+ 
+left join ds_mysql_prod_tagelement know
+on p.knowledge = know.id
+ 
+left join ds_mysql_prod_tagelement rate
+on p.rating = rate.id
+ 
+left join profile_4722 p2 
+on p.projectid = p2.projectid 
+ 
+left join profile_16619 p3 
+on p.projectid = p3.projectid 
+ 
+left join ds_mysql_prod_tagelement sta
+on p3.status = sta.id
+ 
+ left join ds_mysql_prod_tagelement sub
+on p3.sub_unit = sub.id
+
+left join profile_4718 p4
+on p.projectid = p4.projectid 
+ 
+ where cou.id != 13761 
 ),
+
 
 table2 as
 (
-select p.*, d1 from table1 as p,p.module as d1
-  ),
-  
-  table3 as
-  (select p.*, mod.name as module_updated from table2 as p 
+select p.* , d1 from table1 as p,p.module as d1 
+ ),
+ 
+ 
+ table3 as
+ ( 
+   select p.*, mod.name as module_name from table2 as p
    
    left join ds_mysql_prod_tagelement mod
    on p.d1 = mod.id
-   ),
-   
-   
-   table4 as
-   ( select p.* from profile_17028 as p),
-   
-   table5 as
-   (
-   select p.* , t1.trainer_name from table3 as p
-	 
-	left join table4 t1 on
-	 p._id = t1._id
-	)
-	
-	select * from table5
-   
- 
+  )
+  
+  
+  select * from table3
