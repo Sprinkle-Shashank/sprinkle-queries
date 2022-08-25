@@ -1,18 +1,21 @@
 with temp1 as 
-(select m.completed, m.project_code, m.fy_timerange, m.remarks, r.project_name, r.vertical, r.focus, r._id
+(select m.completed, m.project_code, m.fy_timerange, m.remarks, r.project_name, r.vertical, focus.name as focus, r._id
  from profile_55471 as m
  
  left join profile_62881 AS r 
  on m.project_code = r.project_code
+ 
+ left join ds_mysql_prod_tagelement as focus
+ on r.focus = focus.id
  
  where completed = 939857 and project_name IS NOT NULL),
  
  temp2 as
  (select completed, project_code, fy_timerange, remarks, project_name, vertical, _id,
   
- /*case when m.focus IS NULL THEN 'Admin'
+ case when m.focus IS NULL THEN 'Admin'
  else m.focus
- end as */ focus
+ end as focus
  from temp1 as m),
  
  temp3 as
@@ -62,4 +65,4 @@ left join ds_mysql_prod_tagelement as vert1
 	select completed, project_code, fy_timerange, focus, project_name, remarks, vertical, total
 	from temp6)
 	
-  select * from temp7
+  select * from temp3
