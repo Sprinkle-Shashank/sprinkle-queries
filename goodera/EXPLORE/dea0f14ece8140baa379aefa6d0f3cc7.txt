@@ -1,4 +1,9 @@
-with tab1 as(SELECT split_part(prod.name,'|',1) as ProjectCode,t.name as fy_timerange,concat(ProjectCode,fy_timerange) as CODE,
+with temp as(
+Select 'Total Direct Budget' as col
+union all
+Select 'Total Indirect Budget' as col
+),
+tab1 as(SELECT split_part(prod.name,'|',1) as ProjectCode,t.name as fy_timerange,concat(ProjectCode,fy_timerange) as CODE,
        sum(CASE 
              WHEN p.budget_head = 'Admin Cost' THEN p.cost_yearly 
              ELSE 0 
@@ -50,9 +55,19 @@ p.fy=f.id),
 tab5 as(select t2.projectcode,t2.fy_timerange,t2.project_manager,(t3.Admin_cost/t3.number_of_villages) as AC,(t3.Human_resource/t3.number_of_villages) as HRC,(t3.NGO_Management_Cost/t3.number_of_villages) as NMC,t3.Admin_cost,t3.Human_resource,t3.NGO_Management_Cost,t3.number_of_villages,t2.CODE from tab4 t2
 left join tab3 t3 on
 t3.CODE=t2.CODE
-where t3.number_of_villages!=0)
-
-select distinct(t1.village),t.projectcode,t.project_manager,t.fy_timerange,t.HRC as a,t.NMC b,t.AC c,sum(a+b+c) as indirect_budget,sum(t1.total_cost_yearly) as direct_budget from tab5 t
+where t3.number_of_villages!=0),
+tab6 as(select distinct(t1.village),t.projectcode,t.project_manager,t.fy_timerange,t.HRC as a,t.NMC b,t.AC c,(a+b+c) as indirect_budget,sum(t1.total_cost_yearly) as direct_budget from tab5 t
 left join tab2 t1 on
 t.CODE=t1.CODE
-group by 1,2,3,4,5,6,7
+group by 1,2,3,4,5,6,7)
+
+Select village, fy_timerange, 
+case col
+		when 'Total Direct Budget' then s.direct_budget
+		when 'Total Indirect Budget' then  s.indirect_budget
+	else 0
+	end as values,
+	temp.col as contri_types,
+projectcode, project_manager
+from tab6 s
+cross join temp
