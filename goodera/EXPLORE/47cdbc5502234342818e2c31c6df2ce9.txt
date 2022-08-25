@@ -1,12 +1,34 @@
-select sum(p2.payment_amount) as DisbursedAmount, f.name  as fy , p1.name from profile_27396 p1
+select sum(p2.payment_amount) as DisbursedAmount, f.name  as fy , p1.name ,
+t2.name as Quarter,
+sum( case when Quarter='Quarter 1' then p2.payment_amount
+else '0'
+	end) as DisbursedAmountforQ1,
+	sum( case when Quarter='Quarter 2' then p2.payment_amount
+else '0'
+	end) as DisbursedAmountforQ2,
+	sum( case when Quarter='Quarter 3' then p2.payment_amount
+else '0'
+	end) as DisbursedAmountforQ3,
+	sum( case when Quarter='Quarter 4' then p2.payment_amount
+else '0'
+	end) as DisbursedAmountforQ4
+	
+	
+from profile_27396 p1
 left join profile_27398 p2 on
 p1._id=p2.project_name	
 left join ds_mysql_prod_tagelement f on
 p1.fy=f.id
+ left join profile_29974 p3 on
+p1._id=p3.prj_code
+left join ds_mysql_prod_tagelement t1
+on p3.month_number=t1.id
+left join ds_mysql_prod_tagelement t2
+on t1.parent=t2.id
 	 
 		 
 		 where f.name not in ('2015-2016','2016-2017','2017-2018')
-group by f.name , p1.name
+group by f.name , p1.name, t2.name
 
 /*select p8.name, case p8.name  when 'Indirect' then sum(p2.hdfc_cost_monthly+p6.monthly_cost)
   else sum(p3.curr_yr_budget+p1.curr_yr_budget)  end as AllocatedAmount , f.name  as financial_year from profile_27396 p1
