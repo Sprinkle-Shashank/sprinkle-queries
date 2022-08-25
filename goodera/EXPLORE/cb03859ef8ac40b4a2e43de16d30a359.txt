@@ -1,4 +1,42 @@
 
+
+with table1 as
+( select p.batch, daily_wage, p.state , p1.fy as name_update , sta.name as state_update, avg_working_days   from profile_30527 as p
+ 
+ left join profile_30532 p1 on
+ p.batch = p1._id
+ 
+ left join ds_mysql_prod_tagelement sta 
+ on p.state = sta.id 
+ ),
+ 
+  table2 as
+ (
+    select state_update, avg(avg_working_days*daily_wage*12) as income , name_update , 'Endline' as assessment, 'Average Annual Income' as indicator_update  from table1
+   
+    group by state_update , name_update , indicator_update , assessment
+ 
+   order by name_update asc
+  )
+ 
+ select state_update, income , name_update , assessment, indicator_update  from table2
+ 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/*
 select batch, /*avg_working_days, daily_wage*/ state.name as state, profile_30532.fy as name, avg(avg_working_days*daily_wage*12) as income, 'Baseline' as assessment, 'Average Annual Income' as indicator
 FROM Profile_30527 as P
 LEFT JOIN profile_30532 
@@ -9,7 +47,7 @@ ON P.state = state.id
 
 GROUP BY profile_30532.fy, assessment, indicator, state.name, batch
 
-ORDER BY profile_30532.fy ASC
+ORDER BY profile_30532.fy ASC*/
 
 
 
