@@ -3,14 +3,14 @@ with table1 as( Select _id,projectid , fy_timerange , to_char(date_entry,'DD-MM-
 			   
 from profile_82027  ),
 
-table2 as ( Select t1.* , job  , machine  from table1 t1 , t1.job_done job ,  t1.machine_not_working machine ),
-
-table3 as ( Select p._id,p.projectid ,p.fy_timerange ,date_entry,loc.name as location_machine , sup.name as supervisor_name , met.name as meter_reading , reading_meter , op.name as operational_status , non_operation_reason, run.name as running_wayu_machines ,reason_not_working ,  conculding_remarks , jb.name as job_done , mac.name as machine_work
+table2 as ( Select t1.* , job  from table1 t1 , t1.job_done job    ),
+table3 as ( Select t2.* , machine from table2 t2 , t2.machine_not_working machine),
+table4 as ( Select p._id,p.projectid ,p.fy_timerange ,date_entry,loc.name as location_machine , sup.name as supervisor_name , met.name as meter_reading , reading_meter , op.name as operational_status , non_operation_reason, run.name as running_wayu_machines ,reason_not_working ,  conculding_remarks  , LISTAGG(jb.name,',') as job_done , LISTAGG(mac.name,',') as machine_work
 		   
 	--,LISTAGG(job,',') as job_done , LISTAGG(machine,',') as machine_work 
 		   
 		   
-		   from table2 p
+		   from table3 p
 		LEFT JOIN profile_82026 p2 
         ON p.location_machine = p2._id
 		left join ds_mysql_prod_tagelement loc
@@ -27,18 +27,23 @@ table3 as ( Select p._id,p.projectid ,p.fy_timerange ,date_entry,loc.name as loc
         on p.job = jb.id
 		left join ds_mysql_prod_tagelement mac
         on p.machine = mac.id
+		GROUP BY  p._id,p.projectid ,p.fy_timerange ,date_entry,loc.name ,sup.name,
+		   met.name , reading_meter , op.name ,  non_operation_reason, run.name ,
+		   reason_not_working ,  conculding_remarks , jb.name , mac.name
 		  
+		  
+		  )  
 		  
 		  )
 		   
 		   
 		   
-/*GROUP BY _id,projectid ,fy_timerange ,date_entry,location_machine , supervisor_name , meter_reading , reading_meter , operational_status , non_operation_reason, running_wayu_machines ,reason_not_working ,  conculding_remarks ) */
+
 		   
 		   
 		   
 
-Select * from table3
+Select * from table4
 	
 	
 	
