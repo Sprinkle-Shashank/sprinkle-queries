@@ -1,4 +1,35 @@
 
+with table1 as
+( select p.batch, govt_scheme1_yn, p.state , p1.fy as name_update , sta.name as state_update, 'numaware' as numaware, man_sca_act1_yn,
+CASE when govt_scheme1_yn = 476506 and man_sca_act1_yn = 476506 
+then 1 else 0 end as aware 
+from profile_30527 as p
+ 
+ left join profile_30532 p1 on
+ p.batch = p1._id
+ 
+ left join ds_mysql_prod_tagelement sta 
+ on p.state = sta.id 
+ 
+ where man_sca_act1_yn and govt_scheme1_yn IN ('476506','476507')
+ ),
+ 
+  table2 as
+ (
+    select state_update, sum(numaware + name + state) as number, name_update from table1
+   
+    group by state_update, name_update, numaware
+ 
+   order by name_update asc
+  )
+ 
+ select state_update, number, name_update, numaware from table2
+ 
+
+
+
+
+/*
 select p1.fy as name, sta.name as state, govt_scheme1_yn, man_sca_act1_yn, 'numaware' as numaware,
 CASE when govt_scheme1_yn = 476506 and man_sca_act1_yn = 476506 
 then 1 else 0 end as aware
@@ -11,7 +42,7 @@ left join ds_mysql_prod_tagelement sta
  on p.state = sta.id
  
  where man_sca_act1_yn and govt_scheme1_yn IN ('476506','476507')
- 
+ */
 
  
  
