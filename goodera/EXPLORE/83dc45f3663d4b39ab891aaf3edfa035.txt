@@ -1,13 +1,22 @@
-select p.name as projectId, a.fy_timerange,p2.name as beneficiary,a.monthly_salary as avg_income_after,t2.name as status,
-'Avg. Income After' as intervention,'Placed with Food Truck' as dimensions
-from profile_81394 a 
---where t1.name = 
-left join ds_mysql_prod_project p on p.id = a.projectid
-left join profile_81393 p1 on p1._id= a.food_truck
-left join ds_mysql_prod_tagelement t1 on t1.id=p1.
-left join profile_81375 p2 on p2._id= a.beneficiary
-left join ds_mysql_prod_tagelement t2 on t2.id=a.placement_status
+select t3.name as theme, t2.name as partner,p4.name as project_outline, p2.name as projectid, (p1.date_start || '|' || p1.date_end) as fy_timerange, t1.name as plant, cast(extract(year from cast(p1.date_start as date)) as varchar) as year,
 
-where t2.name = 'Yes with Other eateries'
+case
+	when p3.name = 'Helpage' then trim(' ' from split_part(p2.name, '-', 2))
+	when p3.name = 'Piramal' then trim(' ' from split_part(p2.name, '-', 1))
+	else '-'
+end as clinic_type,
 
---group by p.name,a.fy_timerange,p1.name,p1.avg_monthly_income,a.monthly_salary,t1.name
+sum(p1.allocated) as allocated
+from profile_72811 p1 
+left join ds_mysql_prod_project p2 on p2.id = p1.projectid
+left join ds_mysql_prod_project p3 on p3.id = p2.parent
+
+left join profile_73154 p4 on p4._id = p1.projects
+
+left join ds_mysql_prod_tagelement t1 on t1.id = p1.plant
+left join ds_mysql_prod_tagelement t2 on t2.id = p4.partner
+left join ds_mysql_prod_tagelement t3 on t3.id = p4.theme
+ 
+where p1.projectid like '%%'
+
+group by t3.name, t2.name, p1.date_start, p1.date_end, t1.name, p2.name, p3.name,p4.name
