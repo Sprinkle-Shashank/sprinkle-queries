@@ -1,4 +1,4 @@
-with tab1 as(SELECT q.name as projectcode,t.name as fy_timerange,
+with tab1 as(SELECT split_part(prod.name,'|',1) as ProjectCode,t.name as fy_timerange,concat(ProjectCode,fy_timerange) as CODE,
        sum(CASE 
              WHEN p.budget_head = 'Admin Cost' THEN p.cost_yearly 
              ELSE 0 
@@ -12,36 +12,46 @@ with tab1 as(SELECT q.name as projectcode,t.name as fy_timerange,
              ELSE 0 
            END) AS NGO_Management_Cost 
 FROM   profile_29976 p
+left join ds_mysql_prod_project prod on
+prod.id=p.projectid	
 left join ds_mysql_prod_tagelement t on
 p.fy=t.id
-left join profile_27396 q on
-p.prj_code=q._id
-left join ds_mysql_prod_tagelement t2 on
-q.project_manager=t2.id
 
-GROUP  BY 1,2),
-tab2 as(select distinct(k.village),q.name as projectcode,t2.name as project_manager
-		  from profile_29973 p
-		  left join profile_27489 k
-          on p.census_code=k._id
-		  left join profile_27396 q on
-          p.prj_code=q._id
-		  left join ds_mysql_prod_tagelement t2 on
-          q.project_manager=t2.id
-		  group by 1,2,3),
+GROUP  BY 1,2,3),
+tab2 as(select q.village,split_part(split_part(prod.name,'|',1),'.',1) as ProjectCode,f.name as fy_timerange,concat(ProjectCode,fy_timerange) as CODE,split_part(prod.name,'|',3) as census from profile_29973 p 
+left join ds_mysql_prod_project prod on
+prod.id=p.projectid	
+left join ds_mysql_prod_tagelement f on
+p.fy=f.id
+left join profile_27489 q on
+split_part(prod.name,'|',3)=q.name),
 		  
 		  
-tab3 as(select count(t1.village)as number_of_villages,t.projectcode,t.fy_timerange,t1.project_manager,t.Admin_cost,t.Human_resource,t.NGO_Management_Cost from tab1 t
+tab3 as(select count(distinct(t1.village))as number_of_villages,t.Admin_cost,t.Human_resource,t.NGO_Management_Cost,t.fy_timerange,t.CODE from tab1 t
 left join tab2 t1 on
-t.projectcode=t1.projectcode
-group by 2,3,4,t.Admin_cost,t.Human_resource,t.NGO_Management_Cost)
+t.CODE=t1.CODE
+group by t.Admin_cost,t.Human_resource,t.NGO_Management_Cost,t.fy_timerange,t.CODE),
 
-select t3.village,t2.projectcode,t2.fy_timerange,t2.project_manager,(t2.Admin_cost/t2.number_of_villages) as AC,(t2.Human_resource/t2.number_of_villages) as HRC,(t2.NGO_Management_Cost/t2.number_of_villages) as NMC,t2.Admin_cost,t2.Human_resource,t2.NGO_Management_Cost,t2.number_of_villages from tab3 t2
-left join tab2 t3 on
-t3.projectcode=t2.projectcode
-where t2.number_of_villages!=0
- ---SELECT countdistinct(t2.village)) as number,t2.project_code,t2.fy,t2.project_manager,t3.number_of_villages,(t2.AC/t3.number_of_villages) as AC1,(t2.HRC/t3.number_of_villages) as HRC1,(t2.NMC/t3.number_of_villages)as NMC1 from tab4 t2
--- where t3.number_of_villages!=0
---- group by 1,2,3,4,5,t2.AC,t2.HRC,t2.NMC
+tab4 as(select p.name as projectcode,f.name as fy_timerange,concat(projectcode,fy_timerange) as CODE,m.name  as project_manager from profile_27396 p
+left join ds_mysql_prod_tagelement m on
+p.project_manager=m.id
+left join ds_mysql_prod_tagelement f on
+p.fy=f.id
+union
+select l.name as projectcode,f.name as fy_timerange,concat(projectcode,fy_timerange) as CODE,m.name as project_manager
+from profile_27420 p
+left join profile_27396 l on
+p.project_code=l._id
+left join ds_mysql_prod_tagelement m on
+p.project_manager=m.id
+left join ds_mysql_prod_tagelement f on
+p.fy=f.id),
 
+tab5 as(select t2.projectcode,t2.fy_timerange,t2.project_manager,(t3.Admin_cost/t3.number_of_villages) as AC,(t3.Human_resource/t3.number_of_villages) as HRC,(t3.NGO_Management_Cost/t3.number_of_villages) as NMC,t3.Admin_cost,t3.Human_resource,t3.NGO_Management_Cost,t3.number_of_villages,t2.CODE from tab4 t2
+left join tab3 t3 on
+t3.CODE=t2.CODE
+where t3.number_of_villages!=0)
 
+select distinct(t1.village),t.projectcode,t.project_manager,t.fy_timerange,t.HRC,t.NMC,t.AC from tab5 t
+left join tab2 t1 on
+t.CODE=t1.CODE
