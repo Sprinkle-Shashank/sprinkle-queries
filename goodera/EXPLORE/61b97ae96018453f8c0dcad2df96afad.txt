@@ -1,30 +1,8 @@
-with sub1 as(
-  select p2.name as projectid, p1.project_name, p1.fy_timerange, t1.name as choose, p1.budget_approved, p3.csr_spent,
-
-((cast(p1.budget_approved as FLOAT) / NULLIF(cast(p3.csr_spent as FLOAT),0)) * 100) as percentage
+select p2.name as projectid, p1.project_name, p1.fy_timerange, t1.name as choose, sum(p1.budget_approved) as budget_approved, 'Actual Numbers' as dimensions 
 
 from profile_41363 p1 
 
 left join ds_mysql_prod_project p2 on p2.id = p1.projectid
 left join ds_mysql_prod_tagelement t1 on t1.id = p1.project_type
-
-left join profile_80535 p3 on 
-	extract(year from cast(p3.fy_timerange.start as DATE)) = extract(year from cast(p1.fy_timerange.start as DATE))),
-	
-temp as(
-  select 'Actual Numbers' as col
-  union all
-  select 'Percentage' as col
-)
-
-select s1.projectid, s1.project_name, s1.fy_timerange, s1.choose, temp.col as dimensions,
-
-sum(case temp.col
-		when 'Actual Numbers' then s1.budget_approved
-		when 'Percentage' then s1.percentage
-	else NULL
-end) as values 
-
-from sub1 s1
-cross join temp
-group by s1.projectid, s1.project_name, s1.fy_timerange, s1.choose, temp.col
+  
+group by p2.name, p1.project_name, p1.fy_timerange, t1.name
