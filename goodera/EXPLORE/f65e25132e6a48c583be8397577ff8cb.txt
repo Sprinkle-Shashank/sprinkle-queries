@@ -1,26 +1,4 @@
-with 
-temp as(
-Select 'Total Direct Budget' as col
-union all
-Select 'Total Indirect Budget' as col
-),
-
-
-tab1 as(select  distinct(p.village),sum(sq.total_cost_yearly) as total_direct,p1.name as projectcode, p2.name as project_manager
-from profile_29973 sq
-left join profile_27489 p
-on sq.census_code=p._id
-left join profile_27396 p1
-on sq.prj_code=p1._id
-left join ds_mysql_prod_tagelement p2
-on p1.project_manager=p2.id
-left join ds_mysql_prod_tagelement p3
-on p3.id=sq.fy
-group by p.village,p1.name,p2.name,p3.name),
-
-
-
-tab3 as(SELECT q.name as projectcode,t.name as fy_timerange,
+SELECT q.name as projectcode,t.name as fy_timerange,
        sum(CASE 
              WHEN p.budget_head = 'Admin Cost' THEN p.cost_yearly 
              ELSE 0 
@@ -58,30 +36,9 @@ left join tab4 t1 on
 t.projectcode=t1.projectcode
 group by 2,3,4,t.Admin_cost,t.Human_resource,t.NGO_Management_Cost),
 
-tab6 as(select t3.village,t2.projectcode,t2.fy_timerange,t2.project_manager,(t2.Admin_cost/t2.number_of_villages) as AC,(t2.Human_resource/t2.number_of_villages) as HRC,(t2.NGO_Management_Cost/t2.number_of_villages) as NMC from tab5 t2
+tab6 as(select t3.village,t2.projectcode,t2.fy_timerange,t2.project_manager,(t2.Admin_cost/t2.number_of_villages) as AC,(t2.Human_resource/t2.number_of_villages) as HRC,(t2.NGO_Management_Cost/t2.number_of_villages) as NMC,from tab5 t2
 left join tab4 t3 on
 t3.projectcode=t2.projectcode
-where t2.number_of_villages!=0),
+where t2.number_of_villages!=0)
 
-tab7 as(select sum(t.HRC+t.NMC+t.AC) as total_indirect,t.fy_timerange,t.project_manager,t.projectcode,t.village from tab6 t
-group by t.fy_timerange,t.project_manager,t.projectcode,t.village)
-
-Select distinct(t.village), t.fy_timerange, 
-case col
-		when 'Total Direct Budget' then t1.total_direct
-		 
-		when 'Total Indirect Budget' then  t.total_indirect
-	else 0
-	end as values,
-	temp.col as contri_types,
-t.projectcode, t.project_manager
-from tab7 t left join tab1 t1 on
-t.projectcode=t1.projectcode
-cross join temp
-group by t.village,t.projectcode,t.project_manager,t.fy_timerange,temp.col,t1.total_direct,t.total_indirect
-
-
-
-
-
-
+select sum(t.AC+t.HRC+t.NMC) as total_direct,t.village,t.project_manager,t.projectcode,'Total Indirect Budget' as contri_type1 from tab6 t
