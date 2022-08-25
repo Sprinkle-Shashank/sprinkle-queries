@@ -1,13 +1,34 @@
-with tab1 as(select split_part(split_part(prod.name,'|',1),'.',1) as ProjectCode,f.name as fy_timerange,concat(ProjectCode,fy_timerange) as CODE,split_part(prod.name,'|',3) as census, sum(hdfc_cost_yearly) hdfc_cost_yearly,sum(gov_cost_yearly) as gov_cost_yearly,sum(comm_cost_yearly) comm_cost_yearly
-from profile_29973 p
-left join ds_mysql_prod_project prod on
-prod.id=p.projectid
-left join ds_mysql_prod_tagelement f on
-p.fy=f.id
-group by  split_part(split_part(prod.name,'|',1),'.',1),f.name,split_part(prod.name,'|',3)),
+with tab1 as(SELECT split_part(prod.name,'|',1) as ProjectCode,concat(ProjectCode,fy_timerange) as CODE,t.name as fy_timerange,
+       sum(CASE 
+             WHEN p.budget_head = 'Admin Cost' THEN p.cost_yearly 
+             ELSE 0 
+           END) AS Admin_cost,
+       sum(CASE 
+             WHEN p.budget_head = 'Human Resource' THEN p.cost_yearly
+             ELSE 0 
+           END) AS Human_resource,
+		sum(CASE 
+             WHEN p.budget_head = 'NGO Management Cost' THEN p.cost_yearly
+             ELSE 0 
+           END) AS NGO_Management_Cost 
+FROM   profile_29976 p
+left join ds_mysql_prod_tagelement t on
+p.fy=t.id
 
-Base1 as
-(select p.name as projectcode,f.name as fy_timerange,concat(projectcode,fy_timerange) as CODE,m.name  as project_manager from profile_27396 p
+GROUP  BY 1,2,3),
+tab2 as(select q.village,split_part(split_part(prod.name,'|',1),'.',1) as ProjectCode,f.name as fy_timerange,concat(ProjectCode,fy_timerange) as CODE,split_part(prod.name,'|',3) as census from profile_29973 p 
+left join ds_mysql_prod_project prod on
+prod.id=p.projectid		
+left join profile_27489 q on
+split_part(prod.name,'|',3)=q.name),
+		  
+		  
+tab3 as(select count(t1.village)as number_of_villages,t.Admin_cost,t.Human_resource,t.NGO_Management_Cost,t.fy_timerange from tab1 t
+left join tab2 t1 on
+t.CODE=t1.CODE
+group by t.Admin_cost,t.Human_resource,t.NGO_Management_Cost,t.fy_timerange),
+
+tab4 as(select p.name as projectcode,f.name as fy_timerange,concat(projectcode,fy_timerange) as CODE,m.name  as project_manager from profile_27396 p
 left join ds_mysql_prod_tagelement m on
 p.project_manager=m.id
 left join ds_mysql_prod_tagelement f on
@@ -20,10 +41,13 @@ p.project_code=l._id
 left join ds_mysql_prod_tagelement m on
 p.project_manager=m.id
 left join ds_mysql_prod_tagelement f on
-p.fy=f.id
-),
-Base2 as(select p.projectcode,p.fy_timerange,p.CODE,l.village as village,p.task,p.cost_per_unit,p.number_of_units_cover,p.total_hdfc_bank_contribution,p.cost,p.activity,p.focus_area from tab1 p left join profile_27489 l on p.census=l.name),
+p.fy=f.id),
 
-Base3 as(select p.projectcode,p.fy_timerange,l.project_manager,p.village as village,p.task,p.hdfc_cost_yearly,p.gov_cost_yearly,p.comm_cost_yearly
-from Base2 p left join Base1 l on p.CODE=l.CODE)
-select * from Base3
+tab5 as(select t2.projectcode,t2.fy_timerange,t2.project_manager,(t3.Admin_cost/t3.number_of_villages) as AC,(t3.Human_resource/t3.number_of_villages) as HRC,(t3.NGO_Management_Cost/t3.number_of_villages) as NMC,t3.Admin_cost,t3.Human_resource,t3.NGO_Management_Cost,t3.number_of_villages,t2.CODE from tab4 t2
+left join tab3 t3 on
+t3.CODE=t2.CODE
+where t3.number_of_villages!=0),
+
+select t.projectcode,t.project_manager,t.fy_timerange,t1.village,t.HRC,t.NMC,t.AC from tab5 t
+left join tab2 t1
+t.CODE=t1.CODE
