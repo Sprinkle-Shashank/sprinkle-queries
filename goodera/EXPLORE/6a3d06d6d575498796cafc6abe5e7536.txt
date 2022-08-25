@@ -10,9 +10,18 @@ UNPIVOT (
     val FOR dim IN (attendees, count_trainings))
 
 )
-select  projectId, fy_timerange, state, phc, topic, hw_type, pic_1, cap_1, dim, sum(val) as val from t1 as p
+select  projectId, fy_timerange, state, phc.name as phc, topic.name as topic, hw.name as hw_type, pic_1, cap_1, dim, sum(val) as val,reg.name from t1 as p
 left join ds_mysql_prod_tagelement reg
 on P.state= reg.id
+
+left join ds_mysql_prod_tagelement hw
+on P.hw_type= hw.id
+
+left join ds_mysql_prod_tagelement topic
+on P.topic= topic.id
+
+left join ds_mysql_prod_tagelement phc
+on P.phc= phc.id
 
   Group By projectId, fy_timerange,  phc, topic, hw_type, state, reg.name, dim,p.pic_1, p.cap_1
 
