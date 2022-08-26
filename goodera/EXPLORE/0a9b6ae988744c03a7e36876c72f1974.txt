@@ -1,9 +1,39 @@
-Select t1.name as financial_year, p.project_proposal as "Project Proposal",p.budget as "Budget File",p.monitoring_plan as "Project Monitoring Plan", p.rra_file as "RRA Report",p.impact_file as "Impact Report",p.pad_file as "Project Activities Details",'Click Here' as Click,1 as county
+with temp as (
+Select 'Project Proposal' as col
+union all
+Select 'Budget File' as col
+union all
+Select 'Project Monitoring Plan' as col
+union all
+Select 'RRA Report' as col
+union all
+Select 'Impact Report' as col
+union all
+Select 'Project Activities Details' as col
+)
+, s as (
+Select t1.name as financial_year, p.project_proposal,p.budget ,p.monitoring_plan , p.rra_file,p.impact_file,p.pad_file ,'Click Here' as Click
 from profile_27396 p
 left join profile_27420 q 
 on q.project_code=p.name
 left join ds_mysql_prod_tagelement t1
 on p.fy = t1.id
+)
+Select financial_year, Click, 1 as count
+case col
+	when 'Project Proposal' then s.project_proposal
+	when 'Budget File' then s.budget
+	when 'Project Monitoring Plan' then s.monitoring_plan
+	when 'RRA Report' then s.rra_file
+	when 'Impact Report' then s.impact_file
+	when 'Project Activities Details' then s.pad_file
+	else null
+	end as links,temp.col as "Document Type"
+from s
+cross join temp
+
+
+
 /*
 Select financial_year,
 --"Document Type",
