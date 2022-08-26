@@ -1,35 +1,15 @@
-Select sum(p1.payment_amount) as Disbursed_Amount,f.name as financial_year from profile_27398 p1
-		   left join ds_mysql_prod_tagelement f 
-		   on f.id = p1.fy where f.name not in('2015-2016','2016-2017','2017-2018')
-		   group by f.name
-		   union all
-		   Select case WHEN f.name = '2015-2016' then cast('2480000000' as bigint) WHEN f.name = '2016-2017' then
-		   cast('3050000000'as bigint)  WHEN f.name = '2017-2018' then cast('3740000000' as bigint) else  null  end as
-		   Disbursed_Amount,f.name as financial_year from profile_36762 p2
-		   left join ds_mysql_prod_tagelement f on
-p2.fy=f.id where f.name in ('2015-2016','2016-2017','2017-2018')
+with s1  as(
+  select b.*,unwind_food_truck_employee
+  from profile_81393 b , b.food_truck_employee as unwind_food_truck_employee)
 
-
-/*Select f.name as financial_year,
-case f.name 
-when '2015-2016' then  '2480000000'
-when '2016-2017' then  '3050000000'
-when '2017-2018' then '3740000000'
+select p.name as projectId, a.fy_timerange,
+case 
+when t1.name = 'Yes with Other eateries' then a.monthly_salary
+when t1.name = 'Yes with Food Truck' then (p3.avg_income+p3.stipend_amount)
 else null
-end as Disbursed_Amount
-
-from profile_36762 p2
-		   left join ds_mysql_prod_tagelement f on
-p2.fy=f.id where f.name in ('2015-2016','2016-2017','2017-2018')*/
-
-/*case WHEN f.name = '2015-2016' then Disbursed_Amount = '2480000000'  WHEN f.name = '2016-2017' then
-		   Disbursed_Amount = '3050000000'  WHEN f.name = '2017-2018' then Disbursed_Amount = '3740000000' end as
-		   Disbursed_Amount,*/
-
-
-		 
-		   
-	
-
-
-
+end as avg_income_aftere
+from profile_81392 a 
+left join ds_mysql_prod_project p on p.id = a.projectid
+left join ds_mysql_prod_tagelement t1 on t1.id=a.placement_status
+left join s1 p2 on p2.food_truck_employee= a._id
+left join profile_81394 p3 on p3.food_truck= p2._id
