@@ -1,5 +1,5 @@
 with table1 as
-( select p.projectid , fac.name as factory , ven.name as vendor , cou.name as country , p.name as Submission , p2.factory_id as Facility_id , aaditional_comments as add_comment , job.name as job_p , op.name as opport , know.name as knowled , rate.name as rating_update , sta.name as status_update ,
+( select p.projectid , fac.name as factory , case when nvl2(SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), ven.name)='' then ven.name else nvl2(SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), ven.name) end as vendor , cou.name as country , p.name as Submission , p2.factory_id as Facility_id , aaditional_comments as add_comment , job.name as job_p , op.name as opport , know.name as knowled , rate.name as rating_update , sta.name as status_update ,
  
  case when status_update is null and p3.date_enrollment is not null and p3.date_completion is null then 'ongoing' when status_update is null and p3.date_enrollment is not null and p3.date_completion is not null then 'completed' else  status_update end as wcp_status
  
@@ -47,10 +47,12 @@ on p.projectid = p4.projectid
  where cou.id != 13761 
 ),
 
+
 table2 as
 (
 select p.* , d1 from table1 as p,p.module as d1 
  ),
+ 
  
  table3 as
  ( 
