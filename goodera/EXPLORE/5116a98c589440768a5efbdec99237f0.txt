@@ -1,13 +1,15 @@
 with table1 as
-( select p.projectid , fac.name as factory , case when nvl2(SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), ven.name)='' then ven.name else nvl2(SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), ven.name) end as vendor , cou.name as country , p.name as Submission , p2.factory_id as Facility_id , aaditional_comments as add_comment , job.name as job_p , op.name as opport , know.name as knowled , rate.name as rating_update , sta.name as status_update ,
+( select p.projectid , p._id ,  fac.name as factory , case when nvl2(SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), ven.name)='' then ven.name else nvl2(SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), ven.name) end as vendor , cou.name as country , case when cou.name in ('India', 'Bangladesh', 'Sri Lanka')
+then 'South Asia'
+when cou.name in ('China')
+then 'North Asia'
+when cou.name in ('Guatemala', 'El Salvador', 'Dominican Republic')
+then 'Americas'
+when cou.name in ('Philippines', 'Cambodia',  'Vietnam',  'Indonesia', 'Myanmar')
+then 'South East Asia'
+end as region , sta.name as status_update , title , Description , p.pic , caption , p.pic_2, caption_2 , p.data_type  from profile_17001 as p
  
- case when status_update is null and p3.date_enrollment is not null and p3.date_completion is null then 'ongoing' when status_update is null and p3.date_enrollment is not null and p3.date_completion is not null then 'completed' else  status_update end as wcp_status
  
- , p4.vpid as vendor_id , sub.name as sub_unit_update , case when sub_unit_update is not null then sub_unit_update else 'No' end as multiple_BCs , p3.date_enrollment , extract(year from p3.date_enrollment) as wcp_start_year , module
- 
- from profile_16864 as p
- 
-   
 left join ds_mysql_prod_project fac
 on p.projectid = fac.id
  
@@ -16,51 +18,29 @@ on fac.parent = ven.id
  
 left join ds_mysql_prod_project cou
 on ven.parent = cou.id
- 
-left join ds_mysql_prod_tagelement job
-on p.job_part = job.id
- 
-left join ds_mysql_prod_tagelement op
-on p.opportunities = op.id
- 
-left join ds_mysql_prod_tagelement know
-on p.knowledge = know.id
- 
-left join ds_mysql_prod_tagelement rate
-on p.rating = rate.id
- 
-left join profile_4722 p2 
-on p.projectid = p2.projectid 
- 
-left join profile_16619 p3 
-on p.projectid = p3.projectid 
+
+left join profile_16619 p1
+on p.projectid = p1.projectid
  
 left join ds_mysql_prod_tagelement sta
-on p3.status = sta.id
+on p1.status = sta.id
  
- left join ds_mysql_prod_tagelement sub
-on p3.sub_unit = sub.id
-
-left join profile_4718 p4
-on p.projectid = p4.projectid 
- 
- where cou.id != 13761 
-),
-
-
-table2 as
-(
-select p.* , d1 from table1 as p,p.module as d1 
+ where cou.name != 'Test Country' and ( status_update = 'Completed' or status_update is null )
  ),
  
- 
- table3 as
- ( 
-   select p.*, mod.name as module_name from table2 as p
+ table2 as
+ (
+ select p.* , cast(d1 as varchar) as d1_update, cast(d2 as varchar) as d2_update , d3 from table1 as p,p.pic as d1, p.pic_2 as d2, p.data_type as d3
+  ),
+  
+  table3 as
+  (
+  select p.projectid , p._id , factory , vendor , country , region , status_update
+ , title , description , caption , caption_2 , d1_update as pic , d2_update as pic_2 , dat_type.name as data_type_update  from table2 as p
+	
+	left join ds_mysql_prod_tagelement dat_type
+	on p.d3 = dat_type.id
+   )
    
-   left join ds_mysql_prod_tagelement mod
-   on p.d1 = mod.id
-  )
-  
-  
-  select * from table3
+   select * from table3
+ 
