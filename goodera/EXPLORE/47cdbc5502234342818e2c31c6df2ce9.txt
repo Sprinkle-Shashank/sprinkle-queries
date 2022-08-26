@@ -1,15 +1,15 @@
-select  f.name  as fy , p1.name ,
+select  sum(p2.payment_amount), f.name  as fy , p1.name ,
 t2.name as Quarter,
-case when t2.name='Quarter 1' then sum(p2.payment_amount)
+case when t2.name='Quarter 1' then (p2.payment_amount)
 else '0'
 	end as DisbursedAmountforQ1,
-case when t2.name='Quarter 2' then sum(p2.payment_amount)
+case when t2.name='Quarter 2' then (p2.payment_amount)
 else '0'
 	end as DisbursedAmountforQ2,
-case when t2.name='Quarter 3' then sum(p2.payment_amount)
+case when t2.name='Quarter 3' then (p2.payment_amount)
 else '0'
 	end as DisbursedAmountforQ3,
-case when t2.name='Quarter 4' then sum(p2.payment_amount)
+case when t2.name='Quarter 4' then (p2.payment_amount)
 else '0'
 	end as DisbursedAmountforQ4
 	
@@ -25,8 +25,45 @@ p1._id=p2.project_name
 left join ds_mysql_prod_tagelement f on
 p1.fy=f.id
 where f.name not in ('2015-2016','2016-2017','2017-2018')
-group by f.name , p1.name, t2.name
+group by f.name , p1.name, t2.name,DisbursedAmountforQ1,DisbursedAmountforQ2,DisbursedAmountforQ3,DisbursedAmountforQ4
 /* quarter wise disbursed amount fr projectwise financies with pivot*/
+
+
+
+/*With x as(Select distinct(p9.village) as Village,p9.state as State,p1.name pd,t2.name as Quarter
+from profile_29974 p8
+left join ds_mysql_prod_project t5
+on p8.projectid=t5.id
+left join profile_27489 p9
+on split_part(t5.name,'|',3)=p9.name
+left join profile_27396 p1
+on p1._id=p8.prj_code
+left join ds_mysql_prod_tagelement t1
+on p8.month_number=t1.id
+left join ds_mysql_prod_tagelement t2
+on t1.parent=t2.id),
+
+y as(select p1.name as projectcode ,sum(d.payment_amount) as DisbursedAmount,sum(d.amnt_utlzd) as Utilized, f.name  as financial_year,t3.name as Core_Ares,t4.name as ProjectManager,p6.name as Intervention_Type,p7.name as Ngo_Partner
+from profile_27396 p1
+left join profile_27398 d on
+p1._id=d.project_name 
+left join ds_mysql_prod_tagelement f on
+d.fy=f.id 
+left join ds_mysql_prod_tagelement t3
+on p1.focus_area=t3.id
+left join ds_mysql_prod_tagelement t4
+on p1.project_manager=t4.id
+left join profile_28235 p6
+on p1.intervention_type=p6._id
+left join profile_27395 p7
+on p1.ngo_partner=p7._id
+group by f.name,p1.name,t3.name,t4.name,P6.NAME,P7.NAME)
+
+Select distinct(x.village),x.state,y.projectcode,y.DisbursedAmount,Y.Utilized,x.Quarter,y.financial_year,y.Core_Ares,
+y.ProjectManager,y.Intervention_Type,y.Ngo_Partner
+from x
+left join y
+on x.pd=y.projectcode*/
 
 
 /*select p8.name, case p8.name  when 'Indirect' then sum(p2.hdfc_cost_monthly+p6.monthly_cost)
