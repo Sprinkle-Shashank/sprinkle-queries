@@ -24,38 +24,36 @@ concat(start_1,'T00:00:00.000Z') as start_2,
 concat(end_1,'T00:00:00.000Z') as end_2,
 concat(concat(concat(concat('{"start":"',start_2),'","end":"'),end_2),'"}') as fy_timerange
  
- from temp1 as m)
- /*
- temp3 as
- (select m._id m.projectId, m.name, cast(m.start as date) as start_1, m.end, m.astart, cast(m.aend as date) as aend_1, m.vertical, m.fy_timerange
-from temp2 as m
+ from temp1 as m),
  
-left join profile_62881 AS r
-on m.projectId = projectId.id),
+temp3 as
+(select m._id m.projectId, m.name, m.end, m.astart, m.aend, m.vertical, m.fy_timerange, vertical_new
+from temp2 as m, m.vertical vertical_new),
 
 temp4 as
-(select  m.projectId, m.name, cast(m.start as date) as start_1, m.end, m.astart, cast(m.aend as date) as aend_1, m.vertical, m.fy_timerange
-from temp3 as m
-left join ds_mysql_prod_tagelement as vertical1
-on m.vertical_new = vertical1.id
+(select  m._id, m.projectId, m.name, m.end, m.astart, m.aend, m.vertical, m.fy_timerange
+
+ case 
+when vert1.name IS NULL AND vert.name IS NOT NULL THEN vert.name
+else vert1.name 
+END AS vertical
+
+from temp3 AS m
+
+left join ds_mysql_prod_tagelement as vert
+on m.vertical_new = vert.id
   
-left join ds_mysql_prod_tagelement as vertical2
-on vertical1.parent = vertical2.id),
+left join ds_mysql_prod_tagelement as vert1
+on vert.parent = vert1.id),
 
 temp5 as
-(select  m.projectId, m.name, cast(m.start as date) as start_1, m.end, m.astart, cast(m.aend as date) as aend_1, m.vertical, m.fy_timerange, m.vertical1, m.vertical2
-from temp4 as m
-
-left join ds_mysql_prod_tagelement as vertical1
-on m.vertical1_new = vertical1.id),
+(select m._id, m.projectId, m.name, m.end, m.astart, m.aend, m.vertical, m.fy_timerange
+from temp2 as m
+where _id NOT IN (select _id from temp3)),
 
 temp6 as
-(select  m.projectId, m.name, cast(m.start as date) as start_1, m.end, m.astart, cast(m.aend as date) as aend_1, m.vertical, m.fy_timerange, m.vertical1, m.verticale2,
-case when vertical1.name IS NULL AND vertical2.name IS NOT NULL THEN vertical2.name 
-when vertical2.name IS NULL AND vertical1.name IS NOT NULL THEN vertical1.name
-else 'Admin' 
-END AS vertical
- from temp5 as m),
+(select  m.projectId, m.name, m.end, m.astart, m.aend, m.vertical, m.fy_timerange
+ from temp4 as m),
 
 temp7 as
 (select  m.projectId, m.name, cast(m.start as date) as start_1, m.end, m.astart, cast(m.aend as date) as aend_1, m.vertical, m.fy_timerange),*/
