@@ -1,7 +1,6 @@
 with temp1 as
-(select m.projectId, m.start, m.end, m.astart, m.aend,  r.vertical
+(select m.projectId, m.name, m.start, m.end, m.astart, m.aend,  r.vertical
 from profile_61043 as m
-
 case 
 when astart.name IS NULL AND start.name IS NOT NULL THEN start.name
 else astart.name 
@@ -9,27 +8,48 @@ END AS start_new
 case 
 when aend.name IS NULL AND end.name IS NOT NULL THEN end.name
 else aend.name 
-END AS end_new
+END AS end_new),
 
+temp2 as
+(select  m.projectId, m.name, cast(m.start as date) as start_1, m.end, m.astart, cast(m.aend as date) as aend_1, m.vertical,
+  
  concat(start_1,'T00:00:00.000Z') as start_2,
 concat(aend_1,'T00:00:00.000Z') as aend_2,
 concat(concat(concat(concat('{"start":"',start_2),'","end":"'),aend_2),'"}') as fy_timerange
+ from temp1 as m),
  
- left join profile_62881 AS r
- on m.projectId = projectId.id
+ temp3 as
+ (select  m.projectId, m.name, cast(m.start as date) as start_1, m.end, m.astart, cast(m.aend as date) as aend_1, m.vertical, m.fy_timerange
+from temp2 as m
  
+left join profile_62881 AS r
+on m.projectId = projectId.id),
+
+temp4 as
+(select  m.projectId, m.name, cast(m.start as date) as start_1, m.end, m.astart, cast(m.aend as date) as aend_1, m.vertical
+from temp3 as m
 left join ds_mysql_prod_tagelement as vertical1
 on m.vertical_new = vertical1.id
   
 left join ds_mysql_prod_tagelement as vertical2
-on vertical1.parent = vertical2.id
+on vertical1.parent = vertical2.id),
+
+temp5 as
+(select  m.projectId, m.name, cast(m.start as date) as start_1, m.end, m.astart, cast(m.aend as date) as aend_1, m.vertical, m.vertical1, m.vertical2
+from temp4 as m
 
 left join ds_mysql_prod_tagelement as vertical1
-on m.vertical1_new = vertical1.id
- 
+on m.vertical1_new = vertical1.id),
+
+temp6 as
+(select  m.projectId, m.name, cast(m.start as date) as start_1, m.end, m.astart, cast(m.aend as date) as aend_1, m.vertical, m.vertical1, m.verticale2,
 case when vertical1.name IS NULL AND vertical2.name IS NOT NULL THEN vertical2.name 
 when vertical2.name IS NULL AND vertical1.name IS NOT NULL THEN vertical1.name
 else 'Admin' 
 END AS vertical
+ from temp5 as m),
+ 
+ temp7 as
+(
 
  
