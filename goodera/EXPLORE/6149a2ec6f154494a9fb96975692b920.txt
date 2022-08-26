@@ -1,0 +1,46 @@
+with table1 as
+( select p.projectid , p._id ,  fac.name as factory , case when nvl2(SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), ven.name)='' then ven.name else nvl2(SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), ven.name) end as vendor , cou.name as country , case when cou.name in ('India', 'Bangladesh', 'Sri Lanka')
+then 'South Asia'
+when cou.name in ('China')
+then 'North Asia'
+when cou.name in ('Guatemala', 'El Salvador', 'Dominican Republic')
+then 'Americas'
+when cou.name in ('Philippines', 'Cambodia',  'Vietnam',  'Indonesia', 'Myanmar')
+then 'South East Asia'
+end as region , sta.name as status_update , title , Description , p.pic , caption , p.pic_2, caption_2 , p.data_type  from profile_17001 as p
+ 
+ 
+left join ds_mysql_prod_project fac
+on p.projectid = fac.id
+ 
+left join ds_mysql_prod_project ven
+on fac.parent = ven.id
+ 
+left join ds_mysql_prod_project cou
+on ven.parent = cou.id
+
+left join profile_16619 p1
+on p.projectid = p1.projectid
+ 
+left join ds_mysql_prod_tagelement sta
+on p1.status = sta.id
+ 
+ where cou.name != 'Test Country' and ( status_update = 'Completed' or status_update is null )
+ ),
+ 
+ table2 as
+ (
+ select p.* , d3 from table1 as p, p.data_type as d3
+  ),
+  
+  table3 as
+  (
+  select p.projectid , p._id , factory , vendor , country , region , status_update
+ , title , description , caption , caption_2 , d1_update as pic , d2_update as pic_2 , dat_type.name as data_type_update  from table2 as p
+	
+	left join ds_mysql_prod_tagelement dat_type
+	on p.d3 = dat_type.id
+   )
+   
+   select * from table3
+ 
