@@ -1,12 +1,30 @@
-Select distinct(p.village), p3.name fy, sum(hdfc_cost_yearly) hdfc_cost_yearly,sum(gov_cost_yearly) as gov_cost_yearly,sum(comm_cost_yearly) comm_cost_yearly, p1.name as project_code, p2.name as project_manager
-from profile_29973 sq
-left join profile_27489 p
-on sq.census_code=p._id
-left join profile_27396 p1
-on sq.prj_code=p1._id
-left join ds_mysql_prod_tagelement p2
-on p1.project_manager=p2.id
-left join ds_mysql_prod_tagelement p3
-on p3.id=sq.fy
-group by p.village,p1.name,p2.name,p3.name
+with tab1 as(select split_part(split_part(prod.name,'|',1),'.',1) as projectcode,f.name as fy_timerange,concat(projectcode,fy_timerange) as CODE,split_part(prod.name,'|',3) as census, sum(hdfc_cost_yearly) hdfc_cost_yearly,sum(gov_cost_yearly) as gov_cost_yearly,sum(comm_cost_yearly) comm_cost_yearly
+from profile_29973 p
+left join ds_mysql_prod_project prod on
+prod.id=p.projectid
+left join ds_mysql_prod_tagelement f on
+p.fy=f.id
+group by  split_part(split_part(prod.name,'|',1),'.',1),f.name,split_part(prod.name,'|',3)),
+
+Base1 as
+(select p.name as projectcode,f.name as fy_timerange,concat(projectcode,fy_timerange) as CODE,m.name  as project_manager from profile_27396 p
+left join ds_mysql_prod_tagelement m on
+p.project_manager=m.id
+left join ds_mysql_prod_tagelement f on
+p.fy=f.id
+union
+select l.name as projectcode,f.name as fy_timerange,concat(projectcode,fy_timerange) as CODE,m.name as project_manager
+from profile_27420 p
+left join profile_27396 l on
+p.project_code=l._id
+left join ds_mysql_prod_tagelement m on
+p.project_manager=m.id
+left join ds_mysql_prod_tagelement f on
+p.fy=f.id
+),
+Base2 as(select p.projectcode,p.fy_timerange,p.CODE,l.village as village,p.hdfc_cost_yearly,p.gov_cost_yearly,p.comm_cost_yearly from tab1 p left join profile_27489 l on p.census=l.name),
+
+Base3 as(select p.projectcode,p.fy_timerange,l.project_manager,p.village as village,p.hdfc_cost_yearly,p.gov_cost_yearly,p.comm_cost_yearly
+from Base2 p left join Base1 l on p.CODE=l.CODE)
+select * from Base3
 
