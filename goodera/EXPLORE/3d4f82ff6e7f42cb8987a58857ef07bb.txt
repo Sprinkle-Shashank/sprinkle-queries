@@ -32,8 +32,22 @@ cast(timestamp 'epoch' + CAST(s3.participation_date AS BIGINT)/1000 * interval '
 from sub3 s3
 LEFT JOIN ds_mysql_prod_empOpportunityFocusArea p8 ON p8.empOpportunityId = s3.event_id
 LEFT JOIN ds_mysql_prod_refFocusArea p9 ON p9.id = p8.focusArea
-LEFT JOIN ds_mysql_prod_empOpportunityVisibility p10 ON p10.empOpportunityId = s3.event_id)
+LEFT JOIN ds_mysql_prod_empOpportunityVisibility p10 ON p10.empOpportunityId = s3.event_id),
 
-select s4.event_id, s4.start_date, s4.participation_date, s4.end_date, s4.country, s4.focus_area, s4.opportunityType, sum(s4.duration) as vol_hours--, --nvl(s4.orgpartnerid--, s4.text) as partners
+sub5 as(
+  select s4.event_id, s4.start_date, s4.participation_date, s4.end_date, s4.country, s4.focus_area, s4.opportunityType, sum(s4.duration) as vol_hours, nvl(s4.orgpartnerid, s4.text) as partners
 from sub4 s4
-group by s4.event_id, s4.start_date, s4.participation_date, s4.end_date, s4.country, s4.focus_area, s4.opportunityType, s4.orgpartnerid--, s4.text
+group by s4.event_id, s4.start_date, s4.participation_date, s4.end_date, s4.country, s4.focus_area, s4.opportunityType, s4.orgpartnerid, s4.text),
+
+sub6 as(
+  select s5.*, 
+  case
+  when extract(year from s5.end_date) > extract(year from s5.start_date) then s5.participation_date
+  else s5.start_date
+  end as start_date_new
+from sub5 s5)
+
+select s6.event_id, (s6.start_date_new || '|' || s6.start_date_new) as fy_timerange, s6.participation_date, s6.vol_hours, s6.partners
+from sub6
+group by 
+s6.event_id, s6.start_date_new, s6.participation_date, s6.vol_hours, s6.partners
