@@ -1,4 +1,4 @@
-with tab1 as(select split_part(split_part(prod.name,'|',1),'.',1) as projectcode,t.name as fy_timerange,t2.name as Quarter,concat(projectcode,fy_timerange) as CODE,sum(p.hdfc_cost_monthly) as hdfc_cost from profile_29974 p
+with tab1 as(select split_part(split_part(prod.name,'|',1),'.',1) as projectcode,t.name as fy_timerange,t2.name as Quarter,concat(projectcode,fy_timerange) as CODE,split_part(prod.name,'|',3) as censuscode,sum(p.hdfc_cost_monthly) as hdfc_cost from profile_29974 p
 left join ds_mysql_prod_project prod on
 prod.id=p.projectid
 left join ds_mysql_prod_tagelement t
@@ -7,7 +7,7 @@ left join ds_mysql_prod_tagelement t1
 on p.month_number=t1.id
 left join ds_mysql_prod_tagelement t2
 on t1.parent=t2.id
-group by 1,2,3,4),
+group by 1,2,3,4,5),
 tab2 as(select split_part(split_part(prod.name,'|',1),'.',1) as projectcode,t.name as fy_timerange,t2.name as Quarter,concat(projectcode,fy_timerange) as CODE,sum(p.monthly_cost) as monthlycost  from profile_30171 p
 left join ds_mysql_prod_project prod on
 prod.id=p.projectid
@@ -56,9 +56,15 @@ p.fy=f.id),
 
 tab6 as(select t.fy_timerange,t2.projectcode,t2.project_manager,t.Amount_Disbursed,t.Amount_utilised,t.CODE from tab4 t
 left join tab5 t2 on
-t.CODE=t2.CODE)
+t.CODE=t2.CODE),
+
+Base3 as(select l.village as village, p.fy_timerange,p.project_manager,p.projectcode ,p.Quarter,p.total,p.CODE
+from tab3 p 
+left join profile_27489 l 
+on p.censuscode=l.name
+group by fy_timerange,Project_Manager,ProjectCode,village), 
 select t.fy_timerange,t.projectcode,t.project_manager,t.Amount_Disbursed,t.Amount_utilised,t1.Quarter,t1.total as Allocated_Amount,(t.Amount_Disbursed-t.Amount_utilised) Balance_amount from tab6 t
-left join tab3 t1 on
+left join Base3 t1 on
 t.CODE=t1.CODE
 
 
