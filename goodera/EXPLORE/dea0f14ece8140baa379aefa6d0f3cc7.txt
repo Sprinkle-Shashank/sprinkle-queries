@@ -1,14 +1,10 @@
-select t5.name as fy_timerange,(t.name) as response,case when response='Yes' then split_part(t2.name,'[',1) else t3.name end as projectcode,case when response='Yes' then m.name else n.name end as project_manager from profile_27398 p
+ select split_part(prod.name,'|',1) as projectcode,t.name as fy_timerange,t2.name as Quarter,concat(projectcode,fy_timerange) as CODE,sum(p.monthly_cost) as monthlycost  from profile_30171 p
+left join ds_mysql_prod_project prod on
+prod.id=p.projectid
 left join ds_mysql_prod_tagelement t
-on p.renewal=t.id
-left join profile_27396 t3 on
-p.project_name=t3._id
-left join profile_27420 t2 on
-p.project_renew=t2._id
-left join ds_mysql_prod_tagelement n on
-t3.project_manager=n.id
-left join ds_mysql_prod_tagelement m on
-t2.project_manager=m.id
-left join ds_mysql_prod_tagelement t5
-on p.fy=t5.id
-group by 1,2,3,4
+on p.fy=t.id
+left join ds_mysql_prod_tagelement t1
+on p.month_number=t1.id
+left join ds_mysql_prod_tagelement t2
+on t1.parent=t2.id
+group by t.name,t2.name,projectcode,CODE
