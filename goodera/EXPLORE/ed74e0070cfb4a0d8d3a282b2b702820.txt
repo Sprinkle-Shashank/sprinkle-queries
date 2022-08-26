@@ -183,7 +183,8 @@ case when manager_1_approved is not null  and manager_1_approved !=0 then 1 else
 ,projectmanager,projectCode, fy_timerange,  month,
  count
   from ss2
-)
+),
+sss as (
 Select tot,num_act_report,man_1_app,man_2_app, num_dev,
 sum(case col
 when 'Total no. of activities' then tot
@@ -198,3 +199,10 @@ left join ds_mysql_prod_tagelement t
 on t.id=projectmanager
 cross join temp
 group by tot,num_act_report,man_1_app,man_2_app, num_dev,t.name,projectCode, fy_timerange,month, temp.col
+)
+Select tot,num_act_report,man_1_app,man_2_app, num_dev,
+count_tot,case
+	when project_manager is null then 'NA'
+	else project_manager
+	end as project_manager,projectCode, fy_timerange,month, temp.col
+	from sss
