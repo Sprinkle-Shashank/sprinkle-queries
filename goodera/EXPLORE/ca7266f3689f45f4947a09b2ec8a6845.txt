@@ -27,11 +27,11 @@ concat(concat(concat(concat('{"start":"',start_2),'","end":"'),end_2),'"}') as f
  from temp1 as m),
  
 temp3 as
-(select m._id m.projectId, m.name, m.end, m.astart, m.aend, m.vertical, m.fy_timerange, vertical_new
+(select m._id m.projectId, m.name, m.start, m.end, m.astart, m.aend, m.vertical, m.fy_timerange, vertical_new
 from temp2 as m, m.vertical vertical_new),
 
 temp4 as
-(select  m._id, m.projectId, m.name, m.end, m.astart, m.aend, m.vertical, m.fy_timerange
+(select  m._id, m.projectId, m.name, m.start, m.end, m.astart, m.aend, m.vertical, m.fy_timerange
 
  case 
 when vert1.name IS NULL AND vert.name IS NOT NULL THEN vert.name
@@ -47,16 +47,34 @@ left join ds_mysql_prod_tagelement as vert1
 on vert.parent = vert1.id),
 
 temp5 as
-(select m._id, m.projectId, m.name, m.end, m.astart, m.aend, m.vertical, m.fy_timerange
+(select m._id, m.projectId, m.name, m.start, m.end, m.astart, m.aend, m.vertical, m.fy_timerange
 from temp2 as m
 where _id NOT IN (select _id from temp3)),
 
 temp6 as
-(select  m.projectId, m.name, m.end, m.astart, m.aend, m.vertical, m.fy_timerange
+(select  m.projectId, m.name, m.start, m.end, m.astart, m.aend, m.vertical, m.fy_timerange
  from temp4 as m),
 
 temp7 as
-(select  m.projectId, m.name, cast(m.start as date) as start_1, m.end, m.astart, cast(m.aend as date) as aend_1, m.vertical, m.fy_timerange),*/
+(select  m.projectId, m.name, m.start, m.end, m.astart, m.aend, m.vertical, m.fy_timerange, vertical_new from temp5 as m, m.vertical vertical_new),
 
-select * from temp2
+temp8 as
+(select  m.projectId, m.name, m.start, m.end, m.astart, m.aend, m.fy_timerange, 
+ 
+ case 
+when vert1.name IS NULL AND vert.name IS NOT NULL THEN vert.name
+else vert1.name 
+END AS vertical
+ 
+from temp7 as m
+
+left join ds_mysql_prod_tagelement as vert
+on m.vertical_new = vert.id
+  
+left join ds_mysql_prod_tagelement as vert1
+on vert.parent = vert1.id)
+
+select * from temp6 
+UNION ALL
+select * from temp8
  
