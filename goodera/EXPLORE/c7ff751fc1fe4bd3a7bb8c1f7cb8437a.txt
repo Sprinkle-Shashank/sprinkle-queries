@@ -111,15 +111,16 @@ table4 as (Select
 			listagg(dataCheck,',') as dataCheck,
 			_id1,flag,fy_timerange1, month1,projectCode,deviations,
 		   total_activity_reported,
-		   manager1_approved
+		   manager1_approved,
+		   villageName
 		from table3 p
 
 group by _id1,flag,fy_timerange1, month1,projectCode,deviations,total_activity_reported,
-		   manager1_approved
+		   manager1_approved,villageName
 ),
 
 table5 as (Select
-		   
+		   villageName,
 		   reverse(reverse(SPLIT_PART((fy27420_2), ',',1))) as fy27420_2,
 		   reverse(reverse(SPLIT_PART((fy27396_1), ',',1))) as fy27396_1,
 		   reverse(reverse(SPLIT_PART((project_manager27396), ',',1))) as project_manager27396,
@@ -143,16 +144,16 @@ table5 as (Select
 
 table6 as (Select listagg(manager2_1,',') as manager2_1,
 		   sum(deviations) as deviations, _id1,flag,projectManager,fy_timerange1, month1,projectCode,total_activity_reported,
-		   manager1_approved					 
+		   manager1_approved,villageName					 
 						 from table5 p						 					
 group by _id1, flag,projectManager,fy_timerange1, month1,projectCode,total_activity_reported,
-		   manager1_approved
+		   manager1_approved,villageName
 
 ),
 table6_1 as (select   
 			reverse(reverse(SPLIT_PART((manager2_1), ',',1))) as manager2_1,
 			 _id1, deviations,flag,projectManager ,fy_timerange1, month1,projectCode,total_activity_reported,
-		   manager1_approved
+		   manager1_approved,villageName
 			 
 			from table6 p
 ),
@@ -160,7 +161,7 @@ table6_1 as (select
 table7 as (Select distinct _id1 as Totalactivity, (manager2_1) as manager2actReported, 
 		   
 		   (deviations) as devReported,flag,projectManager,fy_timerange1, month1,projectCode,total_activity_reported,
-		   manager1_approved
+		   manager1_approved,villageName
 		   from table6_1 p 
 
 ),
@@ -171,7 +172,7 @@ case when Totalactivity is not null then 1 else 0 end as tot,
 case when total_activity_reported is not null then 1 else 0 end as  num_act_report,
 total_activity_reported as number_of_activities_reported, 
 (cast(manager1_approved as int) + cast(manager2actReported as int)) as manager_1_approved,
-manager2actReported as manager_2_approved, devReported as number_of_deviations,projectmanager,projectCode, fy_timerange1 as fy_timerange, month1 as month,
+manager2actReported as manager_2_approved, devReported as number_of_deviations,projectmanager,projectCode, fy_timerange1 as fy_timerange, month1 as month,villageName,
 1 as count from table7 p where flag = 1         
 ),
 ss1 as (
@@ -181,10 +182,10 @@ case when manager_1_approved is not null  and manager_1_approved !=0 then 1 else
   case when manager_2_approved is not null  and manager_2_approved !=0 then 1 else 0 end as  man_2_app,
     case when number_of_deviations is not null  and number_of_deviations !=0 then 1 else 0 end as  num_dev
 ,projectmanager,projectCode, fy_timerange,  month,
- count
+ count,villageName
   from ss2
 )
-  Select tot,num_act_report,man_1_app,man_2_app, num_dev,
+  Select tot,num_act_report,man_1_app,man_2_app, num_dev,villageName
 sum(case col
 when 'Total no. of activities' then tot
 when 'No. of Activities reported' then num_act_report
