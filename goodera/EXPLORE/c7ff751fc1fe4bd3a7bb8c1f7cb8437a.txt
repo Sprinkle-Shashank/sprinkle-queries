@@ -184,7 +184,8 @@ case when manager_1_approved is not null  and manager_1_approved !=0 then 1 else
 ,projectmanager,projectCode, fy_timerange,  month,
  count,villageName
   from ss2
-)
+),
+kk as(
   Select tot,num_act_report,man_1_app,man_2_app, num_dev,villageName,
 sum(case col
 when 'Total no. of activities' then tot
@@ -199,3 +200,49 @@ left join ds_mysql_prod_tagelement t
 on t.id=projectmanager
 cross join temp
 group by tot,num_act_report,man_1_app,man_2_app, num_dev,t.name,projectCode, fy_timerange,month, temp.col,villageName
+)
+, Lookup as
+(select cast((split_part(split_part(prod.name,'|',1),'.',1)) as varchar) as ProjectCode,split_part(prod.name,'|',3) as censuscode,f.name as fy_timerange,CONCAT(ProjectCode,fy_timerange) as CODE
+from profile_29973 p 
+left join ds_mysql_prod_project prod on
+prod.id=p.projectid
+left join ds_mysql_prod_tagelement f on
+p.fy=f.id
+)
+
+,Base1 as
+(select cast(q.name as varchar) as ProjectCode,f.name as fy_timerange,m.name as Project_Manager,CONCAT(ProjectCode,fy_timerange) as CODE
+from profile_27420 d
+left join ds_mysql_prod_tagelement f on
+d.fy=f.id
+left join ds_mysql_prod_tagelement m on
+d.project_manager=m.id
+left join profile_27396 q on
+d.project_code=q._id
+union
+select cast(c.name as varchar)as ProjectCode,f.name as fy_timerange,m.name as Project_Manager,CONCAT(ProjectCode,fy_timerange) as CODE 
+from profile_27396 c	
+left join ds_mysql_prod_tagelement f on
+c.fy=f.id
+left join ds_mysql_prod_tagelement m on
+c.project_manager=m.id)
+
+,Base2 as
+(select p.fy_timerange,p.Project_Manager,p.ProjectCode,l.censuscode
+from Base1 p
+left join lookup l
+on p.CODE=l.CODE),
+Base3 as(select distinct(l.village) as Village, p.fy_timerange,p.Project_Manager,p.ProjectCode 
+from Base2 p 
+left join profile_27489 l 
+on p.censuscode=l.name
+group by fy_timerange,Project_Manager,ProjectCode,village) 
+
+select * from Base3  
+union all
+select distinct(villagename) as Village, p.fy_timerange,p.Project_Manager,p.ProjectCode 
+
+order by fy_timerange 
+
+
+ 
