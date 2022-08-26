@@ -35,9 +35,8 @@ LEFT JOIN ds_mysql_prod_refFocusArea p9 ON p9.id = p8.focusArea
 LEFT JOIN ds_mysql_prod_empOpportunityVisibility p10 ON p10.empOpportunityId = s3.event_id),
 
 sub5 as(
-  select s4.event_id, s4.start_date, s4.participation_date, s4.end_date, s4.country, s4.focus_area, s4.opportunityType, sum(s4.duration) as vol_hours, s4.partners
-from sub4 s4
-group by s4.event_id, s4.start_date, s4.participation_date, s4.end_date, s4.country, s4.focus_area, s4.opportunityType, s4.partners),
+  select s4.event_id, s4.start_date, s4.participation_date, s4.end_date, s4.country, s4.focus_area, s4.opportunityType, s4.duration as vol_hours, s4.partners
+from sub4 s4),
 
 sub6 as(
   select s5.*, 
@@ -47,6 +46,5 @@ sub6 as(
   end as start_date_new
 from sub5 s5)
 
-select s6.event_id, (cast(s6.start_date_new as date)||'|'||cast(s6.start_date_new as date)) as fy_timerange, s6.participation_date, s6.vol_hours, listagg(distinct s6.partners, ' || ') as partners
-from sub6 s6	
-group by s6.event_id, s6.start_date_new, s6.participation_date, s6.vol_hours
+select s6.event_id, (cast(s6.start_date_new as date)||'|'||cast(s6.start_date_new as date)) as fy_timerange, s6.participation_date, s6.vol_hours, s6.partners
+from sub6
