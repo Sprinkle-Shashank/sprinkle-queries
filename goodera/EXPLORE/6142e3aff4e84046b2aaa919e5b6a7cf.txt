@@ -1,0 +1,105 @@
+with temp1 as
+(select m._id, projectId_1.name as projectId, indicator_1.name as indicator, sdgs.name as sdgs, schedule_vii.name as schedule_vii, m.proj, ben_type.name as ben_type, m.baseline, m.target, m.name, r._id as project_code_new, r.project_name, r.vertical, focus.name as focus, r.direct_or_partner, r.project_code, state_1.name as state, site.name as site, q.fy_timerange, q.progress, int_indi.name as int_indi, entity.name as entity
+
+ from profile_61044 as m
+ 
+ left join profile_62881 AS r 
+ on m.proj = r._id
+ 
+  left join profile_61046 AS q 
+ on m._id = q.indicator
+ 
+ left join ds_mysql_prod_tagelement as site
+  on r.site = site.id
+ 
+ left join ds_mysql_prod_tagelement as ben_type
+  on m.ben_type = ben_type.id
+ 
+ left join ds_mysql_prod_tagelement as indicator_1
+  on m.indicator = indicator_1.id 
+ 
+ left join ds_mysql_prod_tagelement as int_indi
+  on indicator_1.parent = int_indi.id
+ 
+ left join ds_mysql_prod_tagelement as projectId_1
+  on m.projectId = projectId_1.id 
+ 
+ left join ds_mysql_prod_tagelement as schedule_vii
+  on m.schedule_vii = schedule_vii.id 
+ 
+ left join ds_mysql_prod_tagelement as focus
+  on r.focus = focus.id 
+ 
+ left join ds_mysql_prod_tagelement as entity
+  on r.entity = entity.id 
+ 
+ left join ds_mysql_prod_tagelement as state_1
+  on r.state = state_1.id 
+ 
+ left join ds_mysql_prod_tagelement as sdgs
+  on m.sdgs = sdgs.id
+ 
+where r.direct_or_partner = 1132991 AND m.ben_type = 939857  AND m.sdgs IS NOT NULL AND q.fy_timerange IS NOT NULL),
+
+temp2 as
+(select m._id, m.projectId, m.indicator, m.sdgs, m.schedule_vii, m.proj, m.project_name, m.ben_type, m.baseline, m.target, m.project_code_new as project_code, m.vertical, m.focus, m.direct_or_partner, m.project_code as project_code_new, m.state, m.partner, m.fy_timerange, m.progress, r.name, m.int_indi, m.entity
+ 
+ from temp1 as m 
+ 
+  left join profile_64961 AS r 
+ on m.state = r.state),
+ 
+temp3 as
+(select m._id, m.projectId, m.indicator, m.schedule_vii, m.proj, m.project_name, m.project_code_new, m.focus, m.project_code, m.fy_timerange, m.progress, m.state, m.vertical, m.sdgs, m.entity, m.int_indi, vertical_new 
+ from temp2 as m, m.vertical vertical_new),
+ 
+ temp4 as
+ (select m._id, m.projectId, m.indicator, m.schedule_vii, m.proj, m.project_name, m.project_code_new, m.focus, m.project_code, m.fy_timerange, m.progress, m.state, m.sdgs, m.entity, m.int_indi,
+  
+  case 
+when vert1.name IS NULL AND vert.name IS NOT NULL THEN vert.name
+when vert1.name IS NULL AND vert.name IS NULL then 'Admin'
+else vert1.name 
+END AS vertical
+
+from temp3 AS m
+
+left join ds_mysql_prod_tagelement as vert
+  on m.vertical_new = vert.id
+  
+left join ds_mysql_prod_tagelement as vert1
+  on vert.parent = vert1.id),
+  
+temp5 as
+(select _id, m.projectId, m.indicator, m.schedule_vii, m.proj, m.project_name, m.project_code_new, m.focus, m.project_code, m.fy_timerange, SUM(m.progress) as beneficiary, m.state, m.vertical as verticals, m.sdgs, m.entity
+ from temp2 as m
+   where _id NOT IN (select _id from temp3)
+group by m._id, m.projectId, indicator, schedule_vii, proj, project_name, project_code_new, focus, project_code, fy_timerange, state, vertical, sdgs, entity),
+
+temp6 as
+(select projectId, indicator, schedule_vii, proj, project_name, project_code_new, focus, project_code, fy_timerange, SUM(m.progress) as beneficiary, state, vertical as verticals, sdgs, entity
+from temp4 as m
+group by projectId, indicator, schedule_vii, proj, project_name, project_code_new, focus, project_code, fy_timerange, state, vertical, sdgs, entity),
+
+temp7 as 
+(select projectId, indicator, schedule_vii, proj, project_name, project_code_new, focus, project_code, fy_timerange, beneficiary, state, verticals, sdgs, entity, vertical_new from temp5 as m, m.verticals as vertical_new),
+
+temp8 as
+(select projectId, indicator, schedule_vii, proj, project_name, project_code_new, focus, project_code, fy_timerange, beneficiary, state, sdgs, entity,
+ 
+ case 
+when vert1.name IS NULL AND vert.name IS NOT NULL THEN vert.name
+else vert1.name 
+END AS verticals
+ 
+from temp7 as m
+
+left join ds_mysql_prod_tagelement as vert
+on m.vertical_new = vert.id
+  
+left join ds_mysql_prod_tagelement as vert1
+on vert.parent = vert1.id)
+
+select * from temp6 
+UNION ALL
+select * from temp8
