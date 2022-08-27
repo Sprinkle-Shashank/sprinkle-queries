@@ -4,7 +4,9 @@ with temp1 AS
 from profile_55194 AS m
  
 left join profile_62881 AS r 
- on r._id = m.project_code_new),
+ on r._id = m.project_code_new
+
+where r.direct_or_partner = 1132990),
    
 temp2 as
 (select m.month_timerange AS fy_timerange, m.project_code_new, m.amount, m.project_name, m.vertical, focus_update.name AS focus_new , state_update.name AS state_new, m.project_code, entity_update.name AS entity_new, q.name as name_new from temp1 AS m
@@ -28,7 +30,7 @@ temp3 as
 
 temp4 as
 (
-select fy_timerange, project_code_new, project_name, focus_new, entity_new, SUM(amount) AS amount, m.name_new, state_new , count(*) ,
+select fy_timerange, project_code_new, project_code, project_name, focus_new, entity_new, SUM(amount) AS amount, m.name_new, state_new , count(*) ,
   
    case 
 when vert1.name IS NULL AND vert.name IS NOT NULL THEN vert.name
@@ -44,13 +46,13 @@ left join ds_mysql_prod_tagelement as vert
 left join ds_mysql_prod_tagelement as vert1
   on vert.parent = vert1.id  
  
-group by m.fy_timerange, m.project_code_new, m.project_name, m.focus_new, m.entity_new, m.name_new, vertical , vert1.name , vert.name , state_new
+group by m.fy_timerange, m.project_code_new, m.project_code, m.project_name, m.focus_new, m.entity_new, m.name_new, vertical , vert1.name , vert.name , state_new
 
 order by m.project_code_new asc
   ),
   
   temp5 as
-  ( select  fy_timerange, project_code_new, project_name, focus_new as focus, entity_new as entity , amount, m.name_new as name, state_new as state , count , vertical  from temp4 as m )
+  ( select  fy_timerange, project_code_new, project_code, project_name, focus_new as focus, entity_new as entity , amount, m.name_new as name, state_new as state , count , vertical  from temp4 as m )
   
   
  select * from temp5
