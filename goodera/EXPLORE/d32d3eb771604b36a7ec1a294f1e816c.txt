@@ -1,0 +1,168 @@
+with temp1 AS
+(select m._id AS old_id, progress, completed, m.project_code, fy_year_timerange , Extract(month from CAST(m.fy_timerange.start AS date)) AS month_1, r._id, r.name, project_name, vertical, focus, state, start_date, EXTRACT(year from start_date) AS start_year, EXTRACT(month from start_date) AS start_month, direct_or_partner, entity, completed_text.name as completed_text, concat(CAST(month_1 AS VARCHAR), concat('-', completed_text)) as month_2,
+
+case when month_1 = 1 then 'Jan'
+when month_1 = 2 then 'Feb'
+when month_1 = 3 then 'Mar'
+when month_1 = 4 then 'Apr'
+when month_1 = 5 then 'May'
+when month_1 = 6 then 'Jun'
+when month_1 = 7 then 'Jul'
+when month_1 = 8 then 'Aug'
+when month_1 = 9 then 'Sep'
+when month_1 = 10 then 'Oct'
+when month_1 = 11 then 'Nov'
+when month_1 = 12 then 'Dec'
+else NULL
+END AS month_name , m.fy_timerange
+
+from profile_55471 as m
+
+left join profile_62881 AS r
+ on m.project_code = r.project_code
+ 
+left join ds_mysql_prod_tagelement as completed_text
+  on m.completed = completed_text.id),
+
+  
+ temp2 as
+(select old_id, progress_update.name as progress_new, completed_update.name as completed_new, project_code, EXTRACT(year from CAST(m.fy_year_timerange.start as date)) as report_year, month_1, _id, m.name, project_name, vertical, focus_update.name as focus_new, state_update.name as state_new, start_date, direct_or_partner_update.name as direct_or_partner_new, entity_update.name as entity_new, start_year, start_month, completed_text, month_2,
+ 
+ case when start_month = 1 then 'Jan'
+when start_month = 2 then 'Feb'
+when start_month = 3 then 'Mar'
+when start_month = 4 then 'Apr'
+when start_month = 5 then 'May'
+when start_month = 6 then 'Jun'
+when start_month = 7 then 'Jul'
+when start_month = 8 then 'Aug'
+when start_month = 9 then 'Sep'
+when start_month = 10 then 'Oct'
+when start_month = 11 then 'Nov'
+when start_month = 12 then 'Dec'
+else NULL
+END AS start_month_1 , m.fy_timerange
+ 
+ from temp1 AS m
+
+left join ds_mysql_prod_tagelement as progress_update
+  on m.progress = progress_update.id
+  
+left join ds_mysql_prod_tagelement as completed_update
+  on m.completed = completed_update.id
+  
+left join ds_mysql_prod_tagelement as focus_update
+  on m.focus = focus_update.id
+
+left join ds_mysql_prod_tagelement as direct_or_partner_update
+  on m.direct_or_partner = direct_or_partner_update.id
+  
+left join ds_mysql_prod_tagelement as entity_update
+  on m.entity = entity_update.id
+
+left join ds_mysql_prod_tagelement as state_update
+  on m.state = state_update.id),
+  
+temp3 as(
+select project_code,old_id, project_name , focus_new , state_new , direct_or_partner_new , entity_new , vertical , report_year, month_1, start_month, start_year, start_month_1 , fy_timerange , month_2,
+  
+  case when month_1 = 1 and start_month = 1 and report_year = start_year and completed_new = 'Yes' then 'Started, Reported & Completed'
+  when start_month = 1 then 'Started'
+  when month_1 = 1 and completed_new = 'Yes' then 'Reported & Completed'
+  else '-'
+  end AS January ,
+  
+   case when month_1 = 2 and start_month = 2 and report_year = start_year and completed_new = 'Yes' then 'Started, Reported & Completed'
+  when start_month = 2 then 'Started'
+  when month_1 = 2 and completed_new = 'Yes' then 'Reported & Completed'
+  else '-'
+  end AS February,
+  
+   case when month_1 = 3 and start_month = 3 and report_year = start_year and completed_new = 'Yes' then 'Started, Reported & Completed'
+  when start_month = 3 then 'Started'
+  when month_1 = 3 and completed_new = 'Yes' then 'Reported & Completed'
+  else '-'
+  end AS March,
+  
+   case when month_1 = 4 and start_month = 4 and report_year = start_year and completed_new = 'Yes' then 'Started, Reported & Completed'
+  when start_month = 4 then 'Started'
+  when month_1 = 4 and completed_new = 'Yes' then 'Reported & Completed'
+  else '-'
+  end AS April,
+  
+   case when month_1 = 5 and start_month = 5 and report_year = start_year and completed_new = 'Yes' then 'Started, Reported & Completed'
+  when start_month = 5 then 'Started'
+  when month_1 = 5 and completed_new = 'Yes' then 'Reported & Completed'
+  else '-'
+  end AS May,
+  
+   case when month_1 = 6 and start_month = 6 and report_year = start_year and completed_new = 'Yes' then 'Started, Reported & Completed'
+  when start_month = 6 then 'Started'
+  when month_1 = 6 and completed_new = 'Yes' then 'Reported & Completed'
+  else '-'
+  end AS June,
+  
+   case when month_1 = 7 and start_month = 7 and report_year = start_year and completed_new = 'Yes' then 'Started, Reported & Completed'
+  when start_month = 7 then 'Started'
+  when month_1 = 7 and completed_new = 'Yes' then 'Reported & Completed'
+  else '-'
+  end AS July,
+  
+   case when month_1 = 8 and start_month = 8 and report_year = start_year and completed_new = 'Yes' then 'Started, Reported & Completed'
+  when start_month = 8 then 'Started'
+  when month_1 = 8 and completed_new = 'Yes' then 'Reported & Completed'
+  else '-'
+  end AS August,
+  
+   case when month_1 = 9 and start_month = 9 and report_year = start_year and completed_new = 'Yes' then 'Started, Reported & Completed'
+  when start_month = 9 then 'Started'
+  when month_1 = 9 and completed_new = 'Yes' then 'Reported & Completed'
+  else '-'
+  end AS September,
+  
+   case when month_1 = 10 and start_month = 10 and report_year = start_year and completed_new = 'Yes' then 'Started, Reported & Completed'
+  when start_month = 10 then 'Started'
+  when month_1 = 10 and completed_new = 'Yes' then 'Reported & Completed'
+  else '-'
+  end AS October,
+  
+   case when month_1 = 11 and start_month = 11 and report_year = start_year and completed_new = 'Yes' then 'Started, Reported & Completed'
+  when start_month = 9 then 'Started'
+  when month_1 = 9 and completed_new = 'Yes' then 'Reported & Completed'
+  else '-'
+  end AS November,
+  
+   case when month_1 = 12 and start_month = 12 and report_year = start_year and completed_new = 'Yes' then 'Started, Reported & Completed'
+  when start_month = 12 then 'Started'
+  when month_1 = 12 and completed_new = 'Yes' then 'Reported & Completed'
+  else '-'
+  end AS December, vertical_new
+ 
+  
+from temp2 as m, m.vertical vertical_new ),
+  
+  temp4 as
+  (
+ select m.*, 
+case 
+when vert1.name IS NULL AND vert.name IS NOT NULL THEN vert.name
+else vert1.name 
+END AS vertical_new_update
+ from temp3 as m
+	
+left join ds_mysql_prod_tagelement as vert
+on m.vertical_new = vert.id
+  
+left join ds_mysql_prod_tagelement as vert1
+on vert.parent = vert1.id),
+
+temp5 as
+( select  project_code,old_id, month_2,project_name , focus_new as focus , state_new as state , direct_or_partner_new as direct_or_partner  , entity_new as entity, vertical_new_update as vertical , report_year, month_1, start_month, start_year, January , February , March , April , May , June , July , August , September , October , November , December , start_month_1 , concat(start_month_1,concat(' - ',report_year)) as project_start , fy_timerange,
+ row_number () over(partition by project_code order by old_id asc) as row,count(*) over (partition by project_code) as total_count 
+ from temp4 as m
+ 
+ order by project_code,fy_timerange desc
+ )
+ 
+ select * from temp5
+where row = 1 or row = total_count or month_2 ilike '%Yes%'  
