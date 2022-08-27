@@ -47,5 +47,25 @@ left join ds_mysql_prod_tagelement as vert
 left join ds_mysql_prod_tagelement as vert1
   on vert.parent = vert1.id),
   
-  
+  temp5 as
+  (select _id, fy_timerange, project_name, focus, SUM(amount) as amount, 'Admin' as vertical, project_code_new, direct_or_partner, entity
+   from temp2 as m
+   where _id NOT IN (select _id from temp3)
+   group by _id, fy_timerange, project_name, focus, vertical, project_code_new, direct_or_partner, entity),
+   
+   temp6 as
+   (select fy_timerange, project_name, focus, SUM(amount) as amount, m.vertical, project_code_new, direct_or_partner, entity
+	from temp4 as m
+	
+	group by fy_timerange, project_name, focus, vertical, project_code_new, direct_or_partner, entity
+	
+	UNION ALL
+	
+	select fy_timerange, project_name, focus, amount, m.vertical, project_code_new, direct_or_partner, entity
+	from temp5 as m)
+	
+	select * from temp6
+	order by project_name asc
+	
+
  
