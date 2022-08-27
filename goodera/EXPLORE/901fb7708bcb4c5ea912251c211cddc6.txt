@@ -44,21 +44,21 @@ left join ds_mysql_prod_tagelement as vert1
 on vert.parent = vert1.id),
 
  temp5 as
- (select m._id, m.projectId, m.activity, m.description, m.start_1 as start, m.end, m.astart, m.aend_1 as aend, m.project_code, m.project_code_new, m.focus, m.state, m.direct_or_partner, m.entity, m.vertical as verticals, m.fy_timerange
+ (select m._id, m.projectId, m.activity, m.description, m.start_1 as start, m.end, m.astart, m.aend_1 as aend, m.project_code, m.project_code_new, m.focus, m.state, m.direct_or_partner, m.entity, m.vertical, m.fy_timerange
   from temp2 as m
   where _id NOT IN (select _id from temp3)),
   
   temp6 as
-  (select m.projectId, m.activity, m.description, m.start, m.end, m.astart, m.aend, m.project_code_new,  m.entity, count(*), m.vertical as verticals, m.fy_timerange
+  (select m.projectId, m.activity, m.description, m.start, m.end, m.astart, m.aend, m.project_code_new,  m.entity, count(*), m.vertical, m.fy_timerange
 
    from temp4 as m
 
    group by m.projectId, m.activity, m.description, m.start, m.end, m.astart, m.aend, m.project_code_new, m.entity, m.vertical, m.fy_timerange),
    
    temp7 as
-   (select m.projectId, m.activity, m.description, m.start, m.end, m.astart, m.aend, m.project_code_new,  m.entity, count(*), m.fy_timerange, m.verticals, vertical_new from temp5 as m, m.verticals as vertical_new
+   (select m.projectId, m.activity, m.description, m.start, m.end, m.astart, m.aend, m.project_code_new,  m.entity, count(*), m.fy_timerange, m.vertical, vertical_new from temp5 as m, m.vertical as vertical_new
    
-   group by m.projectId, m.activity, m.description, m.start, m.end, m.astart, m.aend, m.project_code_new, m.entity, m.verticals, m.fy_timerange, vertical_new),
+   group by m.projectId, m.activity, m.description, m.start, m.end, m.astart, m.aend, m.project_code_new, m.entity, m.vertical, m.fy_timerange, vertical_new),
 
 
 	temp8 as
@@ -67,7 +67,7 @@ on vert.parent = vert1.id),
 	  case 
 when vert1.name IS NULL AND vert.name IS NOT NULL THEN vert.name
 else vert1.name 
-END AS verticals
+END AS vertical
  
 from temp7 as m
 
@@ -77,7 +77,7 @@ on m.vertical_new = vert.id
 left join ds_mysql_prod_tagelement as vert1
 on vert.parent = vert1.id
 	
-	group by m.projectId, m.activity, m.description, m.start, m.end, m.astart, m.aend, m.project_code_new, m.entity, m.verticals, m.fy_timerange, vert1.name, vert.name)
+	group by m.projectId, m.activity, m.description, m.start, m.end, m.astart, m.aend, m.project_code_new, m.entity, m.vertical, m.fy_timerange, vert1.name, vert.name)
 
 select * from temp6 
 UNION ALL
