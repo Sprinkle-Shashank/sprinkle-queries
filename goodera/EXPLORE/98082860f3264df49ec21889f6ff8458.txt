@@ -29,7 +29,7 @@ with temp1 as
  left join ds_mysql_prod_tagelement as entity
   on q.entity = entity.id
 
-where direct_or_partner = 1132991),
+where direct_or_partner = 1132990),
 
 temp3 as
 (select _id, indicator_ref, project_code, fy_timerange, progress, description, indicator, target, project_code_new, project_name, vertical, focus, state, direct_or_partner, district, entity, vertical_new
@@ -52,20 +52,20 @@ left join ds_mysql_prod_tagelement as vert1
   on vert.parent = vert1.id),
   
 temp5 as
-(select _id, indicator_ref, project_code, fy_timerange, SUM(progress) as progress, description, indicator, AVG(target) as target, project_code_new, project_name, focus, state, direct_or_partner, district, entity, vertical as verticals
+(select _id, indicator_ref, project_code, fy_timerange, SUM(progress) as progress, description, indicator, AVG(target) as target, project_code_new, project_name, focus, state, direct_or_partner, district, entity, vertical
  from temp2 as m
  where _id NOT IN (select _id from temp3)
  group by _id, indicator_ref, project_code, fy_timerange, description, indicator, project_code_new, project_name, focus, state, direct_or_partner, district, entity, vertical),
  
 temp6 as 
-(select indicator_ref, project_code, fy_timerange, SUM(m.progress) as progress, description, indicator, AVG(m.target) as target, project_code_new, project_name, focus, state, direct_or_partner, district, entity, m.vertical as verticals
+(select indicator_ref, project_code, fy_timerange, SUM(m.progress) as progress, description, indicator, AVG(m.target) as target, project_code_new, project_name, focus, state, direct_or_partner, district, entity, m.vertical
 
 from temp4 as m
 group by indicator_ref, project_code, fy_timerange, description, indicator, project_code_new, project_name, focus, state, direct_or_partner, district, entity, vertical),
 
 temp7 as
-(select indicator_ref, project_code, fy_timerange, progress, description, indicator, target, project_code_new, project_name, focus, state, direct_or_partner, district, entity, verticals, vertical_new
-from temp5 as m, m.verticals as vertical_new),
+(select indicator_ref, project_code, fy_timerange, progress, description, indicator, target, project_code_new, project_name, focus, state, direct_or_partner, district, entity, vertical, vertical_new
+from temp5 as m, m.vertical as vertical_new),
 
 temp8 as
 (select indicator_ref, project_code, fy_timerange, progress, description, indicator, target, project_code_new, project_name, focus, state, direct_or_partner, district, entity,
@@ -73,7 +73,7 @@ temp8 as
  case 
 when vert1.name IS NULL AND vert.name IS NOT NULL THEN vert.name
 else vert1.name 
-END AS verticals
+END AS vertical
  
 from temp7 as m
 
