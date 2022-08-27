@@ -1,0 +1,85 @@
+with temp1 as
+(select m._id, projectId.name as projectId, m.name as activity, m.description, m.start, m.end, m.astart, m.aend, m.project_code, r.name as project_code_new, r.vertical, r.focus, r.state, r.direct_or_partner, entity.name as entity 
+
+ from profile_61043 as m
+ 
+ left join profile_62881 AS r 
+ on m.project_code = r.project_code
+
+ left join ds_mysql_prod_project as projectId
+  on m.projectId = projectId.id 
+ 
+ left join ds_mysql_prod_tagelement as entity
+  on r.entity = entity.id 
+ 
+ where m.astart IS NOT NULL and m.aend IS NOT NULL and r.direct_or_partner = 1132990),
+ 
+temp2 as
+ (select m._id, m.projectId, m.activity, m.description, cast(m.start as date) as start_1, m.end, m.astart, cast(m.aend as date) as aend_1, m.project_code, m.project_code_new, m.vertical, m.focus, m.state, m.direct_or_partner, m.entity, 
+  
+concat(start_1,'T00:00:00.000Z') as start_2,
+concat(aend_1,'T00:00:00.000Z') as aend_2,
+concat(concat(concat(concat('{"start":"',start_2),'","end":"'),aend_2),'"}') as fy_timerange
+  
+  from temp1 as m),
+   
+temp3 as
+ (select m._id, m.projectId, m.activity, m.description, m.start_1 as start, m.end, m.astart, m.aend_1 as aend, m.project_code, m.project_code_new, m.vertical, m.focus, m.state, m.direct_or_partner, m.entity, m.fy_timerange, vertical_new from temp2 as m, m.vertical vertical_new),
+ 
+ 
+ temp4 as
+ (select m._id, m.projectId, m.activity, m.description, m.start, m.end, m.astart, m.aend, m.project_code, m.project_code_new, m.focus, m.state, m.direct_or_partner, m.entity, m.fy_timerange,
+  
+  case 
+when vert1.name IS NULL AND vert.name IS NOT NULL THEN vert.name
+else vert1.name 
+END AS vertical
+
+from temp3 AS m
+
+left join ds_mysql_prod_tagelement as vert
+on m.vertical_new = vert.id
+  
+left join ds_mysql_prod_tagelement as vert1
+on vert.parent = vert1.id),
+
+ temp5 as
+ (select m._id, m.projectId, m.activity, m.description, m.start_1 as start, m.end, m.astart, m.aend_1 as aend, m.project_code, m.project_code_new, m.focus, m.state, m.direct_or_partner, m.entity, m.vertical as verticals, m.fy_timerange
+  from temp2 as m
+  where _id NOT IN (select _id from temp3)),
+  
+  temp6 as
+  (select m.projectId, m.activity, m.description, m.start, m.end, m.astart, m.aend, m.project_code_new,  m.entity, count(*), m.vertical as verticals, m.fy_timerange
+
+   from temp4 as m
+
+   group by m.projectId, m.activity, m.description, m.start, m.end, m.astart, m.aend, m.project_code_new, m.entity, m.vertical, m.fy_timerange),
+   
+   temp7 as
+   (select m.projectId, m.activity, m.description, m.start, m.end, m.astart, m.aend, m.project_code_new,  m.entity, count(*), m.fy_timerange, m.verticals, vertical_new from temp5 as m, m.verticals as vertical_new
+   
+   group by m.projectId, m.activity, m.description, m.start, m.end, m.astart, m.aend, m.project_code_new, m.entity, m.verticals, m.fy_timerange, vertical_new),
+
+
+	temp8 as
+	(select  m.projectId, m.activity, m.description, m.start, m.end, m.astart, m.aend, m.project_code_new,  m.entity, count(*), m.fy_timerange, 
+	 
+	  case 
+when vert1.name IS NULL AND vert.name IS NOT NULL THEN vert.name
+else vert1.name 
+END AS verticals
+ 
+from temp7 as m
+
+left join ds_mysql_prod_tagelement as vert
+on m.vertical_new = vert.id
+  
+left join ds_mysql_prod_tagelement as vert1
+on vert.parent = vert1.id
+	
+	group by m.projectId, m.activity, m.description, m.start, m.end, m.astart, m.aend, m.project_code_new, m.entity, m.verticals, m.fy_timerange, vert1.name, vert.name)
+
+select * from temp6 
+UNION ALL
+select * from temp8
+  
