@@ -1,0 +1,29 @@
+with temp1 as
+(select m.project_code_new, r.vertical
+ 
+ from profile_55194 as m
+ 
+left join profile_62881 as r 
+ on m.project_code_new = r._id),
+ 
+ temp2 as
+ (select m.project_code_new, m.vertical, vertical_new from temp1 as m, m.vertical vertical_new),
+ 
+ temp3 as
+ (select m.project_code_new, 
+  
+  case 
+when vert1.name IS NULL AND vert.name IS NOT NULL THEN vert.name
+when vert1.name IS NULL AND vert.name IS NULL then 'Admin'
+else vert1.name 
+END AS vertical
+
+from temp2 AS m
+
+left join ds_mysql_prod_tagelement as vert
+  on m.vertical_new = vert.id
+  
+left join ds_mysql_prod_tagelement as vert1
+  on vert.parent = vert1.id),
+  
+  temp4
