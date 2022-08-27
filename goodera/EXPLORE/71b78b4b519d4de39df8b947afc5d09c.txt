@@ -6,7 +6,7 @@ from profile_55182 AS m
 left join profile_62881 AS r
  on m.project_code = r.project_code
 
-where r.direct_or_partner = 1132990),
+where r.direct_or_partner = 1132990 ),
 
 temp2 as
 (select p._id, p.projectId, p.ben_name, p.doc, p.story, p.fy_timerange, p.title, p.designation, CAST(photo AS VARCHAR), p.location, p.project_code, p.project_code_new, p.focus, p.state, p.direct_or_partner, p.entity, p.vertical,
@@ -21,7 +21,7 @@ temp4 as
 case when vert.name IS NULL AND vert_1.name IS NOT NULL THEN vert_1.name 
 when vert_1.name IS NULL AND vert.name IS NOT NULL THEN vert.name
 else 'Admin' 
-END AS verticals
+END AS vertical
 
 from temp3 as p
 
@@ -44,10 +44,10 @@ left join ds_mysql_prod_tagelement as direct_or_partner
   on p.direct_or_partner = direct_or_partner.id
 order by fy_timerange desc
 ),
- 
+  
 
 temp5 as (
-select p._id, p.projectId, p.ben_name, p.doc, p.story, p.fy_timerange, p.title, p.designation, p.photo, p.location, p.project_code, p.project_code_new, focus.name AS focus, state.name AS state, direct_or_partner.name AS direct_or_partner, entity.name AS entity, p.beneficiary_name, p.link, p.vertical
+select p._id, p.projectId, p.ben_name, p.doc, p.story, p.fy_timerange, p.title, p.designation, p.photo, p.location, p.project_code, p.project_code_new, focus.name AS focus, state.name AS state, direct_or_partner.name AS direct_or_partner, entity.name AS entity, p.beneficiary_name, p.link, 'Admin' as vertical
 from temp2 AS p
 
 left join ds_mysql_prod_tagelement as state
@@ -64,8 +64,17 @@ left join ds_mysql_prod_tagelement as direct_or_partner
   
 where p._id NOT IN (select _id from temp3)
 order by fy_timerange desc 
-)
+),
 
-select * from temp4
-union all 
-select * from temp5
+temp6 as(
+  select p.projectId, p.ben_name, p.doc, p.story, p.fy_timerange, p.title, p.designation, p.photo, p.location, p.project_code, p.project_code_new, p.focus, p.state, p.direct_or_partner, p.entity, p.beneficiary_name, p.link, p.vertical
+  
+ from temp4 as p
+  
+  UNION ALL
+  
+  select p.projectId, p.ben_name, p.doc, p.story, p.fy_timerange, p.title, p.designation, p.photo, p.location, p.project_code, p.project_code_new, p.focus, p.state, p.direct_or_partner, p.entity, p.beneficiary_name, p.link, p.vertical
+  
+  from temp5 as p)
+
+select * from temp6
