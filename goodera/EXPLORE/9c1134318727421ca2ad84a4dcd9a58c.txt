@@ -1,5 +1,5 @@
 with temp1 as
-(select m.project_code_new, r.vertical
+(select m.project_code_new, r.vertical, r._id
  
  from profile_55194 as m
  
@@ -7,10 +7,10 @@ left join profile_62881 as r
  on m.project_code_new = r._id),
  
  temp2 as
- (select m.project_code_new, m.vertical, vertical_new from temp1 as m, m.vertical vertical_new),
+ (select m.project_code_new, m.vertical, m._id, vertical_new from temp1 as m, m.vertical vertical_new),
  
  temp3 as
- (select m.project_code_new, 
+ (select m.project_code_new, m._id,
   
   case 
 when vert1.name IS NULL AND vert.name IS NOT NULL THEN vert.name
@@ -26,4 +26,9 @@ left join ds_mysql_prod_tagelement as vert
 left join ds_mysql_prod_tagelement as vert1
   on vert.parent = vert1.id),
   
-  temp4
+  temp4 as
+ (select m.project_code_new, m._id, 'Admin' as vertical
+  from temp1 as m
+  where _id NOT IN (select _id from temp2)),
+
+  
