@@ -1,12 +1,38 @@
-Select sum(p1.payment_amount) as Disbursed_Amount,f.name as financial_year from profile_27398 p1
+with x as (Select sum(p1.payment_amount) as Disbursed_Amount,f.name as financial_year from profile_27398 p1
            left join ds_mysql_prod_tagelement f 
            on f.id = p1.fy where f.name not in('2015-2016','2016-2017','2017-2018')
            group by f.name
            union all
            Select case f.name when '2015-2016' then cast('2480000000' as bigint) when '2016-2017'
-		   then cast('3050000000' as bigint) when '2017-2018' then cast('3740000000' as bigint) else null   end as Disbursed_Amount,f.name as finacial_year from profile_36762 p2
+		   then cast('3050000000' as bigint) when '2017-2018' then cast('3740000000' as bigint) else null end as        Disbursed_Amount,f.name as finacial_year from profile_36762 p2
 		   left join ds_mysql_prod_tagelement f
-		   on f.id = p2.fy where f.name  in('2015-2016','2016-2017','2017-2018')
+		   on f.id = p2.fy where f.name  in('2015-2016','2016-2017','2017-2018')),
+		   
+	 y as (select p3.name, p4.name as intervention_type ,tag1.name as Project_Manager,f.name as fy
+	       from profile_27396 p3
+		   left join profile_28235 p4
+		   on p3.intervention_type = p4._id
+	       left join ds_mysql_prod_tagelement tag1
+	       on p3.project_manager = tag1.id
+	      left join ds_mysql_prod_tagelement f
+	       on f.id = p3.fy
+	 	   group by p3.name,p4.name,tag1.name,f.name)
+ Select y.name,x.financial_year,y.intervention_type,x.Disbursed_Amount,y.Project_Manager from x
+ left join y
+ on x.finacial_year= y.fy
+		   
+		   
+
+
+/*Select sum(p1.payment_amount) as Disbursed_Amount,f.name as financial_year from profile_27398 p1
+           left join ds_mysql_prod_tagelement f 
+           on f.id = p1.fy where f.name not in('2015-2016','2016-2017','2017-2018')
+           group by f.name
+           union all
+           Select case f.name when '2015-2016' then cast('2480000000' as bigint) when '2016-2017'
+		   then cast('3050000000' as bigint) when '2017-2018' then cast('3740000000' as bigint) else null end as        Disbursed_Amount,f.name as finacial_year from profile_36762 p2
+		   left join ds_mysql_prod_tagelement f
+		   on f.id = p2.fy where f.name  in('2015-2016','2016-2017','2017-2018')*/
 		   
 		   
 		   
