@@ -1,15 +1,10 @@
-
-
-  select phc, pic_1_before
-from profile_76555 
-join json_table(
-  phc,
-  '$[*]' columns(name varchar(500) path '$')
-) 
-  
-  
-  /*
-  select projectid, value 
- from projects 
- CROSS APPLY STRING_SPLIT(replace(replace(locationid,'[',''),']',''),',')
- */
+SELECT
+  tablename.phc,
+  SUBSTRING_INDEX(SUBSTRING_INDEX(tablename.pic_1_before, ',', numbers.n), ',', -1) name
+FROM
+  (SELECT 1 n UNION ALL SELECT 2
+   UNION ALL SELECT 3 UNION ALL SELECT 4) numbers INNER JOIN profile_76557 as tablename
+  ON CHAR_LENGTH(tablename.pic_1_before)
+     -CHAR_LENGTH(REPLACE(tablename.pic_1_before, ',', ''))>=numbers.n-1
+ORDER BY
+  phc, n
