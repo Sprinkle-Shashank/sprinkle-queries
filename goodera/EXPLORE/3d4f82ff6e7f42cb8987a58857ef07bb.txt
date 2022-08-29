@@ -6,7 +6,7 @@ LEFT JOIN ds_mysql_prod_empVolunteeringApplication p3 ON p3.empVolunteeringOppor
 LEFT JOIN ds_mysql_prod_empVolunteeringParticipation p4 ON p4.empVolunteeringApplicationId = p3.id
 LEFT JOIN ds_mysql_prod_orgpartner test1 on test1.id = p1.orgpartnerid
 LEFT JOIN ds_mysql_prod_empopportunityorganizer test2 on test2.empopportunityid = p2.empopportunityid
-where UPPER(p1.opportunityType) = 'VOL' and p1.securityContextId = 1615 and p4.active = 1 and p1.active = 1 and p4.duration != 0 and p4.duration is not null),
+where UPPER(p1.opportunityType) = 'VOL' and p1.securityContextId = 1615 and p4.active = 1 and p1.active = 1 and p4.duration != 0 and p4.duration is not null and nvl(test2.active,100) != 0),
 
 sub2 as(
   select p5.id as event_id, p6.created as start_date, p6.created as end_date, 
@@ -16,7 +16,7 @@ LEFT JOIN ds_mysql_prod_empMicroOpportunity p6 ON p6.empOpportunityId = p5.id
 LEFT JOIN ds_mysql_prod_empMicroContributor p7 ON p7.empMicroOpportunityId = p6.id
 LEFT JOIN ds_mysql_prod_orgpartner test2 on test2.id = p5.orgpartnerid
 LEFT JOIN ds_mysql_prod_empopportunityorganizer test3 on test3.empopportunityid = p6.empopportunityid
-where UPPER(p5.opportunityType) = 'MIC' and p5.securityContextId = 1615 and p5.active = 1 and p7.active = 1 and p6.timetaken is not null and p6.timetaken != 0),
+where UPPER(p5.opportunityType) = 'MIC' and p5.securityContextId = 1615 and p5.active = 1 and p7.active = 1 and p6.timetaken is not null and p6.timetaken != 0 and nvl(test3.active,100) != 0),
 
 sub3 as(
   select event_id, start_date, participation_date, end_date, country, duration, opportunityType, orgpartnerid, text from sub1
@@ -35,9 +35,9 @@ LEFT JOIN ds_mysql_prod_refFocusArea p9 ON p9.id = p8.focusArea
 LEFT JOIN ds_mysql_prod_empOpportunityVisibility p10 ON p10.empOpportunityId = s3.event_id),
 
 sub5 as(
-  select s4.event_id, s4.start_date, s4.participation_date, s4.end_date, s4.country, s4.focus_area, s4.opportunityType, sum(s4.duration) as vol_hours--, nvl(s4.orgpartnerid, s4.text) as partners
+  select s4.event_id, s4.start_date, s4.participation_date, s4.end_date, s4.country, s4.focus_area, s4.opportunityType, sum(s4.duration) as vol_hours, nvl(s4.orgpartnerid, s4.text) as partners
 from sub4 s4
-group by s4.event_id, s4.start_date, s4.participation_date, s4.end_date, s4.country, s4.focus_area, s4.opportunityType),-- s4.orgpartnerid, s4.text),
+group by s4.event_id, s4.start_date, s4.participation_date, s4.end_date, s4.country, s4.focus_area, s4.opportunityType, s4.orgpartnerid, s4.text),
 
 sub6 as(
   select s5.*, 
@@ -47,5 +47,5 @@ sub6 as(
   end as start_date_new
 from sub5 s5)
 
-select s6.event_id, (cast(s6.start_date_new as date)||'|'||cast(s6.start_date_new as date)) as fy_timerange, s6.participation_date, s6.vol_hours--, s6.partners
+select s6.event_id, (cast(s6.start_date_new as date)||'|'||cast(s6.start_date_new as date)) as fy_timerange, s6.participation_date, s6.vol_hours, s6.partners, s6.orgpartnerid, s6.text
 from sub6 s6	
