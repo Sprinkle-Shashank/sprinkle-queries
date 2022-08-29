@@ -1,8 +1,6 @@
 
 with table1 as
-( select p.batch, p.gender,acad_qual,job_type, age, annual_hh_income, p.state , p1.fy as name_update, sta.name as state_update,
- p1.month as month_up, p1.time_timerange as tym, gen.name as gender_up,
- 
+( select p.batch, p.gender, p.acad_qual, job_type, age, annual_hh_income, p.state , p1.fy as name_update, sta.name as state_update, p1.month as month_up, p1.time_timerange as tym, gen.name as gender_up, acad.name as acad_qual_up,
  
  CASE
  	when age = 18 then 18
@@ -29,15 +27,18 @@ with table1 as
  left join ds_mysql_prod_tagelement gen 
  on p.gender = gen.id
  
+ left join ds_mysql_prod_tagelement acad 
+ on p.acad_qual = acad.id
+ 
  ),
  
   table2 as
  (
-    select state_update, gender_up, acad_qual, job_type, month_up, agegroup, /*annualincome*/ count(*) as regnum,
+    select state_update, gender_up, acad_qual_up, job_type, month_up, agegroup, /*annualincome*/ count(*) as regnum,
    name_update from table1
    
-    group by state_update, name_update, gender_up, acad_qual, job_type, month_up, agegroup /*annualincome*/
+    group by state_update, name_update, gender_up, acad_qual_up, job_type, month_up, agegroup /*annualincome*/
    
   )
-  select name_update, gender_up, acad_qual, job_type, state_update, month_up, agegroup, regnum from table2
+  select name_update, gender_up, acad_qual_up, job_type, state_update, month_up, agegroup, regnum from table2
 
