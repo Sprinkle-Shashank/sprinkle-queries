@@ -1,0 +1,38 @@
+with tab1 as(select split_part(p.submission_date,'T',1) as Date,t5.name as fy_timerange,(t.name) as response,case when response='Yes' then split_part(t2.name,'[',1)  when response ='No' then t3.name end as projectcode,case when response='Yes' then m.name when response ='No' then n.name end as project_manager,t4.name as Payment_tranche,p.uc as utilisation_certificate_from_last_payment,case when p.amnt_nt_utlzd is null then 0 else p.amnt_nt_utlzd  end as Amount_not_utilised,case when p.payment_amount is null then 0 else p.payment_amount  end as Amount_Disbursed,concat(projectcode,fy_timerange) as CODE from profile_27398 p
+left join ds_mysql_prod_tagelement t
+on p.renewal=t.id
+left join profile_27396 t3 on
+p.project_name=t3._id
+left join profile_27420 t2 on
+p.project_renew=t2._id
+left join ds_mysql_prod_tagelement n on
+t3.project_manager=n.id
+left join ds_mysql_prod_tagelement m on
+t2.project_manager=m.id
+left join ds_mysql_prod_tagelement t4
+on p.tranche=t4.id
+left join ds_mysql_prod_tagelement t5
+on p.fy=t5.id
+where response is not null),
+tab2 as(select p.name as projectcode,f.name as fy_timerange,concat(projectcode,fy_timerange) as CODE,m.name  as project_manager from profile_27396 p
+left join ds_mysql_prod_tagelement m on
+p.project_manager=m.id
+left join ds_mysql_prod_tagelement f on
+p.fy=f.id
+union
+select l.name as projectcode,f.name as fy_timerange,concat(projectcode,fy_timerange) as CODE,m.name as project_manager
+from profile_27420 p
+left join profile_27396 l on
+p.project_code=l._id
+left join ds_mysql_prod_tagelement m on
+p.project_manager=m.id
+left join ds_mysql_prod_tagelement f on
+p.fy=f.id),
+mm as (
+select t.Date,t.fy_timerange,t.projectcode,t.project_manager,t.Payment_tranche,t.Amount_Disbursed,t.utilisation_certificate_from_last_payment,t.Amount_not_utilised,t.response from tab1 t
+left join tab2 t2 on
+t.CODE=t2.CODE
+  )
+  Select distinct(projectcode) projectcode,fy_timerange,project_manager
+  from mm
+  group BY fy_timerange,project_manager
