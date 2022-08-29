@@ -1,0 +1,41 @@
+
+with table1 as
+( select p.batch, gender,acad_qual,job_type, age, annual_hh_income, p.state , p1.fy as name_update, sta.name as state_update,
+ p1.month as month_up, p1.time_timerange as tym,
+ 
+ CASE when age < 18  
+ then <18 else 
+ CASE when age>=18 and age<=30
+ then 18-30 else
+ CASE when age>=31 and age<=45
+ then 31-45 else > 45
+ end as agegroup
+ 
+ CASE when annual_hh_income = 50000
+ then <50000 else 
+ CASE when annual_hh_income >=50000 and annual_hh_income<=150000
+ then 50000-150000 else 
+ CASE when annual_hh_income>=150001 and annual_hh_income<250000
+ then 150001-250000 else >250000
+ end as annualincome
+ 
+from profile_30527 as p
+ 
+ left join profile_30532 p1 on
+ p.batch = p1._id
+ 
+ left join ds_mysql_prod_tagelement sta 
+ on p.state = sta.id 
+ 
+ ),
+ 
+  table2 as
+ (
+    select state_update, gender, acad_qual, job_type, month, agegroup, annualincome, count(*) as regnum
+   name_update from table1
+   
+    group by state_update, name_update, gender, acad_qual, job_type, month, agegroup, annualincome
+   
+  )
+  select name_update, gender, acad_qual, job_type, state_update, month, agegroup, regnum from table2
+
