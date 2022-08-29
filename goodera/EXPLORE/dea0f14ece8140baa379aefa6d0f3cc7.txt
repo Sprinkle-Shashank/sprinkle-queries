@@ -8,7 +8,7 @@ on p.month_number=t1.id
 left join ds_mysql_prod_tagelement t2
 on t1.parent=t2.id
 group by 1,2,3,4,5),
-tab2 as(select split_part(split_part(prod.name,'|',1),'.',1) as projectcode,t.name as fy_timerange,t2.name as Quarter,concat(projectcode,fy_timerange) as CODE,sum(p.monthly_cost) as monthlycost  from profile_30171 p
+tab2 as(select split_part(split_part(prod.name,'|',1),'.',1) as projectcode,t.name as fy_timerange,t2.name as Quarter,concat(projectcode,fy_timerange) as CODE,sum(p.monthly_cost) as monthlycost,split_part(prod.name,'|',3) as censuscode  from profile_30171 p
 left join ds_mysql_prod_project prod on
 prod.id=p.projectid
 left join ds_mysql_prod_tagelement t
@@ -17,9 +17,9 @@ left join ds_mysql_prod_tagelement t1
 on p.month_number=t1.id
 left join ds_mysql_prod_tagelement t2
 on t1.parent=t2.id
-group by 1,2,3,4)
+group by 1,2,3,4,split_part(prod.name,'|',3))
 
-select distinct(q.village),t.projectcode,t.fy_timerange,t.Quarter,(t.hdfc_cost+t1.monthlycost) as total
+select distinct(q.village),t.projectcode,t.fy_timerange,t.Quarter,t.hdfc_cost a,t1.monthlycost b,  (a+b) as total
 ,t.CODE
 from tab1 t
 left join profile_27489 q on
