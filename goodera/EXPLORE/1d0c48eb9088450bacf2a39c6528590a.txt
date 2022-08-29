@@ -1,0 +1,43 @@
+
+with table1 as
+( select p.batch, skin_disease2_yn, p.state , p1.fy as name_update, sta.name as state_update,  breathing_disorder2_yn,
+CASE when breathing_disorder2_yn = 476506 or skin_disease2_yn = 476506 
+then 1 else 0 end as disease 
+from profile_30527 as p
+ 
+ left join profile_30532 p1 on
+ p.batch = p1._id
+ 
+ left join ds_mysql_prod_tagelement sta 
+ on p.state = sta.id 
+ 
+ where skin_disease2_yn and breathing_disorder2_yn IN ('476506','476507')
+ ),
+ 
+  table2 as
+ (
+    select state_update, 'group' as group_update, sum(disease) as num, count(*) as den, name_update from table1
+   
+    group by state_update, name_update, group_update
+  ),
+  
+  table3 as
+  (
+	select state_update, name_update, group_update, num, den, (num*100.0/den) as perc_update from table2
+	),
+	
+	table4 as
+	(
+	  select state_update, name_update, avg(perc_update) as percentage, 'assessment' as assessment, 'indicator' as indicator from table3
+	  
+	  group by state_update, name_update, indicator, assessment
+	
+	  order by name_update asc
+	  )
+
+ select state_update, name_update,assessment, indicator, percentage from table4
+ --select num, den from table3
+ 
+ /*
+ select state_update, name_update, group_update, cast(num as int) as num_1_update,cast(den as int) as den_1_update, (num_1_update*100.0/den_1_update) as perc_update from table2
+ */
