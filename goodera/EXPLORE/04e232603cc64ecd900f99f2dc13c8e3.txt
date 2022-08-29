@@ -1,4 +1,4 @@
-
+with table1 as(
 Select  p.projectId, reg.name as ngo,r.title,sum(amount) as amt,p.fy_timerange  , cast(p.fy_timerange.start as date) as date_new_update , extract(year from date_new_update) as year_new_update , extract(month from date_new_update) as month_new_update , CASE when month_new_update <=3 THEN year_new_update-1 ELSE year_new_update END as start_1,
 start_1+1 as end_1, concat(start_1,'-04-01T00:00:00.000Z') AS start_2,
 concat(end_1,'-04-01T00:00:00.000Z') AS end_2,concat(concat(concat(concat('{"start":"',start_2),'","end":"'),end_2),'"}') as new_time
@@ -10,7 +10,13 @@ on p.projectId = r.projectId
 left join ds_mysql_prod_tagelement reg
 on r.ngo= reg.id
 
-Group By p.projectId,  r.title, r.ngo,reg.name,p.fy_timerange 
+Group By p.projectId,  r.title, r.ngo,reg.name,p.fy_timerange ),
+
+table2 as(select projectId, ngo,title,sum(amt) as amt,new_time as fy_timerange from table1
+		 Group By projectId, ngo,title,new_time
+		 )
+select * from table2
+
 /*
 {"start":"2021-04-01T00:00:00.000Z","end":"2021-07-01T00:00:00.000Z"}
 {"start":"2022-01-01T00:00:00.000Z","end":"2022-04-01T00:00:00.000Z"}
