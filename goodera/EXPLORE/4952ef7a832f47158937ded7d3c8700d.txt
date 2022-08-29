@@ -3,17 +3,18 @@ select p.name as projectId, a.name, fy_timerange, sum(benef_actual) as bene_num,
 extract(year from cast(fy_timerange.start as date)) as start_year,
 extract(month from cast(fy_timerange.start as date)) as start_month, t1.name as choose 
   
-from profile_41363 a,
+from profile_41363 a
+left join ds_mysql_prod_project p
+on p.id=projectid
+
+left join ds_mysql_prod_tagelement t1 on t1.id = a.project_type
+  
 case
 	when choose = 'Long Term Projects' then 'Long Term'
 	when choose = 'Short Term Projects' then 'Short Term'
 	else NULL
 end as x_axis
 from sub1
-left join ds_mysql_prod_project p
-on p.id=projectid
-
-left join ds_mysql_prod_tagelement t1 on t1.id = a.project_type  
   
 group by p.name, a.name, fy_timerange, t1.name)
 
