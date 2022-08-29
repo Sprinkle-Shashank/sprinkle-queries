@@ -1,4 +1,50 @@
-with t1 as
+with t1 as 
+(select fy_timerange, trainee_id, trainee_name, edu_qual, gender, occupation, fed_role, job_status, fam_income, pre_income,
+case 
+when income_12months > 0 then income_12months
+when income_6months > 0 then income_6months
+when income_3months > 0 then income_3months
+end as final_income
+from profile_76022)
+
+select fy_timerange, trainee_id, trainee_name, tag1.name as edu_qual, tag2.name as gender, occupation, tag3.name as fed_role, job_status, fam_income, pre_income, final_income, (final_income - pre_income) as inceased_income,
+case 
+when job_status = 1471552 then 'yes' 
+else 'no'
+end as employed
+from t1
+left join ds_mysql_prod_tagelement tag1
+on t1.edu_qual = tag1.id
+left join ds_mysql_prod_tagelement tag2
+on t1.gender = tag2.id
+left join ds_mysql_prod_tagelement tag3
+on t1.fed_role = tag3.id
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/*with t1 as
 (select p1.fy_timerange,p1.trainee_id,tag1.name as edu_qual,tag2.name as gender,p1.occupation,p1.fed_role,p1.job_status,p1.fam_income,p1.pre_income,p1.income_3months,p1.income_6months,p1.income_12months  
 from profile_76022 p1
 left join ds_mysql_prod_tagelement tag1 on
@@ -17,3 +63,4 @@ from t1),
 
 select t2.*,
 from t2
+*/
