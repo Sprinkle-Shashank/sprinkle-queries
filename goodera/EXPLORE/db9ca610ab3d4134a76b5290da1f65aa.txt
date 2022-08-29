@@ -1,1 +1,23 @@
-select _id, projectId, school, type, item, boys, girls, teacher, mentor, item_count, attendance_before, attendance_after from profile_76571
+
+with t1 as
+(SELECT * 
+FROM
+(Select _id, projectId, school, type, item, boys, girls, teacher, mentor, item_count, attendance_before, attendance_after from profile_76571 p 
+)
+UNPIVOT (
+    val FOR dim IN (item, boys, girls, teacher, mentor, item_count, attendance_before, attendance_after))
+
+)
+
+select  a._id, p2.name as projectId,  a.school, sum(val) as val, a.name,t.name as city,t2.name as state,t1.code as map_code from t1 as a
+
+left join ds_mysql_prod_tagelement t on t.id=a.school
+left join ds_mysql_prod_tagelement t2 on t2.id=t.parent
+
+left join ds_mongo_reftagelementmetadata t1 on t1._id=t2.reftagelementmetadataid
+
+left join ds_mysql_prod_project p2 on p2.id = a.projectid
+
+Group By a._id, p2.name,  a.school,  a.name,t.name,t2.name,t1.code
+
+
