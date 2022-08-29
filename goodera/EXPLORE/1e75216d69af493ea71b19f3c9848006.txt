@@ -8,13 +8,13 @@ group by  split_part(split_part(prod.name,'|',1),'.',1),f.name,split_part(prod.n
 p.activity,p.focus_area),
 
 Base1 as
-(select p.name as ProjectCode,f.name as fy_timerange,concat(ProjectCode,fy_timerange) as CODE,m.name  as Project_Manager from profile_27396 p
+(select p.name as projectcode,f.name as fy_timerange,concat(projectcode,fy_timerange) as CODE,m.name  as project_manager from profile_27396 p
 left join ds_mysql_prod_tagelement m on
 p.project_manager=m.id
 left join ds_mysql_prod_tagelement f on
 p.fy=f.id
 union
-select l.name as ProjectCode,f.name as fy_timerange,concat(ProjectCode,fy_timerange) as CODE,m.name as Project_Manager
+select split_part(l.name,'[',1) as projectcode,f.name as fy_timerange,concat(projectcode,fy_timerange) as CODE,m.name as project_manager
 from profile_27420 p
 left join profile_27396 l on
 p.project_code=l._id
@@ -23,8 +23,8 @@ p.project_manager=m.id
 left join ds_mysql_prod_tagelement f on
 p.fy=f.id
 ),
-Base2 as(select p.ProjectCode,p.fy_timerange,p.CODE,l.village as Village,p.task,p.cost_per_unit,p.number_of_units_cover,p.total_hdfc_bank_contribution,p.cost,p.activity,p.focus_area from tab1 p left join profile_27489 l on p.census=l.name),
+Base2 as(select p.projectcode,p.fy_timerange,p.CODE,l.village as village,p.task,p.cost_per_unit,p.number_of_units_cover,p.total_hdfc_bank_contribution,p.cost,p.activity,p.focus_area from tab1 p left join profile_27489 l on p.census=l.name),
 
-Base3 as(select p.ProjectCode,p.fy_timerange,l.Project_Manager,upper(p.Village) as Village,p.task,p.cost_per_unit,p.number_of_units_cover,p.total_hdfc_bank_contribution,p.cost,p.activity,p.focus_area
+Base3 as(select p.projectcode,p.fy_timerange,l.project_manager,p.village as village,p.task,p.cost_per_unit,p.number_of_units_cover,p.total_hdfc_bank_contribution,p.cost,p.activity,p.focus_area
 from Base2 p left join Base1 l on p.CODE=l.CODE)
 select * from Base3
