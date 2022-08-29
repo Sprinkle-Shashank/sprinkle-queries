@@ -23,7 +23,7 @@ tab3 as(select t.projectcode,t.fy_timerange,t.Quarter,t.hdfc_cost a,t1.monthlyco
 left join tab2 t1 on
 t.CODE=t1.CODE),
 
-tab4 as(select t5.name as fy_timerange,(t.name) as response,case when response='Yes' then split_part(t2.name,'[',1) else t3.name end as projectcode,case when response='Yes' then m.name else n.name end as project_manager,case when p.amnt_utlzd is null then 0 else p.amnt_utlzd  end as Amount_utilised,case when p.payment_amount is null then 0 else p.payment_amount  end as Amount_Disbursed,concat(projectcode,fy_timerange) as CODE from profile_27398 p
+tab4 as(select t5.name as fy_timerange,(t.name) as response,case when response='Yes' then split_part(t2.name,'[',1) else t3.name end as projectcode,case when response='Yes' then m.name else n.name end as project_manager,case when p.amnt_utlzd is null then 0 else p.amnt_utlzd  end as Amount_utilised,case when p.payment_amount is null then 0 else p.payment_amount  end as Amount_Disbursed,RTRIM(projectcode)||fy_timerange as CODE from profile_27398 p
 left join ds_mysql_prod_tagelement t
 on p.renewal=t.id
 left join profile_27396 t3 on
@@ -62,7 +62,7 @@ Base3 as(select l.village as village, p.fy_timerange,p.projectcode ,p.Quarter,p.
 from tab3 p 
 left join profile_27489 l 
 on p.censuscode=l.name)
-select t.fy_timerange,t.projectcode,t.project_manager,t.Amount_Disbursed,t.Amount_utilised,t1.Quarter,t1.total as Allocated_Amount,(t.Amount_Disbursed-t.Amount_utilised) Balance_amount from tab6 t
+select distinct(t1.village),t.fy_timerange,t.projectcode,t.project_manager,t.Amount_Disbursed,t.Amount_utilised,t1.Quarter,t1.total as Allocated_Amount,(t.Amount_Disbursed-t.Amount_utilised) Balance_amount from tab6 t
 left join Base3 t1 on
 t.CODE=t1.CODE
 
