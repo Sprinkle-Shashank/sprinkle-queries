@@ -1,5 +1,5 @@
 with table1 as
-( select p.projectid , p._id , p.fy_timerange , cast(start_date as date) as start_update,  sta.name as state , cen.name as center , p1.name , course.name as course_name_update , bat.name as batch_name , concat(concat(course_name_update, ' '), cast(batch_name as varchar)) as batch_value , target_hours , 1 as acheived_hours , 'OJT' as Status , (target_hours/5) as days_to_add , dateadd(day,days_to_add,start_update) as end_1    from profile_81438 as p
+( select p.projectid , p._id , p.fy_timerange , cast(start_date as date) as start_update,  sta.name as state , cen.name as center , p1.name , course.name as course_name_update , bat.name as batch_name , concat(concat(course_name_update, ' '), cast(batch_name as varchar)) as batch_value , target_hours , 1 as acheived_hours , 'OJT' as Status , (target_hours/5) as days_to_add , dateadd(day,days_to_add,start_update) as end_1 from profile_81438 as p
 
 left join ds_mysql_prod_tagelement cen
 on p.center_name = cen.id
@@ -14,6 +14,17 @@ left join profile_81436 p1
 on p.center = p1._id
 
 left join ds_mysql_prod_tagelement sta
-on p1.center_loc = sta.id)
+on p1.center_loc = sta.id),
 
-select * from table1
+table2 as 
+( select p.projectid , date_holiday, p1.name  from profile_81611 as p
+
+left join profile_81438 p1 
+on p.batch = p1._id),
+
+table3 as 
+(
+  select p.* from table1 as p
+  )
+
+select * from table2
