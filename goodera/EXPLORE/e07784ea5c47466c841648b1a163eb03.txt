@@ -10,8 +10,13 @@
 --select fy_timerange, start_date, to_char(start_date, 'MM'), to_char(start_date, 'Month')
 --from t2
 
+with sub1 as (select a.*, unwind_schedule_7, unwind_sdg_select from profile_75046 as a, a.schedule_7 as unwind_schedule_7, a.sdg_select as unwind_sdg_select )
 
-select projectId, tag1.name 
-from profile_75046 p1
-left join ds_mysql_prod_project tag1
-on p1.projectId = tag1.id
+select p1.projectId, p1.unwind_schedule_7, p1.start_date, p1.end_date, p1.description, p1.logo, p1.spoc, p1.unwind_sdg_select, p1.status, p1.phone, p1.fy_timerange, p1.spoc || ' - ' || p1.phone as spoc_details, p2.sdg_icon,
+case 
+when status = 1497035 then 'completed' 
+else 'ongoing'
+end as status_2, to_char(start_date, 'DD  Month YYYY') as start_date1, to_char(end_date, 'DD  Month YYYY') as end_date1
+from sub1 p1
+left join profile_76600 p2
+on p1.unwind_sdg_select = p2._id
