@@ -1,5 +1,10 @@
 with t1 as
-(select p1.fy_timerange,p1.intervention_type,sum(p1.sales_amount)  as sales_amount,CAST(P1.fy_timerange as VARCHAR) as month,
+(select p1.fy_timerange,p1.intervention_type,sum(p1.profit_amount)  as profit_amount,p1.fy_timerange.start as start_date
+from profile_76023 p1
+group by p1.fy_timerange,p1.intervention_type ,p1.profit_amount),
+
+t2 as
+(select t1.fy_timerange,t1.intervention_type,profit_amount,start_date :: date as date,to_char(date,'MM') as month,
 case
 when month=4 then 1
 when month=5 then 2
@@ -14,10 +19,9 @@ when month=1 then 10
 when month=2 then 11
 else 12
 end as sort
-from profile_76023 as p1
-group by p1.fy_timerange,p1.intervention_type ,p1.sales_amount)
+from t1)
 
-select fy_timerange,tag1.name as intervention_type,sales_amount,sort
-from t1
+select t2.fy_timerange,tag1.name as intervention_type,profit_amount,sort
+from t2
 left join ds_mysql_prod_tagelement as tag1 on 
-t1.intervention_type = tag1.id
+t2.intervention_type = tag1.id
