@@ -1,0 +1,51 @@
+
+with table1 as
+( select p.batch, p.gender, p.acad_qual, p.job_type, age, annual_hh_income, training_completed_yn, p.state , p1.fy as name_update, sta.name as state_update, p1.month as month_up, p1.time_timerange as tym, gen.name as gender_up, acad.name as acad_qual_up, 
+  job.name as job_type_up,
+ 
+ case when age<18 then '<18'
+          when age>=18 and age<=30 then '18-30'
+          when age>=31 and age<=45 then '31-45'
+          else '>45'  
+ end as agegroup,
+ 
+ case when annual_hh_income<50000 then '<50000'
+ 	  when annual_hh_income>=50000 and annual_hh_income<=150000 then '50000-150000'
+ 	  when annual_hh_income>=150001 and annual_hh_income<=250000 then '150001-250000'
+ 	  else '>250000'
+ end as annualincome,
+ 
+ case when training_completed_yn=476506
+ then 1 else 0
+ end as training
+ 
+ from Profile_30527 as p
+ 
+ left join profile_30532 p1 on
+ p.batch = p1._id
+ 
+ left join ds_mysql_prod_tagelement sta 
+ on p.state = sta.id 
+ 
+ left join ds_mysql_prod_tagelement gen 
+ on p.gender = gen.id
+ 
+ left join ds_mysql_prod_tagelement acad 
+ on p.acad_qual = acad.id
+ 
+ left join ds_mysql_prod_tagelement job 
+ on p.job_type = job.id
+ 
+ ),
+ 
+  table2 as
+ (
+    select state_update, gender_up, acad_qual_up, job_type_up, month_up, agegroup, annualincome, name_update, tym,   		       sum(training) as numtrained from table1
+   
+    group by state_update, name_update, gender_up, acad_qual_up, job_type_up, month_up, agegroup, annualincome, tym
+    
+    order by name_update ASC
+  )
+  select name_update, gender_up, acad_qual_up, job_type_up, state_update, agegroup, annualincome, tym, numtrained from table2
+
+  /*concat(fy,concat(start,"-"))*/
