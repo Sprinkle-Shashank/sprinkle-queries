@@ -1,5 +1,5 @@
 with table1 as
-( select p.projectid , p._id , p.fy_timerange , cast(start_date as date) as start_update,  sta.name as state , cen.name as center , p1.name , course.name as course_name_update , bat.name as batch_name , concat(concat(course_name_update, ' '), cast(batch_name as varchar)) as batch_value , target_hours , 1 as acheived_hours , 'OJT' as Status , (target_hours/5) as days_to_add , dateadd(day,days_to_add,start_update) as end_1 from profile_81438 as p
+( select p.projectid , p._id , p.fy_timerange , cast(start_date as date) as start_update,  sta.name as state , cen.name as center , p.name , course.name as course_name_update , bat.name as batch_name , concat(concat(course_name_update, ' '), cast(batch_name as varchar)) as batch_value , target_hours , 1 as acheived_hours , 'OJT' as Status , (target_hours/5) as days_to_add from profile_81438 as p
 
 left join ds_mysql_prod_tagelement cen
 on p.center_name = cen.id
@@ -26,7 +26,13 @@ group by p.projectid , p1.name),
 
 table3 as 
 (
-  select p.* from table1 as p
+  select p.*, (days_to_add+p1.count) as final_count, dateadd(day,final_count,start_update) as end_1, p.name as name_1 , p1.name as name_2 from table1 as p
+  
+  left join table2 p1
+  on p.name = p1.name
   )
 
-select * from table2
+select * from table3
+
+
+---  , dateadd(day,days_to_add,start_update) as end_1
