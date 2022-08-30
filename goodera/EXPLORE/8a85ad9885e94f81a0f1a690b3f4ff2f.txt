@@ -1,6 +1,6 @@
 
 with table1 as
-( select p.batch, man_scan_work, p.state , p1.fy as name_update , sta.name as state_update,
+( select p.batch, man_scan_work, p.state , p1.fy as name_update , sta.name as state_update, 'man' as man,
  CASE when man_scan_work = 476506 
 then 1 else 0 end as sca
  from profile_30527 as p
@@ -16,23 +16,25 @@ then 1 else 0 end as sca
  
   table2 as
  (
-    select state_update, sum(sca) as num , name_update, count(*) as den from table1
+    select state_update, sum(sca) as num , man as man_up, name_update, count(*) as den from table1
     
-    /*group by name_update, man, state_update*/
+    
   
   ),
   table3 as
  (
-   select state_update, name_update, num*100.0/den as percentage from table2
+   select state_update, name_update, man_up, num*100.0/den as percentage from table2
+   
+   group by name_update, man_up, state_update
    
    ),
    table4 as 
    (
-	 select avg(percentage) as percentage, 'man' as man, name_update, state_update from table3
+	 select avg(percentage) as percentage, man_up, name_update, state_update from table3
 	 
-     group by state_update, name_update, man
+     group by state_update, name_update, man_up
    
      order by name_update asc
 	 )
- select state_update, name_update, man, percentage from table4
+ select state_update, name_update, man_up, percentage from table4
  
