@@ -1,4 +1,5 @@
-select p1.fy_timerange,tag1.name as gender,p1.trainee_age,
+with t1 as
+(select p1.fy_timerange,tag1.name as gender,trainee_age,
 case
 when p1.trainee_age < 18  then '<18'
 when p1.trainee_age < 25 then  '18-25'
@@ -7,5 +8,16 @@ end as age_bracket
 from profile_76022 as p1
 left join ds_mysql_prod_tagelement as tag1
 on p1.gender = tag1.id
-where trainee_age is not null
-	
+where trainee_age is not null),
+
+select fy_timerange, gender, age_bracket, count(*),
+case 
+when age_bracket ='<18' then 1
+when age_bracket = '18-25' then 2
+when age_bracket = '>25' then 3
+else 4
+end as age_sort
+from t1
+where t1.trainee_age is not null
+group by 
+fy_timerange, gender, age_bracket
