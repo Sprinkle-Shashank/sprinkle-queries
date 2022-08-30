@@ -1,3 +1,17 @@
-select tag1.name as edu_qual ,*from profile_76022 p1
+select fy_timerange,tag2.name as gender,tag1.name as edu_qual,
+case
+when edu_qual ='less than SSC'then 1
+when edu_qual ='SSC' then 2
+when edu_qual ='HSC' then 3
+when edu_qual ='Diploma' then 4
+when edu_qual ='Graduate' then 5
+when edu_qual ='Post-Graduate' then 6
+else 7
+end as sort,count(*)
+from profile_76022 p1
 left join ds_mysql_prod_tagelement as tag1
 on p1.edu_qual = tag1.id
+left join ds_mysql_prod_tagelement as tag2
+on p1.gender = tag2.id
+where edu_qual is not null
+group by fy_timerange,tag2.name,tag1.name
