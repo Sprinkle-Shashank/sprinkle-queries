@@ -1,16 +1,14 @@
 with t1 as
-(select fy_timerange, tag1.name as gender, income_3months, income_12months, income_6months ,
+(select fy_timerange, gender, income_3months, income_12months, income_6months ,
 case
 when income_12months >0 then 'income_12months'
 when income_6months >0 then 'income_6months'
 else 'income_3months'
 end as final_income
 from profile_76022 p1
-left join ds_mysql_prod_tagelement as tag1
-on p1.gender = tag1.id
 )
 
-select t1.fy_timerange, t1.gender,final_income,
+select t1.fy_timerange, tag1. name as gender,final_income,
 case
 when final_income <30000 then'<30k'
 when final_income <50000 then '30k-50k'
@@ -20,5 +18,7 @@ when final_income <200001 then '150k-200k'
 else '>200k'
 end as income_bracket,count(*) as count
 from t1
+left join ds_mysql_prod_tagelement as tag1
+on t1.gender = tag1.id
 where t1.final_income is not null
-group by t1.fy_timerange, t1.gender,income_bracket,t1.final_income
+group by t1.fy_timerange, tag1.name,income_bracket,t1.final_income
