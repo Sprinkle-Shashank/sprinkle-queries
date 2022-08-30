@@ -1,6 +1,6 @@
 
 with table1 as
-( select p.batch, projectId, p.state , p1.fy as name_update , sta.name as state_update, 'man' as man,
+( select p.batch, projectId, p.state , p1.fy as name_update , sta.name as state_update,
  CASE when man_scan_work = 476506 
 then 1 else 0 end as sca
  from profile_30527 as p
@@ -16,18 +16,19 @@ then 1 else 0 end as sca
  
   table2 as
  (
-    select state_update, man, name_update, count(name_update) as count from table1
+    select state_update, man, name_update, 'man' as man, count(*) as count from table1
   
    group by state_update , name_update, projectId
    
-   order by name_update asc
+   
   ),
   table3 as
   (
-	select state_update, man, sum(count) as count from table2
+	select state_update, man, name_update, sum(count) as count from table2
 	
 	group by name_update, state_update, man
+	order by name_update asc 
 	)
   
- select state_update, name_update, man, percentage from table2
+ select state_update, name_update, man, count from table3
  
