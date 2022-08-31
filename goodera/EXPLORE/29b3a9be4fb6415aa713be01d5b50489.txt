@@ -11,7 +11,8 @@ on p1.gender = tag1.id
 where final_income is not null
 )
 
-select fy_timerange,gender,
+t2 as
+(select fy_timerange,gender,
 case
 when t1.final_income <30000 then'<30k'
 when t1.final_income <50000 then '30k-50k'
@@ -21,12 +22,20 @@ when t1.final_income <200001 then '150k-200k'
 else '>200k'
 end as income_bracket,count(*)
 from t1
-group by t1.fy_timerange, gender,income_bracket
+group by t1.fy_timerange, gender,income_bracket)
 
 
-
-
-
+select fy_timerange,gender,income_bracket,count,
+case
+when income_bracket ='<30k' then 1
+when income_bracket ='30k-50k' then 2
+when income_bracket = '50k-100k' then 3
+when income_bracket = '100k-150k' then 4
+when income_bracket = '150k-200k' then 5
+when income_bracket = '>200k' then 6
+else 7
+end as sort
+from t2
 
 
 
