@@ -18,9 +18,37 @@ else 0
 end as Continuing_after_12_months
 from profile_76022 p1
 left join ds_mysql_prod_tagelement tag1
-on p1.gender = tag1.id)
+on p1.gender = tag1.id),
 
-select * from t1
+item as 
+(
+select 'Enrolled'as c
+union all
+select 'Placed' as c
+union all
+select 'Continuing_after_3_months' as c
+union all
+select 'Continuing_after_6_months' as c
+union all
+select 'Continuing_after_12_months' as c
+),
+
+t2 as 
+(fy_timerange,gender,
+ case c 
+ when 'Enrolled' then t1.Enrolled
+ when 'Placed' then t1.placed
+ when 'Continuing_after_3_months' then t1.Continuing_after_3_months
+ when 'Continuing_after_6_months' then t1.Continuing_after_6_months
+ when 'Continuing_after_12_months' then t1.Continuing_after_12_month
+ else null
+ end as val, item.c as item
+ from t1 cross join item
+ group by fy_timerange,gender, t1.Enrolled, t1.placed, t1.Continuing_after_3_months, t1.Continuing_after_6_months, t1.Continuing_after_12_month,
+ item.c)
+ 
+ select * from t2
+
 
 
 
