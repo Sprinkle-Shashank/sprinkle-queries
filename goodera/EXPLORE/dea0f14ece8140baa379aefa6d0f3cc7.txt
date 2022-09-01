@@ -37,7 +37,7 @@ left join tab3 t1 on
 t.CODE=t1.CODE
 group by t.fy_timerange,t.projectcode,t.CODE,t.Quarter,t1.village,t1.b,t.number_of_villages),
 
-tab6 as(select t5.name as fy_timerange,(t.name) as response,case when response='Yes' then split_part(t2.name,'[',1) else t3.name end as projectcode,case when response='Yes' then m.name else n.name end as project_manager,case when p.amnt_utlzd is null then 0 else p.amnt_utlzd  end as Amount_utilised,case when p.payment_amount is null then 0 else p.payment_amount  end as Amount_Disbursed,RTRIM(projectcode)||fy_timerange as CODE from profile_27398 p
+tab6 as(select t5.name as fy_timerange,(t.name) as response,case when response='Yes' then split_part(t2.name,'[',1) when response='No' then t3.name end as projectcode,case when response='Yes' then m.name when response='No' then n.name end as project_manager,case when p.amnt_utlzd is null then 0 else p.amnt_utlzd  end as Amount_utilised,case when p.payment_amount is null then 0 else p.payment_amount  end as Amount_Disbursed,RTRIM(projectcode)||fy_timerange as CODE from profile_27398 p
 left join ds_mysql_prod_tagelement t
 on p.renewal=t.id
 left join profile_27396 t3 on
@@ -51,31 +51,10 @@ t2.project_manager=m.id
 left join ds_mysql_prod_tagelement t4
 on p.tranche=t4.id
 left join ds_mysql_prod_tagelement t5
-on p.fy=t5.id),
-
-tab7 as(select p.name as projectcode,f.name as fy_timerange,concat(projectcode,fy_timerange) as CODE,m.name  as project_manager from profile_27396 p
-left join ds_mysql_prod_tagelement m on
-p.project_manager=m.id
-left join ds_mysql_prod_tagelement f on
-p.fy=f.id
-union
-select l.name as projectcode,f.name as fy_timerange,concat(projectcode,fy_timerange) as CODE,m.name as project_manager
-from profile_27420 p
-left join profile_27396 l on
-p.project_code=l._id
-left join ds_mysql_prod_tagelement m on
-p.project_manager=m.id
-left join ds_mysql_prod_tagelement f on
-p.fy=f.id),
-
-tab8 as(select t.fy_timerange,t.projectcode,t.project_manager,t2.Amount_Disbursed,t2.Amount_utilised,t.CODE from tab7 t
+on p.fy=t5.id)
+select t.fy_timerange,t.projectcode,t.Quarter,t.total,t2.project_manager,t2.Amount_Disbursed,t2.Amount_utilised,t.CODE from tab5 t
 left join tab6 t2 on
-t.CODE=t2.CODE)
-
-select t.fy_timerange,t2.projectcode,t2.project_manager,t2.Amount_Disbursed,t2.Amount_utilised,t.CODE,t.total,(t2.Amount_Disbursed-t2.Amount_utilised) Balance_amount,t.village from tab5 t left join tab8 t2 on
 t.CODE=t2.CODE
-
-
 
 
 
