@@ -1,27 +1,24 @@
+
 with table1 as
-(select p.fy_timerange , sta.name as state , p._id , p.projectid , cen.name as center ,  course.name as course_name_update , bat.name as batch_name , concat(concat(course_name_update, ' '), cast(batch_name as varchar)) as batch_value 
+( select p.projectid , p.fy_timerange , p._id , sta.name as state  , cen.name as center ,  course.name as course_name_update , bat.name as batch_name , concat(concat(course_name_update, ' '), cast(batch_name as varchar)) as batch_value  from profile_81439 as p
  
- from profile_81439 as p
-
-left join profile_81436 p1
-on p.projectid = p1.projectid 
-
-left join ds_mysql_prod_tagelement sta 
-on p1.center_loc = sta.id
-
-left join ds_mysql_prod_tagelement cen 
-on p1.center_name = cen.id
-
-left join profile_81438 p2
-on p.batch = p2._id 
-
+left join profile_81438 p1
+on p.batch = p1._id 
+ 
 left join ds_mysql_prod_tagelement course
-on p2.course_name = course.id
+on p1.course_name = course.id
 
 left join ds_mysql_prod_tagelement bat
-on p2.batch = bat.id
+on p1.batch = bat.id
+ 
+left join profile_81436 p2
+on p1.center = p2._id
+ 
+left join ds_mysql_prod_tagelement sta 
+on p2.center_loc = sta.id
+ 
+left join ds_mysql_prod_tagelement cen 
+on p2.center_name = cen.id
+)
 
- )
- 
- select fy_timerange , state , _id  , projectid , center , batch_value   from table1 
- 
+select * from table1
