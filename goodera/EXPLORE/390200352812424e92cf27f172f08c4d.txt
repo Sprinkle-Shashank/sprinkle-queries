@@ -43,13 +43,13 @@ when 'Continuing_after_3_months' then t1.Continuing_after_3_months
 when 'Continuing_after_6_months' then t1.Continuing_after_6_months
 when 'Continuing_after_12_months' then t1.Continuing_after_12_months
 else null
-end as val ,item.c as dimension
+end as val ,item.c as dimension, sum(val) as value
 from t1 cross join item
 group by t1.fy_timerange,t1.gender,t1.Enrolled,t1.Placed,t1.Continuing_after_3_months,
 t1.Continuing_after_6_months,t1.Continuing_after_12_months, item.c  
 )
 
- select *,
+ select t2.fy_timerange,t2.gender,t2.dimension,value,
 case 
 when t2.dimension='Enrolled' then 1
 when t2.dimension = 'Placed' then 2
@@ -59,7 +59,7 @@ when t2.dimension = 'Continuing_after_12_months' then 5
 else 6
 end as sort
 from t2
-group by t2.fy_timerange,t2.gender,t2.dimension, t2.val
+group by t2.fy_timerange,t2.gender,t2.dimension,value
 
 
 
