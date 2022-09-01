@@ -1,19 +1,26 @@
 with table1 as
 (
-  select mobilization_activity, budget_head, p.fy as name_update, amount, state
+  select mobilization_activity, p.budget_head, bud.name as budget_head_update, p.fy as name_update, amount, p.state,
+  sta.name as state_update
   
   from Profile_60363 as p
+  
+  left join ds_mysql_prod_tagelement bud
+  on p.buget_head = bud.id
+  
+  left join ds_mysql_prod_tagelement sta
+  on p.state = sta.id
   ),
   
   table2 as
   (
-	select budget_head, name_update, state, sum(amount) as amount_up from table1
+	select budget_head_update, name_update, state_update, sum(amount) as amount_up from table1
 	
-	group by name_update, state, budget_head
+	group by name_update, state_update, budget_head_update
 	
 	order by name_update ASC
 	)
 	
-	select budget_head, name_update, state, amount_up from table2 
+	select budget_head_update, name_update, state_update, amount_up from table2 
   
   
