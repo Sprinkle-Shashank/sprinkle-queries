@@ -19,13 +19,14 @@ left join ds_mysql_prod_tagelement t2
 on t1.parent=t2.id
 group by 1,2,3,4),
 
-tab3 as(select count(t.censuscode)) as c,t.projectcode,t.fy_timerange,t.Quarter,t.hdfc_cost a,max(t1.monthlycost) b,(a+b) total,t.CODE,t.censuscode from tab1 t
+tab3 as(select t.projectcode,t.fy_timerange,t.Quarter,t.hdfc_cost a,max(t1.monthlycost) b,(a+b) total,t.CODE,t.censuscode from tab1 t
 left join tab2 t1 on
 t.CODE=t1.CODE 
-group by t.projectcode,t.fy_timerange,t.Quarter,t.hdfc_cost, t.CODE,t.censuscode)
-select t.projectcode,t.fy_timerange,t.Quarter,t.a,t.b,t.c,l.village as village from tab3 t
+group by t.projectcode,t.fy_timerange,t.Quarter,t.hdfc_cost, t.CODE)
+select count(distinct(l.village)) as c,t.projectcode,t.fy_timerange,t.Quarter,t.a a,t.b/c d, a+d,l.village from tab3 t
 left join profile_27489 l 
 on t.censuscode=l.name
+group by t.projectcode,t.fy_timerange,t.Quarter
 
 
 
