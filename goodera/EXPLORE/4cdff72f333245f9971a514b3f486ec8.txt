@@ -37,7 +37,7 @@ select 'Continuing_after_12_months' as c
 
 
 t2 as
-(select  fy_timerange,gender,
+(select  fy_timerange,gender,sum(val) as value
 case c
 when 'Enrolled' then t1.Enrolled
 when 'Placed' then t1.Placed
@@ -47,9 +47,10 @@ when 'Continuing_after_12_months' then t1.Continuing_after_12_months
 else null
 end as val ,item.c as dimension
 from t1 cross join item
+group by t1.fy_timerange,t1.gender,dimension
 
  )
- select t1.fy_timerange,t1.gender,t2.dimension,sum(t2.val) as value,
+ select t1.fy_timerange,t1.gender,t2.dimension,
 case 
 when t2.dimension='Enrolled' then 1
 when t2.dimension = 'Placed' then 2
