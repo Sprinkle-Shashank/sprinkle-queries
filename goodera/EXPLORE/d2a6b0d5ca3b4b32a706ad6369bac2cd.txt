@@ -1,63 +1,10 @@
-with t1 as
-( select fy_timerange, tag1.name as gender ,CAST('1' as varchar ) as Enrolled,
-case
-when job_status =1471552 then 1
-else 0
-end as Placed,
-case
-when continue_3months= 1471552 then 1
-else 0
-end as Continuing_after_3_months,
-case
-when continue_6months= 1471552 then 1
-else 0
-end as Continuing_after_6_months,
-case
-when continue_12months= 1471552 then 1
-else 0
-end as Continuing_after_12_months
-from profile_76022 p1
-left join ds_mysql_prod_tagelement tag1
-on p1.gender = tag1.id
-)
---,
+with t1 as 
+(select fy_timerange, fy_timerange.start as start_date
+from profile_71780),
 
---item as 
---(
-select 'Enrolled'as c
-union all
-select 'Placed' as c
-union all
-select 'Continuing_after_3_months' as c
-union all
-select 'Continuing_after_6_months' as c
-union all
-select 'Continuing_after_12_months' as c
---)
---,
+t2 as 
+(select fy_timerange, start_date :: date
+from t1)
 
---t2 as
---(
---select  fy_timerange,gender,
---case c
---when 'Enrolled' then t1.Enrolled
---when 'Placed' then t1.Placed
---when 'Continuing_after_3_months' then t1.Continuing_after_3_months
---when 'Continuing_after_6_months' then t1.Continuing_after_6_months
---when 'Continuing_after_12_months' then t1.Continuing_after_6_months
---else null
---end as value,item.c as dimension, 
---from t1 cross join item
---group by fy_timerange,gender,item.c
-/*)
-
-select fy_timerange,gender,dimension,value,
-case c
-when dimension=t2.Enrolled then 1
-when dimension =t2.Placed then 2
-when dimension =t2.Continuing_after_3_months then 3
-when dimension =t2.Continuing_after_6_months then 4
-when dimension =t2.Continuing_after_12_months then 5
-else 6
-end as sort
-from t2 cross join item
+select fy_timerange, start_date, to_char(start_date, 'MM'), to_char(start_date, 'Month')
+from t2
