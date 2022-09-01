@@ -1,4 +1,24 @@
-select split_part(split_part(prod.name,'|',1),'.',1) as projectcode,t.name as fy_timerange,t2.name as Quarter,concat(projectcode,fy_timerange) as CODE,split_part(prod.name,'|',3) as censuscode,sum(p.hdfc_cost_monthly) as hdfc_cost from profile_29974 p
+select t5.name as fy_timerange,(t.name) as response,case when response='Yes' then split_part(t2.name,'[',1) when response='No' then t3.name end as projectcode,case when response='Yes' then m.name when response='No' then n.name end as project_manager,case when p.amnt_utlzd is null then 0 else p.amnt_utlzd  end as Amount_utilised,case when p.payment_amount is null then 0 else p.payment_amount  end as Amount_Disbursed,RTRIM(projectcode)||fy_timerange as CODE from profile_27398 p
+left join ds_mysql_prod_tagelement t
+on p.renewal=t.id
+left join profile_27396 t3 on
+p.project_name=t3._id
+left join profile_27420 t2 on
+p.project_renew=t2._id
+left join ds_mysql_prod_tagelement n on
+t3.project_manager=n.id
+left join ds_mysql_prod_tagelement m on
+t2.project_manager=m.id
+left join ds_mysql_prod_tagelement t4
+on p.tranche=t4.id
+left join ds_mysql_prod_tagelement t5
+on p.fy=t5.id
+
+
+
+
+
+/*select split_part(split_part(prod.name,'|',1),'.',1) as projectcode,t.name as fy_timerange,t2.name as Quarter,concat(projectcode,fy_timerange) as CODE,split_part(prod.name,'|',3) as censuscode,sum(p.hdfc_cost_monthly) as hdfc_cost from profile_29974 p
 left join ds_mysql_prod_project prod on
 prod.id=p.projectid
 left join ds_mysql_prod_tagelement t
@@ -8,7 +28,7 @@ on p.month_number=t1.id
 left join ds_mysql_prod_tagelement t2
 on t1.parent=t2.id
 group by 1,2,3,4,5
-/*tab2 as(select split_part(split_part(prod.name,'|',1),'.',1) as projectcode,t.name as fy_timerange,t2.name as Quarter,concat(projectcode,fy_timerange) as CODE,sum(p.monthly_cost) as monthlycost  from profile_30171 p
+tab2 as(select split_part(split_part(prod.name,'|',1),'.',1) as projectcode,t.name as fy_timerange,t2.name as Quarter,concat(projectcode,fy_timerange) as CODE,sum(p.monthly_cost) as monthlycost  from profile_30171 p
 left join ds_mysql_prod_project prod on
 prod.id=p.projectid
 left join ds_mysql_prod_tagelement t
@@ -65,6 +85,5 @@ on p.censuscode=l.name)
 select distinct(t1.village),t.fy_timerange,t.projectcode,t.project_manager,t.Amount_Disbursed,t.Amount_utilised,t1.Quarter,t1.total as Allocated_Amount,(t.Amount_Disbursed-t.Amount_utilised) Balance_amount from tab6 t
 left join Base3 t1 on
 t.CODE=t1.CODE*/
-
 
 
