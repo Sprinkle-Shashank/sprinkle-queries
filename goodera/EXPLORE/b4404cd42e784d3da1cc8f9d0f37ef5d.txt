@@ -1,0 +1,41 @@
+
+with table1 as
+( 
+ select p.batch, p.state , p1.fy as name_update , sta.name as state_update,  man_sca_act2_yn,
+ 
+ CASE when govt_scheme2_yn = 476506 and man_sca_act2_yn = 476506 
+ then 1 else 0 end as aware 
+
+ from profile_30527 as p
+ 
+ left join profile_30532 p1 on
+ p.batch = p1._id
+ 
+ left join ds_mysql_prod_tagelement sta 
+ on p.state = sta.id 
+ 
+ where man_sca_act2_yn and govt_scheme2_yn IN ('476506','476507')
+ ),
+ 
+  table2 as
+ (
+    select state_update, 'numaware' as numaware, sum(aware) as num, count(*) as den, name_update from table1
+   
+    group by state_update, name_update, numaware
+  ),
+  
+  table3 as
+  (
+	select state_update, name_update, numaware, (num*1.0/den) as perc from table2
+	),
+	
+	table4 as
+	(
+	  select state_update, name_update, numaware, avg(perc) as number from table3
+	  
+	  group by state_update, name_update, numaware
+	
+	  order by name_update asc
+	  )
+ 
+ select state_update, number, name_update, numaware from table4
