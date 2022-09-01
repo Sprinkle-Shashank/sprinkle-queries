@@ -1,27 +1,37 @@
-
 with table1 as
-( select p.projectid , p.fy_timerange , p._id , sta.name as state  , cen.name as center ,  course.name as course_name_update , bat.name as batch_name , concat(concat(course_name_update, ' '), cast(batch_name as varchar)) as batch_value , count(p._id) as count_entry  from profile_81439 as p
- 
-left join profile_81438 p1
-on p.batch = p1._id 
- 
-left join ds_mysql_prod_tagelement course
-on p1.course_name = course.id
+(
+  select  p.projectid  , p.fy_timerange ,  p._id , enrol_target  ,  cen.name as center , sta.name as state   from profile_81455 as p
 
-left join ds_mysql_prod_tagelement bat
-on p1.batch = bat.id
- 
-left join profile_81436 p2
-on p1.center = p2._id
- 
+left join profile_81436 p1
+on p.location = p1.center_loc 
+
 left join ds_mysql_prod_tagelement sta 
-on p2.center_loc = sta.id
- 
-left join ds_mysql_prod_tagelement cen 
-on p2.center_name = cen.id
- 
- 
- group by  p.projectid , p.fy_timerange , p._id , sta.name , cen.name ,  course.name , bat.name , batch_value 
+on p1.center_loc = sta.id
+
+left join ds_mysql_prod_tagelement cen
+on p1.center_name = cen.id
+
 )
 
 select * from table1
+
+/*
+
+select p.projectid , p._id , center , fy_timerange , state , batch_value , sum(enrol_target) as enrol_target from table1 as p
+
+group by  p.projectid , p._id , center , fy_timerange , state , batch_value
+
+
+
+left join profile_81438 p2
+on p.projectid = p2.projectid
+
+left join ds_mysql_prod_tagelement course
+on p2.course_name = course.id
+
+left join ds_mysql_prod_tagelement bat
+on p2.batch = bat.id
+
+
+ course.name as course_name_update , bat.name as batch_name , concat(concat(course_name_update, ' '), cast(batch_name as varchar)) as batch_value
+*/
