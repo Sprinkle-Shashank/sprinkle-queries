@@ -1,7 +1,62 @@
+with main as (select r.name as fy_timerange, cast((split_part(split_part(prod.name,'|',1),'.',1)) as varchar) as ProjectCode,CONCAT(ProjectCode,fy_timerange) as code from profile_54963 p
+left join ds_mysql_prod_project prod on
+prod.id=p.projectid
+left join ds_mysql_prod_tagelement r on
+r.id=p.fy)
+
+/*with main as (select r.name as fy_timerange, cast((split_part(split_part(prod.name,'|',1),'.',1)) as varchar) as ProjectCode,CONCAT(ProjectCode,fy_timerange) as code from profile_54963 p
+left join ds_mysql_prod_project prod on
+prod.id=p.projectid
+left join ds_mysql_prod_tagelement r on
+r.id=p.fy),
+
+lookup as (select cast(q.name as varchar) as ProjectCode,f.name as fy_timerange,m.name as Project_Manager,CONCAT(ProjectCode,fy_timerange) as code
+from profile_27420 d
+left join ds_mysql_prod_tagelement f on
+d.fy=f.id
+left join ds_mysql_prod_tagelement m on
+d.project_manager=m.id
+left join profile_27396 q on
+d.project_code=q._id
+		   
+union all
+		   
+select cast(c.name as varchar)as ProjectCode,f.name as fy_timerange,m.name as Project_Manager,CONCAT(ProjectCode,fy_timerange) as code 
+from profile_27396 c	
+left join ds_mysql_prod_tagelement f on
+c.fy=f.id
+left join ds_mysql_prod_tagelement m on
+c.project_manager=m.id),
+
+main2 as (
+select b.fy_timerange as fy,q.Project_Manager as level1 from main b
+left join lookup q on
+q.code = b.code
+group by b.fy_timerange,q.Project_Manager),
+
+level1tab as (select m.name as level1 ,p.approver as level2,p.name as level1email from profile_27424 p
+left join ds_mysql_prod_tagelement m on
+m.id = p.pm_name),
+
+level2tab as (select m.name as level1 , z.level1 as level2 from profile_27424 p
+left join ds_mysql_prod_tagelement m on
+m.id = p.pm_name
+left join level1tab z on
+z.level1email = p.approver)
+
+select p.*,d.level2 from main2 p
+left join level2tab d on
+d.level1 = p.level1*/
 
 
 
-Select CASE WHEN p5.name = 'Indirect' THEN sum(p2.hdfc_cost_monthly + p3.monthly_cost) else sum(p1.curr_yr_budget+p4.curr_yr_budget) END AS Allocated_Amount ,p5.name as Intervention_Type,p1.name,t1.name as Project_Manager,t2.name as Financial_Year
+
+
+
+
+
+
+/*Select CASE WHEN p5.name = 'Indirect' THEN sum(p2.hdfc_cost_monthly + p3.monthly_cost) else sum(p1.curr_yr_budget+p4.curr_yr_budget) END AS Allocated_Amount ,p5.name as Intervention_Type,p1.name,t1.name as Project_Manager,t2.name as Financial_Year
 from profile_27396 p1
 left join profile_27420 p4
 on p1._id = p4.project_code
@@ -15,7 +70,7 @@ left join ds_mysql_prod_tagelement t1
 on p1.project_manager = t1.id
 left join ds_mysql_prod_tagelement t2
 on p1.fy = t2.id
-group by p5.name,p1.name,t1.name,t2.name;
+group by p5.name,p1.name,t1.name,t2.name;*/
 
 
 /*Select t1.name as fy,p1.name as prj_code,p1.village_name,t2.name as oc_statement_new,t3.name as oc_indic_new,p1.planned_s1,p1.planned_s2,p1.progress_s1,p1.progress_s2 from profile_27414 p1
