@@ -52,7 +52,7 @@ left join ds_mysql_prod_tagelement t5
 on p.fy=t5.id
 where response is not null)
 
-select t.fy_timerange,t.projectcode,t.Quarter,t.total, t.village,t2.project_manager,(t2.Amount_Disbursed/t.number_of_villages) Amount_Disbursed,(t2.Amount_utilised/t.number_of_villages) Amount_Utilised,Amount_Disbursed-Amount_Utilised Balance_amount,t.CODE, 
+select t.fy_timerange,t.projectcode,t.Quarter,t.total as Allocated_amount, t.village,t2.project_manager,(t2.Amount_Disbursed/t.number_of_villages) Amount_Disbursed,(t2.Amount_utilised/t.number_of_villages) Amount_Utilised,Amount_Disbursed-Amount_Utilised Balance_amount,t.CODE, 
 case 
 when t2.months='01' then 'Quarter 4' 
 when t2.months='02' then 'Quarter 4' 
@@ -67,11 +67,12 @@ when t2.months=10 then 'Quarter 3'
 when t2.months=11 then 'Quarter 3' 
 when t2.months=12 then 'Quarter 3' 
 
-end as Q,t.number_of_villages 
+end as Q,sum(Allocated_amount) as S1,sum(Amount_Disbursed) as S2, sum(Amount_Utilised) as S3,sum(Balance_amount) as S4
 from tab5 t
 left join tab6 t2 on
 t.CODE=t2.CODE
 where t.Quarter=Q
+group by 1,2,3,4,5,6,7,8,9,10
 
 
 
