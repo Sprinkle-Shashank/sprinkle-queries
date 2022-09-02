@@ -1,5 +1,12 @@
 Select p.name as projectid,p1.name as pmilestone,a.fy_timerange,t1.name as status, a.comm, t2.name as month, a.date, a.actual_start_date, a.actual_end_date,
-p1.milestone as milestone,p1.start, p1.end, p1.name
+p1.milestone as milestone,p1.start, p1.end, p1.name,
+case
+when status = "Completed" then 'Completed'
+when (status = "In Progress" and a.date > p1.end) OR (status = "Yet to Start" and a.date > p1.start) then 'Delayed'
+when status = "Yet to Start" and a.date <= p1.start then 'Yet to Start'
+else NULL
+
+end as new_status
 --, max(date) 
 from profile_58278 a
 
