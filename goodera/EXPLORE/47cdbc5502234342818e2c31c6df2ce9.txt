@@ -2,10 +2,13 @@
 with x as (select distinct p.fy as financial_year,p.intervention_type as interventiontype from profile_27396 p 
 		   ),
 
-y as (select p8.name, case p8.name  when 'Indirect' then 0
+y as (select p8.name, case p8.name  when 'Indirect' then sum(p2.hdfc_cost_monthly+p6.monthly_cost)
   else sum(p3.curr_yr_budget+p1.curr_yr_budget)  end as AllocatedAmount , f.name  as financial_year from x
 left join profile_27396 p1 on x.financial_year=p1.fy and x.interventiontype=p1.intervention_type
-
+left join profile_29974 p2 on
+p1._id=p2.prj_code and  p1.fy=p2.fy
+left join profile_30171 p6 on
+p2.prj_code=p6.prj_code and  p2.fy=p6.fy
 left join profile_27420 p3
 on p1._id=p3.project_code and  p1.fy=p3.fy
 			 
@@ -18,12 +21,7 @@ on p8._id=x.interventiontype
 			 
 group by f.name , p8.name)
 
-/*sum(p2.hdfc_cost_monthly+p6.monthly_cost)
 
-left join profile_29974 p2 on
-p1._id=p2.prj_code and  p1.fy=p2.fy
-left join profile_30171 p6 on
-p2.prj_code=p6.prj_code and  p2.fy=p6.fy*/
 select cast(sum(y.AllocatedAmount) as bigint), y.financial_year from y group by y.financial_year
 		  
 		  
