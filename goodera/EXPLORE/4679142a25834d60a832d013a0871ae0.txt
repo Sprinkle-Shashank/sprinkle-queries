@@ -1,15 +1,29 @@
-SELECT substring(t2.submission_date,6,2) months,case 
-when LTRIM(months)=01 then 'Quarter 4' 
-when months='02' then 'Quarter 4' 
-when months=3 then 'Quarter 4' 
-when months=4 then 'Quarter 1' 
-when months=5 then 'Quarter 1' 
-when months=6 then 'Quarter 1' 
-when months=7 then 'Quarter 2' 
-when months=8 then 'Quarter 2' 
-when months=9 then 'Quarter 2' 
-when months=10 then 'Quarter 3' 
-when months=11 then 'Quarter 3' 
-when months=12 then 'Quarter 3' 
- end as m from profile_27398 t2
+with tab1 as(select split_part(split_part(prod.name,'|',1),'.',1) as projectcode,t.name as fy_timerange,t2.name as Quarter,concat(projectcode,fy_timerange) as CODE,split_part(prod.name,'|',3) as censuscode,q.village,sum(p.hdfc_cost_monthly) as hdfc_cost from profile_29974 p
+left join ds_mysql_prod_project prod on
+prod.id=p.projectid
+left join ds_mysql_prod_tagelement t
+on p.fy=t.id
+left join ds_mysql_prod_tagelement t1
+on p.month_number=t1.id
+left join ds_mysql_prod_tagelement t2
+on t1.parent=t2.id
+left join profile_27489 q on
+split_part(prod.name,'|',3)=q.name
+group by 1,2,3,4,5,6),
+tab2 as(select split_part(split_part(prod.name,'|',1),'.',1) as projectcode,t.name as fy_timerange,t2.name as Quarter,concat(projectcode,fy_timerange) as CODE,sum(p.monthly_cost) as monthlycost  from profile_30171 p
+left join ds_mysql_prod_project prod on
+prod.id=p.projectid
+left join ds_mysql_prod_tagelement t
+on p.fy=t.id
+left join ds_mysql_prod_tagelement t1
+on p.month_number=t1.id
+left join ds_mysql_prod_tagelement t2
+on t1.parent=t2.id
+group by 1,2,3,4)
+
+select t.projectcode,t.fy_timerange,t.Quarter,t.hdfc_cost a,max(t1.monthlycost) b,t.CODE,t.censuscode,t.village from tab1 t
+left join tab2 t1 on
+t.CODE=t1.CODE 
+group by t.projectcode,t.fy_timerange,t.Quarter,t.hdfc_cost, t.CODE,t.censuscode,t.village
+
 
