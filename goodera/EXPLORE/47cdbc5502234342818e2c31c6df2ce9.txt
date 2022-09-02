@@ -1,6 +1,79 @@
+with temp as(
+  Select 'Q1' as col
+  union all
+    Select 'Q2' as col
+  union all
+    Select 'Q3' as col
+  union all
+    Select 'Q4' as col
+),
+s as(
+select f.name  as fy ,p1.name as projectcode ,
 
+case when t1.name= 'Tranche 1' then p2.payment_amount
+else 0
+    end as DisbursedAmountforQ1,
+case when t1.name='Tranche 2' then (p2.payment_amount)
+else '0'
+    end as DisbursedAmountforQ2,
+case when t1.name='Tranche 3' then (p2.payment_amount)
+else '0'
+    end as DisbursedAmountforQ3,
+case when t1.name='Tranche 4' then (p2.payment_amount)
+else '0'
+    end as DisbursedAmountforQ4
+    
+from  profile_27396 p1
+left join profile_27398 p2  on
+p1._id=p2.project_name
+left join ds_mysql_prod_tagelement t1
+on p2.tranche=t1.id
+left join ds_mysql_prod_tagelement t2
+on t1.parent=t2.id
+left join ds_mysql_prod_tagelement f on
+p2.fy=f.id
+where f.name not in ('2015-2016','2016-2017','2017-2018')
+group by 1,2,3,4,5,6
+),
+s2 as (
+Select fy , projectcode ,temp.col as quarter,
+sum(case col 
+    when 'Q1' then s.DisbursedAmountforQ1
+    when 'Q2' then s.DisbursedAmountforQ2
+    when 'Q3' then s.DisbursedAmountforQ3
+    when 'Q4' then s.DisbursedAmountforQ4
+    else 0
+    end) as DisbursedAmount
+from s
+cross join temp
+group by fy , projectcode ,temp.col
+),
+ s1 as (
+  Select fy , projectcode , 
+Sum(CASE 
+             WHEN quarter = 'Q1' THEN DisbursedAmount
+             ELSE 0 
+           END) AS DisbursedAmountforQ1,
+Sum(CASE 
+             WHEN quarter = 'Q2' THEN DisbursedAmount
+             ELSE 0 
+           END) AS DisbursedAmountforQ2,
+           Sum(CASE 
+             WHEN quarter = 'Q3' THEN DisbursedAmount
+             ELSE 0 
+           END) AS DisbursedAmountforQ3,
+           Sum(CASE 
+             WHEN quarter = 'Q4' THEN DisbursedAmount
+             ELSE 0 
+           END) AS DisbursedAmountforQ4
+           from s2
+group by fy , projectcode
+)       
 
-with x as (select p8.name, case p8.name  when 'Indirect' then sum(p2.hdfc_cost_monthly+p6.monthly_cost)
+Select fy , projectcode,(DisbursedAmountforQ1+DisbursedAmountforQ2+DisbursedAmountforQ3+DisbursedAmountforQ4) as total_d,DisbursedAmountforQ1,DisbursedAmountforQ2,DisbursedAmountforQ3,DisbursedAmountforQ4
+from s1
+
+/*with x as (select p8.name, case p8.name  when 'Indirect' then sum(p2.hdfc_cost_monthly+p6.monthly_cost)
   else sum(p3.curr_yr_budget+p1.curr_yr_budget)  end as AllocatedAmount , f.name  as financial_year from profile_27396 p1
 left join ds_mysql_prod_tagelement f on
 p1.fy=f.id 
@@ -16,7 +89,7 @@ on p1._id=p3.project_code and  p1.fy=p3.fy
  where f.name not in ('2015-2016','2016-2017','2017-2018')
 group by f.name , p8.name)/*  allocated amount as Vidur said*/
 
-select sum(x.AllocatedAmount), x.financial_year from x group by x.financial_year
+select sum(x.AllocatedAmount), x.financial_year from x group by x.financial_year*/
 
 
 		  
@@ -87,45 +160,6 @@ p2.fy=f.id
 
 
 
-
-
-
-/*With x as(Select distinct(p9.village) as Village,p9.state as State,p1.name pd,t2.name as Quarter
-from profile_29974 p8
-left join ds_mysql_prod_project t5
-on p8.projectid=t5.id
-left join profile_27489 p9
-on split_part(t5.name,'|',3)=p9.name
-left join profile_27396 p1
-on p1._id=p8.prj_code
-left join ds_mysql_prod_tagelement t1
-on p8.month_number=t1.id
-left join ds_mysql_prod_tagelement t2
-on t1.parent=t2.id),
-
-y as(select p1.name as projectcode ,sum(d.payment_amount) as DisbursedAmount,sum(d.amnt_utlzd) as Utilized, f.name  as financial_year,t3.name as Core_Ares,t4.name as ProjectManager,p6.name as Intervention_Type,p7.name as Ngo_Partner
-from profile_27396 p1
-left join profile_27398 d on
-p1._id=d.project_name 
-left join ds_mysql_prod_tagelement f on
-d.fy=f.id 
-left join ds_mysql_prod_tagelement t3
-on p1.focus_area=t3.id
-left join ds_mysql_prod_tagelement t4
-on p1.project_manager=t4.id
-left join profile_28235 p6
-on p1.intervention_type=p6._id
-left join profile_27395 p7
-on p1.ngo_partner=p7._id
-group by f.name,p1.name,t3.name,t4.name,P6.NAME,P7.NAME)
-
-Select distinct(x.village),x.state,y.projectcode,y.DisbursedAmount,Y.Utilized,x.Quarter,y.financial_year,y.Core_Ares,
-y.ProjectManager,y.Intervention_Type,y.Ngo_Partner
-from x
-left join y
-on x.pd=y.projectcode*/
-
-
 /*select p8.name, case p8.name  when 'Indirect' then sum(p2.hdfc_cost_monthly+p6.monthly_cost)
   else sum(p3.curr_yr_budget+p1.curr_yr_budget)  end as AllocatedAmount , f.name  as financial_year from profile_27396 p1
 left join profile_27420 p3
@@ -185,22 +219,7 @@ p1.fy=f.id where f.name  in ('2019-2020')
 	   group by f.name,p8.name,p1.name,p2.hdfc_cost_monthly,p6.monthly_cost,p4.curr_yr_budget*//*year over yearsummary*/
 	 
 	  
-/*with x as (select p8.name as intervention_type,p1.name as projectcode from profile_27396 p1
- left join profile_28235 p8
-on p8._id=p1.intervention_type),
-y as (select case x.intervention_type when 'Indirect' then sum(p2.hdfc_cost_monthly+p6.monthly_cost)
-                                      else sum(p2.hdfc_cost_monthly+p6.monthly_cost+p4.curr_yr_budget)
-	                                  end as AllocatedAmount ,f.name as financial_year from profile_29974 p2 
-	  left join x on x.projectcode=p2.prj_code
-left join profile_27420 p4 on
-p2.prj_code=p4.project_code 
-left join profile_30171 p6 on
-p2.prj_code=p6.prj_code
 
-left join ds_mysql_prod_tagelement f on
-p2.fy=f.id where f.name not in ('2015-2016','2016-2017','2017-2018')
-	  group by f.name,x.intervention_type) 
-select * from y*/
 
 
  
