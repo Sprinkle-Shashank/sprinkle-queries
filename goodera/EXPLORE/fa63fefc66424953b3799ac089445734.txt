@@ -1,18 +1,19 @@
 
-
-
-select  distinct split_part(split_part(p1.name,'|',1),'.',1) as projectcode,
-f.name as financial_year,
+with tab1 as (select  distinct split_part(split_part(p1.name,'|',1),'.',1) as projectcode,
+f.name as fy_timerange, p1.curr_yr_budget,p8.name as interventiontype
 concat(projectcode,financial_year) as CODE
 from profile_27396 p1
 left join ds_mysql_prod_tagelement f on
 p1.fy=f.id
+left join profile_28235 p8
+on p8._id=p1.intervention_type),
 
-/*select  distinct split_part(split_part(prod.name,'|',1),'.',1) as projectcode,
-f.name as financial_year,
+tab 2 as (select  distinct split_part(split_part(prod.name,'|',1),'.',1) as projectcode,
+f.name as fy_timerange,p2.hdfc_cost_monthly
 concat(projectcode,financial_year) as CODE
 from profile_29974 p2
 left join ds_mysql_prod_project prod
 on prod.id=p2.projectid
 left join ds_mysql_prod_tagelement f on
-p2.fy=f.id*/
+p2.fy=f.id)
+select * from tab1 left join tab2 on tab1.CODE=tab2.CODE
