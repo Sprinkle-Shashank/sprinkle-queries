@@ -32,15 +32,17 @@ f.name as fy_timerange,p3.curr_yr_budget,
 concat(projectcode,fy_timerange) as CODE
 from profile_27420 p3
 left join ds_mysql_prod_tagelement f on
-p3.fy=f.id)
+p3.fy=f.id), 
 
-Select tab1.interventiontype, case tab1.interventiontype when 'Indirect' then sum(tab2.hdfc_cost_monthly+tab3.monthly_cost)
+x as (Select tab1.interventiontype, case tab1.interventiontype when 'Indirect' then sum(tab2.hdfc_cost_monthly+tab3.monthly_cost)
   else sum(tab4.curr_yr_budget+tab1.curr_yr_budget)  end as AllocatedAmount, tab1.fy_timerange from tab1 
   left join tab2 on tab1.CODE=tab2.CODE
   left join tab3 on tab1.CODE=tab3.CODE
   left join tab4 on tab1.CODE=tab4.CODE
  where tab1.fy_timerange not in ('2015-2016','2016-2017','2017-2018')
-group by tab1.fy_timerange ,tab1.interventiontype
+group by tab1.fy_timerange ,tab1.interventiontype)
+  
+  select * from sum(x.AllocatedAmount) as AllocatedAmount, x.fy_timerange from x group by x.fy_timerange
 
 /*select p8.name, case p8.name  when 'Indirect' then sum(p2.hdfc_cost_monthly+p6.monthly_cost)
   else sum(p3.curr_yr_budget+p1.curr_yr_budget)  end as AllocatedAmount , f.name  as financial_year from profile_27396 p1
