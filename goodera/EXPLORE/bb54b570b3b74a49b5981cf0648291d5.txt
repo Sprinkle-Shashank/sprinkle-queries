@@ -1,15 +1,68 @@
-with temp1 as
-(select m._id, m.projectId, m.month_timerange, m.amount, m.project_code_new, r.project_name, r.vertical, focus.name as focus, direct_or_partner.name as direct_or_partner, entity.name as entity
- from profile_55194 as m
+	with temp1 as
+	(select m._id, m.projectId, m.month_timerange as fy_timerange, m.amount, m.project_code_new, 		r.project_name, r.vertical, focus.name as focus, direct_or_partner.name as direct_or_partner, entity.name as entity
+ 	from profile_55194 as m
  
- left join profile_62881 AS r
- on m.project_code_new = r._id
+ 	left join profile_62881 AS r
+ 	on m.project_code_new = r._id
  
- left join ds_mysql_prod_tagelement as entity
-  on r.entity = entity.id 
- left join ds_mysql_prod_tagelement as focus
-  on r.focus = focus.id
- left join ds_mysql_prod_tagelement as direct_or_partner
-  on r.direct_or_partner = direct_or_partner.id )
+ 	left join ds_mysql_prod_tagelement as entity
+  	on r.entity = entity.id 
+ 	left join ds_mysql_prod_tagelement as focus
+  	on r.focus = focus.id
+ 	left join ds_mysql_prod_tagelement as direct_or_partner
+  	on r.direct_or_partner = direct_or_partner.id ),
   
-  select * from temp1
+  	temp2 as
+  (select _id, fy_timerange, amount, project_code_new, project_name, vertical, focus, entity, vertical_new 
+   from temp1 as m, m.vertical vertical_new),
+   
+   temp3 as 
+   (select _id, fy_timerange, amount, project_code_new, project_name, focus, entity, 
+	
+	case 
+    when vert1.name IS NULL AND vert.name IS NOT NULL THEN vert.name
+	when vert1.name IS NULL AND vert.name IS NULL then 'Admin'
+	else vert1.name 
+	END AS vertical
+
+	from temp2 AS m
+
+	left join ds_mysql_prod_tagelement as vert
+     on m.vertical_new = vert.id
+  
+	left join ds_mysql_prod_tagelement as vert1
+     on vert.parent = vert1.id),
+	 
+	temp4 as
+	(select _id, fy_timerange, sum(m.amount) as amount, project_code_new, project_name, focus, entity, vertical
+	 from temp1 as m
+	 where _id NOT IN (select _id from temp2)
+     group by _id, fy_timerange, project_code_new, project_name, focus, entity, vertical),
+	 
+	 temp5 as
+	 (select fy_timerange, sum(m.amount) as amount, project_code_new, project_name, focus, entity, vertical
+	  from temp3 as m
+	  group by fy_timerange, project_code_new, project_name, focus, entity, vertical),
+	  
+	 temp6 as
+	 (select fy_timerange, amount, project_code_new, project_name, focus, entity, vertical, vertical_new from temp4 as m, m.vertical vertical_new),
+	 
+	 temp7 as
+	 (select fy_timerange, amount, project_code_new, project_name, focus, entity, 
+	  
+	  case 
+when vert1.name IS NULL AND vert.name IS NOT NULL THEN vert.name
+else vert1.name 
+END AS vertical
+ 
+from temp6 as m
+
+left join ds_mysql_prod_tagelement as vert
+on m.vertical_new = vert.id
+  
+left join ds_mysql_prod_tagelement as vert1
+on vert.parent = vert1.id)
+
+select * from temp5
+UNION ALL
+select * from temp7
