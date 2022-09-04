@@ -1,0 +1,33 @@
+with temp1 AS 
+(select m.projectId, m.completed, m.project_code, m.fy_timerange, r.vertical,focus.name as focus, entity.name as entity
+
+ from profile_55471 AS m
+
+left join profile_62881 AS r
+ on m.project_code = r.project_code
+ 
+
+left join ds_mysql_prod_tagelement as entity
+  on r.entity = entity.id 
+left join ds_mysql_prod_tagelement as focus
+  on r.focus = focus.id  
+ 
+where m.completed = 939857),
+
+temp2 as
+(select p.*, q1 from temp1 as p, p.vertical as q1)
+
+select p.project_code, p.focus, p.fy_timerange, p.entity, 
+case when new_2.name is null then new_1.name
+else new_2.name 
+end AS vertical, count(*) from temp2 AS p
+
+left join ds_mysql_prod_tagelement as new_1
+  on p.q1 = new_1.id
+  
+left join ds_mysql_prod_tagelement as new_2
+  on new_1.parent = new_2.id
+  
+group by p.project_code, p.focus, p.fy_timerange, p.entity,  new_2.name,new_1.name
+  
+order by p.fy_timerange asc, p.project_code asc
