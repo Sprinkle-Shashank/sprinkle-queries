@@ -1,0 +1,24 @@
+with table1 as
+(select p.mobilization_activity, cast(fy as VARCHAR) as name_update, p.state, sta.name as state_update, mob.name as mob_act_update
+ from Profile_60366 as P
+ 
+ left join Profile_30532 as p1
+ on p.batch = p1._id
+ 
+ left join ds_mysql_prod_tagelement sta 
+ on p.state = sta.id
+ 
+ left join ds_mysql_prod_tagelement mob 
+ on p.mobilization_activity = mob.id
+ 
+ ),
+ 
+ table2 as
+ (
+   select mob_act_update, name_update, state_update, count(*) as count_up from table1
+  
+   group by mob_act_update, name_update, state_update
+ )
+ select mob_act_update, name_update, state_update, count_up from table2
+ 
+ 
