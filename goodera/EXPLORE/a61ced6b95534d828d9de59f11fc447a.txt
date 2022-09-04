@@ -1,4 +1,6 @@
-select p.projectid  , p._id ,  p.fy_timerange ,  b_sta.name as beneficiary_status , course.name as course_name_update , bat.name as batch_name , concat(concat(course_name_update, ' '), cast(batch_name as varchar)) as batch_value , sta.name as state , cen.name as center from profile_81439 as p
+with table1 as
+(
+  select p.projectid  , p._id ,  p.fy_timerange ,  b_sta.name as beneficiary_status , course.name as course_name_update , bat.name as batch_name , concat(concat(course_name_update, ' '), cast(batch_name as varchar)) as batch_value , sta.name as state , cen.name as center from profile_81439 as p
 
 left join ds_mysql_prod_tagelement b_sta
 on p.ben_status = b_sta.id
@@ -22,5 +24,8 @@ left join ds_mysql_prod_tagelement sta
 on p3.center_loc = sta.id
 
 where beneficiary_status='Placed'
+)
 
---- , cen.name as center , sta.name as state  ,  bat.name as batch_name ,
+select p.projectid  , p._id ,  p.fy_timerange , beneficiary_status , course_name_update , batch_name , batch_value , state , center, count(p._id) as count_value from table1
+
+group by  p.projectid  , p._id ,  p.fy_timerange , beneficiary_status , course_name_update , batch_name , batch_value , state , center
