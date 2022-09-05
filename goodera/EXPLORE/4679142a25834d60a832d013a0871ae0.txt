@@ -27,7 +27,7 @@ on prod.id=p2.projectid
 left join ds_mysql_prod_tagelement f on
 p2.fy=f.id
 where f.name not in ('2015-2016','2016-2017','2017-2018')
-group by projectcode,2,4),
+group by prod.name,2,4),
 
 
 tab3 as (select split_part(split_part(prod.name,'|',1),'.',1) as projectcode,
@@ -39,7 +39,7 @@ on prod.id=p6.projectid
 left join ds_mysql_prod_tagelement f on
 p6.fy=f.id
 where f.name not in ('2015-2016','2016-2017','2017-2018')
-group by projectcode,2,4)
+group by prod.name,2,4)
 
 
 		 
@@ -50,6 +50,9 @@ then tab1.curr_yr_budget1
 when tab1.interventiontype='Direct' 
 then tab1.curr_yr_budget
 else 
-(tab2.hdfc_cost_monthly+tab3.monthly_cost)  end as AllocatedAmount, tab1.fy_timerange from tab1 
+(tab2.hdfc_cost_monthly+tab3.monthly_cost)  
+end as AllocatedAmount, 
+tab1.fy_timerange 
+from tab1 
 left join tab2 on tab1.CODE=tab2.CODE
-left join tab3 on tab2.CODE=tab3.CODE
+left join tab3 on tab1.CODE=tab3.CODE
