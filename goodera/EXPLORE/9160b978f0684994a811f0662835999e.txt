@@ -14,12 +14,14 @@ with temp1 as
   	on r.direct_or_partner = direct_or_partner.id ),
 	
 temp2 as
-(select m.projectId, m.fy_timerange, m.project_code_new, m.amount, m._id, m.project_name, m.vertical, m.focus, m.direct_or_partner, m.entity, r.sdgs
+(select m.projectId, m.fy_timerange, m.project_code_new, m.amount, m._id, m.project_name, m.vertical, m.focus, m.direct_or_partner, m.entity, sdgs.name as sdgs
  
  from temp1 as m
  
  left join profile_61044 AS r
- 	on m.project_code_new = r.proj),
+ 	on m.project_code_new = r.proj
+ left join ds_mysql_prod_tagelement as sdgs
+  	on r.sdgs = sdgs.id),
 	
 temp3 as
 (select m.projectId, m.fy_timerange, m.project_code_new, m.amount, m._id, m.project_name, m.vertical, m.focus, m.direct_or_partner, m.entity, m.sdgs, vertical_new
@@ -51,12 +53,16 @@ temp5 as
  group by m.projectId, m.fy_timerange, m.project_code_new, m._id, m.project_name, m.focus, m.direct_or_partner, m.entity, m.sdgs, m.vertical),
  
 temp6 as
-(select m.projectId, m.fy_timerange, m.project_code_new, SUM(m.amount) as amount, m._id, m.project_name, m.focus, m.direct_or_partner, m.entity, m.sdgs, m.vertical
+(select m.projectId, m.fy_timerange, m.project_code_new, SUM(m.amount) as amount, m.project_name, m.focus, m.direct_or_partner, m.entity, m.sdgs, m.vertical
  from temp4 as m
- group by m.projectId, m.fy_timerange, m.project_code_new, m._id, m.project_name, m.focus, m.direct_or_partner, m.entity, m.sdgs, m.vertical),
- 
-temp7 as
+ group by m.projectId, m.fy_timerange, m.project_code_new, m.project_name, m.focus, m.direct_or_partner, m.entity, m.sdgs, m.vertical
+
+UNION ALL
+
+select m.projectId, m.fy_timerange, m.project_code_new, m.amount, m.project_name, m.focus, m.direct_or_partner, m.entity, m.sdgs, m.vertical 
+from temp5 as m)
+
+select * from temp6
+order by sdgs asc, project_code_new asc
  
 	
-	
- 
