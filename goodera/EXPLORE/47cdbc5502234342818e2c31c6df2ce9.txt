@@ -1,13 +1,13 @@
-select split_part(split_part(p1.name,'|',1),'.',1) as projectcode,
-f.name as fy_timerange, sum(p1.curr_yr_budget) curr_yr_budget,p8.name as interventiontype,
+select split_part(split_part(prod.name,'|',1),'.',1) as projectcode,
+f.name as fy_timerange,sum(p2.hdfc_cost_monthly) as hdfc_cost_monthly,
 concat(projectcode,fy_timerange) as CODE
-from profile_27396 p1
+from profile_29974 p2
+left join ds_mysql_prod_project prod
+on prod.id=p2.projectid
 left join ds_mysql_prod_tagelement f on
-p1.fy=f.id
-left join profile_28235 p8
-on p8._id=p1.intervention_type
-			 where f.name not in ('2015-2016','2016-2017','2017-2018')
-			 group by projectcode,2, 4,5
+p2.fy=f.id
+		where f.name not in ('2015-2016','2016-2017','2017-2018')
+		 group by projectcode,2,4
 
 
 /*with x as (select p8.name, case p8.name  when 'Indirect' then sum(p2.hdfc_cost_monthly+p6.monthly_cost)
