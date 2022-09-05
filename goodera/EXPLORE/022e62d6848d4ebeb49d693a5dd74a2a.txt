@@ -1,16 +1,14 @@
 with t1 as 
-(select p1._id, p1.fy_timerange, p1.line_item, p1.category, p1.budgeted_amount, p1.projectId, p2.date, p2.amount_utilized,
-row_number() over (partition by p2.amount_utilized) as r1
+(select p1._id, p1.fy_timerange, p1.line_item, p1.category, p1.budgeted_amount, p1.projectId, p2.date, p2.amount_utilized :: varchar
 from profile_74913 p1
 left join profile_74914 p2
 on p1._id = p2.line_item
 order by p2.date)
 
-select distinct  _id, fy_timerange, line_item, category, budgeted_amount, projectId, date, amount_utilized
+select *, first_value(t1.date) over (partition by t1.amount_utilized order by t1.date desc rows between unbounded preceding and unbounded following)
 from t1
-where r1 = 1
-group by _id, fy_timerange, line_item, category, budgeted_amount, projectId, date, amount_utilized, r1
-order by budgeted_amount desc
+
+
 
 
 
