@@ -1,1 +1,28 @@
-select * from profile_76580
+
+with t1 as
+(SELECT * 
+FROM
+(Select   projectId, school, topic, event_count, emp_count, session_count*duration as learning_hour, session_count, emp, stu_count, duration, fy_timerange from profile_76580 p 
+
+)
+UNPIVOT (
+    val FOR dim IN (emp_count, session_count, emp, stu_count, duration, learning_hour, event_count))
+
+)
+
+select  projectId, fy_timerange,  reg.name as school, reg2.name as activity,reg3.name as topic,sum(val) as val,dim from t1 as p
+
+left join ds_mysql_prod_tagelement reg
+on P.school= reg.id
+
+left join ds_mysql_prod_tagelement reg2
+on P.activity= reg2.id
+
+
+left join ds_mysql_prod_tagelement reg3
+on P.topic= reg3.id
+
+
+  Group By projectId, fy_timerange, reg.name, reg2.name, Dim,reg3.name
+  
+  
