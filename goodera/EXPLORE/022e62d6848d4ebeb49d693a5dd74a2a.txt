@@ -1,6 +1,7 @@
 
 
-select  p1._id, p1.fy_timerange, p1.line_item, tag2.name as category, p1.budgeted_amount, tag1.name as projectId , p2.amount_utilized ,p2.date
+with t1 as 
+(select  p1._id, p1.fy_timerange, p1.line_item, tag2.name as category, p1.budgeted_amount, tag1.name as projectId , p2.amount_utilized ,p2.date
 first(p2.amount_utilized) :: INT as amount_utilized
 , Cast(first(p2.date) as date)
 ,budgeted_amount- amount_utilized as sub,
@@ -17,4 +18,7 @@ on p1.projectId = tag1.id
 left join ds_mysql_prod_tagelement tag2
 on p1.category = tag2.id
 
-
+group by p1._id, p1.fy_timerange, p1.line_item, tag2.name , p1.budgeted_amount,tag1.name,p2.date,p2.amount_utilized
+order by date desc)
+select sum(t1.unspent) as unspent
+from t1
