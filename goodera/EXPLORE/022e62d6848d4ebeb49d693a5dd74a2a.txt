@@ -16,7 +16,11 @@ t3 as
 rank() over (partition by first_value order by amount_utilized desc) as row
 from t2)
 
-select _id, fy_timerange, line_item, tag1.name as category, budgeted_amount, projectId, date,  first_value as amount_utilized
+select _id, fy_timerange, line_item, tag1.name as category, budgeted_amount, projectId, date,  first_value as amount_utilized,
+case 
+when budgeted_amount - amount_utilized > 0 then budgeted_amount - amount_utilized
+else 0
+end as unspent
 from t3
 left join ds_mysql_prod_tagelement tag1
 on t3.category = tag1.id
