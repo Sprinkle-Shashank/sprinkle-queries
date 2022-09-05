@@ -19,8 +19,44 @@ temp2 as
  from temp1 as m
  
  left join profile_61044 AS r
- 	on m.project_code_new = r.proj)
+ 	on m.project_code_new = r.proj),
 	
-	select * from temp2
+temp3 as
+(select m.projectId, m.fy_timerange, m.project_code_new, m.amount, m._id, m.project_name, m.vertical, m.focus, m.direct_or_partner, m.entity, m.sdgs, vertical_new
+ 
+ from temp2 as m, m.vertical vertical_new),
+ 
+temp4 as
+(select m.projectId, m.fy_timerange, m.project_code_new, m.amount, m._id, m.project_name, m.focus, m.direct_or_partner, m.entity, m.sdgs, 
+ 
+ case 
+    when vert1.name IS NULL AND vert.name IS NOT NULL THEN vert.name
+	when vert1.name IS NULL AND vert.name IS NULL then 'Admin'
+	else vert1.name 
+	END AS vertical
+
+	from temp3 as m
+
+	left join ds_mysql_prod_tagelement as vert
+     on m.vertical_new = vert.id
+  
+	left join ds_mysql_prod_tagelement as vert1
+     on vert.parent = vert1.id),
+
+temp5 as
+(select m.projectId, m.fy_timerange, m.project_code_new, SUM(m.amount) as amount, m._id, m.project_name, m.focus, m.direct_or_partner, m.entity, m.sdgs, 'Admin' as vertical
+ 
+ from temp2 as m
+ where _id NOT IN (select _id from temp3)
+ group by m.projectId, m.fy_timerange, m.project_code_new, m._id, m.project_name, m.focus, m.direct_or_partner, m.entity, m.sdgs, m.vertical),
+ 
+temp6 as
+(select m.projectId, m.fy_timerange, m.project_code_new, SUM(m.amount) as amount, m._id, m.project_name, m.focus, m.direct_or_partner, m.entity, m.sdgs, m.vertical
+ from temp4 as m
+ group by m.projectId, m.fy_timerange, m.project_code_new, m._id, m.project_name, m.focus, m.direct_or_partner, m.entity, m.sdgs, m.vertical),
+ 
+temp7 as
+ 
+	
 	
  
