@@ -1,22 +1,20 @@
 
-with t1 as 
-(select fy_timerange, trainee_id, trainee_name, edu_qual, gender, occupation, fed_role, job_status, fam_income, pre_income,
-case 
-when income_12months > 0 then income_12months
-when income_6months > 0 then income_6months
-else income_3months
-end as final_income
-from profile_76022)
 
-select fy_timerange, trainee_id, trainee_name, tag1.name as edu_qual, tag2.name as gender, occupation, tag3.name as fed_role, job_status, fam_income, pre_income, final_income, (final_income - pre_income) as inceased_income,
-case 
-when job_status = 1471552 then 'yes' 
-else 'no'
-end as employed
-from t1
-left join ds_mysql_prod_tagelement tag1
-on t1.edu_qual = tag1.id
+select  p1._id, p1.fy_timerange, p1.line_item, tag2.name as category, p1.budgeted_amount, tag1.name as projectId , p2.amount_utilized ,p2.date
+first(p2.amount_utilized) :: INT as amount_utilized
+, Cast(first(p2.date) as date)
+,budgeted_amount- amount_utilized as sub,
+case
+when p1.budgeted_amount >= p2.amount_utilized then sub
+when p1.budgeted_amount - p2.amount_utilized then 0
+else 0
+end as unspent
+from profile_74913 p1
+left join profile_74914 as p2 on
+p2.line_item = p1._id
+left join ds_mysql_prod_project tag1
+on p1.projectId = tag1.id
 left join ds_mysql_prod_tagelement tag2
-on t1.gender = tag2.id
-left join ds_mysql_prod_tagelement tag3
-on t1.fed_role = tag3.id
+on p1.category = tag2.id
+
+
