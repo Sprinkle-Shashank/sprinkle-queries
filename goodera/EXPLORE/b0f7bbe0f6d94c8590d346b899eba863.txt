@@ -28,5 +28,59 @@ on p.d1 = location_unwind.id
   group by  p.projectid , p._id  , p.fy_timerange , num_ben , entity  , projectname , name_update
 )
   
-select * from table4
+  
+  ---------------------------------------------------------
+  
+table11 AS (
+  
+  SELECT * 
+  
+  FROM profile_80433 AS p1,
+  
+ p1.location AS location_unwind
+  ),
 
+ table12 AS ( 
+  SELECT  table1.projectid, ng.name as ngo ,  table1.s_date, table1.e_date,
+  
+listagg(distinct cast(st.name as varchar),',') AS location_unwind , INITCAP(ent.name) as entity ,  fy_timerange , proj.name AS projectname
+ 
+from table11
+  
+LEFT JOIN ds_mysql_prod_tagelement AS st
+ON st.id = table11.location_unwind
+   
+LEFT JOIN ds_mysql_prod_tagelement AS st1
+ON st.parent = st1.id
+   
+LEFT JOIN ds_mysql_prod_tagelement AS ng
+ON ng.id = table11.ngo
+   
+LEFT JOIN ds_mysql_prod_project AS proj
+ON table11.projectid = proj.id
+			
+left join ds_mysql_prod_tagelement ent 
+on table1.entity = ent.id
+   
+   where projectname = 'Sakshi'
+   
+  GROUP BY 
+      table11.projectid, table11.ngo ,table11.s_date, table11.e_date,  ng.name ,  location_unwind ,ent.name ,  fy_timerange , proj.name ), 
+
+
+ table13 as ( select projectid, COUNT(p._id) as num_ben  from profile_80981 p group by projectid),
+ 
+ table14 as (
+Select p.*, tab3.num_ben from table12 as p
+	
+LEFT JOIN table13  tab3
+on p.projectid = tab3.projectid )
+			
+
+-----------------------------------------------
+select * from table14
+
+/*
+sakshi_beneficiary_count	
+
+*/
