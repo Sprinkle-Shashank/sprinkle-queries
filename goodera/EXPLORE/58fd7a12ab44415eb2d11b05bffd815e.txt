@@ -22,9 +22,43 @@
 --select sum(t1.unspent) as unspent
 --from t1
 
-select p1._id, p1.fy_timerange, p1.line_item, p1.category, p1.budgeted_amount, p1.projectId, p2.amount_utilized, p2.date
+with t1 as 
+(select p1._id, p1.fy_timerange, p1.line_item, p1.category, p1.budgeted_amount :: varchar, p1.projectId, p2.date :: varchar, p2.amount_utilized :: varchar
 from profile_74913 p1
 left join profile_74914 p2
-on p2.line_item = p1._id
+on p1._id = p2.line_item
+order by p2.date),
+
+t2 as 
+(select _id, fy_timerange, line_item, category, budgeted_amount, projectId, amount_utilized,
+first_value(t1.date) over (partition by amount_utilized order by date rows between unbounded preceding and unbounded following) as date,
+first_value(t1.amount_utilized) over (partition by line_item order by t1.date desc rows between unbounded preceding and unbounded following ) 
+from t1),
+
+t3 as 
+(select _id, fy_timerange, line_item, category, budgeted_amount, projectId, date,  first_value, amount_utilized,
+rank() over (partition by first_value order by amount_utilized desc) as row
+from t2),
+
+t4 as 
+(select _id, fy_timerange, line_item, tag1.name as category, budgeted_amount, tag2.name as projectId, date,  first_value as amount_utilized
+from t3
+left join ds_mysql_prod_tagelement tag1
+on t3.category = tag1.id
+left join ds_mysql_prod_project tag2
+on t3.projectId = tag2.id
+
+where row = 1),
+
+t5 as 
+(select *, 
+case 
+when budgeted_amount - amount_utilized > 0 then budgeted_amount - amount_utilized
+else 0
+end as unspent, trunc((amount_utilized/budgeted_amount) * 100,2) as variance
+from t4)
+
+select _id, _id, fy_timerange, line_item, category, trunc(budgeted_amount/100000,1) as budgeted_amount, projectId, date, trunc(amount_utilized/100000,1) as amount_utilized, trunc(unspent/100000,1) as unspent, variance
+from t5
 
 
