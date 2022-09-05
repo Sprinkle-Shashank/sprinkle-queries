@@ -9,12 +9,15 @@ t2 as
 (select _id, fy_timerange, line_item, category, budgeted_amount, projectId, amount_utilized,
 first_value(t1.date) over (partition by amount_utilized order by date rows between unbounded preceding and unbounded following) as date,
 first_value(t1.amount_utilized) over (partition by line_item order by t1.date desc rows between unbounded preceding and unbounded following ) 
-from t1)
+from t1),
 
-
-select _id, fy_timerange, line_item, category, budgeted_amount, projectId, date,  first_value, amount_utilized,
+t3 as 
+(select _id, fy_timerange, line_item, category, budgeted_amount, projectId, date,  first_value, amount_utilized,
 rank() over (partition by first_value order by amount_utilized desc) as row
-from t2
+from t2)
+
+select * from t3
+where row = 1
 
 
 
