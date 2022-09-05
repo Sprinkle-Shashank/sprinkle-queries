@@ -10,13 +10,15 @@
 --left join ds_mysql_prod_tagelement tag2
 --on p1.category = tag2.id
 
-select p1._id, p1.fy_timerange, p1.line_item, p1.category, p1.budgeted_amount, p1.projectId, p2.date, p2.amount_utilized,
-first_value(p2.date) over (partition by p2.date rows between unbounded preceding and unbounded following)
+select p1._id, p1.fy_timerange, p1.line_item, p1.category, p1.budgeted_amount, p1.projectId,
+date(p2.date) over (partition by p2.date order by p2.date desc rows between unbounded preceding and unbounded following),
+amount_utilized(p2.amount_utilized) over (partition by p2.amount_utilized rows between unbounded preceding and unbounded following)
 from profile_74913 p1
 left join profile_74914 p2
 on p1._id = p2.line_item
 group by 
 p1._id, p1.projectId, p1.fy_timerange, p1.line_item, p1.category, p1.budgeted_amount, p2.date, p2.amount_utilized
+
 
 
 
