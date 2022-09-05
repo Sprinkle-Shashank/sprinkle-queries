@@ -55,14 +55,30 @@ temp5 as
 temp6 as
 (select m.projectId, m.fy_timerange, m.project_code_new, SUM(m.amount) as amount, m.project_name, m.focus, m.direct_or_partner, m.entity, m.sdgs, m.vertical
  from temp4 as m
- group by m.projectId, m.fy_timerange, m.project_code_new, m.project_name, m.focus, m.direct_or_partner, m.entity, m.sdgs, m.vertical
+ group by m.projectId, m.fy_timerange, m.project_code_new, m.project_name, m.focus, m.direct_or_partner, m.entity, m.sdgs, m.vertical),
+ 
+temp7 as
+(select m.projectId, m.fy_timerange, m.project_code_new, m.amount, m.project_name, m.focus, m.direct_or_partner, m.entity, m.sdgs, m.vertical, vertical_new from temp5 as m, m.vertical vertical_new),
 
-UNION ALL
+temp8 as
+(select m.projectId, m.fy_timerange, m.project_code_new, m.amount, m.project_name, m.focus, m.direct_or_partner, m.entity, m.sdgs,
+ 
+case 
+when vert1.name IS NULL AND vert.name IS NOT NULL THEN vert.name
+else vert1.name 
+END AS vertical
+ 
+from temp7 as m
 
-select m.projectId, m.fy_timerange, m.project_code_new, m.amount, m.project_name, m.focus, m.direct_or_partner, m.entity, m.sdgs, m.vertical 
-from temp5 as m)
+left join ds_mysql_prod_tagelement as vert
+on m.vertical_new = vert.id
+  
+left join ds_mysql_prod_tagelement as vert1
+on vert.parent = vert1.id)
 
 select * from temp6
-order by sdgs asc, project_code_new asc
+UNION ALL
+select * from temp8
+
  
 	
