@@ -5,11 +5,15 @@ left join profile_74914 p2
 on p1._id = p2.line_item
 order by p2.date)
 
-select _id, projectId, fy_timerange, line_item, category, budgeted_amount, date, 
+t2 as 
+(select _id, projectId, fy_timerange, line_item, category, budgeted_amount, date,
 first_value(t1.amount_utilized ) over (partition by t1.date order by t1.date desc rows between unbounded preceding and unbounded following) as amount_utilized
-from t1
+from t1)
+
+select _id, projectId, fy_timerange, line_item, category, budgeted_amount, date
+from t2
 group by 
-_id, projectId, fy_timerange, line_item, category, budgeted_amount, date, t1.amount_utilized 
+_id, projectId, fy_timerange, line_item, category, budgeted_amount, date
 
 
 
