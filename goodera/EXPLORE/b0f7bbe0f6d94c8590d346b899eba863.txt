@@ -1,6 +1,6 @@
 
 with table1 as
-( select p.projectid , p._id , p.name , p.fy_timerange , num_ben ,  INITCAP(ent.name) as entity , p.location , proj.name as projectname from profile_80981 as p
+( select p.projectid , p._id , p.name , p.fy_timerange , num_ben ,  INITCAP(ent.name) as entity , p.location , proj.name as projectname ,  p.name from profile_80981 as p
 
 left join ds_mysql_prod_tagelement ent 
 on p.entity = ent.id
@@ -10,12 +10,12 @@ on p.projectid = proj.id),
 
 
 table2 as
-( select p.projectid , p._id  , p.fy_timerange , num_ben ,  entity , d1 , projectname from table1 as p, p.location as d1),
+( select p.projectid , p._id  , p.fy_timerange , num_ben ,  entity , d1 , projectname , name from table1 as p, p.location as d1),
 
 
 table3 as
 (
-select p.projectid , p._id  , p.fy_timerange , num_ben , entity , location_unwind.name as location_unwind_update , projectname from table2 as p
+select p.projectid , p._id  , p.fy_timerange , num_ben , entity , location_unwind.name as location_unwind_update , projectname , name from table2 as p
   
 left join ds_mysql_prod_tagelement location_unwind 
 on p.d1 = location_unwind.id
@@ -23,9 +23,9 @@ on p.d1 = location_unwind.id
  
  table4 as
  ( select p.projectid , p._id  , p.fy_timerange , num_ben , entity , listagg(distinct location_unwind_update
-, ',') as location_unwind_update_new , projectname from table3 as p
+, ',') as location_unwind_update_new , projectname , name from table3 as p
   
-  group by  p.projectid , p._id  , p.fy_timerange , num_ben , entity  , projectname
+  group by  p.projectid , p._id  , p.fy_timerange , num_ben , entity  , projectname ,name
 )
   
 select * from table4
