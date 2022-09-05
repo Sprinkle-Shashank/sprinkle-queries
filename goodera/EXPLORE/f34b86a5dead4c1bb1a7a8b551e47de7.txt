@@ -1,6 +1,6 @@
 with table1 as
 (
-  select createddate, projectId, cast(name as VARCHAR) as bene_name, mobilization_activity, state,
+  select createddate, p.projectId, pro.name as proj_id_up, cast(name as VARCHAR) as bene_name, p.mobilization_activity, mob.name as mob_act_up, state,
   
   extract(month FROM(createddate)) as month_up,
   extract(year FROM(createddate)) as year_up,
@@ -10,7 +10,11 @@ with table1 as
        else concat('FY ',concat(year_up,concat(' - ',substring(year_up+1,3,2))))  
   end as name_updated
   
+  left join ds_mysql_tagelement mob
+  on p.mobilization_activity = mob.name
   
+  left join ds_mysql_tagelement pro
+  on p.projectId = pro.name
   
   from Profile_30527 as p
   
