@@ -1,6 +1,7 @@
 with table1 as
 (
-  select createddate, p.projectId, pro.name as proj_id_up, p.mobilization_activity, mob.name as mob_act_up, state,
+  select createddate, p.projectId, pro.name as proj_id_up, p.mobilization_activity, mob.name as mob_act_up, p.state,
+  sta.name as state_up,
   
   extract(month FROM(createddate)) as month_up,
   extract(year FROM(createddate)) as year_up,
@@ -18,16 +19,19 @@ with table1 as
   left join ds_mysql_prod_tagelement pro
   on p.projectId = pro.id
   
+  left join ds_mysql_prod_tagelement sta
+  on p.state= sta.id
+  
   ),
   
   table2 as 
   (
-	select proj_id_up, mob_act_up, state, name_updated, count(*) as count_up from table1
+	select proj_id_up, mob_act_up, state_up, name_updated, count(*) as count_up from table1
 	
-	group by proj_id_up, mob_act_up, state, name_updated
+	group by proj_id_up, mob_act_up, state_up, name_updated
 	)
 	
-	select proj_id_up, mob_act_up, state, name_updated, count_up from table2
+	select proj_id_up, mob_act_up, state_up, name_updated, count_up from table2
   
   
   
