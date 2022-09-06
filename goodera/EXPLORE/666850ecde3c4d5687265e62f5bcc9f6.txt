@@ -4,7 +4,23 @@ prod.id=p.projectid
 left join ds_mysql_prod_tagelement r on
 r.id=p.fy),
 
-main1 as (Select cast(p1.name as varchar) as ProjectCode,f.name as fy_timerange,p3.name as intervention_type,sum(p2.payment_amount) as Disbursed_Amount,t1.name as Second_Level_Manager,t2.name as Financial_Year,CONCAT(ProjectCode,fy_timerange) as code
+
+
+main1 as (select cast(q.name as varchar) as ProjectCode,f.name as fy_timerange,p4.int_type_calc2 as interventiontype,'0' as Disbursed_Amount,t1.name as Second_Level_Manager,t2.name as Financial_Year,CONCAT(ProjectCode,fy_timerange) as code
+from profile_27420 p4	
+left join profile_27396 q on
+p4.project_code=q._id
+left join ds_mysql_prod_tagelement t1
+on p4.project_manager = t1.id
+left join ds_mysql_prod_tagelement f on
+p4.fy=f.id
+left join ds_mysql_prod_tagelement t2 on
+p4.fy = t2.id
+
+		  
+union all
+  
+ Select cast(p1.name as varchar) as ProjectCode,f.name as fy_timerange,p3.name as intervention_type,sum(p2.payment_amount) as Disbursed_Amount,t1.name as Second_Level_Manager,t2.name as Financial_Year,CONCAT(ProjectCode,fy_timerange) as code
 from profile_27396 p1
 left join profile_27420 p4
 on p4.project_code = p1._id
@@ -19,20 +35,9 @@ left join ds_mysql_prod_tagelement t2
 on p2.fy = t2.id
 left join ds_mysql_prod_tagelement f on
 p1.fy=f.id
-group by 1,2,3,5,6
+group by 1,2,3,5,6),
 		  
-union all
-		  
-select cast(q.name as varchar) as ProjectCode,f.name as fy_timerange,p4.int_type_calc2 as interventiontype,'0' as Disbursed_Amount,t1.name as Second_Level_Manager,t2.name as Financial_Year,CONCAT(ProjectCode,fy_timerange) as code
-from profile_27420 p4	
-left join profile_27396 q on
-p4.project_code=q._id
-left join ds_mysql_prod_tagelement t1
-on p4.project_manager = t1.id
-left join ds_mysql_prod_tagelement f on
-p4.fy=f.id
-left join ds_mysql_prod_tagelement t2 on
-p4.fy = t2.id),
+
 
  
 main2 as (Select b.fy_timerange as fy,q.Second_Level_Manager as level1,q.Intervention_type as Intervention_type,q.Disbursed_Amount as DisbursedAmount,q.Financial_Year as FinancailYear
