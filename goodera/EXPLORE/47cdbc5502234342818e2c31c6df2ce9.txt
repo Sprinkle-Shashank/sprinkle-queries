@@ -22,7 +22,7 @@ group by p3.name,2,4),
 tab2 as (select split_part(split_part(prod.name,'|',1),'.',1) as projectcode,
 f.name as fy_timerange,sum(p2.hdfc_cost_monthly) as hdfc_cost_monthly, 'Indirect' interventiontype,
 concat(projectcode,fy_timerange) as CODE,
-		 case hdfc_cost_monthly when " " then 0
+		 case hdfc_cost_monthly when '' then 0
 		 else hdfc_cost_monthly end as finalhdfc_cost_monthly
 from profile_29974 p2
 left join ds_mysql_prod_project prod
@@ -35,7 +35,7 @@ group by 1,2,4,hdfc_cost_monthly),
 
 tab3 as (select split_part(split_part(prod.name,'|',1),'.',1) as projectcode,
 f.name as fy_timerange,sum(p6.monthly_cost) as monthly_cost, 'Indirect' interventiontype,
-concat(projectcode,fy_timerange) as CODE,case  monthly_cost when " " then 0
+concat(projectcode,fy_timerange) as CODE,case  monthly_cost when '' then 0
 		 else monthly_cost end as finalmonthly_cost
 from profile_30171 p6
 left join ds_mysql_prod_project prod
@@ -47,7 +47,7 @@ group by 1,2,4,monthly_cost)
 
 
 		 
-Select tab1.CODE c1, '0' c2, tab1.interventiontype, 
+Select tab1.CODE c1, "0" c2, tab1.interventiontype, 
 case  
 when  tab1.interventiontype='Indirect - Others' 
 then tab1.curr_yr_budget
@@ -55,7 +55,7 @@ when tab1.interventiontype='Direct'
 then tab1.curr_yr_budget end as AllocatedAmount, tab1.fy_timerange
 from tab1
 union all
- select  '0' c1,  tab2.CODE c2,tab2.interventiontype,
+ select  "0" c1,  tab2.CODE c2,tab2.interventiontype,
  case 
 when tab2.interventiontype='Indirect'
 then (tab2.finalhdfc_cost_monthly+tab3.finalmonthly_cost)  
