@@ -29,10 +29,13 @@ from profile_58278 a
 left join ds_mysql_prod_project p on p.id = a.projectid
 left join profile_58277 p1 on p1._id= a.milestone
 left join ds_mysql_prod_tagelement t1 on t1.id=a.status
-left join ds_mysql_prod_tagelement t2 on t2.id=a.month)
+left join ds_mysql_prod_tagelement t2 on t2.id=a.month),
 --group by p.name ,p1.name ,t1.name , a.comm, t2.name, a.date, a.actual_start_date, a.actual_end_date,
 --p1.milestone,p1.start, p1.end, p1.name 
-
-Select * from s2 
-where row_number = 1
+ s3 as (Select *,
+row_number() over (partition by  projectId, start_date_new, end_date_new,actual_start_date_new, actual_end_date_new, pmilestone_final order by s2.date desc) as row_number2
+from s2 
+where row_number = 1)
+Select * from s3 
+where row_number2 = 1
 --group by projectid,pmilestone,fy_timerange,milestone	
