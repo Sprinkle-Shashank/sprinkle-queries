@@ -5,7 +5,7 @@ with table12 as
  
  table14 as
  (
- select p.projectid , p._id , p.d1_update , p1.name from table12 as p
+ select p.projectid , p._id , p.d1_update , p1.name as name_update, ROW_NUMBER() over (order by p.projectid ) as serial_numberfrom table12 as p
    
 left join profile_17028 p1
 on p.d1_update= p1._id
@@ -19,7 +19,7 @@ table1 as
  cast(p.date_enrollment as date) as date_enrollment_update , cast(p.date_completion as date) as date_completion_update , 
  
  case when status_update='0' and date_enrollment is not null and date_completion is null then 'Ongoing'  when status_update='0' and date_enrollment is not null and date_completion is not null then 'completed' else status_update end as wcp_status , sub.name as sub_unit_update , case when sub_unit_update is not null then sub_unit_update else 'No' end as are_there_multiple  , coalesce(name_subunit,'0') as name_subunit_update , case when name_subunit_update='0' or name_subunit_update is null then 'NA' else name_subunit_update end as name_subunit_update_new , cast(p.modifieddate as date) as last_date_submission , extract(year from date_enrollment_update) as wcp_start_year , wcp_start_year as year_new , date_enrollment_update as WCP_enrollment_date , cast(p.date_formation as date) as date_formation_update , date_formation_update as Date_of_formation_of_BC , (worker_rep + mgmt_rep) as Total_number_of_BC_members_enrolled , p3.total_Workers as Total_workforce_represented , p.date as Module_1_training_date 
- --, p4.name as Module_1_workplace_trainer , p.total_trained as Module_1_training_participants
+  p4.name_update as Module_1_workplace_trainer , p.total_trained as Module_1_training_participants
 
  
 from profile_16619 as p 
@@ -48,6 +48,8 @@ on p.projectid = p2.projectid
 left join profile_31726 p3 
 on p.projectid = p3.projectid
 
+left join table14 p4
+on p._id = p4._id
  
 where cou.id != 13761 
 ),
