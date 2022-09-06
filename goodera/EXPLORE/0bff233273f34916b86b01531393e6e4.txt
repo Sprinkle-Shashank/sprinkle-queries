@@ -1,36 +1,21 @@
 with table12 as
  ( 
-  select p.projectid , p._id , cast(d1 as varchar) as d1_update  from profile_16619 as p,p.trainer as d1
+  select p.projectid , p._id , cast(d1 as varchar) as d1_update , cast(d2 as varchar) as d2_update from profile_16619 as p,p.trainer as d1, p.trainer_2 as d2
  ),
  
  table14 as
  (
- select p.projectid , p._id , p.d1_update , p1.name as name_update, ROW_NUMBER() over (order by p.projectid ) as row, 1 as count from table12 as p
+ select p.projectid , p._id , p.d1_update , p1.name as name_update, p2.name as name_update_2 , ROW_NUMBER() over (order by p.projectid ) as row, 1 as count from table12 as p
    
 left join profile_17028 p1
 on p.d1_update= p1._id
+   
+left join profile_17028 p2
+on p.d2_update= p2._id
 ),
 
 table15 as
 ( select * from table14 where row=1 ),
-
-
-table19 as
- ( 
-  select p.projectid , p._id , cast(d1 as varchar) as d1_update  from profile_17028 as p,p.trainer_2 as d1
- ),
- 
- 
- table20 as
- (
- select p.projectid , p._id , p.d1_update , p1.name as name_update, ROW_NUMBER() over (order by p.projectid ) as row, 1 as count from table19 as p
-   
-left join profile_17028 p1
-on p.d1_update= p1._id
-),
-
-table21 as
-( select * from table20 where row=1 ),
 
 
 table16 as
@@ -55,7 +40,7 @@ table1 as
   p4.name_update as Module_1_workplace_trainer , p.total_trained as Module_1_training_participants , p.date_formation as wcp_intervention , (p.worker_rep_absent + p.mgmt_rep_absent) as Total_BC_members_absent , p.remarks as remarks , 
  
  case when (p.worker_rep + p.mgmt_rep)>0 or Total_BC_members_absent is not null then ((p.worker_rep + p.mgmt_rep)/
-(p.worker_rep + p.mgmt_rep+Total_BC_members_absent))*100 end as module_1_attendance_rate , p.date_2 as module_2_training_date 
+(p.worker_rep + p.mgmt_rep+Total_BC_members_absent))*100 end as module_1_attendance_rate , p.date_2 as module_2_training_date , p4.name_update_2 as module_2_workplace_trainer, 
 
  
 from profile_16619 as p 
@@ -86,9 +71,6 @@ on p.projectid = p3.projectid
 
 left join table15 p4
 on p._id = p4._id
- 
-left join table21 p5
-on p._id = p5._id
 
 where cou.id != 13761 
 ),
