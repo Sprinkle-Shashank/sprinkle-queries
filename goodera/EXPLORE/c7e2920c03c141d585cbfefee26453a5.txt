@@ -16,9 +16,11 @@ else 0 end as num,
 case
 when num = 1 then (a.actual_start_date || '|' || a.actual_end_date) 
 when num = 0 then (p1.start || '|' || p1.end) 
-else NULL end as fy_timerange
+else NULL end as fy_timerange,
 
-,row_number() over (partition by a.date,p1.start, p1.end,a.actual_start_date, a.actual_end_date,t1.name,a.comm order by a.date desc) as row_number
+--row_number() over (partition by a.date,p1.start, p1.end,a.actual_start_date, a.actual_end_date,t1.name,a.comm order by a.date desc) as row_number
+			
+row_number() over (partition by p1.milestone order by a.date desc) as row_num
  
 from profile_58278 a
 
@@ -31,5 +33,5 @@ p1.milestone,p1.start, p1.end, p1.name
 		   )
 
 Select * from s2 
-where row_number = 1
+where row_num = 1
 --group by projectid,pmilestone,fy_timerange,milestone	
