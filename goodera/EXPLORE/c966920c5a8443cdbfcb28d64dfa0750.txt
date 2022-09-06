@@ -43,11 +43,11 @@ on prod.id=p6.projectid
 left join ds_mysql_prod_tagelement f on
 p6.fy=f.id
 where f.name not in ('2015-2016','2016-2017','2017-2018')
-group by 1,2,3)
+group by 1,2,3),
 
 
 		 
-Select tab1.CODE c1, '0' as c2, tab1.interventiontype, 
+finaltab as (Select tab1.CODE c1, '0' as c2, tab1.interventiontype, 
 case  
 when  tab1.interventiontype='Indirect - Others' 
 then tab1.curr_yr_budget
@@ -62,4 +62,6 @@ then (tab2.finalhdfc_cost_monthly+tab3.finalmonthly_cost)
 end as AllocatedAmount, 
 tab2.fy_timerange 
 from tab2 
-left join tab3 on tab2.CODE=tab3.CODE
+left join tab3 on tab2.CODE=tab3.CODE)
+
+select sum(finaltab.AllocatedAmount),finaltab.fy_timerange from finaltab group by finaltab.fy_timerange
