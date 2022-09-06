@@ -1,13 +1,63 @@
 
+with tab2 as (select split_part(split_part(prod.name,'|',1),'.',1) as projectcode,
+f.name as fy_timerange, 'Indirect' interventiontype,
+concat(projectcode,fy_timerange) as CODE,
+		sum( case p2.hdfc_cost_monthly when null then 0
+		 else p2.hdfc_cost_monthly end) as finalhdfc_cost_monthly,
+		 count(split_part(split_part( p2.census_code,'|',2),'|',2)) as villagecount,
+		 p2.census_code as census_code
+from profile_29974 p2
+left join ds_mysql_prod_project prod
+on prod.id=p2.projectid
+left join ds_mysql_prod_tagelement f on
+p2.fy=f.id
+
+group by 1,2,3,7),
 
 
-select distinct p4.village as village, f.name as fy, p4.state as State, p4.district as District,
+tab3 as (select split_part(split_part(prod.name,'|',1),'.',1) as projectcode,
+f.name as fy_timerange, 'Indirect' interventiontype,
+concat(projectcode,fy_timerange) as CODE,sum( case p6.monthly_cost when null then 0
+		 else p6.monthly_cost end) as finalmonthly_cost
+from profile_30171 p6
+left join ds_mysql_prod_project prod
+on prod.id=p6.projectid
+left join ds_mysql_prod_tagelement f on
+p6.fy=f.id
+
+group by 1,2,3),
+
+
+		 
+finaltab as (select tab2.CODE, case tab2.villagecount=null then tab2.finalhdfc_cost_monthly 
+else (tab3.finalmonthly_cost/tab2.villagecount) +(tab2.finalhdfc_cost_monthly) 
+ as AllocatedAmount, 
+tab2.fy_timerange 
+from tab2 
+left join tab3 on tab2.CODE=tab3.CODE
+			),
+			
+tab1 as (select split_part(split_part(p1.name,'|',1),'.',1) as projectcode,
+f.name as fy_timerange, 
+concat(projectcode,fy_timerange) as CODE,count(distinct p1.name) as no_of_projects, count(distinct p1.ngo_partner) as no_of_implementing_agencies
+from profile_27396 p1
+left join ds_mysql_prod_tagelement f on
+p1.fy=f.id
+		 group by projectcode,fy_timerange)
+		 
+select distinct p4.village as village, p4.state as State, p4.district as District,
+tab1.no_of_projects,tab1.no_of_implementing_agencies,finaltab.AllocatedAmount,finaltab.fy_timerange from finaltab 
+
+left join tab1 on finaltab.CODE=tab1.CODE
+left join profile_27489 p4 on
+tab2.census_code=p4._id where finaltab.fy_timerange in('2019-2020')
+
+
+/*select distinct p4.village as village, f.name as fy, p4.state as State, p4.district as District,
 count(distinct p2.name) as no_of_projects, count(distinct p2.ngo_partner) as no_of_implementing_agencies,
-sum(case p1.hdfc_cost_monthly when null then 0
-		 else p1.hdfc_cost_monthly end) as totalhdfccost,
-		 count(split_part(split_part( p1.census_code,'|',2),'|',2)) as villagecount, 
-sum(case p3.monthly_cost when null then 0
-		 else p3.monthly_cost end) as totalmonthlycost, totalhdfccost+(totalmonthlycost/villagecount) as allocatedamount
+finaltab.AllocatedAmount,finaltab.fy_timerange from finaltab 
+
+
 
 																															   
 from profile_29974 p1
@@ -24,6 +74,6 @@ p1.census_code=p4._id
 /* join ds_mysql_prod_tagelement m on
 p2.project_manager=m.id*/
 			where f.name in('2019-2020')																							
-group by p4.village,p4.state, p4.district,f.name/*village wise finances  final*/
+group by p4.village,p4.state, p4.district,f.name*//*village wise finances  final*/
 
 
