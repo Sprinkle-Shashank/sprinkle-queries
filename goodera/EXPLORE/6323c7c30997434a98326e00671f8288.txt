@@ -1,6 +1,6 @@
 with t1 as
 (select 
-p1.fy_timerange, tag2.name as plac_status, p2.batch_id, tag1.name as gender, batch_end,GETDATE() as today
+p1.fy_timerange, tag2.name as plac_status, p2.batch_id, tag1.name as gender, plac_status as placed,batch_end as end,GETDATE() as today
 from profile_76123 p1
 left join profile_76122 p2 on
 p1.batchid = p2._id
@@ -10,11 +10,11 @@ left join ds_mysql_prod_tagelement as tag2 on
 p1.plac_status = tag2.id)
 ,
 t2 as 
-(select fy_timerange,plac_status as placed,batch_end as end,gender, today, t1.batch_id
+(select fy_timerange,end,placed,gender, today, t1.batch_id
 ,
 case 
-when placed is null then 'Empty'
-else placed
+when t1.placed is null then 'Empty'
+else t1.placed
 end as placed
 from t1
 )
