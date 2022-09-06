@@ -6,6 +6,61 @@ r.id=p.fy),
 
 main1 as (Select cast(p1.name as varchar) as ProjectCode,f.name as fy_timerange,p3.name as intervention_type,sum(p2.payment_amount) as Disbursed_Amount,t1.name as Second_Level_Manager,t2.name as Financial_Year,CONCAT(ProjectCode,fy_timerange) as code
 from profile_27396 p1
+left join profile_27398 p2
+on p2.project_name = p1._id
+left join profile_28235 p3
+on p1.intervention_type = p3._id
+left join ds_mysql_prod_tagelement t1
+on p1.project_manager = t1.id 
+left join ds_mysql_prod_tagelement t2
+on p2.fy = t2.id
+left join ds_mysql_prod_tagelement f on
+p1.fy=f.id
+group by 1,2,3,5,6
+		  
+union all
+		  
+select cast(q.name as varchar) as ProjectCode,f.name as fy_timerange,p4.int_type_calc2 as interventiontype,'0' as Disbursed_Amount,t1.name as Second_Level_Manager,t2.name as Financial_Year,CONCAT(ProjectCode,fy_timerange) as code
+from profile_27420 p4	
+left join profile_27396 q on
+p4.project_code=q._id
+left join ds_mysql_prod_tagelement t1
+on p4.project_manager = t1.id
+left join ds_mysql_prod_tagelement f on
+p4.fy=f.id
+left join ds_mysql_prod_tagelement t2 on
+p4.fy = t2.id),
+
+ 
+main2 as (Select b.fy_timerange as fy,q.Second_Level_Manager as level1,q.Intervention_type as Intervention_type,q.Disbursed_Amount as DisbursedAmount,q.Financial_Year as FinancailYear
+from main b
+left join main1 as q
+on q.code = b.code
+group by b.fy_timerange,q.Second_Level_Manager,q.Intervention_type,q.Disbursed_Amount,q.Financial_Year),
+
+level1tab as (select m.name as level1 ,p.approver as level2,p.name as level1email from profile_27424 p
+left join ds_mysql_prod_tagelement m on
+m.id = p.pm_name),
+
+level2tab as (select m.name as level1 , z.level1 as level2 from profile_27424 p
+left join ds_mysql_prod_tagelement m on
+m.id = p.pm_name
+left join level1tab z on
+z.level1email = p.approver)
+
+select p.*,d.level2 from main2 p
+left join level2tab d on
+d.level1 = p.level1
+
+
+/*with main as (select r.name as fy_timerange, cast((split_part(split_part(prod.name,'|',1),'.',1)) as varchar) as ProjectCode,CONCAT(ProjectCode,fy_timerange) as code from profile_54963 p
+left join ds_mysql_prod_project prod on
+prod.id=p.projectid
+left join ds_mysql_prod_tagelement r on
+r.id=p.fy),
+
+main1 as (Select cast(p1.name as varchar) as ProjectCode,f.name as fy_timerange,p3.name as intervention_type,sum(p2.payment_amount) as Disbursed_Amount,t1.name as Second_Level_Manager,t2.name as Financial_Year,CONCAT(ProjectCode,fy_timerange) as code
+from profile_27396 p1
 left join profile_27420 p4
 on p4.project_code = p1._id
 left join profile_27398 p2
@@ -38,7 +93,7 @@ z.level1email = p.approver)
 
 select p.*,d.level2 from main2 p
 left join level2tab d on
-d.level1 = p.level1
+d.level1 = p.level1*/
 
 
 
