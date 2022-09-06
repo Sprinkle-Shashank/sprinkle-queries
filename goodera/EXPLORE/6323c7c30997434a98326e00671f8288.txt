@@ -21,5 +21,16 @@ from t1
 
 --select t1.fy_timerange ,t1.batch_id,t2.end, t1.today,t1.gender 
 --,t2.placed
-select t2.* 
+select t2.* ,
+case
+when today <= end then  Undergoing training
+when placed = empty  and today > end then Trained 
+else placed
+end as  trainee_status
 from t2 
+
+/*New Field: trainee_statusExpression: if(lte($today,$end),Undergoing training,if(and(eq($placed,Empty),gt($today,$end)),Trained,$placed))
+(8) Group By
+Fields: fy_timerange, gender, trainee_status
+arrow_right_alt
+New Field: countAggregate Function: count-of-rows
