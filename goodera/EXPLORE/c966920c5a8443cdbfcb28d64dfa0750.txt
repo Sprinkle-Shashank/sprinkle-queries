@@ -20,17 +20,17 @@ group by p3.name,2,4),
 
 
 tab2 as (select split_part(split_part(prod.name,'|',1),'.',1) as projectcode,
-f.name as fy_timerange,sum(p2.hdfc_cost_monthly) as hdfc_cost_monthly, 'Indirect' interventiontype,
+f.name as fy_timerange, 'Indirect' interventiontype,
 concat(projectcode,fy_timerange) as CODE,
-		 case hdfc_cost_monthly when null then 0
-		 else hdfc_cost_monthly end as finalhdfc_cost_monthly
+		 case p2.hdfc_cost_monthly when null then 0
+		 else p2.hdfc_cost_monthly end as finalhdfc_cost_monthly,sum(finalhdfc_cost_monthly) as finalhdfc_cost_monthly,
 from profile_29974 p2
 left join ds_mysql_prod_project prod
 on prod.id=p2.projectid
 left join ds_mysql_prod_tagelement f on
 p2.fy=f.id
 where f.name not in ('2015-2016','2016-2017','2017-2018')
-group by 1,2,4,hdfc_cost_monthly),
+group by 1,2,3,p2.hdfc_cost_monthly),
 
 
 tab3 as (select split_part(split_part(prod.name,'|',1),'.',1) as projectcode,
