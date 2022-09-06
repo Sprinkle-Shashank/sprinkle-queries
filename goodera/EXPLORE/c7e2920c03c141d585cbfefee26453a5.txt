@@ -1,5 +1,5 @@
-with s2 as (Select p.name as projectid,p1.name as pmilestone,t1.name as status, a.comm, t2.name as month, a.date, a.actual_start_date, a.actual_end_date,
-p1.milestone as milestone,p1.start, p1.end, p1.name,
+with s2 as (Select p.name as projectid,p1.name as pmilestone,t1.name as status, a.comm, t2.name as month, a.date, left(a.actual_start_date,10), left(a.actual_end_date,10),
+p1.milestone as milestone,left(p1.start,10), left(p1.end,10), p1.name,
 
 case
 when t1.name = 'Completed' then 'Completed'
@@ -19,16 +19,14 @@ when num = 0 then (p1.start || '|' || p1.end)
 else NULL end as fy_timerange
 
 ,row_number() over (partition by a.date,p1.start, p1.end,a.actual_start_date, a.actual_end_date,t1.name,a.comm order by a.date desc) as row_number
-
-
---, max(date) 
+ 
 from profile_58278 a
 
 left join ds_mysql_prod_project p on p.id = a.projectid
 left join profile_58277 p1 on p1._id= a.milestone
 left join ds_mysql_prod_tagelement t1 on t1.id=a.status
 left join ds_mysql_prod_tagelement t2 on t2.id=a.month
- group by p.name ,p1.name ,t1.name , a.comm, t2.name, a.date, a.actual_start_date, a.actual_end_date,
+group by p.name ,p1.name ,t1.name , a.comm, t2.name, a.date, a.actual_start_date, a.actual_end_date,
 p1.milestone,p1.start, p1.end, p1.name
 		   )
 
