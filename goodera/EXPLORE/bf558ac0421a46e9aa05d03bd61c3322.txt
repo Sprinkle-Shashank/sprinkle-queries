@@ -6,134 +6,119 @@ group by f.name
 		   Select sum(p1.disbursed) as DisbursedAmount,f.name  as financial_year from profile_36762 p1
 left join ds_mysql_prod_tagelement f on
 p1.fy=f.id where f.name in ('2015-2016','2016-2017','2017-2018')
-group by f.name ),
+group by f.name ),/*disbursed amount*/
 		 
 
 y as  (Select sum(p1.two_percent) as TwoPercentAmount,f.name  as financial_year from profile_36762 p1
 left join ds_mysql_prod_tagelement f on
 p1.fy=f.id
-group by f.name), 
+group by f.name), /* two percent*/
+
 z as (select x.financial_year from x
-union select y.financial_year from y)
+union select y.financial_year from y),
 
-
-select x.DisbursedAmount, y.TwoPercentAmount, z.financial_year from z
-left join x on z.financial_year=x.financial_year
-left join y on z.financial_year=y.financial_year
-
-
-
-/*with x as (Select case (p8.name)
-when 'Indirect' then sum (p2.hdfc_cost_monthly+p6.monthly_cost)
- else  sum(p2.hdfc_cost_monthly+p6.monthly_cost+p4.curr_yr_budget)
- end as AllocatedAmount,p8.name as intervention_type, f.name as financial_year from profile_27396 p1
- left join profile_28235 p8
-on p8._id=p1.intervention_type
-left join profile_29974 p2 on
-p1._id=p2.prj_code
-
-
-left join profile_27420 p4 on
-p1._id=p4.project_code 
-left join profile_30171 p6 on
-p1._id=p6.prj_code
-
-left join ds_mysql_prod_tagelement f on
-p2.fy=f.id 
-group by f.name,p8.name)
-select sum(x.AllocatedAmount) as AllocatedAmount, x.financial_year from x group by x.financial_year*/
-
-/*select sum(p2.hdfc_cost_monthly+p6.monthly_cost) as allocatedamount, f.name  as financial_year from profile_27396 p1
-left join profile_30171 p6 on
-p1._id=p6.prj_code 
-left join profile_29974 p2 on
-p1._id=p2.prj_code
-left join ds_mysql_prod_tagelement f on
-p6.fy=f.id 
-group by f.name*/
-
-
-
-
-
-
-/*select sum(p2.hdfc_cost_monthly+p6.monthly_cost) as allocatedamount, f.name  as financial_year from profile_27396 p1
-left join profile_30171 p6 on
-p1._id=p6.prj_code 
-left join profile_29974 p2 on
-p1._id=p2.prj_code
-left join ds_mysql_prod_tagelement f on
-p6.fy=f.id 
-group by f.name*/
-
-
-
-
-
-
-/*select p1.name as projectcode ,p4.curr_yr_budget from profile_27396 p1
-left join profile_27420 p4 on
-p1._id=p4.project_code*/
-
-
-
-/*select p1.name as projectcode ,p2.hdfc_cost_monthly from profile_27396 p1
-left join profile_29974 p2 on
-p1._id=p2.prj_code */
-
-
-
-
-
-
-/*select p1.name as projectcode ,sum(d.payment_amount) as DisbursedAmount, f.name  as financial_year from profile_27396 p1
-left join profile_27398 d on
-p1._id=d.project_name 
-left join ds_mysql_prod_tagelement f on
-p1.fy=f.id 
-group by f.name,p1.name*/
-
-/*Select case (p8.name)
-when 'Indirect' then sum (p2.hdfc_cost_monthly+p6.monthly_cost)
- else  sum(p2.hdfc_cost_monthly+p6.monthly_cost+p4.curr_yr_budget)
- end as AllocatedAmount,p8.name as intervention_type, f.name as financial_year, sum(d.payment_amount) as DisbursedAmount,sum(cast (t.two_percent as bigint)) as TwoPercentAmount from profile_27396 p1
- left join profile_28235 p8
-on p8._id=p1.intervention_type
-/*left join profile_29974 p2 on
-p1._id=p2.prj_code*/
-
-left join profile_29974 p2 on
-p1._id=split_part(split_part(p2.name,'|',1),'.',1) 
-
-left join profile_27420 p4 on
-p1._id=p4.project_code 
-/*left join profile_30171 p6 on
-p1._id=p6.prj_code*/
-
-left join profile_30171 p6 on
-p1._id=split_part(split_part(p6.name,'|',1),'.',1) 
-left join profile_27398 d on
-p1._id=d.project_name 
-left join profile_36762 t on
-p1._id=t.name
-left join ds_mysql_prod_tagelement f on
-p1.fy=f.id 
-group by f.name,p8.name*/
-
-/*select sum(x.DisbursedAmount) as disbursedAmount, x.financial_year from x group by x.financial_year*/
-
-
-
- 
-/*select sum(p2.payment_amount) as DisbursedAmount, f.name  as financial_year from profile_27398 p2
-left join ds_mysql_prod_tagelement f on
-p2.fy=f.id
-group by f.name*/
-
-/*Select sum(p1.two_percent) as TwoPercentAmount,f.name  as financial_year from profile_36762 p1
+tab1 as (select split_part(split_part(p1.name,'|',1),'.',1) as projectcode,
+f.name as fy_timerange, sum(p1.curr_yr_budget) curr_yr_budget,p8.name as interventiontype,
+concat(projectcode,fy_timerange) as CODE
+from profile_27396 p1
 left join ds_mysql_prod_tagelement f on
 p1.fy=f.id
-group by f.name*/
+left join profile_28235 p8
+on p8._id=p1.intervention_type
+where f.name not in ('2015-2016','2016-2017','2017-2018')
+group by p1.name,2,4
+union all
+select split_part(split_part(split_part(p3.name,'|',1),'.',1),' ',1 ) as projectcode,
+f.name as fy_timerange, sum(p3.curr_yr_budget) as curr_yr_budget1,p3.int_type_calc2 as interventiontype,
+concat(projectcode,fy_timerange) as CODE
+from profile_27420 p3
+left join ds_mysql_prod_tagelement f on
+p3.fy=f.id 
+where f.name not in ('2015-2016','2016-2017','2017-2018')
+group by p3.name,2,4),
+
+
+tab2 as (select split_part(split_part(prod.name,'|',1),'.',1) as projectcode,
+f.name as fy_timerange, 'Indirect' interventiontype,
+concat(projectcode,fy_timerange) as CODE,
+		sum( case p2.hdfc_cost_monthly when null then 0
+		 else p2.hdfc_cost_monthly end) as finalhdfc_cost_monthly
+from profile_29974 p2
+left join ds_mysql_prod_project prod
+on prod.id=p2.projectid
+left join ds_mysql_prod_tagelement f on
+p2.fy=f.id
+where f.name not in ('2015-2016','2016-2017','2017-2018')
+group by 1,2,3),
+
+
+tab3 as (select split_part(split_part(prod.name,'|',1),'.',1) as projectcode,
+f.name as fy_timerange, 'Indirect' interventiontype,
+concat(projectcode,fy_timerange) as CODE,sum( case p6.monthly_cost when null then 0
+		 else p6.monthly_cost end) as finalmonthly_cost
+from profile_30171 p6
+left join ds_mysql_prod_project prod
+on prod.id=p6.projectid
+left join ds_mysql_prod_tagelement f on
+p6.fy=f.id
+where f.name not in ('2015-2016','2016-2017','2017-2018')
+group by 1,2,3),
+
+
+		 
+finaltab as (Select tab1.CODE c1, '0' as c2, tab1.interventiontype, 
+case  
+when  tab1.interventiontype='Indirect - Others' 
+then tab1.curr_yr_budget
+when tab1.interventiontype='Direct' 
+then tab1.curr_yr_budget end as AllocatedAmount, tab1.fy_timerange
+from tab1
+union all
+ select '0' as c1,  tab2.CODE c2,tab2.interventiontype,
+ case 
+when tab2.interventiontype='Indirect'
+then (tab2.finalhdfc_cost_monthly+tab3.finalmonthly_cost)  
+end as AllocatedAmount, 
+tab2.fy_timerange 
+from tab2 
+left join tab3 on tab2.CODE=tab3.CODE
+			),
+
+finaltab1 as (select sum( case finaltab.AllocatedAmount when null then 0 else finaltab.AllocatedAmount end) as Allocatedamount,finaltab.fy_timerange from finaltab group by finaltab.fy_timerange
+union all 
+			select sum(p1.allocated) as AllocatedAmount,f.name  as fy_timerange from profile_36762 p1
+left join ds_mysql_prod_tagelement f on
+p1.fy=f.id where f.name in ('2015-2016','2016-2017','2017-2018')
+group by f.name)
+
+
+
+
+
+
+select x.DisbursedAmount, y.TwoPercentAmount, finaltab1.AllocatedAmount, z.financial_year as fy_timerange from z
+left join x on z.financial_year=x.financial_year
+left join y on z.financial_year=y.financial_year
+left join finaltab1 on z.financial_year=finaltab1.fy_timerange
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
