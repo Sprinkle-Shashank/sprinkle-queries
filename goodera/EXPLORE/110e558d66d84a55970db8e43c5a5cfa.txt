@@ -1,0 +1,30 @@
+with temp1 as (
+  Select 'Temperature' as C
+  UNION ALL
+  Select 'PM 2.5' as C
+  UNION ALL
+  Select 'PM 10' as C
+  UNION ALL
+  Select 'Humidity' as C
+  UNION ALL
+  Select 'PM 1' as C
+  )
+Select p.projectid, p.fy_timerange, loc.name as location_machine,
+AVG(CASE C
+when 'Temperature' then p.temperature
+when 'PM 2.5' then p.pm25
+when 'PM 1' then p.pm1
+when 'PM 10' then p.pm10
+when 'Humidity' then p.humidity
+else NULL
+End) as values , temp.C as dimension
+
+from profile_82446 p
+CROSS JOIN temp1
+LEFT JOIN profile_82026 p2 on
+p.location_machine = p2._id
+
+LEFT JOIN ds_mysql_prod_tagelement loc on
+p2.location_machine = loc.id
+GROUP BY p.projectid , p.fy_timerange , loc.name 
+ORDER BY date_entry desc
