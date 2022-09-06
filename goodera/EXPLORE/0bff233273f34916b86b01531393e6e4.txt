@@ -17,6 +17,18 @@ on p.d2_update= p2._id
 table15 as
 ( select * from table14 where row=1 ),
 
+
+table16 as
+(
+  select p.projectid , p._id , ROW_NUMBER() over (order by p.projectid ) as row , total_Workers  from profile_31726 as p 
+),
+
+table17 as
+(
+ select * from table16 where row=1 
+ ),
+ 
+
 table1 as
 ( select p.projectid , p._id , fac.name as factory , case when nvl2(SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), ven.name)='' then ven.name else nvl2(SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), ven.name) end as vendor , cou.name as country , p1.factory_id
  , p2.vpid as vendor_id , 
@@ -28,7 +40,7 @@ table1 as
   p4.name_update as Module_1_workplace_trainer , p.total_trained as Module_1_training_participants , p.date_formation as wcp_intervention , (p.worker_rep_absent + p.mgmt_rep_absent) as Total_BC_members_absent , p.remarks as remarks , 
  
  case when (p.worker_rep + p.mgmt_rep)>0 or Total_BC_members_absent is not null then ((p.worker_rep + p.mgmt_rep)/
-(p.worker_rep + p.mgmt_rep+Total_BC_members_absent))*100 end as module_1_attendance_rate , p.date_2 as module_2_training_date , p4.name_update_2 as module_2_workplace_trainer, total_trained_2 as module_2_training_participants
+(p.worker_rep + p.mgmt_rep+Total_BC_members_absent))*100 end as module_1_attendance_rate , p.date_2 as module_2_training_date , name_update_2 as module_2_workplace_trainer, total_trained_2 as module_2_training_participants , (p.worker_rep_absent_2 + p.mgmt_rep_absent_2) as module_2_Total_BC_members_absent
 
  
 from profile_16619 as p 
@@ -59,6 +71,7 @@ on p.projectid = p3.projectid
 
 left join table15 p4
 on p._id = p4._id
+ 
 
 where cou.id != 13761 
 ),
