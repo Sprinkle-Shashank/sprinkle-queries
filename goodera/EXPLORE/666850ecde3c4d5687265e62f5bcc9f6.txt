@@ -8,12 +8,22 @@ left join profile_28235 p3
 on p1.intervention_type = p3._id
 
 left join ds_mysql_prod_tagelement t1
-on p4.project_manager = t1.id 
+on p1.project_manager = t1.id 
 left join ds_mysql_prod_tagelement t2
 on p2.fy = t2.id
 group by p1.name,p3.name,t1.name,t2.name),
 
-t1 as( Select p.approver as level2,m.name as level1 from profile_27424 p
+t1 as (select m.name as level1 ,p.approver as level2,p.name as level1email from profile_27424 p
+left join ds_mysql_prod_tagelement m on
+m.id = p.pm_name),
+
+t2 as (select m.name as level1 , z.level1 as level2 from profile_27424 p
+left join ds_mysql_prod_tagelement m on
+m.id = p.pm_name
+left join t1 z on
+z.level1email = p.approver)
+
+/*t1 as( Select p.approver as level2,m.name as level1 from profile_27424 p
 			left join ds_mysql_prod_tagelement m on
             m.id = p.pm_name),
 		
@@ -21,7 +31,7 @@ t1 as( Select p.approver as level2,m.name as level1 from profile_27424 p
 			left join ds_mysql_prod_tagelement m on
              m.id = p.pm_name
 		     left join t1 as tab1
-			on p.approver = tab1.level1)
+			on p.approver = tab1.level1)*/
 			
 Select   Project_code, Financial_Year,intervention_type,Disbursed_Amount,Second_Level_Manager,tab2.level1
 from main p
