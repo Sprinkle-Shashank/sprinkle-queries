@@ -9,16 +9,19 @@ case
 when plac_status = 1479431 then 1 
 else 0
 end as placed
---if(or(eq($plac_status,1479429),eq($plac_status,1479430)),1,0)
 from profile_76123 p1
 left join ds_mysql_prod_tagelement as tag1 on
-p1.gender = tag1.id)
+p1.gender = tag1.id),
 
-select t1.gender, fy_timerange,placed,
+t2 as 
+(select t1.gender, fy_timerange,enrolled,placed,
 case
 when plac_status = 1479429 or plac_status = 1479430 then 1
 else 0
 end as dropped
-from t1
+from t1)
 
- 
+select t1.gender, fy_timerange,sum(enrolled) as enrolled,sum(placed) as placed
+from t2
+group by gender ,fy_timerange
+
