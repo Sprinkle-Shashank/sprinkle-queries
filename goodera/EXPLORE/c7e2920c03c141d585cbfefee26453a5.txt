@@ -14,11 +14,11 @@ when a.actual_end_date IS NOT NULL then 1
 else 0 end as num,
 
 case
-when num = 1 then (a.actual_start_date || '|' || a.actual_end_date) 
+when num = 1 then (a.actual_start_date || '|' || a.actual_end_date)  a.actual_start_date, a.actual_end_date
 when num = 0 then (p1.start || '|' || p1.end) 
 else NULL end as fy_timerange,
 
-row_number(1) over (partition by a.date,t1.name,a.comm order by a.date desc) as experiment
+row_number() over (partition by a.date order by a.date desc) as row_number
 
 --, max(date) 
 from profile_58278 a
@@ -28,5 +28,6 @@ left join profile_58277 p1 on p1._id= a.milestone
 left join ds_mysql_prod_tagelement t1 on t1.id=a.status
 left join ds_mysql_prod_tagelement t2 on t2.id=a.month
 
---where experiment = 1
+where row_number = 1
+--group by p.name,p1.name,p1.milestone,p1.start, p1.end,p1.start, p1.end
 --group by p.name, p1.name,a.fy_timerange,a.milestone
