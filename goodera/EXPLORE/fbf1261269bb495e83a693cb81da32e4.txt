@@ -1,48 +1,21 @@
 with s as (
-Select ss.projectId, ss.carrier, ss.fy_timerange,(EXTRACT(YEAR FROM(CAST(ss.fy_timerange.start AS datetime)))) as year ,ss.client,ss.shipment_id, ss.origin_port, ss.dest_port, ss.units, ss.shipment_type, (ss.origin_port || ss.dest_port) as ports_lookup,extract(Month from cast(ss.fy_timerange.start as datetime) )as Monthh,ss.teu,
-  case 
-  when monthh=01 then 'January'
-  when monthh=02 then 'February'
-  when monthh=03 then 'March'
-  when monthh=04 then 'April'
-  when monthh=05 then 'May'
-  when monthh=06 then 'June'
-  when monthh=07 then 'July'
-  when monthh=08 then 'August'
-  when monthh=09 then 'September'
-  when monthh=10 then 'October'
-  when monthh=11 then 'November'
-  when monthh=12 then 'December'
-  end as month
+Select ss.projectId, ss.carrier,ss.client, ss.fy_timerange, ss.shipment_id, ss.origin_port, ss.dest_port, ss.units, ss.shipment_type, (ss.origin_port || ss.dest_port) as ports_lookup,ss.teu
 from profile_79048 ss
 ),
 s2 as (
-Select s.projectId,s.month,s.monthh as month1, s.carrier,s.year, s.client,s.fy_timerange, s.shipment_id, s.origin_port, s.dest_port, s.units, s.shipment_type, s.ports_lookup, tt.start_country, tt.dest_country, tt.start_tradelane, tt.dest_tradelane, tt.km,(tt.start_tradelane || tt.dest_tradelane || s.carrier) as tradelane_carrier_lookup,s.teu
+Select s.projectId, s.carrier,s.client, s.fy_timerange, s.shipment_id, s.origin_port, s.dest_port, s.units, s.shipment_type, s.ports_lookup, tt.start_country, tt.dest_country, tt.start_tradelane, tt.dest_tradelane, tt.km,(tt.start_tradelane || tt.dest_tradelane || s.carrier) tradelane_carrier_lookup,s.teu
   from s
   left join profile_79053 tt
 on tt.lookup_port=s.ports_lookup
 ),
+
 s3 as (
-Select t.name as projectId, t1.name as carrier,t5.name as client ,
- case 
-         when (year=2018 and month1>3) or (year=2019 and month1<4) then 'FY 2018-19' 
-        when (year=2019 and month1>3) or (year=2020 and month1<4) then 'FY 2019-20' 
-	 when (year=2020 and month1>3) or (year=2021 and month1<4) then 'FY 2020-21' 
-        when (year=2021 and month1>3) or (year=2022 and month1<4) then 'FY 2021-22' 
-	 when (year=2022 and month1>3) or (year=2023 and month1<4) then 'FY 2022-23'
-	 when (year=2023 and month1>3) or (year=2024 and month1<4) then 'FY 2023-24'
-	 end as year
-,s2.month,s2.fy_timerange, s2.shipment_id, t2.name as origin_port, t3.name dest_port, s2.units, t4.name as shipment_type, s2.ports_lookup, s2.start_country, s2.dest_country, s2.start_tradelane, s2.dest_tradelane, s2.km, mm.co2_dry, mm.co2_ref, (mm.co2_dry*(s2.km*1.15)*s2.teu)/1000000 CO2_eff_dry,(mm.co2_ref*(s2.km*1.15)*s2.teu)/1000000 CO2_eff_ref,s2.teu as weight,
+Select t.name as projectId, t1.name as carrier,t5.name as client, s2.fy_timerange, s2.shipment_id, t2.name as origin_port, t3.name dest_port, s2.units, t4.name as shipment_type, s2.ports_lookup, s2.start_country, s2.dest_country, s2.start_tradelane, s2.dest_tradelane, s2.km, mm.co2_dry, mm.co2_ref,  (mm.co2_dry*(s2.km*1.15)*s2.teu)/1000000 CO2_eff_dry,(mm.co2_ref*(s2.km*1.15)*s2.teu)/1000000 CO2_eff_ref,
 case
 	When s2.shipment_type=1623028 then CO2_eff_dry
 	else CO2_eff_ref
 	end 
-	as CO2_eff,
-  case
-	When s2.shipment_type=1623028 then mm.co2_dry
-	else mm.co2_ref
-	end 
-	as emission_factor
+	as CO2_eff
 from s2
 left join ds_mysql_prod_project t
 on t.id=s2.projectid
@@ -55,13 +28,57 @@ on t3._id=s2.dest_port
 left join ds_mysql_prod_tagelement t4
 on t4.id=s2.shipment_type
 left join ds_mysql_prod_tagelement t5
-on t5.id=s2.client
+  on t5.id=s2.client
 left join profile_79060 mm
 on mm.lookup_tradelane_carrier=s2.tradelane_carrier_lookup
 where s2.km is not null
-)
-Select projectId, carrier, client , year
-,month,fy_timerange,shipment_id,origin_port,dest_port, units,shipment_type,ports_lookup,start_country, dest_country,start_tradelane,dest_tradelane, TO_char(km,'999,999,999.999') as km,co2_dry,co2_ref, CO2_eff_dry, CO2_eff_ref,weight,
-TO_char(CO2_eff,'999,999,999,999,999,999.999') as co2_eff,emission_factor
+),
+s4 as (
+Select projectId, fy_timerange ,(EXTRACT(YEAR FROM(CAST(s3.fy_timerange.start AS datetime)))) as year,client,extract(MONTH from cast(fy_timerange.start as date)) as month, origin_port , dest_port , CO2_eff,
+case 
+  when month=01 then 'January'
+  when month=02 then 'February'
+  when month=03 then 'March'
+  when month=04 then 'April'
+  when month=05 then 'May'
+  when month=06 then 'June'
+  when month=07 then 'July'
+  when month=08 then 'August'
+  when month=09 then 'September'
+  when month=10 then 'October'
+  when month=11 then 'November'
+  when month=12 then 'December'
+  end as monthh,
+  case 
+  when monthh='January' then  10
+  when monthh='February' then  11
+  when monthh='March' then  12
+  when monthh='April' then  1
+  when monthh='May' then  2
+  when monthh='June' then  3
+  when monthh='July' then  4
+  when monthh='August' then  5
+  when monthh='September' then  6
+  when monthh='October' then  7
+  when monthh='November' then  8
+  when monthh='December' then  9
+  end as sort_order
+  
 from s3
+),
+s5 as (
+Select projectId,client, case 
+   when (year=2018 and month>3) or (year=2019 and month<4) then 'FY 2018-19' 
+        when (year=2019 and month>3) or (year=2020 and month<4) then 'FY 2019-20' 
+	 when (year=2020 and month>3) or (year=2021 and month<4) then 'FY 2020-21' 
+        when (year=2021 and month>3) or (year=2022 and month<4) then 'FY 2021-22' 
+	 when (year=2022 and month>3) or (year=2023 and month<4) then 'FY 2022-23'
+	 when (year=2023 and month>3) or (year=2024 and month<4) then 'FY 2023-24'
+	 end as year
+,monthh as month, origin_port , sort_order,dest_port , sum(CO2_eff) as emission
+from s4
+group by 1,2,3,4,5,6,7
+)
+Select projectId,client,  year , month, origin_port , sort_order,dest_port ,  (emission) as emission
+from s5
 where projectId like '%%'  
