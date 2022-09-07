@@ -1,19 +1,52 @@
-select split_part(split_part(prod.name,'|',1),'.',1) as projectcode,
-f.name as fy_timerange, 
-concat(projectcode,fy_timerange) as CODE,
-		sum(case p2.hdfc_cost_monthly when null then 0
-		 else p2.hdfc_cost_monthly end) as finalhdfc_cost_monthly,
-		 count(split_part(split_part( p2._id,'|',2),'|',2)) as villagecount,
-		 c.name as census_code
-from profile_29974 p2
-left join ds_mysql_prod_project prod
-on prod.id=p2.projectid
-left join ds_mysql_prod_tagelement f on
-p2.fy=f.id
-left join profile_27489 c on
-p2.census_code=c._id
+with tab1 as(select split_part(split_part(prod.name,'|',1),'.',1) as projectcode,t.name as fy_timerange,concat(projectcode,fy_timerange) as CODE,split_part(prod.name,'|',3) as censuscode,q.village,sum(p.hdfc_cost_monthly) as hdfc_cost from profile_29974 p
+left join ds_mysql_prod_project prod on
+prod.id=p.projectid
+left join ds_mysql_prod_tagelement t
+on p.fy=t.id
+left join ds_mysql_prod_tagelement t1
+on p.month_number=t1.id
+left join ds_mysql_prod_tagelement t2
+on t1.parent=t2.id
+left join profile_27489 q on
+split_part(prod.name,'|',3)=q.name
+group by 1,2,3,4,5),
+tab2 as(select split_part(split_part(prod.name,'|',1),'.',1) as projectcode,t.name as fy_timerange,concat(projectcode,fy_timerange) as CODE,sum(p.monthly_cost) as monthlycost  from profile_30171 p
+left join ds_mysql_prod_project prod on
+prod.id=p.projectid
+left join ds_mysql_prod_tagelement t
+on p.fy=t.id
+left join ds_mysql_prod_tagelement t1
+on p.month_number=t1.id
+left join ds_mysql_prod_tagelement t2
+on t1.parent=t2.id
+group by 1,2,3),
 
-group by projectcode,f.name, c.name
+tab3 as(select t.projectcode,t.fy_timerange,t.hdfc_cost a,t1.monthlycost b,t.CODE,t.censuscode,t.village from tab1 t
+left join tab2 t1 on
+t.CODE=t1.CODE and t.Quarter=t1.Quarter),
+
+tab4 as(select count(distinct(t1.censuscode)) as number_of_villages,t.fy_timerange,t.projectcode,t.CODE from tab1 t
+left join tab3 t1 on
+t.CODE=t1.CODE  
+group by t.fy_timerange,t.CODE,t.projectcode),
+
+tab5 as(select t.fy_timerange,t.projectcode,t.CODE,t1.village,t1.b/t.number_of_villages c,t1.a d,c+d total,t.number_of_villages
+from tab4 t
+left join tab3 t1 on
+t.CODE=t1.CODE),
+
+
+
+select t.fy_timerange,t.projectcode,t.total as Allocated_amount, t.village,t.CODE
+
+--sum(Allocated_amount) as S1,sum(Amount_Disbursed) as S2, sum(Amount_Utilised) as S3,sum(Balance_amount) as S4
+from tab5 t
+
+
+
+
+
+
 /*with tab1 as (select split_part(split_part(p1.name,'|',1),'.',1) as projectcode,
 f.name as fy_timerange, sum(p1.curr_yr_budget) curr_yr_budget,p8.name as interventiontype,
 concat(projectcode,fy_timerange) as CODE
