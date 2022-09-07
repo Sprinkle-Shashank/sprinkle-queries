@@ -1,69 +1,30 @@
-with tab1 as (select split_part(split_part(p1.name,'|',1),'.',1) as projectcode,
-f.name as fy_timerange, sum(p1.curr_yr_budget) curr_yr_budget,p8.name as interventiontype,
-concat(projectcode,fy_timerange) as CODE
-from profile_27396 p1
-left join ds_mysql_prod_tagelement f on
-p1.fy=f.id
-left join profile_28235 p8
-on p8._id=p1.intervention_type
-where f.name not in ('2015-2016','2016-2017','2017-2018')
-group by p1.name,2,4
-union all
-select split_part(split_part(split_part(p3.name,'|',1),'.',1),' ',1 ) as projectcode,
-f.name as fy_timerange, sum(p3.curr_yr_budget) as curr_yr_budget1,p3.int_type_calc2 as interventiontype,
-concat(projectcode,fy_timerange) as CODE
-from profile_27420 p3
-left join ds_mysql_prod_tagelement f on
-p3.fy=f.id 
-where f.name not in ('2015-2016','2016-2017','2017-2018')
-group by p3.name,2,4),
+with tab1 as(select split_part(split_part(prod.name,'|',1),'.',1) as projectcode,t.name as fy_timerange,concat(projectcode,fy_timerange) as CODE,split_part(prod.name,'|',3) as censuscode,q.village,q.district,sum(p.hdfc_cost_monthly) as hdfc_cost from profile_29974 p
+left join ds_mysql_prod_project prod on
+prod.id=p.projectid
+left join ds_mysql_prod_tagelement t
+on p.fy=t.id
+left join ds_mysql_prod_tagelement t1
+on p.month_number=t1.id
+left join ds_mysql_prod_tagelement t2
+on t1.parent=t2.id
+left join profile_27489 q on
+split_part(prod.name,'|',3)=q.name
+group by 1,2,3,4,5,6),
+tab2 as(select split_part(split_part(prod.name,'|',1),'.',1) as projectcode,t.name as fy_timerange,concat(projectcode,fy_timerange) as CODE,sum(p.monthly_cost) as monthlycost  from profile_30171 p
+left join ds_mysql_prod_project prod on
+prod.id=p.projectid
+left join ds_mysql_prod_tagelement t
+on p.fy=t.id
+left join ds_mysql_prod_tagelement t1
+on p.month_number=t1.id
+left join ds_mysql_prod_tagelement t2
+on t1.parent=t2.id
+group by 1,2,3),
 
-
-tab2 as (select split_part(split_part(prod.name,'|',1),'.',1) as projectcode,
-f.name as fy_timerange,sum(p2.hdfc_cost_monthly) as hdfc_cost_monthly, 'Indirect' interventiontype,
-concat(projectcode,fy_timerange) as CODE,
-		 case hdfc_cost_monthly when null then 0
-		 else hdfc_cost_monthly end as finalhdfc_cost_monthly
-from profile_29974 p2
-left join ds_mysql_prod_project prod
-on prod.id=p2.projectid
-left join ds_mysql_prod_tagelement f on
-p2.fy=f.id
-where f.name not in ('2015-2016','2016-2017','2017-2018')
-group by 1,2,4,hdfc_cost_monthly),
-
-
-tab3 as (select split_part(split_part(prod.name,'|',1),'.',1) as projectcode,
-f.name as fy_timerange,sum(p6.monthly_cost) as monthly_cost, 'Indirect' interventiontype,
-concat(projectcode,fy_timerange) as CODE,case  monthly_cost when null then 0
-		 else monthly_cost end as finalmonthly_cost
-from profile_30171 p6
-left join ds_mysql_prod_project prod
-on prod.id=p6.projectid
-left join ds_mysql_prod_tagelement f on
-p6.fy=f.id
-where f.name not in ('2015-2016','2016-2017','2017-2018')
-group by 1,2,4,monthly_cost)
-
-
-		 
-Select tab1.CODE c1, 0 as c2, tab1.interventiontype, 
-case  
-when  tab1.interventiontype='Indirect - Others' 
-then tab1.curr_yr_budget
-when tab1.interventiontype='Direct' 
-then tab1.curr_yr_budget end as AllocatedAmount, tab1.fy_timerange
-from tab1
-union all
- select  0 as c1,  tab2.CODE c2,tab2.interventiontype,
- case 
-when tab2.interventiontype='Indirect'
-then (tab2.finalhdfc_cost_monthly+tab3.finalmonthly_cost)  
-end as AllocatedAmount, 
-tab2.fy_timerange 
-from tab2 
-left join tab2 on tab2.CODE=tab3.CODE
-
+tab3 as(select t.projectcode,t.fy_timerange,t.hdfc_cost a,t1.monthlycost b,t.CODE,t.censuscode,t.village,t.district from tab1 t
+left join tab2 t1 on
+t.CODE=t1.CODE )
+select * from tab3
 
 
 /*with x as (select p8.name, case p8.name  when 'Indirect' then sum(p2.hdfc_cost_monthly+p6.monthly_cost)
@@ -82,7 +43,7 @@ on p1._id=p3.project_code and  p1.fy=p3.fy
  where f.name not in ('2015-2016','2016-2017','2017-2018')
 group by f.name , p8.name)/*  allocated amount as Vidur said*/
 
-select sum(x.AllocatedAmount), x.financial_year from x group by x.financial_year*/
+/*select sum(x.AllocatedAmount), x.financial_year from x group by x.financial_year*/
 
 
 		  
@@ -104,7 +65,7 @@ on p1._id=p3.project_code and  p1.fy=p3.fy
  where f.name not in ('2015-2016','2016-2017','2017-2018')
 group by f.name , p8.name)/*  allocated amount as Vidur said*/
 
-select sum(x.AllocatedAmount), x.financial_year from x group by x.financial_year*/
+/*select sum(x.AllocatedAmount), x.financial_year from x group by x.financial_year*/
 
 
 
