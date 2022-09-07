@@ -1,7 +1,15 @@
-select p2.name as projectid, p1.milestone as pmilestone, t1.name as status, p1.comm, p1.date, p1.actual_start_date, p1.actual_end_date, p3.start, p3.end, p3.milestone, p3.name
+select p2.name as projectid, p1.milestone as pmilestone, p1.comm, p1.date, p1.actual_start_date, p1.actual_end_date, p3.start, p3.end, p3.milestone, p3.name,
+
+case
+	when p1.status = 980564 then 'Completed'
+	when p1.status = 980563 and p1.date > p2.end then 'Delayed'
+	when p1.status = 980563 and p1.date < p2.end then 'In Progress'
+	when p1.status = 980562 and p1.date > p2.start then 'Delayed'
+	when p1.status = 980562 and p1.date < p2.end then 'Yet to Start'
+	else NULL
+end as status
+
 from profile_58278 p1
 
 left join ds_mysql_prod_project p2 on p2.id = p1.projectid
 left join profile_58277 p3 on p3._id = p1.milestone
-
-left join ds_mysql_prod_tagelement t1 on t1.id = p1.status
