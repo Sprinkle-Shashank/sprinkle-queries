@@ -43,12 +43,12 @@ temp3 as
 concat(indicator, concat('-',target)) AS indicator from temp2),
 
 
-/*
+
 temp4 as
-(select indicator, target, int_indi , year, project_code from temp3
+(select indicator, target, int_indi , m.year, project_code from temp3
  
 left join profile_62881 AS n
- on r.project_code = n._id
+ on temp3.project_code = n._id
  
 left join ds_mysql_prod_tagelement as vertical
  on n.vertical = vertical.id
@@ -65,11 +65,11 @@ left join ds_mysql_prod_tagelement as csr
 left join ds_mysql_prod_tagelement as budget_outlay
  on n.budget_outlay = budget_outlay.id
 left join ds_mysql_prod_tagelement as entity
- on n.entity = entity.id)*/
+ on n.entity = entity.id)
 
 /*temp5 as
 (select indicator, target, int_indi , year, project_code ,
-concat(yearc, concat('-',project_code)) AS yearc from temp4)*/
+concat(yearc, concat('-',project_code)) AS yearc from temp4)
 
 temp6 as
 (select indicator, target, int_indi , year, project_code from temp3
@@ -87,7 +87,25 @@ left join ds_mysql_prod_tagelement as amount
 from temp6 as m
 group by m.int_indi, m.year, m.indicator, m.project_code, m.vertical, m.focus, m.state, m.direct_or_partner, m.district, m.csr, m.entity, m.budget_outlay, m.yearc, m.month_timerange)
  
+temp8 as
+(select m.int_indi, m.year, m.indicator, m.project_code, m.vertical, m.focus, m.state, m.direct_or_partner, m.district, m.csr, m.entity, m.budget_outlay, m.yearc, m.month_timerange ,
  
+case 
+when vert1.name IS NULL AND vert.name IS NOT NULL THEN vert.name
+when vert1.name IS NULL AND vert.name IS NULL then 'Admin'
+else vert1.name 
+END AS vertical
 
+from temp7 as m
 
-select * from temp6
+left join ds_mysql_prod_tagelement as vert
+ on m.vertical_new = vert.id
+  
+left join ds_mysql_prod_tagelement as vert1
+ on vert.parent = vert1.id),
+
+temp9 as
+(select m.int_indi, m.year, m.indicator, m.vertical, m.focus, m.direct_or_partner, m.csr, m.entity, m.budget_outlay, m.month_timerange)
+ */
+
+select * from temp4
