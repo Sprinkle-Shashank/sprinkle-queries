@@ -1,4 +1,4 @@
-select p2.name as projectid, p1.comm, p1.date, p1.actual_start_date, p1.actual_end_date, p3.start, p3.end, p3.milestone, p3.name,
+with sub1 as(select p2.name as projectid, p1.comm, p1.date, p1.actual_start_date, p1.actual_end_date, p3.start, p3.end, p3.milestone, p3.name,
 
 case
 	when p1.status = 980564 then 'Completed'
@@ -12,9 +12,16 @@ end as status,
 case
 	when p3.name like '%. %' then SPLIT_PART(p3.name, '. ', 2)
 	else p3.name
-end as pmilestone_final
+end as pmilestone_final,
+
+TO_CHAR(p1.actual_start_date, 'YYYY-MM-DD') as actual_start_new,
+TO_CHAR(p1.actual_end_date, 'YYYY-MM-DD') as actual_end_new,
+TO_CHAR(p3.start, 'YYYY-MM-DD') as start_new,
+TO_CHAR(p3.end, 'YYYY-MM-DD') as end_new
 
 from profile_58278 p1
 
 left join ds_mysql_prod_project p2 on p2.id = p1.projectid
-left join profile_58277 p3 on p3._id = p1.milestone
+left join profile_58277 p3 on p3._id = p1.milestone)
+
+select * from sub1
