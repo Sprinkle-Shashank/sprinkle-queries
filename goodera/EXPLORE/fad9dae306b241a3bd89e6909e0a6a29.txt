@@ -14,6 +14,41 @@ left join profile_55194 AS r
  on m.proj = r.project_code_new),
 
  
+/*left join profile_62881 AS n
+ on m.project_code = n._id
+ 
+left join ds_mysql_prod_tagelement as vertical
+ on n.vertical = vertical.id
+left join ds_mysql_prod_tagelement as focus
+ on n.focus = focus.id
+left join ds_mysql_prod_tagelement as state
+ on n.state = state.id
+left join ds_mysql_prod_tagelement as direct_or_partner
+ on n.direct_or_partner = direct_or_partner.id
+left join ds_mysql_prod_tagelement as district
+ on n.district = district.id 
+left join ds_mysql_prod_tagelement as csr
+ on n.csr = csr.id 
+left join ds_mysql_prod_tagelement as budget_outlay
+ on n.budget_outlay = budget_outlay.id
+left join ds_mysql_prod_tagelement as entity
+ on n.entity = entity.id),*/
+
+temp2 as
+( select indicator, target, int_indi , year, project_code_new  , sum(target) as target_updated from temp1 as m
+group by indicator, target, int_indi, year, project_code_new),
+
+temp3 as
+(select indicator, target, int_indi , year, project_code_new as project_code ,
+concat(indicator, concat('-',project_code)) AS indicator from temp2),
+
+
+/*with  as(select a.*, unwind_infra_details from profile_71780 a, a.infra_details as unwind_infra_details)
+*/
+
+temp4 as
+(select indicator, target, int_indi , year, project_code_new as project_code from temp3
+ 
 left join profile_62881 AS n
  on m.project_code = n._id
  
@@ -32,20 +67,7 @@ left join ds_mysql_prod_tagelement as csr
 left join ds_mysql_prod_tagelement as budget_outlay
  on n.budget_outlay = budget_outlay.id
 left join ds_mysql_prod_tagelement as entity
- on n.entity = entity.id),
-
-temp2 as
-( select indicator, target, int_indi , year, project_code_new  , sum(target) as target_updated from temp1 as m
-group by indicator, target, int_indi, year, project_code_new),
-
-temp3 as
-(select indicator, target, int_indi , year, project_code_new as project_code ,
-concat(indicator, concat('-',project_code)) AS indicator from temp2)
-
-
-/*with  as(select a.*, unwind_infra_details from profile_71780 a, a.infra_details as unwind_infra_details)
-
-*/
+ on n.entity = entity.id)
 
 select * from temp3
 
