@@ -1,31 +1,37 @@
-with t1 as
-(select 
-p1.fy_timerange, tag2.name as plac_status, p2.batch_id, tag1.name as gender, 	batch_end,GETDATE() as today
+with t1 as 
+(select  p1.fy_timerange, tag2.name as plac_status , p2.batch_id, tag1.name as gender, batch_end,GETDATE() as today ,tag2.name  as placed,batch_end as end,
+case
+when placed is null then 'Empty'
+else tag2.name 
+end as placed1
 from profile_76123 p1
 left join profile_76122 p2 on
 p1.batchid = p2._id
 left join ds_mysql_prod_tagelement as tag1 on
 p1.gender = tag1.id
 left join ds_mysql_prod_tagelement as tag2 on
-p1.plac_status = tag2.id)
-,
-t2 as 
-(select fy_timerange,plac_status as placed,batch_end as end,gender, today, t1.batch_id
-,
-case 
-when t1.plac_status is null then 'Empty'
-else t1.plac_status
-end as placed
+p1.plac_status = tag2.id),
+
+t2 as
+(
+select t1.fy_timerange,gender,
+case
+when today < t1.end then  'Undergoing training'
+when placed1 = 'Empty' AND today > t1.end then 'Trained'  
+
+else placed
+end as  trainee_status,count(*)
 from t1
+group by t1.fy_timerange,trainee_status,gender
 )
 
---select t1.fy_timerange ,t1.batch_id,t2.end, t1.today,t1.gender 
---,t2.placed
-select t2.* ,
+select fy_timerange,trainee_status,gender,count,
 case
-when today < t2.end then  'Undergoing training'
---when placed = empty  and today > end then Trained 
-else placed
-end as  trainee_status
-from t2 
-
+when trainee_status = 'Undergoing training' then 1
+when trainee_status = 'Trained' then 2
+when trainee_status = 'Under Age' then 3
+when trainee_status='Dropout (during training)' then 4
+when trainee_status='Dropout (post training)' then 5
+else 6
+end as sort 
+from t2
