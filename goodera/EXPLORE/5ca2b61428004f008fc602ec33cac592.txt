@@ -3,14 +3,17 @@ select amount as col
 union all
 select not_disbursed as col),
   
-sub2 as(select projectId, fy_timerange, sub1.col as dimension,
+sub2 as(select p1.name as projectId,p2.name as parent1, fy_timerange, sub1.col as dimension,
 (case
 when 'amount' then amount
 when 'not_disbursed' then not_disbursed
  else null
 end) as value
-from profile_78591)
+from profile_78591
+left join ds_mysql_prod_project p1 on p1.id=projectId
+left join ds_mysql_prod_project p2 on p2.id=p1.parent
+)
 
-select *,
+select *,sum(value) as value
 
 from sub2
