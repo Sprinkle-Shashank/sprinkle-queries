@@ -1,0 +1,62 @@
+with temp as (
+select 'functional_days' as col
+  union all 
+  select 'cases_referred_for_specialist_services' as col
+  union all
+  select 'eye_care_beneficiary_visits' as col
+  union all
+  select 'spectacles_issued' as col
+  union all
+  select 'beneficiaries_referred_to_eye_hospital' as col
+  union all
+  select 'surgeries_completed_in_referral_eye_hospital' as col
+  union all
+  select 'lab_technician_availability' as col
+  union all
+  select 'doctors_availabiity12' as col
+  union all
+  select 'pharmacists_availability' as col
+  union all
+  select 'optometrist_availability' as col
+  union all
+  select 'project_coordinator_availability' as col
+  union all
+  select 'nurses_availability' as col
+  union all
+  select 'community_mobilizer_availability1' as col)
+  
+select p2.name as projectId,p1.fy_timerange,t2.name as city,t3.name as state,p4.name as partner,temp.col as dimensions, t4.name as clinic_type, t5.name as plant,
+sum(
+  case col
+	when 'functional_days' then p1.functional_days
+  	when 'cases_referred_for_specialist_services' then p1.cases_referred_for_specialist_services
+  	when 'eye_care_beneficiary_visits' then p1.eye_care_beneficiary_visits
+  	when 'spectacles_issued' then p1.spectacles_issued
+  	when 'beneficiaries_referred_to_eye_hospital' then p1.beneficiaries_referred_to_eye_hospital
+  	when 'surgeries_completed_in_referral_eye_hospital' then p1.surgeries_completed_in_referral_eye_hospital
+  	when 'lab_technician_availability' then p1.lab_technician_availability
+  	when 'doctors_availabiity12' then p1.doctors_availabiity12
+  	when 'pharmacists_availability' then p1.pharmacists_availability
+  	when 'optometrist_availability' then p1.optometrist_availability
+  	when 'project_coordinator_availability' then p1.project_coordinator_availability
+  	when 'nurses_availability' then p1.nurses_availability
+	when 'community_mobilizer_availability1' then p1.community_mobilizer_availability1
+  else null
+  end
+  ) as values
+  
+from profile_82454 p1
+cross join temp
+left join ds_mysql_prod_project p2 on p2.id= p1.projectId
+left join ds_mysql_prod_project p4 on p4.id= p2.parent
+left join profile_82459 p3 on p3._id= p1.clinic_id
+
+left join ds_mysql_prod_tagelement t1 on t1.id = p3.location
+left join ds_mysql_prod_tagelement t2 on t2.id = t1.parent
+left join ds_mysql_prod_tagelement t3 on t3.id = t2.parent
+
+left join ds_mysql_prod_tagelement t4 on t4.id = p3.clinic_type
+left join ds_mysql_prod_tagelement t5 on t5.id = p3.plant
+where p1.projectid like '%%'
+
+group by p2.name,p1.fy_timerange,t2.name,t3.name,p4.name,temp.col, t4.name, t5.name
