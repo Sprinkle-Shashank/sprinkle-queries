@@ -27,10 +27,15 @@ left join profile_58277 p3 on p3._id = p1.milestone),
 sub2 as(
   select projectid, pmilestone_final, start_new, end_new, actual_start_new, actual_end_new, status, comm,
   
+case
+	when actual_end_date is NOT NULL then (actual_start_date || '|' || actual_end_date)
+	else (start || '|' || end)
+end as fy_timerange
+  
 row_number() over(partition by projectid, pmilestone_final order by date desc) as row
   
   from sub1)
   
-select projectid, pmilestone_final, start_new, end_new, actual_start_new, actual_end_new, status, comm
+select projectid, pmilestone_final, start_new, end_new, actual_start_new, actual_end_new, status, comm, fy_timerange
 from sub2
 where row = 1
