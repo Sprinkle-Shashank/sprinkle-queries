@@ -1,19 +1,24 @@
-select substring(p.submission_date,6,2) as months,t5.name as fy_timerange,(t.name) as response,case when response='Yes' then split_part(t2.name,'[',1)  when response ='No' then t3.name end as projectcode,case when response='Yes' then m.name when response ='No' then n.name end as project_manager,case when p.payment_amount is null then 0 else p.payment_amount  end as Amount_Disbursed,case when p.amnt_utlzd is null then 0 else p.amnt_utlzd  end as Amount_Utilised,RTRIM(projectcode)||fy_timerange as CODE from profile_27398 p
-left join ds_mysql_prod_tagelement t
-on p.renewal=t.id
-left join profile_27396 t3 on
-p.project_name=t3._id
-left join profile_27420 t2 on
-p.project_renew=t2._id
-left join ds_mysql_prod_tagelement n on
-t3.project_manager=n.id
-left join ds_mysql_prod_tagelement m on
-t2.project_manager=m.id
+select substring(p.submission_date,6,2) as months,
+t5.name as fy_timerange,
+
+case 
+when p.payment_amount is null then 0 
+else p.payment_amount  
+end as Amount_Disbursed,
+
+case when p.amnt_utlzd is null then 0 
+else p.amnt_utlzd  
+end as Amount_Utilised,
+
+RTRIM(projectcode)||fy_timerange as CODE 
+
+from profile_27398 p
 left join ds_mysql_prod_tagelement t4
 on p.tranche=t4.id
 left join ds_mysql_prod_tagelement t5
 on p.fy=t5.id
 where response is not null
+
 /*With tab1 as(Select split_part(split_part(prod.name,'|',1),'.',1) as projectcode,
 t.name as fy_timerange,
 concat(projectcode,fy_timerange) as CODE,sum(p.hdfc_cost_monthly) as hdfc_cost,t2.name as Quarter,p1.village,p1.state
