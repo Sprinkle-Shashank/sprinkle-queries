@@ -1,5 +1,35 @@
-select  p1.fy_timerange, p1.no_fourth_class as IV, p1.no_fifth_class as V, p1.no_sixth_class as VI, p1.no_seventh_class as VII, p1.no_eighth_class as VIII
+with t1 as 
+(select  p1.fy_timerange, p1.no_fourth_class as IV, p1.no_fifth_class as V, p1.no_sixth_class as VI, p1.no_seventh_class as VII, p1.no_eighth_class as VIII
 from profile_76012 p1
-Group by p1._id, p1.fy_timerange, p1.dimension, p1.value
+Group by p1._id, p1.fy_timerange, p1.dimension, p1.value),
+
+item as 
+(
+select 'IV' as c
+union all
+select 'V' as c
+union all
+select 'VI' as c
+union all
+select 'VII' as c
+union all
+select 'VIII' as c
+),
+
+t2 as
+( select fy_timerange,IV,V,VI,VII,VIII,dimension,value
+  case c
+ when 'IV' then t1.IV
+ when 'V' then t1.V
+ when 'VI' then t1.VI
+ when 'VII' then t1.VII
+ when 'VIII' then t1.VIII
+ end as value, item.c as item 
+ from t1 cross join item
+ Group by fy_timerange,dimension,value)
+ 
+ select fy_timerange, IV, V, VI, VII, VIII
+ from t2
+  
 
 --pivot 
