@@ -6,11 +6,13 @@ left join ds_mysql_prod_project p1 on p1.id=p4.projectId
 left join ds_mysql_prod_project p2 on p2.id=p1.parent
 left join profile_78805 p3 on p3._id= p4.acc_no),
 
-sub2 as(select projectId,parent1, fy_timerange, acc_no, bank, account_name,transfered_amount
+sub2 as(select projectId,parent1, fy_timerange, acc_no, bank, account_name,transfered_amount,amount
 
 --sum(balance) as balance
 
 from sub1)
-select projectId,parent1, fy_timerange, acc_no,transfered_amount - amount as balance
-from sub2
+sub3 as(select projectId,parent1, fy_timerange, acc_no, transfered_amount - amount as balance
+from sub2)
+select projectId,parent1, fy_timerange, acc_no,sum(balance) as balance
+from sub3
 group by projectId,parent1, fy_timerange, acc_no
