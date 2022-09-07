@@ -1,6 +1,4 @@
-select substring(p.submission_date,6,2) as months,
-t5.name as fy_timerange,
-
+select p1.name as projectcode ,
 case 
 when p.payment_amount is null then 0 
 else p.payment_amount  
@@ -9,12 +7,24 @@ end as Amount_Disbursed,
 case when p.amnt_utlzd is null then 0 
 else p.amnt_utlzd  
 end as Amount_Utilised
-
-from profile_27398 p
+substring(d.submission_date,6,2) as months, f.name  as financial_year,concat(projectcode,financial_year) as CODE,t3.name as Core_Ares,t4.name as ProjectManager,p6.name as Intervention_Type,p7.name as Ngo_Partner
+from profile_27396 p1
+left join profile_27398 d on
+p1._id=d.project_name 
+left join ds_mysql_prod_tagelement f on
+d.fy=f.id 
+left join ds_mysql_prod_tagelement t3
+on p1.focus_area=t3.id
 left join ds_mysql_prod_tagelement t4
-on p.tranche=t4.id
-left join ds_mysql_prod_tagelement t5
-on p.fy=t5.id
+on p1.project_manager=t4.id
+left join profile_28235 p6
+on p1.intervention_type=p6._id
+left join profile_27395 p7
+on p1.ngo_partner=p7._id
+group by f.name,p1.name,t3.name,t4.name,P6.NAME,P7.NAME,t1.name
+
+
+
 
 /*With tab1 as(Select split_part(split_part(prod.name,'|',1),'.',1) as projectcode,
 t.name as fy_timerange,
