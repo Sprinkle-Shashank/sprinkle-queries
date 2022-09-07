@@ -1,4 +1,6 @@
-select cast(q.name as varchar) as ProjectCode,f.name as fy_timerange,p4.int_type_calc2 as intervention_type,'0' as Disbursed_Amount,t1.name as Second_Level_Manager,CONCAT(ProjectCode,fy_timerange) as code
+with
+
+main2 as (select cast(q.name as varchar) as ProjectCode,f.name as fy_timerange,p4.int_type_calc2 as intervention_type,'0' as Disbursed_Amount,t1.name as Second_Level_Manager,CONCAT(ProjectCode,fy_timerange) as code
 from profile_27420 p4	
 left join profile_27396 q on
 p4.project_code=q._id
@@ -23,4 +25,21 @@ on p1.project_manager = t1.id
 
 left join ds_mysql_prod_tagelement f on
 p1.fy=f.id
-group by 1,2,3,5
+group by 1,2,3,5),
+		  
+ 
+
+
+level1tab as (select m.name as level1 ,p.approver as level2,p.name as level1email from profile_27424 p
+left join ds_mysql_prod_tagelement m on
+m.id = p.pm_name),
+
+level2tab as (select m.name as level1 , z.level1 as level2 from profile_27424 p
+left join ds_mysql_prod_tagelement m on
+m.id = p.pm_name
+left join level1tab z on
+z.level1email = p.approver)
+
+select p.*,d.level2 from main2 p
+left join level2tab d on
+d.level1 = p.level1
