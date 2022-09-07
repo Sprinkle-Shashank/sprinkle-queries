@@ -1,0 +1,39 @@
+with sub1 as(
+  select p3.name as partner, p2.name as projectid, p1.name, t2.name as gender, t1.name as patient_occupation, p1.fy_timerange, t6.name as city, t7.name as state, t4.name as clinic_type, t5.name as plant,
+
+case
+	when p1.age < 18 then 'Under 18'
+	when p1.age >= 18 and p1.age <=20 then 'Between 18 - 20'
+	when p1.age > 20 and p1.age <= 30 then 'Between 21 - 30'
+	when p1.age > 30 and p1.age <= 40 then 'Between 31 - 40'
+	when p1.age > 40 and p1.age <= 50 then 'Between 41- 50'
+	when p1.age > 50 and p1.age <= 60 then 'Between 51- 60'
+	else 'Above 60'
+end as age_bracket,
+
+case
+	when age_bracket = 'Under 18' then 1
+	when age_bracket = 'Between 18 - 20' then 2
+	when age_bracket = 'Between 21 - 30' then 3
+	when age_bracket = 'Between 31 - 40' then 4
+	when age_bracket = 'Between 41- 50' then 5
+	when age_bracket = 'Between 51- 60' then 6
+	else 7
+end as age_sort
+
+from profile_82460 p1
+left join ds_mysql_prod_project p2 on p2.id = p1.projectid
+left join ds_mysql_prod_tagelement t1 on t1.id = p1.patient_occup
+left join ds_mysql_prod_tagelement t2 on t2.id = p1.gender
+left join profile_82459 p4 on p4._id = p1.clinic_id
+left join ds_mysql_prod_tagelement t3 on t3.id = p4.location
+left join ds_mysql_prod_tagelement t4 on t4.id = p4.clinic_type
+left join ds_mysql_prod_tagelement t5 on t5.id = p4.plant
+left join ds_mysql_prod_tagelement t6 on t6.id = t3.parent
+left join ds_mysql_prod_tagelement t7 on t7.id = t6.parent
+left join ds_mysql_prod_project p3 on p3.id = p2.parent
+where p1.projectid like '%%')
+
+select s1.partner, s1.projectid, s1.gender, s1.patient_occupation, s1.fy_timerange, s1.city, s1.state, s1.clinic_type, s1.plant, s1.age_bracket, s1.age_sort, count(*)
+from sub1 s1
+group by s1.partner, s1.projectid, s1.gender, s1.patient_occupation, s1.fy_timerange, s1.city, s1.state, s1.clinic_type, s1.plant, s1.age_bracket, s1.age_sort
