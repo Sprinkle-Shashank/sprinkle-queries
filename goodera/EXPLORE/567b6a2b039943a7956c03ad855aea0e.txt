@@ -1,4 +1,12 @@
-select fy_timerange,tag1.name as gender ,plac_income,
+with t1 as
+(select fy_timerange,tag1.name as gender ,plac_income
+from profile_76123 p1
+left join ds_mysql_prod_tagelement as tag1
+on p1.gender = tag1.id
+where plac_income is not null)
+),
+t2 as
+(select fy_timerange,gender,
 case
 when plac_income <30000 then'<30k'
 when plac_income <50000 then '30k-50k'
@@ -7,8 +15,17 @@ when plac_income <150001 then '100k-150k'
 when plac_income <200001 then '150k-200k'
 else '>200k'
 end as salary_bracket,count(*)
-from profile_76123 p1
-left join ds_mysql_prod_tagelement as tag1
-on p1.gender = tag1.id
-where plac_income is not null
-group by fy_timerange,tag1.name  ,plac_income, salary_bracket,count
+from t1
+group by t1.fy_timerange, gender,salary_bracket)
+	
+select fy_timerange,gender,salary_bracket,count,
+case
+when salary_bracket ='<30k' then 1
+when salary_bracket ='30k-50k' then 2
+when salary_bracket = '50k-100k' then 3
+when salary_bracket = '100k-150k' then 4
+when salary_bracket = '150k-200k' then 5
+when salary_bracket = '>200k' then 6
+else 7
+end as salary_sort
+from t2
