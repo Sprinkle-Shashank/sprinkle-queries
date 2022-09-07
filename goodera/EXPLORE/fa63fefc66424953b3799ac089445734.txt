@@ -1,4 +1,4 @@
-with tab1 as(select split_part(split_part(prod.name,'|',1),'.',1) as projectcode,t.name as fy_timerange,concat(projectcode,fy_timerange) as CODE,split_part(prod.name,'|',3) as censuscode,q.village,q.district,sum(p.hdfc_cost_monthly) as hdfc_cost from profile_29974 p
+with tab1 as(select split_part(split_part(prod.name,'|',1),'.',1) as projectcode,t.name as fy_timerange,concat(projectcode,fy_timerange) as CODE,split_part(prod.name,'|',3) as censuscode,q.village,q.state,q.district,sum(p.hdfc_cost_monthly) as hdfc_cost from profile_29974 p
 left join ds_mysql_prod_project prod on
 prod.id=p.projectid
 left join ds_mysql_prod_tagelement t
@@ -9,7 +9,7 @@ left join ds_mysql_prod_tagelement t2
 on t1.parent=t2.id
 left join profile_27489 q on
 split_part(prod.name,'|',3)=q.name
-group by 1,2,3,4,5,6),
+group by 1,2,3,4,5,6,7),
 tab2 as(select split_part(split_part(prod.name,'|',1),'.',1) as projectcode,t.name as fy_timerange,concat(projectcode,fy_timerange) as CODE,sum(p.monthly_cost) as monthlycost  from profile_30171 p
 left join ds_mysql_prod_project prod on
 prod.id=p.projectid
@@ -21,7 +21,7 @@ left join ds_mysql_prod_tagelement t2
 on t1.parent=t2.id
 group by 1,2,3),
 
-tab3 as(select t.projectcode,t.fy_timerange,t.hdfc_cost a,t1.monthlycost b,t.CODE,t.censuscode,t.village,t.district from tab1 t
+tab3 as(select t.projectcode,t.fy_timerange,t.hdfc_cost a,t1.monthlycost b,t.CODE,t.censuscode,t.village,t.state,t.district from tab1 t
 left join tab2 t1 on
 t.CODE=t1.CODE ),/*join of tab1(29974) and tab2(30171)*/
 
@@ -30,7 +30,7 @@ left join tab3 t1 on
 t.CODE=t1.CODE  
 group by t.fy_timerange,t.CODE,t.projectcode),/*calculate count of distinct cencuscode from 29974 on basis of CODE*/
 
-tab5 as(select t.fy_timerange,t.projectcode,t.CODE,t1.village,t1.district,t1.b/t.number_of_villages c,t1.a d,c+d total,t.number_of_villages
+tab5 as(select t.fy_timerange,t.projectcode,t.CODE,t1.village,t1.state,t1.district,t1.b/t.number_of_villages c,t1.a d,c+d total,t.number_of_villages
 from tab4 t
 left join tab3 t1 on
 t.CODE=t1.CODE),/*calculate allocated amount as (monthly_cost/no.ofvillages) +hdfccost
@@ -53,7 +53,7 @@ group by p3.name,2)
 
 
 
-select  t.village,t.district,t.CODE,t.fy_timerange,t.projectcode,tab6.no_of_projects,tab6.no_of_implementing_agencies,t.total as Allocated_amount
+select  t.village,t.state,t.district,t.CODE,t.fy_timerange,t.projectcode,tab6.no_of_projects,tab6.no_of_implementing_agencies,t.total as Allocated_amount
 from tab5 t
 left join tab6 on t.CODE=tab6.CODE
 
