@@ -1,6 +1,6 @@
 with t1 as
 (
-  select batch, dropout_reason, p.state, sta.name as state_update, p1.fy as name_update, p1.month as month_up 
+  select batch, p.dropout_reason, dropout.name as drop_reason_update, p.state, sta.name as state_update, p1.fy as name_update, p1.month as month_up 
 
   from profile_30527 as p
   
@@ -10,14 +10,17 @@ with t1 as
   left join ds_mysql_prod_tagelement sta
   on p.state = sta.id
   
-  where dropout_reason IN ('566391', '566389', '566390', '577331', '577332')
+  left join ds_mysql_prod_tagelement dropout
+  on p.dropout_reason = dropout.id
+  
+  where drop_reason IN ('566391', '566389', '566390', '577331', '577332')
   ),
   
   t2 as
   (
-	select dropout_reason, state_update, name_update, month_up, count(*) as dropoutnums from t1
+	select drop_reason_update, state_update, name_update, month_up, count(*) as dropoutnums from t1
 	
-	group by dropout_reason, state_update, name_update, month_up
+	group by drop_reason_update, state_update, name_update, month_up
 	)
-	select dropout_reason, state_update, name_update, month_up, dropoutnums from t2
+	select drop_reason_update, state_update, name_update, month_up, dropoutnums from t2
   
