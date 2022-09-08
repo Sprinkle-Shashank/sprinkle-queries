@@ -1,4 +1,26 @@
-with tab1 as(select split_part(split_part(prod.name,'|',1),'.',1) as projectcode,t.name as fy_timerange,concat(projectcode,fy_timerange) as CODE,split_part(prod.name,'|',3) as censuscode,q.village,q.state,q.district,sum(case p.hdfc_cost_monthly when null then 0 else p.hdfc_cost_monthly end) as hdfc_cost from profile_29974 p
+select split_part(split_part(p1.name,'|',1),'.',1) as projectcode,
+f.name as fy_timerange, sum(p1.curr_yr_budget) curr_yr_budget,p8.name as interventiontype,
+concat(projectcode,fy_timerange) as CODE
+from profile_27396 p1
+left join ds_mysql_prod_tagelement f on
+p1.fy=f.id
+left join profile_28235 p8
+on p8._id=p1.intervention_type
+
+group by p1.name,2,4
+union all
+select split_part(split_part(split_part(p3.name,'|',1),'.',1),' ',1 ) as projectcode,
+f.name as fy_timerange, sum(p3.curr_yr_budget) as curr_yr_budget1,p3.int_type_calc2 as interventiontype,
+concat(projectcode,fy_timerange) as CODE
+from profile_27420 p3
+left join ds_mysql_prod_tagelement f on
+p3.fy=f.id 
+
+group by p3.name,2,4
+
+
+
+/*with tab1 as(select split_part(split_part(prod.name,'|',1),'.',1) as projectcode,t.name as fy_timerange,concat(projectcode,fy_timerange) as CODE,split_part(prod.name,'|',3) as censuscode,q.village,q.state,q.district,sum(case p.hdfc_cost_monthly when null then 0 else p.hdfc_cost_monthly end) as hdfc_cost from profile_29974 p
 left join ds_mysql_prod_project prod on
 prod.id=p.projectid
 left join ds_mysql_prod_tagelement t
@@ -55,7 +77,7 @@ group by p3.name,2)
 select  t.village,t.state,t.district,t.number_of_villages,t.c indirect,
 t.d as direct,t.CODE,t.fy_timerange,t.projectcode,tab6.no_of_projects,tab6.no_of_implementing_agencies,t.total as Allocated_amount
 from tab5 t
-left join tab6 on t.CODE=tab6.CODE
+left join tab6 on t.CODE=tab6.CODE*/
 
 
 
