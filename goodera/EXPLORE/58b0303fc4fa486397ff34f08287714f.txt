@@ -1,6 +1,28 @@
-select p1.fy_timerange, avg(p1.wash_practices) as wash_practices, avg(p1.awareness_practice) as awareness_practice, avg(p1.understanding_comm) as understanding_comm
+with t1 as
+(select p1.fy_timerange, avg(p1.wash_practices) as wash_practices, avg(p1.awareness_practice) as awareness_practice, avg(p1.understanding_comm) as understanding_comm
 from profile_76016 p1
-group by p1.fy_timerange
+group by p1.fy_timerange)
 
 
+item as 
+(
+select 'wash_practices' as c
+union all
+select 'awareness_practice' as c
+union all
+select 'understanding_comm' as c
+),
+
+t2 as
+( select fy_timerange,wash_practices,awareness_practice,understanding_comm
+ case c
+ when 'wash_practices' then t1.wash_practices
+ when 'awareness_practice' then t1.awareness_practice
+ when 'understanding_comm' then t1.understanding_comm
+ end as val, item.c as item 
+ from t1 cross join item
+group by p1.fy_timerange)
+ 
+ select  fy_timerange, wash_practices, awareness_practice, understanding_comm
+ from t2
 ---pivot 
