@@ -1,4 +1,47 @@
-with
+with table1 as (
+SELECT *
+FROM (
+select cou.name as country,p.name,p.fy_timerange,keyword,datanum/*,datanumbase
+lag(datanum,1) over (order by  p.fy_timerange) as prev_qty,
+(prev_qty-datanum)*100.0/prev_qty as per */
+
+from sus_80478 p
+
+left join ds_mysql_prod_project pro on 
+p.xprojectid = pro.id
+
+left join ds_mysql_prod_project cou on 
+pro.parent = cou.id
+
+--where keyword in ('total_renew_consum', 'total_energy_auto') 
+
+order by fy_timerange asc
+  
+)PIVOT (
+   sum(datanum) for keyword in ('carbon_credit','diesel_emission','scope2_emission','scope3_emission','consumption_diesel','turnover','name','total_diesel','carbon_sequestration','s3_cat1','consumption_fo','scope2_emission_21_22','scope1_2_intensity','furnance','fo_emission','tree_inhouse','s3_cat2','consumption_bio','natural_gas_2223','scope3_intensity','ods_emission','ods_emission_2122','tree_beyond_fence','s3_cat3','total_energy','total_petrol','biogenic_intensity','scope1_emission','biogenic_emission','total_trees','s3_cat4','pur_electricity_r','biofuel','total_thermal_consumption_2223','s3_cat5','capex','pur_electricity_nr_auto','biodiesel','total_thermal_2122','s3_cat6','cost_saving','petrol_emission','in_electricity_solar_auto','pur_electricity_nr','s3_cat7','energy_saving','natural_gas_emission','total_ele_consumtion','pur_electricity_solar','s3_cat8','emission_saving_manufacturing','bio_diesel_emission','total_renew_consum','in_electricity_solar','natural_gas_consumption_2223','s3_cat9','emission_saving_logistic','scope1_emission_2122onwards','total_energy_auto','pur_electricity_wind','s3_cat10','emission_saving_design','r22','gross_scope_1_emission_2223onwards','s3_cat11','r32','s3_cat12','r134a','total_energy_consumption2223','s3_cat13','consumption_petrol','total_renew_consump_2122','r404a','s3_cat14','r410a','consumption_natural_gas','s3_cat15','consumption_biodiesel','fire_exinguisher','natural_gas','consumption_natural_gas22_23','elerenew_share','renew_share','renew_share_2122','total_energy_consumption_2122onwards','consumption_diesel_21_22','renew_share_2223','ther_renew_share','ther_renew_share_2122','ther_renew_share_2223')
+) 
+			
+	)
+select * from table1
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/*with
 table1 as ( SELECT _id,projectid,mon.creatorid, u.email as cemail, mon.modifierid, m.email as memail
 from ds_mongo_profileinstance mon
 left join ds_mysql_prod_user u on
@@ -41,37 +84,4 @@ select distinct projectid,cemail,memail from table4
 )
 select projectid, listagg(cemail,',') as creator_email from table2
 
-group by projectid
-/*with table1 as (select  taskuserid,pro.name as projectid from ds_mongo_profileinstance t1
-				left join ds_mysql_prod_project as pro
-on t1.projectid = pro.id
-where profileid = 4227),
-
-table2 as (select distinct p.taskuserid,t1.projectid/*,pu.programid,u.email,pp.name*/ from profile_4227 p
-
-left join  table1 t1 on
-p.taskuserid = t1.taskuserid
- 
-where p.taskuserid is not null )
- --select * from table1
-
-select distinct p.taskuserid,t1.projectid,pro.name as factory,tu.taskid,pu.programid,u.email,pp.name from profile_4227 p
-left join ds_mysql_prod_taskuser tu on
-p.taskuserid = tu.id
-left join table1 t1 on
-p.taskuserid = t1.taskuserid
-left join ds_mysql_prod_programuser pu on
-tu.programuserid = pu.id 
-left join ds_mysql_prod_project as pro
-on t1.projectid = pro.id
-left join ds_mysql_prod_user u on
-pu.userid = u.id
-left join ds_mysql_prod_personprofile pp on
-u.id = pp.userid
-*/
-
---select * from table1
-
-/*select modified,cast(concat(concat(substring(cast(timestamp 'epoch' + CAST(modified AS BIGINT)/1000 * interval '1 second' as varchar), 1, 10),'T'), concat(split_part(cast(timestamp 'epoch' + CAST(modified AS BIGINT)/1000 * interval '1 second' as varchar), ' ',2),'.000Z')) as datetime) as modifieddate from ds_mongo_taskresponse
-where profileid = 4227
-and profileinstanceid = '5b9f38b1e17c38f4074f201e'*/
+group by projectid*/
