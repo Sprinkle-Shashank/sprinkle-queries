@@ -1,0 +1,32 @@
+with t1 as
+(
+  select id, p.batch as b_update, state, p1.avg_attendance, p1.fy as name_update
+  
+  from profile_30527 as p
+  
+  left join profile_30532 p1 
+  on p.batch = p1._id
+  ),
+  
+  t2 as
+  (
+	select b_update, name_update, state, count(*) as numstu, avg(avg_attendance) as attendperc from t1
+	
+	group by b_update, name_update, state
+	
+	),
+	
+	t3 as
+	(
+	  select name_update, state, (numstu*attendperc*1.0/100) as attendpercnum from t2
+	  ),
+	  t4 as
+	  (
+		select name_update, state, sum(attendpercnum) as sum_attend from t3
+		
+		group by name_update, state
+		)
+		
+		select state, name_update, sum_attend from t4
+		
+	
