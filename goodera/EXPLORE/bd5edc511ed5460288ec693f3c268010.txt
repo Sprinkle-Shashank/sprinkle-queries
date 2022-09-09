@@ -1,4 +1,4 @@
-select split_part(split_part(prod.name,'|',1),'.',1) as projectcode,t.name as fy_timerange,concat(projectcode,fy_timerange) as CODE,count (distinct (split_part(prod.name,'|',3))) as numofVillages,count(distinct (q.district)) as numofdistricts,q.state,case p.hdfc_cost_monthly when null then 0 else p.hdfc_cost_monthly end as hdfc_cost from profile_29974 p
+select split_part(split_part(prod.name,'|',1),'.',1) as projectcode,t.name as fy_timerange,concat(projectcode,fy_timerange) as CODE,count (distinct (split_part(prod.name,'|',3))) as numofVillages,count(distinct (q.district)) as numofdistricts,q.state,case sum(p.hdfc_cost_monthly when null then 0 else p.hdfc_cost_monthly) end as hdfc_cost from profile_29974 p
 left join ds_mysql_prod_project prod on
 prod.id=p.projectid
 left join ds_mysql_prod_tagelement t
@@ -9,7 +9,7 @@ left join ds_mysql_prod_tagelement t2
 on t1.parent=t2.id*/
 left join profile_27489 q on
 split_part(prod.name,'|',3)=q.name
-group by prod.name, t.name,q.state,p.hdfc_cost_monthly
+group by prod.name, t.name,q.state
 
 
 /*with x as (select name as Project_code from profile_27396 
