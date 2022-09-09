@@ -37,4 +37,21 @@ from tab4 t
 left join tab3 t1 on
 t.CODE=t1.CODE)/*calculate allocated amount as (monthly_cost/no.ofvillages) +hdfccost
 from tab4*/
-select * from tab5
+
+tab6 as ( select split_part(split_part(p1.name,'|',1),'.',1) as projectcode,
+f.name as fy_timerange, concat(projectcode,fy_timerange) as CODE, count(distinct p1.name) as no_of_projects, count(distinct p1.ngo_partner) as no_of_implementing_agencies
+from profile_27396 p1
+left join ds_mysql_prod_tagelement f on
+p1.fy=f.id
+	group by p1.name,2
+		union all
+select split_part(split_part(split_part(p3.name,'|',1),'.',1),' ',1 ) as projectcode,
+f.name as fy_timerange,concat(projectcode,fy_timerange) as CODE,count(distinct p3.name) as no_of_projects, count(distinct p3.ngo) as no_of_implementing_agencies
+from profile_27420 p3
+left join ds_mysql_prod_tagelement f on
+p3.fy=f.id 
+group by p3.name,2)
+select  t.village,t.state,t.district,t.number_of_villages,t.c indirect,t.censuscode,
+t.d as direct,t.CODE,t.fy_timerange,t.projectcode,tab6.no_of_projects,tab6.no_of_implementing_agencies,t.total as Allocated_amount
+from tab5 t
+left join tab6 on t.CODE=tab6.CODE
