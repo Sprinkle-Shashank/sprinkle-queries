@@ -15,7 +15,7 @@ p1.project_manager=m.id
 	group by 1,2,3,4,6,8,9,10,11
 union all
 select split_part(split_part(split_part(p3.name,'|',1),'.',1),' ',1 ) as projectcode,
-f.name as fy_timerange, p3.name_project,sum(p3.curr_yr_budget) as curr_yr_budget1,
+f.name as fy_timerange, p3.name_project,sum(p3.curr_yr_budget) as curr_yr_budget,
 concat(projectcode,fy_timerange) as CODE,p3.ngo as ImplementingAgency,p3.int_type_calc2 as interventiontype,p3.focus_area as CoreArea ,
 concat(concat(split_part(p3.start_date,' ',1),' to '), split_part(p3.end_date,' ',1)) as duration,m.name as project_manager
 from profile_27420 p3
@@ -23,7 +23,7 @@ left join ds_mysql_prod_tagelement f on
 p3.fy=f.id 
 left join ds_mysql_prod_tagelement m on
 p3.project_manager=m.id
-group by 1,2,3,4,6,8,9,10,11), /*data req from 27396 and 27420*/
+group by 1,2,3,5,6,7,8,9,10), /*data req from 27396 and 27420*/
 
 /*tabforstate as(select tab1.*, s.name as state
 		from tab1
@@ -59,14 +59,19 @@ on p.month_number=t1.id
 left join ds_mysql_prod_tagelement t2
 on t1.parent=t2.id*/
 group by 1,2,3,4,5,6,8/*data required from 29974*/
- )
+ ),
+ 
+ 
+ tab4 as (select  tab1.CODE, case tab1.interventiontype when 'Indirect' then (tab3.hdfc_cost_monthly+ tab2.monthly_cost ) else tab1.curr_yr_budget end as allocatedamounttotal),/*,case tab1.interventiontype when 'Indirect' and tab2.month in ('April','May','June') then 'Quarter'*/
+		 )
 
 select tab1.projectcode,tab1.fy_timerange,tab1.name_project, tab1.curr_yr_budget,
 tab1.CODE,tab1.ImplementingAgency,tab1.interventiontype,tab1.CoreArea , tab1.duration,tab1.project_manager, count(distinct(tab3.censuscode)) as numberofvillages,tab3.state ,count(distinct(tab3.district)) as districtcount
 from tab1
 left join tab3 
-on tab1.CODE=tab3.CODE group by
-tab1.projectcode,tab1.fy_timerange,tab1.name_project, tab1.curr_yr_budget,
+on tab1.CODE=tab3.CODE
+left join tab4 on tab1.CODE=tab4.CODE
+group by tab1.projectcode,tab1.fy_timerange,tab1.name_project, tab1.curr_yr_budget,
 tab1.CODE,tab1.ImplementingAgency,tab1.interventiontype,tab1.CoreArea ,tab1.duration,tab1.project_manager,tab3.state
 			
 
