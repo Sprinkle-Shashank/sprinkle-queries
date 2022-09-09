@@ -1,0 +1,90 @@
+with table1 as
+( select p.projectId as project,p._id , fac.name as factory,ven.name as vendor1,nvl2(SUBSTRING(vendor1, 1, POSITION(' (' in vendor1)), SUBSTRING(vendor1, 1, POSITION(' (' in vendor1)), vendor1) as vendor_name, case when vendor_name='' then vendor1 else vendor_name end as vendor,cou.name as country,case when country in ('India', 'Bangladesh', 'Sri Lanka')
+then 'South Asia'
+when country in ('China')
+then 'North Asia'
+when country in ('Guatemala', 'El Salvador', 'Dominican Republic')
+then 'Americas'
+when country in ('Philippines', 'Cambodia',  'Vietnam',  'Indonesia', 'Myanmar')
+then 'South East Asia'
+end as region,f_y.name as year_update,mth.name as month_name,p.sustainability_rating
+ 
+ , sta.name as factory_status
+			   
+from profile_31726 p
+   
+left join ds_mysql_prod_project fac
+on p.projectid = fac.id
+ 
+left join ds_mysql_prod_project ven
+on fac.parent = ven.id
+ 
+left join ds_mysql_prod_project cou
+on ven.parent = cou.id			   
+
+left join ds_mysql_prod_tagelement f_y
+on p.fy = f_y.id
+ 
+left join ds_mysql_prod_tagelement mth
+on p.month = mth.id 
+ 
+left join ds_mysql_prod_tagelement sta
+on p.status = sta.id 
+
+where factory_status is null and sustainability_rating is not null
+ ),
+ 
+ table6 as
+ (
+   select p.* , row_number() over 
+(partition by p.project 
+ order by p._id desc)
+as row	, 1 as count_value from table1 as p
+   ),
+ 
+ table2 as
+ (
+ select * from table6 where row=1
+  ),
+  
+  table3 as
+  ( select p.projectid , DATEPART(YEAR,createddate) as year_new, sta.name as status_update , case when status_update is null then '0' else status_update end as status_update_new ,  fac.name as factory,ven.name as vendor1,nvl2(SUBSTRING(vendor1, 1, POSITION(' (' in vendor1)), SUBSTRING(vendor1, 1, POSITION(' (' in vendor1)), vendor1) as vendor_name, case when vendor_name='' then vendor1 else vendor_name end as vendor,cou.name as country ,  row_number() over 
+(partition by p.projectid 
+ order by p._id desc)
+as row	, 1 as count_value from profile_16619 as p
+  
+  left join ds_mysql_prod_tagelement sta
+  on p.status = sta.id 
+   
+left join ds_mysql_prod_project fac
+on p.projectid = fac.id
+ 
+left join ds_mysql_prod_project ven
+on fac.parent = ven.id
+ 
+left join ds_mysql_prod_project cou
+on ven.parent = cou.id		
+  ),
+  
+  table8 as
+  ( 
+	select * from table3 where row=1 
+   ),
+  
+  
+  table4 as
+(
+	select  project, p.factory, p.vendor , p.country, region , year_update, month_name , sustainability_rating , t3.year_new ,       t3.status_update_new  , 
+case when (sustainability_rating >0 and sustainability_rating <=64) then 'RED' 
+  when (sustainability_rating >=65 and sustainability_rating <=85) then 'YELLOW' 
+ when (sustainability_rating >=86) then 'GREEN' end as Dimension
+	
+from table2 as p
+	
+left join table8 t3 on
+p.project = t3.projectid 
+	
+where p.country != 'Test Country' and (t3.status_update_new = 'Completed' or t3.status_update_new = '0')
+)
+   
+   select * from table4
