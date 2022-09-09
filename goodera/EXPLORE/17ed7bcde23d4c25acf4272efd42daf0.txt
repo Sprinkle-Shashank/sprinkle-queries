@@ -10,12 +10,12 @@ p.xprojectid = pro.id
 left join ds_mysql_prod_project cou on 
 pro.parent = cou.id
 
-where keyword in ('total_energy_auto','total_energy_consumption_2122onwards') 
+where keyword in ('total_energy_auto','total_energy_consumption_2122onwards','total_energy_consumption2223') 
 
 order by fy_timerange asc
   
 ) PIVOT (
-   sum(datanum) FOR keyword IN ('total_energy_auto','total_energy_consumption_2122onwards')
+   sum(datanum) FOR keyword IN ('total_energy_auto','total_energy_consumption_2122onwards','total_energy_consumption2223')
 ) 
 				),
 				table2 as (
@@ -32,7 +32,8 @@ start+1 as end1,
 concat(start,'-04-01T00:00:00.000Z') as start1,
 concat(end1,'-03-31T00:00:00.000Z') as end2,
 concat(concat(concat(concat('{"start":"',start1),'","end":"'),end2),'"}') as fy_1,
-case when start >= 2021 then  total_energy_consumption_2122onwards
+case when start = 2021 then  total_energy_consumption_2122onwards
+	 when start >= 2022 then total_energy_consumption2223			  
 	 else total_energy_auto			  
 	 end as total_energy1				  
 				  
@@ -50,7 +51,7 @@ select country,name,fy_timerange,total_energy,lag(total_energy,1) over (partitio
 	order by fy_timerange asc limit 1) as base_value*/,(prev_energy-total_energy)*100.0/prev_energy as per  from table3 
 
 
---select * from table3
+
 
 
 
