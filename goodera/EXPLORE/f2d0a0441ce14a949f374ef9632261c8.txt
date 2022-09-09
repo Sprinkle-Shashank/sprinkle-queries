@@ -1,144 +1,72 @@
-with tab1 as (select split_part(split_part(p1.name,'|',1),'.',1) as projectcode,
-f.name as fy_timerange, sum(p1.curr_yr_budget) curr_yr_budget,p8.name as interventiontype,
-concat(projectcode,fy_timerange) as CODE
+with tab1 as(select split_part(split_part(p1.name,'|',1),'.',1) as projectcode,
+f.name as fy_timerange,p1.name_project, sum(p1.curr_yr_budget) as curr_yr_budget,
+concat(projectcode,fy_timerange) as CODE,p7.name as ImplementingAgency,p8.name as interventiontype,p10.name as CoreArea , concat(concat(split_part(p1.start_date,' ',1),' to '), split_part(p1.end_date,' ',1)) as duration,m.name as project_manager,substring(p1.submission_date,6,2) as months
 from profile_27396 p1
 left join ds_mysql_prod_tagelement f on
 p1.fy=f.id
+left join profile_27395 p7
+on p7._id=p1.ngo_partner
 left join profile_28235 p8
 on p8._id=p1.intervention_type
-
-group by p1.name,2,4
+left join ds_mysql_prod_tagelement p10
+on p10.id=p1.focus_area
+left join ds_mysql_prod_tagelement m on
+p1.project_manager=m.id
+	group by 1,2,3,4,6,8,9,10,11,12)
 union all
 select split_part(split_part(split_part(p3.name,'|',1),'.',1),' ',1 ) as projectcode,
-f.name as fy_timerange, sum(p3.curr_yr_budget) as curr_yr_budget1,p3.int_type_calc2 as interventiontype,
-concat(projectcode,fy_timerange) as CODE
+f.name as fy_timerange, p3.name_project,sum(p3.curr_yr_budget) as curr_yr_budget1,
+concat(projectcode,fy_timerange) as CODE,p3.ngo as ImplementingAgency,p3.int_type_calc2 as interventiontype,p3.focus_area as CoreArea ,
+concat(concat(split_part(p3.start_date,' ',1),' to '), split_part(p3.end_date,' ',1)) as duration,m.name as project_manager,substring(p3.submission_date,6,2) as months1
 from profile_27420 p3
 left join ds_mysql_prod_tagelement f on
 p3.fy=f.id 
-
-group by p3.name,2,4),
-
-
-tab2 as (select split_part(split_part(prod.name,'|',1),'.',1) as projectcode,
-f.name as fy_timerange, 'Indirect' interventiontype,
-concat(projectcode,fy_timerange) as CODE,
-		sum( case p2.hdfc_cost_monthly when null then 0
-		 else p2.hdfc_cost_monthly end) as finalhdfc_cost_monthly
-from profile_29974 p2
-left join ds_mysql_prod_project prod
-on prod.id=p2.projectid
-left join ds_mysql_prod_tagelement f on
-p2.fy=f.id
-
-group by 1,2,3),
-
-
-tab3 as (select split_part(split_part(prod.name,'|',1),'.',1) as projectcode,
-f.name as fy_timerange, 'Indirect' interventiontype,
-concat(projectcode,fy_timerange) as CODE,sum( case p6.monthly_cost when null then 0
-		 else p6.monthly_cost end) as finalmonthly_cost
-from profile_30171 p6
-left join ds_mysql_prod_project prod
-on prod.id=p6.projectid
-left join ds_mysql_prod_tagelement f on
-p6.fy=f.id
-
-group by 1,2,3),
-
-
-		 
-finaltab as (Select tab1.CODE c1, '0' as c2, tab1.interventiontype, 
-case  
-when  tab1.interventiontype='Indirect - Others' 
-then tab1.curr_yr_budget
-when tab1.interventiontype='Direct' 
-then tab1.curr_yr_budget end as AllocatedAmount, tab1.fy_timerange
-from tab1
-union all
- select '0' as c1,  tab2.CODE c2,tab2.interventiontype,
- case 
-when tab2.interventiontype='Indirect'
-then (tab2.finalhdfc_cost_monthly+tab3.finalmonthly_cost)  
-end as AllocatedAmount, 
-tab2.fy_timerange 
-from tab2 
-left join tab3 on tab2.CODE=tab3.CODE
-			
-			)
-select * from finaltab
-			/*with tab1 as(select split_part(split_part(prod.name,'|',1),'.',1) as projectcode,t.name as fy_timerange,t2.name as Quarter,concat(projectcode,fy_timerange) as CODE,split_part(prod.name,'|',3) as censuscode,q.village,sum(p.hdfc_cost_monthly) as hdfc_cost from profile_29974 p
-left join ds_mysql_prod_project prod on
-prod.id=p.projectid
-left join ds_mysql_prod_tagelement t
-on p.fy=t.id
-left join ds_mysql_prod_tagelement t1
-on p.month_number=t1.id
-left join ds_mysql_prod_tagelement t2
-on t1.parent=t2.id
-left join profile_27489 q on
-split_part(prod.name,'|',3)=q.name
-group by 1,2,3,4,5,6),
-tab2 as(select split_part(split_part(prod.name,'|',1),'.',1) as projectcode,t.name as fy_timerange,t2.name as Quarter,concat(projectcode,fy_timerange) as CODE,sum(p.monthly_cost) as monthlycost  from profile_30171 p
-left join ds_mysql_prod_project prod on
-prod.id=p.projectid
-left join ds_mysql_prod_tagelement t
-on p.fy=t.id
-left join ds_mysql_prod_tagelement t1
-on p.month_number=t1.id
-left join ds_mysql_prod_tagelement t2
-on t1.parent=t2.id
-group by 1,2,3,4),
-
-tab3 as(select t.projectcode,t.fy_timerange,t.Quarter,t.hdfc_cost a,t1.monthlycost b,t.CODE,t.censuscode,t.village from tab1 t
-left join tab2 t1 on
-t.CODE=t1.CODE and t.Quarter=t1.Quarter),
-
-tab4 as(select count(distinct(t1.censuscode)) as number_of_villages,t.fy_timerange,t.projectcode,t.CODE,t.Quarter from tab1 t
-left join tab3 t1 on
-t.CODE=t1.CODE  and t.Quarter=t1.Quarter
-group by t.fy_timerange,t.CODE,t.Quarter,t.projectcode),
-
-tab5 as(select t.fy_timerange,t.projectcode,t.CODE,t.Quarter,t1.village,t1.b c,t1.a d,c+d total,t.number_of_villages
-from tab4 t
-left join tab3 t1 on
-t.CODE=t1.CODE and t.Quarter=t1.Quarter),/*allocated amount quarter wise*/
-
-tab6 as(select substring(p.submission_date,6,2) as months,t5.name as fy_timerange,(t.name) as response,case when response='Yes' then split_part(t2.name,'[',1)  when response ='No' then t3.name end as projectcode,case when response='Yes' then m.name when response ='No' then n.name end as project_manager,case when p.payment_amount is null then 0 else p.payment_amount  end as Amount_Disbursed,RTRIM(projectcode)||fy_timerange as CODE from profile_27398 p
-left join ds_mysql_prod_tagelement t
-on p.renewal=t.id
-left join profile_27396 t3 on
-p.project_name=t3._id
-left join profile_27420 t2 on
-p.project_renew=t2._id
-left join ds_mysql_prod_tagelement n on
-t3.project_manager=n.id
 left join ds_mysql_prod_tagelement m on
-t2.project_manager=m.id
-left join ds_mysql_prod_tagelement t4
-on p.tranche=t4.id
-left join ds_mysql_prod_tagelement t5
-on p.fy=t5.id
-where response is not null)
+p3.project_manager=m.id
+group by 1,2,3,4,6,8,9,10,11,12)),
 
-select t.fy_timerange,t.projectcode,t.Quarter,t.total as Allocated_amount,t.number_of_villages, t.village,t2.project_manager,(t2.Amount_Disbursed) Amount_Disbursed,t.CODE, 
-case 
-when t2.months='01' then 'Quarter 4' 
-when t2.months='02' then 'Quarter 4' 
-when t2.months='03' then 'Quarter 4' 
-when t2.months='04' then 'Quarter 1' 
-when t2.months='05' then 'Quarter 1' 
-when t2.months='06' then 'Quarter 1' 
-when t2.months='07' then 'Quarter 2' 
-when t2.months='08' then 'Quarter 2' 
-when t2.months='09' then 'Quarter 2' 
-when t2.months=10 then 'Quarter 3' 
-when t2.months=11 then 'Quarter 3' 
-when t2.months=12 then 'Quarter 3' 
+/*tabforstate as(select tab1.*, s.name as state
+		from tab1
+left join profile_27396 p1
+on split_part(split_part(p1.name,'|',1),'.',1)  =tab1.projectcode
+left join ds_mysql_prod_tagelement s
+on s.id=RTRIM(LTRIM(cast( p1.state as varchar),'['),']') )
 
-end as Q
+select * from tabforstate*/
+tab2 as (select split_part(split_part(prod.name,'|',1),'.',1) as projectcode,t.name as fy_timerange,t2.name as Quarter,concat(projectcode,fy_timerange) as CODE,sum(p.monthly_cost) as monthlycost  from profile_30171 p
+left join ds_mysql_prod_project prod on
+prod.id=p.projectid
+left join ds_mysql_prod_tagelement t
+on p.fy=t.id
+left join ds_mysql_prod_tagelement t1
+on p.month_number=t1.id
+left join ds_mysql_prod_tagelement t2
+on t1.parent=t2.id
+group by 1,2,3,4)
 
-from tab5 t
-left join tab6 t2 on
-t.CODE=t2.CODE
-where t.Quarter=Q*/
+
+tab3 as (select split_part(split_part(prod.name,'|',1),'.',1) as projectcode,t.name as fy_timerange,concat(projectcode,fy_timerange) as CODE, split_part(prod.name,'|',3) as censuscode,
+q.state,q.district,sum(p.hdfc_cost_monthly),t2.name as Quarter		 from profile_29974 p
+left join ds_mysql_prod_project prod on
+prod.id=p.projectid
+left join ds_mysql_prod_tagelement t
+on p.fy=t.id
+ left join profile_27489 q on
+split_part(prod.name,'|',3)=q.name
+left join ds_mysql_prod_tagelement t1
+on p.month_number=t1.id
+left join ds_mysql_prod_tagelement t2
+on t1.parent=t2.id
+group by 1,2,3,4,5,6,8
+ )
+
+select tab1.projectcode,tab1.fy_timerange,tab1.name_project, tab1.curr_yr_budget,
+tab1.CODE,tab1.ImplementingAgency,tab1.interventiontype,tab1.CoreArea , tab1.duration,tab1.project_manager, count(distinct(tab3.censuscode)) as numberofvillages,tab3.state ,count(distinct(tab3.district)) as districtcount
+from tab1
+left join tab3 
+on tab1.CODE=tab3.CODE group by
+tab1.projectcode,tab1.fy_timerange,tab1.name_project, tab1.curr_yr_budget,
+tab1.CODE,tab1.ImplementingAgency,tab1.interventiontype,tab1.CoreArea ,tab1.duration,tab1.project_manager,tab3.state
+			
+
 
