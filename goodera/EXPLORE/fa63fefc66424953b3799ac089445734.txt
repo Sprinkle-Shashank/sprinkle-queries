@@ -32,11 +32,14 @@ on s.id=RTRIM(LTRIM(cast( p1.state as varchar),'['),']') )
 
 select * from tab2*/
 
-tab3 as (select split_part(split_part(prod.name,'|',1),'.',1) as projectcode,t.name as fy_timerange,concat(projectcode,fy_timerange) as CODE, split_part(prod.name,'|',3) as numofVillages from profile_29974 p
+tab3 as (select split_part(split_part(prod.name,'|',1),'.',1) as projectcode,t.name as fy_timerange,concat(projectcode,fy_timerange) as CODE, split_part(prod.name,'|',3) as censuscode,
+q.state,q.district		 from profile_29974 p
 left join ds_mysql_prod_project prod on
 prod.id=p.projectid
 left join ds_mysql_prod_tagelement t
 on p.fy=t.id
+ left join profile_27489 q on
+split_part(prod.name,'|',3)=q.name
 /*left join ds_mysql_prod_tagelement t1
 on p.month_number=t1.id
 left join ds_mysql_prod_tagelement t2
@@ -45,12 +48,12 @@ on t1.parent=t2.id*/
  )
 
 select tab1.projectcode,tab1.fy_timerange,tab1.name_project, tab1.curr_yr_budget,
-tab1.CODE,tab1.ImplementingAgency,tab1.interventiontype,tab1.CoreArea , tab1.duration,tab1.project_manager, count(distinct(tab3.numofVillages)) as numberofvillages
+tab1.CODE,tab1.ImplementingAgency,tab1.interventiontype,tab1.CoreArea , tab1.duration,tab1.project_manager, count(distinct(tab3.censuscode)) as numberofvillages,tab3.state ,count(distinct(tab3.district))
 from tab1
 left join tab3 
 on tab1.CODE=tab3.CODE group by
 tab1.projectcode,tab1.fy_timerange,tab1.name_project, tab1.curr_yr_budget,
-tab1.CODE,tab1.ImplementingAgency,tab1.interventiontype,tab1.CoreArea ,tab1.duration,tab1.project_manager
+tab1.CODE,tab1.ImplementingAgency,tab1.interventiontype,tab1.CoreArea ,tab1.duration,tab1.project_manager,tab3.state
 
 /*count(distinct (q.district)) as numofdistricts,q.state,tab3.numofdistricts,tab3.state,left join profile_27489 q on
 split_part(prod.name,'|',3)=q.name*/
