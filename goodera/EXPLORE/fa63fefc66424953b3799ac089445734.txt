@@ -23,17 +23,19 @@ p3.fy=f.id
 left join ds_mysql_prod_tagelement m on
 p3.project_manager=m.id),
 
-/*tab2 as(select tab1.*, s.name as state
+/*tabforstate as(select tab1.*, s.name as state
 		from tab1
 left join profile_27396 p1
 on split_part(split_part(p1.name,'|',1),'.',1)  =tab1.projectcode
 left join ds_mysql_prod_tagelement s
 on s.id=RTRIM(LTRIM(cast( p1.state as varchar),'['),']') )
 
-select * from tab2*/
+select * from tabforstate*/
+tab2 as (select split_part(split_part(prod.name,'|',1),'.',1) as projectcode,t.name as fy_timerange,concat(projectcode,fy_timerange) as CODE,)
+
 
 tab3 as (select split_part(split_part(prod.name,'|',1),'.',1) as projectcode,t.name as fy_timerange,concat(projectcode,fy_timerange) as CODE, split_part(prod.name,'|',3) as censuscode,
-q.state,q.district		 from profile_29974 p
+q.state,q.district,p.hdfc_cost_monthly		 from profile_29974 p
 left join ds_mysql_prod_project prod on
 prod.id=p.projectid
 left join ds_mysql_prod_tagelement t
@@ -55,8 +57,7 @@ on tab1.CODE=tab3.CODE group by
 tab1.projectcode,tab1.fy_timerange,tab1.name_project, tab1.curr_yr_budget,
 tab1.CODE,tab1.ImplementingAgency,tab1.interventiontype,tab1.CoreArea ,tab1.duration,tab1.project_manager,tab3.state
 
-/*count(distinct (q.district)) as numofdistricts,q.state,tab3.numofdistricts,tab3.state,left join profile_27489 q on
-split_part(prod.name,'|',3)=q.name*/
+
 
 
 /*with tab1 as(select split_part(split_part(prod.name,'|',1),'.',1) as projectcode,t.name as fy_timerange,concat(projectcode,fy_timerange) as CODE,split_part(prod.name,'|',3) as censuscode,q.village,q.state,q.district,sum(case p.hdfc_cost_monthly when null then 0 else p.hdfc_cost_monthly end) as hdfc_cost from profile_29974 p
