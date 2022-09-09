@@ -1,0 +1,15 @@
+Select t2.name as fy_timerange,(t.name) as response,case when response='Yes' then split_part(p3.name,'[',1)  when response ='No' then p2.name end as projectcode,case when response='Yes' then m.name when response ='No' then n.name end as first_level_manager,case when response = 'Yes' then p1.int_type_renew when response = 'No' then p1.int_type_pgd end as intervention_type,
+case when p1.payment_amount is null then 0 else p1.payment_amount  end as Amount_Disbursed,RTRIM(projectcode)||fy_timerange as CODE from profile_27398 p1
+left join ds_mysql_prod_tagelement t
+on p1.renewal=t.id
+left join profile_27396 p2 on
+p1.project_name=p2._id
+left join profile_27420 p3 on
+p1.project_renew=p3._id
+left join ds_mysql_prod_tagelement n on
+p2.project_manager=n.id
+left join ds_mysql_prod_tagelement m on
+p3.project_manager=m.id
+left join ds_mysql_prod_tagelement t2
+on p1.fy=t2.id
+where response is not null
