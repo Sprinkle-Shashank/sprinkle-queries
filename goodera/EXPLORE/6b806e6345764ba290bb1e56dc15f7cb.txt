@@ -32,10 +32,10 @@ left join ds_mysql_prod_tagelement t3 on
 p.month=t3.id
 group by 1,2,3,5,6),
 
-tab3 as(Select t.projectcode as projectcode,t.fy_timerange fy,t.quarter Quarter,t.CODE as CODE,(t.hdfc_cost+t1.monthlycost) as Allocated,t.village Village,t.state State
+tab3 as(Select t.projectcode as projectcode,t.fy_timerange fy,t.quarter Quarter,t.month as Month,t.CODE as CODE,(t.hdfc_cost+t1.monthlycost) as Allocated,t.village Village,t.state State
 from tab1 t
 left join tab2 t1 on
-t.CODE=t1.CODE and t.Quarter=t1.Quarter),
+t.CODE=t1.CODE and t.Quarter=t1.Quarter and t.month=t1.month),
 
 tab4 as(select p1.name as projectcode ,sum(d.payment_amount) as DisbursedAmount,sum(d.amnt_utlzd) as Utilized,f.name  as financial_year,concat(projectcode,financial_year) as CODE,t3.name as Core_Ares,t4.name as ProjectManager,p6.name as Intervention_Type,p7.name as Ngo_Partner,
 case 
@@ -51,7 +51,22 @@ when substring(d.submission_date,6,2)='09' then 'Quarter 2'
 when substring(d.submission_date,6,2)=10 then 'Quarter 3' 
 when substring(d.submission_date,6,2)=11 then 'Quarter 3' 
 when substring(d.submission_date,6,2)=12 then 'Quarter 3' 
-end as Quarter
+end as Quarter,
+
+case 
+when substring(d.submission_date,6,2)='01' then 'January' 
+when substring(d.submission_date,6,2)='02' then 'February' 
+when substring(d.submission_date,6,2)='03' then 'March' 
+when substring(d.submission_date,6,2)='04' then 'April' 
+when substring(d.submission_date,6,2)='05' then 'May' 
+when substring(d.submission_date,6,2)='06' then 'June' 
+when substring(d.submission_date,6,2)='07' then 'July' 
+when substring(d.submission_date,6,2)='08' then 'August' 
+when substring(d.submission_date,6,2)='09' then 'September' 
+when substring(d.submission_date,6,2)=10 then 'October' 
+when substring(d.submission_date,6,2)=11 then 'November' 
+when substring(d.submission_date,6,2)=12 then 'December' 
+end as Month
 
 from profile_27396 p1
 left join profile_27398 d on
@@ -66,9 +81,9 @@ left join profile_28235 p6
 on p1.intervention_type=p6._id
 left join profile_27395 p7
 on p1.ngo_partner=p7._id
-group by f.name,p1.name,t3.name,t4.name,P6.NAME,P7.NAME,Quarter)
+group by f.name,p1.name,t3.name,t4.name,P6.NAME,P7.NAME,Quarter,Month)
 
-Select t1.projectcode,t1.fy,t1.Quarter,t1.Allocated,t1.Village,t1.State,
+Select t1.projectcode,t1.fy,t1.Quarter,t1.Month,t1.Allocated,t1.Village,t1.State,
 case 
 when t2.DisbursedAmount is null then 0 
 else t2.DisbursedAmount 
@@ -83,3 +98,4 @@ From tab3 t1
 left join tab4 t2
 on t1.CODE=t2.CODE
 where t1.Quarter=t2.Quarter
+and t1.Month=t2.Month
