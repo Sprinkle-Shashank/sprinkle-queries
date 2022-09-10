@@ -1,0 +1,128 @@
+with table12 as
+ ( 
+  select p.projectid , p._id , cast(d1 as varchar) as d1_update , cast(d2 as varchar) as d2_update , cast(d3 as varchar) as d3_update from profile_16619 as p,p.trainer as d1, p.trainer_2 as d2 ,  p.trainer_3 as d3 
+ ),
+ 
+ table14 as
+ (
+ select p.projectid , p._id , p.d1_update , p1.name as name_update, p2.name as name_update_2 , p3.name as name_update_3  , ROW_NUMBER() over (order by p.projectid ) as row, 1 as count from table12 as p
+   
+left join profile_17028 p1
+on p.d1_update= p1._id
+   
+left join profile_17028 p2
+on p.d2_update= p2._id
+   
+left join profile_17028 p3
+on p.d3_update= p3._id
+),
+
+table15 as
+( select * from table14 where row=1 ),
+
+
+table16 as
+(
+  select p.projectid , p._id , ROW_NUMBER() over (order by p.projectid ) as row , total_Workers , sustainability_rating from profile_31726 as p 
+),
+
+table17 as
+(
+ select * from table16 where row=1 
+ ),
+ 
+table18 as 
+(
+select p.projectid, p.facility_status , facility.name as facility_status_update , case when facility_status_update='Active' then 'Active' else 'Deactive' end as Active_Filter , goodera_facility_name_text from profile_68161 as p
+  
+left join ds_mysql_prod_tagelement facility 
+on p.facility_status = facility.id
+),
+
+
+ table11 as
+(
+SELECT * 
+FROM (SELECT p.projectid , p._id , p.date, p.date_2, p.date_3, p.date_4,  p.date_5, p.date_6, p.date_7, p.date_8   FROM profile_16619 p  
+	 ) 
+UNPIVOT (
+    val FOR dim IN ( date, date_2, date_3, date_4,  date_5, date_6, date_7, date_8 )
+)
+),
+
+table21 as
+( select p.*, ROW_NUMBER() over (partition by p.projectid order by p.val desc) as row from table11 as p ),
+
+
+table31 as 
+(
+select p.*, cast(val as date) as  Date_of_latest_assessmentd_done , case when dim='date' then '1'  when dim='date_2' then '2'  when dim='date_3' then '3'  when dim='date_4' then '4'  when dim='date_5' then '5'  when dim='date_6' then '6'  when dim='date_7' then '7'  when dim='date_8' then '8' else '-' end as  Number_of_modules_completed 
+from table21 as p where row=1
+),
+
+
+table1 as
+( select p.projectid , p._id , fac.name as factory , case when nvl2(SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), ven.name)='' then ven.name else nvl2(SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), ven.name) end as vendor , cou.name as country , p1.factory_id
+ , p2.vpid as vendor_id , 
+ coalesce(sta.name,'0') as status_update , 
+
+ cast(p.date_enrollment as date) as date_enrollment_update , cast(p.date_completion as date) as date_completion_update , 
+ 
+ case when status_update='0' and date_enrollment is not null and date_completion is null then 'Ongoing'  when status_update='0' and date_enrollment is not null and date_completion is not null then 'completed' else status_update end as wcp_status , sub.name as sub_unit_update , case when sub_unit_update is not null then sub_unit_update else 'No' end as are_there_multiple  , coalesce(name_subunit,'0') as name_subunit_update , case when name_subunit_update='0' or name_subunit_update is null then 'NA' else name_subunit_update end as name_subunit_update_new , cast(p.modifieddate as date) as last_date_submission , extract(year from date_enrollment_update) as wcp_start_year , wcp_start_year as year_new , date_enrollment_update as WCP_enrollment_date , p.formation as Date_of_formation_of_BC , (worker_rep + mgmt_rep) as Total_number_of_BC_members_enrolled , p3.total_Workers as Total_workforce_represented , p.date as Module_1_training_date ,
+  p4.name_update as Module_1_workplace_trainer , p.total_trained as Module_1_training_participants , p.date_formation as wcp_intervention , (p.worker_rep_absent + p.mgmt_rep_absent) as Total_BC_members_absent , p.remarks as remarks , 
+ 
+ case when (p.worker_rep + p.mgmt_rep)>0 or Total_BC_members_absent is not null then ((p.worker_rep + p.mgmt_rep)/
+(p.worker_rep + p.mgmt_rep+Total_BC_members_absent))*100 end as module_1_attendance_rate 
+ 
+ , p.date_2 as module_2_training_date , p4.name_update_2 as module_2_workplace_trainer, total_trained_2 as module_2_training_participants , (p.worker_rep_absent_2 + p.mgmt_rep_absent_2) as module_2_Total_BC_members_absent
+ , (p.worker_rep_dropped_2 + p.mgmt_rep_dropped_2) as Module_2_Total_number_of_dropped_members , p.remarks_2 as module_2_remarks_2 , 
+ 
+ case when (p.worker_rep_3 + p.mgmt_rep_3)>0 or module_2_Total_BC_members_absent is not null then 
+((p.worker_rep_3 + p.mgmt_rep_3)/(p.worker_rep_3 + p.mgmt_rep_3+module_2_Total_BC_members_absent))*100 end as Module_2_Attendance_Rate 
+
+ 
+, p.date_3 as module_3_training_date , p4.name_update_3 as module_3_workplace_trainer, total_trained_3 as module_3_training_participants , (p.worker_rep_absent_3 + p.mgmt_rep_absent_3) as module_3_Total_BC_members_absent
+ , (p.worker_rep_dropped_3 + p.mgmt_rep_dropped_3) as Module_3_Total_number_of_dropped_members , p.remarks_3 as module_3_remarks_3 , 
+ 
+ case when (p.worker_rep_4 + p.mgmt_rep_4)>0 or module_3_Total_BC_members_absent is not null then 
+((p.worker_rep_4 + p.mgmt_rep_4)/(p.worker_rep_4 + p.mgmt_rep_4+module_3_Total_BC_members_absent))*100 end as Module_3_Attendance_Rate
+ 
+, p.date_completion as  WCP_End_date , p3.sustainability_rating as Current_sustainability_score , t18.active_filter
+ 
+from profile_16619 as p 
+
+left join ds_mysql_prod_project fac
+on  p.projectid = fac.id
+
+left join ds_mysql_prod_project ven
+on fac.parent = ven.id
+
+left join ds_mysql_prod_project cou
+on ven.parent = cou.id
+ 
+left join ds_mysql_prod_tagelement sta
+on p.status = sta.id
+
+left join ds_mysql_prod_tagelement sub
+on p.sub_unit = sub.id
+ 
+left join profile_4722 p1 
+on p.projectid = p1.projectid 
+ 
+left join profile_4718 p2 
+on p.projectid = p2.projectid 
+
+left join table17 p3 
+on p.projectid = p3.projectid
+
+left join table15 p4
+on p._id = p4._id
+ 
+left join table18 t18 on 
+fac.name = t18.goodera_facility_name_text
+
+where cou.id != 13761 
+)
+
+select * from table1 as p
+
