@@ -40,9 +40,9 @@ left join ds_mysql_prod_tagelement t4
 on p.tranche=t4.id
 left join ds_mysql_prod_tagelement t5
 on p.fy=t5.id
-where response is not null)
+where response is not null),
 
-select t.fy_timerange,t.projectcode,t.name_project,
+tab3 as (select t.fy_timerange,t.projectcode,t.name_project,
 t.CODE,t.ImplementingAgency,t.interventiontype,t.CoreArea ,t.duration,
 t2.project_manager,t2.submission_date ,t2.tranche,t2.Amount_Disbursed,t2.Amount_not_Utilised,t.CODE, 
 case 
@@ -60,7 +60,14 @@ when t2.months=11 then 'Quarter 3'
 when t2.months=12 then 'Quarter 3' 
 
 end as Quarters
---sum(Allocated_amount) as S1,sum(Amount_Disbursed) as S2, sum(Amount_Utilised) as S3,sum(Balance_amount) as S4
+
 from tab1 t
 left join tab2 t2 on
-t.CODE=t2.CODE
+t.CODE=t2.CODE)
+select tab3.fy_timerange,tab3.projectcode,tab3.name_project,
+tab3.CODE,tab3.ImplementingAgency,tab3.interventiontype,tab3.CoreArea ,tab3.duration,
+tab3.project_manager,tab3.submission_date ,tab3.tranche,tab3.Quarters,tab3.Amount_Disbursed,tab3.Amount_not_Utilised,tab3.CODE, sum(tab3.Amount_Disbursed) as Amount_DisbursedforCurrentFY_total
+from tab3 group by tab3.fy_timerange,tab3.projectcode,tab3.name_project,
+tab3.CODE,tab3.ImplementingAgency,tab3.interventiontype,tab3.CoreArea ,tab3.duration,
+tab3.project_manager,tab3.submission_date ,tab3.tranche,tab3.Quarters,tab3.Amount_Disbursed,tab3.Amount_not_Utilised,tab3.CODE
+
