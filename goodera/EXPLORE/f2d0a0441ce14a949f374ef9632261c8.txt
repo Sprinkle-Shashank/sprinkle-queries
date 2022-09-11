@@ -25,15 +25,66 @@ left join ds_mysql_prod_tagelement m on
 p3.project_manager=m.id
 group by 1,2,3,5,6,7,8,9,10), /*data req from 27396 and 27420*/
 
-/*tabforstate as(select tab1.*, s.name as state
-		from tab1
-left join profile_27396 p1
-on split_part(split_part(p1.name,'|',1),'.',1)  =tab1.projectcode
-left join ds_mysql_prod_tagelement s
-on s.id=RTRIM(LTRIM(cast( p1.state as varchar),'['),']') )
+ temp as(
+  Select 'Q1' as col
+  union all
+    Select 'Q2' as col
+  union all
+    Select 'Q3' as col
+  union all
+    Select 'Q4' as col
+),
+s as(
+select tab1.fy_timerange ,tab1.projectcode ,tab1.name_project, tab1.curr_yr_budget,
+tab1.CODE,tab1.ImplementingAgency,tab1.interventiontype,tab1.CoreArea,tab1.duration,tab1.project_manager,
+case when tab1.interventiontype in ('Direct', 'Indirect - others') then tab1.curr_yr_budget 
+  else 0 
+  end as Totalallocatedamount from tab1),
+  
+s2 as (
+Select s.fy_timerange ,s.projectcode ,s.name_project, s.curr_yr_budget,
+s.CODE,s.ImplementingAgency,s.interventiontype,s.CoreArea,s.duration,s.project_manager,temp.col as quarter,
+sum(case col 
+    when 'Q1' then s.Totalallocatedamount/4
+    when 'Q2' then s.Totalallocatedamount/4
+    when 'Q3' then s.Totalallocatedamount/4
+    when 'Q4' then s.Totalallocatedamount/4
+    else 0
+    end) as AllocatedAmount
+from s
+cross join temp
+group by s.fy_timerange ,s.projectcode ,s.name_project, s.curr_yr_budget,
+s.CODE,s.ImplementingAgency,s.interventiontype,s.CoreArea,s.duration,s.project_manager ,temp.col
+),
+ s1 as (
+  Select s2.fy_timerange ,s2.projectcode ,s2.name_project, s2.curr_yr_budget,
+s2.CODE,s2.ImplementingAgency,s2.interventiontype,s2.CoreArea,s2.duration,s2.project_manager
+Sum(CASE 
+             WHEN quarter = 'Q1' THEN AllocatedAmount
+             ELSE 0 
+           END) AS AllocatedAmountforQ1,
+Sum(CASE 
+             WHEN quarter = 'Q2' THEN AllocatedAmount
+             ELSE 0 
+           END) AS AllocatedAmountforQ2,
+ Sum(CASE 
+             WHEN quarter = 'Q3' THEN AllocatedAmount
+             ELSE 0 
+           END) AS AllocatedAmountforQ3,
+ Sum(CASE 
+             WHEN quarter = 'Q4' THEN AllocatedAmount
+             ELSE 0 
+           END) AS AllocatedAmountforQ4
+           from s2
+group by s2.fy_timerange ,s2.projectcode ,s2.name_project, s2.curr_yr_budget,
+s2.CODE,s2.ImplementingAgency,s2.interventiontype,s2.CoreArea,s2.duration,s2.project_manager
+)       
 
-select * from tabforstate*/
-tab2 as (select split_part(split_part(prod.name,'|',1),'.',1) as projectcode,t.name as fy_timerange,p.month as month,concat(projectcode,fy_timerange) as CODE,sum(p.monthly_cost) as monthly_cost 
+Select s1.fy_timerange ,s1.projectcode ,s1.name_project, s1.curr_yr_budget,
+s1.CODE,s1.ImplementingAgency,s1.interventiontype,s1.CoreArea,s1.duration,s1.project_manager,(AllocatedAmountforQ1+AllocatedAmountforQ2+AllocatedAmountforQ3+AllocatedAmountforQ4) as totalallocatedamount,AllocatedAmountforQ1,AllocatedAmountforQ2,AllocatedAmountforQ3,AllocatedAmountforQ4
+from s1
+
+/*tab2 as (select split_part(split_part(prod.name,'|',1),'.',1) as projectcode,t.name as fy_timerange,p.month as month,concat(projectcode,fy_timerange) as CODE,sum(p.monthly_cost) as monthly_cost 
 		 from profile_30171 p
 left join ds_mysql_prod_project prod on
 prod.id=p.projectid
@@ -74,9 +125,7 @@ when tab1.interventiontype='Direct'
 then tab1.curr_yr_budget end as allocatedamounttotal, '' as month
  from tab1 
 
-		 )
- /*,case tab1.interventiontype when 'Indirect' and tab2.month in ('April','May','June') then 'Quarter'*/
-		 
+		 )	 
 
 select DISTINCT tab1.projectcode,tab1.fy_timerange,tab1.name_project,
 tab1.CODE,tab1.ImplementingAgency,tab1.interventiontype,tab1.CoreArea , tab1.duration,tab1.project_manager, 
@@ -86,7 +135,7 @@ left join tab3
 on tab1.CODE=tab3.CODE
 left join tab4 on tab1.CODE=tab4.CODE
 group by tab1.projectcode,tab1.fy_timerange,tab1.name_project,
-tab1.CODE,tab1.ImplementingAgency,tab1.interventiontype,tab1.CoreArea ,tab1.duration,tab1.project_manager,tab3.state,tab4.allocatedamounttotal
+tab1.CODE,tab1.ImplementingAgency,tab1.interventiontype,tab1.CoreArea ,tab1.duration,tab1.project_manager,tab3.state,tab4.allocatedamounttotal*/
 			
 
 
