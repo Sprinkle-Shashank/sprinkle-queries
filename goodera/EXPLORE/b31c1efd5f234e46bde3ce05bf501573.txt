@@ -1,52 +1,8 @@
-with years as(
-  select '2018' as col
-  union all
-  select '2019' as col
-  union all
-  select '2020' as col
-  union all
-  select '2021' as col
-  union all
-  select '2022' as col
-  union all
-  select '2023' as col
-  union all
-  select '2024' as col
-  union all
-  select '2025' as col),
-  
-sub1 as(
-  select p1.projectid, p1.project_name, t1.name as choose, 'Percentage' as dimensions,
+select p2.name as projectid, p1.project_name, p1.fy_timerange, t1.name as choose, sum(p1.budget_approved) as budget_approved, 'Percentage' as dimensions
 
-case years.col
-	when '2018' then 0
-	when '2019' then 0
-	when '2020' then 0
-	when '2021' then 0
-	when '2022' then 0
-	when '2023' then 0
-	when '2024' then 0
-	when '2025' then 0
-	else NULL
-end as budget_approved,
-  
-case years.col
-	when '2018' then '2018-04-01|2019-04-01'
-	when '2019' then '2019-04-01|2020-04-01'
-	when '2020' then '2020-04-01|2021-04-01'
-	when '2021' then '2021-04-01|2022-04-01'
-	when '2022' then '2022-04-01|2023-04-01'
-	when '2023' then '2023-04-01|2024-04-01'
-	when '2024' then '2024-04-01|2025-04-01'
-	when '2025' then '2025-04-01|2026-04-01'
-	else NULL
-end as fy_timerange
+from profile_41363 p1 
 
-from profile_41363 p1
-cross join years
-
+left join ds_mysql_prod_project p2 on p2.id = p1.projectid
 left join ds_mysql_prod_tagelement t1 on t1.id = p1.project_type
-
-group by p1.project_name, t1.name, years.col, p1.projectid)
-
-select * from sub1
+  
+group by p2.name, p1.project_name, p1.fy_timerange, t1.name
