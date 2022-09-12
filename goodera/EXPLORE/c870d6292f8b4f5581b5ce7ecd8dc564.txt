@@ -13,9 +13,10 @@ with years as(
   union all
   select '2024' as col
   union all
-  select '2025' as col)
+  select '2025' as col),
   
-select p1.project_name, t1.name as choose, years.col as year,
+sub1 as(
+  select p1.project_name, t1.name as choose, years.col as year,
 
 case years.col
 	when '2018' then 0
@@ -34,4 +35,9 @@ cross join years
 
 left join ds_mysql_prod_tagelement t1 on t1.id = p1.project_type
 
-group by p1.project_name, t1.name, years.col
+group by p1.project_name, t1.name, years.col)
+
+---xxx--- ZERO TABLE
+
+select extract(year from cast(p2.fy_timerange.start as DATE)) as year, p2.disbursed
+from profile_79979 p2
