@@ -7,6 +7,50 @@ left join profile_27489 q on
 split_part(prod.name,'|',3)=q.name
 ),/*takes distinct project keyword from 29974 and take its cencus code(2nd and 3rd pipe), and matches it with census code in 27489 and fetches their village, state and district*/
 
+main as (select r.name as fy_timerange, cast((split_part(split_part(prod.name,'|',1),'.',1)) as varchar) as ProjectCode,CONCAT(ProjectCode,fy_timerange) as code from profile_54963 p
+left join ds_mysql_prod_project prod on
+prod.id=p.projectid
+left join ds_mysql_prod_tagelement r on
+r.id=p.fy),
+
+lookup as (select cast(q.name as varchar) as ProjectCode,f.name as fy_timerange,m.name as Project_Manager,CONCAT(ProjectCode,fy_timerange) as code
+from profile_27420 d
+left join ds_mysql_prod_tagelement f on
+d.fy=f.id
+left join ds_mysql_prod_tagelement m on
+d.project_manager=m.id
+left join profile_27396 q on
+d.project_code=q._id
+		   
+union all
+		   
+select cast(c.name as varchar)as ProjectCode,f.name as fy_timerange,m.name as Project_Manager,CONCAT(ProjectCode,fy_timerange) as code 
+from profile_27396 c	
+left join ds_mysql_prod_tagelement f on
+c.fy=f.id
+left join ds_mysql_prod_tagelement m on
+c.project_manager=m.id),
+
+main2 as (
+select b.fy_timerange as fy,q.Project_Manager as level1,b.CODE from main b
+left join lookup q on
+q.code = b.code
+group by b.fy_timerange,q.Project_Manager,b.CODE),
+
+level1tab as (select m.name as level1 ,p.approver as level2,p.name as level1email from profile_27424 p
+left join ds_mysql_prod_tagelement m on
+m.id = p.pm_name),
+
+level2tab as (select m.name as level1 , z.level1 as level2 from profile_27424 p
+left join ds_mysql_prod_tagelement m on
+m.id = p.pm_name
+left join level1tab z on
+z.level1email = p.approver),
+
+new1 as (select p.fy,p.level1,d.level2,p.CODE from main2 p
+left join level2tab d on
+d.level1 = p.level1),
+
 tab2 as(select split_part(split_part(p1.name,'|',1),'.',1) as projectcode,
 f.name as fy_timerange,p1.name_project,
 concat(projectcode,fy_timerange) as CODE,p7.name as ImplementingAgency,p10.name as CoreArea ,m.name as project_manager
@@ -31,5 +75,6 @@ p3.fy=f.id
 left join ds_mysql_prod_tagelement m on
 p3.project_manager=m.id
 )/*fetches project info from 27396 and 27420*/
-Select tab1.*, tab2.* from tab1 
+Select tab1.*, tab2.* , new1.level1 as level1manager, new2.level2 as level2manager from tab1 
 left join tab2 on tab1.CODE=tab2.CODE
+left join new1 on tab1.CODE=new1.CODE
