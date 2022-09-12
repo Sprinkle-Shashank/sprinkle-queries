@@ -63,11 +63,12 @@ sub3 as(
   select extract(year from cast(p3.fy_timerange.start as DATE)) as year,
 sum(p3.csr_spent) as csr_spent
 from profile_80535 p3
-group by 1)
+group by 1),
 
 ---xxx---- CSR SPENT
 
-select s1.project_name, s1.choose, s1.fy_timerange, s1.zeroes, s2.disbursed, s3.csr_spent,
+sub4 as(
+  select s1.project_name, s1.choose, s1.fy_timerange, s1.zeroes, s2.disbursed, s3.csr_spent,
 
 GREATEST(
   nvl(s1.zeroes, s2.disbursed, s3.csr_spent),
@@ -77,4 +78,7 @@ GREATEST(
 from sub1 s1
 
 left join sub2 s2 on s2.year = s1.year
-left join sub3 s3 on s3.year = s1.year
+left join sub3 s3 on s3.year = s1.year)
+
+select project_name, choose, fy_timerange, 'Percentage' as dimensions, total
+from sub4
