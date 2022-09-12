@@ -221,58 +221,7 @@ select * from Goodera
 
 
 
-/*tab2 as (select split_part(split_part(prod.name,'|',1),'.',1) as projectcode,t.name as fy_timerange,p.month as month,concat(projectcode,fy_timerange) as CODE,sum(p.monthly_cost) as monthly_cost 
-		 from profile_30171 p
-left join ds_mysql_prod_project prod on
-prod.id=p.projectid
-left join ds_mysql_prod_tagelement t
-on p.fy=t.id
-/*left join ds_mysql_prod_tagelement t1
-on p.month_number=t1.id
-left join ds_mysql_prod_tagelement t2
-on t1.parent=t2.id*/
-group by 1,2,3,4),/*data required from 30171*/
 
-
-tab3 as (select split_part(split_part(prod.name,'|',1),'.',1) as projectcode,t.name as fy_timerange,concat(projectcode,fy_timerange) as CODE, split_part(prod.name,'|',3) as censuscode,
-q.state,q.district,sum(p.hdfc_cost_monthly) as hdfc_cost_monthly ,p.month as month	 from profile_29974 p
-left join ds_mysql_prod_project prod on
-prod.id=p.projectid
-left join ds_mysql_prod_tagelement t
-on p.fy=t.id
- left join profile_27489 q on
-split_part(prod.name,'|',3)=q.name
-/*left join ds_mysql_prod_tagelement t1
-on p.month_number=t1.id
-left join ds_mysql_prod_tagelement t2
-on t1.parent=t2.id*/
-group by 1,2,3,4,5,6,8/*data required from 29974*/
- ),
- 
- 
- tab4 as (select  tab1.CODE, case tab1.interventiontype when 'Indirect'
- then (tab3.hdfc_cost_monthly+ tab2.monthly_cost )
- end as allocatedamounttotal,tab2.month from tab1
-left join tab2 on tab1.CODE=tab2.CODE
-left join tab3 on tab2.CODE=tab3.CODE and tab2.month=tab3.month
-		  union all
-		  select tab1.CODE,case  when  tab1.interventiontype='Indirect - Others' 
-then tab1.curr_yr_budget
-when tab1.interventiontype='Direct' 
-then tab1.curr_yr_budget end as allocatedamounttotal, '' as month
- from tab1 
-
-		 )	 
-
-select DISTINCT tab1.projectcode,tab1.fy_timerange,tab1.name_project,
-tab1.CODE,tab1.ImplementingAgency,tab1.interventiontype,tab1.CoreArea , tab1.duration,tab1.project_manager, 
-tab4.allocatedamounttotal,count(distinct(tab3.censuscode)) as numberofvillages,tab3.state ,count(distinct(tab3.district)) as districtcount
-from tab1
-left join tab3 
-on tab1.CODE=tab3.CODE
-left join tab4 on tab1.CODE=tab4.CODE
-group by tab1.projectcode,tab1.fy_timerange,tab1.name_project,
-tab1.CODE,tab1.ImplementingAgency,tab1.interventiontype,tab1.CoreArea ,tab1.duration,tab1.project_manager,tab3.state,tab4.allocatedamounttotal*/
 			
 
 
