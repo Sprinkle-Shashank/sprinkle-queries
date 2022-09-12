@@ -1,6 +1,22 @@
 With tab1 as(Select split_part(split_part(prod.name,'|',1),'.',1) as projectcode,
 t.name as fy_timerange,
-concat(projectcode,fy_timerange) as CODE,sum(p.hdfc_cost_monthly) as hdfc_cost,t2.name as Quarter,p1.village,p1.state,t3.name as Month
+concat(projectcode,fy_timerange) as CODE,sum(p.hdfc_cost_monthly) as hdfc_cost,p1.village,p1.state,
+case
+when t2.name='January' then 'Quarter 4'
+when t2.name='February' then 'Quarter 4'
+when t2.name='March' then 'Quarter 4'
+when t2.name='April' then 'Quarter 1'
+when t2.name='May' then 'Quarter 1'
+when t2.name='June' then 'Quarter 1'
+when t2.name='July' then 'Quarter 2'
+when t2.name='August' then 'Quarter 2'
+when t2.name='September' then 'Quarter 2'
+when t2.name='October' then 'Quarter 3'
+when t2.name='November' then 'Quarter 3'
+when t2.name='December' then 'Quarter 3'
+end as Quarter,
+t2.name as Month
+
 from profile_29974 p
 left join ds_mysql_prod_project prod on
 prod.id=p.projectid
@@ -9,33 +25,42 @@ on p.fy=t.id
 left join ds_mysql_prod_tagelement t1
 on p.month_number=t1.id
 left join ds_mysql_prod_tagelement t2
-on t1.parent=t2.id
+on p.month=t2.id
 left join profile_27489 p1 on
 split_part(prod.name,'|',3)=p1.name
-left join ds_mysql_prod_tagelement t3 on
-p.month=t3.id
-group by 1,2,3,5,6,7,8),
+group by 1,2,3,5,6,7),
 
 tab2 as (Select split_part(split_part(prod.name,'|',1),'.',1) as projectcode,
 t.name as fy_timerange,
-concat(projectcode,fy_timerange) as CODE,sum(p.monthly_cost) as monthlycost ,t2.name as Quarter,t3.name as Month
+concat(projectcode,fy_timerange) as CODE,sum(p.monthly_cost) as monthlycost,
+case
+when t1.name='January' then 'Quarter 4'
+when t1.name='February' then 'Quarter 4'
+when t1.name='March' then 'Quarter 4'
+when t1.name='April' then 'Quarter 1'
+when t1.name='May' then 'Quarter 1'
+when t1.name='June' then 'Quarter 1'
+when t1.name='July' then 'Quarter 2'
+when t1.name='August' then 'Quarter 2'
+when t1.name='September' then 'Quarter 2'
+when t1.name='October' then 'Quarter 3'
+when t1.name='November' then 'Quarter 3'
+when t1.name='December' then 'Quarter 3'
+end as Quarter,
+t1.name as Month
 from profile_30171 p
 left join ds_mysql_prod_project prod on
 prod.id=p.projectid
 left join ds_mysql_prod_tagelement t
 on p.fy=t.id
 left join ds_mysql_prod_tagelement t1
-on p.month_number=t1.id
-left join ds_mysql_prod_tagelement t2
-on t1.parent=t2.id
-left join ds_mysql_prod_tagelement t3 on
-p.month=t3.id
+on p.month=t1.id
 group by 1,2,3,5,6),
 
-tab3 as(Select t.projectcode as projectcode,t.fy_timerange fy,t.quarter Quarter,t.month as Month,t.CODE as CODE,(t.hdfc_cost+t1.monthlycost) as Allocated,t.village Village,t.state State
+tab3 as(Select t.projectcode as projectcode,t.fy_timerange fy,t.quarter Quarter,t.Month as Month,t.CODE as CODE,(t.hdfc_cost+t1.monthlycost) as Allocated,t.village Village,t.state State
 from tab1 t
 left join tab2 t1 on
-t.CODE=t1.CODE and t.month=t1.month),
+t.CODE=t1.CODE and t.Month=t1.Month),
 
 tab4 as(select p1.name as projectcode ,sum(d.payment_amount) as DisbursedAmount,sum(d.amnt_utlzd) as Utilized,f.name  as financial_year,concat(projectcode,financial_year) as CODE,t3.name as Core_Ares,t4.name as ProjectManager,p6.name as Intervention_Type,p7.name as Ngo_Partner,
 case 
