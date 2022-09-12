@@ -11,9 +11,10 @@ from profile_77353  p1
 left join ds_mysql_prod_tagelement tag1
 on p1.father_occupation = tag1.id
 left join ds_mysql_prod_tagelement tag2
-on p1.mother_occupation = tag2.id)
+on p1.mother_occupation = tag2.id),
 
-select name_of_the_student,fy_timerange,class,father_occupation,mother_occupation,Mother_earns
+t2 as
+(select name_of_the_student,fy_timerange,class,father_occupation,mother_occupation,Mother_earns
 ,Father_earns,
 case
 when Father_earns=1 and Mother_earns =1 then 'Both'
@@ -21,5 +22,18 @@ when Mother_earns =1 then 'Mother Only'
 when Father_earns =1 then 'Father Only'
 else 'Neither'
 end as No_of_wage_earner
-from t1
+from t1)
+
+select  name_of_the_student,fy_timerange,class,father_occupation,mother_occupation,Mother_earns
+,Father_earns,No_of_wage_earner
+,case
+when No_of_wage_earner ='Both' then 0
+when No_of_wage_earner ='Mother Only' then 1
+when No_of_wage_earner ='Father Only' then 2
+else 3
+end as wage_index
+
+
+from t2
+
 
