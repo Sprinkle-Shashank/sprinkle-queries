@@ -1,6 +1,21 @@
 With tab1 as(Select split_part(split_part(prod.name,'|',1),'.',1) as projectcode,
 t.name as fy_timerange,
-concat(projectcode,fy_timerange) as CODE,sum(p.hdfc_cost_monthly) as hdfc_cost,t2.name as Quarter,p1.village,p1.state
+concat(projectcode,fy_timerange) as CODE,sum(p.hdfc_cost_monthly) as hdfc_cost,p1.village,p1.state,
+case
+when t2.name='January' then 'Quarter 4'
+when t2.name='February' then 'Quarter 4'
+when t2.name='March' then 'Quarter 4'
+when t2.name='April' then 'Quarter 1'
+when t2.name='May' then 'Quarter 1'
+when t2.name='June' then 'Quarter 1'
+when t2.name='July' then 'Quarter 2'
+when t2.name='August' then 'Quarter 2'
+when t2.name='September' then 'Quarter 2'
+when t2.name='October' then 'Quarter 3'
+when t2.name='November' then 'Quarter 3'
+when t2.name='December' then 'Quarter 3'
+end as Quarter
+
 from profile_29974 p
 left join ds_mysql_prod_project prod on
 prod.id=p.projectid
@@ -9,7 +24,7 @@ on p.fy=t.id
 left join ds_mysql_prod_tagelement t1
 on p.month_number=t1.id
 left join ds_mysql_prod_tagelement t2
-on t1.parent=t2.id
+on p.month=t2.id
 left join profile_27489 p1 on
 split_part(prod.name,'|',3)=p1.name
 group by 1,2,3,5,6,7),
