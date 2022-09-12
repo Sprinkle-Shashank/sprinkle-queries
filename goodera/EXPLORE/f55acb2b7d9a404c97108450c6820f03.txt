@@ -1,4 +1,63 @@
-Select split_part(p2.name,'-',1) as Project_code,t1.name as focus_area,p3.name as intervention_type,sum(p2.payment_amount) as Disbursed_Amount,t2.name as Financial_Year,t3.name as Second_Level_Manager 
+with tab1 as
+(Select t2.name as fy_timerange,(t.name) as response,case when response='Yes' then split_part(split_part(p3.name,'[',1),'-',1)  when response ='No' then p2.name end as projectcode,case when response='Yes' then m.name when response ='No' then n.name end as first_level_manager,case when response = 'Yes' then p1.int_type_renew when response = 'No' then p1.int_type_pgd end as intervention_type,case when response = 'Yes' then x.name when response = 'No' then y.name end as focus_area, 
+case when p1.payment_amount is null then 0 else p1.payment_amount  end as Amount_Disbursed,RTRIM(projectcode)||fy_timerange as CODE from profile_27398 p1
+left join ds_mysql_prod_tagelement t
+on p1.renewal=t.id
+left join profile_27396 p2 on
+p1.project_name=p2._id
+left join profile_27420 p3 on
+p1.project_renew=p3._id
+left join ds_mysql_prod_tagelement n on
+p2.project_manager=n.id
+left join ds_mysql_prod_tagelement m on
+p3.project_manager=m.id
+left join ds_mysql_prod_tagelement t2
+on p1.fy=t2.id
+ left join ds_mysql_prod_tagelement x
+ on p3.focus_area = x.id
+ left join ds_mysql_prod_tagelement y
+ on p2.focus_area = y.id
+where response is not null),
+
+tab2 as 
+(Select p1.name as ProjectCode,f.name as fy_timerange,concat(projectcode,fy_timerange) as CODE,p2.name as intervention_type,t1.name as first_level_manager,t2.name as focus_area from profile_27396 p1
+left join profile_28235 p2
+on p1.intervention_type = p2._id 
+left join ds_mysql_prod_tagelement f
+on p1.fy = f.id
+left join ds_mysql_prod_tagelement t1
+on p1.project_manager = t1.id 
+ left join ds_mysql_prod_tagelement t2
+ on p1.focus_area = t2.id 
+union
+select split_part(l.name,'[',1) as ProjectCode,f.name as fy_timerange,concat(projectcode,fy_timerange) as CODE,int_type_calc2 as intervention_type,t1.name as first_level_manager,t2.name as focus_area from profile_27420 p1
+left join profile_27396 l
+on p1.project_code=l._id
+left join ds_mysql_prod_tagelement t1
+on p1.project_manager = t1.id 
+left join ds_mysql_prod_tagelement f
+on p1.fy = f.id
+left join ds_mysql_prod_tagelement t2
+on p1.focus_area = t2.id),
+
+level1tab as (select m.name as level1 ,p.approver as level2,p.name as level1email from profile_27424 p
+left join ds_mysql_prod_tagelement m on
+m.id = p.pm_name),
+
+level2tab as (select m.name as level1 , z.level1 as level2 from profile_27424 p
+left join ds_mysql_prod_tagelement m on
+m.id = p.pm_name
+left join level1tab z on
+z.level1email = p.approver)
+
+Select t.fy_timerange,t.ProjectCode,t.intervention_type,t.Amount_Disbursed,t.first_level_manager,t.response,d.level2
+from tab1 t
+left join tab2 t2
+on t.CODE = t2.CODE
+left join level2tab d
+on d.level1 = t2.first_level_manager
+
+/*Select split_part(p2.name,'-',1) as Project_code,t1.name as focus_area,p3.name as intervention_type,sum(p2.payment_amount) as Disbursed_Amount,t2.name as Financial_Year,t3.name as Second_Level_Manager 
 from profile_27396 p1
 left join profile_27398 p2
 on  p2.project_name = p1._id
@@ -15,7 +74,7 @@ on p1.focus_area = t1.id
 left join ds_mysql_prod_tagelement t2
 on p2.fy = t2.id
 where p3.name = 'Indirect'
-group by t1.name,p3.name,t2.name,p2.name,t3.name
+group by t1.name,p3.name,t2.name,p2.name,t3.name*/
 
 
 /*Select p1.name as Project_code,t1.name as focus_area,p3.name as intervention_type,sum(p2.payment_amount) as Disbursed_Amount,t2.name as Project_Manager,t3.name as Financial_Year 
