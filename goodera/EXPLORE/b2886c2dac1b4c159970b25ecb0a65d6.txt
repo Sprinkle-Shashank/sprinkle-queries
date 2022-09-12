@@ -1,0 +1,40 @@
+with s as 
+(Select 
+data.name as Project_Code,
+case
+	when data.end_date is not null then 'NA'
+    else '-'
+	end as renewed,
+ submissionlog,approvallog,
+data.project_manager as project_manager,
+data.ngo_partner as ngo_partner,ss.monitoring_live
+from ds_mongo_taskresponse 
+left join profile_27396 ss
+on ss.name=data.name
+where profileid=27396
+ 
+),
+
+s2 as (
+Select
+data.name as Project_Code,
+case
+	when data.end_date is not null and data.end_date > CURRENT_DATE||'T00:00:00.000Z' then 'Yes'
+    when data.end_date is not null and data.end_date < CURRENT_DATE||'T00:00:00.000Z' then 'No'
+    else '-'
+  end as renewed,
+   case
+	when data.project_manager is not null then data.project_manager
+	else ''
+	  end as project_manager,
+'' as ngo_partner,sss.monitoring_live
+from ds_mongo_taskresponse 
+left join profile_27420 sss
+on sss.name=data.name
+where profileid=27420
+  
+  
+  
+     
+  
+)
