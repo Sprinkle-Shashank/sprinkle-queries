@@ -82,7 +82,7 @@ s2.CODE,s2.ImplementingAgency,s2.interventiontype,s2.CoreArea,s2.duration,s2.pro
 ) ,  /*allocated amount summary for direct and indirect-others projects*/
 
 
-tab3 as (select split_part(split_part(prod.name,'|',1),'.',1) as projectcode,t.name as fy_timerange,concat(projectcode,fy_timerange) as CODE,sum(p.monthly_cost) as monthly_cost ,
+tab3 as (select split_part(split_part(prod.name,'|',1),'.',1) as projectcode,t.name as fy_timerange,concat(projectcode,fy_timerange) as CODE,sum(case when p.monthly_cost is null then 0 else p.monthly_cost  end) as monthly_cost ,
 		 case when t1.name in('April', 'May', 'June') then 'quarter1'
 		  when t1.name in('July','August','September') then 'quarter2'
 		  when t1.name in('October','November','December') then 'quarter3'
@@ -99,7 +99,7 @@ group by 1,2,3,5),/*data required from 30171*/
 
 
 tab2 as (select split_part(split_part(prod.name,'|',1),'.',1) as projectcode,t.name as fy_timerange,concat(projectcode,fy_timerange) as CODE, split_part(prod.name,'|',3) as censuscode,
-q.state,q.district,sum(p.hdfc_cost_monthly) as hdfc_cost_monthly ,
+q.state,q.district,sum(case when p.hdfc_cost_monthly is null then 0 else p.hdfc_cost_monthly end) as hdfc_cost_monthly ,
 		 case when t1.name in('April', 'May', 'June') then 'quarter1'
 		 when t1.name in('July','August','September') then 'quarter2'
 		 when t1.name in('October','November','December') then 'quarter3'
