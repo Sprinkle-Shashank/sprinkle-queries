@@ -1,4 +1,27 @@
-select split_part(split_part(prod.name,'|',1),'.',1) as projectcode,t.name as fy_timerange,case
+with tab1 as(select split_part(split_part(prod.name,'|',1),'.',1) as projectcode,t.name as fy_timerange,case
+when t2.name='January' then 'Quarter 4'
+when t2.name='February' then 'Quarter 4'
+when t2.name='March' then 'Quarter 4'
+when t2.name='April' then 'Quarter 1'
+when t2.name='May' then 'Quarter 1'
+when t2.name='June' then 'Quarter 1'
+when t2.name='July' then 'Quarter 2'
+when t2.name='August' then 'Quarter 2'
+when t2.name='September' then 'Quarter 2'
+when t2.name='October' then 'Quarter 3'
+when t2.name='November' then 'Quarter 3'
+when t2.name='December' then 'Quarter 3'
+end as Quarter,concat(projectcode,fy_timerange) as CODE,split_part(prod.name,'|',3) as censuscode,q.village,sum(p.hdfc_cost_monthly) as hdfc_cost from profile_29974 p
+left join ds_mysql_prod_project prod on
+prod.id=p.projectid
+left join ds_mysql_prod_tagelement t
+on p.fy=t.id
+left join ds_mysql_prod_tagelement t2
+on p.month=t2.id
+left join profile_27489 q on
+split_part(prod.name,'|',3)=q.name
+group by 1,2,3,4,5,6),
+tab2 as(select split_part(split_part(prod.name,'|',1),'.',1) as projectcode,t.name as fy_timerange,case
 when t1.name='January' then 'Quarter 4'
 when t1.name='February' then 'Quarter 4'
 when t1.name='March' then 'Quarter 4'
@@ -16,6 +39,20 @@ left join ds_mysql_prod_project prod on
 prod.id=p.projectid
 left join ds_mysql_prod_tagelement t
 on p.fy=t.id
-left join ds_mysql_prod_tagelement t2
-on p.month=t2.id
-group by 1,2,3,4
+left join ds_mysql_prod_tagelement t1
+on p.month=t1.id
+group by 1,2,3,4),
+
+tab3 as(select t.projectcode,t.fy_timerange,t.Quarter,t.hdfc_cost a,t1.monthlycost b,t.CODE,t.censuscode,t.village from tab1 t
+left join tab2 t1 on
+t.CODE=t1.CODE and t.Quarter=t1.Quarter),
+
+tab4 as(select count(distinct(t1.censuscode)) as number_of_villages,t.fy_timerange,t.projectcode,t.CODE,t.Quarter from tab1 t
+left join tab3 t1 on
+t.CODE=t1.CODE  and t.Quarter=t1.Quarter
+group by t.fy_timerange,t.CODE,t.Quarter,t.projectcode)
+
+select t.fy_timerange,t.projectcode,t.CODE,t.Quarter,t1.village,t1.b/t.number_of_villages c,t1.a d,c+d total,t.number_of_villages
+from tab4 t
+left join tab3 t1 on
+t.CODE=t1.CODE and t.Quarter=t1.Quarter
