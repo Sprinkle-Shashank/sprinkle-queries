@@ -103,6 +103,32 @@ table37 as
   
   group by p.projectid , p._id , date_update ,date_update_2 , date_update_3 , date_update_4 , date_update_5 , date_update_6 , date_update_7 , date_update_8
   ),
+  
+  
+  
+   table75 as
+  ( select p.projectid , p._id , case when worker_rep is not null then worker_rep else 0 end as worker_rep_update, case when worker_rep_2 is not null then worker_rep_2 else 0 end as worker_rep_update_2 , case when worker_rep_3 is not null then worker_rep_3 else 0 end as worker_rep_update_3 , case when worker_rep_4 is not null then worker_rep_4 else 0 end as worker_rep_update_4 , case when worker_rep_5 is not null then worker_rep_5 else 0 end as worker_rep_update_5 , case when worker_rep_6 is not null then worker_rep_6 else 0 end as worker_rep_update_6 , case when worker_rep_7 is not null then worker_rep_7 else 0 end as worker_rep_update_7 , case when worker_rep_8 is not null then worker_rep_8 else 0 end as worker_rep_update_8 ,  case when worker_rep_9 is not null then worker_rep_9 else 0 end as worker_rep_update_9  
+   
+   
+ ,  case when mgmt_rep is not null then mgmt_rep else 0 end as mgmt_rep_update ,  case when mgmt_rep_2 is not null then mgmt_rep_2 else 0 end as mgmt_rep_update_2 ,  case when mgmt_rep_3 is not null then mgmt_rep_3 else 0 end as mgmt_rep_update_3 ,  case when mgmt_rep_4 is not null then mgmt_rep_4 else 0 end as mgmt_rep_update_4 ,  case when mgmt_rep_5 is not null then mgmt_rep_5 else 0 end as mgmt_rep_update_5 ,  case when mgmt_rep_6 is not null then mgmt_rep_6 else 0 end as mgmt_rep_update_6 ,  case when mgmt_rep_7 is not null then mgmt_rep_7 else 0 end as mgmt_rep_update_7 ,  case when mgmt_rep_8 is not null then mgmt_rep_8 else 0 end as mgmt_rep_update_8 , case when mgmt_rep_9 is not null then mgmt_rep_9 else 0 end as mgmt_rep_update_9  from profile_16619 as p ),
+ 
+ table90 as 
+ ( select p.projectid , p._id , worker_rep_update , worker_rep_update_2 , worker_rep_update_3 , worker_rep_update_4 , worker_rep_update_5 , worker_rep_update_6 , worker_rep_update_7 , worker_rep_update_8 , worker_rep_update_9 , 
+  
+  mgmt_rep_update , mgmt_rep_update_2 , mgmt_rep_update_3 , mgmt_rep_update_4 , mgmt_rep_update_5 , mgmt_rep_update_6 , mgmt_rep_update_7 , mgmt_rep_update_8 , mgmt_rep_update_9 , sum( worker_rep_update + worker_rep_update_2 + worker_rep_update_3 + worker_rep_update_4 + worker_rep_update_5 + worker_rep_update_6 + worker_rep_update_7 + worker_rep_update_8 + worker_rep_update_9 + 
+  
+  mgmt_rep_update + mgmt_rep_update_2 + mgmt_rep_update_3 + mgmt_rep_update_4 + mgmt_rep_update_5 + mgmt_rep_update_6 + mgmt_rep_update_7 + mgmt_rep_update_8 + mgmt_rep_update_9 ) as numerator from table75 as p
+  
+  group by p.projectid , p._id , worker_rep_update , worker_rep_update_2 , worker_rep_update_3 , worker_rep_update_4 , worker_rep_update_5 , worker_rep_update_6 , worker_rep_update_7 , worker_rep_update_8 , worker_rep_update_9 , 
+  
+  mgmt_rep_update , mgmt_rep_update_2 , mgmt_rep_update_3 , mgmt_rep_update_4 , mgmt_rep_update_5 , mgmt_rep_update_6 , mgmt_rep_update_7 , mgmt_rep_update_8 , mgmt_rep_update_9 
+  ),
+  
+  table95 as 
+  ( select p.* , ROW_NUMBER() over (partition by p.projectid order by p._id desc) as row from table90 as p),
+  
+  table98 as
+  ( select * from table95 where row=1 ),
 
 
 table1 as
@@ -170,7 +196,7 @@ table1 as
  
  
 , p.date_completion as  WCP_End_date , p3.sustainability_rating as Current_sustainability_score , t18.active_filter , t31.Date_of_latest_assessmentd_done , t31.Number_of_modules_completed
- , t80.record_count_rating , t37.Total_number_of_training_hours_completed
+ , t80.record_count_rating , t37.Total_number_of_training_hours_completed  , t98.numerator
  
 from profile_16619 as p 
 
@@ -212,6 +238,9 @@ on p.projectid = t80.projectid
  
 left join table37 t37 
 on p._id = t37._id
+ 
+left join table98 t98 
+on p._id = t98._id
  
 where cou.id != 13761
 )
