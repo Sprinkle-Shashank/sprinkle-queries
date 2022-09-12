@@ -89,6 +89,16 @@ on p1.rating = rate.id
 group by  p.projectid , rate.name ),
 
 
+table37 as
+(
+  select p.projectid , p._id , case when p.date is not null then 8 else 0 end as date_update , case when p.date_7 is not null then 8 else 0  end as date_update_7 , case when p.date_8 is not null then 8 else 0  end as date_update_8 ,  case when p.date_2 is not null then 4 else 0  end as date_update_2 , case when p.date_3 is not null then 4 else 0  end as date_update_3 , case when p.date_4 is not null then 4 else 0  end as date_update_4 , case when p.date_5 is not null then 4 else 0  end as date_update_5 , case when p.date_6 is not null then 4 else 0  end as date_update_6 , sum(date_update+date_update+date_update_2+date_update_3+date_update_4+date_update_5+date_update_6+date_update_7+date_update_8) as  Total_number_of_training_hours_completed
+  
+  from profile_16619 as p 
+  
+  group by p.projectid , p._id , date_update ,date_update_2 , date_update_3 , date_update_4 , date_update_5 , date_update_6 , date_update_7 , date_update_8
+  )
+
+
 table1 as
 ( select p.projectid , p._id , fac.name as factory , case when nvl2(SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), ven.name)='' then ven.name else nvl2(SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), ven.name) end as vendor , cou.name as country , p1.factory_id
  , p2.vpid as vendor_id , 
@@ -153,7 +163,7 @@ table1 as
 ((p.worker_rep_9 + p.mgmt_rep_9)/(p.worker_rep_9 + p.mgmt_rep_9+module_8_Total_BC_members_absent))*100 end as Module_8_Attendance_Rate
  
  
-, p.date_completion as  WCP_End_date , p3.sustainability_rating as Current_sustainability_score , t18.active_filter , t31.Date_of_latest_assessmentd_done , t31.Number_of_modules_completed , t71.record_count_rating
+, p.date_completion as  WCP_End_date , p3.sustainability_rating as Current_sustainability_score , t18.active_filter , t31.Date_of_latest_assessmentd_done , t31.Number_of_modules_completed , t71.record_count_rating , t37.Total_number_of_training_hours_completed
  
 from profile_16619 as p 
 
@@ -192,6 +202,9 @@ on p._id = t31._id
  
 left join table71 t71 
 on p.projectid = t71.projectid
+ 
+left join table37 t37 
+on p._id = t37._id
  
 where cou.id != 13761
 )
