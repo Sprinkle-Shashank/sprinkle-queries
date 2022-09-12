@@ -27,8 +27,14 @@ where x6.profileid = 27396 and x1.active = 't'
 and x1.status in ('SAVED', 'REJECTED', 'PENDING_APPROVAL', 'SUBMITTED')
 
 group by x1._id, x1.profileinstanceid, x1.status, x1.active, x1.data, x1.taskuserid, x2.taskid, x5.projectid, x6.profileid, x4.sectionid, x6.name, x7.name, x8.name, x1.submissionlog, x1.approvallog, x1.created, x1.modified)
-
-Select id,profileinstanceid, status, active, data, taskuserid, taskid, projectid, profileid, sectionid,  section, profile, project, created,modified,
- sln,
+, s2 as(
+Select id, status, data,  projectid,sln,
+ cast(sln."timestamp" as datetime) as timestamp,
 approvallog_new
 from s as q,q.submissionlog_new as sln
+),
+s3 as(
+Select id, status, data,  projectid,sln, timestamp, approvallog_new, row_number() over (partition by id order by timestamp asc) as row
+from s2
+)
+Select * from s3 where row=1
