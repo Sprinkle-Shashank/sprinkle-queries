@@ -45,17 +45,17 @@ group by 1,2,3,4),
 
 tab3 as(select t.projectcode,t.fy_timerange,t.Quarter,t.hdfc_cost a,t1.monthlycost b,t.CODE,t.censuscode,t.village from tab1 t
 left join tab2 t1 on
-t.CODE=t1.CODE),
+t.CODE=t1.CODE and t.Quarter=t1.Quarter),
 
 tab4 as(select count(distinct(t1.censuscode)) as number_of_villages,t.fy_timerange,t.projectcode,t.CODE,t.Quarter from tab1 t
 left join tab3 t1 on
-t.CODE=t1.CODE 
+t.CODE=t1.CODE  and t.Quarter=t1.Quarter
 group by t.fy_timerange,t.CODE,t.Quarter,t.projectcode),
 
-tab5 as(select t.fy_timerange,t.projectcode,t.CODE,t.Quarter,t1.village,t1.b/t.number_of_villages c,t1.a d,c+d total,t.number_of_villages
+tab5 as(select t.fy_timerange,t.projectcode,t.CODE,t.Quarter,t1.village,t1.b c,t1.a d,c+d total,t.number_of_villages
 from tab4 t
 left join tab3 t1 on
-t.CODE=t1.CODE),
+t.CODE=t1.CODE and t.Quarter=t1.Quarter),
 
 tab6 as(select substring(p.submission_date,6,2) as months,t5.name as fy_timerange,(t.name) as response,case when response='Yes' then split_part(t2.name,'[',1)  when response ='No' then t3.name end as projectcode,case when response='Yes' then m.name when response ='No' then n.name end as project_manager,case when p.payment_amount is null then 0 else p.payment_amount  end as Amount_Disbursed,case when p.amnt_utlzd is null then 0 else p.amnt_utlzd  end as Amount_Utilised,RTRIM(projectcode)||fy_timerange as CODE from profile_27398 p
 left join ds_mysql_prod_tagelement t
@@ -74,7 +74,7 @@ left join ds_mysql_prod_tagelement t5
 on p.fy=t5.id
 where response is not null)
 
-select t.fy_timerange,t.projectcode,t.Quarter,t.total as Allocated_amount, t.village,t2.project_manager,(t2.Amount_Disbursed/t.number_of_villages) Amount_Disbursed,(t2.Amount_utilised/t.number_of_villages) Amount_Utilised,Amount_Disbursed-Amount_Utilised Balance_amount,t.CODE, 
+select t.fy_timerange,t.projectcode,t.Quarter,t.total as Allocated_amount, t.village,t2.project_manager,(t2.Amount_Disbursed) Amount_Disbursed,(t2.Amount_utilised) Amount_Utilised,Amount_Disbursed-Amount_Utilised Balance_amount,t.CODE, 
 case 
 when t2.months='01' then 'Quarter 4' 
 when t2.months='02' then 'Quarter 4' 
