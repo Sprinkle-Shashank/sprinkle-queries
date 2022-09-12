@@ -1,4 +1,38 @@
-with q as(select split_part(split_part(p1.name,'|',1),'.',1) as projectcode,
+select split_part(split_part(prod.name,'|',1),'.',1) as projectcode,t.name as fy_timerange,concat(projectcode,fy_timerange) as CODE,split_part(prod.name,'|',3) as censuscode , case when len(split_part(prod.name,'|',3))=5 then '0'+split_part(prod.name,'|',3)
+	   when len(split_part(prod.name,'|',3))=4 then '00'+split_part(prod.name,'|',3)
+	   when len(split_part(prod.name,'|',3))=3 then '000'+split_part(prod.name,'|',3)
+	   when len(split_part(prod.name,'|',3))=2 then '0000'+split_part(prod.name,'|',3)
+	   when len(split_part(prod.name,'|',3))=1 then '00000'+split_part(prod.name,'|',3)
+end as censuscode from profile_29974 p 
+	left join ds_mysql_prod_project prod on
+prod.id=p.projectid
+left join ds_mysql_prod_tagelement t
+on p.fy=t.id
+/*with digitcount as (select split_part(split_part(prod.name,'|',1),'.',1) as projectcode,t.name as fy_timerange,concat(projectcode,fy_timerange) as CODE,split_part(prod.name,'|',3) as censuscode , case when len(split_part(prod.name,'|',3))=5 then '0'+split_part(prod.name,'|',3)
+	   when len(split_part(prod.name,'|',3))=4 then '00'+split_part(prod.name,'|',3)
+	   when len(split_part(prod.name,'|',3))=3 then '000'+split_part(prod.name,'|',3)
+	   when len(split_part(prod.name,'|',3))=2 then '0000'+split_part(prod.name,'|',3)
+	   when len(split_part(prod.name,'|',3))=1 then '00000'+split_part(prod.name,'|',3)
+end as censuscode from profile_29974 p 
+	left join ds_mysql_prod_project prod on
+prod.id=p.projectid
+left join ds_mysql_prod_tagelement t
+on p.fy=t.id ),
+
+tab1 as(select split_part(split_part(prod.name,'|',1),'.',1) as projectcode,t.name as fy_timerange,concat(projectcode,fy_timerange) as CODE,split_part(prod.name,'|',3) as censuscode,q.village,q.state,q.district,sum(case p.hdfc_cost_monthly when null then 0 else p.hdfc_cost_monthly end) as hdfc_cost from profile_29974 p
+left join ds_mysql_prod_project prod on
+prod.id=p.projectid
+left join ds_mysql_prod_tagelement t
+on p.fy=t.id
+/*left join ds_mysql_prod_tagelement t1
+on p.month_number=t1.id
+left join ds_mysql_prod_tagelement t2
+on t1.parent=t2.id*/
+left join profile_27489 q on
+split_part(prod.name,'|',3)=q.name
+group by 1,2,3,4,5,6,7),/*sum of HDFC_cost_monthly from 29974*/
+*/
+/*with q as(select split_part(split_part(p1.name,'|',1),'.',1) as projectcode,
 f.name as fy_timerange,p1.name_project, sum(p1.curr_yr_budget) as curr_yr_budget,
 concat(projectcode,fy_timerange) as CODE,p7.name as ImplementingAgency,p8.name as interventiontype,p10.name as CoreArea , concat(concat(split_part(p1.start_date,' ',1),' to '), split_part(p1.end_date,' ',1)) as duration,m.name as project_manager,p1.state
 from profile_27396 p1
@@ -17,7 +51,7 @@ group by 1,2,3,5,6,7,8,9,10,11),
  q1 as (select qq.projectcode,qq.fy_timerange,qq.name_project,qq.curr_yr_budget,qq.CODE,qq.ImplementingAgency,qq.interventiontype,qq.CoreArea , qq.duration,qq.project_manager, st from q as qq,qq.state as st)
  select q1.*, s.name as state  from q1
  left join  ds_mysql_prod_tagelement s on
-q1.st=s.id
+q1.st=s.id*/
 /*with tab1 as(select split_part(split_part(p1.name,'|',1),'.',1) as projectcode,
 f.name as fy_timerange,p1.name_project, sum(p1.curr_yr_budget) as curr_yr_budget,
 concat(projectcode,fy_timerange) as CODE,p7.name as ImplementingAgency,p8.name as interventiontype,p10.name as CoreArea , concat(concat(split_part(p1.start_date,' ',1),' to '), split_part(p1.end_date,' ',1)) as duration,m.name as project_manager
