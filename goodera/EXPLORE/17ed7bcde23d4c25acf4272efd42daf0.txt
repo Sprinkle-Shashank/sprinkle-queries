@@ -43,14 +43,16 @@ from table1 t1
 table3 as (
 select country,name,fy_1 as fy_timerange,sum(t2.total_energy1) as total_energy from table2 t2
 
-group by country,name,fy_1)
+group by country,name,fy_1),
 
+table2 as (
 select country,name,fy_timerange,total_energy,lag(total_energy,1) over (partition by name order by  fy_timerange) as prev_energy1,case when prev_energy1 = 0 then null 
                               else prev_energy1 end as prev_energy/*,
 (select total_e from table3
-	order by fy_timerange asc limit 1) as base_value,(prev_energy-total_energy)*100.0/prev_energy as per*/  from table3 
+	order by fy_timerange asc limit 1) as base_value,(prev_energy-total_energy)*100.0/prev_energy as per*/  from table3 ) 
 
---where prev_energy is not null 
+select * from table2
+where prev_energy is not null 
 
 
 
