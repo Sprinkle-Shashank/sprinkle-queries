@@ -76,6 +76,19 @@ from table21 as p where row=1
 ),
 
 
+ table71 as
+( select p.projectid  , rate.name as rating_average  , count(p.projectid) as record_count_rating
+ from profile_16619 as p
+
+left join profile_16864 p1
+on p.projectid = p1.projectid
+
+left join ds_mysql_prod_tagelement rate 
+on p1.rating = rate.id
+
+group by  p.projectid , rate.name )
+
+
 table1 as
 ( select p.projectid , p._id , fac.name as factory , case when nvl2(SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), ven.name)='' then ven.name else nvl2(SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), ven.name) end as vendor , cou.name as country , p1.factory_id
  , p2.vpid as vendor_id , 
@@ -140,7 +153,7 @@ table1 as
 ((p.worker_rep_9 + p.mgmt_rep_9)/(p.worker_rep_9 + p.mgmt_rep_9+module_8_Total_BC_members_absent))*100 end as Module_8_Attendance_Rate
  
  
-, p.date_completion as  WCP_End_date , p3.sustainability_rating as Current_sustainability_score , t18.active_filter , t31.Date_of_latest_assessmentd_done , t31.Number_of_modules_completed
+, p.date_completion as  WCP_End_date , p3.sustainability_rating as Current_sustainability_score , t18.active_filter , t31.Date_of_latest_assessmentd_done , t31.Number_of_modules_completed , t71.record_count_rating
  
 from profile_16619 as p 
 
@@ -176,7 +189,10 @@ fac.name = t18.goodera_facility_name_text
  
 left join table31 t31 
 on p._id = t31._id 
-
+ 
+left join table71 t71 
+on p.projectid = t71.projectid
+ 
 where cou.id != 13761
 )
 
