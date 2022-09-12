@@ -6,7 +6,7 @@ case
     else '-'
 	end as renewed,
  submissionlog,approvallog,
-data.project_manager as project_manager,
+data.project_manager as project_manager,data.intervention_type as intervention_type,data.focus_area as core_area,data.start_date as start_date,data.end_date as end_date,
 data.ngo_partner as ngo_partner,ss.monitoring_live
 from ds_mongo_taskresponse 
 left join profile_27396 ss
@@ -15,11 +15,12 @@ where profileid=27396
 ),
 s1 as(
 Select Project_Code,renewed,submissionlog,approvallog,project_manager, ngo_partner, monitoring_live,sl."timestamp" as Latest_Date_of_Submission_by_Project_Manager,al."approvalStatus" as Status_at_Goodera,
-case 
+  al."approvalStatus" as Status_at_csr_head,
+  case 
   when al."approverEmail" ="hdfcbank@goodera.com" then al."timestamp"
-  as Date_of_Action_by_Goodera
-from s as h1,h1.submissionlog as sl, h1.approvallog as al,
-  al."approvalStatus" as Status_at_csr_head
+  as Date_of_Action_by_CSR_Head,core_area,intervention_type,start_date, end_date,sl."timestamp" as Initial_Submission_Date
+from s as h1,h1.submissionlog as sl, h1.approvallog as al
+  
 
 ),
 
@@ -33,8 +34,8 @@ case
     else '-'
   end as renewed,
    submissionlog,approvallog,
-data.project_manager as project_manager,
-'' as ngo_partner,sss.monitoring_live
+data.project_manager as project_manager,data.int_type_calc2 as intervention_type,data.focus_area as core_area,
+'' as ngo_partner,sss.monitoring_live,data.start_date as start_date,data.end_date as end_date,
 from ds_mongo_taskresponse 
 left join profile_27420 sss
 on sss.name=data.name
@@ -44,9 +45,14 @@ s3 as (
 Select Project_Code,renewed,submissionlog,approvallog,project_manager, ngo_partner, monitoring_live,sl."timestamp" as Latest_Date_of_Submission_by_Project_Manager, al."approvalStatus" as Status_at_Goodera,
 case 
   when al."approverEmail" ="hdfcbank@goodera.com" then al."timestamp"
-  as Date_of_Action_by_Goodera
-from s as h2,h2.submissionlog as sl, h2.approvallog as al,
-  al."approvalStatus" as Status_at_csr_head
+  as Date_of_Action_by_Goodera,
+   al."approvalStatus" as Status_at_csr_head,
+  case 
+  when al."approverEmail" ="hdfcbank@goodera.com" then al."timestamp"
+  as Date_of_Action_by_CSR_Head,core_area,intervention_type,start_date, end_date,sl."timestamp" as Initial_Submission_Date
+
+from s as h2,h2.submissionlog as sl, h2.approvallog as al
+ 
   
 )
 
