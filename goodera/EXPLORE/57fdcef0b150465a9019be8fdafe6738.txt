@@ -1,6 +1,6 @@
 with q as(select split_part(split_part(p1.name,'|',1),'.',1) as projectcode,
 f.name as fy_timerange,p1.name_project, sum(p1.curr_yr_budget) as curr_yr_budget,
-concat(projectcode,fy_timerange) as CODE,p7.name as ImplementingAgency,p8.name as interventiontype,p10.name as CoreArea , concat(concat(split_part(p1.start_date,' ',1),' to '), split_part(p1.end_date,' ',1)) as duration,m.name as project_manager,p1.state
+concat(projectcode,fy_timerange) as CODE,p7.name as ImplementingAgency,p8.name as interventiontype,p10.name as CoreArea , concat(concat(split_part(p1.start_date,' ',1),' to '), split_part(p1.end_date,' ',1)) as duration,m.name as project_manager
 from profile_27396 p1
 left join ds_mysql_prod_tagelement f on
 p1.fy=f.id
@@ -8,13 +8,13 @@ left join profile_27395 p7
 on p7._id=p1.ngo_partner
 left join profile_28235 p8
 on p8._id=p1.intervention_type
-left join ds_mysql_prod_tagelement p10 
+left join ds_mysql_prod_tagelement p10
 on p10.id=p1.focus_area
 left join ds_mysql_prod_tagelement m on
 p1.project_manager=m.id
 
 group by 1,2,3,5,6,7,8,9,10,11),
- q1 as (select qq.* from q as qq,qq.state as st)
+ q1 as (select qq.*, st from q as qq,qq.state as st)
  select q1.*, s.name as state  from q1
  left join  ds_mysql_prod_tagelement s on
 q1.st=s.id
