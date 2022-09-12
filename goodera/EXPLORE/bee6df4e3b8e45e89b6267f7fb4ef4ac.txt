@@ -77,7 +77,7 @@ from table21 as p where row=1
 
 
  table71 as
-( select p.projectid  , rate.name as rating_average  , count(p.projectid) as record_count_rating
+( select p.projectid  , rate.name as rating_average  , count(p.projectid) as record_count_rating , ROW_NUMBER() over (partition by p.projectid order by p._id desc) as row
  from profile_16619 as p
 
 left join profile_16864 p1
@@ -87,6 +87,12 @@ left join ds_mysql_prod_tagelement rate
 on p1.rating = rate.id
 
 group by  p.projectid , rate.name ),
+
+
+table80 as
+(
+  select * from table71 where row=1
+  ),
 
 
 table37 as
@@ -164,7 +170,7 @@ table1 as
  
  
 , p.date_completion as  WCP_End_date , p3.sustainability_rating as Current_sustainability_score , t18.active_filter , t31.Date_of_latest_assessmentd_done , t31.Number_of_modules_completed
- , t71.record_count_rating ---, t37.Total_number_of_training_hours_completed
+ , t80.record_count_rating ---, t37.Total_number_of_training_hours_completed
  
 from profile_16619 as p 
 
@@ -201,8 +207,8 @@ fac.name = t18.goodera_facility_name_text
 left join table31 t31 
 on p._id = t31._id 
  
-left join table71 t71 
-on p.projectid = t71.projectid
+left join table80 t80 
+on p.projectid = t80.projectid
  /*
 left join table37 t37 
 on p._id = t37._id
