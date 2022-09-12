@@ -65,9 +65,15 @@ sum(p3.csr_spent) as csr_spent
 from profile_80535 p3
 group by 1)
 
----xxx---- CSR SPENYT
+---xxx---- CSR SPENT
 
-select s1.project_name, s1.choose, s1.fy_timerange, s1.zeroes, s2.disbursed, s3.csr_spent
+select s1.project_name, s1.choose, s1.fy_timerange, s1.zeroes, s2.disbursed, s3.csr_spent,
+
+GREATEST(
+  nvl(s1.zeroes, s2.disbursed, s3.csr_spent),
+  nvl(s2.disbursed, s1.zeroes, s3.csr_spent),
+  nvl(s3.csr_spent, s1.zeroes, s2.disbursed) ) as total
+
 from sub1 s1
 
 left join sub2 s2 on s2.year = s1.year
