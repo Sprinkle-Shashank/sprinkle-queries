@@ -1,4 +1,55 @@
-with main2 as (select cast(q.name as varchar) as ProjectCode,f.name as fy_timerange,p4.int_type_calc2 as intervention_type,'0' as Disbursed_Amount,t1.name as first_level_manager,CONCAT(ProjectCode,fy_timerange) as code
+with tab1 as
+(Select t2.name as fy_timerange,(t.name) as response,case when response='Yes' then split_part(split_part(p3.name,'[',1),'-',1)  when response ='No' then p2.name end as projectcode,case when response='Yes' then m.name when response ='No' then n.name end as first_level_manager,case when response = 'Yes' then p1.int_type_renew when response = 'No' then p1.int_type_pgd end as intervention_type,
+case when p1.payment_amount is null then 0 else p1.payment_amount  end as Amount_Disbursed,RTRIM(projectcode)||fy_timerange as CODE from profile_27398 p1
+left join ds_mysql_prod_tagelement t
+on p1.renewal=t.id
+left join profile_27396 p2 on
+p1.project_name=p2._id
+left join profile_27420 p3 on
+p1.project_renew=p3._id
+left join ds_mysql_prod_tagelement n on
+p2.project_manager=n.id
+left join ds_mysql_prod_tagelement m on
+p3.project_manager=m.id
+left join ds_mysql_prod_tagelement t2
+on p1.fy=t2.id
+where response is not null),
+
+tab2 as 
+(Select p1.name as ProjectCode,f.name as fy_timerange,concat(projectcode,fy_timerange) as CODE,p2.name as intervention_type,t1.name as first_level_manager from profile_27396 p1
+left join profile_28235 p2
+on p1.intervention_type = p2._id 
+left join ds_mysql_prod_tagelement f
+on p1.fy = f.id
+left join ds_mysql_prod_tagelement t1
+on p1.project_manager = t1.id 
+union
+select split_part(l.name,'[',1) as ProjectCode,f.name as fy_timerange,concat(projectcode,fy_timerange) as CODE,int_type_calc2 as intervention_type,t1.name as first_level_manager from profile_27420 p1
+left join profile_27396 l
+on p1.project_code=l._id
+left join ds_mysql_prod_tagelement t1
+on p1.project_manager = t1.id 
+left join ds_mysql_prod_tagelement f
+on p1.fy = f.id),
+
+level1tab as (select m.name as level1 ,p.approver as level2,p.name as level1email from profile_27424 p
+left join ds_mysql_prod_tagelement m on
+m.id = p.pm_name),
+
+level2tab as (select m.name as level1 , z.level1 as level2 from profile_27424 p
+left join ds_mysql_prod_tagelement m on
+m.id = p.pm_name
+left join level1tab z on
+z.level1email = p.approver)
+
+Select t.fy_timerange,t.ProjectCode,t.intervention_type,t.Amount_Disbursed,t.first_level_manager,t.response,d.level2
+from tab1 t
+left join tab2 t2
+on t.CODE = t2.CODE
+left join level2tab d
+on d.level1 = t2.first_level_manager
+
+/*with main2 as (select cast(q.name as varchar) as ProjectCode,f.name as fy_timerange,p4.int_type_calc2 as intervention_type,'0' as Disbursed_Amount,t1.name as first_level_manager,CONCAT(ProjectCode,fy_timerange) as code
 from profile_27420 p4	
 left join profile_27396 q on
 p4.project_code=q._id
@@ -41,193 +92,10 @@ z.level1email = p.approver)
 
 select p.*,d.level2 from main2 p
 left join level2tab d on
-d.level1 = p.first_level_manager
-
-/*with main2 as (Select cast(p2.name as varchar) as ProjectCode,f.name as fy_timerange,p3.name as intervention_type,sum(p2.payment_amount) as Disbursed_Amount,t1.name as first_level_manager,CONCAT(ProjectCode,fy_timerange) as code
-from profile_27396 p1
-/*left join profile_27398 p2
-on p2.project_name = p1._id*/
-left join profile_27420 p4
-on p4.project_code = p1._id
-left join profile_27398 p2
-on p2.project_renew = p4._id			   
-/*from profile_27396 p1
-left join profile_27420 p4
-on p4.project_code = p1._id
-left join profile_27398 p2
-on p2.project_name = p1._id*/			   
-left join profile_28235 p3
-on p1.intervention_type = p3._id
-left join ds_mysql_prod_tagelement t1
-on p1.project_manager = t1.id 
-left join ds_mysql_prod_tagelement f on
-p1.fy=f.id
-group by 1,2,3,5),
-		  
-level1tab as (select m.name as level1 ,p.approver as level2,p.name as level1email from profile_27424 p
-left join ds_mysql_prod_tagelement m on
-m.id = p.pm_name),
-
-level2tab as (select m.name as level1 , z.level1 as level2 from profile_27424 p
-left join ds_mysql_prod_tagelement m on
-m.id = p.pm_name
-left join level1tab z on
-z.level1email = p.approver)
-
-select p.*,d.level2 from main2 p
-left join level2tab d on
 d.level1 = p.first_level_manager*/
 
 
-/*with main2 as (select cast(p2.name as varchar) as ProjectCode,f.name as fy_timerange,p4.int_type_calc2 as intervention_type,'0' as Disbursed_Amount,t1.name as first_level_manager,CONCAT(ProjectCode,fy_timerange) as code
-from profile_27420 p4	
-left join profile_27396 q on
-p4.project_code=q._id
-			   left join profile_27398 p2
-on p2.project_renew = p4._id
-left join ds_mysql_prod_tagelement t1
-on p4.project_manager = t1.id
-left join ds_mysql_prod_tagelement f on
-p4.fy=f.id
-	  
-union all
-  
-Select cast(p2.name as varchar) as ProjectCode,f.name as fy_timerange,p3.name as intervention_type,sum(p2.payment_amount) as Disbursed_Amount,t1.name as first_level_manager,CONCAT(ProjectCode,fy_timerange) as code
-from profile_27396 p1
-/*left join profile_27420 p4
-on p4.project_code = p1._id
-left join profile_27398 p2
-on p2.project_name = p1._id*/
- left join profile_27420 p4
-on p4.project_code = p1._id
-left join profile_27398 p2
-on p2.project_renew = p4._id
-			   
-left join profile_28235 p3
-on p1.intervention_type = p3._id
-left join ds_mysql_prod_tagelement t1
-on p1.project_manager = t1.id 
-left join ds_mysql_prod_tagelement f on
-p1.fy=f.id
-group by 1,2,3,5),
-		  
-level1tab as (select m.name as level1 ,p.approver as level2,p.name as level1email from profile_27424 p
-left join ds_mysql_prod_tagelement m on
-m.id = p.pm_name),
 
-level2tab as (select m.name as level1 , z.level1 as level2 from profile_27424 p
-left join ds_mysql_prod_tagelement m on
-m.id = p.pm_name
-left join level1tab z on
-z.level1email = p.approver)
-
-select p.*,d.level2 from main2 p
-left join level2tab d on
-d.level1 = p.first_level_manager*/
-
-
-/*with main as (select r.name as fy_timerange, cast((split_part(split_part(prod.name,'|',1),'.',1)) as varchar) as ProjectCode,CONCAT(ProjectCode,fy_timerange) as code from profile_54963 p
-left join ds_mysql_prod_project prod on
-prod.id=p.projectid
-left join ds_mysql_prod_tagelement r on
-r.id=p.fy),
-
-main1 as (select cast(q.name as varchar) as ProjectCode,f.name as fy_timerange,p4.int_type_calc2 as intervention_type,'0' as Disbursed_Amount,t1.name as Second_Level_Manager,CONCAT(ProjectCode,fy_timerange) as code
-from profile_27420 p4	
-left join profile_27396 q on
-p4.project_code=q._id
-left join ds_mysql_prod_tagelement t1
-on p4.project_manager = t1.id
-left join ds_mysql_prod_tagelement f on
-p4.fy=f.id
-		  
-union all
-  
-Select cast(p1.name as varchar) as ProjectCode,f.name as fy_timerange,p3.name as intervention_type,sum(p2.payment_amount) as Disbursed_Amount,t1.name as Second_Level_Manager,CONCAT(ProjectCode,fy_timerange) as code
-from profile_27396 p1
-left join profile_27420 p4
-on p4.project_code = p1._id
-left join profile_27398 p2
-on p2.project_name = p1._id
-
-left join profile_28235 p3
-on p1.intervention_type = p3._id
-left join ds_mysql_prod_tagelement t1
-on p1.project_manager = t1.id 
-
-left join ds_mysql_prod_tagelement f on
-p1.fy=f.id
-group by 1,2,3,5),
-		  
- 
-main2 as (Select b.fy_timerange as fy,q.Second_Level_Manager as level1,q.intervention_type as Intervention_type,q.Disbursed_Amount as DisbursedAmount
-from main b
-left join main1 as q
-on q.code = b.code
-group by b.fy_timerange,q.Second_Level_Manager,q.intervention_type,q.Disbursed_Amount),
-
-level1tab as (select m.name as level1 ,p.approver as level2,p.name as level1email from profile_27424 p
-left join ds_mysql_prod_tagelement m on
-m.id = p.pm_name),
-
-level2tab as (select m.name as level1 , z.level1 as level2 from profile_27424 p
-left join ds_mysql_prod_tagelement m on
-m.id = p.pm_name
-left join level1tab z on
-z.level1email = p.approver)
-
-select p.*,d.level2 from main2 p
-left join level2tab d on
-d.level1 = p.level1*/
-
-
-
-
-
-/* with main as (Select p1.name as Project_code,p3.name as intervention_type,sum(p2.payment_amount) as Disbursed_Amount,t1.name as Second_Level_Manager,t2.name as Financial_Year
-from profile_27396 p1
-left join profile_27398 p2
-on p2.project_name = p1._id
-left join profile_28235 p3
-on p1.intervention_type = p3._id
-left join profile_27420 p4
-on p4.project_code = p1._id
-left join ds_mysql_prod_tagelement t1
-on p4.project_manager = t1.id 
-left join ds_mysql_prod_tagelement t2
-on p2.fy = t2.id
-group by p1.name,p3.name,t1.name,t2.name),
-
-t1 as( Select p.approver as level2,m.name as level1 from profile_27424 p
-			left join ds_mysql_prod_tagelement m on
-            m.id = p.pm_name),
-		
- t2 as (Select m.name as level1 from profile_27424 p
-			left join ds_mysql_prod_tagelement m on
-             m.id = p.pm_name
-		     left join t1 as tab1
-			on p.approver = tab1.level1)
-			
-Select   Project_code, Financial_Year,intervention_type,Disbursed_Amount,Second_Level_Manager,tab2.level1
-from main p
-left join t2 tab2 on
-tab2.level1 =p.Second_Level_Manager */
-
-
-
-/*Select split_part(p2.name,'-',1) as Project_code,p3.name as intervention_type,sum(p2.payment_amount) as Disbursed_Amount,t1.name as Second_Level_Manager,t2.name as Financial_Year
-from profile_27396 p1
-left join profile_27398 p2
-on p2.project_name = p1._id
-left join profile_28235 p3
-on p1.intervention_type = p3._id
-left join profile_27420 p4
-on p4.project_code = p1._id
-left join ds_mysql_prod_tagelement t1
-on p4.project_manager = t1.id 
-left join ds_mysql_prod_tagelement t2
-on p2.fy = t2.id
-group by p2.name,p3.name,t1.name,t2.name*/
 
 
 
