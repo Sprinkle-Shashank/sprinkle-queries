@@ -1,83 +1,23 @@
-select * from profile_76123
-
-/*with t1 as
-(
-  select p1._id, p1.planned_completion_date, p1.fy_timerange, p1.planned_start_date, p1.milestone_name, p1.projectId,p2.actual_start_date as actual_start_date, p2.comments, p2.actual_completion_date
- as milestone_date,
- p2.comments_2,
-case 
-when p2.actual_start_date is not null  then GETDATE()
-else null
---when p2.actual_start_date is null then null
---else getdate()
-end as today,
+with t1 as(select tag1.name as gender, name_of_the_student, class, financial_year_timerange as fy_timerange ,
 case
-when milestone_date is null then GETDATE()
-else null
-end as actual_completion_date
+when class = 8 then 0
+when class = 9 then 1
+when class = 10 then 2
+when class = 11 then 3
+else 4
+end as Class_sort
+from profile_77353 p1
 
-from profile_76057 p1
-left join profile_76058 p2
-on p1._id= p2.milestone
 )
-*/
-
-select t1._id, t1.planned_completion_date, t1.fy_timerange, t1.planned_start_date, t1.milestone_name, t1.projectId,t1.actual_start_date as actual_start_date, t1.comments, t1.actual_completion_date as milestone_date, t1.comments_2,actual_completion_date,
-case 
-when milestone_date is not null  then t1.comments_2
-else null
-end as comments_final
-from t1
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-/*with t1 as 
-(select  p1._id, p1.fy_timerange, p1.line_item, tag2.name as category, p1.budgeted_amount, tag1.name as projectId , p2.amount_utilized ,p2.date
---first(p2.amount_utilized) :: INT as amount_utilized
---, Cast(first(p2.date) as date)
-,budgeted_amount- amount_utilized as sub,
+select tag1.name as gender, name_of_the_student,fy_timerange,Class_sort, count(*) as No_of_Beneficiaries,
 case
-when p1.budgeted_amount >= p2.amount_utilized then sub
-when p1.budgeted_amount - p2.amount_utilized then 0
-else 0
-end as unspent
-from profile_74913 p1
-left join profile_74914 as p2 on
-p2.line_item = p1._id
-left join ds_mysql_prod_project tag1
-on p1.projectId = tag1.id
-left join ds_mysql_prod_tagelement tag2
-on p1.category = tag2.id
-
-group by p1._id, p1.fy_timerange, p1.line_item, tag2.name , p1.budgeted_amount,tag1.name,p2.date,p2.amount_utilized
-order by date desc)
-select sum(t1.unspent) as unspent
+when class =8  then'Grade 8'
+when class =9 then 'Grade 9'
+when class =10 then 'Grade 10'
+when class =11 then 'Grade 11'
+else 'Grade 12'
+end as class
 from t1
-
-*/
-
-
+left join ds_mysql_prod_tagelement tag1
+on p1.gender = tag1.id
+group by  tag1.name, fy_timerange, class, Class_sort, name_of_the_student
