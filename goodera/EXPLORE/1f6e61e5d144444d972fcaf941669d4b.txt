@@ -74,22 +74,22 @@ on su._id=intervention_type
 
 ),
 s33 as (
-Select ss3.*,ss3.core_area,sll,cast(sll."timestamp" as datetime) as iest from s3 as ss3, ss3.submissionlog_new as sll
+Select ss3.*,sll,cast(sll."timestamp" as datetime) as iest from s3 as ss3, ss3.submissionlog_new as sll
  
 )
 ,
 sss3 as (
-Select *,s33.core_area,row_number() over (partition by id order by iest desc) as row_2
+Select *,row_number() over (partition by id order by iest desc) as row_2
   from s33
   where row_1=1
 )
 ,
 s4 as (
-Select *,sS.core_area,cast(aln."timestamp" as datetime) tstt , aln."approvalStatus" as status1,cast(aln."approverEmail" as varchar) as approveremail from sss3 as ss,ss.approvallog_new aln
+Select *,cast(aln."timestamp" as datetime) tstt , aln."approvalStatus" as status1,cast(aln."approverEmail" as varchar) as approveremail from sss3 as ss,ss.approvallog_new aln
  where row_2=1 --earliest
   ),
 s5 as (
-Select *,s4.core_area,
+Select *,
 case 
   when approverEmail = 'hdfcbank@goodera.com' then tstt
   end as Date_of_Action_by_Goodera,
@@ -109,7 +109,7 @@ from s4
 	),
   
 	ll as(
-	Select *,s5,core_area,t.name as fyy,	ssst.name as implementation_Agency 
+	Select *,s5.core_area,t.name as fyy,	ssst.name as implementation_Agency 
 	  from s5
 	left join ds_mysql_prod_tagelement t on 
 	t.id=fy
