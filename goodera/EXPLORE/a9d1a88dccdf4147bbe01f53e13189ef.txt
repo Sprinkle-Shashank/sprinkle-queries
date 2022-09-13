@@ -1,3 +1,23 @@
+with tab1 as(select q1.*, s.name as state  from q1
+ left join  ds_mysql_prod_tagelement s on
+q1.st=s.id),
+temp as(
+  Select 'Q1' as col
+  union all
+    Select 'Q2' as col
+  union all
+    Select 'Q3' as col
+  union all
+    Select 'Q4' as col
+),
+
+s as(
+select tab1.fy_timerange ,tab1.projectcode ,tab1.name_project, tab1.curr_yr_budget,
+tab1.CODE,tab1.ImplementingAgency,tab1.interventiontype,tab1.CoreArea,tab1.duration,tab1.project_manager,tab1.state,
+case when tab1.interventiontype in ('Direct', 'Indirect - Others') then tab1.curr_yr_budget 
+ else 0 
+  end as Totalallocatedamount from tab1 where tab1.interventiontype in ('Direct', 'Indirect - Others') ),
+
 tab3 as (
   select split_part(split_part(prod.name,'|',1),'.',1) as projectcode,t.name as fy_timerange,concat(projectcode,fy_timerange) as CODE,sum(case when p.monthly_cost is null then 0 else p.monthly_cost  end) as monthly_cost ,
 		 case when t1.name in('April', 'May', 'June') then 'quarter1'
