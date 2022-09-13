@@ -68,11 +68,59 @@ t.CODE=t2.CODE),
 tab4 as (Select tab3.fy_timerange,tab3.projectcode,
 tab3.CODE,sum (tab3.Amount_Disbursed) as Amount_DisbursedforCurrentFY_total from tab3
 group by tab3.fy_timerange,tab3.projectcode,
-tab3.CODE		)
+tab3.CODE		),/*total amount disbursed for all quarters*/
+
+main as (select r.name as fy_timerange, cast((split_part(split_part(prod.name,'|',1),'.',1)) as varchar) as ProjectCode,CONCAT(ProjectCode,fy_timerange) as code from profile_54963 p
+left join ds_mysql_prod_project prod on
+prod.id=p.projectid
+left join ds_mysql_prod_tagelement r on
+r.id=p.fy),
+
+lookup as (select cast(q.name as varchar) as ProjectCode,f.name as fy_timerange,m.name as Project_Manager,CONCAT(ProjectCode,fy_timerange) as code
+from profile_27420 d
+left join ds_mysql_prod_tagelement f on
+d.fy=f.id
+left join ds_mysql_prod_tagelement m on
+d.project_manager=m.id
+left join profile_27396 q on
+d.project_code=q._id
+		   
+union all
+		   
+select cast(c.name as varchar)as ProjectCode,f.name as fy_timerange,m.name as Project_Manager,CONCAT(ProjectCode,fy_timerange) as code 
+from profile_27396 c	
+left join ds_mysql_prod_tagelement f on
+c.fy=f.id
+left join ds_mysql_prod_tagelement m on
+c.project_manager=m.id),
+
+main2 as (
+select b.fy_timerange as fy,q.Project_Manager as level1,b.CODE from main b
+left join lookup q on
+q.code = b.code
+group by b.fy_timerange,q.Project_Manager,b.CODE),
+
+level1tab as (select m.name as level1 ,p.approver as level2,p.name as level1email from profile_27424 p
+left join ds_mysql_prod_tagelement m on
+m.id = p.pm_name),
+
+level2tab as (select m.name as level1 , z.level1 as level2 from profile_27424 p
+left join ds_mysql_prod_tagelement m on
+m.id = p.pm_name
+left join level1tab z on
+z.level1email = p.approver),
+
+new1 as (select p.fy,p.level1,d.level2,p.CODE from main2 p
+left join level2tab d on
+d.level1 = p.level1),/*fetches level1manager and level2manager*/
+
+
 		
 select tab3.fy_timerange,tab3.projectcode,tab3.name_project,
 tab3.CODE,tab3.ImplementingAgency,tab3.interventiontype,tab3.CoreArea ,tab3.duration,
-tab3.project_manager,tab3.submission_date ,tab3.tranche,tab3.Quarters,tab3.Amount_Disbursed,tab3.Amount_not_Utilised, tab4.Amount_DisbursedforCurrentFY_total
-from tab3 left join tab4 on tab3.CODE=tab4.CODE
+tab3.project_manager,tab3.submission_date ,tab3.tranche,tab3.Quarters,tab3.Amount_Disbursed,tab3.Amount_not_Utilised, tab4.Amount_DisbursedforCurrentFY_total,new1.leve1 as level1manager,new2.level2 as level2manager
+from tab3 
+left join tab4 on tab3.CODE=tab4.CODE
+left join new1 on tab3.CODE=nwe1.CODE
 
 
