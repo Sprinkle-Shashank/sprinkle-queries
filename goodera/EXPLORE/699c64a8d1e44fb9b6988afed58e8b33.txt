@@ -63,12 +63,88 @@ end as Quarters
 
 from tab1 t
 left join tab2 t2 on
-t.CODE=t2.CODE),
+t.CODE=t2.CODE),/*amount disbursed quarterwise*/
 
-tab4 as (Select tab3.fy_timerange,tab3.projectcode,
+ temp as(
+  Select 'Q1' as col
+  union all
+    Select 'Q2' as col
+  union all
+    Select 'Q3' as col
+  union all
+    Select 'Q4' as col
+),
+s as(
+select tab3.fy_timerange,tab3.projectcode,tab3.name_project,
+tab3.CODE,tab3.ImplementingAgency,tab3.interventiontype,tab3.CoreArea ,tab3.duration,
+tab3.project_manager,tab3.submission_date ,tab3.tranche,tab3.Amount_not_Utilised,
+
+case when tab3.quarters= 'Quarter 1' then tab3.Amount_Disbursed
+else 0
+    end as DisbursedAmountforQ1,
+case when tab3.quarters='Quarter 2' then (tab3.Amount_Disbursed)
+else '0'
+    end as DisbursedAmountforQ2,
+case when tab3.quarters='Quarter 3' then (tab3.Amount_Disbursed)
+else '0'
+    end as DisbursedAmountforQ3,
+case when tab3.quarters='Quarter 4' then (tab3.Amount_Disbursed)
+else '0'
+    end as DisbursedAmountforQ4
+    
+from tab3 
+
+group by 1,2,3,4,5,6,7,8,9,10,11,12
+),
+s2 as (
+Select s.fy_timerange,s.projectcode,s.name_project,
+s.CODE,s.ImplementingAgency,s.interventiontype,s.CoreArea ,s.duration,
+s.project_manager,s.submission_date ,s.tranche,s.Amount_not_Utilised ,temp.col as quarter,
+sum(case col 
+    when 'Q1' then s.DisbursedAmountforQ1
+    when 'Q2' then s.DisbursedAmountforQ2
+    when 'Q3' then s.DisbursedAmountforQ3
+    when 'Q4' then s.DisbursedAmountforQ4
+    else 0
+    end) as DisbursedAmount
+from s
+cross join temp
+group by s.fy_timerange,s.projectcode,s.name_project,
+s.CODE,s.ImplementingAgency,s.interventiontype,s.CoreArea ,s.duration,
+s.project_manager,s.submission_date ,s.tranche,s.Amount_not_Utilised ,temp.col
+),
+ s1 as (
+  Select s2.fy_timerange,s2.projectcode,s2.name_project,
+s2.CODE,s2.ImplementingAgency,s2.interventiontype,s2.CoreArea ,s2.duration,
+s2.project_manager,s2.submission_date ,s2.tranche,s2.Amount_not_Utilised, 
+Sum(CASE 
+             WHEN quarter = 'Q1' THEN DisbursedAmount
+             ELSE 0 
+           END) AS DisbursedAmountforQ1,
+Sum(CASE 
+             WHEN quarter = 'Q2' THEN DisbursedAmount
+             ELSE 0 
+           END) AS DisbursedAmountforQ2,
+           Sum(CASE 
+             WHEN quarter = 'Q3' THEN DisbursedAmount
+             ELSE 0 
+           END) AS DisbursedAmountforQ3,
+           Sum(CASE 
+             WHEN quarter = 'Q4' THEN DisbursedAmount
+             ELSE 0 
+           END) AS DisbursedAmountforQ4
+           from s2
+group by s2.fy_timerange,s2.projectcode,s2.name_project,
+s2.CODE,s2.ImplementingAgency,s2.interventiontype,s2.CoreArea ,s2.duration,
+s2.project_manager,s2.submission_date ,s2.tranche,s2.Amount_not_Utilised
+) ,      
+
+
+
+/*tab4 as (Select tab3.fy_timerange,tab3.projectcode,
 tab3.CODE,sum (tab3.Amount_Disbursed) as Amount_DisbursedforCurrentFY_total from tab3
 group by tab3.fy_timerange,tab3.projectcode,
-tab3.CODE		),/*total amount disbursed for all quarters*/
+tab3.CODE		),*//*total amount disbursed for all quarters*/
 
 main as (select r.name as fy_timerange, cast((split_part(split_part(prod.name,'|',1),'.',1)) as varchar) as ProjectCode,CONCAT(ProjectCode,fy_timerange) as code from profile_54963 p
 left join ds_mysql_prod_project prod on
@@ -115,12 +191,16 @@ left join level2tab d on
 d.level1 = p.level1)/*fetches level1manager and level2manager*/
 
 
-		
-select tab3.fy_timerange,tab3.projectcode,tab3.name_project,
+Select s1.fy_timerange,s1.projectcode,s1.name_project,
+s1.CODE,s1.ImplementingAgency,s1.interventiontype,s1.CoreArea ,s1.duration,
+s1.project_manager,s1.submission_date ,s1.tranche,s1.Amount_not_Utilised,(DisbursedAmountforQ1+DisbursedAmountforQ2+DisbursedAmountforQ3+DisbursedAmountforQ4) as total_d,DisbursedAmountforQ1,DisbursedAmountforQ2,DisbursedAmountforQ3,DisbursedAmountforQ4,new1.level1 as level1manager,new1.level2 as level2manager
+from s1	left join new1 on new1.CODE=s1.CODE
+
+/*select tab3.fy_timerange,tab3.projectcode,tab3.name_project,
 tab3.CODE,tab3.ImplementingAgency,tab3.interventiontype,tab3.CoreArea ,tab3.duration,
 tab3.project_manager,tab3.submission_date ,tab3.tranche,tab3.Quarters,tab3.Amount_Disbursed,tab3.Amount_not_Utilised, tab4.Amount_DisbursedforCurrentFY_total,new1.level1 as level1manager,new1.level2 as level2manager
 from tab3 
 left join tab4 on tab3.CODE=tab4.CODE
-left join new1 on tab3.CODE=new1.CODE
+left join new1 on tab3.CODE=new1.CODE*/
 
 
