@@ -28,7 +28,7 @@ and x1.status in ('REJECTED', 'PENDING_APPROVAL', 'SUBMITTED')
 
 group by x1._id, x1.profileinstanceid, x1.status, x1.active, x1.data, x1.taskuserid, x2.taskid, x5.projectid, x6.profileid, x4.sectionid, x6.name, x7.name, x8.name, x1.submissionlog, x1.approvallog, x1.created, x1.modified),
 s2 as (
-Select id,profileid, status,created, modified,data, projectid,sln,cast(sln."timestamp" as datetime) as tst1,cast(sln."timestamp" as datetime) as tst2,
+Select id,profileid, status,created, modified,data, projectid,sln,cast(sln."timestamp" as datetime) as tst,
 approvallog_new,submissionlog_new
 from s as q, q.submissionlog_new as sln
 )
@@ -53,16 +53,28 @@ Select id,profileid, status,
   when profileid=27396 then data.focus_area
   when profileid=27420 then data.focus_area 
   end as core_area,data.start_date as start_date,data.end_date as end_date,
-  projectid,sln,tst1,tst2, approvallog_new, submissionlog_new,
-  row_number() over (partition by id order by tst2 desc) as row_2,
-  row_number() over (partition by id order by tst1 asc) as row_1
+  projectid,sln,tst as ts1, approvallog_new, submissionlog_new,
+  row_number() over (partition by id order by tst asc) as row_1
 from s2
+
+),
+
+s33 as (
+Select ss3.*,sll,cast(sll."timestamp" as datetime) as iest from s3 as ss3, ss3.submissionlog_new as sll
+ 
+)
+,
+sss3 as (
+Select *,row_number() over (partition by id order by iest desc) as row_2
+  from s33
+  where row_1=1
+
 
 )
 ,
 s4 as (
-Select *,cast(aln."timestamp" as datetime) tstt , cast(aln."approverEmail" as varchar) as approveremail from s3 as ss,ss.approvallog_new aln
- where row_2=1 or row_1=1  --earliest
+Select *,cast(aln."timestamp" as datetime) tstt , cast(aln."approverEmail" as varchar) as approveremail from sss3 as ss,ss.approvallog_new aln
+ where row_2=1 --earliest
   ),
   s5 as (
 Select *,
