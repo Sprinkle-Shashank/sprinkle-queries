@@ -46,7 +46,23 @@ select tab1.fy_timerange ,tab1.projectcode ,tab1.name_project, tab1.curr_yr_budg
 tab1.CODE,tab1.ImplementingAgency,tab1.interventiontype,tab1.CoreArea,tab1.duration,tab1.project_manager,tab1.state,
 case when tab1.interventiontype in ('Direct', 'Indirect - Others') then tab1.curr_yr_budget 
  else 0 
-  end as Totalallocatedamount from tab1 where tab1.interventiontype in ('Direct', 'Indirect - Others') )
+  end as Totalallocatedamount from tab1 where tab1.interventiontype in ('Direct', 'Indirect - Others') ),
   
   
-  Select * from s
+s2 as (
+Select s.fy_timerange ,s.projectcode ,s.name_project, s.curr_yr_budget,
+s.CODE,s.ImplementingAgency,s.interventiontype,s.CoreArea,s.duration,s.project_manager,temp.col as quarter,s.state,
+sum(case col 
+    when 'Q1' then s.Totalallocatedamount/4
+    when 'Q2' then s.Totalallocatedamount/4
+    when 'Q3' then s.Totalallocatedamount/4
+    when 'Q4' then s.Totalallocatedamount/4
+   else 0
+    end) as AllocatedAmount
+from s
+cross join temp
+group by s.fy_timerange ,s.projectcode ,s.name_project, s.curr_yr_budget,s.state,
+s.CODE,s.ImplementingAgency,s.interventiontype,s.CoreArea,s.duration,s.project_manager ,temp.col
+)
+
+Select * from s2
