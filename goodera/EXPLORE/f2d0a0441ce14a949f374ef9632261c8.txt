@@ -43,8 +43,8 @@ s as(
 select tab1.fy_timerange ,tab1.projectcode ,tab1.name_project, tab1.curr_yr_budget,
 tab1.CODE,tab1.ImplementingAgency,tab1.interventiontype,tab1.CoreArea,tab1.duration,tab1.project_manager,tab1.state,
 case when tab1.interventiontype in ('Direct', 'Indirect - Others') then tab1.curr_yr_budget 
- /* else 0 */
-  end as Totalallocatedamount from tab1),
+ else 0 
+  end as Totalallocatedamount from tab1 where tab1.interventiontype in ('Direct', 'Indirect - Others') ),
   
 s2 as (
 Select s.fy_timerange ,s.projectcode ,s.name_project, s.curr_yr_budget,
@@ -128,11 +128,12 @@ group by 1,2,3,4,5,6,8/*data required from 29974*/
 g as (select tab1.fy_timerange ,tab1.projectcode ,tab1.name_project, tab2.quarters,
 tab1.CODE,tab1.ImplementingAgency,tab1.interventiontype,tab1.CoreArea,tab1.duration,
   tab1.project_manager,case when tab1.interventiontype in ('Indirect') then tab2.hdfc_cost_monthly+tab3.monthly_cost
-/*else 0*/
+else 0
     end as allocatedamount
 	from tab1
 left join tab2 on tab2.CODE=tab1.CODE
-left join tab3 on tab3.CODE=tab2.CODE and tab3.quarters=tab2.quarters ),
+left join tab3 on tab3.CODE=tab2.CODE and tab3.quarters=tab2.quarters
+	  Where tab1.interventiontype in ('Indirect') ),
 
 sforIndirect as(
 select g.fy_timerange ,g.projectcode ,g.name_project,g.quarters,
