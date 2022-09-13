@@ -1,5 +1,5 @@
 with temp1 as
-(select projectId.name as projectId, indicator_1.name as indicator, sdgs.name as sdgs, schedule_vii.name as schedule_vii, m.ben_type, m.baseline, m.target, m.proj, r._id, r.project_name, r.vertical, focus.name as focus, state.name as state, r.district, r.direct_or_partner, r.project_code as project_code_new, r.start_date, site.name as site, q.createddate, q.completed, q.fy_timerange, q.progress, complete.name as complete, ben_type.name as ben_type, entity.name as entity, int_indi.name as int_indi,
+(select projectId.name as projectId, indicator_1.name as indicator, sdgs.name as sdgs, schedule_vii.name as schedule_vii, m.ben_type, m.baseline, m.target, m.proj, r._id, r.project_name, r.vertical, focus.name as focus, state.name as state, r.district, r.direct_or_partner, r.project_code as project_code_new, r.start_date, partner.name as partner, q.createddate, q.fy_timerange, q.progress, completed.name as completed, ben_type.name as ben_type, entity.name as entity, int_indi.name as int_indi, 
  
  case
  when state.name is NULL then district
@@ -16,11 +16,8 @@ with temp1 as
  left join profile_55471 AS q 
  on r.project_code = q.project_code
  
-/*left join profile_64961 AS l 
- on l.state = r.state*/
- 
- left join ds_mysql_prod_tagelement as site
-  on r.direct_or_partner = site.id
+ left join ds_mysql_prod_tagelement as partner
+  on r.direct_or_partner = partner.id
  
  left join ds_mysql_prod_tagelement as complete
   on q.completed = complete.id
@@ -52,21 +49,24 @@ with temp1 as
  left join ds_mysql_prod_tagelement as sdgs
   on m.sdgs = sdgs.id 
  
- where r.direct_or_partner = 1132990 AND q.completed = 939857),
-   
+ where r.direct_or_partner = 1132991),
+ 
  temp2 as
- (select m.projectId, m.indicator, m.schedule_vii, m.focus, m.fy_timerange, m.entity, m.vertical,  m.state,  m.target, m.sdgs, vertical_new, m._id, m.int_indi, m.project_code_new, m.createddate, m.progress, m.location, concat_1
- from temp1 as m, m.vertical vertical_new),
+(select m.projectId, m.indicator, m.project_name, m.focus, m.partner, m.fy_timerange, m.entity,  m.vertical,  m.state, m.target, m.sdgs, m._id, m.int_indi, m.project_code_new, m.createddate, m.beneficiary, m.progress, m.location, m.concat_1 from temp1 as m),
  
  temp3 as
- (select m.projectId, m.indicator, m.schedule_vii, m.focus, m.fy_timerange, m.entity, m.state, m.sdgs, m.target, m.int_indi, m._id , m.project_code_new, m.createddate, m.progress, m.location, concat_1 ,
+ (select m.projectId, m.indicator, m.project_name, m.focus,  m.partner, m.fy_timerange, m.entity, m.vertical,  m.state, m.target, m.sdgs, vertical_new, m._id, m.int_indi, m.project_code_new, m.createddate, m.beneficiary, m.progress, m.location, m.concat_1
+ from temp2 as m, m.vertical vertical_new),
+ 
+ temp4 as
+ (select m.projectId, m.indicator, m.project_name, m.focus,  m.partner, m.fy_timerange, m.entity, m.state, m.sdgs, m.target, m.int_indi, m._id , m.project_code_new,m.createddate, m.beneficiary, m.progress, m.location, m.concat_1,
   
    case 
 when vert1.name IS NULL AND vert.name IS NOT NULL THEN vert.name
 else vert1.name 
 END AS vertical
 
-from temp2 AS m
+from temp3 AS m
 
 left join ds_mysql_prod_tagelement as vert
   on m.vertical_new = vert.id
@@ -74,33 +74,34 @@ left join ds_mysql_prod_tagelement as vert
 left join ds_mysql_prod_tagelement as vert1
   on vert.parent = vert1.id),
   
-  temp4 as
- (select m.projectId, m.indicator, m.schedule_vii, m.focus, m.fy_timerange, m.entity, m.state, m.sdgs, m.vertical, m._id, SUM(m.target) as beneficiary, m.int_indi, m.project_code_new, m.createddate, m.progress, m.location, concat_1
-  from temp1 as m
-  where _id NOT IN (select _id from temp2)
-  group by m.projectId, m.indicator, m.schedule_vii, m.focus, m.fy_timerange, m.entity, m.state, m.sdgs, m.vertical, m._id, m.int_indi, m.project_code_new, m.createddate, m.progress, m.location, concat_1 ),
-  
   temp5 as
-  (
-  select projectId, indicator, schedule_vii, focus, project_code_new, fy_timerange, entity, SUM(m.target) as beneficiary, vertical, int_indi, state, sdgs , _id , createddate, progress, m.location, concat_1 
-  from temp3 as m
-  group by projectId, indicator, schedule_vii, focus, project_code_new, fy_timerange, entity, vertical, int_indi, state, sdgs , _id, createddate, progress, m.location, concat_1
-  ),
+ (select m.projectId, m.indicator, m.project_name, m.focus, m.partner, m.fy_timerange, m.entity, m.state, m.sdgs, m.vertical, m._id, SUM(m.beneficiary) as beneficiary, m.int_indi, m.project_code_new, m.createddate, m.progress, m.location, m.concat_1
+  from temp2 as m
+  where _id NOT IN (select _id from temp3)
+  group by m.projectId, m.indicator, m.project_name, m.focus,  m.partner, m.fy_timerange, m.entity, m.state, m.sdgs, m.vertical, m._id, m.int_indi, m.project_code_new, m.createddate, m.progress, m.location, m.concat_1),
+  
   
   temp6 as
   (
+  select projectId, indicator, project_name, focus, partner, project_code_new, fy_timerange, entity, SUM(m.beneficiary) as beneficiary, vertical, int_indi, state, sdgs , _id , createddate, progress, location, concat_1
+  from temp4 as m
+  group by projectId, indicator, project_name, focus, partner, project_code_new, fy_timerange, entity, vertical, int_indi, state, sdgs , _id, createddate, progress, location, concat_1
+  ),
+  
+  temp7 as
+  (
   select projectId, indicator, project_name, focus, partner, project_code_new, fy_timerange, entity, beneficiary, vertical, int_indi, state, sdgs , _id , createddate, progress, location, concat_1, q
-  from temp4 as m, m.vertical as q
+  from temp5 as m, m.vertical as q
    ),
    
-   temp7 as
+   temp8 as
    (
 	 select projectId, indicator, project_name, focus, partner, project_code_new, fy_timerange, entity, beneficiary, q , int_indi, state, sdgs , _id, createddate, progress, location, concat_1
-  from temp6 as m
+  from temp7 as m
 	 ),
 	 
-	 temp8 as
-	 ( select  projectId, indicator, project_name, focus, partner, project_code_new, fy_timerange, entity, beneficiary , int_indi, state, sdgs , _id , createddate, progress, location, concat_1, q as vertical from temp6 as p
+	 temp9 as
+	 ( select  projectId, indicator, project_name, focus, partner, project_code_new, fy_timerange, entity, beneficiary , int_indi, state, sdgs , _id , createddate, progress, location, concat_1, q as vertical from temp7 as p
 	  )
    
    select * from temp6
