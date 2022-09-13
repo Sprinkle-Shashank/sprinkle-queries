@@ -1,5 +1,11 @@
 with temp1 as
-(select state1_parent.name as state, projectId.name as projectId, state_district, fy_timerange, count(*) from profile_46325 as m 
+(select projectId.name as projectId, state_district, fy_timerange, count(*),
+
+case
+WHEN state1_parent.name IS NULL THEN state1.name else state1_parent.name END as state
+ 
+ 
+from profile_46325 as m 
 
 left join ds_mysql_prod_project as projectId
   on m.projectId = projectId.id 
@@ -10,18 +16,19 @@ on m.state_district = state1.id
 left join ds_mysql_prod_tagelement as state1_parent
 on state1.parent = state1_parent.id
 
+ 
 WHERE state_district = '' OR state_district IS not NULL
 
 group by projectId.name, fy_timerange, state_district, state
 
 
-),
-
-temp2 as
-(select projectId, state_district, fy_timerange, state from temp1
-/*case
-when state_district.name IS NULL AND state.name IS NOT NULL THEN state.name
-else state.name*/
-order by projectId asc
 )
- select * from temp2
+
+/*temp2 as
+(select projectId, state_district, fy_timerange, state from temp1
+case
+when state1_parent.name IS NULL THEN state1.name
+else state.name
+order by projectId asc
+)*/
+ select * from temp1
