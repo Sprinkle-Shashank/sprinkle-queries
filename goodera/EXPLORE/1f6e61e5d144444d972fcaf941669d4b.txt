@@ -110,14 +110,14 @@ from s4
 	left join ds_mysql_prod_tagelement t on 
 	t.id=fy
 where roww=1  --latest
-)
-Select project_code,renewed,iest as Latest_date_of_submission_by_proj_man,
+), ff as(
+Select cast( split_part(project_code,' ',1) as varchar) as proj_code,renewed,iest as Latest_date_of_submission_by_proj_man,
 Date_of_Action_by_Goodera,
 	Status_at_Goodera,
 	Date_of_Action_by_CSR_Head,
 	Status_at_csr_head,
 	t.name as project_manager,implementation_Agency,t1.name as project_live,core_Area,ss.name as intervention_type,start_date,end_date,
-ts1 as Initial_submission_Date,fyy
+ts1 as Initial_submission_Date,fyy, row_number() over (partition by proj_code order by left(fyy,4) desc) as roo
 from ll
 left join ds_mysql_prod_tagelement t
 on t.id=project_manager
@@ -125,9 +125,6 @@ left join ds_mysql_prod_tagelement t1
 on t1.id=project_live
 left join profile_28235 ss
 on ss._id=intervention_type
-group by project_code,renewed,iest ,
-Date_of_Action_by_Goodera,Status_at_Goodera,
-	Date_of_Action_by_CSR_Head,
-	Status_at_csr_head,
-	t.name ,implementation_Agency,t1.name,core_Area,ss.name,start_date,end_date,
-ts1 ,fyy
+)
+Select * from ff
+where roo=1
