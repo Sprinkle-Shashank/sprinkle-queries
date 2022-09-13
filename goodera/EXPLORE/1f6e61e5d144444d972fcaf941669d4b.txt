@@ -33,7 +33,7 @@ from s as q, q.submissionlog_new as sln
 )
 ,
 s3 as(
-Select id,pc,profileid, status,data.ngo_partner as implementation_Agency,
+Select id,pc,profileid, status,
   cast(timestamp 'epoch' + CAST(created AS BIGINT)/1000 * interval '1 second' as date) as created,
   cast(timestamp 'epoch' + CAST(modified AS BIGINT)/1000 * interval '1 second' as date) as modified, data, data."name" as project_code,
   case
@@ -50,7 +50,12 @@ Select id,pc,profileid, status,data.ngo_partner as implementation_Agency,
    case 
   when profileid=27396 then data.focus_area
   when profileid=27420 then data.focus_area 
-  end as core_area,data.start_date as start_date,data.end_date as end_date,
+  end as core_area,
+     case 
+  when profileid=27396 then data.ngo_partner
+  when profileid=27420 then data.ngo_partner 
+  end as implementation_Agencyy,
+  data.start_date as start_date,data.end_date as end_date,
   data.project_manager, sln,tst as ts1, approvallog_new, submissionlog_new,
    case 
   when profileid=27396 then ss.monitoring_live
@@ -96,7 +101,7 @@ case
   case 
   when approverEmail = 'nusrat.pathan@hdfcbank.com' then status1
   end as Status_at_csr_head,
-	
+	sss.name as implementation_Agency,
 	row_number() over (partition by id, approveremail order by tstt desc) as roww
 from s4
 	),
@@ -105,6 +110,8 @@ from s4
 	Select *,t.name as fyy from s5
 	left join ds_mysql_prod_tagelement t on 
 	t.id=fy
+	  left join profile_27395 sss
+on sss._id=implementation_Agencyy
 where roww=1  --latest
 ), 
 ff as(
