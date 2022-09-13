@@ -28,20 +28,20 @@ and x1.status in ('SAVED', 'REJECTED', 'PENDING_APPROVAL', 'SUBMITTED')
 
 group by x1._id, x1.profileinstanceid, x1.status, x1.active, x1.data, x1.taskuserid, x2.taskid, x5.projectid, x6.profileid, x4.sectionid, x6.name, x7.name, x8.name, x1.submissionlog, x1.approvallog, x1.created, x1.modified),
 s2 as (
-Select id,profileid, status, data, data.fy, projectid,sln,cast(sln."timestamp" as datetime) as tst,
+Select id,profileid, status, data, projectid,sln,cast(sln."timestamp" as datetime) as tst,
 approvallog_new
 from s as q, q.submissionlog_new as sln
 )
 ,
 s3 as(
-Select s2.id,profileid, status, data, data."name" as project_code,
+Select id,profileid, status, data, data."name" as project_code,
   case
 	when profileid = 27396 and data.end_date is not null then 'NA'
     when profileid = 27420 and data.end_date is not null and data.end_date > CURRENT_DATE||'T00:00:00.000Z' then 'Yes'
     when profileid = 27420 and data.end_date is not null and data.end_date < CURRENT_DATE||'T00:00:00.000Z' then 'No'
     else '-'
 	end as renewed,
-  t.name as fy,
+  data.fy as fy,
   case 
   when profileid=27396 then data.intervention_type
   when profileid=27420 then data.int_type_calc2 
@@ -52,8 +52,7 @@ Select s2.id,profileid, status, data, data."name" as project_code,
   end as core_area,data.start_date as start_date,data.end_date as end_date,
   projectid,sln,tst, approvallog_new, row_number() over (partition by id order by tst asc) as row
 from s2
-left join ds_mysql_prod_tagelement t
-on t.id=s2.fy
+
 ),
 s4 as (
 Select *,cast(aln."timestamp" as datetime) tstt , cast(aln."approverEmail" as varchar) as approveremail from s3 as ss,ss.approvallog_new aln
@@ -71,6 +70,8 @@ case
 	row_number() over (partition by id,approveremail order by tstt desc) as roww
 from s4
 	)
-	Select * from s5
+	Select *,t.name as fyy from s5
+	left join ds_mysql_prod_tagelemen t on 
+	t.id=fy
 where roww=1  --latest
 
