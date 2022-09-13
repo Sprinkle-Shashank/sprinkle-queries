@@ -28,15 +28,14 @@ and x1.status in ('REJECTED', 'PENDING_APPROVAL', 'SUBMITTED')
 group by x1._id, x1.profileinstanceid, x1.status, x1.active, x1.data, x1.taskuserid, x2.taskid, x5.projectid, x6.profileid, x4.sectionid, x6.name, x7.name, x8.name, x1.submissionlog, x1.approvallog, x1.created, x1.modified),
 s2 as (
 Select id,profileid, status,created, modified,data,sln,cast(sln."timestamp" as datetime) as tst,pc,
-approvallog_new,submissionlog_new,cast(data.ngo_partner as varchar) as ngo_partner 
+approvallog_new,submissionlog_new
 from s as q, q.submissionlog_new as sln
 )
 ,
 s3 as(
-Select id,pc,profileid, status,
+Select id,pc,profileid, status,data.ngo_partner,
   cast(timestamp 'epoch' + CAST(created AS BIGINT)/1000 * interval '1 second' as date) as created,
-  cast(timestamp 'epoch' + CAST(modified AS BIGINT)/1000 * interval '1 second' as date) as modified
-  , data, data."name" as project_code,
+  cast(timestamp 'epoch' + CAST(modified AS BIGINT)/1000 * interval '1 second' as date) as modified, data, data."name" as project_code,
   case
 	when profileid = 27396 and data.end_date is not null then 'NA'
     when profileid = 27420 and data.end_date is not null and data.end_date > CURRENT_DATE||'T00:00:00.000Z' then 'Yes'
@@ -66,10 +65,9 @@ on st.name=pc
 left join profile_28235 su
 on su._id=intervention_type
  left join profile_27395 sss
-on sss._id=s2.ngo_partner 
+on sss._id=data.ngo_partner
 
 ),
-
 s33 as (
 Select ss3.*,sll,cast(sll."timestamp" as datetime) as iest from s3 as ss3, ss3.submissionlog_new as sll
  
@@ -79,16 +77,13 @@ sss3 as (
 Select *,row_number() over (partition by id order by iest desc) as row_2
   from s33
   where row_1=1
-
-
 )
 ,
 s4 as (
 Select *,cast(aln."timestamp" as datetime) tstt , aln."approvalStatus" as status1,cast(aln."approverEmail" as varchar) as approveremail from sss3 as ss,ss.approvallog_new aln
  where row_2=1 --earliest
   ),
-  
-  s5 as (
+s5 as (
 Select *,
 case 
   when approverEmail = 'hdfcbank@goodera.com' then tstt
@@ -113,7 +108,8 @@ from s4
 	left join ds_mysql_prod_tagelement t on 
 	t.id=fy
 where roww=1  --latest
-), ff as(
+), 
+ff as(
 Select split_part(cast(project_code as varchar),' ',1) as proj_code,renewed,iest as Latest_date_of_submission_by_proj_man,
 left(cast(Date_of_Action_by_Goodera as varchar),10) as Date_of_Action_by_Goodera,
 cast(Status_at_Goodera as varchar) as Status_at_Goodera,
@@ -128,8 +124,8 @@ left join ds_mysql_prod_tagelement t1
 on t1.id=project_live
 left join ds_mysql_prod_tagelement t2
 on t2.id=core_Area
-
 )
+
 Select 
 proj_code,renewed,Latest_date_of_submission_by_proj_man,
 
