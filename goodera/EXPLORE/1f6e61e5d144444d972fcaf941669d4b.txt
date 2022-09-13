@@ -11,7 +11,7 @@ case
   when is_array(x1.approvallog) = false or get_array_length(x1.approvallog) = 0 then 
   	   array(x1.approvallog)
   else x1.approvallog
-end as approvallog_new
+end as approvallog_new,data.name as pc
   
 from ds_mongo_taskresponse x1 
 
@@ -28,13 +28,13 @@ and x1.status in ('REJECTED', 'PENDING_APPROVAL', 'SUBMITTED')
 
 group by x1._id, x1.profileinstanceid, x1.status, x1.active, x1.data, x1.taskuserid, x2.taskid, x5.projectid, x6.profileid, x4.sectionid, x6.name, x7.name, x8.name, x1.submissionlog, x1.approvallog, x1.created, x1.modified),
 s2 as (
-Select id,profileid, status,created, modified,data, projectid,sln,cast(sln."timestamp" as datetime) as tst,
+Select id,profileid, status,created, modified,data, projectid,sln,cast(sln."timestamp" as datetime) as tst,pc,
 approvallog_new,submissionlog_new
 from s as q, q.submissionlog_new as sln
 )
 ,
 s3 as(
-Select id,profileid, status,
+Select id,pc,profileid, status,
   cast(timestamp 'epoch' + CAST(created AS BIGINT)/1000 * interval '1 second' as date) as created,
   cast(timestamp 'epoch' + CAST(modified AS BIGINT)/1000 * interval '1 second' as date) as modified
   , data, data."name" as project_code,
@@ -53,9 +53,18 @@ Select id,profileid, status,
   when profileid=27396 then data.focus_area
   when profileid=27420 then data.focus_area 
   end as core_area,data.start_date as start_date,data.end_date as end_date,
+  data.project_manager, data.ngo_partner as implementation_agency,
   projectid,sln,tst as ts1, approvallog_new, submissionlog_new,
+   case 
+  when profileid=27396 then ss.monitoring_live
+  when profileid=27420 then st.monitoring_live 
+  end as project_live,
   row_number() over (partition by id order by tst asc) as row_1
 from s2
+  left join profile_27396 ss
+on ss.name=pc
+    left join profile_27420 st
+on st.name=pc
 
 ),
 
@@ -73,23 +82,36 @@ Select *,row_number() over (partition by id order by iest desc) as row_2
 )
 ,
 s4 as (
-Select *,cast(aln."timestamp" as datetime) tstt , cast(aln."approverEmail" as varchar) as approveremail from sss3 as ss,ss.approvallog_new aln
+Select *,cast(aln."timestamp" as datetime) tstt , aln."approvalStatus" as status,cast(aln."approverEmail" as varchar) as approveremail from sss3 as ss,ss.approvallog_new aln
  where row_2=1 --earliest
   ),
+  
   s5 as (
 Select *,
 case 
   when approverEmail = 'hdfcbank@goodera.com' then tstt
   end as Date_of_Action_by_Goodera,
 	case 
+  when approverEmail = 'hdfcbank@goodera.com' then status
+  end as Status_at_Goodera,
+	case 
   when approverEmail = 'nusrat.pathan@hdfcbank.com' then tstt
   end as Date_of_Action_by_CSR_Head,
+  
+  case 
+  when approverEmail = 'nusrat.pathan@hdfcbank.com' then status
+  end as Status_at_csr_head,
 	
 	row_number() over (partition by id,approveremail order by tstt desc) as roww
 from s4
-	)
+	),
+  
+	ll as(
 	Select *,t.name as fyy from s5
 	left join ds_mysql_prod_tagelement t on 
 	t.id=fy
 where roww=1  --latest
-
+)
+Select project_code,renewed,iest as Latest_date_of_submission_by_proj_man,Date_of_Action_by_Goodera,Status_at_Goodera,Date_of_Action_by_CSR_Head,Status_at_csr_head,project_manager,implementation_Agency,project_live,core_Area,start_date,end_date
+ts1 as Initial_submission_Date
+from ll
