@@ -1,1 +1,10 @@
-select * from profile_30527
+ select  reg.name as state,q.fy as name,COALESCE(p.indicator, 'indicator
+') AS INDICATOR,COALESCE(p.assessment, 'assessment
+') AS assessment,  (cast(SUM(case when breathing_disorder2_yn=476506 or skin_disease2_yn=476506 
+    then 1 else 0 end ) AS FLOAT) /COUNT(*))*100  as percentage from profile_30527 p
+  left join ds_mysql_prod_tagelement reg
+on p.state= reg.id
+left join profile_30532 q
+on p.batch=q._id
+where breathing_disorder2_yn IN(476507,476506) AND skin_disease2_yn IN(476507,476506)  
+group by reg.name,p.indicator,p.assessment,q.fy
