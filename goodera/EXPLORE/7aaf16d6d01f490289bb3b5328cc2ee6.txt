@@ -1,1 +1,8 @@
-select * from profile_30527
+ select  reg.name as state,COALESCE(p.indicator, 'Consumption of Alcohol/Tobacco/Drugs during working hours
+') AS INDICATOR,COALESCE(p.assessment, 'Baseline
+') AS assessment,  (cast(SUM(case when tobacco1_yn=476506 or alchohol1_yn=476506 or drugs1_yn=476506
+    then 1 else 0 end ) AS FLOAT) /COUNT(*))*100  as percentage from profile_30527 p
+  left join ds_mysql_prod_tagelement reg
+on p.state= reg.id
+where tobacco1_yn IN(476507,476506) AND alchohol1_yn IN(476507,476506) AND drugs1_yn IN(476507,476506) 
+group by reg.name,p.indicator,p.assessment
