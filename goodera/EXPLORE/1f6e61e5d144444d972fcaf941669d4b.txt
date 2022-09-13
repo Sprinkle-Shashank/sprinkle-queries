@@ -53,14 +53,27 @@ Select id,profileid, status,
   when profileid=27396 then data.focus_area
   when profileid=27420 then data.focus_area 
   end as core_area,data.start_date as start_date,data.end_date as end_date,
-  projectid,sln,tst, approvallog_new, submissionlog_new,row_number() over (partition by id order by tst asc) as row_1,
-  row_number() over (partition by id order by tst desc) as row_2
+  projectid,sln,tst as ts1, approvallog_new, submissionlog_new,row_number() over (partition by id order by tst asc) as row_1
 from s2
 
 ),
+
+s33 as (
+Select *,sll,cast(sll."timestamp" as datetime) as iest from s3 as ss3, ss3.submissionlog_new as sll
+ 
+)
+,
+sss3 as (
+Select *,row_number() over (partition by id order by iest asc) as row_2
+  from s33
+  where row_1=1
+
+
+)
+,
 s4 as (
-Select *,cast(aln."timestamp" as datetime) tstt , cast(aln."approverEmail" as varchar) as approveremail from s3 as ss,ss.approvallog_new aln
-where row_1=1 or row_2=1--earliest
+Select *,cast(aln."timestamp" as datetime) tstt , cast(aln."approverEmail" as varchar) as approveremail from sss3 as ss,ss.approvallog_new aln
+ where row_2=1--earliest
   ),
   s5 as (
 Select *,
