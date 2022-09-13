@@ -1,43 +1,19 @@
-with s2 as (Select p.name as projectid,p1.name as pmilestone,t1.name as status, a.comm, t2.name as month, a.date, left(a.actual_start_date,10) as actual_start_date_new , left(a.actual_end_date,10) as actual_end_date_new,
-p1.milestone as milestone,left(p1.start,10) as start_date_new, left(p1.end,10) as end_date_new, p1.name,
-case
-when p1.name LIKE '%.%' then split_part(p1.name,'.',2)
-else p1.name 
-end as pmilestone_final
-,			
-case
-when t1.name = 'Completed' then 'Completed'
-when (t1.name = 'In Progress' and a.date > p1.end) OR (t1.name = 'Yet to Start' and a.date > p1.start) then 'Delayed'
-when t1.name = 'Yet to Start' and a.date <= p1.start then 'Yet to Start'
-when t1.name = 'In Progress' and a.date <= p1.end then 'In Progress'
-else 'N/A'
-end as new_status,
+Select p3.name as projectId,p1.name as projectname,p2.name as partner,p.bene_name,p.fy_timerange,t1.name as gender,t2.name as district,t3.name as state,t4.name as domain_before_placement,t5.name as placement_status,p.bene_job_offers,t8.name as domain_after_placement,(p.bene_income + p.add_income) as total_income,t10.name as state_placed,t9.name as district_placed,t11.name as ed_qualification , 
+case when t5.name = 'Yes' then 1 else 0 end as count
+from profile_81359 p
+left join ds_mysql_prod_project p1 on p1.id = p.projectid
+left join ds_mysql_prod_project p2 on p2.id = p1.parent
+left join ds_mysql_prod_project p3 on p3.id=p2.parent
+left join ds_mysql_prod_tagelement t1 on t1.id=p.gender
+left join ds_mysql_prod_tagelement t2 on t2.id=p.state_district
+left join ds_mysql_prod_tagelement t3 on t3.id=t2.parent
+left join ds_mysql_prod_tagelement t4 on t4.id=p.domain
+left join ds_mysql_prod_tagelement t5 on t5.id=p.bene_placed
+left join ds_mysql_prod_tagelement t6 on t6.id=p.bene_placed
+left join ds_mysql_prod_tagelement t7 on t7.id=p.domain_trade
+left join ds_mysql_prod_tagelement t8 on t8.id=t7.parent
+left join ds_mysql_prod_tagelement t9 on t9.id=p.state_district_placed
+left join ds_mysql_prod_tagelement t10 on t10.id=t9.parent
+left join ds_mysql_prod_tagelement t11 on t11.id=p.ed_qualification
 
-case 
-when a.actual_end_date IS NOT NULL then 1
-else 0 end as num,
-
-case
-when num = 1 then (a.actual_start_date || '|' || a.actual_end_date) 
-when num = 0 then (p1.start || '|' || p1.end) 
-else NULL end as fy_timerange_new
-
-,rank() over (partition by p.name,p1.name,a.fy_timerange,p1.milestone order by a.date desc) as row_number
- 
-from profile_58278 a
-
-left join ds_mysql_prod_project p on p.id = a.projectid
-left join profile_58277 p1 on p1._id= a.milestone
-left join ds_mysql_prod_tagelement t1 on t1.id=a.status
-left join ds_mysql_prod_tagelement t2 on t2.id=a.month),
---group by p.name ,p1.name ,t1.name , a.comm, t2.name, a.date, a.actual_start_date, a.actual_end_date,
---p1.milestone,p1.start, p1.end, p1.name 
- s3 as (Select *,
-row_number() over (partition by  projectId, start_date_new, end_date_new,actual_start_date_new, actual_end_date_new, pmilestone_final order by s2.date desc) as row_number2
-from s2 
-where row_number = 1)
-Select projectId,pmilestone_final,new_status,fy_timerange_new as fy_timerange,comm,actual_start_date_new,actual_end_date_new,start_date_new,end_date_new 
-
-from s3 
-where row_number2 = 1
---group by projectid,pmilestone,fy_timerange,milestone	
+where p.projectid like '%%'
