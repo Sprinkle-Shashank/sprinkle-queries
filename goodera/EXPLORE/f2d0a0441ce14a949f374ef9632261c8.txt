@@ -210,6 +210,49 @@ s2forIndirect.CODE,s2forIndirect.ImplementingAgency,s2forIndirect.interventionty
 ),/*allocated amount summary for Indirect projects*/
 
 /*select * from s1forIndirect*/
+main as (select r.name as fy_timerange, cast((split_part(split_part(prod.name,'|',1),'.',1)) as varchar) as ProjectCode,CONCAT(ProjectCode,fy_timerange) as code from profile_54963 p
+left join ds_mysql_prod_project prod on
+prod.id=p.projectid
+left join ds_mysql_prod_tagelement r on
+r.id=p.fy),
+
+lookup as (select cast(q.name as varchar) as ProjectCode,f.name as fy_timerange,m.name as Project_Manager,CONCAT(ProjectCode,fy_timerange) as code
+from profile_27420 d
+left join ds_mysql_prod_tagelement f on
+d.fy=f.id
+left join ds_mysql_prod_tagelement m on
+d.project_manager=m.id
+left join profile_27396 q on
+d.project_code=q._id
+		   
+union all
+		   
+select cast(c.name as varchar)as ProjectCode,f.name as fy_timerange,m.name as Project_Manager,CONCAT(ProjectCode,fy_timerange) as code 
+from profile_27396 c	
+left join ds_mysql_prod_tagelement f on
+c.fy=f.id
+left join ds_mysql_prod_tagelement m on
+c.project_manager=m.id),
+
+main2 as (
+select b.fy_timerange as fy,q.Project_Manager as level1,b.CODE from main b
+left join lookup q on
+q.code = b.code
+group by b.fy_timerange,q.Project_Manager,b.CODE),
+
+level1tab as (select m.name as level1 ,p.approver as level2,p.name as level1email from profile_27424 p
+left join ds_mysql_prod_tagelement m on
+m.id = p.pm_name),
+
+level2tab as (select m.name as level1 , z.level1 as level2 from profile_27424 p
+left join ds_mysql_prod_tagelement m on
+m.id = p.pm_name
+left join level1tab z on
+z.level1email = p.approver),
+
+new1 as (select p.fy,p.level1,d.level2,p.CODE from main2 p
+left join level2tab d on
+d.level1 = p.level1),/*fetches level1manager and level2manager*/
 
 Goodera as (Select s1.fy_timerange ,s1.projectcode ,s1.name_project,
 s1.CODE,s1.ImplementingAgency,s1.interventiontype,s1.CoreArea,s1.duration,s1.project_manager,(s1.AllocatedAmountforQ1+s1.AllocatedAmountforQ2+s1.AllocatedAmountforQ3+s1.AllocatedAmountforQ4) as totalallocatedamount,s1.AllocatedAmountforQ1,s1.AllocatedAmountforQ2,s1.AllocatedAmountforQ3,s1.AllocatedAmountforQ4, s1.state as state, 0 as numberofvillages,0 as districtcount
@@ -218,7 +261,9 @@ from s1
 Select s1forIndirect.fy_timerange ,s1forIndirect.projectcode ,s1forIndirect.name_project,
 s1forIndirect.CODE,s1forIndirect.ImplementingAgency,s1forIndirect.interventiontype,s1forIndirect.CoreArea,s1forIndirect.duration,s1forIndirect.project_manager,(s1forIndirect.IAllocatedAmountforQ1+s1forIndirect.IAllocatedAmountforQ2+s1forIndirect.IAllocatedAmountforQ3+s1forIndirect.IAllocatedAmountforQ4) as Itotalallocatedamount,s1forIndirect.IAllocatedAmountforQ1,s1forIndirect.IAllocatedAmountforQ2,s1forIndirect.IAllocatedAmountforQ3,s1forIndirect.IAllocatedAmountforQ4 ,s1forIndirect.Istate,s1forIndirect.Inumberofvillages, s1forIndirect.Idistrictcount from s1forIndirect)
 
-select * from Goodera
+select Goodera.*, new1.level1 as level1manager, new1.level2 as level2manager
+from Goodera 
+left join new1 on Goodera.CODE=new1.CODE
 
 
 
