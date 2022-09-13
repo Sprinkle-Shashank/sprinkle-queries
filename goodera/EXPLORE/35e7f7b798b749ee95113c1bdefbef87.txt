@@ -1,4 +1,4 @@
-select substring(p.submission_date,6,2) as months,t5.name as fy_timerange,(t.name) as response,
+with s as (select substring(p.submission_date,6,2) as months,t5.name as fy_timerange,(t.name) as response,
 case 
 	when response='Yes' then split_part(t2.name,'[',1)  
 	when response is null then t3.name
@@ -31,4 +31,7 @@ t2.project_manager=m.id
 left join ds_mysql_prod_tagelement t4
 on p.tranche=t4.id
 left join ds_mysql_prod_tagelement t5
-on p.fy=t5.id
+on p.fy=t5.id)
+Select months, fy_timerange, response, projectcode, project_manager, sum(Amount_Disbursed), sum(Amount_not_Utilised), CODE
+from s
+group by 1,2,3,4,5,8
