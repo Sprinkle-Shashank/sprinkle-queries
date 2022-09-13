@@ -31,8 +31,9 @@ t2.project_manager=m.id
 left join ds_mysql_prod_tagelement t4
 on p.tranche=t4.id
 left join ds_mysql_prod_tagelement t5
-on p.fy=t5.id)
-Select fy_timerange, response, projectcode, project_manager, sum(Amount_Disbursed), sum(Amount_not_Utilised), CODE,
+on p.fy=t5.id), 
+
+tabn2 as (Select fy_timerange, response, projectcode, project_manager, sum(Amount_Disbursed), sum(Amount_not_Utilised), CODE,
 case 
 when t2.months='01' then 'Quarter 4' 
 when t2.months='02' then 'Quarter 4' 
@@ -49,4 +50,32 @@ when t2.months='12' then 'Quarter 3'
 end as Quarters
 
 from tabn1 t2
-group by 1,2,3,4,7,8
+group by 1,2,3,4,7,8)
+
+temp as(
+  Select 'Q1' as col
+  union all
+    Select 'Q2' as col
+  union all
+    Select 'Q3' as col
+  union all
+    Select 'Q4' as col
+)
+
+Select *, 
+
+
+case when tab3.quarters= 'Quarter 1' then tab3.Amount_Disbursed
+else 0
+    end as DisbursedAmountforQ1,
+case when tab3.quarters='Quarter 2' then (tab3.Amount_Disbursed)
+else '0'
+    end as DisbursedAmountforQ2,
+case when tab3.quarters='Quarter 3' then (tab3.Amount_Disbursed)
+else '0'
+    end as DisbursedAmountforQ3,
+case when tab3.quarters='Quarter 4' then (tab3.Amount_Disbursed)
+else '0'
+    end as DisbursedAmountforQ4
+	
+	from tabn1 tab3
