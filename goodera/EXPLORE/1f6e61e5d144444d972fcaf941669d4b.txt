@@ -41,8 +41,11 @@ Select id,profileid, status, data, data."name" as project_code,
     when profileid = 27420 and data.end_date is not null and data.end_date < CURRENT_DATE||'T00:00:00.000Z' then 'No'
     else '-'
 	end as renewed,
-  
-  
+  case 
+  when profileid=27396 then data.intervention_type
+  when profileid=27420 then data.int_type_calc2 
+  end as intervention_type, 
+  data.focus_area as core_area,sss.monitoring_live,data.start_date as start_date,data.end_date as end_date,
   projectid,sln,tst, approvallog_new, row_number() over (partition by id order by tst asc) as row
 from s2
 ),
@@ -51,7 +54,15 @@ Select *,cast(aln."timestamp" as datetime) tstt , cast(aln."approverEmail" as va
 where row=1 --earliest
   ),
   s5 as (
-Select *,row_number() over (partition by id,approveremail order by tstt desc) as roww
+Select *,
+case 
+  when approverEmail = 'hdfcbank@goodera.com' then tstt
+  end as Date_of_Action_by_Goodera,
+	case 
+  when approverEmail = 'nusrat.pathan@hdfcbank.com' then tstt
+  end as Date_of_Action_by_CSR_Head,
+	
+	row_number() over (partition by id,approveremail order by tstt desc) as roww
 from s4
 	)
 	Select * from s5
