@@ -70,22 +70,22 @@ on su._id=intervention_type
 
 ),
 s33 as (
-Select ss3.*,sll,cast(sll."timestamp" as datetime) as iest from s3 as ss3, ss3.submissionlog_new as sll
+Select ss3.*,ss3.core_area,sll,cast(sll."timestamp" as datetime) as iest from s3 as ss3, ss3.submissionlog_new as sll
  
 )
 ,
 sss3 as (
-Select *,row_number() over (partition by id order by iest desc) as row_2
+Select *,s33.core_area,row_number() over (partition by id order by iest desc) as row_2
   from s33
   where row_1=1
 )
 ,
 s4 as (
-Select *,cast(aln."timestamp" as datetime) tstt , aln."approvalStatus" as status1,cast(aln."approverEmail" as varchar) as approveremail from sss3 as ss,ss.approvallog_new aln
+Select *,sS.core_area,cast(aln."timestamp" as datetime) tstt , aln."approvalStatus" as status1,cast(aln."approverEmail" as varchar) as approveremail from sss3 as ss,ss.approvallog_new aln
  where row_2=1 --earliest
   ),
 s5 as (
-Select *,
+Select *,s4.core_area,
 case 
   when approverEmail = 'hdfcbank@goodera.com' then tstt
   end as Date_of_Action_by_Goodera,
@@ -105,7 +105,7 @@ from s4
 	),
   
 	ll as(
-	Select *,t.name as fyy,	ssst.name as implementation_Agency 
+	Select *,s5,core_area,t.name as fyy,	ssst.name as implementation_Agency 
 	  from s5
 	left join ds_mysql_prod_tagelement t on 
 	t.id=fy
@@ -119,7 +119,7 @@ left(cast(Date_of_Action_by_Goodera as varchar),10) as Date_of_Action_by_Goodera
 cast(Status_at_Goodera as varchar) as Status_at_Goodera,
 left(cast(Date_of_Action_by_CSR_Head as varchar),10) as Date_of_Action_by_CSR_Head,
 cast(Status_at_csr_head as varchar) as Status_at_csr_head,
-t.name as project_manager,implementation_Agency,t1.name as project_live, core_area,intervention_type,start_date,end_date,
+t.name as project_manager,implementation_Agency,t1.name as project_live, ll.core_area,intervention_type,start_date,end_date,
 ts1 as Initial_submission_Date,fyy, rank() over (partition by proj_code order by left(fyy,4) desc) as roo
 from ll
 left join ds_mysql_prod_tagelement t
