@@ -25,7 +25,6 @@ p3.fy=f.id
 left join ds_mysql_prod_tagelement m on
 p3.project_manager=m.id
 group by 1,2,3,5,6,7,8,9,10,11), /*data req from 27396 and 27420*/
-
 q1 as (select qq.projectcode,qq.fy_timerange,qq.name_project,qq.curr_yr_budget,qq.CODE,qq.ImplementingAgency,qq.interventiontype,qq.CoreArea , qq.duration,qq.project_manager, st from q as qq,qq.state as st),
 
 tab1 as(select q1.*, s.name as state  from q1
@@ -40,14 +39,12 @@ temp as(
   union all
     Select 'Q4' as col
 ),
-
 s as(
 select tab1.fy_timerange ,tab1.projectcode ,tab1.name_project, tab1.curr_yr_budget,
 tab1.CODE,tab1.ImplementingAgency,tab1.interventiontype,tab1.CoreArea,tab1.duration,tab1.project_manager,tab1.state,
 case when tab1.interventiontype in ('Direct', 'Indirect - Others') then tab1.curr_yr_budget 
  else 0 
   end as Totalallocatedamount from tab1 where tab1.interventiontype in ('Direct', 'Indirect - Others') ),
-  
   
 s2 as (
 Select s.fy_timerange ,s.projectcode ,s.name_project, s.curr_yr_budget,
@@ -63,6 +60,106 @@ from s
 cross join temp
 group by s.fy_timerange ,s.projectcode ,s.name_project, s.curr_yr_budget,s.state,
 s.CODE,s.ImplementingAgency,s.interventiontype,s.CoreArea,s.duration,s.project_manager ,temp.col
-)
+),
+ s1 as (
+  Select s2.fy_timerange ,s2.projectcode ,s2.name_project, s2.curr_yr_budget,
+s2.CODE,s2.ImplementingAgency,s2.interventiontype,s2.CoreArea,s2.duration,s2.project_manager,
+   s2.state,
+Sum(CASE 
+             WHEN quarter = 'Q1' THEN AllocatedAmount
+             ELSE 0 
+           END) AS AllocatedAmountforQ1,
+Sum(CASE 
+             WHEN quarter = 'Q2' THEN AllocatedAmount
+             ELSE 0 
+           END) AS AllocatedAmountforQ2,
+ Sum(CASE 
+             WHEN quarter = 'Q3' THEN AllocatedAmount
+             ELSE 0 
+           END) AS AllocatedAmountforQ3,
+ Sum(CASE 
+             WHEN quarter = 'Q4' THEN AllocatedAmount
+             ELSE 0 
+           END) AS AllocatedAmountforQ4
+           from s2
+group by s2.fy_timerange ,s2.projectcode ,s2.name_project, s2.curr_yr_budget,s2.state,
+s2.CODE,s2.ImplementingAgency,s2.interventiontype,s2.CoreArea,s2.duration,s2.project_manager
+) ,  /*allocated amount summary for direct and indirect-others projects*/
 
-Select * from s2
+
+tab3 as (
+  select split_part(split_part(prod.name,'|',1),'.',1) as projectcode,t.name as fy_timerange,concat(projectcode,fy_timerange) as CODE,sum(case when p.monthly_cost is null then 0 else p.monthly_cost  end) as monthly_cost ,
+		 case when t1.name in('April', 'May', 'June') then 'quarter1'
+		  when t1.name in('July','August','September') then 'quarter2'
+		  when t1.name in('October','November','December') then 'quarter3'
+		  when t1.name in('January','February','March') then 'quarter4' end as quarters
+		 from profile_30171 p
+left join ds_mysql_prod_project prod on
+prod.id=p.projectid
+left join ds_mysql_prod_tagelement t
+on p.fy=t.id
+left join ds_mysql_prod_tagelement t1
+on p.month=t1.id
+
+group by 1,2,3,5),/*data required from 30171*/
+
+
+tab2 as (select split_part(split_part(prod.name,'|',1),'.',1) as projectcode,t.name as fy_timerange,concat(projectcode,fy_timerange) as CODE, split_part(prod.name,'|',3) as censuscode,
+q.state,q.district,sum(case when p.hdfc_cost_monthly is null then 0 else p.hdfc_cost_monthly end) as hdfc_cost_monthly ,
+		 case when t1.name in('April', 'May', 'June') then 'quarter1'
+		 when t1.name in('July','August','September') then 'quarter2'
+		 when t1.name in('October','November','December') then 'quarter3'
+		 when t1.name in('January','February','March') then 'quarter4' end  as quarters
+		 from profile_29974 p
+left join ds_mysql_prod_project prod on
+prod.id=p.projectid
+left join ds_mysql_prod_tagelement t
+on p.fy=t.id
+ left join profile_27489 q on
+split_part(prod.name,'|',3)=q.name
+left join ds_mysql_prod_tagelement t1
+on p.month=t1.id
+/*left join ds_mysql_prod_tagelement t1
+on p.month_number=t1.id
+left join ds_mysql_prod_tagelement t2
+on t1.parent=t2.id*/
+group by 1,2,3,4,5,6,8/*data required from 29974*/
+ ),
+
+g as (select tab1.fy_timerange ,tab1.projectcode ,tab1.name_project, tab2.quarters,
+tab1.CODE,tab1.ImplementingAgency,tab1.interventiontype,tab1.CoreArea,tab1.duration,
+  tab1.project_manager,case when tab1.interventiontype in ('Indirect') then tab2.hdfc_cost_monthly+tab3.monthly_cost
+else 0
+    end as allocatedamount
+	from tab1
+left join tab2 on tab2.CODE=tab1.CODE
+left join tab3 on tab3.CODE=tab2.CODE and tab3.quarters=tab2.quarters
+	  where tab1.interventiontype in ('Indirect') ),
+
+sforIndirect as(
+select g.fy_timerange ,g.projectcode ,g.name_project,g.quarters,
+g.CODE,g.ImplementingAgency,g.interventiontype,g.CoreArea,g.duration,
+  g.project_manager,
+case when g.quarters='quarter1'  then
+  g.allocatedamount
+else 0
+    end as AllocatedAmountforQ1,
+  case when  g.quarters='quarter2' then 
+  g.allocatedamount
+else '0'
+    end as AllocatedAmountforQ2,
+case when  g.quarters='quarter3' then 
+  g.allocatedamount
+else '0'
+     end as AllocatedAmountforQ3,
+case when  g.quarters='quarter4'  then g.allocatedamount
+else '0'  
+  end as AllocatedAmountforQ4,
+  tab2.state,count(distinct(tab2.censuscode)) as numberofvillages ,count(distinct(tab2.district)) as districtcount from g
+left join tab2 on tab2.CODE=g.CODE/* and g.month=tab2.month*/
+
+group by  g.fy_timerange ,g.projectcode ,g.name_project, g.quarters,
+g.CODE,g.ImplementingAgency,g.interventiontype,g.CoreArea,g.duration,g.project_manager,AllocatedAmountforQ1,AllocatedAmountforQ2,AllocatedAmountforQ3,AllocatedAmountforQ4,
+  tab2.state)
+  
+  Select * from sforIndirect
