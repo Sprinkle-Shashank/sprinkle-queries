@@ -4,9 +4,7 @@ with temp1 as
  case
  when state.name is NULL then district
  else concat(district,concat(',',state.name))
- end as location, 
- 
- concat(r.project_name, concat('-', r.project_code)) as concat_1 
+ end as location
  
  from profile_61044 as m
 
@@ -55,14 +53,14 @@ with temp1 as
 where r.direct_or_partner = 1132990 AND q.completed = 939857 AND m.ben_type = 939857),
  
  temp2 as
-(select m.projectId, m.indicator, m.project_name, m.focus, m.partner, m.fy_timerange, m.entity,  m.vertical,  m.state, m.target, m.sdgs, m._id, m.int_indi, m.project_code_new, m.createddate, m.progress, m.location, m.concat_1 from temp1 as m),
+(select m.projectId, m.indicator, m.project_name, m.focus, m.partner, m.fy_timerange, m.entity,  m.vertical,  m.state, m.target, m.sdgs, m._id, m.int_indi, m.project_code_new, m.createddate, m.progress, m.location from temp1 as m),
  
  temp3 as
- (select m.projectId, m.indicator, m.project_name, m.focus,  m.partner, m.fy_timerange, m.entity, m.vertical,  m.state, m.target, m.sdgs, vertical_new, m._id, m.int_indi, m.project_code_new, m.createddate, m.progress, m.location, m.concat_1
+ (select m.projectId, m.indicator, m.project_name, m.focus,  m.partner, m.fy_timerange, m.entity, m.vertical,  m.state, m.target, m.sdgs, vertical_new, m._id, m.int_indi, m.project_code_new, m.createddate, m.progress, m.location
  from temp2 as m, m.vertical vertical_new),
  
  temp4 as
- (select m.projectId, m.indicator, m.project_name, m.focus,  m.partner, m.fy_timerange, m.entity, m.state, m.sdgs, m.target, m.int_indi, m._id , m.project_code_new,m.createddate, m.progress, m.location, m.concat_1,
+ (select m.projectId, m.indicator, m.project_name, m.focus,  m.partner, m.fy_timerange, m.entity, m.state, m.sdgs, m.target, m.int_indi, m._id , m.project_code_new,m.createddate, m.progress, m.location,
   
    case 
 when vert1.name IS NULL AND vert.name IS NOT NULL THEN vert.name
@@ -78,33 +76,33 @@ left join ds_mysql_prod_tagelement as vert1
   on vert.parent = vert1.id),
   
   temp5 as
- (select m.projectId, m.indicator, m.project_name, m.focus, m.partner, m.fy_timerange, m.entity, m.state, m.sdgs, m.vertical, m._id, SUM(m.target) as beneficiary, m.int_indi, m.project_code_new, m.createddate, m.progress, m.location, m.concat_1
+ (select m.projectId, m.indicator, m.project_name, m.focus, m.partner, m.fy_timerange, m.entity, m.state, m.sdgs, m.vertical, m._id, SUM(m.target) as beneficiary, m.int_indi, m.project_code_new, m.createddate, m.progress, m.location
   from temp2 as m
   where _id NOT IN (select _id from temp3)
-  group by m.projectId, m.indicator, m.project_name, m.focus,  m.partner, m.fy_timerange, m.entity, m.state, m.sdgs, m.vertical, m._id, m.int_indi, m.project_code_new, m.createddate, m.progress, m.location, m.concat_1),
+  group by m.projectId, m.indicator, m.project_name, m.focus,  m.partner, m.fy_timerange, m.entity, m.state, m.sdgs, m.vertical, m._id, m.int_indi, m.project_code_new, m.createddate, m.progress, m.location),
   
   
   temp6 as
   (
-  select projectId, indicator, project_name, focus, partner, project_code_new, fy_timerange, entity, SUM(m.target) as beneficiary, vertical, int_indi, state, sdgs , _id , createddate, progress, location, concat_1
+  select projectId, indicator, project_name, focus, partner, project_code_new, fy_timerange, entity, SUM(m.target) as beneficiary, vertical, int_indi, state, sdgs , _id , createddate, progress, location
   from temp4 as m
-  group by projectId, indicator, project_name, focus, partner, project_code_new, fy_timerange, entity, vertical, int_indi, state, sdgs , _id, createddate, progress, location, concat_1
+  group by projectId, indicator, project_name, focus, partner, project_code_new, fy_timerange, entity, vertical, int_indi, state, sdgs , _id, createddate, progress, location
   ),
   
   temp7 as
   (
-  select projectId, indicator, project_name, focus, partner, project_code_new, fy_timerange, entity, beneficiary, vertical, int_indi, state, sdgs , _id , createddate, progress, location, concat_1 , q
+  select projectId, indicator, project_name, focus, partner, project_code_new, fy_timerange, entity, beneficiary, vertical, int_indi, state, sdgs , _id , createddate, progress, location, q
   from temp5 as m, m.vertical as q
    ),
    
    temp8 as
    (
-	 select projectId, indicator, project_name, focus, partner, project_code_new, fy_timerange, entity, beneficiary, vertical, int_indi, state, sdgs , _id, createddate, progress, location, concat_1
+	 select projectId, indicator, project_name, focus, partner, project_code_new, fy_timerange, entity, beneficiary, vertical, int_indi, state, sdgs , _id, createddate, progress, location
   from temp7 as p
 	 ) ,
 	 
 	 temp9 as
-	 ( select  projectId, indicator, project_name, focus, partner, project_code_new, fy_timerange, entity, beneficiary , int_indi, state, sdgs , _id , createddate, progress, location, concat_1, q as vertical from temp7 as m
+	 ( select  projectId, indicator, project_name, focus, partner, project_code_new, fy_timerange, entity, beneficiary , int_indi, state, sdgs , _id , createddate, progress, location, q as vertical from temp7 as m
 	  )
    
    select * from temp6
