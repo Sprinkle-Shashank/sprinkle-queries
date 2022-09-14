@@ -72,7 +72,7 @@ left join ds_mysql_prod_tagelement as vert1
   on vert.parent = vert1.id),
   
   temp5 as
- (select m.projectId, m.indicator, m.schedule_vii, m.focus, m.fy_timerange, m.entity, m.state, m.name, m.sdgs, m.vertical, m._id, SUM(m.target) as value, m.int_indi, m.project_code_new
+ (select m.projectId, m.indicator, m.schedule_vii, m.focus, m.fy_timerange, m.entity, m.state, m.name, m.sdgs, m.vertical, m._id, SUM(m.target) as beneficiary, m.int_indi, m.project_code_new
   from temp2 as m
   where _id NOT IN (select _id from temp3)
   group by m.projectId, m.indicator, m.schedule_vii, m.focus, m.fy_timerange, m.entity, m.state, m.name, m.sdgs, m.vertical, m._id, m.int_indi, m.project_code_new),
@@ -80,25 +80,25 @@ left join ds_mysql_prod_tagelement as vert1
   
   table6 as
   (
-  select projectId, indicator, focus, fy_timerange, entity, SUM(m.target) as value, vertical, int_indi, name
+  select projectId, indicator, focus, fy_timerange, entity, SUM(m.target) as beneficiary, vertical, int_indi, name
   from temp4 as m
   group by projectId, indicator, focus,  fy_timerange, entity, vertical, int_indi, name
   ),
   
   table7 as
   (
-  select projectId, indicator, focus,  fy_timerange, entity, value, vertical, int_indi, name, q
+  select projectId, indicator, focus,  fy_timerange, entity, beneficiary, vertical, int_indi, name, q
   from temp5 as m, m.vertical as q
    ),
    
    table8 as
    (
-	 select projectId, indicator,  focus, fy_timerange, entity, value, q , int_indi, name
+	 select projectId, indicator,  focus, fy_timerange, entity, beneficiary, q , int_indi, name
   from table7 as m
 	 ),
 	 
 	 table9 as
-	 ( select  projectId, indicator, focus, fy_timerange, entity, value , int_indi, name,  q as vertical from table8 as p
+	 ( select  projectId, indicator, focus, fy_timerange, entity, beneficiary , int_indi, name,  q as vertical from table8 as p
 	  )
    
    select * from table6
