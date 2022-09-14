@@ -1,5 +1,7 @@
-
-select distinct t2.name as projectid, timerange.name as time_timerange, 
+with temp as(Select Dim as col
+			union all
+			select Total as col),
+x as (select distinct t2.name as projectid, timerange.name as time_timerange, 
 'Scope 1' as scope ,'Fuels' as type,
 case 
 when keyword='generator_consump' then datanumbase*0.00259411
@@ -28,9 +30,19 @@ left join ds_mysql_prod_tagelement fy
 on fy.id=half.parent
 left join ds_mysql_prod_tagelement timerange
 on timerange.id=fy.parent/*time_timerange*/
+
 where KEYWORD IN ('generator_consump','fuel_refill') 
 group by t2.name,timerange.name,scope,type,Multiplicationfactor_Generator,
-Multiplicationfactor_Refill,emissions
+Multiplicationfactor_Refill,emissions)
+
+Select x.projectid,x.time_timerange,x.scope,x.type,x.Multiplicationfactor_Generator,
+x.Multiplicationfactor_Refill, sum(case temp.col when 'Dim' then x.emissions
+								                   when 'Total' then x.TotalConsumption
+								  end ) as Total,
+temp.col as Dim
+ from x cross join temp
+group by x.projectid,x.time_timerange,x.scope,x.type,x.Multiplicationfactor_Generator,
+x.Multiplicationfactor_Refill, temp.col
 --addend1,addend2
 
 
