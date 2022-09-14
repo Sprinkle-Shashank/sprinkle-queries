@@ -17,7 +17,7 @@ left join ds_mysql_prod_tagelement sta
 on p1.center_loc = sta.id),
 
 table2 as 
-( select p.projectid , p1.name , count(date_holiday) as count_holiday , case when count_holiday is null then 0 else count_holiday end as count_holiday_updated   from profile_81611 as p
+( select p.projectid , p1.name , count(date_holiday) as count_holiday , case when count_holiday is null then 0 else count_holiday end as count_holiday_i   from profile_81611 as p
 
 left join profile_81438 p1 
 on p.batch = p1._id
@@ -26,9 +26,10 @@ group by p.projectid , p1.name),
 
 table3 as 
 (
-  select p.*, (days_to_add+p1.count_holiday_updated) as final_count, dateadd(day,final_count,start_update) as end_1 , datediff(week,start_date,end_1) as new_final , 
-  dateadd(day,new_final,end_1) as final_date_to_be_used , cast(final_date_to_be_used as date) as final_date_to_be_used_update
-  
+ 
+  select p.*, (days_to_add+p1.count_holiday_updated) as holiday_count, dateadd(day,holiday_count,start_update) as day_to_be_added_with_holiday , datediff(week,start_date,day_to_be_added_with_holiday) as week_value , 
+  dateadd(day,week_value,day_to_be_added_with_holiday) as final_date_to_be_used , cast(final_date_to_be_used as date) as final_date_to_be_used_update
+
   from table1 as p
   ---p1.count 
   
@@ -39,5 +40,7 @@ table3 as
 ---  , dateadd(day,days_to_add,start_update) as end_1
 
 
-select p.projectid , p._id , center , course_name_update , batch_value , start_update , final_date_to_be_used_update as end_date_update , target_hours , acheived_hours , status from table3 as p
+--select p.projectid , p._id , center , course_name_update , batch_value , start_update , final_date_to_be_used_update as end_date_update , target_hours , acheived_hours , status from table3 as p
+
+select * from table3 
 
