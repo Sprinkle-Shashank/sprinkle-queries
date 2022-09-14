@@ -10,10 +10,8 @@ case
 when keyword='fuel_refill' then datanumbase*0.00220904 
 end as Multiplicationfactor_Refill, 
 sum(datanumbase) as TotalConsumption,
-/*(case Multiplicationfactor_Generator when null then 0.00 else Multiplicationfactor_Generator end) as addend1,
 
-(case  Multiplicationfactor_Refill when null then 0.00 else Multiplicationfactor_Refill end) as addend2,*/
-coalesce(Multiplicationfactor_Generator,0)+coalesce(Multiplicationfactor_Refill,0)/*(addend1+addend2)*/ as Emissions
+coalesce(Multiplicationfactor_Generator,0)+coalesce(Multiplicationfactor_Refill,0) as Emissions
 
 from  sus_9539 
 
@@ -31,9 +29,9 @@ on fy.id=half.parent
 left join ds_mysql_prod_tagelement timerange
 on timerange.id=fy.parent/*time_timerange*/
 
-where KEYWORD IN ('generator_consump','fuel_refill','status') 
+where KEYWORD IN ('generator_consump','fuel_refill') 
 group by t2.name,timerange.name,scope,type,Multiplicationfactor_Generator,
-Multiplicationfactor_Refill,emissions,status)
+Multiplicationfactor_Refill,emissions)
 
 Select x.projectid,x.time_timerange,x.scope,x.type,x.Multiplicationfactor_Generator,
 x.Multiplicationfactor_Refill, sum(case when temp.col ='Emissions' then x.emissions
