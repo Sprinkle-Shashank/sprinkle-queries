@@ -5,7 +5,7 @@ m.state_district district
  ),
 
 temp2 as
-(select projectId.name as projectId, count(*), fy_timerange,
+(select projectId.name as projectId, count(*), map_codes.codes fy_timerange,
 
 case
 WHEN state1_parent.name IS NULL THEN state1.name else state1_parent.name END as state
@@ -21,7 +21,9 @@ on temp1.district = state1.id
  
 left join ds_mysql_prod_tagelement as state1_parent
 on state1.parent = state1_parent.id
-
+ 
+left join ds_mongo_reftagelementmetadata map_codes
+on state.name = map_codes.name
  
 --WHERE district IS not NULL
 
@@ -30,26 +32,3 @@ order by projectId asc
 
 )
  select * from temp2
-
-/*with temp1 as
-(select projectId, district, fy_timerange from profile_46325 as m,
-
-m.state_district district
- ),
-temp2 as
-(select projectId.name as projectId, district.name as state, fy_timerange
- 
-from temp1
-
-left join ds_mysql_prod_project as projectId
-  on temp1.projectId = projectId.id 
- 
-left join ds_mysql_prod_tagelement as state1
-on temp1.district = state1.id
- 
-left join ds_mysql_prod_tagelement as state1_parent
-on state1.parent = state1_parent.id
- 
-where district IS NOT NULL
-)
-select * from temp2*/
