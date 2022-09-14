@@ -3,9 +3,9 @@ with table1 as
  
  , case when course_name_update='HFDC' and target_hours<=300 then 'Classroom' when course_name_update='HFDC' and target_hours>=300 then 'OJT' when course_name_update='GDA' and target_hours<=400 then 'Classroom' when course_name_update='GDA' and target_hours>=400 then 'Classroom' end as status , 
  
-case when status='Classroom' then 5 when status='OJT' then 8 end as total_hours_per_day,
+case when status='Classroom' then 5 when status='OJT' then 8 end as total_hours_per_day ,
  
- (target_hours/5) as days_to_add  from profile_81438 as p
+ (target_hours/total_hours_per_day) as days_to_add  from profile_81438 as p
 
 left join ds_mysql_prod_tagelement cen
 on p.center_name = cen.id
@@ -34,7 +34,7 @@ table3 as
 (
  
   select p.*, (days_to_add+0) as holiday_count, dateadd(day,holiday_count,start_update) as day_to_be_added_with_holiday , datediff(week,start_date,day_to_be_added_with_holiday) as week_value , 
-  dateadd(day,week_value,day_to_be_added_with_holiday) as final_date_to_be_used , cast(final_date_to_be_used as date) as final_date_to_be_used_update
+  dateadd(day,week_value,day_to_be_added_with_holiday) as final_date_to_be_used , cast(final_date_to_be_used as date) as final_date_to_be_used_update ,  dateadd(day,current_date,final_date_to_be_used) as days_yet_to_be_completed , target_hours -(days_yet_to_be_completed*total_hours_per_day) as total_acheived_hours
 
   from table1 as p
   
