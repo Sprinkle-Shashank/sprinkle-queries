@@ -18,8 +18,8 @@ order by fy_timerange asc
    sum(datanum) FOR keyword IN ('turnover')
 ) 
 				)
-select country,name,fy_timerange,turnover,quarter,fy_2 from (				
-select country,name,fy_timerange,turnover,
+select country,name,fy_1 as fy_timerange,turnover,quarter,fy_2 from (				
+select country,name,turnover,
 EXTRACT(MONTH FROM cast (startdate as datetime))AS month1,
 EXTRACT(YEAR FROM cast (startdate as datetime))AS year1,
 case WHEN MONTH1 <= 3
@@ -33,7 +33,10 @@ case when month1 in (4,5,6) then 'Q1'
 		   when month1 in (7,8,9) then 'Q2'
 		   when month1 in (10,11,12) then 'Q3'
 			else 'Q4' end as quarter,
-			concat('FY(',concat(start,concat('-',concat(end1,')')))) as fy_2
+			concat('FY(',concat(start,concat('-',concat(end1,')')))) as fy_2,
+  concat(start,'-04-01T00:00:00.000Z') as start1,
+concat(end1,'-03-31T00:00:00.000Z') as end2,
+concat(concat(concat(concat('{"start":"',start1),'","end":"'),end2),'"}') as fy_1
 
 from table1	)			
 				
