@@ -1,10 +1,19 @@
-select cou.name as country,p.name,fy_timerange,keyword,datanum,datanumbase/*,
+WITH TABLE1 AS(select cou.name as country,p.name,fy_timerange,keyword,datanum,datanumbase,/*,
 case when keyword ='water_withdrawn_surface' then 'Surface water'
      when keyword ='water_withdrawn_rainwater' then 'Rain water'
 	 when keyword = 'water_withdrawn_thirdparty' then 'Third party water'
 	 when keyword = 'water_withdrawn_groundwater' then 'Ground water'
 	 end as water_type*/
-     
+ EXTRACT(MONTH FROM cast (startdate as datetime))AS month1,
+		EXTRACT(YEAR FROM cast (startdate as datetime))AS year1,
+		CASE
+		WHEN MONTH1 <= 3
+		THEN YEAR1-1
+		ELSE
+		YEAR1
+		END AS start,
+		start+1 AS end1,
+CONCAT('FY(',CONCAT(start,CONCAT('-',CONCAT(end1,')')))) AS fy_2     
 
 from sus_80584 p
 
@@ -14,4 +23,6 @@ p.xprojectid = pro.id
 left join ds_mysql_prod_project cou on
 pro.parent = cou.id
 
-where keyword in ('total_water_recycled')
+where keyword in ('total_water_recycled'))
+
+SELECT country,p.name,fy_timerange,keyword,datanum,datanumbase,fy_2 FROM TABLE1
