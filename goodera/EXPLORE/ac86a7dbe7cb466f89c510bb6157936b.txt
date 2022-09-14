@@ -1,5 +1,5 @@
 with table1 as
-( select p.projectid , p._id , p.fy_timerange , start_date , cast(start_date as date) as start_update,  sta.name as state , cen.name as center , p.name , course.name as course_name_update , bat.name as batch_name , concat(concat(course_name_update, ' '), cast(batch_name as varchar)) as batch_value , target_hours , 1 as acheived_hours , 'OJT' as Status , (target_hours/5) as days_to_add from profile_81438 as p
+( select p.projectid , p._id , p.fy_timerange , start_date , cast(start_date as date) as start_update,  sta.name as state , cen.name as center , p.name , course.name as course_name_update , bat.name as batch_name , concat(concat(course_name_update, ' '), cast(batch_name as varchar)) as batch_value , target_hours , 1 as acheived_hours , case when course_name_update='HFDC' and target_hours=<300 then 'Classroom' when course_name_update='HFDC' and target_hours>=300 then 'OJT' when course_name_update='GDA' and target_hours=<400 then 'Classroom' when course_name_update='GDA' and target_hours=>400 then 'Classroom' end as status   , (target_hours/5) as days_to_add  from profile_81438 as p
 
 left join ds_mysql_prod_tagelement cen
 on p.center_name = cen.id
@@ -17,7 +17,7 @@ left join ds_mysql_prod_tagelement sta
 on p1.center_loc = sta.id),
 
 table2 as 
-( select p.projectid , p1.name , count(date_holiday) as count_holiday , case when count_holiday is null then 0 else count_holiday end as count_holiday_updated   from profile_81611 as p
+( select p.projectid , p1.name , count(date_holiday) as count_holiday , case when count_holiday is null then 0 else count_holiday end as count_holiday_updated from profile_81611 as p
 
 left join profile_81438 p1 
 on p.batch = p1._id
@@ -39,6 +39,7 @@ table3 as
   -- p1.count_holiday_updated replace this with 0 in table3 in holiday_count because right now there was no data
 
 select p.projectid , p._id , center , course_name_update , batch_value , start_update , final_date_to_be_used_update as end_date_update , target_hours , acheived_hours , status from table3 as p
+
 
 
 
