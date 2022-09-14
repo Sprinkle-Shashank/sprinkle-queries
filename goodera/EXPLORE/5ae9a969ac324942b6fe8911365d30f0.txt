@@ -1,3 +1,29 @@
-select p1.fy_timerange, sum(p1.my_learning_journey_certificate) as my_learning_journey_certificate, sum(p1.beneficiaries_students) as beneficiaries_students, sum(p1.beneficiaries_teachersdepartment_officials) as beneficiaries_teachersdepartment_officials, sum(p1.beneficiaries_community) as beneficiaries_community
+with t1 as 
+(select p1.fy_timerange, sum(p1.my_learning_journey_certificate) as my_learning_journey_certificate, sum(p1.beneficiaries_students) as beneficiaries_students, sum(p1.beneficiaries_teachersdepartment_officials) as beneficiaries_teachersdepartment_officials, sum(p1.beneficiaries_community) as beneficiaries_community
 from profile_76016 p1
-group by fy_timerange
+group by fy_timerange),
+
+item as 
+(
+select 'my_learning_journey_certificate' as c
+union all
+select 'beneficiaries_students' as c
+union all
+select 'beneficiaries_teachersdepartment_officials' as c
+union all
+select 'beneficiaries_community' as c
+),
+
+t2 as 
+(select fy_timerange, my_learning_journey_certificate,  beneficiaries_students, beneficiaries_teachersdepartment_officials, beneficiaries_community,
+ case c
+ when 'my_learning_journey_certificate' then t1.my_learning_journey_certificate
+ when 'beneficiaries_students' then t1.eneficiaries_students
+ when 'beneficiaries_teachersdepartment_officials' then t1.beneficiaries_teachersdepartment_officials
+ when 'beneficiaries_community' then t1.beneficiaries_community
+ else null
+ end as val, item.c as item
+ from t1 cross join item)
+
+select fy_timerange, val as value
+from t2
