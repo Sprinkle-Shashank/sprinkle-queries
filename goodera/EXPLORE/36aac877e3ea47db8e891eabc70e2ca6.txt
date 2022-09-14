@@ -1,7 +1,15 @@
-select projectId.name as projectId, sdg, fy_timerange, count(*) from profile_46325 as m
+with temp1 as
+(select projectId, sdg, fy_timerange from profile_46325 as m,
+
+m.sdg sdg
+ ),
+ temp2 as
+(select projectId.name as projectId, sdg, fy_timerange, count(*) from temp1
 
 left join ds_mysql_prod_project as projectId
- on m.projectId = projectId.id 
+ on temp1.projectId = projectId.id 
 
 WHERE sdg IS not NULL
-group by projectId.name, fy_timerange, sdg
+group by projectId.name, fy_timerange, sdg)
+
+select * from temp2
