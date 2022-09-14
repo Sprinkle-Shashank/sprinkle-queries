@@ -1,6 +1,6 @@
 with t1 as
 ( 
-  select gender, acad_qual, p.batch, p.state, sta.name as state_update, training_completed_yn, placement_yn, annual_hh_income,  ind_income_post_tr, company_rating, employer_name, p1.fy as name_update,
+  select gender, acad_qual, p.batch, p.state, sta.name as state_update, training_completed_yn, placement_yn, annual_hh_income,  ind_income_post_tr as cvg, company_rating, employer_name, p1.fy as name_update,
   
   CASE when placement_yn=476506
   then 1 else 0
@@ -17,26 +17,8 @@ with t1 as
   
   t2 as
   (
-	select ind_income_post_tr*12 as package, name_update, employer_name, state_update, count(*) as count_up from t1
-	),
-	
-	t31 as
-	(
-	  select package, name_update, employer_name, state_update from t2
-	  ),
-	
-	t3 as 
-	(
-	select (package*1.0/100000) as averagesalaryinlakhs, name_update, employer_name, state_update from t31
+	select cvg*12 as package, name_update, employer_name, state_update, count(*) as count_up from t1
 	)
-	
-	/*t4 as
-	(
-	  select avg(averagesalaryinlakhs) as avg_update, name_update, employer_name, state_update from t3
-	  
-	  where employer_name<>''
-	  group by name_update, employer_name, state_update
-	  )*/
-	  select name_update, employer_name, state_update, averagesalaryinlakhs from t3
+	select package from t2
 	  
 	
