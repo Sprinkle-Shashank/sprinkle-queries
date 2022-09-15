@@ -1,9 +1,17 @@
-select p1.fy_timerange, trunc(sum(p1.budgeted_amount)/100000,1) as budgeted_amount, trunc(sum(p2.amount_utilized)/100000,1) as amount_utilized
+
+with t1 as 
+(select p1.fy_timerange, trunc(sum(p1.budgeted_amount)/100000,1) as budgeted_amount, trunc(sum(p2.amount_utilized)/100000,1) as amount_utilized
 from profile_74913 p1
 left join profile_74914 p2
 on p1._id = p2.line_item
 group by  
-p1.fy_timerange
+p1.fy_timerange)
+
+select fy_timerange, budgeted_amount, amount_utilized,
+case 
+when budgeted_amount >= amount_utilized then budgeted_amount - amount_utilized
+else 0
+end as unspent
 
 
 
