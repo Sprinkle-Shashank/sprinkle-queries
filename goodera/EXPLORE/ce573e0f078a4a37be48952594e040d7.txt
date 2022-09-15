@@ -20,23 +20,23 @@ with table1 as
  
  table2 as 
  ( 
-   select  projectId, _id , indicator, project_name , sum(progress) as beneficiary, proj , fy_timerange , vertical, focus, partner, district, project_code , entity ,  p.created, state_name_update, progress_new.name as progress_new from table1 as p
+   select  projectId, _id , project_name , sum(progress) as beneficiary, fy_timerange , vertical, focus, partner, district, project_code , entity ,  p.created, state_name_update, progress_new.name as progress_new from table1 as p
    
   left join ds_mysql_prod_tagelement as progress_new
   on p.progress_new = progress_new.id
    
-   group by projectId, _id , indicator, project_name , proj , fy_timerange , vertical, focus, partner, district, project_code , entity ,  p.created, state_name_update, progress_new.name
+   group by projectId, _id , project_name , fy_timerange , vertical, focus, partner, district, project_code , entity ,  p.created, state_name_update, progress_new.name
   ),
   
   table3 as
   ( 
-   select p.projectId, p._id , p.indicator, project_name , beneficiary, proj , fy_timerange , vertical, focus, partner, district, project_code , entity ,  p.created, vertical_new , state_name_update, progress_new from table2 as p , p.vertical as vertical_new
+   select p.projectId, p._id , project_name , beneficiary, fy_timerange , vertical, focus, partner, district, project_code , entity ,  p.created, vertical_new , state_name_update, progress_new from table2 as p , p.vertical as vertical_new
    ),
    
    
    table4 as
    ( 
-	 select projectId, _id , indicator, project_name , beneficiary, proj , fy_timerange , focus, partner as partner_old, district, project_code , ent.name as entity ,  p.created,  case 
+	 select projectId, _id , project_name , beneficiary, fy_timerange , focus, partner, district, project_code , ent.name as entity ,  p.created,  case 
 when vert1.name IS NULL AND vert.name IS NOT NULL THEN vert.name
 else vert1.name 
 END AS vertical , state_name_update , case
@@ -56,7 +56,7 @@ left join ds_mysql_prod_tagelement ent
 	 
 	 table5 as
 	 ( 
-	   select projectId, project_name , beneficiary , fy_timerange , focus, partner_old,  project_code , entity ,  p.created,
+	   select projectId, project_name , beneficiary , fy_timerange , focus, partner,  project_code , entity ,  p.created,
  vertical , location_update, progress_new from table4 as p
 	   
 	  /* group by  projectId, project_name ,fy_timerange , focus, partner_old, project_code , entity ,  p.created, 
