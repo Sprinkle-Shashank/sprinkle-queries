@@ -1,6 +1,6 @@
 
 with table1 as
-( select p.projectId, p._id ,  p.indicator, p.project_name, p.ben_type, p.proj , q.fy_timerange , q.vertical, q.focus, q.state, q.direct_or_partner, q.partner, q.district, q.project_code , q.entity ,  z.createddate as created, progress.name as progress_new , state_name.name as state_name_update, l.progress from profile_61044 as p 
+( select p.projectId, p._id ,  p.indicator, p.project_name, p.ben_type, p.proj , q.fy_timerange , q.vertical, q.focus, q.state, q.direct_or_partner, q.partner, q.district, q.project_code , q.entity ,  z.createddate as created, z.progress as progress_new , state_name.name as state_name_update, l.progress from profile_61044 as p 
  
  left join profile_62881 q 
  on p.proj = q._id
@@ -13,19 +13,17 @@ with table1 as
  
  left join profile_55471 z 
  on q.project_code = z.project_code
- 
- left join ds_mysql_prod_tagelement as progress_new
-  on z.progress = progress_new.id
- 
- 
- 
+  
  where direct_or_partner=1132991 and ben_type=939857 and q.fy_timerange IS NOT NULL
  ),
  
  
  table2 as 
  ( 
-   select  projectId, _id , indicator, project_name , sum(progress) as beneficiary, proj , fy_timerange , vertical, focus, partner, district, project_code , entity ,  created, state_name_update, progress_new from table1 as p
+   select  projectId, _id , indicator, project_name , sum(progress) as beneficiary, proj , fy_timerange , vertical, focus, partner, district, project_code , entity ,  created, state_name_update, progress_new.name as progress_new from table1 as p
+   
+  left join ds_mysql_prod_tagelement as progress_new
+  on p.progress_new = progress_new.id
    
    group by projectId, _id , indicator, project_name , proj , fy_timerange , vertical, focus, partner, district, project_code , entity ,  created, state_name_update, progress_new
   ),
