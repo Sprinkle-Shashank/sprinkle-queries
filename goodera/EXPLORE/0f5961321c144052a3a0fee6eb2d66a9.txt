@@ -17,9 +17,29 @@ with table1 as
    select  projectId, _id , indicator, project_name , sum(target) as beneficiary, proj , fy_timerange , vertical, focus, state, partner, district, project_code , entity ,  created, progress from table1 as p
    
    group by projectId, _id , indicator, project_name , proj , fy_timerange , vertical, focus, state, partner, district, project_code , entity ,  created, progress
-  )
+  ),
+  
+  table3 as
+  ( 
+   select projectId, _id , indicator, project_name , beneficiary, proj , fy_timerange , vertical, focus, state, partner, district, project_code , entity ,  created, progress , vertical_new from table2 as p , vertical as vertical_new
+   ),
+   
+   
+   table3 as
+   ( 
+	 select projectId, _id , indicator, project_name , beneficiary, proj , fy_timerange , focus, state, partner, district, project_code , entity ,  created, progress ,  case 
+when vert1.name IS NULL AND vert.name IS NOT NULL THEN vert.name
+else vert1.name 
+END AS vertical from table2 as p
+	
+left join ds_mysql_prod_tagelement as vert
+  on m.vertical_new = vert.id
+  
+left join ds_mysql_prod_tagelement as vert1
+  on vert.parent = vert1.id 
+	 )
  
-select * from table2 
+select * from table3
 /*
 
 
