@@ -19,23 +19,26 @@ with table1 as
  
  table2 as 
  ( 
-   select  projectId, _id , indicator, project_name , sum(target) as beneficiary, proj , fy_timerange , vertical, focus, state, partner, district, project_code , entity ,  created, progress , state_name_update from table1 as p
+   select  projectId, _id , indicator, project_name , sum(target) as beneficiary, proj , fy_timerange , vertical, focus, partner, district, project_code , entity ,  created, progress , state_name_update from table1 as p
    
-   group by projectId, _id , indicator, project_name , proj , fy_timerange , vertical, focus, state, partner, district, project_code , entity ,  created, progress , state_name_update
+   group by projectId, _id , indicator, project_name , proj , fy_timerange , vertical, focus, partner, district, project_code , entity ,  created, progress , state_name_update
   ),
   
   table3 as
   ( 
-   select p.projectId, p._id , p.indicator, project_name , beneficiary, proj , fy_timerange , vertical, focus, state, partner, district, project_code , entity ,  p.created, progress , vertical_new , state_name_update from table2 as p , p.vertical as vertical_new
+   select p.projectId, p._id , p.indicator, project_name , beneficiary, proj , fy_timerange , vertical, focus, partner, district, project_code , entity ,  p.created, progress , vertical_new , state_name_update from table2 as p , p.vertical as vertical_new
    ),
    
    
    table4 as
    ( 
-	 select projectId, _id , indicator, project_name , beneficiary, proj , fy_timerange , focus, state, partner, district, project_code , entity ,  p.created, progress ,  case 
+	 select projectId, _id , indicator, project_name , beneficiary, proj , fy_timerange , focus, partner as partner_old, district, project_code , entity ,  p.created, progress ,  case 
 when vert1.name IS NULL AND vert.name IS NOT NULL THEN vert.name
 else vert1.name 
-END AS vertical , state_name_update , vert1.name as vertical1 , vert.name as  vertical2 , vertical2 as partner from table3 as p
+END AS vertical , state_name_update , vert1.name as vertical1 , vert.name as  vertical2 , vertical2 as partner , case
+ when state_name_update is NULL then district
+ else concat(district,concat(',',state_name_update))
+ end as location_update from table3 as p
 	
 left join ds_mysql_prod_tagelement as vert
   on p.vertical_new = vert.id
