@@ -1,7 +1,7 @@
 with q as(
   select split_part(split_part(p1.name,'|',1),'.',1) as projectcode,
 f.name as fy_timerange,p1.name_project,
-concat(projectcode,fy_timerange) as CODE,p7.name as ImplementingAgency,p8.name as interventiontype,p10.name as CoreArea , concat(concat(split_part(p1.start_date,' ',1),' to '), split_part(p1.end_date,' ',1)) as duration,m.name as project_manager, p1.state
+concat(projectcode,fy_timerange) as CODE,p7.name as ImplementingAgency,p8.name as interventiontype,p10.name as CoreArea , concat(concat(split_part(p1.start_date,' ',1),' to '), split_part(p1.end_date,' ',1)) as duration,m.name as project_manager, p1.state,
 sum(case
    when interventiontype='Indirect - Others' then curr_yr_budget
    when interventiontype='Direct' then curr_yr_budget
@@ -37,11 +37,11 @@ p3.fy=f.id
 left join ds_mysql_prod_tagelement m on
 p3.project_manager=m.id
 group by 1,2,3,4,5,6,7,8,9,10), /*data req from 27396 and 27420*/
-,
-q1 as (select qq.projectcode,qq.fy_timerange,qq.name_project,qq.curr_yr_budget,qq.CODE,qq.ImplementingAgency,qq.interventiontype,qq.CoreArea , qq.duration,qq.project_manager,(qq.curr_yr_budget/4) allocated_amnt , st 
+
+q1 as (select qq.projectcode,qq.fy_timerange,qq.name_project,qq.curr_yr_budget,qq.CODE,qq.ImplementingAgency,qq.interventiontype,qq.CoreArea , qq.duration,qq.project_manager, st 
 	   from q as qq,qq.state as st),
 	
-newtab1 as ( Select qq.projectcode, qq.fy_timerange ,qq.name_project, qq.curr_yr_budget, qq.CODE, qq.ImplementingAgency, qq.interventiontype,qq.CoreArea , qq.duration,qq.project_manager, t1.name state,allocated_amnt
+newtab1 as ( Select qq.projectcode, qq.fy_timerange ,qq.name_project, qq.curr_yr_budget, qq.CODE, qq.ImplementingAgency, qq.interventiontype,qq.CoreArea , qq.duration,qq.project_manager, t1.name state
 from q1 qq
 left join ds_mysql_prod_tagelement t1
 ON t1.id=qq.st),
@@ -84,4 +84,4 @@ new4 as (Select projectcode,  new3.fy_timerange, sum(allocated_amount),CODE
 from new3
 group by 1,2,4)
 
-Select * from newtab1
+select * from newtab1
