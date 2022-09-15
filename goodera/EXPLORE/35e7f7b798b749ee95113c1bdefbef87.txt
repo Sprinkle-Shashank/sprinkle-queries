@@ -47,6 +47,22 @@ left join ds_mysql_prod_tagelement t1
 ON t1.id=qq.st),
 
 new1 as (Select  split_part(split_part(prod.name,'|',1),'.',1) as projectcode,t.name as fy_timerange,concat(projectcode,fy_timerange) as CODE, split_part(prod.name,'|',3) as censuscode, 
+
+case 
+when p.month='April' then 'Quarter 1' 
+when p.month='May' then 'Quarter 1' 
+when p.month='June' then 'Quarter 1' 
+when p.month='July' then 'Quarter 2' 
+when p.month='August' then 'Quarter 2' 
+when p.month='September' then 'Quarter 2' 
+when p.month='October' then 'Quarter 3' 
+when p.month='November' then 'Quarter 3' 
+when p.month='December' then 'Quarter 3' 
+when p.month='January' then 'Quarter 4' 
+when p.month='February' then 'Quarter 4' 
+when p.month='March' then 'Quarter 4' 
+end as quarters,
+		 
 sum(case
 	when p.hdfc_cost_monthly is null then 0 
 	else p.hdfc_cost_monthly 
@@ -58,6 +74,11 @@ prod.id=p.projectid
 left join ds_mysql_prod_tagelement t
 on p.fy=t.id
 group by 1,2,3,4),
+
+new11 as (
+  Select projectcode, fy_timerange, CODE, censuscode
+  from new1
+)
 
 new2 as (
   select split_part(split_part(prod.name,'|',1),'.',1) as projectcode,t.name as fy_timerange,concat(projectcode,fy_timerange) as CODE,
@@ -84,4 +105,4 @@ new4 as (Select projectcode,  new3.fy_timerange, sum(allocated_amount),CODE
 from new3
 group by 1,2,4)
 
-select * from newtab1
+Select * from new1
