@@ -1,28 +1,28 @@
 with x as (select xprojectid, financialperiod,datatablebase from sus_9539 where keyword in ('own_fleet')
 		   and datatablebase is not null),
-	select * from x	   
-/*temp2 as (select * ,temp1.type_company, temp1.fuel_company_type, temp1.fuel_company from x as temp,
+	  
+temp2 as (select * ,temp1.type_own, temp1.fuel_own, temp1.fuel_consump_own,temp1.dist_own from x as temp,
 		  unpivot temp.datatablebase as temp1 at row) ,
 		 
- y as (select xprojectid,financialperiod,datatablebase,fuel_company,type_company,fuel_company_type from 
-		temp2 ytemp,ytemp.type_company as type_company,ytemp.fuel_company_type as fuel_company_type),
+ y as (select xprojectid,financialperiod,datatablebase,type_own,fuel_own,fuel_consump_own,dist_own from 
+		temp2 ytemp,ytemp.type_own as type_own,ytemp.fuel_own as fuel_own),
  
   t as (select 'Emissions' as col
 	   union all
 	   select 'Consumptions' as col),
 	   
- z as (select t2.name as projectid, timerange.name as financialperiod, datatablebase, fuel_company, d.name as type_company,  d1.name as fuel_company_type, case d1.name when 'Petrol' then 0.00220904 
-                                   when 'Diesel' then 0.00259411
+ z as (select t2.name as projectid, timerange.name as financialperiod, datatablebase, fuel_consump_own, d.name as VehicleType,  d1.name as Fuel Type, dist_own as FuelConsumption case d1.name when 'Petrol' then 0.000272 
+                                   when 'Diesel' then 0.000218
 	                               else   0
-	                               end  as Multiplicationfactortotal,
-	fuel_company * coalesce (Multiplicationfactortotal,0) as CompanyVehicleconsumption,'Scope 1' as scope ,
-	   'Company Vehicles' as type
+	                               end  as Multiplicationfactor,
+	FuelConsumption * coalesce (Multiplicationfactor,0) as FuelEmissions,'Scope 1' as scope ,
+	   'Transport' as type
 	   
 from y 
  left join ds_mysql_prod_tagelement d1
-on d1.id=y.fuel_company_type 
+on d1.id=y.fuel_own 
  left join ds_mysql_prod_tagelement d
-on d.id=y.type_company
+on d.id=y.type_own
 	   
 left join ds_mysql_prod_project t1
 on t1.id=y.xprojectid
@@ -38,10 +38,10 @@ on fy.id=half.parent
 left join ds_mysql_prod_tagelement timerange
 on timerange.id=fy.parent/*time_timerange*/)
 /*select * from z*/
-select z.projectid,z.financialperiod,z.scope,z.type,z.CompanyVehicleconsumption,
+select z.projectid,z.financialperiod,z.scope,z.type,
 sum(case 
-	when t.col='Emissions' then z.CompanyVehicleconsumption
-	when t.col='Consumptions' then z.fuel_company 
+	when t.col='Emissions' then z.FuelEmissions
+	when t.col='Consumptions' then z.FuelConsumption 
 														
 	end ) as Total,
  t.col as Dim
