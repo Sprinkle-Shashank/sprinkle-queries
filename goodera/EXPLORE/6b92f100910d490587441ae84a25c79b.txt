@@ -24,7 +24,9 @@ group by p3.name,2,4,7),
 
 
 tab2 as (select split_part(split_part(prod.name,'|',1),'.',1) as projectcode,
-f.name as fy_timerange,sum(p2.hdfc_cost_monthly) as hdfc_cost_monthly, 'Indirect' interventiontype,
+f.name as fy_timerange,
+sum( case p2.hdfc_cost_monthly when null then 0
+else p2.hdfc_cost_monthly end) as hdfc_cost_monthly, 'Indirect' interventiontype,
 concat(projectcode,fy_timerange) as CODE
 from profile_29974 p2
 left join ds_mysql_prod_project prod
@@ -36,7 +38,8 @@ group by 1,2,4),
 
 
 tab3 as (select split_part(split_part(prod.name,'|',1),'.',1) as projectcode,
-f.name as fy_timerange,sum(p6.monthly_cost) as monthly_cost, 'Indirect' interventiontype,
+f.name as fy_timerange,sum(case p6.monthly_cost when null then 0
+else p6.monthly_cost end) as monthly_cost, 'Indirect' interventiontype,
 concat(projectcode,fy_timerange) as CODE
 from profile_30171 p6
 left join ds_mysql_prod_project prod
