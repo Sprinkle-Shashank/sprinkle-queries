@@ -10,7 +10,10 @@ case
   when is_array(x1.approvallog) = false or get_array_length(x1.approvallog) = 0 then 
   	   array(x1.approvallog)
   else x1.approvallog
-end as approvallog_new,data.name as pc
+end as approvallog_new,
+  case
+   when profileid=27396 then data.name end as pp_code,
+  data.name as pc
   
 from ds_mongo_taskresponse x1 
 
@@ -27,7 +30,7 @@ and x1.status in ('REJECTED', 'PENDING_APPROVAL', 'SUBMITTED')
 
 group by x1._id, x1.profileinstanceid, x1.status, x1.active, x1.data, x1.taskuserid, x2.taskid, x5.projectid, x6.profileid, x4.sectionid, x6.name, x7.name, x8.name, x1.submissionlog, x1.approvallog, x1.created, x1.modified),
 s2 as (
-Select id,profileid,status,created, q.modified,data,sln,cast(sln."timestamp" as datetime) as tst,pc,
+Select id,pp_code,profileid,status,created, q.modified,data,sln,cast(sln."timestamp" as datetime) as tst,pc,
 approvallog_new,submissionlog_new
 from s as q, q.submissionlog_new as sln
 )
@@ -56,7 +59,11 @@ Select id,pc,profileid, status,
   end as implementation_Agencyy
   ,
   data.start_date as start_date,data.end_date as end_date,
-  data.project_manager, sln,tst as ts1, approvallog_new, submissionlog_new,
+  case
+  	when profileid=27396 then data.project_manager
+    when profileid=27420 then data.project_manager
+  end as project_manager
+  , sln,tst as ts1, approvallog_new, submissionlog_new,
    case 
   when profileid=27396 then ss.monitoring_live
   when profileid=27420 then st.monitoring_live  
@@ -69,6 +76,8 @@ on ss.name=pc
 on st.name=pc
   left join profile_27395 ssst
 on ssst._id=ss.ngo_partner
+  left join profile_27420 jj
+  on s2.pp_code=jj.project_code
 left join profile_28235 su
 on su._id=intervention_type
 
