@@ -30,48 +30,48 @@ and x1.status in ('REJECTED', 'PENDING_APPROVAL', 'SUBMITTED')
 
 group by x1._id, x1.profileinstanceid, x1.status, x1.active, x1.data, x1.taskuserid, x2.taskid, x5.projectid, x6.profileid, x4.sectionid, x6.name, x7.name, x8.name, x1.submissionlog, x1.approvallog, x1.created, x1.modified),
 s2 as (
-Select id,pp_code,profileid,status,created, q.modified,data,sln,cast(sln."timestamp" as datetime) as tst,pc,
+Select id,pp_code,q.profileid,status,created, q.modified,data,sln,cast(sln."timestamp" as datetime) as tst,pc,
 approvallog_new,submissionlog_new
 from s as q, q.submissionlog_new as sln
 )
 ,
 s3 as(
-Select id,pc,profileid, status,
+Select id,pc,s2.profileid, status,
   cast(timestamp 'epoch' + CAST(created AS BIGINT)/1000 * interval '1 second' as date) as created,
   cast(timestamp 'epoch' + CAST(s2.modified AS BIGINT)/1000 * interval '1 second' as date) as modified, data, data."name" as project_code,
   case
-	when profileid = 27396 and data.end_date is not null then 'NA'
-    when profileid = 27420 and data.end_date is not null and data.end_date > CURRENT_DATE||'T00:00:00.000Z' then 'Yes'
-    when profileid = 27420 and data.end_date is not null and data.end_date < CURRENT_DATE||'T00:00:00.000Z' then 'No'
+	when s2.profileid = 27396 and data.end_date is not null then 'NA'
+    when s2.profileid = 27420 and data.end_date is not null and data.end_date > CURRENT_DATE||'T00:00:00.000Z' then 'Yes'
+    when s2.profileid = 27420 and data.end_date is not null and data.end_date < CURRENT_DATE||'T00:00:00.000Z' then 'No'
     else '-'
 	end as renewed,
   data.fy as fy,
   case 
-  when profileid=27396 then su.name
-  when profileid=27420 then jj.int_type_calc2 
+  when s2.profileid=27396 then su.name
+  when s2.profileid=27420 then jj.int_type_calc2 
   end as intervention_type,
  --data.focus_area
  case 
-  when profileid=27396 then t.name
-  when profileid=27420 then jj.focus_area 
+  when s2.profileid=27396 then t.name
+  when s2.profileid=27420 then jj.focus_area 
   end as focus_area,
   
  --st.ngo
   case 
-  when profileid=27396 then ssst.name
-  when profileid=27420 then ssst.name
+  when s2.profileid=27396 then ssst.name
+  when s2.profileid=27420 then ssst.name
   end as implementation_Agencyy
   ,
   data.start_date as start_date,data.end_date as end_date,
   case
-  	when profileid=27396 then ss.project_manager
-    when profileid=27420 then jj.project_manager
+  	when s2.profileid=27396 then ss.project_manager
+    when s2.profileid=27420 then jj.project_manager
   end as project_manager
   --data.project_manager
   , sln,tst as ts1, approvallog_new, submissionlog_new,
    case 
-  when profileid=27396 then ss.monitoring_live
-  when profileid=27420 then jj.monitoring_live  
+  when s2.profileid=27396 then ss.monitoring_live
+  when s2.profileid=27420 then jj.monitoring_live  
   end as project_live,
   row_number() over (partition by id order by tst asc) as row_1
 from s2
