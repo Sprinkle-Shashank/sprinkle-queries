@@ -1,125 +1,66 @@
-with temp1 as
-(select projectId.name as projectId, indicator_1.name as indicator, sdgs.name as sdgs, schedule_vii.name as schedule_vii, m.ben_type, m.baseline, m.target, m.proj, r._id, r.project_name, r.vertical, focus.name as focus, state.name as state, r.district, r.direct_or_partner, r.project_code as project_code_new, r.start_date, site.name as site, q.completed, q.fy_timerange, q.createddate, complete.name as complete, ben_type.name as ben_type, entity.name as entity, int_indi.name as int_indi, 
- 
- case
- when state.name is NULL then district
- else concat(district,concat(',',state.name))
- end as location
- 
- from profile_61044 as m
 
- left join profile_62881 AS r 
- on m.proj = r._id
+with table1 as
+( select p.projectId, p._id ,  p.indicator, p.project_name, p.ben_type, p.target, p.proj , q.fy_timerange , q.vertical, q.focus, q.state, q.start_date, q.direct_or_partner, q.partner, q.district, q.project_code , q.entity ,  z.createddate as created, z.completed, z.progress , state_name.name as state_name_update from profile_61044 as p 
  
- left join profile_55471 AS q 
- on r.project_code = q.project_code
+ left join profile_62881 q 
+ on p.proj = q._id
  
- left join ds_mysql_prod_tagelement as site
-  on r.direct_or_partner = site.id
+ left join ds_mysql_prod_tagelement as state_name
+  on q.state = state_name.id
  
- left join ds_mysql_prod_tagelement as complete
-  on q.completed = complete.id
+ left join profile_55471 z 
+ on q.project_code = z.project_code
  
- left join ds_mysql_prod_tagelement as ben_type
-  on m.ben_type = ben_type.id
  
- left join ds_mysql_prod_tagelement as indicator_1
-  on m.indicator = indicator_1.id 
  
- left join ds_mysql_prod_tagelement as int_indi
-  on indicator_1.parent = int_indi.id
- 
- left join ds_mysql_prod_project as projectId
-  on m.projectId = projectId.id 
- 
- left join ds_mysql_prod_tagelement as schedule_vii
-  on m.schedule_vii = schedule_vii.id 
- 
- left join ds_mysql_prod_tagelement as focus
-  on r.focus = focus.id 
- 
- left join ds_mysql_prod_tagelement as entity
-  on r.entity = entity.id 
- 
- left join ds_mysql_prod_tagelement as state
-  on r.state = state.id 
- 
- left join ds_mysql_prod_tagelement as sdgs
-  on m.sdgs = sdgs.id 
- 
- where r.direct_or_partner = 1132990 AND q.completed = 939857 AND m.ben_type = 939857),
- 
- temp2 as
-(select m.projectId, m.project_name, m.focus, m.fy_timerange, m.entity, m.vertical,  m.state, l.name, m.target, m.sdgs, m._id, m.int_indi, m.project_code_new, m.location, m.createddate  from temp1 as m
-  
-  left join profile_64961 AS l 
- on m.state = l.state
+ where direct_or_partner=1132990 and ben_type=939857 and completed=939857
  ),
  
- temp3 as
- (select m.projectId, m.project_name, m.focus, m.fy_timerange, m.entity, m.vertical,  m.state, m.name, m.target, m.sdgs, vertical_new, m._id, m.int_indi, m.project_code_new, m.location, m.createddate
- from temp2 as m, m.vertical vertical_new),
  
- temp4 as
- (select m.projectId, m.project_name, m.focus, m.fy_timerange, m.entity, m.state, m.name, m.sdgs, m.target, m.int_indi, m._id , m.project_code_new, m.location, m.createddate, 
-  
-   case 
-when vert1.name IS NULL AND vert.name IS NOT NULL THEN vert.name
-else vert1.name 
-END AS vertical
-
-from temp3 AS m
-
-left join ds_mysql_prod_tagelement as vert
-  on m.vertical_new = vert.id
-  
-left join ds_mysql_prod_tagelement as vert1
-  on vert.parent = vert1.id),
-  
-  temp5 as
- (select m.projectId, m.project_name, m.focus, m.fy_timerange, m.entity, m.state, m.name, m.sdgs, m.vertical, m._id, SUM(m.target) as beneficiary, m.int_indi, m.project_code_new, m.location, m.createddate
-  from temp2 as m
-  where _id NOT IN (select _id from temp3)
-  group by m.projectId, m.project_name, m.focus, m.fy_timerange, m.entity, m.state, m.name, m.sdgs, m.vertical, m._id, m.int_indi, m.project_code_new, m.location, m.createddate),
-  
-  
-  table6 as
-  (
-  select projectId, project_name, focus, project_code_new, fy_timerange, entity, SUM(m.target) as beneficiary, vertical, int_indi, name, location, createddate
-  from temp4 as m
-  group by projectId, project_name, focus,  fy_timerange, entity, vertical, int_indi, name, location, createddate , project_code_new
+ table2 as 
+ ( 
+   select  projectId, _id , indicator, project_name , sum(target) as beneficiary, proj , fy_timerange , vertical, focus, partner, district, project_code , entity ,  created, progress , state_name_update from table1 as p
+   
+   group by projectId, _id , indicator, project_name , proj , fy_timerange , vertical, focus, partner, district, project_code , entity ,  created, progress , state_name_update
   ),
   
-  table7 as
-  (
-  select projectId, project_name, focus, project_code_new, fy_timerange, entity, beneficiary, vertical, int_indi, name, location, createddate, q
-  from temp5 as m, m.vertical as q
+  table3 as
+  ( 
+   select p.projectId, p._id , p.indicator, project_name , beneficiary, proj , fy_timerange , vertical, focus, partner, district, project_code , entity ,  p.created, progress , vertical_new , state_name_update from table2 as p , p.vertical as vertical_new
    ),
    
-   table8 as
-   (
-	 select projectId, project_name, focus, project_code_new, fy_timerange, entity, beneficiary, q , int_indi, name, location, createddate
-  from table7 as m
+   
+   table4 as
+   ( 
+	 select projectId, _id , indicator, project_name , beneficiary, proj , fy_timerange , focus, partner as partner_old, district, project_code , ent.name as entity ,  p.created, progress ,  case 
+when vert1.name IS NULL AND vert.name IS NOT NULL THEN vert.name
+else vert1.name 
+END AS vertical , state_name_update , vert1.name as vertical1 , vert.name as  vertical2 , vertical2 as partner , case
+ when district is NULL then state_name_update
+ else district
+ end as district_update, case when district_update=state_name_update then state_name_update else concat(district_update,concat(' , ',state_name_update)) end as location_update from table3 as p
+	
+left join ds_mysql_prod_tagelement as vert
+  on p.vertical_new = vert.id
+  
+left join ds_mysql_prod_tagelement as vert1
+  on vert.parent = vert1.id 
+	 
+left join ds_mysql_prod_tagelement ent
+  on p.entity = ent.id 
 	 ),
 	 
-	 table9 as
-	 ( select  projectId, project_name, focus, project_code_new, fy_timerange, entity, beneficiary , int_indi, name, location, createddate,  q as vertical from table8 as p
-	  )
-	  
-	  
-	  
-  select * from temp3
-	  /*
-   table10 as
-   (
-   select * from table6
-   UNION ALL
-   select * from table9
-   )
-   */
-   
-  
-   
-   
-   
-   
+	 table5 as
+	 ( 
+	   select projectId, _id , indicator, project_name , sum(beneficiary) as beneficiary , proj , fy_timerange , focus, partner_old, district, project_code , entity ,  p.created, progress as progress_old ,
+ vertical , state_name_update , vertical1 , vertical2 , partner ,  location_update, 'Completed' as progress from table4 as p
+	   
+	   group by  projectId, _id , indicator, project_name , proj , fy_timerange , focus, partner_old, district, project_code , entity ,  p.created, progress_old ,
+ vertical , state_name_update , vertical1 , vertical2 , partner ,  location_update 
+	   
+	   order by created , progress_old desc
+ )
+ 
+ 
+ 
+select * from table5
