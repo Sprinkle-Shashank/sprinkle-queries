@@ -1,4 +1,4 @@
-select   _id, trainee_name, tag5.name as  placed, date_of_placement, tag2.name as  emp_name, tag3.name as  occu, tag4.name as edu_qual, reg_no, tag1.name as  gender, date_of_reg, fy_timerange, fam_income, salary,to_char(date_of_reg, 'MM - DD - YYYY') as date_of_reg,to_char(date_of_placement, 'MM - DD - YYYY') as date_of_placement
+with t1 as(select   _id, trainee_name, tag5.name as  placed, date_of_placement, tag2.name as  emp_name, tag3.name as  occu, tag4.name as edu_qual, reg_no, tag1.name as  gender, date_of_reg, fy_timerange, fam_income, salary,to_char(date_of_reg, 'MM - DD - YYYY') as new_date_of_reg,to_char(date_of_placement, 'MM - DD - YYYY') as new_date_of_placement
 from profile_75132 p1
 left join ds_mysql_prod_tagelement as tag1 on
 p1.gender = tag1.id
@@ -9,5 +9,11 @@ p1.occu = tag3.id
 left join ds_mysql_prod_tagelement as tag4 on
 p1.edu_qual = tag4.id
 left join ds_mysql_prod_tagelement as tag5 on
-p1.placed = tag5.id
+p1.placed = tag5.id)
+select  _id,trainee_name,reg_no,fy_timerange,fam_income,salary,salary,placed,emp_name,occu,edu_qual,gender,date_of_placement,
+case
+when date_of_placement is null then '--'
+else new_date_of_placement
+end as  date_of_placement
+from t1
 
