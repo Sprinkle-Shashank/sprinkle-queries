@@ -71,5 +71,19 @@ else '0'
 	
 	from tabn2 tab3)
 	
-Select fy_timerange, response, projectcode, project_manager CODE, (DisbursedAmountforQ1+DisbursedAmountforQ2+DisbursedAmountforQ3+DisbursedAmountforQ4) as total_disbursement, DisbursedAmountforQ1, DisbursedAmountforQ2, DisbursedAmountforQ3, DisbursedAmountforQ4
-from tabn3
+tabn4 as (Select fy_timerange, response, projectcode, project_manager, CODE, (DisbursedAmountforQ1+DisbursedAmountforQ2+DisbursedAmountforQ3+DisbursedAmountforQ4) as total_disbursement,DisbursedAmountforQ1,DisbursedAmountforQ2,DisbursedAmountforQ3,DisbursedAmountforQ4
+from tabn3),
+
+tabn5 as (
+  Select  fy_timerange, response, projectcode, CODE, sum(total_disbursement) total_disbursement
+  from tabn4
+  group by 1,2,3,4
+),
+
+tabn6 as(
+  Select fy_timerange, response, projectcode, CODE,total_disbursement, t2.DisbursedAmountforQ1, t2.DisbursedAmountforQ2,t2.DisbursedAmountforQ3, t2.DisbursedAmountforQ4
+  from tabn5 t1
+  left join tabn4 t2
+  on t1.CODE=t2.CODE
+)
+Select * from tabn6
