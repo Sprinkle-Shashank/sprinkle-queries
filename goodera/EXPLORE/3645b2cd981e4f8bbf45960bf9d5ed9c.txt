@@ -1,0 +1,19 @@
+with sub1 as(select 'lemon_target' as col
+union all
+select 'sapota_target' as col
+union all
+select 'guava_target' as col)
+
+sub2 as(
+select p1.name as projectid,fy_timerange,sub1.col as dim,
+case col
+  when 'lemon_target' then 'Lemon'
+  when 'sapota_target' then 'Sapota'
+  when 'guava_target' then 'Guava'
+  else null
+  end as val
+from profile_82590
+left join ds_mysql_prod_project p1 on projectid = p1.id
+cross join sub1)
+select *,1 as count from sub2
+group by projectid,fy_timerange,dim,val
