@@ -1,20 +1,25 @@
-with x as (select name as projectid, financialperiod,datatablebase from sus_9539 where keyword='company_vehicles'
+with x as (select xprojectid, financialperiod,datatablebase from sus_9539 where keyword='company_vehicles'
 		   and datatablebase is not null),
 		   
 temp2 as (select * ,temp1.type_company, temp1.fuel_company_type, temp1.fuel_company from x as temp,
 		  unpivot temp.datatablebase as temp1 at row) ,
 		 
- y as (select projectid,financialperiod,datatablebase,fuel_company,type_company,fuel_company_type from 
+ y as (select xprojectid,financialperiod,datatablebase,fuel_company,type_company,fuel_company_type from 
 		temp2 ytemp,ytemp.type_company as type_company,ytemp.fuel_company_type as fuel_company_type),
  -- select * from y /*,
   
- z as (select projectid, financialperiod, datatablebase, fuel_company, d.name as type_company,  d1.name as fuel_company_type
+ z as (select t2.name as projectid, financialperiod, datatablebase, fuel_company, d.name as type_company,  d1.name as fuel_company_type
 
 from y
  left join ds_mysql_prod_tagelement d1
 on d1.id=y.fuel_company_type 
  left join ds_mysql_prod_tagelement d
-on d.id=y.type_company)
+on d.id=y.type_company
+	   
+left join ds_mysql_prod_project t1
+on t1.id=y.xprojectid
+left join ds_mysql_prod_project t2
+on t2.id=t1.parent)
 
 select * from z
   
