@@ -1,5 +1,7 @@
 with table1 as
-( select p._id, projectId.name as projectId, p.month_timerange as fy_timerange, p.amount, p.project_code_new, q.project_name, q.vertical, focus.name as focus, q.state, q.start_date, q.direct_or_partner, q.partner, q.district, q.project_code , q.entity ,  z.createddate as created, completed.name as completed, progress.name as progress , state_name.name as state_name_update from profile_55194 as p 
+( select p._id, projectId.name as projectId, p.month_timerange as fy_timerange, p.amount, p.project_code_new, q.project_name, q.vertical, focus.name as focus, q.state, q.start_date, q.direct_or_partner, q.partner, q.district, q.project_code , q.entity ,  z.createddate as created, z.completed, progress.name as progress , state_name.name as state_name_update, 
+ 
+ case when z.completed = 939857 then 'Completed' else progress.name end as progress_update from profile_55194 as p 
  
  left join profile_62881 q 
  on p.project_code_new = q._id
@@ -18,24 +20,24 @@ with table1 as
  
  left join ds_mysql_prod_tagelement as progress
   on z.progress = progress.id
- 
- left join ds_mysql_prod_tagelement as completed
-  on z.completed = completed.id
- 
+  
  where p.month_timerange IS NOT NULL
  ),
  
  
  table2 as 
  ( 
-   select  projectId, project_name , sum(amount) as disbursed, fy_timerange , vertical, focus, partner, district, project_code_new , entity , completed, created, progress , state_name_update from table1 as p
+   select  projectId, project_name , sum(amount) as disbursed, fy_timerange , vertical, focus, partner, district, project_code_new , entity , completed.name as completed, created, progress , state_name_update, progress_update from table1 as p
    
-   group by projectId, project_name , fy_timerange , vertical, focus, partner, district, project_code_new, entity , completed, created, progress , state_name_update
+  left join ds_mysql_prod_tagelement as completed
+  on p.completed = completed.id
+   
+   group by projectId, project_name , fy_timerange , vertical, focus, partner, district, project_code_new, entity , completed, created, progress , state_name_update, progress_update
   ),
   
   table3 as
   ( 
-   select p.projectId, project_name , disbursed, fy_timerange , vertical, focus, partner, district, project_code_new , entity ,  p.created, completed, progress , vertical_new , state_name_update from table2 as p , p.vertical as vertical_new
+   select p.projectId, project_name , disbursed, fy_timerange , vertical, focus, partner, district, project_code_new , entity ,  p.created, completed, progress , vertical_new , state_name_update, progress_update from table2 as p , p.vertical as vertical_new
    ),
    
    
@@ -47,7 +49,7 @@ else vert1.name
 END AS vertical , state_name_update , vert1.name as vertical1 , vert.name as  vertical2 , vertical2 as partner , case
  when district is NULL then state_name_update
  else district
- end as district_update, case when district_update=state_name_update then state_name_update else concat(district_update,concat(' , ',state_name_update)) end as location_update from table3 as p
+ end as district_update, case when district_update=state_name_update then state_name_update else concat(district_update,concat(' , ',state_name_update)) end as location_update, progress_update from table3 as p
 	
 left join ds_mysql_prod_tagelement as vert
   on p.vertical_new = vert.id
@@ -62,10 +64,10 @@ left join ds_mysql_prod_tagelement ent
 	 table5 as
 	 ( 
 	   select projectId, project_name , sum(disbursed) as disbursed , fy_timerange , focus, partner_old,  project_code_new , entity ,  p.created, progress , completed,
- vertical , vertical2 as unit, partner ,  location_update from table4 as p
+ vertical , vertical2 as unit, partner ,  location_update, progress_update from table4 as p
 	   
 	   group by  projectId, project_name , fy_timerange , focus, partner_old, project_code_new , entity ,  p.created, progress , completed,
- vertical , partner , vertical2,  location_update 
+ vertical , partner , vertical2,  location_update, progress_update 
 
 	   order by project_code_new asc, created desc, progress desc
  )
