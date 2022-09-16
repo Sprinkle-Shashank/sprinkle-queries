@@ -1,37 +1,35 @@
-with t1 as(select _id, tag1.name as projectId, tag2.name as gender, salary :: varchar, fam_income, age, fy_timerange
-,
+with t1 as(select _id, tag1.name as projectId, tag2.name as gender, salary, fam_income, age, fy_timerange,
+case 
+when salary is null then 'not defined'
+when salary < 30000 then '<30k'
+when salary between 30000 and 50000 then '30k-50k'
+when salary between 50001 and 100000 then '50k-100k'
+when salary between 100001 and 150000 then '100k-150k'
+when salary between 150001 and 200000 then '150k-200k'
+else '>200k'
+end as salary_bracket,
 case
-when p1.salary is not null then p1.salary
-else 'not defined'
-end as salary1
+when age < 18 then '<18'
+when age < 25 then '18-25'
+else '>25'
+end as age_bracket,
+case
+when fam_income < 100000 then '<1L'
+when fam_income < 300000 then '1L-3L'
+when  fam_income < 500000 then '3L-5L'
+else '>5L'
+end as income_bracket
 from profile_75132 p1
 left join ds_mysql_prod_project as tag1
 on p1.projectId = tag1.id
 left join ds_mysql_prod_tagelement as tag2
 on p1.gender = tag2.id)
---,
 
---t2 as(
-  select _id,projectId,fy_timerange,fam_income,age,gender,t1.salary1 :: int,
-case
-when t1.salary1 :: int >= 50000 and t1.salary :: int = 100000 then '50k-100k'
-when t1.salary :: int > 100000 and t1.salary :: int <= 150000 then '100k-150k'
-when t1.salary :: int  > 150000 and t1.salary :: int <= 200000 then '150k-200k'
-end as salary_bracket
-from t1
-where t1.salary > 200000
+select fy_timerange,gender, salary_bracket,age_bracket,income_bracket,count(*)
+from t2
+group by fy_timerange,gender, salary_bracket,age_bracket,income_bracket
 
---where salary_bracket between 50000 and 100001
---,
---case 
---when t1.age < 18 then '<18'
---when t1.age < 25 then '18-25'
---else '>25'
---end as age_bracket,
---case
---when t1.fam_income < 100000 then '<1L'
---when t1.fam_income < 300000 then '1L-3L'
---when  t1.fam_income < 500000 then '3L-5L'
---else '>5L'
---end as income_bracket
+
+
+
 
