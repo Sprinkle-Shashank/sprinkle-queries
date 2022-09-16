@@ -1,0 +1,51 @@
+with x as (select xprojectid, financialperiod,datatablebase from sus_9539 where keyword in ('refrigerant_type_amount')
+		   and datatablebase is not null),
+		   
+temp2 as (select * ,temp1.refrigerant_type, temp1.refrigerant_amount,temp1.co2_refilled, temp1.dry_powder_refilled from x as temp,
+		  unpivot temp.datatablebase as temp1 at row) ,/*extract table*/
+		 
+ y as (select xprojectid,financialperiod,refrigerant_type,refrigerant_amount,co2_refilled,dry_powder_refilled from 
+		temp2 ytemp,ytemp.refrigerant_type as refrigerant_type),/*unwind*/
+ 
+  t as (select 'Emissions' as col
+	   union all
+	   select 'Consumptions' as col),
+	   
+ z as (select t2.name as projectid, timerange.name as time_timerange,  d.name as refrigerant_type, coalesce(refrigerant_amount,0) as refrigerantamount,co2_refilled,dry_powder_refilled ,  
+	   case d.name when 'Air Conditioning Refrigerant - R410' then 2.088 
+                                   when 'Air Conditioning Refrigerant - R22/R404' then 3.922
+	                               else   0
+	                               end  as Multiplicationfactortotal,
+	(co2_refilled*0.001) as co2_refilled,(dry_powder_refilled*0.001) as dry_powder_refilled, 'Scope 1' as scope ,
+	   'Refrigerants' as type
+	   
+from y 
+
+ left join ds_mysql_prod_tagelement d
+on d.id=y.refrigerant_type
+	   
+left join ds_mysql_prod_project t1
+on t1.id=y.xprojectid
+left join ds_mysql_prod_project t2
+on t2.id=t1.parent/*projectid*/
+	   
+left join ds_mysql_prod_tagelement quarter
+on quarter.id=y.financialPeriod
+left join ds_mysql_prod_tagelement half
+on half.id=quarter.parent
+left join ds_mysql_prod_tagelement fy
+on fy.id=half.parent
+left join ds_mysql_prod_tagelement timerange
+on timerange.id=fy.parent/*time_timerange*/
+	  )
+/*select * from z*/
+select z.projectid,z.time_timerange,z.scope,z.type,
+sum(case col
+	when 'Emissions' then coalesce(z.Multiplicationfactortotal,0)
+	when 'Consumptions' then z.refrigerantamount
+														
+	end ) as Total,
+ t.col as Dim
+from z cross join t
+group by z.projectid,z.time_timerange,z.scope,z.type,t.col
+  
