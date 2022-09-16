@@ -1,44 +1,41 @@
-select co2_refilled, dry_powder_refilled from sus_9539 where keyword in ('refrigerant_type_amount','co2_refilled','dry_powder_refilled')
-/*with temp as(Select 'Emissions' as col
-			union all
-			select 'Total Consumption' as col),
-x as (select distinct t2.name as projectid, timerange.name as time_timerange, 
-'Scope 1' as scope ,'Fuels' as type,
-case 
-when keyword='refrigerant_type_amount' then datanumbase*0.00259411
-end as Multiplicationfactor_Generator , 
-case 
-when keyword='fuel_refill' then datanumbase*0.00220904 
-end as Multiplicationfactor_Refill, 
-sum(datanumbase) as TotalConsumption,
-
-coalesce(Multiplicationfactor_Generator,0)+coalesce(Multiplicationfactor_Refill,0) as Emissions
-
-from  sus_9539 
-
+with x as (select xprojectid, financialperiod,datatablebase from sus_9539 where keyword in ('refrigerant_type_amount')
+		   and datatablebase is not null),
+		   
+temp2 as (select * ,temp1.co2_refilled, temp1.dry_powder_refilled from x as temp,
+		  unpivot temp.datatablebase as temp1 at row) ,/*extract table*/
+		  
+t as (select 'Emissions' as col
+	   union all
+	   select 'Consumptions' as col),
+	   
+ z as (select t2.name as projectid, timerange.name as time_timerange,coalesce(co2_refilled,0)+coalesce(dry_powder_refilled,0) as TotalCo2quantity,
+	   TotalCo2quantity*0.001 as multiplicationfactor
+	   'Scope 1' as scope ,
+	   'Refrigerants' as type
+	   
+from temp2
+	   
 left join ds_mysql_prod_project t1
-on t1.id=sus_9539.xprojectid
+on t1.id=temp2.xprojectid
 left join ds_mysql_prod_project t2
 on t2.id=t1.parent/*projectid*/
-
+	   
 left join ds_mysql_prod_tagelement quarter
-on quarter.id=sus_9539.financialPeriod
+on quarter.id=temp2.financialPeriod
 left join ds_mysql_prod_tagelement half
 on half.id=quarter.parent
 left join ds_mysql_prod_tagelement fy
 on fy.id=half.parent
 left join ds_mysql_prod_tagelement timerange
 on timerange.id=fy.parent/*time_timerange*/
-
-where KEYWORD IN ('generator_consump','fuel_refill') 
-group by t2.name,timerange.name,scope,type,Multiplicationfactor_Generator,
-Multiplicationfactor_Refill,emissions)
-
-Select x.projectid,x.time_timerange,x.scope,x.type,x.Multiplicationfactor_Generator,
-x.Multiplicationfactor_Refill, sum(case when temp.col ='Emissions' then x.emissions
-								         when temp.col = 'Total Consumption' then x.TotalConsumption
-								  end ) as Total,
-temp.col as Dim
- from x cross join temp
-group by x.projectid,x.time_timerange,x.scope,x.type,x.Multiplicationfactor_Generator,
-x.Multiplicationfactor_Refill, temp.col*/
+	  )
+/*select * from z*/
+select z.projectid,z.time_timerange,z.scope,z.type,
+sum(case col
+	when 'Emissions' then z.multiplicationfactor
+	when 'Consumptions' then z.TotalCo2quantity
+														
+	end ) as Total,
+ t.col as Dim
+from z cross join t
+group by z.projectid,z.time_timerange,z.scope,z.type,t.col
