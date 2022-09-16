@@ -1,0 +1,37 @@
+with t1 as
+( 
+  select gender, acad_qual, cast(ind_income_post_tr as INT), p.batch, p.state, sta.name as state_update,
+  training_completed_yn, placement_yn, annual_hh_income, company_rating, employer_name, p1.fy as name_update,
+  
+  CASE when placement_yn=476506
+  then 1 else 0
+  end as placed
+  
+  from profile_30527 as p
+  
+  left join profile_30532 p1 on
+  p.batch = p1._id 
+  
+  left join ds_mysql_prod_tagelement sta
+  on p.state = sta.id
+  ),
+  
+  t2 as
+  (
+	select ind_income_post_tr*12 as package, name_update, employer_name, state_update from t1
+	),
+	t3 as
+	(
+	  select package, name_update, employer_name, state_update, (package*1.0/100000) as averagesalaryinlakhs from t2
+	  ),
+	  
+	  t4 as
+	  (
+		select avg(averagesalaryinlakhs) as avg_update, employer_name, name_update, state_update from t3
+		
+		where employer_name<>''
+		group by name_update, employer_name, state_update
+		
+		order by avg_update desc
+		)
+		select name_update, employer_name, state_update, avg_update from t4
