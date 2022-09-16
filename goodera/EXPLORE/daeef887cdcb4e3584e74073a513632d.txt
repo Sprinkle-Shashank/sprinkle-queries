@@ -1,4 +1,4 @@
-Select split_part(prod.name,'|',3) as censuscode, len(censuscode),
+with s as (Select split_part(prod.name,'|',3) as censuscode, len(censuscode),
 case 
 when len(split_part(prod.name,'|',3))=5 then concat('0',censuscode)
        when len(split_part(prod.name,'|',3))=4 then concat('00',censuscode)
@@ -6,11 +6,15 @@ when len(split_part(prod.name,'|',3))=5 then concat('0',censuscode)
        when len(split_part(prod.name,'|',3))=2 then concat('0000',censuscode)
        when len(split_part(prod.name,'|',3))=1 then concat('00000',censuscode)
        else split_part(prod.name,'|',3)
-end as newcensuscode,len(newcensuscode), p1.village, p1.district
+end as newcensuscode,len(newcensuscode)
 from profile_29974 p
-left join profile_27489 p1
-ON newcensuscode=p1.name
 left join ds_mysql_prod_project prod on
-prod.id=p.projectid
+prod.id=p.projectid)
+
+Select newcensuscode, p1.village, p1.district
+from s
+left join profile_27489 p1
+ON s.newcensuscode=p1.name
+
 
 
