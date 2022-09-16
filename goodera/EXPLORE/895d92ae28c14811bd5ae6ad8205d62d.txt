@@ -1,35 +1,42 @@
-select p.projectid ,p._id,
-Decode(p3.reg_date_yn,28005,p3.date_y,p3.createddate) as date_blank,
-p3.reg_date_yn as yesno , 
-p3.date_y as date_yes ,
-CASE When p3.reg_date_yn is NULL
-then 'No'
-else 'Yes'
-end as new_reg,
-CASE WHEN p3.reg_date_yn = 28005
-then p3.date_y
-else p3.createddate
-end as date,
-p.createddate as new_date,
-p3.createddate as date_oldest,
-p.patient, 
-p.patient_yn,
-p3.gender as gender,
-p8.name as partner,
-fac.name as van, 
-1 as count from profile_58474 p
-left join profile_58511 p2
-on p.sel_camp=p2._id
-left join profile_58473 p3
-on p.patient=p3._id
-left join ds_mysql_prod_project p5
-on p3.gender= p5.id
-left join profile_51990 p8
-on p2.imple_partner=p8._id
-left join ds_mysql_prod_project fac
-on p.projectid = fac.id
-where 
---patient_yn=28005 and 
-p.projectid like '%%' and p.projectid = 41442
+with temp1 as
+(select projectId, 
+ 
+ district, fy_timerange from profile_46325 as m,
 
---and date between '2022-04-01' and '2023-03-31'
+m.state_district district
+ ),
+
+temp2 as
+(select projectId.name as projectId, count(*), fy_timerange,
+
+case
+WHEN state1_parent.name IS NULL THEN state1.name else state1_parent.name END as state
+ 
+ 
+from temp1
+
+left join ds_mysql_prod_project as projectId
+  on temp1.projectId = projectId.id 
+ 
+left join ds_mysql_prod_tagelement as state1
+on temp1.district = state1.id
+ 
+left join ds_mysql_prod_tagelement as state1_parent
+on state1.parent = state1_parent.id
+
+ 
+--WHERE district IS not NULL
+
+group by projectId.name, fy_timerange, state
+order by projectId asc
+
+)
+
+/*temp3 as
+(select projectId, district, fy_timerange, state  from temp2
+case
+when state1_parent.name IS NULL THEN state1.name
+else state.name
+
+)*/
+ select * from temp2
