@@ -1,0 +1,61 @@
+with table1 as
+( select p.projectid , p._id , p.fy_timerange , start_date , cast(start_date as date) as start_update,  sta.name as state , cen.name as center , p.name , course.name as course_name_update , bat.name as batch_name , concat(concat(course_name_update, ' '), cast(batch_name as varchar)) as batch_value , p.target_hours 
+ 
+ , case when (course_name_update='HFDC' or course_name_update='Phlebotomy') and p.target_hours<=300 then 'Classroom' when (course_name_update='HFDC' or course_name_update='Phlebotomy') and p.target_hours>=300 then 'OJT' when course_name_update='GDA' and p.target_hours<=400 then 'Classroom' when course_name_update='GDA' and p.target_hours>=400 then 'Classroom' end as status , 
+ 
+case when status='Classroom' then 5 when status='OJT' then 8 end as total_hours_per_day ,
+ 
+ (p.target_hours/total_hours_per_day) as days_to_add  from profile_81438 as p
+
+left join ds_mysql_prod_tagelement cen
+on p.center_name = cen.id
+
+left join ds_mysql_prod_tagelement course
+on p.course_name = course.id
+
+left join ds_mysql_prod_tagelement bat
+on p.batch = bat.id
+
+left join profile_81436 p1 
+on p.center = p1._id
+
+left join ds_mysql_prod_tagelement sta
+on p1.center_loc = sta.id),
+
+table2 as 
+( select p.projectid , p1.name , count(date_holiday) as count_holiday , case when count_holiday is null then 0 else count_holiday end as count_holiday_updated from profile_81611 as p
+
+left join profile_81438 p1 
+on p.batch = p1._id
+
+group by p.projectid , p1.name),
+
+table3 as 
+(
+ 
+  select p.*, 
+  
+  (days_to_add+0) as holiday_count, dateadd(day,holiday_count,start_update) as day_to_be_added_with_holiday ,   datediff(week,start_date,day_to_be_added_with_holiday) as week_value , 
+  dateadd(day,week_value,day_to_be_added_with_holiday) as final_date_to_be_used , cast(final_date_to_be_used as date) as final_date_to_be_used_update ,  current_date as today_date 
+  
+  , case when today_date <=final_date_to_be_used_update then today_date end as date_check_with_today ,  case when today_date <=final_date_to_be_used_update then 'Yes' else  'No' end as yes_no_date_check , case when date_check_with_today is not null then datediff(week,date_check_with_today,final_date_to_be_used_update) else 0 end as week_value_yet_to_complete 
+  
+  ,  case when yes_no_date_check='Yes' then 
+  (datediff(day , date_check_with_today , final_date_to_be_used_update)-week_value_yet_to_complete) else 0 end as days_yet_to_be_completed , 
+  
+  p.target_hours -(days_yet_to_be_completed*total_hours_per_day) as total_acheived_hours , case when p.target_hours < total_acheived_hours then 'More' when p.target_hours = total_acheived_hours then 'Equal' else 'Less' end as hours_check
+	
+
+  from table1 as p
+  
+  left join table2 p1
+  on p.name = p1.name
+  )
+  
+
+select p.projectid , p._id , p.fy_timerange , state , center , course_name_update , batch_value , cast(start_update as varchar) as start_update ,
+	   
+cast(final_date_to_be_used_update as varchar) as end_date_update , p.target_hours , total_acheived_hours  , status , days_yet_to_be_completed  from table3 as p
+
+
+  -- p1.count_holiday_updated replace this with 0 in table3 in holiday_count because right now there was no data
