@@ -1,14 +1,14 @@
 with x as (select xprojectid, financialperiod,datatablebase from sus_9539 where keyword in ('refrigerant_type_amount')
 		   and datatablebase is not null),
 		   
-temp2 as (select * ,temp1.co2_refilled, temp1.dry_powder_refilled from x as temp,
+temp2 as (select * ,temp1.co2_refilled, temp1.dry_powder_refilled,temp1.office_area from x as temp,
 		  unpivot temp.datatablebase as temp1 at row) ,/*extract table*/
 		  
 t as (select 'Emissions' as col
 	   union all
-	   select 'Consumptions' as col),
+	   select 'Consumption' as col),
 	   
- z as (select t2.name as projectid, timerange.name as time_timerange,coalesce(co2_refilled,0)+coalesce(dry_powder_refilled,0) as TotalCo2quantity,
+ z as (select t2.name as projectid, timerange.name as time_timerange,office_area,coalesce(co2_refilled,0)+coalesce(dry_powder_refilled,0) as TotalCo2quantity,
 	   TotalCo2quantity*0.001 as multiplicationfactor,
 	   'Scope 1' as scope ,
 	   'Refrigerants' as type
@@ -30,12 +30,12 @@ left join ds_mysql_prod_tagelement timerange
 on timerange.id=fy.parent/*time_timerange*/
 	  )
 /*select * from z*/
-select z.projectid,z.time_timerange,z.scope,z.type,
+select z.projectid,z.time_timerange,z.scope,z.type,z.office_area
 sum(case col
 	when 'Emissions' then z.multiplicationfactor
-	when 'Consumptions' then z.TotalCo2quantity
+	when 'Consumption' then z.TotalCo2quantity
 														
 	end ) as Total,
  t.col as Dim
 from z cross join t
-group by z.projectid,z.time_timerange,z.scope,z.type,t.col
+group by z.projectid,z.time_timerange,z.scope,z.type,t.col,z.office_area
