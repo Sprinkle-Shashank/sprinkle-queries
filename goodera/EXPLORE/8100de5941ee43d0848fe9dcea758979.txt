@@ -7,10 +7,7 @@ temp2 as (select * ,temp1.type_company, temp1.fuel_company_type, temp1.fuel_comp
  y as (select xprojectid,financialperiod,datatablebase,fuel_company,type_company,fuel_company_type from 
 		temp2 ytemp,ytemp.type_company as type_company,ytemp.fuel_company_type as fuel_company_type),
  
-  t as (select cast('Emissions' as varchar) as col 
-	   union all
-	   select cast('Consumption' as varchar) as col
-	   ),
+
 	   
  z as (select t2.name as projectid, timerange.name as time_timerange, datatablebase, cast(coalesce(fuel_company,0) as float) as fuelcompany, d.name as type_company,  d1.name as fuel_company_type, case d1.name when 'Petrol' then 0.00220904 
                                    when 'Diesel' then 0.00259411
@@ -38,7 +35,11 @@ left join ds_mysql_prod_tagelement fy
 on fy.id=half.parent
 left join ds_mysql_prod_tagelement timerange
 on timerange.id=fy.parent/*time_timerange*/
-	  )
+	  ) ,
+	  t as (select cast('Emissions' as varchar) as col 
+	   union all
+	   select cast('Consumption' as varchar) as col
+	   )
 /*select * from z*/
 select z.projectid,z.time_timerange,z.scope,z.type,
 sum(case 
