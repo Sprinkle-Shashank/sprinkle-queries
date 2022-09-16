@@ -178,44 +178,63 @@ group by 1,2,3,4,7,8),
 
 tabn3 as (
   Select fy_timerange, response, projectcode, project_manager, Amount_Disbursed, Amount_not_Utilised, CODE, 
+  
+ 
 
 case when tab3.quarters= 'Quarter 1' then tab3.Amount_Disbursed
-else 0
+
     end as DisbursedAmountforQ1,
 case when tab3.quarters='Quarter 2' then (tab3.Amount_Disbursed)
-else '0'
+
     end as DisbursedAmountforQ2,
 case when tab3.quarters='Quarter 3' then (tab3.Amount_Disbursed)
-else '0'
+
     end as DisbursedAmountforQ3,
 case when tab3.quarters='Quarter 4' then (tab3.Amount_Disbursed)
-else '0'
+
     end as DisbursedAmountforQ4
-	
-	from tabn2 tab3),
-	
-tabn4 as (Select fy_timerange, response, projectcode, project_manager, CODE, (DisbursedAmountforQ1+DisbursedAmountforQ2+DisbursedAmountforQ3+DisbursedAmountforQ4) as total_disbursement,DisbursedAmountforQ1,DisbursedAmountforQ2,DisbursedAmountforQ3,DisbursedAmountforQ4
+	from tabn2 tab3
+group by 1,2,3,4,5,6,7, quarters
+),
+
+tabn4 as (Select fy_timerange, response, projectcode, project_manager, CODE, Amount_not_Utilised, 
+		  
+		  (DisbursedAmountforQ1+DisbursedAmountforQ2+DisbursedAmountforQ3+DisbursedAmountforQ4) as total_disbursement,DisbursedAmountforQ1,DisbursedAmountforQ2,DisbursedAmountforQ3,DisbursedAmountforQ4
 from tabn3),
 
 tabn5 as (
-  Select  fy_timerange, response, projectcode, CODE, sum(total_disbursement) total_disbursement
+  Select  fy_timerange, response,project_manager, projectcode, CODE, sum(total_disbursement) total_disbursement
   from tabn4
-  group by 1,2,3,4
+  group by 1,2,3,4,5
 ),
 
 tabn6 as(
-  Select t1.fy_timerange, t1.response, t1.projectcode, t1.CODE,t1.total_disbursement, t2.DisbursedAmountforQ1, t2.DisbursedAmountforQ2,t2.DisbursedAmountforQ3, t2.DisbursedAmountforQ4
+  Select t1.fy_timerange, t1.response, t1.projectcode, t1.CODE,t1.total_disbursement, t2.Amount_not_Utilised, t1.project_manager,
+  
+  coalesce(t2.DisbursedAmountforQ1, 0) as DisbursedAmountforQ11,
+  coalesce(t2.DisbursedAmountforQ2, 0) as DisbursedAmountforQ21,
+  coalesce(t2.DisbursedAmountforQ3, 0) as DisbursedAmountforQ31,
+  coalesce(t2.DisbursedAmountforQ4, 0) as DisbursedAmountforQ41
+  
   from tabn5 t1
   left join tabn4 t2
   on t1.CODE=t2.CODE
-)/*Disbursed from 27398*/
+  
+),
+
+tabn7 as (Select fy_timerange, projectcode, project_manager, sum(Amount_not_Utilised) Amount_not_Utilised, CODE, --(DisbursedAmountforQ11 + DisbursedAmountforQ21 + DisbursedAmountforQ31 + DisbursedAmountforQ41) total, 
+
+max(DisbursedAmountforQ11) DisbursedAmountforQ1,
+max(DisbursedAmountforQ21) DisbursedAmountforQ2, max(DisbursedAmountforQ31) DisbursedAmountforQ3, max(DisbursedAmountforQ41) DisbursedAmountforQ4,
+		  
+(DisbursedAmountforQ1 + DisbursedAmountforQ2 + DisbursedAmountforQ3 + DisbursedAmountforQ4) total 
+
+from tabn6
+group by 1,2,3,5)
+/*Disbursed from 27398*/
 
 
-
-
-
-
-
+/*
 Select newtab1.projectcode, newtab1.fy_timerange,name_project, project_manager, CoreArea, duration, newtab1.CODE, ImplementingAgency,  newtab1.intervention_type, 
 (n1.allocated_Q1+n1.allocated_Q2+n1.allocated_Q3+n1.allocated_Q4) as Total_allocated_amount, n1.allocated_Q1, n1.allocated_Q2, n1.allocated_Q3, n1.allocated_Q4, t2.total_disbursement, t2.DisbursedAmountforQ1, t2.DisbursedAmountforQ2,t2.DisbursedAmountforQ3, t2.DisbursedAmountforQ4 ,state
 from newtab1
@@ -223,6 +242,8 @@ left join tabn6 t2
 ON newtab1.CODE=t2.CODE
 left join new31 n1
 on n1.CODE=newtab1.CODE
+left join tabn7 n3
+ON n3.CODE=newtab1.CODE
 
 union all
 
@@ -232,4 +253,9 @@ left join tabn6 t2
 ON newtab1.CODE=t2.CODE
 left join new31 n1
 
+left join tabn7 n3
+ON n3.CODE=newtab1.CODE
+*/
 
+
+Select * from new31
