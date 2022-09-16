@@ -1,9 +1,7 @@
 with table1 as
 ( select p._id, projectId.name as projectId, p.month_timerange as fy_timerange, p.amount, p.project_code_new, q.project_name, q.vertical, focus.name as focus, q.state, q.start_date, q.direct_or_partner, q.partner, q.district, q.project_code as project_code_new1 , q.entity ,  z.createddate as created, z.completed, progress.name as progress , state_name.name as state_name_update, 
  
- case when z.completed = 939857 then 'Completed' else progress.name end as progress_update,
- 
- case when q.direct_or_partner IS NULL then q.direct_or_partner = 0from profile_55194 as p 
+ case when z.completed = 939857 then 'Completed' else progress.name end as progress_update from profile_55194 as p 
  
  left join profile_62881 q 
  on p.project_code_new = q._id
@@ -29,23 +27,23 @@ with table1 as
  
  table2 as 
  ( 
-   select  projectId, project_name , sum(amount) as disbursed, fy_timerange , vertical, focus, partner, district, project_code_new1 , entity , completed.name as completed, p.created, progress , state_name_update, progress_update from table1 as p
+   select  projectId, project_name , sum(amount) as disbursed, fy_timerange , vertical, focus, partner, district, project_code_new1 , entity , completed.name as completed, p.created, progress , state_name_update, progress_update, direct_or_partner from table1 as p
    
   left join ds_mysql_prod_tagelement as completed
   on p.completed = completed.id
    
-   group by projectId, project_name , fy_timerange , vertical, focus, partner, district, project_code_new1, entity , completed.name, p.created, progress , state_name_update, progress_update
+   group by projectId, project_name , fy_timerange , vertical, focus, partner, district, project_code_new1, entity , completed.name, p.created, progress , state_name_update, progress_update, direct_or_partner
   ),
   
   table3 as
   ( 
-   select p.projectId, project_name , disbursed, fy_timerange , vertical, focus, partner, district, project_code_new1 , entity ,  p.created, completed, progress , vertical_new , state_name_update, progress_update from table2 as p , p.vertical as vertical_new
+   select p.projectId, project_name , disbursed, fy_timerange , vertical, focus, partner, district, project_code_new1 , entity ,  p.created, completed, progress , vertical_new , state_name_update, progress_update, direct_or_partner from table2 as p , p.vertical as vertical_new
    ),
    
    
    table4 as
    ( 
-	 select projectId, project_name , disbursed, fy_timerange , focus, district, project_code_new1 , ent.name as entity , completed, p.created, progress ,  case 
+	 select projectId, project_name , disbursed, fy_timerange , focus, district, project_code_new1 , ent.name as entity , completed, p.created, progress , direct_or_partner,  case 
 when vert1.name IS NULL AND vert.name IS NOT NULL THEN vert.name
 else vert1.name 
 END AS vertical , state_name_update , vert1.name as vertical1 , vert.name as  vertical2 , vertical2 as partner , case
@@ -66,10 +64,16 @@ left join ds_mysql_prod_tagelement ent
 	 table5 as
 	 ( 
 	   select projectId, project_name , sum(disbursed) as disbursed , fy_timerange , focus,  project_code_new1 , entity ,  p.created, progress , completed,
- vertical , vertical2 as unit, partner ,  location_update, progress_update from table4 as p
+ vertical , vertical2 as unit, partner ,  location_update, progress_update, 
+	   
+	   case when direct_or_partner IS NULL then '-'
+	   when direct_or_partner = 1132990 then vertical2 
+	   else partner
+	   end as partner_unit
+	   from table4 as p
 	   
 	   group by  projectId, project_name , fy_timerange , focus, project_code_new1 , entity ,  p.created, progress , completed,
- vertical , partner , vertical2,  location_update, progress_update 
+ vertical , partner_unit , vertical2,  location_update, progress_update
 
 	   order by project_code_new1 asc, p.created desc, progress desc
  )
