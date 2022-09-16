@@ -91,19 +91,7 @@ tab7 as(select t.fy_timerange,t.projectcode,t.Quarter as New_Quarter, t.village,
 from tab5 t
 left join tab6 t2 on
 t.CODE=t2.CODE
-and t.Quarter=t2.Q)
-,
-
-/*Select t7.fy_timerange,t7.New_Quarter,t7.projectcode,t7.village,t7.project_manager,
-Case
-when t7.Amount_Disbursed is null then 0
-else t7.Amount_Disbursed
-end as Amount_Disbursed,
-Case
-when t7.Amount_Utilised is null then 0
-else t7.Amount_Utilised
-end as Amount_Utilised
-from tab7 as t7*/
+and t.Quarter=t2.Q),
 
 tab8 as(Select t7.fy_timerange,t7.projectcode,t7.Quarter, t7.village,t7.project_manager,t7.Amount_Utilised,t7.CODE,
 case
@@ -123,56 +111,17 @@ case
 when New_Quarter='Quarter 4' then Q
 else t7.fy_timerange
 end as new_fy
-from tab7 t7)
+from tab7 t7),
 
+tab9 as(Select t8.new_fy as fy_timerange,t8.New_Quarter,t8.projectcode,t8.village,t8.project_manager,concat(t8.projectcode,t8.new_fy) as CODE
+Case
+when t8.Amount_Utilised is null then 0
+else t8.Amount_Utilised
+end as Amount_Utilised
+from tab8 as t8)
 
+Select t10.fy_timerange,t10.New_Quarter,t10.projectcode,t10.village,t10.project_manager,t10.Amount_Utilised,t11.Amount_Disbursed
+from tab9 as t10
+left join tab7 as t11
+on t10.CODE=t11.CODE
 
-
-
-
-
-
-
-/*Select t1.name as FY,t2.name as Quarter,
-case
-when t1.name='2017-2018' then '2018-2019'
-when t1.name='2018-2019' then '2019-2020'
-when t1.name='2019-2020' then '2020-2021'
-when t1.name='2020-2021' then '2021-2022'
-when t1.name='2021-2022' then '2022-2023'
-end as Q,
-case
-when t2.name='Tranche 4' then Q
-else t1.name
-end as new_fy
-
-from profile_27398 p1
-left join ds_mysql_prod_tagelement t1
-on p1.fy=t1.id
-left join ds_mysql_prod_tagelement t2
-on p1.tranche=t2.id
-group by 1,2*/
-
-/*
-case
-when Q='Quarter 1' then 'Quarter 4'
-when Q='Quarter 2' then 'Quarter 1'
-when Q='Quarter 3' then 'Quarter 2'
-when Q='Quarter 4' then 'Quarter 3'
-end as Quarter
-
-case
-when Quarter='Quarter 3' then Q
-else FY*/
-
-/*Select t1.name as FY, p2.name as ProjectCode, p1.village_name as Village,t2.name as Output_Statement, t3.name Output_Indicator, p1.planned_q1, p1.planned_q2, p1.planned_q3, p1.planned_q4, p1.progress_q2, p1.progress_q4, p1.baseline,p1.progress_q3
-from profile_27417 p1
-left join profile_27396 p2
-on p1.prj_code=p2._id
-left join ds_mysql_prod_tagelement t1
-on p1.fy=t1.id
-left join ds_mysql_prod_tagelement t2
-on p1.op_statement_new=t2.id
-left join ds_mysql_prod_tagelement t3
-on p1.op_indic_new=t3.id
-group  by t2.name,t1.name,p2.name, p1.village_name, t3.name, p1.planned_q1, p1.planned_q2, p1.planned_q3, p1.planned_q4, p1.progress_q2, p1.progress_q4, p1.baseline,p1.progress_q3*/
