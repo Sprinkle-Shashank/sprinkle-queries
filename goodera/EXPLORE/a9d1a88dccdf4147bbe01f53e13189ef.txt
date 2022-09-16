@@ -173,7 +173,14 @@ tabn5 as (
 ),
 
 tabn6 as(
-  Select t1.fy_timerange, t1.response, t1.projectcode, t1.CODE,t1.total_disbursement, t2.Amount_not_Utilised, t1.project_manager, t2.DisbursedAmountforQ1, t2.DisbursedAmountforQ2,t2.DisbursedAmountforQ3, t2.DisbursedAmountforQ4
+  Select t1.fy_timerange, t1.response, t1.projectcode, t1.CODE,t1.total_disbursement, t2.Amount_not_Utilised, t1.project_manager, t2.DisbursedAmountforQ2,t2.DisbursedAmountforQ3, t2.DisbursedAmountforQ4
+  
+  case
+  when t2.DisbursedAmountforQ1= NULL then '0'
+  else t2.DisbursedAmountforQ1
+  end as DisbursedAmountforQ11
+  
+  
   from tabn5 t1
   left join tabn4 t2
   on t1.CODE=t2.CODE
@@ -181,29 +188,10 @@ tabn6 as(
 
 tabn7 as (Select fy_timerange, response, projectcode, project_manager, sum(Amount_not_Utilised), CODE, --(DisbursedAmountforQ11 + DisbursedAmountforQ21 + DisbursedAmountforQ31 + DisbursedAmountforQ41) total, 
 
-max(
-  case 
-  when DisbursedAmountforQ1=NULL then '0'
-  else DisbursedAmountforQ1
-   end)as DisbursedAmountforQ11,
-max(
-  case 
-  when DisbursedAmountforQ2=NULL then '0'
-  else DisbursedAmountforQ2
-   end)as DisbursedAmountforQ21,
-max(
-  case 
-  when DisbursedAmountforQ3=NULL then '0'
-  else DisbursedAmountforQ3
-   end)as DisbursedAmountforQ31,
-max(
-  case 
-  when DisbursedAmountforQ4=NULL then '0'
-  else DisbursedAmountforQ4
-   end)as DisbursedAmountforQ41,		  
-
+max(DisbursedAmountforQ11) DisbursedAmountforQ1,
+max(DisbursedAmountforQ2) DisbursedAmountforQ21, max(DisbursedAmountforQ3) DisbursedAmountforQ31, max(DisbursedAmountforQ4) DisbursedAmountforQ41,
 		  
-(DisbursedAmountforQ11 + DisbursedAmountforQ21 + DisbursedAmountforQ31 + DisbursedAmountforQ41) total 
+(DisbursedAmountforQ1 + DisbursedAmountforQ21 + DisbursedAmountforQ31 + DisbursedAmountforQ41) total 
 
 from tabn6
 group by 1,2,4,3,6)
