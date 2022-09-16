@@ -88,7 +88,8 @@ left join ds_mysql_prod_tagelement t5
 on p.fy=t5.id
 where response is not null),
 
-tab7 as (select t.fy_timerange,t.projectcode,t.Quarter as Quarter, t.village,t2.project_manager,(t2.Amount_utilised/t.number_of_villages) Amount_Utilised,t.CODE
+tab7 as (select t.fy_timerange,t.projectcode,t.Quarter as Quarter, t.village,t2.project_manager,(t2.Amount_utilised/t.number_of_villages) Amount_Utilised,
+		 (t2.Amount_disbursed/t.number_of_villages) Amount_Disbursed,t.CODE
 from tab5 t
 left join tab6 t2 on
 t.CODE=t2.CODE
@@ -112,11 +113,19 @@ case
 when New_Quarter='Quarter 4' then Q
 else t7.fy_timerange
 end as new_fy
-from tab7 t7)
+from tab7 t7),
 
-Select t8.new_fy as fy_timerange,t8.New_Quarter,t8.projectcode,t8.village,t8.project_manager,concat(t8.projectcode,fy_timerange),
+(Select t8.new_fy as fy_timerange,t8.New_Quarter,t8.projectcode,t8.village,t8.project_manager,concat(t8.projectcode,fy_timerange) as CODE,
 Case
 when t8.Amount_Utilised is null then 0
 else t8.Amount_Utilised
 end as Amount_Utilised
-from tab8 as t8
+from tab8 as t8),
+
+
+Select t9.fy_timerange,t9.Quarter,t9.projectcode,t9.village,t9.project_manager,t9.CODE,
+Case
+when t9.Amount_Disbursed is null then 0
+else t9.Amount_Disbursed
+end as Amount_Disbursed
+from tab7 as t9
