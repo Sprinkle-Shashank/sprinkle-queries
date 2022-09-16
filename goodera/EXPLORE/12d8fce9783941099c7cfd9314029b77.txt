@@ -1,5 +1,7 @@
 with table1 as
-( select p._id, projectId.name as projectId, p.month_timerange as fy_timerange, p.amount, p.project_code_new, q.project_name, q.vertical, focus.name as focus, q.state, q.start_date, q.direct_or_partner, q.partner, q.district, q.project_code as project_code_new1 , q.entity ,  z.createddate as created, z.completed, progress.name as progress , state_name.name as state_name_update, 
+( select p._id, projectId.name as projectId, p.month_timerange, p.amount, p.project_code_new, q.project_name, q.vertical, focus.name as focus, q.state, q.start_date, q.direct_or_partner, q.partner, q.district, q.project_code as project_code_new1 , q.entity ,  z.createddate as created, z.completed, progress.name as progress , state_name.name as state_name_update, 
+ 
+ row_number() over(partition by project_code_new order by month_timerange asc),
  
  case when z.completed = 939857 then 'Completed' else progress.name end as progress_update from profile_55194 as p 
  
@@ -64,7 +66,7 @@ left join ds_mysql_prod_tagelement ent
 	 table5 as
 	 ( 
 	   select projectId, project_name , sum(disbursed) as disbursed , fy_timerange , focus,  project_code_new1 , entity ,  p.created, progress , completed,
- vertical , vertical2 as unit, partner ,  location_update, progress_update, 
+ vertical , vertical2 as unit, location_update, progress_update, 
 	   
 	   case when direct_or_partner IS NULL then '-'
 	   when direct_or_partner = 1132990 then vertical2 
