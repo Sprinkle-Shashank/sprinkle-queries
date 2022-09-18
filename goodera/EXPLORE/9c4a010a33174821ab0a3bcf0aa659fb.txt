@@ -1,0 +1,265 @@
+with table1 as
+(select p.projectid , p._id ,  fac.name as factory , sta.name as status_update , p2.factory_id , cou.name as country from profile_16619 as p
+ 
+ left join ds_mysql_prod_project fac 
+on p.projectId = fac.id
+ 
+left join profile_4722 p2 on 
+p.projectid = p2.projectid
+ 
+left join tagelement_1137 sta 
+on p.status = sta.id
+ 
+left join ds_mysql_prod_project ven 
+on fac.parent = ven.id
+
+left join ds_mysql_prod_project cou 
+on ven.parent = cou.id
+
+ where status_update = 'Completed' or status_update is null 
+ and cou.name != 'Test Country' and cou.name !='GAP Inc.' 
+-- where status <> 437658 and status <> 437659
+),
+
+
+
+---- users mail ----
+ -- profile 16862
+table_a1 as ( SELECT _id,projectid,mon.creatorid, u.email as cemail, mon.modifierid, m.email as memail
+				
+from ds_mongo_profileinstance mon
+left join ds_mysql_prod_user u on
+mon.creatorid = u.id
+left join ds_mysql_prod_user m  on
+mon.modifierid = m.id
+where mon.profileId='16862' and mon.active = 't' and mon.securitycontextid is not null
+),
+
+
+table_a2 as
+( select p.projectid , p._id , memail , row_number() over 
+(partition by projectid
+ order by _id desc) as row
+ , POSITION('@gap.com' IN memail ) as p0 , POSITION('gaptable1@gmail.com' IN memail ) as p1 ,  POSITION('gaptable2@gmail.com' IN memail ) as p2 , POSITION('gaptable3@gmail.com' IN memail ) as p3 , POSITION('gaptable4@gmail.com' IN memail ) as p4
+ from table_a1 as p
+ 
+ where p0=0 and p1=0 and p2=0 and p3=0 and p4=0
+ ),
+ 
+ table_a3 as 
+ ( select * from table_a2  p where row=1),
+ 
+ 
+ table_a4 as 
+ (  select p.projectid , p._id , cemail ,  row_number() over 
+(partition by projectid
+ order by _id desc) as row from table_a1 p
+  ),
+  
+  table_a5 as 
+  ( select * from table_a4 where row=1 ),
+ 
+ 
+ -- profile 16863
+ table_a11 as (  SELECT _id,projectid,mon.creatorid, u.email as cemail, mon.modifierid, m.email as memail
+			   
+from ds_mongo_profileinstance mon
+left join ds_mysql_prod_user u on
+mon.creatorid = u.id
+left join ds_mysql_prod_user m  on
+mon.modifierid = m.id
+where mon.profileId='16863' and mon.active = 't' and mon.securitycontextid is not null
+),
+
+
+table_a12 as
+( select p.projectid , p._id , memail , row_number() over 
+(partition by projectid
+ order by _id desc) as row
+, POSITION('@gap.com' IN memail ) as p0 , POSITION('gaptable1@gmail.com' IN memail ) as p1 ,  POSITION('gaptable2@gmail.com' IN memail ) as p2 , POSITION('gaptable3@gmail.com' IN memail ) as p3 , POSITION('gaptable4@gmail.com' IN memail ) as p4
+ from table_a11 as p
+ 
+where p0=0 and p1=0 and p2=0 and p3=0 and p4=0
+ ),
+ 
+ table_a13 as 
+ ( select * from table_a12 p where row=1),
+
+table_union_all_memail as
+(
+select * from table_a3
+union all
+select * from table_a13
+ ),
+ 
+ 
+ table_a14 as 
+ (  select p.projectid , p._id , cemail ,  row_number() over 
+(partition by projectid
+ order by _id desc) as row from table_a11 p
+  ),
+  
+  table_a15 as 
+  ( select * from table_a14 where row=1 ),
+  
+ 
+table_all_m_mail as
+(
+ select p.projectid , listagg(memail,',') as modified_email from table_union_all_memail p
+ 
+ group by p.projectid  
+),
+
+table_union_all_cre_mail as
+(
+  select * from table_a5 
+  union all
+  select * from table_a15
+ ),
+ 
+ table_all_c_mail as 
+( select p.projectid , listagg(cemail,',') as creator_email from table_union_all_cre_mail p
+ 
+ group by p.projectid ),
+
+table_z0 as
+( select p.projectid , p._id , quarter , fy , qua.name as quarter_update , f.name as fy_update , concat( quarter_update, ' , ') as quarter_update_new , concat(quarter_update_new,fy_update) as Latest_Impact_Data , p2.name_subunit , case when Latest_Impact_Data is null then 'N/A' else Latest_Impact_Data end as Latest_Impact_Data_update , fac.name as factory from profile_16862 as p
+ 
+left join tagelement_1137 qua 
+on p.quarter = qua.id
+ 
+left join tagelement_1137 f 
+on p.fy = f.id
+ 
+left join ds_mysql_prod_project fac 
+on p.projectId = fac.id
+
+left join ds_mysql_prod_project ven 
+on fac.parent = ven.id
+
+left join ds_mysql_prod_project cou 
+on ven.parent = cou.id
+ 
+left join profile_16619 p2 on 
+ p.projectid = p2.projectid
+ 
+where cou.name != 'Test Country' and cou.name !='GAP Inc'
+ 
+ order by fy_update desc , quarter_update desc
+),
+
+ 
+table_z01 as 
+( select p.projectid , p._id , fy_update , quarter_update , p.Latest_Impact_Data_update  from table_z0 as p limit 1 ),
+
+
+table_z02 as 
+(  select p.* , case when p.Latest_Impact_Data_update=z01.Latest_Impact_Data_update then 'Up to Date' else 'Pending' end as Impact_Data_Approval_Status from table_z0 as p 
+
+left join table_z01 z01 on 
+p._id = z01._id ),
+
+table_z03 as
+( select p.* , row_number() over (partition by p.projectid
+ order by p._id desc) as row  from table_z02 as p),
+ 
+table_z04 as 
+( select p.* from table_z03 as p where row=1),
+
+
+
+table_z1 as
+( select p.projectid , p._id , quarter , fy , qua.name as quarter_update , f.name as fy_update , concat( quarter_update, ' , ') as quarter_update_new , concat(quarter_update_new,fy_update) as Latest_Grievance_Data , p2.name_subunit , case when Latest_Grievance_Data is null then 'N/A' else Latest_Grievance_Data end as Latest_Grievance_Data_update , fac.name as factory from profile_16863 as p
+ 
+left join tagelement_1137 qua 
+on p.quarter = qua.id
+ 
+left join tagelement_1137 f 
+on p.fy = f.id
+ 
+left join ds_mysql_prod_project fac 
+on p.projectId = fac.id
+
+left join ds_mysql_prod_project ven 
+on fac.parent = ven.id
+
+left join ds_mysql_prod_project cou 
+on ven.parent = cou.id
+ 
+left join profile_16619 p2 on 
+ p.projectid = p2.projectid
+ 
+where cou.name != 'Test Country' and cou.name !='GAP Inc'
+ 
+ order by fy_update desc , quarter_update desc
+),
+
+ 
+table_z11 as 
+( select p.projectid , p._id , fy_update , quarter_update , p.Latest_Grievance_Data_update  from table_z1 as p limit 1 ),
+
+
+table_z12 as 
+(  select p.* , case when p.Latest_Grievance_Data_update=z11.Latest_Grievance_Data_update then 'Up to Date' else 'Pending' end as Grievance_Data_Approval_Status from table_z1 as p 
+
+left join table_z11 z11 on 
+p._id = z11._id ),
+
+table_z13 as
+( select p.* , row_number() over (partition by p.projectid
+ order by p._id desc) as row  from table_z12 as p),
+ 
+table_z14 as 
+( select p.* from table_z13 as p where row=1
+
+-- 54509 { check for this projectid=54509 entry due to which grievance filter is affected , entry is totally wrong Factory: LUXURY FENGRUN FASHION ACCESSORIES CO LTD
+),
+
+
+
+table2 as 
+(
+ select ROW_NUMBER() over (order by p.projectid ) as serial_number  , p._id, p.projectid , 
+  case when p.name_subunit is null or p.name_subunit=' ' then 'N/A' else p.name_subunit end  as unit , ven.name as vendor , cou.name as country 
+  
+, t1.factory , t1.factory_id  ,  case when extract(month from date_enrollment)=1 then (extract(year from date_enrollment)-1) else extract(year from date_enrollment) end as batch , m_mail.modified_email , c_mail.creator_email ,  case when date_completion is null then 'Ongoing' else 'Completed' end as status , case when country in ('India', 'Bangladesh', 'Sri Lanka')
+then 'South Asia'
+when country in ('China')
+then 'North Asia'
+when country in ('Guatemala', 'El Salvador', 'Dominican Republic')
+then 'Americas'
+when country in ('Philippines', 'Cambodia',  'Vietnam',  'Indonesia', 'Myanmar')
+then 'South East Asia'
+end as region , extract( year from date_enrollment) as year_new , z04.Latest_Impact_Data_update , z04.Impact_Data_Approval_Status , z14.Latest_Grievance_Data_update , z14.Grievance_Data_Approval_Status
+  
+from profile_16619 p
+  
+left join ds_mysql_prod_project fac 
+on p.projectId = fac.id
+
+left join ds_mysql_prod_project ven 
+on fac.parent = ven.id
+
+left join ds_mysql_prod_project cou 
+on ven.parent = cou.id
+ 
+left join table1 t1 on 
+p._id = t1._id
+  
+left join table_all_m_mail m_mail on 
+p.projectid = m_mail.projectid
+  
+left join table_all_c_mail c_mail on 
+p.projectid = c_mail.projectid
+
+left join table_z04 z04 on 
+p.projectid = z04.projectid
+  
+left join table_z14 z14 on 
+p.projectid = z14.projectid
+  
+where cou.name != 'Test Country' and cou.name !='GAP Inc.'
+  )
+
+
+select * from table2
