@@ -1,5 +1,13 @@
 
-Select t2.name as projectid, timerange.name as time_timerange, country 
+Select t2.name as projectid, timerange.name as time_timerange, 
+sum( case when keyword in ('generator_consump_target','fuel_refill_target') then datanumbase
+else 0 end as Fuels,
+	sum( case when keyword in ('co2_refilled_target','dry_powder_refilled_target','refrigerant_gas_target') then datanumbase
+else 0 end as Refrigerants,
+	Case when keyword ='own_fleet_target' then datanumbase 
+		else 0 end as Transport,
+		Case when keyword ='company_vehicles_consump_target' then datanumbase
+		else 0 end as CompanyVehicles
 
 from sus_62648
 left join ds_mysql_prod_project t1
@@ -16,6 +24,7 @@ on fy.id=half.parent
 left join ds_mysql_prod_tagelement timerange
 on timerange.id=fy.parent/*time_timerange*/)
 where  keyword in ('generator_consump_target', 'fuel_refill_target', 'co2_refilled_target', 'dry_powder_refilled_target', 'refrigerant_gas_target', 'company_vehicles_consump_target', 'own_fleet_target')
+	group by  t2.name, timerange.name, Transport, CompanyVehicles
 
 /*with x as(select xprojectid, financialperiod,datatablebase from sus_62648 where keyword in ('generator_consump','fuel_refill','co2_refilled','dry_powder_refilled','company_vehicles','own_fleet','refrigerant_type_amount')),
 		  
