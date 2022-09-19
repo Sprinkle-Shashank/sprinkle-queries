@@ -1,62 +1,36 @@
-with x as (select xprojectid, financialperiod,datatablebase from sus_9539 where keyword in ('company_vehicles')
-		   and datatablebase is not null),
-		   
-temp2 as (select * ,temp1.type_company, temp1.fuel_company_type, temp1.fuel_company,
-		  case
-		  	when IS_ARRAY(temp1.type_company) = false or GET_ARRAY_LENGTH(temp1.type_company) = 0 then ARRAY(temp1.type_company)
-		  else temp1.type_company
-		  end as type_company_new,
-		  
-		    case
-		  	when IS_ARRAY(temp1.fuel_company_type) = false or GET_ARRAY_LENGTH(temp1.fuel_company_type) = 0 then ARRAY(temp1.fuel_company_type)
-		  else temp1.fuel_company_type
-		  end as fuel_company_type_new
-		   
-		  from x as temp,
-		  unpivot temp.datatablebase as temp1 at row) ,/*extract table*/
-		 
- y as (select xprojectid,financialperiod,datatablebase,fuel_company,type_company,fuel_company_type from 
-		temp2 ytemp,ytemp.type_company_new as type_company,ytemp.fuel_company_type_new as fuel_company_type),/*unwind*/
- 
-  t as (select cast('Emissions' as varchar) as col 
-	   union all
-	   select cast('Consumption' as varchar) as col
-	   ),
-	   
- z as (select t2.name as projectid, timerange.name as time_timerange, datatablebase, cast(coalesce(fuel_company,0) as float) as fuelcompany, d.name as type_company,  d1.name as fuel_company_type, case d1.name when 'Petrol' then 0.00220904 
-                                   when 'Diesel' then 0.00259411
-	                               else   0
-	                               end  as Multiplicationfactortotal,
-	fuelcompany * coalesce (Multiplicationfactortotal,0) as CompanyVehicleconsumption,cast('Scope 1' as VARCHAR) as scope ,
-	   cast('Company Vehicles' as VARCHAR) as type
-	   
-from y 
- left join ds_mysql_prod_tagelement d1
-on d1.id=y.fuel_company_type 
- left join ds_mysql_prod_tagelement d
-on d.id=y.type_company
-	   
+with temp as(Select 'Emissions' as col
+			union all
+			select 'Total Consumption' as col),
+x as (select t2.name as projectid, timerange.name as time_timerange, 
+'Scope 1' as scope ,'Fuels' as type,
+case 
+when keyword='generator_consump' then datanumbase*0.00259411
+end as Multiplicationfactor_Generator , 
+case 
+when keyword='fuel_refill' then datanumbase*0.00220904 
+end as Multiplicationfactor_Refill, 
+sum(datanumbase) as TotalConsumption,
+
+coalesce(Multiplicationfactor_Generator,0)+coalesce(Multiplicationfactor_Refill,0) as Emissions
+
+from  sus_9539 
+
 left join ds_mysql_prod_project t1
-on t1.id=y.xprojectid
+on t1.id=sus_9539.xprojectid
 left join ds_mysql_prod_project t2
 on t2.id=t1.parent/*projectid*/
-	   
+
 left join ds_mysql_prod_tagelement quarter
-on quarter.id=y.financialPeriod
+on quarter.id=sus_9539.financialPeriod
 left join ds_mysql_prod_tagelement half
 on half.id=quarter.parent
 left join ds_mysql_prod_tagelement fy
 on fy.id=half.parent
 left join ds_mysql_prod_tagelement timerange
 on timerange.id=fy.parent/*time_timerange*/
-	  )
-/*select * from z*/
-select z.projectid,z.time_timerange,z.scope,z.type,
-sum(case 
-	when t.col='Emissions'  then z.CompanyVehicleconsumption
-	when t.col='Consumption'  then z.fuelcompany
-		else 0												
-	end ) as Total,
- t.col as Dim
-from z cross join t
-group by z.projectid,z.time_timerange,z.scope,z.type,t.col
+
+where KEYWORD IN ('generator_consump','fuel_refill') 
+group by t2.name,timerange.name,scope,type,Multiplicationfactor_Generator,
+Multiplicationfactor_Refill,emissions)
+
+select * from x
