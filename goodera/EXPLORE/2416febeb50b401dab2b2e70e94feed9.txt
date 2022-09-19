@@ -1,13 +1,21 @@
 
 Select t2.name as projectid, timerange.name as time_timerange, 
-sum( case when keyword in ('generator_consump_target','fuel_refill_target') then datanumbase
-else 0 end) as Fuels,
-	sum( case when keyword in ('co2_refilled_target','dry_powder_refilled_target','refrigerant_gas_target') then datanumbase
-else 0 end) as Refrigerants,
-	Case when keyword ='own_fleet_target' then datanumbase 
-		else 0 end as Transport,
-		Case when keyword ='company_vehicles_consump_target' then datanumbase
-		else 0 end as CompanyVehicles
+case when keyword='generator_consump_target' then datanumbase
+else 0 end as generatorconsumptarget,
+case when keyword='fuel_refill_target' then datanumbase else  end as fuelrefilltarget,
+generatorconsumptarget+fuelrefilltarget as Fuels,
+case when keyword ='co2_refilled_target' then datanumbase
+else 0 end as co2refilledtarget,
+case when keyword ='dry_powder_refilled_target' then datanumbase
+else 0 end as drypowderrefilledtarget ,
+case when keyword ='refrigerant_gas_target' then datanumbase
+else 0 end as refrigerantgastarget,
+co2refilledtarget + drypowderrefilledtarget + refrigerantgastarget as Refrigerants
+
+Case when keyword ='own_fleet_target' then datanumbase 
+else 0 end as Transport,
+Case when keyword ='company_vehicles_consump_target' then datanumbase
+else 0 end as CompanyVehicles
 
 from sus_62648
 left join ds_mysql_prod_project t1
