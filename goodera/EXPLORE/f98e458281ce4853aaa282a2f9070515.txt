@@ -2,7 +2,7 @@ with temp as(Select 'Emissions' as col
 			union all
 			select 'Consumption' as col),
 x as (select distinct t2.name as projectid, timerange.name as time_timerange, 
-'Scope 1' as scope ,'Fuels' as type,office_area as office_area, 
+'Scope 1' as scope ,'Fuels' as type, 
 	  sum(datanumbase) as TotalCO2Quantity,
 	 ( TotalCO2Quantity*0.001) as multiplicationfactor
 
@@ -24,15 +24,15 @@ left join ds_mysql_prod_tagelement timerange
 on timerange.id=fy.parent/*time_timerange*/
 
 where KEYWORD IN ('co2_refilled','dry_powder_refilled','office_area')
-group by t2.name,timerange.name,scope,type,multiplicationfactor,office_area)
+group by t2.name,timerange.name,scope,type,multiplicationfactor)
 
-Select x.projectid,x.time_timerange,x.scope,x.type,x.Multiplicationfactor,
-x.office_area, sum(case when temp.col ='Emissions' then x.multiplicationfactor
+Select x.projectid,x.time_timerange,x.scope,x.type,x.Multiplicationfactor
+, sum(case when temp.col ='Emissions' then x.multiplicationfactor
 								         when temp.col = 'Consumption' then x.TotalCO2Quantity
 								  end ) as Total,
 temp.col as Dim
  from x cross join temp
-group by x.projectid,x.time_timerange,x.scope,x.type,x.office_area,
+group by x.projectid,x.time_timerange,x.scope,x.type,
  temp.col
 		   
 		   
