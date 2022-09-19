@@ -1,4 +1,11 @@
-with q1 as (select split_part(split_part(prod.name,'|',1),'.',1) as projectcode,t.name as fy_timerange,concat(projectcode,fy_timerange) as CODE,split_part(prod.name,'|',3) as censuscode , sum(case p.hdfc_cost_monthly when null then 0 else p.hdfc_cost_monthly end) as hdfc_cost,
+ with x as(select xprojectid, financialperiod,datatablebase from sus_9539 where keyword in ('generator_consump','fuel_refill','co2_refilled','dry_powder_refilled','company_vehicles','own_fleet','refrigerant_type_amount')),
+		  
+temp2 as (select * ,temp1.co2_refilled, temp1.dry_powder_refilled,temp1.generator_consump from x as temp,
+		  unpivot temp.datatablebase as temp1 at row)
+		  /*extract table*/
+select * from temp2
+		  
+		 /* 'company_vehicles','own_fleet','refrigerant_type_amount' are datatablebase*//*with q1 as (select split_part(split_part(prod.name,'|',1),'.',1) as projectcode,t.name as fy_timerange,concat(projectcode,fy_timerange) as CODE,split_part(prod.name,'|',3) as censuscode , sum(case p.hdfc_cost_monthly when null then 0 else p.hdfc_cost_monthly end) as hdfc_cost,
 case 
 when len(split_part(prod.name,'|',3))=5 then concat('0',censuscode)
        when len(split_part(prod.name,'|',3))=4 then concat('00',censuscode)
@@ -17,7 +24,7 @@ q2 as( select q.village,q.state,q.district,q.name  as censuscode from profile_27
 
 select q2.village,q2.state,q2.district , q1.projectcode,q1.fy_timerange,q1.CODE, q1.censuscode,q1.hdfc_cost,q1.newcensuscode,q1.length, q1.l1 
 from q1 
-left join q2 on q1.newcensuscode=q2.censuscode
+left join q2 on q1.newcensuscode=q2.censuscode*/
 
 
 /*with digitcount as (select split_part(split_part(prod.name,'|',1),'.',1) as projectcode,t.name as fy_timerange,concat(projectcode,fy_timerange) as CODE,split_part(prod.name,'|',3) as censuscode , case when len(split_part(prod.name,'|',3))=5 then '0'+split_part(prod.name,'|',3)
