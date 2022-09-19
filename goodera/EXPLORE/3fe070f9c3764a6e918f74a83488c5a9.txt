@@ -12,30 +12,31 @@ left join ds_mysql_prod_tagelement t1 on t1.id = p3.plant),
 
 sub3 as(
   select (s1.date_visit || '|' || s1.date_visit) as fy_timerange, p2.name as trucker_id, t1.name as plant, 
-t2.name as health_diagnosed_2,
 
-case 
-  when t2.name = 'Diabetes Normal' then 'Diabetes-Normal'
-  when t2.name = 'Pre diabetes' then 'Pre-diabetes'
-  when t2.name = 'Diabetes' then 'Diabetes1'
-  else null
-  end as diabetic_diagnosed,
+/*case 
+  when t2.name = 'Diabetes Normal' or t2.name = 'Pre diabetes' or t2.name = 'Diabetes'  then 1
+  else 0
+  end as diabetic_diagnosed,*/
     
  case
  when sugar_value >=60 and sugar_value < 140 then t2.name = 'Diabetes Normal'
  when sugar_value >=140 and sugar_value <= 200 then t2.name = 'Pre diabetes'
  when sugar_value > 200 then t2.name = 'Diabetes'
  else NULL
- end as diabetic_range
+ end as health_diagnosed_2
 
 from sub1 s1
 left join profile_73096 p2 on p2._id = s1.trucker_id
 left join profile_73150 p3 on p3._id = s1.clinic
 left join ds_mysql_prod_tagelement t1 on t1.id = p3.plant
 left join ds_mysql_prod_tagelement t2 on t2.id = s1.health_diagnosed_2_new)
+--group by fy_timerange,p2.name,t1.name,t2.name, diabetic_diagnosed,diabetic_range,s1.date_visit)
 
-select *, 1 as count from sub3
-where diabetic_range IS NOT NULL
+select *, 1 as count
+from sub3
+where health_diagnosed_2 IS NOT NULL
+group by fy_timerange,trucker_id, plant, health_diagnosed_2
+--,diabetic_diagnosed,diabetic_range
 /*sub4 as (
 --  select fy_timerange, trucker_id, plant, health_diagnosed_2,diabetic_range from sub2
 union all
