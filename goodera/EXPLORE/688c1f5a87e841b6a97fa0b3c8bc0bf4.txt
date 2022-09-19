@@ -1,38 +1,25 @@
-with t1 as
- ( select  fy_timerange,fy_timerange.end as end_date ,end_date :: date as date1 ,to_char(date1,'MM') as month1,
-case
-when month1='01' then 'January'
-when month1='02' then 'February'
-when month1='03'then 'March'
-when month1='04' then 'April'
-when month1='05' then 'May'
-when month1='06' then 'June'
-when month1='07' then 'July'
-when month1='08'then 'August'
-when month1='09'then 'September'
-when month1='10' then 'October'
-when month1='11' then 'November'
-else 'December'
-end as end_month
- from profile_75130 p1)
- 
- 
-select  fy_timerange,fy_timerange.start as start_date ,start_date :: date as date ,to_char(date,'MM') as month,
-case
-when month='01' then 'January'
-when month='02' then 'February'
-when month='03'then 'March'
-when month='04' then 'April'
-when month='05' then 'May'
-when month='06'then 'June'
-when month='07' then 'July'
-when month='08'then 'August'
-when month='09'then 'September'
-when month='10' then 'October'
-when month='11' then 'November'
-else 'December'
-end as start_month
+with t1 as 
+(select p1._id, p1.planned_completion_date, p1.fy_timerange, p1.planned_start_date :: varchar, p1.milestone_name, p1.projectId, p2.actual_start_date :: varchar, p2.comments, p2.actual_completion_date :: varchar as milestone_date, p2.comments_2, cast('2022-09-06T17:42:13.256Z' as VARCHAR) as today_date,
+case 
+when actual_start_date is null then milestone_date
+else today_date
+end as today
+from profile_76057 p1
+left join profile_76058 p2
+on p1._id = p2.milestone)
+
+
+select p3.name as projectID, planned_completion_date, fy_timerange, planned_start_date, milestone_name, actual_start_date, milestone_date,
+case 
+when milestone_date is null then today
+end as actual_completion_date,
+case 
+when milestone_date is null then comments
+else comments_2
+end as comments_final
 from t1
+left join ds_mysql_prod_project p3
+on p3.id = t1.projectId
 		  
 
 
