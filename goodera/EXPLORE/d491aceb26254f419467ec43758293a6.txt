@@ -11,7 +11,20 @@ case when keyword = 'hazardous_chemical' then 'Chemical Container'
 case when keyword ilike'%recycling%' then 'Disposed through Recycling(MT)'
      when keyword ilike'%landfill%' then 'Disposed through Landfill(MT)'
 	 when keyword ilike '%incineration%' then 'Disposed through Incineration(MT)'
-	 when keyword ilike '%site%' then 'On-site storage(MT)' end as disposal_method
+	 when keyword ilike '%site%' then 'On-site storage(MT)' end as disposal_method,
+	 
+EXTRACT(MONTH FROM cast (startdate as datetime))AS month1,
+EXTRACT(YEAR FROM cast (startdate as datetime))AS year1,
+CASE
+WHEN MONTH1 <= 3
+THEN YEAR1-1
+ELSE
+YEAR1
+END AS start,
+start+1 AS end1,
+CONCAT(start,'-04-01T00:00:00.000Z') AS start1,
+CONCAT(end1,'-04-01T00:00:00.000Z') AS end2,
+CONCAT('FY(',CONCAT(start,CONCAT('-',CONCAT(end1,')')))) AS fy_2
 
 from sus_80588 p
 
