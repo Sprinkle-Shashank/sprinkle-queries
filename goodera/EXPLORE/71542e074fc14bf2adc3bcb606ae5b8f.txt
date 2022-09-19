@@ -1,0 +1,84 @@
+--sb.name as status_begin, syb.name as survey_yn_begin, spb.name as service_provider_begin , su.name as status_updated, fu.name as feature_updated, spu.name as service_provider_updated, syu.name as survey_yn_updated, profile_65025.status as status, profile_65025.service_provider as service_provider, profile_65025.survey_yn as survey_yn, profile_65025.features as features,
+
+
+select p.projectId, ven.name as vendor, cou.name as country,
+nvl2(su.name, su.name, s.name) as wep_status,
+nvl2(spu.name, spu.name, sp.name) as service_provider
+
+from profile_60670 p
+
+left join profile_65025
+on p.projectId = profile_65025.projectId 
+
+left join ds_mysql_prod_project fac
+on p.projectid = fac.id
+left join ds_mysql_prod_project ven
+on fac.parent = ven.id
+left join ds_mysql_prod_project cou
+on ven.parent = cou.id
+
+left join tagelement_1137 sp
+on p.service_provider = sp.id
+
+
+left join tagelement_1137 s
+on p.status = s.id
+
+left join tagelement_1137 spu
+on profile_65025.service_provider = spu.id
+
+
+left join tagelement_1137 su
+on profile_65025.status = su.id
+
+where country <> 'Test Country' and wep_status = 'Active (launched)'
+
+group by p.projectId, wep_status, p.service_provider, cou.name, ven.name, spu.name, sp.name
+/*
+left join ds_mysql_prod_tagelement sb
+on p.status = sb.id
+
+
+left join ds_mysql_prod_tagelement spb
+on p.service_provider = spb.id
+
+
+left join ds_mysql_prod_tagelement su
+on p.status = su.id
+
+left join ds_mysql_prod_tagelement spu
+on p.service_provider = spu.id
+
+where country <> 'Test Country' and wep_status = 'Active (launched)'
+
+group by p.projectId, wep_status, profile_65025.service_provider, profile_65025.survey_yn,country,ven.name, spu.name, spb.name
+*/
+--, p.other_status, sb.name, syb.name, spb.name, su.name, fu.name, spu.name, syu.name, profile_65025.status, profile_65025.features
+
+
+
+/*
+select p.fy_timerange,l.Project_Manager,p.ProjectCode,p.Village,p.Focusarea,p.Month,p.Activity_Category,p.Activity_Sub_Category,sum(p.Planned) as Planned,sum(p.Actual) as Actual from lookup p left join Base1 l on p.CODE=l.CODE group by p.fy_timerange,l.Project_Manager,p.ProjectCode,p.Village,p.Focusarea,p.Month,p.Activity_Category,p.Activity_Sub_Category 
+
+
+left join profile_65025
+on p.projectId = profile_65025.projectId
+set p.status =  profile_65025.status,
+	p.service_provider = profile_65025.service_provider, 
+	p.survey_yn = profile_65025.survey_yn, 
+	p.features = profile_65025.features
+
+
+
+
+UPDATE table1,profile_65025
+SET table1.value=table2.value 
+WHERE profile_65025.id=table1.id
+
+
+group by projectId, year_timerange, year, wep_status, service_provider, survey_yn, vendor, country
+
+
+
+*/
+
