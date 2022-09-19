@@ -1,14 +1,32 @@
-With table1 as ( Select hh_id , hh_head , participant  from profile_81185 WHERE hh_head =  1400577),
-table2 as(
-select p1.fy_timerange,p3.name as activity,p2.hh_id,t2.name as head,t1.name as village,p2.cluster,p2.name as participants, 1 as count , SUM ( change_income + change_income_install) as chhange_income_final , tab1.participant as head_of_fam 
- 
-from profile_81203 p1
-left join profile_81185 p2 on p2._id=p1.participants
-left join profile_81201 p3 on p3._id=p1.activity
-left join ds_mysql_prod_tagelement t1 on t1.id=p2.village
-left join ds_mysql_prod_tagelement t2 on t2.id=p2.hh_head
-left join table1 tab1 on tab1.hh_id = p2.hh_id
+SELECT SA.fy_timerange, T2.name AS subject,
+--T1.name AS type,
+T3.name AS grade,
+COUNT(SE.unique_id) AS students,
+((SA.marks_obtained * 100) / (SA.marks_max)) AS score,
 
-group by p1.fy_timerange,p2.hh_id,t2.name,t1.name,p2.cluster,p3.name,p2.name , tab1.participant)
+	CASE
+		WHEN score > 60
+		THEN true
+		ELSE false
+	END AS above_60
 
-select * from table2
+FROM profile_79041 AS SA
+
+LEFT JOIN ds_mysql_prod_tagelement AS T1
+ON T1.id = SA.type
+
+LEFT JOIN profile_79039 AS SE
+ON SE._id = SA.student
+
+LEFT JOIN ds_mysql_prod_tagelement AS T2
+ON T2.id = SA.subject
+
+LEFT JOIN ds_mysql_prod_tagelement AS T3
+ON T3.id = SE.grade
+
+WHERE 
+--T1.name = 'Term 3' AND 
+
+above_60 = true
+
+GROUP BY SA.fy_timerange, score, T2.name, SE.unique_id, T3.name
