@@ -1,15 +1,74 @@
-SELECT M.name, sessions_attended,
-S.name AS student,
-M.fy_timerange AS fy,
-cast(fy.start as date) as start_date,
-cast(fy.end as date) as end1,
-SUBSTRING(DATEADD(year, 3, end1),1,10) as end_date,
-concat(start_date,'-04-01T00:00:00.000Z') as start1,
-concat(end_date,'-04-01T00:00:00.000Z') as end2,
-concat(concat(concat(concat('{"start":"',start1),'","end":"'),end2),'"}') as fy_timerange
+with s as (SELECT PF.projectid,
+extract(year from cast(PF.fy_allocated_timerange.start as datetime)) AS fy_timerange,
+PF.disbursed_project AS amount_disbursed,
+PDV.project_start_date, PDV.project_end_date AS end_date, t.name AS entity, PDV.project_name_display, PDC.mode, t4.name as partner, PDV.geography, PF.allocated, t3.name as schedule_7, PDC.local_area, PDC.csr_registration, PDC.csr,
+PDC.project_ended, UA.unspent_amount, IA.agency,
 
+CASE 
+  WHEN (EXTRACT(month from PDV.project_start_date) < 4) THEN (EXTRACT(year from PDV.project_start_date)-1)
+  ELSE  (EXTRACT(year from PDV.project_start_date))
+  END AS fy_start_date,
+  
+ CASE 
+  WHEN (EXTRACT(month from PDV.project_end_date) <4) THEN (EXTRACT(year from PDV.project_end_date)-1)
+  ELSE (EXTRACT(year from PDV.project_end_date))
+  END AS fy_end_date,
 
-FROM profile_56496 AS M
+CASE
+	WHEN fy_start_date = fy_end_date
+	AND fy_end_date = (EXTRACT(year from cast(PF.fy_allocated_timerange.end as datetime)))
+	THEN 1
+	ELSE 0
+	END AS result
 
-LEFT JOIN profile_56131 AS S
-ON M.student = S._id
+FROM profile_55749 AS PF
+
+LEFT JOIN profile_55750 AS PDV
+ON PF.projectid = PDV.projectid
+
+LEFT JOIN profile_55752 AS PDC
+ON PF.projectid = PDC.projectid
+
+LEFT JOIN profile_81346 AS UA
+ON PF.projectid = UA.projectid
+
+LEFT JOIN profile_81338 AS IA
+ON PF.projectid = IA.projectid
+
+LEFT JOIN ds_mysql_prod_tagelement AS t
+ON PDV.funding_entity = t.id
+
+--LEFT JOIN ds_mysql_prod_tagelement AS t2
+--ON PDV.geography = t2.id
+
+LEFT JOIN ds_mysql_prod_tagelement AS t3
+ON PDC.schedule_7 = t3.id
+
+LEFT JOIN ds_mysql_prod_tagelement AS t4
+ON PDC.partner = t4.id
+		   
+		   /*
+		   WHERE  PDC.csr = true
+		   AND PDC.project_ended = true
+		   AND result = 1
+		   */
+),
+s2 as (
+SELECT projectid, fy_timerange,amount_disbursed,project_start_date, end_date,  entity,project_name_display,mode, partner, geo, allocated, schedule_7, local_area, csr_registration,csr,project_ended, unspent_amount,agency,
+ fy_start_date,
+fy_end_date,result
+
+FROM s as p, p.geography as geo
+)
+SELECT p.name as projectid, fy_timerange,amount_disbursed,project_start_date, end_date,  entity,project_name_display,mode, partner, t2.name as state,t.name as district, allocated, schedule_7, local_area, csr_registration,csr,t5.name as project_ended, unspent_amount,agency,
+ fy_start_date,
+fy_end_date,result
+from s2
+left join ds_mysql_prod_project p
+on p.id=s2.projectid
+LEFT JOIN ds_mysql_prod_tagelement AS t
+ON s2.geo= t.id
+LEFT JOIN ds_mysql_prod_tagelement AS t2
+ON t.parent= t2.id
+LEFT JOIN ds_mysql_prod_tagelement AS t5
+ON s2.project_ended = t5.id
