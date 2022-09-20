@@ -11,7 +11,7 @@ temp2 as (select * ,temp1.type_own, temp1.fuel_own, temp1.fuel_consump_own,temp1
 	   union all
 	   select 'Consumption' as col),
 	   
- z as (select t2.name as projectid, fy_timerange as time_timerange, datatablebase, fuel_consump_own, d.name as VehicleType,  d1.name as FuelType, dist_own as FuelConsumption, case d1.name when 'Petrol' then 0.000272 
+ z as (select t2.name as projectid, fy_timerange as time_timerange,timerange.name as financialperiod, datatablebase, fuel_consump_own, d.name as VehicleType,  d1.name as FuelType, dist_own as FuelConsumption, case d1.name when 'Petrol' then 0.000272 
                                    when 'Diesel' then 0.000218
 	                               else   0
 	                               end  as Multiplicationfactor,
@@ -29,16 +29,16 @@ on t1.id=y.xprojectid
 left join ds_mysql_prod_project t2
 on t2.id=t1.parent/*projectid*/
 	   
-/*left join ds_mysql_prod_tagelement quarter
+left join ds_mysql_prod_tagelement quarter
 on quarter.id=y.financialPeriod
 left join ds_mysql_prod_tagelement half
 on half.id=quarter.parent
 left join ds_mysql_prod_tagelement fy
 on fy.id=half.parent
 left join ds_mysql_prod_tagelement timerange
-on timerange.id=fy.parent/*time_timerange*/*/)
+on timerange.id=fy.parent/*time_timerange*/)
 /*select * from z*/
-select z.projectid,z.time_timerange,z.scope,z.type,
+select z.projectid,z.time_timerange,z.scope,z.type,z.financialperiod,
 sum(case 
 	when t.col='Emissions' then z.FuelEmissions
 	when t.col='Consumption' then z.FuelConsumption 
@@ -46,4 +46,4 @@ sum(case
 	end ) as Total,
  t.col as Dim
 from z cross join t
-group by z.projectid,z.time_timerange,z.scope,z.type,t.col
+group by z.projectid,z.time_timerange,z.scope,z.type,t.col,z.financialperiod
