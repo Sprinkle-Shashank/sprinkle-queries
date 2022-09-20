@@ -1,7 +1,7 @@
 with temp as(Select 'Emissions' as col
 			union all
 			select 'Consumption' as col),
-x as (select t2.name as projectid, timerange.name as time_timerange, 
+x as (select t2.name as projectid, fy_timerange as time_timerange, timerange.name as financialPeriod,
 'Scope 1' as scope ,'Fuels' as type, 
 	  sum(coalesce( datanumbase,0) ) as TotalCO2Quantity,
 	--sum( TotalCO2Quantity*0.001) as multiplicationfactor
@@ -24,16 +24,16 @@ left join ds_mysql_prod_tagelement timerange
 on timerange.id=fy.parent/*time_timerange*/
 
 where KEYWORD IN ('co2_refilled','dry_powder_refilled')
-group by t2.name,timerange.name,scope,type)
+group by t2.name,fy_timerange,scope,type)
 
-Select x.projectid,x.time_timerange,x.scope,x.type
+Select x.projectid,x.time_timerange,x.scope,x.type,x.financialPeriod,
 , sum(case when temp.col ='Emissions' then x.multiplicationfactor
 								         when temp.col = 'Consumption' then x.TotalCO2Quantity
 								  end ) as Total,
 temp.col as Dim
  from x cross join temp
 group by x.projectid,x.time_timerange,x.scope,x.type,
- temp.col
+ temp.col,x.financialPeriod
  
 		   
 		   
