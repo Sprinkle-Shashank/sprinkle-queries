@@ -13,7 +13,7 @@ temp2 as (select * ,temp1.refrigerant_type, temp1.refrigerant_amount,temp1.co2_r
 	   union all
 	   select 'Consumption' as col),
 	   
- z as (select t2.name as projectid, fy_timerange as time_timerange,  d.name as refrigerant_type, coalesce(refrigerant_amount,0) as refrigerantamount,co2_refilled,dry_powder_refilled ,  
+ z as (select t2.name as projectid, fy_timerange as time_timerange,timerange.name as financialperiod,   d.name as refrigerant_type, coalesce(refrigerant_amount,0) as refrigerantamount,co2_refilled,dry_powder_refilled ,  
 	   case d.name when 'Air Conditioning Refrigerant - R410' then 2.088 
                                    when 'Air Conditioning Refrigerant - R22/R404' then 3.922
 	                               else   0
@@ -31,17 +31,17 @@ on t1.id=y.xprojectid
 left join ds_mysql_prod_project t2
 on t2.id=t1.parent/*projectid*/
 	   
-/*left join ds_mysql_prod_tagelement quarter
+left join ds_mysql_prod_tagelement quarter
 on quarter.id=y.financialPeriod
 left join ds_mysql_prod_tagelement half
 on half.id=quarter.parent
 left join ds_mysql_prod_tagelement fy
 on fy.id=half.parent
 left join ds_mysql_prod_tagelement timerange
-on timerange.id=fy.parent/*time_timerange*/*/
+on timerange.id=fy.parent/*financialperiod*/
 	  )
 
-select z.projectid,z.time_timerange,z.scope,z.type,
+select z.projectid,z.time_timerange,z.scope,z.type,z.financialperiod,
 sum(case col
 	when 'Emissions' then coalesce(z.Multiplicationfactortotal,0)
 	when 'Consumption' then z.refrigerantamount
@@ -49,5 +49,5 @@ sum(case col
 	end ) as Total,
  t.col as Dim
 from z cross join t
-group by z.projectid,z.time_timerange,z.scope,z.type,t.col
+group by z.projectid,z.time_timerange,z.scope,z.type,t.col,z.financialperiod
   
