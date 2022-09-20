@@ -1,4 +1,5 @@
-select  p2.name as projectId, p1.fy_timerange,p3.name as partner,
+with t1 as 
+(select  p2.name as projectId, p1.fy_timerange,p3.name as partner,
 p1.date :: date as utilised_date,to_char(utilised_date, 'Month') as month, month||to_char(utilised_date,'MM') || ',' || to_char(utilised_date,'YYYY')  as month2 
 from profile_74914 p1
 left join ds_mysql_prod_project p2
@@ -9,5 +10,8 @@ left join ds_mysql_prod_project p4
 on p4.id = p3.parent
 group by fy_timerange, projectId, partner,p2.name,p1.date
 order by date desc
+)
 
+select  projectId, partner, utilised_date,month2 
+from t1
 
