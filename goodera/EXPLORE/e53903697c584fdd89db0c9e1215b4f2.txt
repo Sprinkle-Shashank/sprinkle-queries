@@ -57,7 +57,7 @@ from tab4 t
 left join tab3 t1 on
 t.CODE=t1.CODE and t.Quarter=t1.Quarter),
 
-tab6 as(select substring(p.submission_date,6,2) as months,t5.name as fy_timerange,(t.name) as response,case when response='Yes' then split_part(t2.name,'[',1)  when response ='No' then t3.name end as projectcode,case when response='Yes' then m.name when response ='No' then n.name end as project_manager,case when p.payment_amount is null then 0 else p.payment_amount  end as Amount_disbursed,case when p.amnt_utlzd is null then 0 else p.amnt_utlzd  end as Amount_utilised, RTRIM(projectcode)||fy_timerange as CODE,case 
+tab6 as(select substring(p.submission_date,6,2) as months,t5.name as fy_timerange,(t.name) as response,case when response='Yes' then split_part(t2.name,'[',1)  when response ='No' then t3.name end as projectcode,case when response='Yes' then m.name when response ='No' then n.name end as project_manager,case when p.payment_amount is null then 0 else p.payment_amount  end as Amount_disbursed,case when p.amnt_utlzd is null then 0 else p.amnt_utlzd  end as Amount_utilised, RTRIM(projectcode)||fy_timerange as CODE,tf.name as Focus_area,case 
 when months='01' then 'Quarter 4' 
 when months='02' then 'Quarter 4' 
 when months='03' then 'Quarter 4' 
@@ -88,18 +88,15 @@ left join ds_mysql_prod_tagelement t5
 on p.fy=t5.id
 left join ds_mysql_prod_tagelement tf on
 t3.focus_area=tf.id
+where response is not null),
 
-where response is not null
-and tf.name in ('Focused Rural Development- Sanitation','Focused Rural Development- Promoting Education',
-			   'Focused Rural Development- Skills Training and Livelihood Enhancement','Focused Rural Development- Environmental Sustainability','Focused Rural Development- Promoting Healthcare')),
-
-tab7 as (select t.fy_timerange,t.projectcode,t.Quarter as Quarter, t.village,t2.project_manager,(t2.Amount_utilised/t.number_of_villages) Amount_Utilised,t.CODE
+tab7 as (select t.fy_timerange,t.projectcode,t.Quarter as Quarter, t.village,t2.project_manager,t2.Focus_area,(t2.Amount_utilised/t.number_of_villages) Amount_Utilised,t.CODE
 from tab5 t
 left join tab6 t2 on
 t.CODE=t2.CODE
 and t.Quarter=t2.Q),
 
-tab8 as(Select t7.fy_timerange,t7.projectcode,t7.Quarter, t7.village,t7.project_manager,t7.Amount_Utilised,t7.CODE,
+tab8 as(Select t7.fy_timerange,t7.projectcode,t7.Quarter, t7.village,t7.project_manager,t7.Focus_area,t7.Amount_Utilised,t7.CODE,
 case
 when t7.fy_timerange='2017-2018' then '2018-2019'
 when t7.fy_timerange='2018-2019' then '2019-2020'
@@ -119,7 +116,7 @@ else t7.fy_timerange
 end as new_fy
 from tab7 t7)
 
-Select t8.new_fy as fy_timerange,t8.New_Quarter,t8.projectcode,t8.village,t8.project_manager,
+Select t8.new_fy as fy_timerange,t8.New_Quarter,t8.projectcode,t8.village,t8.project_manager,t8.Focus_area,
 Case
 when t8.Amount_Utilised is null then 0
 else t8.Amount_Utilised
