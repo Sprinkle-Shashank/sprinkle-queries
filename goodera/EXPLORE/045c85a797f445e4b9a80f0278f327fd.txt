@@ -1,6 +1,16 @@
-select p.projectid , p._id , p1._id , p1.status from profile_16863 as p
+select p.projectid , p._id , p1._id , p1.status , cou.name as country , 
+nvl2(SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)),ven.name) as vendor_name, case when vendor_name='' then ven.name else vendor_name end as vendor, fac.name as factory from profile_16863 as p
 
  left join profile_16619  p1  
 on  p.sub_unit =  p1._Id
+
+left join ds_mysql_prod_project fac
+on p.projectid = fac.id
+
+left join ds_mysql_prod_project ven
+on fac.parent = ven.id
+
+left join ds_mysql_prod_project cou
+on ven.parent = cou.id
 
  where p.sub_unit like '%%' and country <> 'Test Country'  and p1.projectid is not null and (p1.status = 1400365 or p1.status is null) and country <> 'GAP Inc.'
