@@ -1,0 +1,190 @@
+with s as(
+Select x1._id as id, x1.profileinstanceid, x1.status, x1.active, x1.data, x1.taskuserid, x2.taskid, x5.projectid, x6.profileid, x4.sectionid, x6.name as section, x7.name as profile, x8.name as project, x1.created, x1.modified,
+  
+case
+  when is_array(x1.submissionlog) = false or get_array_length(x1.submissionlog) = 0 then 
+  	   array(x1.submissionlog)
+  else x1.submissionlog
+end as submissionlog_new,
+case
+  when is_array(x1.approvallog) = false or get_array_length(x1.approvallog) = 0 then 
+  	   array(x1.approvallog)
+  else x1.approvallog
+end as approvallog_new,
+  --case when x6.profileid=27396 then data.name end as pp_code,
+  data.name as pc
+  
+from ds_mongo_taskresponse x1 
+
+left join ds_mysql_prod_taskuser x2 on x2.id = x1.taskuserid
+left join ds_mysql_prod_task x3 on x3.id = x2.taskid
+left join ds_mysql_prod_flowtask x4 on x4.id = x3.flowtaskid
+left join ds_mysql_prod_projectflow x5 on x5.id = x3.projectflowid
+left join ds_mysql_prod_section x6 on x6.id = x4.sectionid
+left join ds_mysql_prod_profile x7 on x7.id = x6.profileid
+left join ds_mysql_prod_project x8 on x8.id = x5.projectid
+
+where x6.profileid in (27396,27420) and x1.active = 't'
+and x1.status in ('REJECTED', 'PENDING_APPROVAL', 'SUBMITTED')
+
+group by x1._id, x1.profileinstanceid, x1.status, x1.active, x1.data, x1.taskuserid, x2.taskid, x5.projectid, x6.profileid, x4.sectionid, x6.name, x7.name, x8.name, x1.submissionlog, x1.approvallog, x1.created, x1.modified),
+s2 as (
+Select id,q.profileid,status,q.created, q.modified,data,sln,cast(sln."timestamp" as datetime) as tst,pc,
+approvallog_new,submissionlog_new
+from s as q, q.submissionlog_new as sln
+)
+,
+s3 as(
+Select s2.id,pc,s2.profileid, status,
+  cast(timestamp 'epoch' + CAST(s2.created AS BIGINT)/1000 * interval '1 second' as date) as created,
+  cast(timestamp 'epoch' + CAST(s2.modified AS BIGINT)/1000 * interval '1 second' as date) as modified, data, data."name" as project_code,
+  case
+	when s2.profileid = 27396 and data.end_date is not null then 'NA'
+    when s2.profileid = 27420 and data.end_date is not null and data.end_date > CURRENT_DATE||'T00:00:00.000Z' then 'Yes'
+    when s2.profileid = 27420 and data.end_date is not null and data.end_date < CURRENT_DATE||'T00:00:00.000Z' then 'No'
+    else '-'
+	end as renewed,
+  data.fy as fy,
+  case 
+  when s2.profileid=27396 then su.name
+  when s2.profileid=27420 then st.int_type_calc2 
+  end as intervention_type,
+  case 
+  when s2.profileid=27396 then t.name
+  when s2.profileid=27420 then st.focus_area 
+  end as focus_area,
+--data.focus_area,
+
+  case 
+  when s2.profileid=27396 then ssst.name
+  when s2.profileid=27420 then st.ngo
+  end as implementation_Agencyy
+  ,
+  data.start_date as start_date,data.end_date as end_date,
+data.project_manager
+  , sln,tst as ts1, approvallog_new, submissionlog_new,
+   case 
+  when s2.profileid=27396 then ss.monitoring_live
+  when s2.profileid=27420 then st.monitoring_live  
+  end as project_live,
+  row_number() over (partition by s2.id order by tst asc) as row_1
+from s2
+  left join profile_27396 ss
+on ss.name=pc
+    left join profile_27420 st
+on st.name=pc
+  left join profile_27395 ssst
+on ssst._id=ss.ngo_partner
+left join profile_28235 su
+on su._id=intervention_type
+left join ds_mysql_prod_tagelement t
+on t.id=ss.focus_area
+
+),
+s33 as (
+Select ss3.*,sll,cast(sll."timestamp" as datetime) as iest from s3 as ss3, ss3.submissionlog_new as sll
+ 
+)
+,
+sss3 as (
+Select *,row_number() over (partition by s33.id order by iest desc) as row_2
+  from s33
+  where row_1=1
+)
+,
+s4 as (
+Select *,cast(aln."timestamp" as datetime) tstt , aln."approvalStatus" as status1,cast(aln."approverEmail" as varchar) as approveremail from sss3 as ss,ss.approvallog_new aln
+ where row_2=1 --earliest
+  ),
+s5 as (
+Select *,
+case 
+  when approverEmail = 'hdfcbank@goodera.com' then tstt
+  end as Date_of_Action_by_Goodera,
+	case 
+  when approverEmail = 'hdfcbank@goodera.com' then status1
+  end as Status_at_Goodera,
+	case 
+  when approverEmail = 'nusrat.pathan@hdfcbank.com' then tstt
+  end as Date_of_Action_by_CSR_Head,
+  
+  case 
+  when approverEmail = 'nusrat.pathan@hdfcbank.com' then status1
+  end as Status_at_csr_head,
+
+	row_number() over (partition by s4.id, approveremail order by tstt desc) as roww
+from s4
+	),
+  
+	ll as(
+	Select *,t.name as fyy
+	  from s5
+	left join ds_mysql_prod_tagelement t on 
+	t.id=fy
+where roww=1  --latest
+), 
+ff as(
+Select split_part(cast(project_code as varchar),' ',1) as proj_code,renewed,left(cast(iest as varchar),10) as Latest_date_of_submission_by_proj_man,
+left(cast(Date_of_Action_by_Goodera as varchar),10) as Date_of_Action_by_Goodera,
+cast(Status_at_Goodera as varchar) as Status_at_Goodera,
+left(cast(Date_of_Action_by_CSR_Head as varchar),10) as Date_of_Action_by_CSR_Head,
+cast(Status_at_csr_head as varchar) as Status_at_csr_head,
+t.name as project_manager,implementation_Agencyy as implementation_agency,t1.name as project_live,
+  case 
+  when focus_area=430787 then 'Focused Rural Development- Promoting Healthcare'
+  when focus_area=430785 then 'Focused Rural Development- Skills Training and Livelihood Enhancement'
+  when focus_area=430782 then 'Focused Rural Development- Sanitation'
+  when focus_area=430783 then 'Focused Rural Development- Environmental Sustainability'
+  when focus_area=430788 then 'Focused Rural Development- Promoting Education'
+  when focus_area=430784 then 'Holistic Rural Development'
+  when focus_area=430786 then 'Others'
+  when focus_area=430789 then 'Eradicating Poverty'
+  else focus_area
+  end as focus_area
+  
+  
+  
+  ,intervention_type,left(cast(start_date as varchar),10) as start_date, left(cast(end_date as varchar),10) as end_date,
+left(cast(ts1 as varchar),10) as Initial_submission_Date,fyy, rank() over (partition by proj_code order by left(fyy,4) desc) as roo
+from ll
+left join ds_mysql_prod_tagelement t
+on t.id=project_manager
+left join ds_mysql_prod_tagelement t1
+on t1.id=project_live
+)
+,
+finalsub as (
+Select 
+proj_code,renewed,Latest_date_of_submission_by_proj_man,
+
+max( Date_of_Action_by_Goodera) as Date_of_Action_by_Goodera ,
+max(Status_at_Goodera) as Status_at_Goodera,
+max( Date_of_Action_by_CSR_Head) as Date_of_Action_by_CSR_Head,
+max(Status_at_csr_head) as Status_at_csr_head,
+
+project_manager,implementation_Agency,project_live,cast(focus_area as varchar) as core_area,cast(intervention_type as varchar) as intervention_type ,start_date,end_date,
+Initial_submission_Date,fyy
+from ff
+where roo=1 
+
+
+group by proj_code,renewed,Latest_date_of_submission_by_proj_man,project_manager,implementation_Agency,project_live,focus_area,intervention_type,start_date,end_date,Initial_submission_Date,fyy
+),
+finall as (
+Select 
+proj_code,renewed,proj_code||'-'||renewed as req, Latest_date_of_submission_by_proj_man,Date_of_Action_by_Goodera, Status_at_Goodera, Date_of_Action_by_CSR_Head, Status_at_csr_head, project_manager, 
+implementation_Agency
+, project_live
+	
+	
+	
+	
+, core_area, intervention_type, start_date, end_date, Initial_submission_Date, fyy
+
+from finalsub
+--where proj_code!='p0212' and renewed='No' 
+--where req NOT in  ('P0614-NA','P0615-NA','000-NA','01-No')
+)
+Select
+proj_code,renewed, Latest_date_of_submission_by_proj_man,Date_of_Action_by_Goodera, Status_at_Goodera, Date_of_Action_by_CSR_Head, Status_at_csr_head, project_manager, implementation_Agency, project_live, core_area, intervention_type, start_date, end_date, Initial_submission_Date
+from finall
