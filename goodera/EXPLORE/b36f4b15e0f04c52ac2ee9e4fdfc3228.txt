@@ -1,11 +1,14 @@
-with sub1 as(
+
+  
+
+sub1 as(
   select a.*, projects_unwind from profile_76630 a, a.projects projects_unwind),
   
-sub2 as(select extract(year from cast(s1.timerange_timerange.start as date)) as year,listagg(distinct t1.name,', ') as projects,s1.target,cast('Corporate' as varchar) as business_div,p2.brand_text as brand,cast('Americas' as varchar) as region from sub1 s1
+sub2 as(select extract(year from cast(s1.timerange_timerange.start as date)) as year,listagg(distinct t1.name,', ') as projects,s1.target,cast('Corporate' as varchar) as business_div,p2.brand_text as brand,cast('Americas' as varchar) as region1,cast('Asia' as varchar) as region2,cast('EMEA' as varchar) as region3 from sub1 s1
 left join ds_mysql_prod_tagelement t1 on t1.id=s1.projects_unwind
 left join profile_81437 p2 on p2.business_division_text = 'Corporate'
 	
-group by year,target,projects,business_div,p2.brand_text,region)
+group by year,target,projects,business_div,p2.brand_text,region1,region2,region3)
 
-select s2.year,s2.target,s2.projects, sum(regexp_count(s2.projects,', ')+1) as achieved, s2.business_div,s2.brand,s2.region from sub2 s2
-group by s2.year,s2.target,s2.projects,s2.business_div,s2.brand,s2.region
+select s2.year,s2.target,s2.projects, sum(regexp_count(s2.projects,', ')+1) as achieved, s2.business_div,s2.brand,region1,region2,region3 from sub2 s2
+group by s2.year,s2.target,s2.projects,s2.business_div,s2.brand,region1,region2,region3
