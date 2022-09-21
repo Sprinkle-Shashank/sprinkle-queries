@@ -25,23 +25,23 @@ with table1 as
  
  table2 as 
  ( 
-   select  projectId, project_name , sum(target) as beneficiary, fy_timerange , vertical, focus, partner, district, project_code , entity ,  created, progress , state_name_update from table1 as p
+   select  projectId, project_name , sum(target) as beneficiary, fy_timerange , vertical, focus, m.partner, district, project_code , entity ,  created, progress , state_name_update from table1 as p
    
-   group by projectId, project_name , fy_timerange , vertical, focus, partner, district, project_code , entity ,  created, progress , state_name_update
+   group by projectId, project_name , fy_timerange , vertical, focus, m.partner, district, project_code , entity ,  created, progress , state_name_update
   ),
   
   table3 as
   ( 
-   select p.projectId, project_name , beneficiary, fy_timerange , vertical, focus, partner, district, project_code , entity ,  p.created, progress , vertical_new , state_name_update from table2 as p , p.vertical as vertical_new
+   select p.projectId, project_name , beneficiary, fy_timerange , vertical, focus, m.partner, district, project_code , entity ,  p.created, progress , vertical_new , state_name_update from table2 as p , p.vertical as vertical_new
    ),
    
    
    table4 as
    ( 
-	 select projectId, project_name , beneficiary, fy_timerange , focus, partner, district, project_code , ent.name as entity ,  p.created, progress ,  case 
+	 select projectId, project_name , beneficiary, fy_timerange , focus, m.partner, district, project_code , ent.name as entity ,  p.created, progress ,  case 
 when vert1.name IS NULL AND vert.name IS NOT NULL THEN vert.name
 else vert1.name 
-END AS vertical , state_name_update , vert1.name as vertical1 , vert.name as  vertical2 , vertical2 as partner , case
+END AS vertical , state_name_update , case
  when district is NULL then state_name_update
  else district
  end as district_update, case when district_update=state_name_update then state_name_update else concat(district_update,concat(' , ',state_name_update)) end as location_update from table3 as p
@@ -59,10 +59,10 @@ left join ds_mysql_prod_tagelement ent
 	 table5 as
 	 ( 
 	   select projectId, project_name , sum(beneficiary) as beneficiary , fy_timerange , focus, project_code , entity ,  p.created, progress,
- vertical , partner ,  location_update from table4 as p
+ vertical , m.partner ,  location_update from table4 as p
 	   
 	   group by  projectId, project_name , fy_timerange , focus, project_code , entity ,  p.created, progress ,
- vertical , partner ,  location_update 
+ vertical , m.partner ,  location_update 
 	   
 	   order by created , progress_old desc
  )
