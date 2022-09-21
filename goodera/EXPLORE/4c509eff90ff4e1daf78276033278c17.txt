@@ -56,7 +56,7 @@ GROUP BY P.name, PD.mode, PD.local_area, PD.state, PD.districts, PD.csr_registra
   
 SUB2 AS (
   
-SELECT mode, local_area, st, district, csr_registration, project_completed, fy_timerange, agency, budget_amount, amount_spent, unspent_amount, projectid, project_start_date, project_end_date, schedule_7, entity, fy_project_start_year, fy_project_end_year, result
+SELECT mode, local_area, st, districts, csr_registration, project_completed, fy_timerange, agency, budget_amount, amount_spent, unspent_amount, projectid, project_start_date, project_end_date, schedule_7, entity, fy_project_start_year, fy_project_end_year, result
 
 FROM SUB1 AS S1,
 
@@ -65,7 +65,7 @@ S1.state AS ST
   ),
   
 SUB3 AS (
-  SELECT mode, local_area, district, csr_registration, project_completed, fy_timerange, agency, budget_amount, amount_spent, unspent_amount, projectid, project_start_date, project_end_date, schedule_7, entity, fy_project_start_year, fy_project_end_year, result,
+  SELECT mode, local_area, districts, csr_registration, project_completed, fy_timerange, agency, budget_amount, amount_spent, unspent_amount, projectid, project_start_date, project_end_date, schedule_7, entity, fy_project_start_year, fy_project_end_year, result,
 LISTAGG(STATE.name,', ') AS state
 --LISTAGG(DISTRICT.name,', ') AS district
 
@@ -74,7 +74,7 @@ FROM SUB2
 LEFT JOIN ds_mysql_prod_tagelement AS STATE
 ON ST = STATE.id
   
-GROUP BY mode, local_area, csr_registration, project_completed, fy_timerange, agency, budget_amount, amount_spent, unspent_amount, projectid, project_start_date, project_end_date, schedule_7, entity, fy_project_start_year, fy_project_end_year, result, district
+GROUP BY mode, local_area, csr_registration, project_completed, fy_timerange, agency, budget_amount, amount_spent, unspent_amount, projectid, project_start_date, project_end_date, schedule_7, entity, fy_project_start_year, fy_project_end_year, result, districts
 
 ),
 
@@ -84,12 +84,12 @@ SELECT mode, local_area, state, dt, csr_registration, project_completed, fy_time
 
 FROM SUB3 AS S3,
 
-S3.district AS DT
+S3.districts AS DT
   
   )
   
   SELECT mode, local_area, state, csr_registration, project_completed, fy_timerange, agency, budget_amount, amount_spent, unspent_amount, projectid, project_start_date, project_end_date, schedule_7, entity, fy_project_start_year, fy_project_end_year, result,
-  LISTAGG(DISTRICT.name,', ') AS district
+  LISTAGG(DISTRICT.name,', ') AS districts
   
   
   FROM SUB4
