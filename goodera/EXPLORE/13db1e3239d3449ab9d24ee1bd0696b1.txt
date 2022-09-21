@@ -7,6 +7,7 @@ with temp as(Select 'Consumption solar' as col
 			select 'Emissions solar' as col
 			union all
 			select 'TCo2e emission per sq ft area' as col),
+			
 x as (select t2.name as projectid, fy_timerange as time_timerange, timerange.name as financialPeriod,
 'Scope 2' as scope ,'Electricity' as type,
 sum (case 
@@ -20,11 +21,11 @@ when keyword='electric_consumption_3' then datanumbase
 end )as Electricity_3,
 sum (case 
 when keyword='solar_generation' then datanumbase
-end )as Electricity_S,
+end )as Consumptionsolar,
 sum (case 
 when keyword='office_area' then datanumbase
 end )as officearea,
-(Electricity_1+	Electricity_2+Electricity_3) as  TotalElectricity  ,
+(Electricity_1+	Electricity_2+Electricity_3) as  Consumptionconventional  ,
 case  xprojectid when '10253' then '0.00041725'
 	  when '30461' then '0.0009383'
 	  when '30462' then '0.000466848'
@@ -40,13 +41,13 @@ case  xprojectid when '10253' then '0.00041725'
 	  when '39155' then '0.00074884'
 	  when '9888' then '0.00133317'
 	  else 0 end as Multiplicationfactor,
-TotalElectricity*Multiplicationfactor	as Electricityactual,
-	Electricity_S*0  as Solarelectricityactual,
+TotalElectricity*Multiplicationfactor	as Emissionsconventional,
+	Electricity_S*0  as Emissionssolar,
 	case when officearea=0 then 0
 	   else TotalElectricity/officearea
-	  end as TCo2eemissionpersqftarea,
-	  TotalElectricity as 'Consumptionconventional',Electricityactual as 'Emissionsconventional',
-	 Solarelectricityactual as 'Emissionssolar',Electricity_S as 'Consumptionsolar'
+	  end as TCo2eemissionpersqftarea
+	 -- TotalElectricity as 'Consumptionconventional',Electricityactual as 'Emissionsconventional',
+	-- Solarelectricityactual as 'Emissionssolar',Electricity_S as 'Consumptionsolar'
 
 from  sus_9539 
 
