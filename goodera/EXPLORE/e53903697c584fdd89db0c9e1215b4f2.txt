@@ -8,23 +8,24 @@ left join profile_27489 q on
 split_part(prod.name,'|',3)=q.name
 where p.focus_area is not null),
 
-tab4 as(select p.name as projectcode,f.name as fy_timerange,concat(projectcode,fy_timerange) as CODE,tf.name as Core_Area
-from profile_27396 p
+tab4 as(select p.name as projectcode,f.name as fy_timerange,concat(projectcode,fy_timerange) as CODE,m.name  as project_manager,tf.name as Core_Area from profile_27396 p
+left join ds_mysql_prod_tagelement m on
+p.project_manager=m.id
 left join ds_mysql_prod_tagelement f on
 p.fy=f.id
 left join ds_mysql_prod_tagelement tf on
 p.focus_area=tf.id
-
 union
-select l.name as projectcode,f.name as fy_timerange,concat(projectcode,fy_timerange) as CODE,p.focus_area as Core_Area
+select l.name as projectcode,f.name as fy_timerange,concat(projectcode,fy_timerange) as CODE,m.name as project_manager, p.focus_area as Core_Area
 from profile_27420 p
 left join profile_27396 l on
 p.project_code=l._id
+left join ds_mysql_prod_tagelement m on
+p.project_manager=m.id
 left join ds_mysql_prod_tagelement f on
-p.fy=f.id
-)
+p.fy=f.id)
 
-select distinct(t1.village),t1.projectcode,t1.fy_timerange,t.Core_Area,t1.focus_area,sum(t1.hdfc_cost_monthly) as total from tab2 t1
+select distinct(t1.village),t1.projectcode,t.project_manager,t.Core_Area,t1.fy_timerange,t1.focus_area,sum(t1.hdfc_cost_monthly) as total from tab2 t1
 left join tab4 t on
 t1.CODE=t.CODE
 group by 1,2,3,4,5
