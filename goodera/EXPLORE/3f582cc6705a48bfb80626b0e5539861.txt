@@ -22,7 +22,7 @@ left join ds_mysql_prod_section x6 on x6.id = x4.sectionid
 left join ds_mysql_prod_profile x7 on x7.id = x6.profileid
 left join ds_mysql_prod_project x8 on x8.id = x5.projectid
 
-where x6.profileid = 27396 and x1.active = 't'
+where x6.profileid in (27396,27420) and x1.active = 't'
 and x1.status in ('REJECTED', 'PENDING_APPROVAL', 'SUBMITTED')
 
 group by x1._id, x1.profileinstanceid, x1.status, x1.active, x1.data, x1.taskuserid, x2.taskid, x5.projectid, x6.profileid, x4.sectionid, x6.name, x7.name, x8.name, x1.submissionlog, x1.approvallog, x1.created, x1.modified),
@@ -30,7 +30,7 @@ group by x1._id, x1.profileinstanceid, x1.status, x1.active, x1.data, x1.taskuse
 --xx--FLOW
 
 sub2 as(
-  select s1.id, s1.status, s1.data, s1.submissionlog_new, s1.approvallog_new, submission_log, cast(submission_log."timestamp" as DATETIME) as submission_log_timestamp,
+  select s1.profileid, s1.id, s1.status, s1.data, s1.submissionlog_new, s1.approvallog_new, submission_log, cast(submission_log."timestamp" as DATETIME) as submission_log_timestamp,
   
 row_number() over(partition by s1.id order by submission_log_timestamp asc) as row1
 from sub1 s1, s1.submissionlog_new as submission_log), 
@@ -38,7 +38,7 @@ from sub1 s1, s1.submissionlog_new as submission_log),
 --xx--Initial Submission Date
 
 sub3 as(
-  select s2.id, s2.status, s2.data, s2.submissionlog_new, s2.approvallog_new, cast(s2.submission_log_timestamp as DATE) as initial_submission_date, submission_log2, cast(submission_log2."timestamp" as DATETIME) as submission_log_timestamp2,
+  select s2.profileid, s2.id, s2.status, s2.data, s2.submissionlog_new, s2.approvallog_new, cast(s2.submission_log_timestamp as DATE) as initial_submission_date, submission_log2, cast(submission_log2."timestamp" as DATETIME) as submission_log_timestamp2,
   
 row_number() over(partition by s2.id order by submission_log_timestamp2 desc) as row2
 from sub2 s2, s2.submissionlog_new as submission_log2
@@ -48,7 +48,7 @@ where s2.row1 = 1),
 --xx--Final Submission Date
 
 sub4 as(
-  select s3.id, s3.status, s3.data, s3.submissionlog_new, s3.approvallog_new, s3.initial_submission_date, cast(s3.submission_log_timestamp2 as DATE) as final_submission_date,
+  select s3.profileid, s3.id, s3.status, s3.data, s3.submissionlog_new, s3.approvallog_new, s3.initial_submission_date, cast(s3.submission_log_timestamp2 as DATE) as final_submission_date,
 approval_log, cast(approval_log."timestamp" as DATETIME) as approval_log_timestamp, cast(approval_log."approverEmail" as VARCHAR) as approver_email, cast(approval_log."approvalStatus" as VARCHAR) as approval_status,
 
 row_number() over(partition by s3.id, approver_email order by approval_log_timestamp desc) as row3
@@ -59,7 +59,12 @@ where s3.row2 = 1),
 --xx--Approval Log
 
 sub5 as(
-  select s4.id, s4.status, s4.data, s4.initial_submission_date, s4.final_submission_date, s4.approver_email, cast(s4.approval_log_timestamp as DATE) approval_date, cast(s4.data.name as VARCHAR) as projectcode, s4.approval_status,
+  select s4.id, s4.status, s4.data, s4.initial_submission_date, s4.final_submission_date, s4.approver_email, cast(s4.approval_log_timestamp as DATE) approval_date, s4.approval_status,
+  
+case
+  	when s4.profileid = 27396 then cast(s4.data.name as VARCHAR)
+  	else cast(SPLIT_PART(s4.data.name, ' [', 1) as VARCHAR)
+end as projectcode,
 
 case
 	when s4.approver_email = 'hdfcbank@goodera.com' then approval_date
@@ -81,7 +86,8 @@ case
 	else NULL
 end as status_at_csr_head
 
-from sub4 s4
+from sub4 s4  
+  
 where s4.row3 = 1 and s4.approver_email is not null)
 
 select s5.id, s5.projectcode, s5.status, s5.data, s5.initial_submission_date, s5.final_submission_date,
