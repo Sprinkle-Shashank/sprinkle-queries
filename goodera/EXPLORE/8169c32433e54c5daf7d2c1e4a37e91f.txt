@@ -1,2 +1,19 @@
-Select projectid, pro.name AS Project_Name, profile_80187.fy_timerange, typ.name AS Document, par.name as parent_doc_type,upload, remarks, 'Download' AS Download, ngo.name as NGO,sche.name as Schedule7 
+/*Select projectid, pro.name AS Project_Name, profile_80187.fy_timerange, typ.name AS Document, par.name as parent_doc_type,upload, remarks, 'Download' AS Download, ngo.name as NGO,sche.name as Schedule7 
+from profile_81314 p*/
+
+
+
+select p3.name as projectId,p1.name as projectname,p2.name as partner,p.name,p.fy_timerange,p.file, t.name as type_doc,
+
+case
+when p.file IS NOT NULL then 'Download'
+else 'NA'
+end as download
 from profile_81314 p
+
+left join ds_mysql_prod_project p1 on p1.id = p.projectid
+left join ds_mysql_prod_project p2 on p2.id = p1.parent
+left join ds_mysql_prod_project p3 on p3.id=p2.parent
+left join ds_mysql_prod_tagelement t on t.id = p.type
+
+group by  p3.name,p1.name,p2.name,p.name,p.fy_timerange,p.file,t.name
