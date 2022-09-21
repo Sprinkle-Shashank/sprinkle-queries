@@ -51,13 +51,24 @@ p6.fy=f.id
 where f.name not in ('2015-2016','2016-2017','2017-2018')
 group by 1,2,4),
 
-/*tab4 as (Select case
+tab4 as (Select case
 		 when tab2.interventiontype = 'Indirect'
 		 then (tab2.hdfc_cost_monthly + tab3.monthly_cost) end as AllocatedAmount
 		 from tab2
-		 left join tab3 on tab2.CODE = tab3.CODE),*/
+		 left join tab3 on tab2.CODE = tab3.CODE),
 		 
-finaltab as (Select tab1.CODE,tab1.interventiontype,
+tab5 as (Select case
+		     when tab1.interventiontype = 'Direct'
+			 then tab1.curr_yr_budget1
+			 when tab1.interventiontype = 'Indirect - Others'
+			 then tab1.curr_yr_budget1 end as AllocatedAmount
+		 from tab1)
+		 
+finaltab as (Select tab1.CODE,tab4.interventiontype,tab4.AllocatedAmount
+			 union all
+			 Select tab2.CODE,tab5.interventiontype,tab5.AllocatedAmount)
+		 
+/*finaltab as (Select tab1.CODE,tab1.interventiontype,
 			 case
 			 when tab1.interventiontype = 'Direct'
 			 then tab1.curr_yr_budget1
@@ -71,11 +82,13 @@ finaltab as (Select tab1.CODE,tab1.interventiontype,
 			 then (tab2.hdfc_cost_monthly + tab3.monthly_cost) end as AllocatedAmount,tab2.fy_timerange
 			 from tab2 
 			 left join tab3
-			 on tab2.CODE = tab3.CODE),
+			 on tab2.CODE = tab3.CODE),*/
 			 
-finaltab1 as (Select sum(case finaltab.AllocatedAmount when null then 0 else finaltab.AllocatedAmount end ) as AllocatedAmount,finaltab.interventiontype,finaltab.fy_timerange from finaltab group by 3)
+/*finaltab1 as (Select sum(case finaltab.AllocatedAmount when null then 0 else finaltab.AllocatedAmount end ) as AllocatedAmount,finaltab.interventiontype,finaltab.fy_timerange from finaltab group by 2, 3)*/
 			  
-select * from finaltab1
+select * from finaltab
+			 
+
 			 
 
 /*level1tab as (select m.name as level1 ,p.approver as level2,p.name as level1email from profile_27424 p
