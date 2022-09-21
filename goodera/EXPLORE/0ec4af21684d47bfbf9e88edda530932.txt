@@ -1,18 +1,18 @@
 
-with t1 as 
-(select p1._id, p1.planned_completion_date, p1.fy_timerange, p1.planned_start_date :: varchar, p1.milestone_name, p1.projectId, p2.actual_start_date :: varchar, p2.comments, p2.actual_completion_date :: varchar as milestone_date, p2.comments_2,
- --cast('2022-09-06T17:42:13.256Z' as VARCHAR) as today_date,
- GETDATE() as today_date,
+with t1 as(select  p1.planned_completion_date, p1.fy_timerange, p1.planned_start_date,
+milestone_name, tag1.name as projectId, p2.actual_start_date, p2.comments, p2.actual_completion_date as milestone_date, p2.comments_2,
+GETDATE() as today_date,
 case 
 when actual_start_date is null then milestone_date
 else today_date
 end as today
-from profile_76057 p1
+from profile_76057 as p1
+left join ds_mysql_prod_project tag1
+on p1.projectId =tag1.id
 left join profile_76058 p2
 on p1._id = p2.milestone)
 
-
-select p3.name as projectID, planned_completion_date, fy_timerange, planned_start_date, milestone_name, actual_start_date, milestone_date,
+select projectId, planned_completion_date, fy_timerange, planned_start_date, milestone_name, actual_start_date, comments,milestone_date,comments_2,today,
 case 
 when milestone_date is null then today
 else milestone_date
@@ -22,8 +22,6 @@ when milestone_date is null then comments
 else comments_2
 end as comments_final
 from t1
-left join ds_mysql_prod_project p3
-on p3.id = t1.projectId
 
 
 
