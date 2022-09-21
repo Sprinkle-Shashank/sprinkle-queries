@@ -134,7 +134,17 @@ sub7 as(
 
 row_number() over(partition by s6.projectcode order by left(s6.fy,4) desc) as row
 
-from sub6 s6)
+from sub6 s6),
 
-select * from sub7 
-where row = 1 and project_manager is not null and intervention_type is not null and focus_area is not null
+sub8 as(
+  select * from sub7 
+where row = 1 and project_manager is not null and intervention_type is not null and focus_area is not null)
+
+select projectcode, final_submission_date, renewed, project_manager, ngo_partner, focus_area, intervention_type, start_date, end_date, date_of_action_by_goodera, status_at_goodera, date_of_action_by_csr_head, status_at_csr_head,
+
+case
+	when initial_submission_date = final_submission_date then NULL
+	else initial_submission_date
+end as inititial_submission
+
+from sub8
