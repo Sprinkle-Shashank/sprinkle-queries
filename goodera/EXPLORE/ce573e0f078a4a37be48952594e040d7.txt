@@ -25,20 +25,20 @@ with table1 as
  
  table2 as 
  ( 
-   select  projectId, indicator, project_name , sum(target) as beneficiary, fy_timerange , vertical, focus, p.partner, district, project_code , entity ,  created, progress , state_name_update from table1 as p
+   select  projectId, indicator, project_name , focus, sum(target) as beneficiary, fy_timerange , vertical, focus, p.partner, district, project_code , entity ,  created, state_name_update from table1 as p
    
-   group by projectId, indicator, project_name , fy_timerange , vertical, focus, p.partner, district, project_code , entity ,  created, progress , state_name_update
+   group by projectId, indicator, project_name , focus, fy_timerange , vertical, focus, p.partner, district, project_code , entity ,  created, state_name_update
   ),
   
   table3 as
   ( 
-   select p.projectId, indicator, project_name , beneficiary, fy_timerange , vertical, focus, p.partner, district, project_code , entity ,  p.created, progress , vertical_new , state_name_update from table2 as p , p.vertical as vertical_new
+   select p.projectId, indicator, project_name , focus, beneficiary, fy_timerange , vertical, focus, p.partner, district, project_code , entity ,  p.created, vertical_new , state_name_update from table2 as p , p.vertical as vertical_new
    ),
    
    
    table4 as
    ( 
-	 select projectId, indicator, project_name , beneficiary, fy_timerange , focus, p.partner, district, project_code , ent.name as entity ,  p.created, progress ,  case 
+	 select projectId, indicator, project_name , focus, beneficiary, fy_timerange , focus, p.partner, district, project_code , ent.name as entity ,  p.created,  case 
 when vert1.name IS NULL AND vert.name IS NOT NULL THEN vert.name
 else vert1.name 
 END AS vertical , state_name_update , case
@@ -58,10 +58,10 @@ left join ds_mysql_prod_tagelement ent
 	 
 	 table5 as
 	 ( 
-	   select projectId, indicator, project_name , sum(beneficiary) as beneficiary , fy_timerange , focus, project_code , entity ,  p.created, progress,
+	   select projectId, indicator, project_name , focus, sum(beneficiary) as beneficiary , fy_timerange , focus, project_code , entity ,  p.created, projectId as  progress,
  vertical , p.partner ,  location_update from table4 as p
 	   
-	   group by  projectId, indicator, project_name , fy_timerange , focus, project_code , entity ,  p.created, progress ,
+	   group by  projectId, indicator, project_name , focus, fy_timerange , focus, project_code , entity ,  p.created, progress ,
  vertical , p.partner ,  location_update 
 	   
 	   order by created , progress desc
