@@ -43,14 +43,25 @@ sub3 as(
 row_number() over(partition by s2.id order by submission_log_timestamp2 desc) as row2
 from sub2 s2, s2.submissionlog_new as submission_log2
 
-where s2.row1 = 1)
+where s2.row1 = 1),
 
 --xx--Final Submission Date
 
-select s3.id, s3.status, s3.created, s3.modified, s3.data, s3.submissionlog_new, s3.approvallog_new, s3.initial_submission_date, cast(s3.submission_log_timestamp2 as DATE) as final_submission_date,
+sub4 as(
+  select s3.id, s3.status, s3.created, s3.modified, s3.data, s3.submissionlog_new, s3.approvallog_new, s3.initial_submission_date, cast(s3.submission_log_timestamp2 as DATE) as final_submission_date,
 approval_log, cast(approval_log."timestamp" as DATETIME) as approval_log_timestamp, cast(approval_log."approverEmail" as VARCHAR) as approveremail,
 
 row_number() over(partition by s3.id, approverEmail order by approval_log_timestamp desc) as row3
 from sub3 s3, s3.approvallog_new as approval_log
 
-where s3.row2 = 1
+where s3.row2 = 1)
+
+--xx--Approval Log
+
+select s4.id, s4.status, s4.data, s4.initial_submission_date, s4.final_submission_date, s4.approveremail, cast(s4.approval_log_timestamp as DATE) approval_date, s4.data.name as projectcode
+
+cast(timestamp 'epoch' + CAST(s4.created AS BIGINT)/1000 * interval '1 second' as date) as created,
+cast(timestamp 'epoch' + CAST(s4.modified AS BIGINT)/1000 * interval '1 second' as date) as modified
+
+from sub4 s4
+where s4.row3 = 1
