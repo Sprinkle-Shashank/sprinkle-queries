@@ -91,13 +91,16 @@ case
   	when s4.profileid = 27420 and cast(s4.data.end_date as DATE) >= CURRENT_DATE then 'Yes'
   	when s4.profileid = 27420 and cast(s4.data.end_date as DATE) < CURRENT_DATE then 'No'
   	else '-'
-end as renewed
+end as renewed,
+  
+t1.name as project_manager
 
 from sub4 s4  
+left join ds_mysql_prod_tagelement t1 on t1.id = s4.data.project_manager
   
 where s4.row3 = 1 and s4.approver_email is not null and projectcode is not null)
 
-select s5.id, s5.projectcode, s5.status, s5.data, s5.initial_submission_date, s5.final_submission_date, s5.renewed,
+select s5.id, s5.projectcode, s5.status, s5.data, s5.initial_submission_date, s5.final_submission_date, s5.renewed, s5.project_manager
 
 max(s5.date_of_action_by_goodera) as date_of_action_by_goodera,
 max(s5.status_at_goodera) as status_at_goodera,
@@ -105,4 +108,4 @@ max(s5.date_of_action_by_csr_head) as date_of_action_by_csr_head,
 max(s5.status_at_csr_head) as status_at_csr_head
 
 from sub5 s5
-group by s5.id, s5.projectcode, s5.status, s5.data, s5.initial_submission_date, s5.final_submission_date, s5.renewed
+group by s5.id, s5.projectcode, s5.status, s5.data, s5.initial_submission_date, s5.final_submission_date, s5.renewed, s5.project_manager
