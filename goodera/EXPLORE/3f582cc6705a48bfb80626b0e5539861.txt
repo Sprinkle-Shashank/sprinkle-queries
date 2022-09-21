@@ -54,11 +54,12 @@ approval_log, cast(approval_log."timestamp" as DATETIME) as approval_log_timesta
 row_number() over(partition by s3.id, approver_email order by approval_log_timestamp desc) as row3
 from sub3 s3, s3.approvallog_new as approval_log
 
-where s3.row2 = 1)
+where s3.row2 = 1),
 
 --xx--Approval Log
 
-select s4.id, s4.status, s4.data, s4.initial_submission_date, s4.final_submission_date, s4.approver_email, cast(s4.approval_log_timestamp as DATE) approval_date, cast(s4.data.name as VARCHAR) as projectcode, s4.approval_status,
+sub5 as(
+  select s4.id, s4.status, s4.data, s4.initial_submission_date, s4.final_submission_date, s4.approver_email, cast(s4.approval_log_timestamp as DATE) approval_date, cast(s4.data.name as VARCHAR) as projectcode, s4.approval_status,
 
 case
 	when s4.approver_email = 'hdfcbank@goodera.com' then approval_date
@@ -81,4 +82,14 @@ case
 end as status_at_csr_head
 
 from sub4 s4
-where s4.row3 = 1 and s4.approver_email is not null
+where s4.row3 = 1 and s4.approver_email is not null)
+
+select s5.id, s5.projectcode, s5.status, s5.data, s5.initial_submission_date, s5.final_submission_date, s5.approver_email,
+
+max(s5.date_of_action_by_goodera) as date_of_action_by_goodera,
+max(s5.status_at_goodera) as status_at_goodera,
+max(s5.date_of_action_by_csr_head) as date_of_action_by_csr_head,
+max(s5.status_at_csr_head) as status_at_csr_head
+
+from sub5 s5
+group by s5.id, s5.projectcode, s5.status, s5.data, s5.initial_submission_date, s5.final_submission_date, s5.approver_email
