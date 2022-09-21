@@ -1,8 +1,10 @@
 with sub1 as(
   select a.*, projects_unwind from profile_76630 a, a.projects projects_unwind),
   
-sub2 as(select extract(year from cast(s1.timerange_timerange.start as date)) as year,listagg(distinct t1.name,', ') as projects,s1.target from sub1 s1
+sub2 as(select extract(year from cast(s1.timerange_timerange.start as date)) as year,listagg(distinct t1.name,', ') as projects,s1.target,cast('Corporate' as varchar) as business_div,p2.brand_text as brand from sub1 s1
 left join ds_mysql_prod_tagelement t1 on t1.id=s1.projects_unwind
+left join profile_81437 p2 on p2.business_division_text = 'Corporate'
+	
 group by year,target,projects)
 
 select s2.year,s2.target,s2.projects, sum(regexp_count(s2.projects,', ')+1) as achieved from sub2 s2
