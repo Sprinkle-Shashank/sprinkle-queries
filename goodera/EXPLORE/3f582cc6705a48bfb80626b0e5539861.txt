@@ -62,11 +62,6 @@ sub5 as(
   select s4.id, s4.status, s4.data, s4.initial_submission_date, s4.final_submission_date, s4.approver_email, cast(s4.approval_log_timestamp as DATE) approval_date, s4.approval_status,
   
 case
-  	when s4.profileid = 27396 then cast(s4.data.name as VARCHAR)
-  	else SPLIT_PART(cast(s4.data.name as VARCHAR), ' [', 1)
-end as projectcode,
-
-case
 	when s4.approver_email = 'hdfcbank@goodera.com' then approval_date
 	else NULL
 end as date_of_action_by_goodera,
@@ -84,13 +79,25 @@ end as date_of_action_by_csr_head,
 case
 	when s4.approver_email = 'nusrat.pathan@hdfcbank.com' then s4.approval_status
 	else NULL
-end as status_at_csr_head
+end as status_at_csr_head,
+  
+case
+  	when s4.profileid = 27396 then cast(s4.data.name as VARCHAR)
+  	else SPLIT_PART(cast(s4.data.name as VARCHAR), ' [', 1)
+end as projectcode,
+
+case
+    when s3.profileid = 27396 and cast(s4.data.end_date as DATE) is not null then 'NA'
+  	when s3.profileid = 27420 and cast(s4.data.end_date as DATE) >= CURRENT_DATE then 'Yes'
+  	when s3.profileid = 27420 and cast(s4.data.end_date as DATE) < CURRENT_DATE then 'No'
+  	else '-'
+end as renewed
 
 from sub4 s4  
   
-where s4.row3 = 1 and s4.approver_email is not null)
+where s4.row3 = 1 and s4.approver_email is not null and projectcode is not null)
 
-select s5.id, s5.projectcode, s5.status, s5.data, s5.initial_submission_date, s5.final_submission_date,
+select s5.id, s5.projectcode, s5.status, s5.data, s5.initial_submission_date, s5.final_submission_date, s5.renewed,
 
 max(s5.date_of_action_by_goodera) as date_of_action_by_goodera,
 max(s5.status_at_goodera) as status_at_goodera,
@@ -98,4 +105,4 @@ max(s5.date_of_action_by_csr_head) as date_of_action_by_csr_head,
 max(s5.status_at_csr_head) as status_at_csr_head
 
 from sub5 s5
-group by s5.id, s5.projectcode, s5.status, s5.data, s5.initial_submission_date, s5.final_submission_date
+group by s5.id, s5.projectcode, s5.status, s5.data, s5.initial_submission_date, s5.final_submission_date, s5.renewed
