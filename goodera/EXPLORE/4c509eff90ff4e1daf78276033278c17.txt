@@ -1,5 +1,5 @@
 SELECT
-PD.mode, PD.local_area, PD.state, PD.districts, PD.csr_registration, BLI.fy_timerange, IA.agency,
+PD.mode, PD.local_area, PD.state, PD.districts, PD.csr_registration, PD.project_completed, BLI.fy_timerange, IA.agency,
 SUM(BLI.budget_amount) AS budget_amount,
 SUM(BLI.amount_spent) AS amount_spent,
 SUM(UA.unspent_amount) AS unspent_amount,
@@ -13,20 +13,20 @@ CASE
   WHEN (EXTRACT(MONTH FROM PD.project_start_date) < 4)
   THEN (EXTRACT(YEAR FROM PD.project_start_date)-1)
   ELSE  (EXTRACT(YEAR FROM PD.project_start_date))
-  END AS fy_project_start_year,
+ END AS fy_project_start_year,
   
- CASE 
+ CASE
   WHEN (EXTRACT(MONTH FROM PD.project_end_date) <4)
   THEN (EXTRACT(YEAR FROM PD.project_end_date)-1)
   ELSE (EXTRACT(YEAR FROM PD.project_end_date))
-  END AS fy_project_end_year,
-
-CASE
-	WHEN fy_project_start_year = fy_project_end_year
-	AND fy_project_end_year = (EXTRACT(YEAR FROM CAST(BLI.fy_timerange.end AS datetime)))
-	THEN 1
-	ELSE 0
-	END AS result
+ END AS fy_project_end_year,
+  
+ CASE
+  WHEN fy_project_start_year = fy_project_end_year
+  AND fy_project_end_year = (EXTRACT(YEAR FROM CAST(BLI.fy_timerange.end AS datetime)))
+  THEN 1
+  ELSE 0
+ END AS result
 
 FROM profile_81995 AS PD
 
@@ -48,4 +48,4 @@ ON PD.projectid = UA.projectid
 LEFT JOIN profile_81338 AS IA
 ON PD.projectid = IA.projectid
 
-GROUP BY P.name, PD.mode, PD.local_area, PD.state, PD.districts, PD.csr_registration, BLI.fy_timerange, IA.agency, PD.project_start_date, PD.project_end_date, S7.name, E.name
+GROUP BY P.name, PD.mode, PD.local_area, PD.state, PD.districts, PD.csr_registration, PD.project_completed, BLI.fy_timerange, IA.agency, PD.project_start_date, PD.project_end_date, S7.name, E.name
