@@ -27,10 +27,19 @@ and x1.status in ('REJECTED', 'PENDING_APPROVAL', 'SUBMITTED')
 
 group by x1._id, x1.profileinstanceid, x1.status, x1.active, x1.data, x1.taskuserid, x2.taskid, x5.projectid, x6.profileid, x4.sectionid, x6.name, x7.name, x8.name, x1.submissionlog, x1.approvallog, x1.created, x1.modified),
 
-sub2 as(
-  select s1.id, s1.status, s1.created, s1.modified, s1.data, s1.submissionlog_new, s1.approvallog_new, submission_log, cast(submission_log."timestamp" as DATE) as initial_submission_date,
-  
-row_number() over(partition by s1.id order by initial_submission_date desc) as row
-from sub1 s1, s1.submissionlog_new as submission_log)
+--xx--FLOW
 
-select * from sub2
+sub2 as(
+  select s1.id, s1.status, s1.created, s1.modified, s1.data, s1.submissionlog_new, s1.approvallog_new, submission_log, cast(submission_log."timestamp" as DATETIME) as submission_log_timestamp,
+  
+row_number() over(partition by s1.id order by submission_log_timestamp asc) as row1
+from sub1 s1, s1.submissionlog_new as submission_log) 
+
+--xx--Initial Submission Date
+
+select s2.id, s2.status, s2.created, s2.modified, s2.data, s2.submissionlog_new, s2.approvallog_new, cast(s2.submission_log_timestamp as DATE) as initial_submission_date, submission_log2, cast(submission_log2."timestamp" as DATETIME) as submission_log_timestamp2,
+  
+row_number() over(partition by s1.id order by submission_log_timestamp2 desc) as row2
+from sub2 s2, s2.submissionlog_new as submission_log2
+
+where s2.row1 = 1
