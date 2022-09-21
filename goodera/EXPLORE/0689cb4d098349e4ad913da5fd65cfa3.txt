@@ -1,0 +1,42 @@
+with temp as(Select 'Total Electricity Target' as col
+			union all
+			select 'Emissions Solar' as col
+			 union all
+			select 'Emissions Conventional' as col
+			),
+x as (select t2.name as projectid, fy_timerange as time_timerange, timerange.name as financialPeriod,
+'Scope 2' as scope ,'Electricity' as type,'Emissions solar' as Emissions_solar , 'Emissions conventional' as Emissions_conventional ,
+ 
+sum(datanumbase) as TotalElectricityTarget,
+
+--sum(coalesce(Multiplicationfactor_Generator,0)+coalesce(Multiplicationfactor_Refill,0)) as Emissions
+
+from  sus_62648 
+
+left join ds_mysql_prod_project t1
+on t1.id=sus_62648.xprojectid
+left join ds_mysql_prod_project t2
+on t2.id=t1.parent/*projectid*/
+
+left join ds_mysql_prod_tagelement quarter
+on quarter.id=sus_9539.financialPeriod
+left join ds_mysql_prod_tagelement half
+on half.id=quarter.parent
+left join ds_mysql_prod_tagelement fy
+on fy.id=half.parent
+left join ds_mysql_prod_tagelement timerange
+on timerange.id=fy.parent/*financialPeriod*/
+
+where KEYWORD IN ('meter_1_electricity_target','meter_2_electricity_target','meter_3_electricity_target') and status='APPROVED'
+group by t2.name,fy_timerange,scope,type,Emissions_solar,timerange.name,
+Emissions_conventional)
+
+Select x.projectid,x.time_timerange,x.scope,x.type,x.Emissions_conventional,x.financialPeriod,
+x.Emissions_solar, (case when temp.col ='Total Electricity Target' then x.TotalElectricityTarget
+								         when temp.col = 'Emissions Solar' then x.Emissions_solar
+					                     when temp.col = 'Emissions Conventional' then x.Emissions_conventional
+								  end ) as val,
+temp.col as Dim
+ from x cross join temp
+--group by x.projectid,x.time_timerange,x.scope,x.type,x.Multiplicationfactor_Generator,
+--x.Multiplicationfactor_Refill, temp.col,x.financialPeriod
