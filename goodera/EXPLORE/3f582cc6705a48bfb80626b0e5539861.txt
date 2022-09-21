@@ -49,7 +49,7 @@ where s2.row1 = 1),
 
 sub4 as(
   select s3.id, s3.status, s3.data, s3.submissionlog_new, s3.approvallog_new, s3.initial_submission_date, cast(s3.submission_log_timestamp2 as DATE) as final_submission_date,
-approval_log, cast(approval_log."timestamp" as DATETIME) as approval_log_timestamp, cast(approval_log."approverEmail" as VARCHAR) as approveremail,
+approval_log, cast(approval_log."timestamp" as DATETIME) as approval_log_timestamp, cast(approval_log."approverEmail" as VARCHAR) as approver_email, cast(approval_log."approvalStatus" as VARCHAR) as approval_status,
 
 row_number() over(partition by s3.id, approverEmail order by approval_log_timestamp desc) as row3
 from sub3 s3, s3.approvallog_new as approval_log
@@ -58,7 +58,27 @@ where s3.row2 = 1)
 
 --xx--Approval Log
 
-select s4.id, s4.status, s4.data, s4.initial_submission_date, s4.final_submission_date, s4.approveremail, cast(s4.approval_log_timestamp as DATE) approval_date, cast(s4.data.name as VARCHAR) as projectcode
+select s4.id, s4.status, s4.data, s4.initial_submission_date, s4.final_submission_date, s4.approver_email, cast(s4.approval_log_timestamp as DATE) approval_date, cast(s4.data.name as VARCHAR) as projectcode, s4.approval_status,
+
+case
+	when s4.approver_email = 'hdfcbank@goodera.com' then approval_date
+	else NULL
+end as date_of_action_by_goodera,
+
+case
+	when s4.approver_email = 'hdfcbank@goodera.com' then s4.approval_status
+	else NULL
+end as status_at_goodera,
+
+case
+	when s4.approveremail = 'nusrat.pathan@hdfcbank.com' then approval_date
+	else NULL
+end as date_of_action_by_csr_head,
+
+case
+	when s4.approveremail = 'nusrat.pathan@hdfcbank.com' then s4.approval_status
+	else NULL
+end as status_at_csr_head
 
 from sub4 s4
 where s4.row3 = 1
