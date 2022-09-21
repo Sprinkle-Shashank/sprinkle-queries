@@ -1,4 +1,15 @@
-with table1 as (select projectId.name as projectId, sdg, fy_timerange/*, count(*)*/ from profile_46325 as m
+with table1 as (select projectId.name as projectId, sdg, fy_timerange, count(*),
+		CASE when sdg = NULL
+				then array(0)
+				ELSE 
+				sdg
+				end as sdg_new,
+
+			COALESCE(sdg,array(0))  as new_sdg,
+				
+				CAST(new_sdg as SUPER) as t_sdg
+				
+				from profile_46325 as m
 
 left join ds_mysql_prod_project as projectId
  on m.projectId = projectId.id 
@@ -9,12 +20,11 @@ group by projectId.name, fy_timerange, sdg
 
 ),
 Table2 as (
-  Select t1.*, sdg_unwind from table1 t1 , t1.sdg as sdg_unwind
+  Select t1.*, sdg_unwind from table1 t1 , t1.new_sdg as sdg_unwind
 --LISTAGG(sdg_unwind.name,',') as sdgname
 )
-
-
+  
   Select projectId, fy_timerange,1 as count, sdg1.name as sdg from table2
   
   left join ds_mysql_prod_tagelement as sdg1
- on Table2.sdg_unwind = sdg1.id
+ on Table2.sdg_unwind = sdg1.id 
