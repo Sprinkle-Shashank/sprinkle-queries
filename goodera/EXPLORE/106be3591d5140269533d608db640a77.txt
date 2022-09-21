@@ -51,13 +51,13 @@ p6.fy=f.id
 where f.name not in ('2015-2016','2016-2017','2017-2018')
 group by 1,2,4),
 
-tab4 as (Select case
+tab4 as (Select tab1.CODE, case
 		 when tab2.interventiontype = 'Indirect'
 		 then (tab2.hdfc_cost_monthly + tab3.monthly_cost) end as AllocatedAmount
 		 from tab2
 		 left join tab3 on tab2.CODE = tab3.CODE),
 		 
-tab5 as (Select case
+tab5 as (Select tab2.CODE, case
 		     when tab1.interventiontype = 'Direct'
 			 then tab1.curr_yr_budget1
 			 when tab1.interventiontype = 'Indirect - Others'
@@ -66,8 +66,11 @@ tab5 as (Select case
 		left join tab2 on tab1.CODE = tab2.CODE),
 		 
 finaltab as (Select tab4.interventiontype,tab4.AllocatedAmount
+			 from tab4
 			 union all
-			 Select tab5.interventiontype,tab5.AllocatedAmount)
+			 Select tab5.interventiontype,tab5.AllocatedAmount
+		      from tab5 
+			left join tab4 on tab4.CODE = tab5.CODE)
 		 
 /*finaltab as (Select tab1.CODE,tab1.interventiontype,
 			 case
