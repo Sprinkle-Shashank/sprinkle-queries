@@ -1,13 +1,13 @@
-
-
-with sub1 as(
-  select a.*, projects_unwind from profile_76630 a, a.projects projects_unwind),
-  /*with temp as(
+ with temp as(
   select 'Americas' as col
   union all
   select 'Asia' as col
   union all
-  select 'EMEA' as col),*/
+  select 'EMEA' as col),
+
+with sub1 as(
+  select a.*, projects_unwind from profile_76630 a, a.projects projects_unwind),
+ 
   
 sub2 as(select extract(year from cast(s1.timerange_timerange.start as date)) as year,listagg(distinct t1.name,', ') as projects,s1.target,cast('Corporate' as varchar) as business_div,p2.brand_text as brand,cast('Americas' as varchar) as region1,cast('Asia' as varchar) as region2,cast('EMEA' as varchar) as region3
 
@@ -19,12 +19,12 @@ left join profile_81437 p2 on p2.business_division_text = 'Corporate'
 group by year,target,projects,business_div,p2.brand_text)
 
 select s2.year,s2.target,s2.projects, sum(regexp_count(s2.projects,', ')+1) as achieved, s2.business_div,s2.brand
-/*case
+case
 		when temp.col='Americas' then s2.region1
 		when temp.col='Asia' then s2.region2
 		when temp.col='EMEA' then s2.region3
 		else null
-		end) as region, temp.col as dim*/
+		end) as region, temp.col as dim
 from sub2 s2
---cross join temp
-group by s2.year,s2.target,s2.projects,s2.business_div,s2.brand
+cross join temp
+group by s2.year,s2.target,s2.projects,s2.business_div,s2.brand,temp.col
