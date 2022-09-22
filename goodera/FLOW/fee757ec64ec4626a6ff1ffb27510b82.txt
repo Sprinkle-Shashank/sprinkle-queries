@@ -32,7 +32,7 @@ group by x1._id, x1.profileinstanceid, x1.status, x1.active, x1.data, x1.taskuse
 --xx--FLOW
 
 sub2 as(
-  select s1.profileid,s1.profileinstanceid, s1.id, s1.status, s1.data, s1.submissionlog_new, s1.approvallog_new, submission_log, cast(submission_log."timestamp" as DATETIME) as submission_log_timestamp,
+  select s1.profileid, s1.profileinstanceid, s1.id, s1.status, s1.data, s1.submissionlog_new, s1.approvallog_new, submission_log, cast(submission_log."timestamp" as DATETIME) as submission_log_timestamp,
   
 row_number() over(partition by s1.id order by submission_log_timestamp asc) as row1
 from sub1 s1, s1.submissionlog_new as submission_log), 
@@ -40,7 +40,7 @@ from sub1 s1, s1.submissionlog_new as submission_log),
 --xx--Initial Submission Date
 
 sub3 as(
-  select s2.profileid,s2.profileinstanceid, s2.id, s2.status, s2.data, s2.submissionlog_new, s2.approvallog_new, cast(s2.submission_log_timestamp as DATE) as initial_submission_date, submission_log2, cast(submission_log2."timestamp" as DATETIME) as submission_log_timestamp2,
+  select s2.profileid, s2.profileinstanceid, s2.id, s2.status, s2.data, s2.submissionlog_new, s2.approvallog_new, cast(s2.submission_log_timestamp as DATE) as initial_submission_date, submission_log2, cast(submission_log2."timestamp" as DATETIME) as submission_log_timestamp2,
   
 row_number() over(partition by s2.id order by submission_log_timestamp2 desc) as row2
 from sub2 s2, s2.submissionlog_new as submission_log2
@@ -50,7 +50,7 @@ where s2.row1 = 1),
 --xx--Final Submission Date
 
 sub4 as(
-  select s3.profileid, s3.profileinstanceid,s3.id, s3.status, s3.data, s3.submissionlog_new, s3.approvallog_new, s3.initial_submission_date, cast(s3.submission_log_timestamp2 as DATE) as final_submission_date,
+  select s3.profileid, s3.profileinstanceid, s3.id, s3.status, s3.data, s3.submissionlog_new, s3.approvallog_new, s3.initial_submission_date, cast(s3.submission_log_timestamp2 as DATE) as final_submission_date,
 approval_log, cast(approval_log."timestamp" as DATETIME) as approval_log_timestamp, cast(approval_log."approverEmail" as VARCHAR) as approver_email, cast(approval_log."approvalStatus" as VARCHAR) as approval_status,
 
 row_number() over(partition by s3.id, approver_email order by approval_log_timestamp desc) as row3
@@ -61,7 +61,7 @@ where s3.row2 = 1),
 --xx--Approval Log
 
 sub5 as(
-  select s4.id, s4.profileinstanceid,s4.status, s4.data, s4.initial_submission_date, s4.final_submission_date, s4.approver_email, cast(s4.approval_log_timestamp as DATE) approval_date, s4.approval_status,
+  select s4.id, s4.profileinstanceid, s4.status, s4.data, s4.initial_submission_date, s4.final_submission_date, s4.approver_email, cast(s4.approval_log_timestamp as DATE) approval_date, s4.approval_status,
 
 case
 	when s4.approver_email = 'hdfcbank@goodera.com' then approval_date
@@ -109,10 +109,11 @@ case
   	when s4.profileid = 27396 then p2.name
   	else s4.data.ngo
 end as ngo_partner,
+  
 case
   	when s4.profileid = 27396 then p4.monitoring_live
     else p5.monitoring_live
-    end as monitoring_live , 
+end as monitoring_live , 
   
 t1.name as project_manager, cast(s4.data.start_date as DATE) as start_date, cast(s4.data.end_date as DATE) as end_date, t3.name as fy
 
@@ -125,9 +126,7 @@ left join profile_27396 p3 on p3._id = s4.data.project_code
 left join profile_27396 p4 on p4._id=s4.profileinstanceid
 left join profile_27420 p5 on p5._id=s4.profileinstanceid
   
-where s4.row3 = 1 and
-  --s4.approver_email is not null and 
-  projectcode != ' ' ),
+where s4.row3 = 1 and projectcode != ' ' ),
 
 sub6 as(
   select s5.id, s5.projectcode, s5.status, s5.data, s5.initial_submission_date, s5.final_submission_date, s5.renewed, s5.project_manager, cast(s5.ngo_partner as VARCHAR), cast(s5.focus_area as VARCHAR), cast(s5.intervention_type as VARCHAR), s5.start_date, s5.end_date, s5.fy,
@@ -136,14 +135,15 @@ max(s5.date_of_action_by_goodera) as date_of_action_by_goodera,
 max(s5.status_at_goodera) as status_at_goodera,
 max(s5.date_of_action_by_csr_head) as date_of_action_by_csr_head,
 max(s5.status_at_csr_head) as status_at_csr_head,
+  
 case 
   	when t.name is null then 'No'
     else t.name 
-	end as monitoring_live
+end as monitoring_live
 
 from sub5 s5
-left join ds_mysql_prod_tagelement t
-on t.id= s5.monitoring_live
+left join ds_mysql_prod_tagelement t on t.id= s5.monitoring_live
+  
 group by s5.id, s5.projectcode, s5.status, s5.data, s5.initial_submission_date, s5.final_submission_date, s5.renewed, s5.project_manager, s5.ngo_partner, s5.focus_area, s5.intervention_type, s5.start_date, s5.end_date, s5.fy,t.name),
 
 sub7 as(
@@ -158,7 +158,13 @@ sub8 as(
 where row = 1 and left(fy,4) > 2019
 )
 
-select projectcode, To_Char(final_submission_date,'YYYY-MM-DD') as final_submission_date , renewed, project_manager, ngo_partner, focus_area, intervention_type, To_Char(start_date,'YYYY-MM-DD') as start_Date, To_Char(end_date,'YYYY-MM-DD') as end_date, To_Char(date_of_action_by_goodera,'YYYY-MM-DD') as date_of_action_by_goodera, status_at_goodera,monitoring_live, To_Char(date_of_action_by_csr_head,'YYYY-MM-DD') as date_of_action_by_csr_head, status_at_csr_head,
+select projectcode, renewed, project_manager, ngo_partner, focus_area, intervention_type, status_at_goodera,monitoring_live, status_at_csr_head,
+
+TO_CHAR(final_submission_date,'YYYY-MM-DD') as final_submission_date,
+TO_CHAR(start_date,'YYYY-MM-DD') as start_Date, 
+TO_CHAR(end_date,'YYYY-MM-DD') as end_date, 
+TO_CHAR(date_of_action_by_goodera,'YYYY-MM-DD') as date_of_action_by_goodera,
+TO_CHAR(date_of_action_by_csr_head,'YYYY-MM-DD') as date_of_action_by_csr_head,
 
 case
 	when initial_submission_date = final_submission_date then NULL
