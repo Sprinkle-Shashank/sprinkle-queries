@@ -1,4 +1,4 @@
-SELECT projectId, the.name AS theme, fy_timerange, amount, pro.name AS projects, 
+WITH TABLE1 AS (SELECT projectId, the.name AS theme, fy_timerange, SUM(amount), pro.name AS projects, 
 EXTRACT(YEAR FROM CAST(p.fy_timerange.start AS DATE)) AS s_year,
 EXTRACT(MONTH FROM CAST(p.fy_timerange.start AS DATE)) AS s_month,
 CASE
@@ -6,7 +6,7 @@ CASE
 	ELSE s_year
 	END AS start_year,
 	start_year+1 as end_year,
-CONCAT(start_year,CONCAT('-',RIGHT(end_year,2))) as fy
+CONCAT(start_year,CONCAT(' - ',RIGHT(end_year,2))) as fy
 
 FROM profile_81326 p
 
@@ -16,4 +16,8 @@ ON p.projects = pro.id
 LEFT JOIN tagElement_4886 the
 ON p.theme = the.id
 
+GROUP BY projectId, the.name, fy_timerange, amount, pro.name, fy
+)
+
+SELECT the.name, fy_timerange, amount, pro.name, fy, amount FROM TABLE1
 --tagElement_4886
