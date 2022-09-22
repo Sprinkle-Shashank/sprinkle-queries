@@ -17,35 +17,37 @@ with table1 as(Select projectid , status , date_enrollment ,
 		table3 as ( Select p.projectid, p.total_workers, extract(year from p2.date_enrollment)as s_year, extract(month from p2.date_enrollment)as month,
 case when month = 1 then s_year-1
 ELSE s_year END AS year_new,
-s.name as status
- from profile_17526 p
-  
-LEFT JOIN table2 p2 ON
-p.projectid = p2.projectid
-			   
- LEFT JOIN ds_mysql_prod_tagelement AS S ON
-p2.status = s.id	
-
-
-where year_new is not null and total_workers != 0 and (p2.status = 1400365 or p2.status is NULL))
-				   
-	Select *, cou.name as country , 
+s.name as status , cou.name as country , 
 nvl2(SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)),ven.name) as vendor_name, case when vendor_name='' then ven.name else vendor_name end as vendor, fac.name as factory,
 	CASE when month =2  or month =3 or month=4 then 'Q1'
 	 when month = 5 or month = 6 or month = 7 then 'Q2'
 	  when month = 8 or month = 9 or month = 10 then 'Q3'
 	   when month = 11 or month = 12 or month = 1 then 'Q4'
 	 else NUll end as quarter
-	
+ from profile_17526 p
+  
+LEFT JOIN table2 p2 ON
+p.projectid = p2.projectid
+				   
+left join project_1137 fac
+on p.projectid = fac.id
+left join project_1137 ven
+on fac.parent = ven.id
+left join project_1137 cou
+on ven.parent = cou.id
+
+			   
+ LEFT JOIN tagelement_1137 AS S ON
+p2.status = s.id	
+
+
+where year_new is not null and total_workers != 0 and (p2.status = 1400365 or p2.status is NULL))
+				   
+	Select *
 	
 	
 	from table3 p5
-		left join ds_mysql_prod_project fac
-on p5.projectid = fac.id
-left join ds_mysql_prod_project ven
-on fac.parent = ven.id
-left join ds_mysql_prod_project cou
-on ven.parent = cou.id
+	
 
 
 
