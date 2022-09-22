@@ -1,5 +1,5 @@
 with table1 as
-( select projectId.name as projectId, p._id ,  indicator_1.name as indicator, p.project_name, p.ben_type, p.proj , l.fy_timerange , q.vertical, focus.name as focus, q.state, q.direct_or_partner, q.partner, q.district, q.project_code , q.entity ,  z.createddate as created, z.progress as progress_new , state_name.name as state_name_update, l.progress, int_indi.name as int_indi from profile_61044 as p 
+( select projectId.name as projectId, p._id ,  indicator_1.name as indicator, p.project_name, p.ben_type, p.target, p.proj , z.fy_timerange , q.vertical, focus.name as focus, q.state, q.start_date, q.direct_or_partner as site, q.partner, q.district, q.project_code , q.entity ,  z.createddate as created, z.completed, progress.name as progress , state_name.name as state_name_update, int_indi.name as int_indi from profile_61044 as p 
  
  left join profile_62881 q 
  on p.proj = q._id
@@ -19,41 +19,38 @@ with table1 as
  left join ds_mysql_prod_tagelement as int_indi
   on indicator_1.parent = int_indi.id
  
- left join profile_61046 l 
- on p._id = l.indicator
- 
  left join profile_55471 z 
  on q.project_code = z.project_code
-  
- where direct_or_partner=1132991
+ 
+ left join ds_mysql_prod_tagelement as progress
+  on z.progress = progress.id
+ 
+ where direct_or_partner=1132990 and completed=939857
  ),
  
  
  table2 as 
  ( 
-   select  projectId, indicator , project_name , sum(progress) as beneficiary, fy_timerange , vertical, focus, partner, district, project_code , entity ,  p.created, state_name_update, progress_new.name as progress_new, int_indi from table1 as p
+   select  projectId, indicator, project_name , p.focus, sum(target) as beneficiary, fy_timerange , vertical, p.partner, district, project_code , entity ,  created, state_name_update, int_indi from table1 as p
    
-  left join ds_mysql_prod_tagelement as progress_new
-  on p.progress_new = progress_new.id
-   
-   group by projectId, indicator , project_name , fy_timerange , vertical, focus, partner, district, project_code , entity ,  p.created, state_name_update, progress_new.name, int_indi
+   group by projectId, indicator, project_name , p.focus, fy_timerange , vertical, p.partner, district, project_code , entity ,  created, state_name_update, int_indi
   ),
   
   table3 as
   ( 
-   select p.projectId, indicator, project_name , beneficiary, fy_timerange , vertical, focus, partner, district, project_code , entity ,  p.created, vertical_new , state_name_update, progress_new, int_indi from table2 as p , p.vertical as vertical_new
+   select p.projectId, indicator, project_name , p.focus, beneficiary, fy_timerange , vertical, p.partner, district, project_code , entity ,  p.created, vertical_new , state_name_update, int_indi from table2 as p , p.vertical as vertical_new
    ),
    
    
    table4 as
    ( 
-	 select projectId, indicator , project_name , beneficiary, fy_timerange , focus, partner, district, project_code , ent.name as entity ,  p.created,  case 
+	 select projectId, indicator, project_name , p.focus, beneficiary, fy_timerange , p.partner, district, project_code , ent.name as entity ,  p.created,  case 
 when vert1.name IS NULL AND vert.name IS NOT NULL THEN vert.name
 else vert1.name 
 END AS vertical , state_name_update , case
  when district is NULL then state_name_update
  else district
- end as district_update, case when district_update=state_name_update then state_name_update else concat(district_update,concat(' , ',state_name_update)) end as location_update,concat(project_name, concat('-', project_code)) as concat_1, progress_new, int_indi from table3 as p
+ end as district_update, case when district_update=state_name_update then state_name_update else concat(district_update,concat(' , ',state_name_update)) end as location_update, concat(project_name, concat('-', project_code)) as concat_1, int_indi from table3 as p
 	
 left join ds_mysql_prod_tagelement as vert
   on p.vertical_new = vert.id
@@ -67,15 +64,13 @@ left join ds_mysql_prod_tagelement ent
 	 
 	 table5 as
 	 ( 
-	   select projectId, indicator, project_name , sum(beneficiary) as beneficiary , fy_timerange , focus, partner,  project_code , entity ,  p.created,
- vertical , location_update, concat_1, progress_new, int_indi from table4 as p
+	   select projectId, indicator, project_name , p.focus, sum(beneficiary) as beneficiary , fy_timerange , project_code , entity ,  p.created, projectId as  progress,
+ vertical , p.partner ,  location_update, int_indi, concat_1 from table4 as p
 	   
-	  group by  projectId, indicator, project_name ,fy_timerange , focus, partner, project_code , entity ,  p.created, 
- vertical , location_update, concat_1, progress_new, int_indi
+	   group by  projectId, indicator, project_name , p.focus, fy_timerange , project_code , entity ,  p.created, progress ,
+ vertical , p.partner ,  location_update , int_indi, concat_1
 	   
-	   order by p.created , progress_new desc
+	   order by created , progress desc
  )
- 
- 
  
 select * from table5
