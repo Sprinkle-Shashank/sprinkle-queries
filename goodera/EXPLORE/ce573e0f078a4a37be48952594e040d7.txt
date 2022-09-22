@@ -1,14 +1,11 @@
 with table1 as
-( select projectId.name as projectId, p._id ,  indicator_1.name as indicator, p.project_name, p.ben_type, p.target, p.proj , z.fy_timerange , q.vertical, focus.name as focus, q.state, q.start_date, q.direct_or_partner as site, q.project_code , q.entity , z.completed, int_indi.name as int_indi from profile_61044 as p 
+( select projectId.name as projectId, p._id ,  indicator_1.name as indicator, p.project_name, p.ben_type, p.target, p.proj , z.fy_timerange , q.vertical, q.focus, q.state, q.start_date, q.direct_or_partner as site, q.project_code , q.entity , z.completed, int_indi.name as int_indi from profile_61044 as p 
  
  left join profile_62881 q 
  on p.proj = q._id
  
  left join ds_mysql_prod_project as projectId
   on p.projectId = projectId.id 
- 
- left join ds_mysql_prod_tagelement as focus
-  on q.focus = focus.id
  
  left join ds_mysql_prod_tagelement as indicator_1
   on p.indicator = indicator_1.id 
@@ -41,7 +38,7 @@ with table1 as
    
    table4 as
    ( 
-	 select projectId, indicator, p.focus, value, fy_timerange , project_code , ent.name as entity ,  case 
+	 select projectId, indicator, focus.name as focus, value, fy_timerange , project_code , ent.name as entity ,  case 
 when vert1.name IS NULL AND vert.name IS NOT NULL THEN vert.name
 else vert1.name 
 END AS vertical , p.name, int_indi from table3 as p
@@ -54,6 +51,9 @@ left join ds_mysql_prod_tagelement as vert1
 	 
 left join ds_mysql_prod_tagelement ent
   on p.entity = ent.id 
+	 
+left join ds_mysql_prod_tagelement as focus
+  on p.focus = focus.id
 	 ),
 	 
 	 table5 as
