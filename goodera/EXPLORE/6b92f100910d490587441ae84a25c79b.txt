@@ -60,23 +60,32 @@ level2tab as (select m.name as level1 , z.level1 as level2 from profile_27424 p
 left join ds_mysql_prod_tagelement m on
 m.id = p.pm_name
 left join level1tab z on
-z.level1email = p.approver)
+z.level1email = p.approver),
+
+
 	 
-Select tab1.CODE, tab2.CODE,tab3.CODE, tab1.interventiontype ,
+s21 as (Select tab1.CODE, tab2.CODE,tab3.CODE, tab1.interventiontype ,
 case  
 when  tab1.interventiontype='Indirect - Others' 
 then tab1.curr_yr_budget1
 when tab1.interventiontype='Direct' 
 then tab1.curr_yr_budget1
 when tab1.interventiontype='Indirect'
-then (tab2.hdfc_cost_monthly+tab3.monthly_cost)  
+then (tab2.hdfc_cost_monthly+tab3.monthly_cost) 
 end as AllocatedAmount, 
 tab1.fy_timerange ,tab1.level1,d.level2
 from tab1 
 left join tab2 on tab1.CODE=tab2.CODE
 left join tab3 on tab1.CODE=tab3.CODE
 left join level2tab d
-on d.level1 = tab1.level1
+on d.level1 = tab1.level1)
+
+Select CODE, CODE,CODE, interventiontype, 
+case when AllocatedAmount=NULL then 0
+else AllocatedAmount 
+end as AllocatedAmount,
+fy_timerange, level1, level2
+from s21
 
 /*with tab1 as (select split_part(split_part(p1.name,'|',1),'.',1) as projectcode,
 f.name as fy_timerange,sum(p1.curr_yr_budget) curr_yr_budget1, p8.name as interventiontype, sum(p1.curr_yr_budget) curr_yr_budget,
