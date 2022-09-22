@@ -1,5 +1,5 @@
 with table1 as
-( select projectId.name as projectId, p._id ,  indicator_1.name as indicator, p.project_name, p.ben_type, p.target, p.proj , z.fy_timerange , q.vertical, q.focus, q.state, q.start_date, q.direct_or_partner as site, q.project_code , q.entity , z.completed, int_indi.name as int_indi from profile_61044 as p 
+( select projectId.name as projectId, p._id ,  indicator_1.name as indicator, p.project_name, p.ben_type, p.target, p.proj , z.fy_timerange , q.vertical, q.focus, q.state, q.start_date, q.direct_or_partner as site, q.project_code , q.entity , z.completed, int_indi.name as int_indi, state_name.name as state_name_update from profile_61044 as p 
  
  left join profile_62881 q 
  on p.proj = q._id
@@ -13,6 +13,9 @@ with table1 as
  left join ds_mysql_prod_tagelement as int_indi
   on indicator_1.parent = int_indi.id
  
+ left join ds_mysql_prod_tagelement as state_name
+  on q.state = state_name.id
+ 
  left join profile_55471 z 
  on q.project_code = z.project_code
  
@@ -22,14 +25,17 @@ with table1 as
  
  table2 as 
  ( 
-   select  p.projectId, indicator, p.focus, sum(target) as value, fy_timerange , p.state, vertical, project_code , entity , int_indi from table1 as p
+   select  p.projectId, indicator, p.focus, sum(target) as value, fy_timerange , p.state_name_update, vertical, project_code , entity , int_indi, l.name from table1 as p
+   
+   left join profile_64961 AS l 
+ on p.state_name_update = l.state
      
-   group by p.projectId, indicator, p.focus, fy_timerange , p.state, vertical,  project_code , entity ,int_indi
+   group by p.projectId, indicator, p.focus, fy_timerange , p.state_name, vertical,  project_code , entity ,int_indi, l.name
   ),
   
   table3 as
   ( 
-   select p.projectId, indicator, p.focus, value, fy_timerange , vertical, project_code , entity , vertical_new , int_indi from table2 as p , p.vertical as vertical_new
+   select p.projectId, indicator, p.focus, value, fy_timerange , vertical, project_code , entity , vertical_new , int_indi, p.name from table2 as p , p.vertical as vertical_new
    ),
    
    
@@ -38,7 +44,7 @@ with table1 as
 	 select projectId, indicator, focus.name as focus, value, fy_timerange , project_code , ent.name as entity ,  case 
 when vert1.name IS NULL AND vert.name IS NOT NULL THEN vert.name
 else vert1.name 
-END AS vertical , int_indi from table3 as p
+END AS vertical , int_indi, p.name from table3 as p
 	
 left join ds_mysql_prod_tagelement as vert
   on p.vertical_new = vert.id
@@ -56,10 +62,10 @@ left join ds_mysql_prod_tagelement as focus
 	 table5 as
 	 ( 
 	   select projectId, indicator,  p.focus, sum(value) as value , fy_timerange , project_code , entity , 
- vertical , int_indi from table4 as p
+ vertical , int_indi, p.name from table4 as p
 	   
 	   group by  projectId, indicator, p.focus, fy_timerange , project_code , entity ,  
- vertical , int_indi
+ vertical , int_indi, p.name
 	   
  )
  
