@@ -1,6 +1,14 @@
-select p._id, p1.name as projectId, p2.name as parent1,p.fy_timerange as fy_timerange, sum(p.amount) as amount,extract(month from cast(p.fy_timerange.start as datetime)) as month,extract(year from cast(p.fy_timerange.start as datetime)) as year
+with sub1 as(select p._id as id, p1.name as projectId, p2.name as parent1,p.fy_timerange as fy_timerange, sum(p.amount) as amount,extract(month from cast(p.fy_timerange.start as datetime)) as month,extract(year from cast(p.fy_timerange.start as datetime)) as year
 
 from profile_76369 p
 left join ds_mysql_prod_project p1 on p1.id=p.projectId
-left join ds_mysql_prod_project p2 on p2.id=p1.parent
---group by p1.name,p2.name,p._id, p.fy_timerange,month,year
+left join ds_mysql_prod_project p2 on p2.id=p1.parent)
+
+select id,projectId,parent1,fy_timerange,
+case 
+when month <=3
+then year-1
+else year1
+end as start
+from sub1
+group by id,projectId,parent1,fytimerange,
