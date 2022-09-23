@@ -22,20 +22,24 @@ temp2 as (select * ,temp1.mode,  temp1.fuel_type, temp1.commute_distance,
 	   select cast('Transport Consumption' as varchar) as col*/
 	   ),
 	   
- z as (select t2.name as projectid, fy_timerange as time_timerange,timerange.name as financialperiod, datatablebase, d1.name  as fuel,case d1.name when 'Petrol' then 0.000271
-                                   when 'Diesel' then 0.000218
+ z as (select t2.name as projectid, fy_timerange as time_timerange,timerange.name as financialperiod, datatablebase,d.name as  fuel, d1.name  as Transport, concat(concat(Transport,'_'),fuel) as Transport_Type,
+	   case Transport_Type when 'Bus_Fuel' then 0.00010471
+                           when 'Train_Electricity' then 0.00004115
+	    when 'Train_Petrol' then 0.00004115
+	    when 'Motorbike_Petrol' then 0.000109
+	    when 'Car / Van_Diesel' then 0.00017
+	    when 'Car / Van_Petrol' then 0.000202
 	                               else   0
-	                               end  as mf, dist_leased*mf as Transport_Emissions,fuel_consump_leased as Transport_Consumption,
+	                               end  as multificationfactor, commute_distance*multificationfactor as Fuel_Emissions,
 	   
-
-	   cast('Scope 3' as VARCHAR) as scope ,
-	   cast('Employee Commuting' as VARCHAR) as type
+cast('Scope 3' as VARCHAR) as scope ,
+cast('Employee Commuting' as VARCHAR) as type
 	   
 from y 
  left join ds_mysql_prod_tagelement d1
-on d1.id=y.fuel_leased 
-/* left join ds_mysql_prod_tagelement d
-on d.id=y.type_company*/
+on d1.id=y.mode 
+ left join ds_mysql_prod_tagelement d
+on d.id=y.fuel_type
 	   
 left join ds_mysql_prod_project t1
 on t1.id=y.xprojectid
