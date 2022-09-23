@@ -1,7 +1,7 @@
 with table1 as ( select _id ,projectid, pro.name as factory,pace_status as facility_status,row_number() over 
 (partition by projectid
  order by _id desc) as row from profile_54267 p
-		left join ds_mysql_prod_project as pro
+		left join project_1137 as pro
 on p.projectid = pro.id	   ),
 
 table2 as ( select * from table1 
@@ -17,7 +17,7 @@ table1 as ( select  p._id, p.projectid,q.factory_vpid as location_id,
                   p.projectid = q.projectid
 		          left join profile_4948 r on
 		          p.projectid = r.projectid
-		          left join ds_mysql_prod_project as pro
+		          left join project_1137 as pro
                   on p.projectid = pro.id
 		          where  location_id is not null and cp_location_id is null
   ),
@@ -38,19 +38,19 @@ brand_table as ( select projectid,brand_old,pace_brand from profile_52810 p , p.
 
 table5 as ( select _id,select_module from profile_4227 p, p.select_modules select_module ),
 table6 as (select _id, listagg(module.name,',') as select_module from table5 t5
-left join ds_mysql_prod_tagelement module
+left join tagelement_1137 module
 on t5.select_module = module.id
 		    
 		  group by _id 
 		   ),
 table7 as ( select _id, influencer from profile_4227 p, p.influencers influencer),		   
 table8 as (	select _id,listagg(influence.name,',') as influencer from table7 t7 
-  left join ds_mysql_prod_tagelement influence
+  left join tagelement_1137 influence
 on t7.influencer = influence.id
  group by _id		  ),
 table9 as ( select _id, time from profile_4227 p, p.cls_time time),
 table10 as ( select _id,listagg(time.name,',') as cls_time from table9 t9
-	left join ds_mysql_prod_tagelement time
+	left join tagelement_1137 time
 on t9.time = time.id		
   group by _id),
 
@@ -98,17 +98,17 @@ p.projectid = add_community.projectid
 
 left join table2 t2 on
 p.projectid = t2.projectid
-left join ds_mysql_prod_project as pro
+left join project_1137 as pro
 on p.projectid = pro.id
 left join factory_locationid f_id on
   p._id = f_id._id
 left join brand_table on 
 p.projectid = brand_table.projectid
-left join ds_mysql_prod_tagelement as brand_old
+left join tagelement_1137 as brand_old
 on brand_table.brand_old = brand_old.id
-left join ds_mysql_prod_tagelement as brand_pace
+left join tagelement_1137 as brand_pace
 on brand_table.pace_brand = brand_pace.id  
-left join ds_mysql_prod_tagelement as status
+left join tagelement_1137 as status
 on f_id.pace_status_2 = status.id  
 left join table6 t6 on
 p._id=t6._id 
@@ -125,9 +125,9 @@ left join user_email u_t on
 )
 
 select * from test
-where factory is not null 
+where factory is not null and  projectid like '%%'
 order by _id desc
 --select * from factory_locationid
 
-where projectid like '%%'
+
 
