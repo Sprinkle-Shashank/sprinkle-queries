@@ -5,7 +5,7 @@ left join ds_mysql_prod_project p1 on p1.id=p.projectId
 left join ds_mysql_prod_project p2 on p2.id=p1.parent
 group by 1,2,3,4,5,6,7),
 
-sub2 as(select id,projectId,parent1,sum(amount) as amount,fy,
+sub2 as(select id,projectId,parent1,amount,fy,
 case 
   when month <=3 then year-1
   else year
@@ -14,6 +14,7 @@ start+1 as end1, concat(start,'-04-01T00:00:00.000Z') as start1, concat(end1,'-0
 concat(concat(concat(concat('{"start":"',start1),'","end":"'),end2),'"}') as fy_1--concat('FY(',concat(start,concat('-',concat(end1,')')))) as fy_2
 		
 from sub1
-group by id,projectId,parent1,fy,start)
-select projectId,parent1,amount,fy_1
+group by id,projectId,parent1,fy,amountstart)
+select projectId,parent1,sum(amount) as amount,fy_1 as fy_timerange
 from sub2
+group by projectId,parent1,fy_1
