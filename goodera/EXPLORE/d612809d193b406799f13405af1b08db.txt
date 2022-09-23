@@ -5,12 +5,15 @@ left join ds_mysql_prod_project p1 on p1.id=p.projectId
 left join ds_mysql_prod_project p2 on p2.id=p1.parent
 group by 1,2,3,4,6,7)
 
-select id,projectId,parent1,
+sub2 as(select id,projectId,parent1,
 case 
 when month <=3 then year-1
 else year
-end as start,start+1 as end, concate(start,'-04-01T00:00:00.000Z') as start1,
-concat(end,'-04-01T00:00:00.000Z') as end1,concat(concat(concat(concat('{"start":"',start1),'","end":"'),end1),'"}') as fy_1,concat('FY(',concat(start,concat('-',concat(end1,')')))) as fy_2,
+end as start,start+1 as end, concate(start,'-04-01T00:00:00.000Z') as start1
+from sub1)
+select id,projectId,parent1,
+concat(end,'-04-01T00:00:00.000Z') as end1,concat(concat(concat(concat('{"start":"',start1),'","end":"'),end1),'"}') as fy_1,concat('FY(',concat(start,concat('-',concat(end1,')')))) as fy_2
+from sub2
 ---concat(start1,end1) as fy_timerange
-from sub1
+
 --group by id,projectId,parent1,fytimerange,start
