@@ -3,7 +3,7 @@ test0 as(Select p.* ,(sdis)from  profile_76755 p
 , p.sdis_arr sdis union all
  select p.*,NULL as sdis from profile_76755 p where sdis_arr IS NULL
 ),
- test1 as (Select p._id,p.projectId as project,p2.name as factory,fac.name as projectId,p.sdis,p.year_timerange,p.facility_type, p.strategic_yn,ven.name as vendor1,nvl2(SUBSTRING(vendor1, 1, POSITION(' (' in vendor1)), SUBSTRING(vendor1, 1, POSITION(' (' in vendor1)), vendor1) as vendor_name, case when vendor_name='' then vendor1 else vendor_name end as vendor,p.country as country,p.director_region as director_region,
+ test1 as (Select p._id,p.projectId as project,p2.name as factory,p2.facility_vpid,fac.name as projectId,p.sdis,p.year_timerange,p.facility_type, p.strategic_yn,ven.name as vendor1,nvl2(SUBSTRING(vendor1, 1, POSITION(' (' in vendor1)), SUBSTRING(vendor1, 1, POSITION(' (' in vendor1)), vendor1) as vendor_name, case when vendor_name='' then vendor1 else vendor_name end as vendor,p.country as country,p.director_region as director_region,
 
 Case when (p1.recognized_union = 1409098) or (p1.recognized_union = 1409096)
 THEN 1
@@ -127,13 +127,13 @@ left join profile_76770 p2 on
 p.facility_name = p2._id
 
 
-left join ds_mysql_prod_project fac
+left join project_1137 fac
 on p.projectid = fac.id
-left join ds_mysql_prod_project ven
+left join project_1137 ven
 on fac.parent = ven.id
 
 
 where p.strategic_yn = 'Yes'  and project like '%%'
-group by p._id,p.projectId,factory,fac.name,p.sdis,p.year_timerange,p.country,p.director_region,p.facility_type, p.strategic_yn,vendor,ven.name, p1.recognized_union, p1.workers_production_unit, p1.male_female, p1.female_representation, p1.decision_making, p1.decision_making_attendance, p1.meeting_held, p1.members_present_meetings, p1.active_members_list, p1.reps_elected, p1.issues_addressed, p1.follow_up, p1.members_duty_released, p1.peers_reachout, p1.assessment_review, p1.retaliation, p1.alternative_trade_union, p1.grievance_handling,kpi2_Met
+group by p._id,p.projectId,factory,fac.name,p2.facility_vpid,p.sdis,p.year_timerange,p.country,p.director_region,p.facility_type, p.strategic_yn,vendor,ven.name, p1.recognized_union, p1.workers_production_unit, p1.male_female, p1.female_representation, p1.decision_making, p1.decision_making_attendance, p1.meeting_held, p1.members_present_meetings, p1.active_members_list, p1.reps_elected, p1.issues_addressed, p1.follow_up, p1.members_duty_released, p1.peers_reachout, p1.assessment_review, p1.retaliation, p1.alternative_trade_union, p1.grievance_handling,kpi2_Met
 )
 Select * from test1
