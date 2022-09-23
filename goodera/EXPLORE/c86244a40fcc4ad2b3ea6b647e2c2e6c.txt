@@ -1,0 +1,60 @@
+with x as (select xprojectid,fy_timerange, financialperiod,datatablebase from sus_9539 where keyword in ('sour_dest')
+		   and datatablebase is not null and status='APPROVED'),
+		   
+temp2 as (select * , temp1.numb, temp1.dist,
+		  case
+		  	when IS_ARRAY(temp1.class) = false or GET_ARRAY_LENGTH(temp1.class) = 0 then ARRAY(temp1.class)
+		  else temp1.class
+		  end as class_new
+		   
+		  from x as temp,
+		  unpivot temp.datatablebase as temp1 at row) ,/*extract table*/
+		 
+ y as (select xprojectid,financialperiod,fy_timerange,datatablebase,dist_foreign,numb,dist,class from 
+		temp2 ytemp,ytemp.class_new as class),/*unwind*/
+ 
+  t as (select cast('Emissions' as varchar) as col 
+	   /*union all
+	   select cast('Transport Consumption' as varchar) as col*/
+	   ),
+	   
+ z as (select t2.name as projectid, fy_timerange as time_timerange,timerange.name as financialperiod, datatablebase, d1.name  as Class, numb*dist as den, case d1.name when 'Business' then 0.00017
+                                   when 'Economy' then 0.000081
+	                               else   0
+	                               end  as multiplicationfactor,
+	   multiplicationfactor*den as Emissions
+	   
+
+	   cast('Scope 3' as VARCHAR) as scope ,
+	   cast('Business Travel' as VARCHAR) as type
+	   
+from y 
+ left join ds_mysql_prod_tagelement d1
+on d1.id=y.class 
+/* left join ds_mysql_prod_tagelement d
+on d.id=y.type_company*/
+	   
+left join ds_mysql_prod_project t1
+on t1.id=y.xprojectid
+left join ds_mysql_prod_project t2
+on t2.id=t1.parent/*projectid*/
+	   
+left join ds_mysql_prod_tagelement quarter
+on quarter.id=y.financialPeriod
+left join ds_mysql_prod_tagelement half
+on half.id=quarter.parent
+left join ds_mysql_prod_tagelement fy
+on fy.id=half.parent
+left join ds_mysql_prod_tagelement timerange
+on timerange.id=fy.parent/*financialPeriod*/
+	  )
+/*select * from z*/
+select z.projectid,z.time_timerange,z.scope,z.type,z.financialPeriod,
+sum(case 
+	when t.col='Emissions'  then z.Emissions
+	--when t.col='Transport Consumption'  then z.Transport_Consumption
+		else 0												
+	end ) as Total,
+ t.col as Dim
+from z cross join t
+group by z.projectid,z.time_timerange,z.scope,z.type,t.col,z.financialPeriod
