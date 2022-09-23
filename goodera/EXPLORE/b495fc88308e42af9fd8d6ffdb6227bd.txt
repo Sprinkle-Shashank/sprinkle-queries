@@ -5,14 +5,11 @@ WITH table1 AS (SELECT *
 table2 AS (SELECT t1.*, ngo_name, state_name FROM table1 t1, 
 		   t1.ngo AS ngo_name,
 		  t1.state AS state_name
-		  ),
-		  
-table3 AS (SELECT * FROM profile_51331 
-		   WHERE _id NOT IN (SELECT _id FROM table2))
+		  )
 
-/*SELECT sdg_goal, project_pic, pro.name AS projects, ng.name AS ngo, fy.name AS fy_1, ps.name AS project_status, the.name AS theme, description, sdg.name AS sdg_goal_number, fy_timerange, year_of_inception, st.name AS state, cy.name AS city
+SELECT sdg_goal, project_pic, pro.name AS projects, DISTINCT(LISTAGG(ng.name,',')) AS ngo_new, fy.name AS fy_1, ps.name AS project_status, the.name AS theme, description, sdg.name AS sdg_goal_number, fy_timerange, year_of_inception, cy.name AS city,DISTINCT(LISTAGG(st.name,',')) AS new_state
 
-FROM profile_51331 p
+FROM table2 p
 
 LEFT JOIN tagElement_4886 pro
 ON p.projects = pro.id
@@ -27,15 +24,15 @@ LEFT JOIN tagElement_4886 fy
 ON p.fy_1 = fy.id
 
 LEFT JOIN tagElement_4886 ng
-ON p.ngo = ng.id
+ON p.ngo_name = ng.id
 
 LEFT JOIN tagElement_4886 sdg
 ON p.sdg_goal_number = sdg.id
 
 LEFT JOIN tagElement_4886 st
-ON p.state = st.id
+ON p.state_name = st.id
 
 LEFT JOIN tagElement_4886 cy
 ON p.city = cy.id*/
 
-SELECT * FROM table3
+GROUP BY sdg_goal, project_pic, pro.name, fy.name, ps.name, the.name, description, sdg.name, fy_timerange, year_of_inception, cy.name
