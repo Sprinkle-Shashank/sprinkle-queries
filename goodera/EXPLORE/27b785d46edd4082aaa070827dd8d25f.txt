@@ -1,1 +1,18 @@
-select num_total from profile_61693 as p
+with table1 as 
+(select p.projectid , num_total , cou.name as country , row_number() over 
+(partition by p.projectid
+ order by p._id desc) as row from profile_61693 as p
+
+left join project_1137 fac
+on  p.projectid = fac.id
+
+left join project_1137 ven
+on fac.parent = ven.id
+
+left join project_1137 cou
+on ven.parent = cou.id
+
+where country <> 'Test Country' and p.projectid like '%%'
+ )
+ 
+ select * from table1 where row=1
