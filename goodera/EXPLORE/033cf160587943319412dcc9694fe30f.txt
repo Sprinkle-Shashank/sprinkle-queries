@@ -18,7 +18,7 @@ temp2 as (select * ,temp1.fuel_third, temp1.fuel_consump_third,
 	   select cast('Transport Consumption' as varchar) as col
 	   ),
 	   
- z as (select t2.name as projectid, fy_timerange as time_timerange,timerange.name as financialperiod, datatablebase, d1.name  as fuel,case d1.name when 'Petrol' then 0.000271
+ z as (select t1.name as projectid, xprojectid,fy_timerange as time_timerange,timerange.name as financialperiod, datatablebase, d1.name  as fuel,case d1.name when 'Petrol' then 0.000271
                                    when 'Diesel' then 0.000218
 	                               else   0
 	                               end  as mf, 
@@ -50,7 +50,7 @@ on timerange.id=fy.parent/*financialPeriod*/
 	  /* group by t2.name, fy_timerange,timerange.name, datatablebase, d1.name ,dist_third,fuel_consump_third,scope,type*/
 	  )
 /*select * from z*/
-select z.projectid,z.time_timerange,z.scope,z.type,z.financialPeriod,
+select z.projectid,z.time_timerange,z.scope,z.type,z.financialPeriod,xprojectid,
 sum(case 
 	when t.col='Transport Emissions'  then z.Transport_Emissions
 	when t.col='Transport Consumption'  then z.Transport_Consumption
@@ -58,4 +58,4 @@ sum(case
 	end ) as Total,
  t.col as Dim
 from z cross join t
-group by z.projectid,z.time_timerange,z.scope,z.type,t.col,z.financialPeriod
+group by z.projectid,z.time_timerange,z.scope,z.type,t.col,z.financialPeriod,xprojectid
