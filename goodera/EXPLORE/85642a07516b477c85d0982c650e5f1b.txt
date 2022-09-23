@@ -1,32 +1,53 @@
-with main as (select r.name as fy_timerange, cast((split_part(split_part(prod.name,'|',1),'.',1)) as varchar) as ProjectCode,CONCAT(ProjectCode,fy_timerange) as code from profile_54963 p
-left join ds_mysql_prod_project prod on
-prod.id=p.projectid
-left join ds_mysql_prod_tagelement r on
-r.id=p.fy),
-
-lookup as (select cast(q.name as varchar) as ProjectCode,f.name as fy_timerange,m.name as Project_Manager,CONCAT(ProjectCode,fy_timerange) as code
-from profile_27420 d
+with tab1 as (select split_part(split_part(p1.name,'|',1),'.',1) as projectcode,
+f.name as fy_timerange,sum(p1.curr_yr_budget) curr_yr_budget1, p8.name as interventiontype, sum(p1.curr_yr_budget) curr_yr_budget,
+concat(projectcode,fy_timerange) as CODE,t1.name as level1
+from profile_27396 p1
 left join ds_mysql_prod_tagelement f on
-d.fy=f.id
-left join ds_mysql_prod_tagelement m on
-d.project_manager=m.id
-left join profile_27396 q on
-d.project_code=q._id
-		   
+p1.fy=f.id
+left join profile_28235 p8
+on p8._id=p1.intervention_type
+left join ds_mysql_prod_tagelement t1
+			  on t1.id = p1.project_manager
+			/* where f.name not in ('2015-2016','2016-2017','2017-2018')*/
+group by p1.name,2,4,7
 union all
-		   
-select cast(c.name as varchar)as ProjectCode,f.name as fy_timerange,m.name as Project_Manager,CONCAT(ProjectCode,fy_timerange) as code 
-from profile_27396 c	
+select split_part(split_part(split_part(p3.name,'|',1),'.',1),' ',1 ) as projectcode,
+f.name as fy_timerange, sum(p3.curr_yr_budget) as curr_yr_budget1,p3.int_type_calc2 as interventiontype, '0' as curr_yr_budget,
+concat(projectcode,fy_timerange) as CODE,t1.name as level1
+from profile_27420 p3
 left join ds_mysql_prod_tagelement f on
-c.fy=f.id
-left join ds_mysql_prod_tagelement m on
-c.project_manager=m.id),
+p3.fy=f.id 
+			  left join ds_mysql_prod_tagelement t1
+			  on t1.id = p3.project_manager
+			 /* where f.name not in ('2015-2016','2016-2017','2017-2018')*/
+group by p3.name,2,4,7),
 
-main2 as (
-select b.fy_timerange,q.Project_Manager as level1 from main b
-left join lookup q on
-q.code = b.code
-group by b.fy_timerange,q.Project_Manager),
+
+tab2 as (select split_part(split_part(prod.name,'|',1),'.',1) as projectcode,
+f.name as fy_timerange,
+sum( case p2.hdfc_cost_monthly when null then 0
+else p2.hdfc_cost_monthly end) as hdfc_cost_monthly,'0' as monthly_cost, 'Indirect' interventiontype,
+concat(projectcode,fy_timerange) as CODE
+from profile_29974 p2
+left join ds_mysql_prod_project prod
+on prod.id=p2.projectid
+left join ds_mysql_prod_tagelement f on
+p2.fy=f.id
+		/* where f.name not in ('2015-2016','2016-2017','2017-2018')*/
+group by prod.name,2,5
+
+union all 
+select split_part(split_part(prod.name,'|',1),'.',1) as projectcode,
+f.name as fy_timerange,'0' as hdfc_cost_monthly,sum(case p6.monthly_cost when null then 0
+else p6.monthly_cost end) as monthly_cost, 'Indirect' interventiontype,
+concat(projectcode,fy_timerange) as CODE
+from profile_30171 p6
+left join ds_mysql_prod_project prod
+on prod.id=p6.projectid
+left join ds_mysql_prod_tagelement f on
+p6.fy=f.id
+		/* where f.name not in ('2015-2016','2016-2017','2017-2018')*/
+group by prod.name,2,5),
 
 level1tab as (select m.name as level1 ,p.approver as level2,p.name as level1email from profile_27424 p
 left join ds_mysql_prod_tagelement m on
@@ -37,13 +58,20 @@ left join ds_mysql_prod_tagelement m on
 m.id = p.pm_name
 left join level1tab z on
 z.level1email = p.approver)
-
-select p.*,d.level2 from main2 p
-left join level2tab d on
-d.level1 = p.level1
-
-
-
-
-
-
+		 
+Select tab1.CODE, tab2.CODE,/*tab3.CODE,*/ tab1.interventiontype as intervention_type, 
+case  
+when  tab1.interventiontype='Indirect - Others' 
+then tab1.curr_yr_budget1
+when tab1.interventiontype='Direct' 
+then tab1.curr_yr_budget1
+when tab1.interventiontype='Indirect'
+then (tab2.hdfc_cost_monthly+tab2.monthly_cost)  
+end as AllocatedAmount, 
+tab1.fy_timerange ,tab1.level1,d.level2
+from tab1 
+left join tab2 on tab1.CODE=tab2.CODE
+/*left join tab3 on tab1.CODE=tab3.CODE*/
+left join level2tab d
+on d.level1 = tab1.level1
+order by tab1.level1,d.level2
