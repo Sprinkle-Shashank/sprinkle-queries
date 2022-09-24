@@ -1,4 +1,3 @@
-
 with table1 as(Select p._id,p.projectId as project,fac.name as projectId,ven.name as vendor1,nvl2(SUBSTRING(vendor1, 1, POSITION(' (' in vendor1)), SUBSTRING(vendor1, 1, POSITION(' (' in vendor1)), vendor1) as vendor_name, case when vendor_name='' then vendor1 else vendor_name end as vendor,cou.name as country,p2.fac_cl_vpid,p2.vendor_ngo_id,cat.name as primary_category,p.pic,p.pic_2,p.description,p.title from profile_17001 p
 
 
@@ -7,17 +6,20 @@ on p.projectId = p2.projectId
 
 
 
-left join ds_mysql_prod_project fac
+left join project_1137 fac
 on p.projectid = fac.id
-left join ds_mysql_prod_project ven
+left join project_1137 ven
 on fac.parent = ven.id
-left join ds_mysql_prod_project cou
+left join project_1137 cou
 on ven.parent = cou.id
+			   
+left join tagelement_1137 cat
+on p2.primary_category = cat.id
 
 
-where (project ilike '%%') and (cou.id <> 13761)
+where (project like '%%') and (cou.id <> 13761)
 
-group by  project,fac.name ,ven.name,vendor,cou.name ,p2.fac_cl_vpid,p2.vendor_ngo_id,cat.name,p.pic,p.pic_2,p.description,p.title
+group by  p._id,project,fac.name ,ven.name,vendor,cou.name ,p2.fac_cl_vpid,p2.vendor_ngo_id,cat.name,p.pic,p.pic_2,p.description,p.title
 
 ),
 
@@ -44,7 +46,7 @@ group by t1.project,t1.projectId,t1.vendor,t1.country,t1.title,t1.description,t2
 ),
 table5 as
 (
-  select t1.project,t1.projectId,t1.vendor,t1.country,t1.title,t1.description,t3._id,t1.pic_2 as d table1 t1
+  select t1.project,t1.projectId,t1.vendor,t1.country,t1.title,t1.description,t3._id,t1.pic_2 as d from table1 t1
   
 
 left join table3 t3 on
@@ -56,7 +58,7 @@ where (t3._id is null)
 group by t1.project,t1.projectId,t1.vendor,t1.country,t1.title,t1.description,t3._id,t1.pic_2
 )
 
-select project,projectId,country,vendor,title,cast(c as varchar),description, from table2 t2 
+select project,projectId,country,vendor,title,cast(c as varchar),description from table2 t2 
 
 where c is not null
 
