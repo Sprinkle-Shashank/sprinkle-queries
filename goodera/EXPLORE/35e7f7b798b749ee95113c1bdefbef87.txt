@@ -245,9 +245,24 @@ group by 1,2,3,5)
 /*Disbursed from 27398*/
 
 
+level1tab as (select m.name as level1 ,p.approver as level2,p.name as level1email from profile_27424 p
+left join ds_mysql_prod_tagelement m on
+m.id = p.pm_name),
+
+level2tab as (select m.name as level1 , z.level1 as level2 from profile_27424 p
+left join ds_mysql_prod_tagelement m on
+m.id = p.pm_name
+left join level1tab z on
+z.level1email = p.approver),
+
+new11 as (select p.fy,p.level1,d.level2,p.CODE from main2 p
+left join level2tab d on
+d.level1 = p.level1)/*fetches level1manager and level2manager*/
 
 
-Select newtab1.projectcode, newtab1.fy_timerange,name_project, newtab1.project_manager, CoreArea, duration, newtab1.CODE, ImplementingAgency,  newtab1.intervention_type, 
+
+
+Select newtab1.projectcode, newtab1.fy_timerange ,new1.level1 as level1,new1.level2 as level2, name_project, newtab1.project_manager, CoreArea, duration, newtab1.CODE, ImplementingAgency,  newtab1.intervention_type, 
 (n1.allocated_Q1+n1.allocated_Q2+n1.allocated_Q3+n1.allocated_Q4) as Total_allocated_amount, n1.allocated_Q1, n1.allocated_Q2, n1.allocated_Q3, n1.allocated_Q4, t2.total_disbursement, t2.DisbursedAmountforQ1, t2.DisbursedAmountforQ2,t2.DisbursedAmountforQ3, t2.DisbursedAmountforQ4,  count(distinct(q2.censuscode)) as number_of_villages, count(distinct(q2.district)) as districtcount, newtab1.state
 from newtab1
 left join new31 n1
@@ -256,10 +271,12 @@ left join tabn7 t2
 ON t2.CODE=newtab1.CODE
 left join q2
 ON q2.censuscode=n1.censuscode
-group by newtab1.projectcode, newtab1.fy_timerange,name_project, newtab1.project_manager, CoreArea, duration, newtab1.CODE, ImplementingAgency,  newtab1.intervention_type, Total_allocated_amount, n1.allocated_Q1, n1.allocated_Q2, n1.allocated_Q3, n1.allocated_Q4, t2.total_disbursement, t2.DisbursedAmountforQ1, t2.DisbursedAmountforQ2,t2.DisbursedAmountforQ3, t2.DisbursedAmountforQ4, newtab1.state
+left join new11
+on new11.CODE=newtab1.CODE
+group by newtab1.projectcode, newtab1.fy_timerange,name_project, newtab1.project_manager, CoreArea, duration, newtab1.CODE, ImplementingAgency,  newtab1.intervention_type, Total_allocated_amount, n1.allocated_Q1, n1.allocated_Q2, n1.allocated_Q3, n1.allocated_Q4, t2.total_disbursement, t2.DisbursedAmountforQ1, t2.DisbursedAmountforQ2,t2.DisbursedAmountforQ3, t2.DisbursedAmountforQ4, newtab1.state,level1, level2
 union all
 
-Select n2.projectcode, n2.fy_timerange,name_project, n2.project_manager, CoreArea, duration, n2.CODE, ImplementingAgency,  n2.intervention_type, total_allocated_amnt, allocated_amnt_Q1, allocated_amnt_Q2, allocated_amnt_Q3, allocated_amnt_Q4, t2.total_disbursement, t2.DisbursedAmountforQ1, t2.DisbursedAmountforQ2,t2.DisbursedAmountforQ3, t2.DisbursedAmountforQ4, count(distinct(q2.censuscode)) as number_of_villages, count(distinct(q2.district)) as districtcount, n2.state
+Select n2.projectcode, n2.fy_timerange, new1.level1 as level1,new1.level2 as level2, name_project, n2.project_manager, CoreArea, duration, n2.CODE, ImplementingAgency,  n2.intervention_type, total_allocated_amnt, allocated_amnt_Q1, allocated_amnt_Q2, allocated_amnt_Q3, allocated_amnt_Q4, t2.total_disbursement, t2.DisbursedAmountforQ1, t2.DisbursedAmountforQ2,t2.DisbursedAmountforQ3, t2.DisbursedAmountforQ4, count(distinct(q2.censuscode)) as number_of_villages, count(distinct(q2.district)) as districtcount, n2.state
 from newtab1 n2
 left join new31 n1
 on n1.CODE=n2.CODE
@@ -267,4 +284,6 @@ left join tabn7 t2
 ON t2.CODE=n2.CODE
 left join q2
 ON q2.censuscode=n1.censuscode
-group by n2.projectcode, n2.fy_timerange,name_project, n2.project_manager, CoreArea, duration, n2.CODE, ImplementingAgency,  n2.intervention_type, total_allocated_amnt, allocated_amnt_Q1, allocated_amnt_Q2, allocated_amnt_Q3, allocated_amnt_Q4, t2.total_disbursement, t2.DisbursedAmountforQ1, t2.DisbursedAmountforQ2,t2.DisbursedAmountforQ3, t2.DisbursedAmountforQ4, n2.state
+left join new11
+on new11.CODE=newtab1.CODE
+group by n2.projectcode, n2.fy_timerange,name_project, n2.project_manager, CoreArea, duration, n2.CODE, ImplementingAgency,  n2.intervention_type, total_allocated_amnt, allocated_amnt_Q1, allocated_amnt_Q2, allocated_amnt_Q3, allocated_amnt_Q4, t2.total_disbursement, t2.DisbursedAmountforQ1, t2.DisbursedAmountforQ2,t2.DisbursedAmountforQ3, t2.DisbursedAmountforQ4, n2.state, level1, level2
