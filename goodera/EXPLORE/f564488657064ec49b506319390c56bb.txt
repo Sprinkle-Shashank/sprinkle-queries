@@ -1,0 +1,40 @@
+Select p.projectId, p.q13_timerange,
+cast(p.q13_timerange.start as date) as start,
+extract(month from start) as month,
+extract(year from start) as year,
+q.i1, q.i2, q.i3, q.i4, q.i5,
+q.date_today,cast(p.q13.timerange.end as date) as end1,
+Case 
+When month=1 then 'Q4'
+When month=2 then 'Q4'
+When month=3 then 'Q4'
+When month=4 then 'Q1'
+When month=5 then 'Q1'
+When month=6 then 'Q1'
+When month=7 then 'Q2'
+When month=8 then 'Q2'
+When month=9 then 'Q2'
+When month=10 then 'Q3'
+When month=11 then 'Q3'
+When month=12 then 'Q3'
+Else 'No Data Entry'
+end as quarter, 
+concat(year,quarter) as y,
+case 
+when q.date_today is NULL
+then '1'
+else '0'
+end as temp1,
+case 
+when end1 <= q.date_today
+then 'Not Reported'
+else 'Yet to Report' 
+end as temp2,
+case when temp1 ='1'
+then 'Reported'
+else temp2
+end as status
+from profile_60834 p
+left join profile_60828 q
+on p.q13_timerange = q.q13_timerange
+where p.q13_timerange is not null
