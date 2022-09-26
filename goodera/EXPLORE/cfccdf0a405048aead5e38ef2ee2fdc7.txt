@@ -1,6 +1,15 @@
-with sub1 as(
-  select 'Actual Numbers' as dimensions from profile_41363
-union all
-select 'Percentage' as dimensions from profile_41363)
+with temp as(
+  select 'Type 1' as col
+  union all 
+  select 'Type 2' as col)
+  
+select p1.project_name, p1.fy_timerange, t1.name as choose,
+case
+	when temp.col = 'Type 1' then 'Actual Numbers'
+	else 'Percentage'
+end as dimensions
+from profile_41363 p1
+cross join temp
+left join ds_mysql_prod_tagelement t1 on t1.id = p1.project_type
 
-select distinct dimensions from sub1 
+order by p1.project_name
