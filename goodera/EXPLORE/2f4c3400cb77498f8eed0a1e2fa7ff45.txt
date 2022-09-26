@@ -17,7 +17,12 @@ with temp as(Select 'Waste' as col
 			),
 			
 x as (select t2.name as projectid, fy_timerange as time_timerange, timerange.name as financialPeriod,
-'Scope 3' as scope ,keyword,
+'Scope 3' as scope , case when keyword ='waste_disposal_target' then datanumbase as waste_disposal_target,
+	  case when keyword ='distance_target' then datanumbase as distance_target,
+	  case when keyword ='air_freight_target' then datanumbase as air_freight_target,
+	  case when keyword ='road_freight_target' then datanumbase as road_freight_target,
+	  case when keyword ='electricty_lossess_target' then datanumbase as electricty_lossess_target,
+	  case when keyword ='commute_distance_target' then datanumbase as commute_distance_target,
 	  case  when keyword in('meter_1_target_water','meter_2_target_water','meter_3_target_water') then sum(datanumbase)
 	  else 0 end as Water_Supply, 
 	   case  when keyword in('leased_fleet_target','third_party_fleet_target') then sum(datanumbase)
@@ -44,7 +49,7 @@ where KEYWORD IN ('waste_disposal_target','meter_1_target_water','meter_2_target
 group by t2.name,fy_timerange,scope,timerange.name,keyword)
 
 Select x.projectid as country,x.time_timerange,x.scope,x.financialPeriod,
- sum(case --when temp.col ='Waste' then x.waste_disposal_target
+ sum(case when temp.col ='Waste' then x.waste_disposal_target
 		  when temp.col = 'Business Travel' then x.distance_target
 	  when temp.col = 'Air Freight' then x.air_freight_target
 	  when temp.col = 'Road Freight' then x.road_freight_target
