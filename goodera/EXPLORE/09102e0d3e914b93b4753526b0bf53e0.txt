@@ -1,0 +1,29 @@
+with temp as ( 
+select 'total_cities' as c
+  Union all 
+select 'hygiene_kits_distributed' as c
+  Union all 
+select 'ration_kits_distributed' as c 
+  Union all 
+  select 'families_supported' as c
+  Union all 
+  select 'masks_distributed' as c 
+  Union all 
+  select 'sanitizers_distributed' as c   )
+  
+  select pro.name as projectid, fy_timerange,
+sum( case c when 'total_cities' then p.total_cities
+	        when 'hygiene_kits_distributed' then p.hygiene_kits_distributed
+	        when 'ration_kits_distributed' then p.ration_kits_distributed
+	        when 'families_supported' then p.families_supported
+	        when 'masks_distributed' then p.masks_distributed
+	        when 'sanitizers_distributed' then p.sanitizers_distributed
+	      
+	        else null end ) as val, temp.c as dim from profile_82640 p
+			
+			left join ds_mysql_prod_project pro
+             on p.projectid = pro.id
+			cross join temp
+			
+group by projectid,fy_timerange,temp.c,pro.name			
+			
