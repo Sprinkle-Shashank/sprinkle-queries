@@ -146,12 +146,6 @@ tab3.CODE,sum (tab3.Amount_Disbursed) as Amount_DisbursedforCurrentFY_total from
 group by tab3.fy_timerange,tab3.projectcode,
 tab3.CODE		),*//*total amount disbursed for all quarters*/
 
-main as (select r.name as fy_timerange, cast((split_part(split_part(prod.name,'|',1),'.',1)) as varchar) as ProjectCode,CONCAT(ProjectCode,fy_timerange) as code from profile_54963 p
-left join ds_mysql_prod_project prod on
-prod.id=p.projectid
-left join ds_mysql_prod_tagelement r on
-r.id=p.fy),
-
 lookup as (select cast(q.name as varchar) as ProjectCode,f.name as fy_timerange,m.name as Project_Manager,CONCAT(ProjectCode,fy_timerange) as code
 from profile_27420 d
 left join ds_mysql_prod_tagelement f on
@@ -171,10 +165,9 @@ left join ds_mysql_prod_tagelement m on
 c.project_manager=m.id),
 
 main2 as (
-select b.fy_timerange as fy,q.Project_Manager as level1,b.CODE from main b
-left join lookup q on
-q.code = b.code
-group by b.fy_timerange,q.Project_Manager,b.CODE),
+select q.fy_timerange as fy,q.Project_Manager as level1, code
+  from lookup q
+),
 
 level1tab as (select m.name as level1 ,p.approver as level2,p.name as level1email from profile_27424 p
 left join ds_mysql_prod_tagelement m on
@@ -186,7 +179,7 @@ m.id = p.pm_name
 left join level1tab z on
 z.level1email = p.approver),
 
-new1 as (select p.fy,p.level1,d.level2,p.CODE from main2 p
+new11 as (select p.*,d.level2 from main2 p
 left join level2tab d on
 d.level1 = p.level1)/*fetches level1manager and level2manager*/
 
