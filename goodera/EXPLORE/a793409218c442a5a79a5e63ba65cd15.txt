@@ -1,7 +1,6 @@
-with table1 as(select projectId, ngo, schedule_vii, local_yn, project_start_date as fy_timerange, project_end_date, imp_direct, csr_reg_num, state_district, ongoing,
-concat(project_start_date,'T00:00:00.000Z') as project_start_date,
-concat(project_end_date,'T00:00:00.000Z') as project_end_date,
-concat(concat(SUBSTRING(project_start_date, 1, 10),'-'),SUBSTRING(project_end_date, 1, 10)) as fy_timerange1
+with table1 as(select projectId, ngo, schedule_vii, local_yn, project_start_date as fy_timerange, p.project_end_date, imp_direct, csr_reg_num, state_district, ongoing,
+
+concat(concat(SUBSTRING(project_start_date, 1, 10),'-'),SUBSTRING(p.project_end_date, 1, 10)) as fy_timerange1
 
 
 
@@ -12,7 +11,7 @@ table2 as (select t1.*,state_dist from table1 t1 , t1.state_district as state_di
 
 
 
-select t.projectId, ngo, schedule_vii, local_yn, project_start_date as fy_timerange, t.project_end_date, imp_direct, csr_reg_num, state_dist, ongoing,
+select t.projectId, ngo, schedule_vii, local_yn, project_start_date as fy_timerange, t.project_end_date as end, imp_direct, csr_reg_num, state_dist, ongoing,
 concat(concat(SUBSTRING(project_start_date, 1, 10),'-'),SUBSTRING(t.project_end_date, 1, 10)) as fy_timerange1,
 
  sum(p2.prescribed_csr) as allocated, sum(p3.amount) as disbursed,sum(p4.amount) as utilized,
@@ -36,12 +35,3 @@ group by t.projectId, ngo, schedule_vii, local_yn, project_start_date, t.project
 
 order by fy_timerange desc
 
-
-/*
-cast(DAY(project_start_date) as varchar(2)) + '-' + DATENAME(mm, project_start_date) + '-' + cast(YEAR(project_start_date) as varchar(4)) as duration,
-
-EXTRACT(DAY FROM project_start_date),'-',EXTRACT(MONTH FROM project_start_date),'-',EXTRACT(YEAR FROM project_start_date),'to',EXTRACT(DAY FROM project_end_date),'-',EXTRACT(MONTH FROM project_end_date),'-',EXTRACT(YEAR FROM project_end_date) as duration,
-hw to extract day month yr from that fy_timerange?
-EXTRACT(YEAR FROM "2022-06-15T00:00:00.000+00:00")
-concat(day(project_start_date),"-",month(project_start_date),"-",year(project_start_date)," to ",day(project_end_date),"-",month(project_end_date),"-",year(project_end_date)) as duration
-*/
