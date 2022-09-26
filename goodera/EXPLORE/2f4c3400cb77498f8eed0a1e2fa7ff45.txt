@@ -1,0 +1,60 @@
+with temp as(Select 'Waste' as col
+			union all
+			select 'Business Travel' as col
+			 union all
+			select 'Air Freight' as col
+			 union all
+			select 'Road Freight' as col
+			 union all
+			select 'Electricity Losses' as col
+			 union all
+			select 'Employee Commuting' as col
+			 union all
+			 select 'Water Supply' as col
+			 union all
+			select 'Transport' as col
+			
+			),
+			
+x as (select t2.name as projectid, fy_timerange as time_timerange, timerange.name as financialPeriod,
+'Scope 3' as scope ,
+	  case  when keyword in('meter_1_target_water','meter_2_target_water','meter_3_target_water') then sum(datanumbase)
+	  else 0 end as Water_Supply, 
+	   case  when keyword in('leased_fleet_target','third_party_fleet_target') then sum(datanumbase)
+	  else 0 end as Transport
+	  
+
+from  sus_62648 
+
+left join ds_mysql_prod_project t1
+on t1.id=sus_9539.xprojectid
+left join ds_mysql_prod_project t2
+on t2.id=t1.parent/*projectid*/
+
+left join ds_mysql_prod_tagelement quarter
+on quarter.id=sus_9539.financialPeriod
+left join ds_mysql_prod_tagelement half
+on half.id=quarter.parent
+left join ds_mysql_prod_tagelement fy
+on fy.id=half.parent
+left join ds_mysql_prod_tagelement timerange
+on timerange.id=fy.parent/*financialPeriod*/
+
+where KEYWORD IN ('waste_disposal_target','meter_1_target_water','meter_2_target_water','meter_3_target_water','leased_fleet_target','third_party_fleet_target','distance_target','commute_distance_target','electricty_lossess_target','road_freight_target','air_freight_target') and status='APPROVED'
+group by t2.name,fy_timerange,scope,timerange.name)
+
+Select x.projectid as country,x.time_timerange,x.scope,x.financialPeriod,
+ sum(case when temp.col ='Waste' then x. waste_disposal_targe
+		  when temp.col = 'Business Travel' then x.distance_target
+	  when temp.col = 'Air Freight' then x.air_freight_target
+	  when temp.col = 'Road Freight' then x.road_freight_target
+	  when temp.col = 'Electricity Losses' then x.electricty_lossess_target
+	 when temp.col = 'Employee Commuting' then x.commute_distance_target
+	 when temp.col = 'Water Supply' then x.Water_Supply
+	 when temp.col = 'Transport' then x.Transport
+	    
+								  end ) as Total,
+		
+temp.col as Dim
+ from x cross join temp
+group by x.projectid,x.time_timerange,x.scope, temp.col,x.financialPeriod
