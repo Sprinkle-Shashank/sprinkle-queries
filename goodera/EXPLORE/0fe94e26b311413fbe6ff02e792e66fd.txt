@@ -1,4 +1,4 @@
- with t1 as(select  projectId, p2.center_name,  no_of_children_exp_hrtge as Children_exposed_to_rich_heritage_of_arts_and_craft, no_of_children_idf_talents as
+ with t1 as(select   tag1.name as projectId, p2.center_name,  no_of_children_exp_hrtge as Children_exposed_to_rich_heritage_of_arts_and_craft, no_of_children_idf_talents as
 Children_identified_for_artistic_talents,p1.name as center_name,
 			case 
 			when p1.nat_festival = 'FALSE' then null
@@ -10,6 +10,8 @@ Children_identified_for_artistic_talents,p1.name as center_name,
 from profile_77346 p1
 left join profile_77340 p2
 on p1.center_name = p2._id
+left join ds_mysql_prod_project tag1
+on p1.projectId = tag1.id
 ),
  
 item as 
@@ -21,15 +23,14 @@ select 'Children_identified_for_artistic_talents' as c
 --,
 
 --t2(
-select  tag1.name as   projectId,t1.fy_timerange,nat_festival,center_name ,
+select  projectId,t1.fy_timerange,nat_festival,center_name ,
 case c
 when 'Children_exposed_to_rich_heritage_of_arts_and_craft' then t1.Children_exposed_to_rich_heritage_of_arts_and_craft
 when 'Children_identified_for_artistic_talents' then t1.Children_identified_for_artistic_talents
 else null
 end as value1,item.c as dimension
 from t1 cross join item 
-left join ds_mysql_prod_project tag1
-on t1.projectId = tag1.id
+
 
 group by  1,fy_timerange,nat_festival,center_name,item.c,Children_exposed_to_rich_heritage_of_arts_and_craft,Children_identified_for_artistic_talents,value1
 
