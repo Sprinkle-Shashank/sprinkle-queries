@@ -7,11 +7,11 @@ when approved = 335745 then 'Approved'
 when proposed = 335745 then 'Proposed'
 else 'NA'
 end) as status,
-/*case 
-when upload = 0 then 0
+case 
+--when upload = 0 then 0
 when upload = '' then 'Download'
-else 0
-end as Download,*/
+else null
+end as Download,
 case
 when status = 'Completed' then 1
 when status = 'Approved' then 2
@@ -19,7 +19,13 @@ when status = 'Proposed' then 3
 when status = 'Ongoing' then 4
 else 5
 end as sort,
-extract(month from cast(p2.date as datetime)) as month,extract(year from cast(p2.date as datetime)) as year
+extract(month from cast(p2.date as datetime)) as month,extract(year from cast(p2.date as datetime)) as year,
+case 
+  when month <=3 then year-1
+  else year
+end as start,
+start+1 as end1, concat(start,'-04-01T00:00:00.000Z') as start1, concat(end1,'-04-01T00:00:00.000Z') as end2,--concat(start1,end1) as fy_timerange
+concat(concat(concat(concat('{"start":"',start1),'","end":"'),end2),'"}') as fy_1
 from profile_70244 p1
 left join profile_70245 p2 on p1._id = p2.ngo_projects
 left join ds_mysql_prod_project p3 on p3.id=p1.projectId
