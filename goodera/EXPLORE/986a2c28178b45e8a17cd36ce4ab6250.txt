@@ -10,16 +10,16 @@ p.xprojectid = pro.id
 left join ds_mysql_prod_project cou on 
 pro.parent = cou.id
 
-where keyword in ('scope2_emission') 
+where keyword in ('scope2_emission','scope2_emission_21_22') 
 
 order by fy_timerange asc
   
 ) PIVOT (
-   sum(datanum) FOR keyword IN ('scope2_emission')
+   sum(datanum) FOR keyword IN ('scope2_emission','scope2_emission_21_22')
 ) 
 				),
 				table2 as (
-select country,name,fy_timerange,scope2_emission as total_emission1,
+select country,name,fy_timerange,
 EXTRACT(MONTH FROM cast (startdate as datetime))AS month1,
 EXTRACT(YEAR FROM cast (startdate as datetime))AS year1,
 CASE
@@ -32,8 +32,10 @@ start+1 as end1,
 concat(start,'-04-01T00:00:00.000Z') as start1,
 concat(end1,'-04-01T00:00:00.000Z') as end2,
 concat(concat(concat(concat('{"start":"',start1),'","end":"'),end2),'"}') as fy_1,
-concat('FY(',concat(start,concat('-',concat(end1,')')))) as fy_2				  
-				  
+concat('FY',concat(start,concat('-',right(end1,2)))) as fy_2,
+case when start > 2020 then scope2_emission_21_22
+	 else 	scope2_emission		  
+	 end as total_emission1			  
 
 from table1 t1
 				),
