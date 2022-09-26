@@ -1,6 +1,5 @@
 WITH SUB1 AS (
-  SELECT
-PD.mode, PD.local_area, PD.state, PD.districts, PD.csr_registration, PD.project_completed, BLI.fy_timerange, IA.agency,
+  SELECT PD.mode, PD.local_area, PD.state, PD.districts, PD.csr_registration, PD.project_completed, BLI.fy_timerange, IA.agency,
 SUM(BLI.budget_amount) AS budget_amount,
 SUM(BLI.amount_spent) AS amount_spent,
 SUM(UA.unspent_amount) AS unspent_amount,
@@ -28,84 +27,69 @@ CASE
   THEN 1
   ELSE 0
  END AS result
-
-FROM profile_81995 AS PD
-
-LEFT JOIN ds_mysql_prod_project AS P
-ON PD.projectid = P.id
-
-LEFT JOIN ds_mysql_prod_tagelement AS S7
-ON PD.schedule_7 = S7.id
-
-LEFT JOIN profile_81997 AS BLI
-ON PD.projectid = BLI.projectid
-
-LEFT JOIN ds_mysql_prod_tagelement AS E
-ON BLI.entity = E.id
-
-LEFT JOIN profile_81346 AS UA
-ON PD.projectid = UA.projectid
-
-LEFT JOIN profile_81338 AS IA
-ON PD.projectid = IA.projectid
-
-WHERE PD.project_completed = false
-
-GROUP BY P.name, PD.mode, PD.local_area, PD.state, PD.districts, PD.csr_registration, PD.project_completed, BLI.fy_timerange, IA.agency, PD.project_start_date, PD.project_end_date, S7.name, E.name
+  
+  FROM profile_81995 AS PD
+  
+  LEFT JOIN ds_mysql_prod_project AS P
+  ON PD.projectid = P.id
+  
+  LEFT JOIN ds_mysql_prod_tagelement AS S7
+  ON PD.schedule_7 = S7.id
+  
+  LEFT JOIN profile_81997 AS BLI
+  ON PD.projectid = BLI.projectid
+  
+  LEFT JOIN ds_mysql_prod_tagelement AS E
+  ON BLI.entity = E.id
+  
+  LEFT JOIN profile_81346 AS UA
+  ON PD.projectid = UA.projectid
+  
+  LEFT JOIN profile_81338 AS IA
+  ON PD.projectid = IA.projectid
+  
+  WHERE PD.project_completed = false
+  
+  GROUP BY P.name, PD.mode, PD.local_area, PD.state, PD.districts, PD.csr_registration, PD.project_completed, BLI.fy_timerange, IA.agency, PD.project_start_date, PD.project_end_date, S7.name, E.name
   ),
   
-SUB2 AS (
-  
-SELECT mode, local_area, st, districts, csr_registration, project_completed, fy_timerange, agency, budget_amount, amount_spent, unspent_amount, projectid, project_start_date, project_end_date, schedule_7, entity, fy_project_start_year, fy_project_end_year, result
-
-FROM SUB1 AS S1,
-
-S1.state AS ST
-  
+  SUB2 AS (
+	SELECT mode, local_area, st, districts, csr_registration, project_completed, fy_timerange, agency, budget_amount, amount_spent, unspent_amount, projectid, project_start_date, project_end_date, schedule_7, entity, fy_project_start_year, fy_project_end_year, result
+	
+	FROM SUB1 AS S1,
+	
+	S1.state AS ST
   ),
   
-SUB3 AS (
-  SELECT mode, local_area, districts, csr_registration, project_completed, fy_timerange, agency, budget_amount, amount_spent, unspent_amount, projectid, project_start_date, project_end_date, schedule_7, entity, fy_project_start_year, fy_project_end_year, result,
+  SUB3 AS (
+	SELECT mode, local_area, districts, csr_registration, project_completed, fy_timerange, agency, budget_amount, amount_spent, unspent_amount, projectid, project_start_date, project_end_date, schedule_7, entity, fy_project_start_year, fy_project_end_year, result,
 LISTAGG(STATE.name,', ') AS state
---LISTAGG(DISTRICT.name,', ') AS district
-
-FROM SUB2
-
-LEFT JOIN ds_mysql_prod_tagelement AS STATE
-ON ST = STATE.id
+	
+	FROM SUB2
+	
+	LEFT JOIN ds_mysql_prod_tagelement AS STATE
+	ON ST = STATE.id
+	
+	GROUP BY mode, local_area, csr_registration, project_completed, fy_timerange, agency, budget_amount, amount_spent, unspent_amount, projectid, project_start_date, project_end_date, schedule_7, entity, fy_project_start_year, fy_project_end_year, result, districts
+  ),
   
-GROUP BY mode, local_area, csr_registration, project_completed, fy_timerange, agency, budget_amount, amount_spent, unspent_amount, projectid, project_start_date, project_end_date, schedule_7, entity, fy_project_start_year, fy_project_end_year, result, districts
-
-),
-
-SUB4 AS (
-  
-SELECT mode, local_area, state, dt, csr_registration, project_completed, fy_timerange, agency, budget_amount, amount_spent, unspent_amount, projectid, project_start_date, project_end_date, schedule_7, entity, fy_project_start_year, fy_project_end_year, result
-
-FROM SUB3 AS S3,
-
-S3.districts AS DT
-  
+  SUB4 AS (
+	SELECT mode, local_area, state, dt, csr_registration, project_completed, fy_timerange, agency, budget_amount, amount_spent, unspent_amount, projectid, project_start_date, project_end_date, schedule_7, entity, fy_project_start_year, fy_project_end_year, result
+	
+	FROM SUB3 AS S3,
+	
+	S3.districts AS DT
   )
   
   SELECT mode, local_area, state, csr_registration, project_completed, fy_timerange, agency, budget_amount, amount_spent, unspent_amount, projectid, project_start_date, project_end_date, schedule_7, entity, fy_project_start_year, fy_project_end_year, result,
   LISTAGG(DISTRICT.name,', ') AS districts
-  
   
   FROM SUB4
   
   LEFT JOIN ds_mysql_prod_tagelement AS DISTRICT
   ON DT = DISTRICT.id
   
-GROUP BY mode, local_area, csr_registration, project_completed, fy_timerange, agency, budget_amount, amount_spent, unspent_amount, projectid, project_start_date, project_end_date, schedule_7, entity, fy_project_start_year, fy_project_end_year, result, state
-  
-  
-  
-  
-  
-  
-  
-  
+  GROUP BY mode, local_area, csr_registration, project_completed, fy_timerange, agency, budget_amount, amount_spent, unspent_amount, projectid, project_start_date, project_end_date, schedule_7, entity, fy_project_start_year, fy_project_end_year, result, state
   
 /*
 [QUERY FOR OLDER FINANCIALS CONFIG]
