@@ -1,2 +1,38 @@
-select * from profile_46325
+
+with table1 as(select projectId, ngo, schedule_vii, local_yn, project_start_date as fy_timerange, p.project_end_date, imp_direct, csr_reg_num, state_district, ongoing,
+
+concat(concat(SUBSTRING(project_start_date, 1, 10),'-'),SUBSTRING(p.project_end_date, 1, 10)) as fy_timerange1
+
+
+
+from profile_46325 p),
+
+table2 as (select t1.*,state_dist from table1 t1 , t1.state_district as state_dist)
+
+
+
+
+select t.projectId, ngo, schedule_vii, local_yn, project_start_date as fy_timerange, t.project_end_date as end, imp_direct, csr_reg_num, state_dist, ongoing,
+concat(concat(SUBSTRING(project_start_date, 1, 10),'-'),SUBSTRING(t.project_end_date, 1, 10)) as fy_timerange1,
+
+ sum(p2.prescribed_csr) as allocated, sum(p3.amount) as disbursed,sum(p4.amount) as utilized,
+ sum(p3.amount)-sum(p4.amount) as unspent
+
+from table2 t
+
+left join profile_76972 p2
+on p2.projectid=t.projectid
+
+left join profile_76976 p3
+on p3.projectid=t.projectid
+
+left join profile_76977 p4
+on p4.projectid=t.projectid
+
+where ongoing is not null 
+
+
+group by t.projectId, ngo, schedule_vii, local_yn, project_start_date, t.project_end_date, imp_direct, csr_reg_num, state_dist, ongoing
+
+order by fy_timerange des
 
