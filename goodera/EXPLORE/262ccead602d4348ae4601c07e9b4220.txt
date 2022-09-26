@@ -1,0 +1,21 @@
+with  t as (select cast('Air Freight Emissions' as varchar) as col 
+	   
+	   ),
+z as (Select  cast ('Sri Lanka' as varchar) as  projectid,time_timerange,t1.name as  financialperiod,equivalent,  equivalent/1000 as equivalent1, equivalent1/1000 as equivalent2,equivalent1+equivalent2 as Air_Freight_Emissions ,cast('Scope 3'as varchar) as Scope, cast('Air Freight' as varchar) as type 
+
+
+from profile_48725 p1
+
+--left join ds_mysql_prod_project p2 on p2.id=projectid
+left join ds_mysql_prod_tagelement t1 on t1.id = financial_year)
+
+select z.projectid,z.time_timerange,z.scope,z.type,z.financialPeriod,
+sum(case 
+	when t.col='Air Freight Emissions'  then z.Air_Freight_Emissions 
+	--when t.col='Waste Consumption'  then z.dispose_2
+		else 0												
+	end ) as Total,
+ t.col as Dim
+from z cross join t
+group by z.projectid,z.time_timerange,z.scope,z.type,t.col,z.financialPeriod
+ 
