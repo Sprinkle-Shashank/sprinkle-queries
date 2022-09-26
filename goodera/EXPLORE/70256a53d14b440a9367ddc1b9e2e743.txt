@@ -14,46 +14,23 @@ temp2 as (select * ,temp1.dispose_2,  temp1.dispose_type,
  y as (select xprojectid,financialperiod,fy_timerange,datatablebase,dispose_2,dispose_type,row from 
 		temp2 ytemp,ytemp.dispose_type_new as dispose_type),/*unwind*/
  
-  t as (select cast('Fuel Emissions' as varchar) as col 
-	   /*union all
-	   select cast('Transport Consumption' as varchar) as col*/
+  t as (select cast('Waste Emissions' as varchar) as col 
+	   union all
+	   select cast('Waste Consumption' as varchar) as col
 	   ),
 	   
- z as (select t2.name as projectid, fy_timerange as time_timerange,timerange.name as financialperiod, datatablebase,d.name as  waste_type,dispose_2,row
-	   from y 
-
- left join ds_mysql_prod_tagelement d
-on d.id=y.dispose_type
-	   
-left join ds_mysql_prod_project t1
-on t1.id=y.xprojectid
-left join ds_mysql_prod_project t2
-on t2.id=t1.parent/*projectid*/
-	   
-left join ds_mysql_prod_tagelement quarter
-on quarter.id=y.financialPeriod
-left join ds_mysql_prod_tagelement half
-on half.id=quarter.parent
-left join ds_mysql_prod_tagelement fy
-on fy.id=half.parent
-left join ds_mysql_prod_tagelement timerange
-on timerange.id=fy.parent/*financialPeriod*/
-	  )
-select * from z
-	   
-	   
-	   /*d1.name  as Transport, concat(concat(Transport,'_'),fuel) as Transport_Type,
-	   case Transport_Type when 'Bus_Fuel' then 0.00010471
-                           when 'Train_Electricity' then 0.00004115
-	    when 'Train_Petrol' then 0.00004115
-	    when 'Motorbike_Petrol' then 0.000109
-	    when 'Car / Van_Diesel' then 0.00017
-	    when 'Car / Van_Petrol' then 0.000202
+ z as (select t2.name as projectid, fy_timerange as time_timerange,timerange.name as financialperiod, datatablebase,d.name as  waste_type,dispose_2,row, concat(concat(row,'-'),waste_type) as waste,
+	   case waste when 'food-Landfill' then 0.000626959
+                           when 'paper-Landfill' then 0.001064
+	    when 'plastic-Landfill' then 0.0000089
+	    when 'wood-Landfill' then 0.000828117
+	    when 'paper-recylce' then 0.000001576
+	    when 'plastic-Recylce' then 0.00002134
 	                               else   0
-	                               end  as multificationfactor, commute_distance*multificationfactor as Fuel_Emissions,
+	                               end  as multificationfactor, dispose_2/1000 as waste_num, waste_num*multificationfactor*1000 as Waste_Emissions,
 	   
 cast('Scope 3' as VARCHAR) as scope ,
-cast('Employee Commuting' as VARCHAR) as type
+cast('Waste' as VARCHAR) as type
 	   
 from y 
 
@@ -77,8 +54,8 @@ on timerange.id=fy.parent/*financialPeriod*/
 /*select * from z*/
 select z.projectid,z.time_timerange,z.scope,z.type,z.financialPeriod,
 sum(case 
-	when t.col='Fuel Emissions'  then z.Fuel_Emissions 
-	--when t.col='Transport Consumption'  then z.Transport_Consumption
+	when t.col='Waste Emissions'  then z.Waste_Emissions 
+	when t.col='Waste Consumption'  then z.dispose_2
 		else 0												
 	end ) as Total,
  t.col as Dim
