@@ -2,16 +2,20 @@ with x as (select xprojectid,fy_timerange, financialperiod,datatablebase from su
 		   and datatablebase is not null),-- and status='APPROVED'),
 		   
 temp2 as (select * ,temp1.fuel_third, temp1.fuel_consump_third,
-		  temp1.dist_third, case
+		  temp1.dist_third, 
+		/*  case
 		  	when IS_ARRAY(temp1.fuel_third) = false or GET_ARRAY_LENGTH(temp1.fuel_third) = 0 then ARRAY(temp1.fuel_third)
 		  else temp1.fuel_third
-		  end as fuel_third_new
+		  end as fuel_third_new*/
 		   
 		  from x as temp,
 		  unpivot temp.datatablebase as temp1 at row) ,/*extract table*/
 		 
- y as (select xprojectid,financialperiod,fy_timerange,datatablebase,fuel_third,fuel_consump_third,dist_third from 
-		temp2 ytemp,ytemp.fuel_third_new as fuel_third),/*unwind*/
+ --y as (select xprojectid,financialperiod,fy_timerange,datatablebase,fuel_third,fuel_consump_third,dist_third from 
+		--temp2 ytemp,ytemp.fuel_third_new as fuel_third),/*unwind*/
+		
+		y as (select xprojectid,financialperiod,fy_timerange,datatablebase,fuel_third,fuel_consump_third,dist_third from 
+		temp2 ytemp,ytemp.fuel_third),/*unwind*/
  
   t as (select cast('Transport Emissions' as varchar) as col 
 	   /*union all
