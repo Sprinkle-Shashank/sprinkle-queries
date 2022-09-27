@@ -1,7 +1,26 @@
-select 
+with table1 as(select 
 			   p.projectId from profile_16619 p
 				
 			   left join profile_18299 p2
 				on p.projectId = p2.projectId
 			   
 group by p.projectId
+),table2 as(select 
+		  p.projectId,fac.name as factory,
+		  nvl2(SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)),
+		  SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)),
+		  ven.name) as vendor_name,
+		  case when vendor_name='' then ven.name else vendor_name end as vendor,
+		  cou.name as country,case when country in ('India', 'Bangladesh', 'Sri Lanka')
+then 'South Asia'
+when country in ('China')
+then 'North Asia'
+when country in ('Guatemala', 'El Salvador', 'Dominican Republic')
+then 'Americas'
+when country in ('Philippines', 'Cambodia',  'Vietnam',  'Indonesia', 'Myanmar')
+then 'South East Asia'
+end as region,
+		  case when p2.name_subunit is null or p2.name_subunit=' ' then 'N/A' else p2.name_subunit end  as unit,
+		  decode(DATEPART(YEAR,p2.date_enrollment),null,0,DATEPART(YEAR,p2.date_enrollment)) as year_new,isu.name as issue 
+		  from profile_18299 p
+)
