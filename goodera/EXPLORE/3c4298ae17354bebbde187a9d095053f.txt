@@ -1,2 +1,68 @@
-select projectId, fy_timerange, center_name, no_of_enrol_creches, no_of_children_form_edu, no_of_children_learning, no_of_fam_fin_stability, per_dec_nutritional, no_of_children_sch_edu, no_of_children_attd_online, no_of_children_safe_env, no_of_children_btr_health, target_1, target_2, target_3, target_4, target_5, target_6, target_7, target_8, year
-from profile_77343
+with t1 as(select  tag2.name as projectId, fy_timerange, center_name, 
+		   no_of_enrol_creches as Enrolments_from_the_crèches_to_formal_early_learning_centers,
+		   no_of_children_form_edu as Enrolled_in_formal_early_education_or_learning_centers,
+		   no_of_children_learning as Children_identified_with_learning_and_playing_opportunities ,
+		   no_of_fam_fin_stability  as Families_assuring_on_improved_financial_stability,
+		   per_dec_nutritional as Percentage_decrease_in_nutritional_deficiencies_from_the_baseline,
+		   no_of_children_sch_edu  as Children_assessed_for_school_education,
+		   no_of_children_attd_online as Children_attending_online_classes,
+		   no_of_children_safe_env as Children_living_in_safe_environment,
+		   no_of_children_btr_health as Children_identified_with_better_health_as_per_baseline,   
+		   target_1 as Constructions_refurbishments_activity, 
+		   target_2 as Mural_arts_developed, 
+		   target_3 as Health_checkups_camps_organized, 
+		   target_4  as Classes_conducted_by_volunteers,
+		   target_5 as Children_identified_for_health_checkups,
+		   target_6 as Children_tested_for_malnourishment,
+		   target_7 as Children_identified_with_diseases,
+		   target_8 as Children_identified_with_disability, 
+		   tag1.name as  year,
+from profile_77343 p1
+left join ds_mysql_prod_tagelement tag1
+on p1.year  = tag1.id
+left join ds_mysql_prod_project tag2
+on p1.projectId = tag2.id),
+
+item as
+(
+select 'Enrolments_from_the_crèches_to_formal_early_learning_centers' as c
+union all
+select 'Enrolled_in_formal_early_education_or_learning_centers' as c
+union all
+select 'Children_identified_with_learning_and_playing_opportunities' as c
+union all
+select 'Families_assuring_on_improved_financial_stability' as c
+union all
+select 'Percentage_decrease_in_nutritional_deficiencies_from_the_baseline' as c
+union all
+select 'Children_assessed_for_school_education' as c
+union all
+select 'Children_attending_online_classes' as c
+union all
+select 'Children_living_in_safe_environment' as c
+union all
+select 'Children_identified_with_better_health_as_per_baseline' as c
+
+
+),
+t2 as
+(select t1.projectId,center_name,year,start,t1.end,start_date,end_date,t1.fy_timerange,
+case c
+when 'Enrolments_from_the_crèches_to_formal_early_learning_centers' then t1.Enrolments_from_the_crèches_to_formal_early_learning_centers
+when 'Enrolled_in_formal_early_education_or_learning_centers' then t1.Enrolled_in_formal_early_education_or_learning_centers
+when 'Children_identified_with_learning_and_playing_opportunities' then t1.Children_identified_with_learning_and_playing_opportunities
+when 'Families_assuring_on_improved_financial_stability' then t1.Families_assuring_on_improved_financial_stability
+when 'Percentage_decrease_in_nutritional_deficiencies_from_the_baseline' then t1.Percentage_decrease_in_nutritional_deficiencies_from_the_baseline
+when 'Children_assessed_for_school_education' then t1.Children_assessed_for_school_education
+when 'Children_attending_online_classes' then t1.Children_attending_online_classes
+when 'Children_living_in_safe_environment' then t1.Children_living_in_safe_environment
+ when 'Children_identified_with_better_health_as_per_baseline' then t1.Children_identified_with_better_health_as_per_baseline
+else null
+end as value,item.c as dimension
+from t1 cross join item)
+
+select t2.projectId,p2.center_name,t2.fy_timerange,Dimension,sum(val) as value
+from t2
+left join profile_77340 p2
+on t2.center_name = p2._id
+group by t2.projectId,p2.center_name,t2.fy_timerange,Dimension
