@@ -1,8 +1,9 @@
-select _id, projectId.name as projectId, title, start_date, description, photo, file, location.name as location, concat(start_date,concat('|',start_date)) as fy_timerange, concat(substring(p.start_date,9,2),concat('-',concat(substring(p.start_date,6,2),concat('-', substring(p.start_date,1,4))))) as date_new, 
+with t1 as
+(select _id, projectId.name as projectId, title, start_date, description, photo, file, location.name as location, concat(start_date,concat('|',start_date)) as fy_timerange, concat(substring(p.start_date,9,2),concat('-',concat(substring(p.start_date,6,2),concat('-', substring(p.start_date,1,4))))) as date_new, 
 
 case when p.file IS NULL then 'Not Available'
 else 'Download' 
-end as Download
+end as download
 
 from profile_56252 as p
 
@@ -10,4 +11,9 @@ left join ds_mysql_prod_project as projectId
   on p.projectId = projectId.id 
 
 left join ds_mysql_prod_tagelement as location
-  on p.location = location.id 
+  on p.location = location.id),
+  
+  t2 as
+(select projectId, title, description, file, location, fy_timerange, date_new, CAST(pic AS VARCHAR), download from t1 as p,  p.photo pic)
+
+ select p.* from t2 as p
