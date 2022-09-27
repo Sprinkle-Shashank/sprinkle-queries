@@ -1,4 +1,4 @@
-select  tag1.name as projectId, p1.fy_timerange, p2.center_name, tag2.name as year,
+with t1 as(select  tag1.name as projectId, p1.fy_timerange, p2.center_name, tag2.name as year,
 no_of_trainings_cond as Trainings_conducted,
 no_of_meet_cond_gov  as Meetings_with_govt_and_community_leaders, 
 no_of_event_comm as Events_conducted_for_communities,
@@ -18,4 +18,47 @@ on p1.center_name = p2._id
 left join ds_mysql_prod_tagelement tag2
 on p1.year  = tag2.id
 left join ds_mysql_prod_tagelement tag3
-on p1.quarter  = tag3.id
+on p1.quarter  = tag3.id),
+ 
+item as 
+(
+select 'Trainings_conducted' as c
+union all
+select 'Meetings_with_govt_and_community_leaders' as c
+union all
+select 'Events_conducted_for_communities' as c
+union all
+select 'Schools_identified_for_enrolment' as c
+union all
+select 'School_enrolment_campaigns_conducted' as c
+union all
+select 'Awareness_sessions_conducted_on_maternal_health' as c
+union all
+select 'Children_trained_on_personal_grooming' as c
+union all
+select 'Mother_parents_trained_on_personal_grooming' as c
+union all
+select 'Workshops_conducted_on_arts_and_crafts' as c
+union all
+select 'Saathi_Samuha_meetings_conducted' as c
+union all
+select 'Diagnosis_carried_out_and_support_accessed' as c
+),
+
+select  projectId,t1.fy_timerange,center_name,year,quarter,
+case c
+when 'Trainings_conducted' then t1.Trainings_conducted
+when 'Meetings_with_govt_and_community_leaders' then t1.Meetings_with_govt_and_community_leaders
+when 'Events_conducted_for_communities' then t1.Events_conducted_for_communities
+when 'Schools_identified_for_enrolment' then t1.Schools_identified_for_enrolment
+when 'School_enrolment_campaigns_conducted' then t1.School_enrolment_campaigns_conducted
+when 'Awareness_sessions_conducted_on_maternal_health' then t1.Awareness_sessions_conducted_on_maternal_health
+when 'Children_trained_on_personal_grooming' then t1.Children_trained_on_personal_grooming
+when 'Mother_parents_trained_on_personal_grooming' then t1.Mother_parents_trained_on_personal_grooming
+when 'Workshops_conducted_on_arts_and_crafts' then t1.Workshops_conducted_on_arts_and_crafts
+when 'Saathi_Samuha_meetings_conducted' then t1.Saathi_Samuha_meetings_conducted
+when 'Diagnosis_carried_out_and_support_accessed' then t1.Diagnosis_carried_out_and_support_accessed
+else null
+end as value1,item.c as dimension
+from t1 cross join item
+
