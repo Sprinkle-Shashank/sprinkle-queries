@@ -1,5 +1,36 @@
 
-with table1 as(select projectId, ngo, schedule_vii, local_yn, project_start_date as fy_timerang, p.project_end_date, imp_direct, csr_reg_num, state_district, ongoing,
+with
+table11
+(SELECT * 
+FROM
+(select t.projectId, ngo, schedule_vii, local_yn, t.fy_timerange, t.project_end_date as endd, t.project_start_date as start,imp_direct, csr_reg_num, state_district, ongoing,
+concat(concat(SUBSTRING(t.project_start_date, 1, 10),'-'),SUBSTRING(t.project_end_date, 1, 10)) as fy_timerange1,
+
+ sum(p2.prescribed_csr) as allocated, sum(p3.amount) as disbursed,sum(p4.amount) as utilized,
+ sum(p3.amount)-sum(p4.amount) as unspent from profile_46325 t
+
+left join profile_76972 p2
+on p2.projectid=t.projectid
+
+left join profile_76976 p3
+on p3.projectid=t.projectid
+
+left join profile_76977 p4
+on p4.projectid=t.projectid
+
+where ongoing is not null 
+
+
+group by t.projectId, ngo, schedule_vii, local_yn, t.fy_timerange,start,endd, imp_direct, csr_reg_num, state_district, ongoing
+
+order by t.fy_timerange desc
+)
+UNPIVOT (
+    val FOR dim IN (allocated,disbursed,utilized,unspent))
+
+),
+
+table1 as(select projectId, ngo, schedule_vii, local_yn, project_start_date as fy_timerang, p.project_end_date, imp_direct, csr_reg_num, state_district, ongoing,
 
 concat(concat(SUBSTRING(project_start_date, 1, 10),'-'),SUBSTRING(p.project_end_date, 1, 10)) as fy_timerange1
 
