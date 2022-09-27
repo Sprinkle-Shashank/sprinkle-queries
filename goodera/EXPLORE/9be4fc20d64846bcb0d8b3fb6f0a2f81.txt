@@ -1,5 +1,31 @@
 with t1 as
 (
+  select p.projectid, proj.name as proj_update, disbursed, fy_timerange
+  from profile_56364 as p
+  
+  left join profile_56342 p1
+  on p.projectid = p1.projectid
+  
+  left join ds_mysql_prod_tagelement as Parent_focus_area1
+  on p1.focus_area = Parent_focus_area1.id
+  
+  left join ds_mysql_prod_tagelement as Parent_focus_area1_parent
+  on Parent_focus_area1.parent = Parent_focus_area1_parent.id 
+  
+  left join ds_mysql_prod_tagelement proj
+  on p.projectid = proj.id
+  ),
+  t2 as
+  (
+	select proj_update, fy_timerange, sum(disbursed) as Total_Amount_disbursed from t1
+	
+	group by proj_update, fy_timerange
+	)
+	select * from t2
+
+
+/*with t1 as
+(
   select p.projectid, proj.name as proj_update, disbursed, fy_timerange, focus_area.name,  Parent_Focus_Area1.name as Parent_Focus_Area1
   from profile_56364 as p
   
@@ -25,3 +51,4 @@ on Parent_focus_area1.parent = Parent_focus_area1_parent.id
 	group by proj_update, fy_timerange, focus_area.name, Parent_focus_area1
 	)
 	select * from t2
+	*/
