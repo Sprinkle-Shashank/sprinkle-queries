@@ -1,4 +1,5 @@
-Select x1._id as id, x1.profileinstanceid, x1.status, x1.active, x1.data, x1.taskuserid, x2.taskid, x5.projectid, x6.profileid, x4.sectionid, x6.name as section, x7.name as profile, x8.name as project, x1.created, x1.modified,
+with s as 
+(Select x1._id as id, x1.profileinstanceid, x1.status, x1.active, x1.data, x1.taskuserid, x2.taskid, x5.projectid, x6.profileid, x4.sectionid, x6.name as section, x7.name as profile, x8.name as project, x1.created, x1.modified,
   
 case
   when is_array(x1.submissionlog) = false or get_array_length(x1.submissionlog) = 0 then 
@@ -9,7 +10,7 @@ case
   when is_array(x1.approvallog) = false or get_array_length(x1.approvallog) = 0 then 
   	   array(x1.approvallog)
   else x1.approvallog
-end as approvallog_new
+end as  as approval
   
 from ds_mongo_taskresponse x1 
 
@@ -24,3 +25,5 @@ left join ds_mysql_prod_project x8 on x8.id = x5.projectid
 
 where x6.profileid =80183 and x1.active = 't'
 and x1.status in ('REJECTED', 'PENDING_APPROVAL', 'SUBMITTED','APPROVED') and x6.name='Basic Qualifier'
+)
+Select *,approval from s as p, p.approvallog_new as approval
