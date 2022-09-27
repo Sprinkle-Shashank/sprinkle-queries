@@ -1,0 +1,39 @@
+with temp as(
+			select 'Water Emissions' as col
+			),
+			
+x as (select t2.name as projectid, fy_timerange as time_timerange, timerange.name as financialPeriod,
+'Scope 3' as scope ,'Water Supply' as type,
+sum (datanumbase) as  Water_Consumptions,
+
+Coalesce(Water_Consumptions,0)*0.000344	as Water_Emissions
+
+from  sus_9539 
+
+left join ds_mysql_prod_project t1
+on t1.id=sus_9539.xprojectid
+left join ds_mysql_prod_project t2
+on t2.id=t1.parent/*projectid*/
+
+left join ds_mysql_prod_tagelement quarter
+on quarter.id=sus_9539.financialPeriod
+left join ds_mysql_prod_tagelement half
+on half.id=quarter.parent
+left join ds_mysql_prod_tagelement fy
+on fy.id=half.parent
+left join ds_mysql_prod_tagelement timerange
+on timerange.id=fy.parent/*financialPeriod*/
+
+where KEYWORD IN ('water_consumption_1','water_consumption_2','water_consumption_3') 
+	  --and status='APPROVED'
+group by t2.name,fy_timerange,scope,type,timerange.name)
+
+Select x.projectid,x.time_timerange,x.scope,x.type,x.financialPeriod,
+ sum(case when temp.col ='Water Consumptions' then x.Water_Consumptions
+		  --when temp.col ='Water Emissions' then x.Water_Emissions
+	    
+								  end ) as Total,
+		
+temp.col as Dim
+ from x cross join temp
+group by x.projectid,x.time_timerange,x.scope,x.type, temp.col,x.financialPeriod
