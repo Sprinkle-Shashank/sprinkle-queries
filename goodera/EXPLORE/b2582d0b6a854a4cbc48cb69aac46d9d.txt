@@ -1,0 +1,23 @@
+with t1 as
+(
+  select p.projectId, proj.name as proj_up, fy_timerange, year, disbursed, date_disbursal, p1.partner, par.name as partner_up
+  from profile_56364 as p
+  
+  left join profile_56342 p1 
+  on p.projectid = p1.projectid
+  
+  left join ds_mysql_prod_tagelement par
+  p1.partner = par.id
+  
+  left join ds_mysql_prod_tagelement proj
+  p.projectId = proj.id
+  ),
+  t2 as
+  (
+	select sum(disbursed) as disbursed_up, proj_up, date_disbursal as fy_timerange, partner_up from t1
+	
+	where date_disbursal<>''
+	group by proj_up, fy_timerange, partner_up
+	order by proj_up, partner_up ASC
+	)
+	select * from t2
