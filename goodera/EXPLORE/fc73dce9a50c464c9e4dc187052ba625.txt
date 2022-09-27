@@ -1,7 +1,6 @@
 with t1 as
 (
-  select p.projectId, proj.name as projectid_up, fy_timerange, p.allocated, allo.name as allocated_up, 
-  p1.partner
+  select p.projectId, fy_timerange, allocated, p1.partner
   from profile_56357 as p
   
   left join profile_56342 p1
@@ -9,14 +8,11 @@ with t1 as
   
   left join ds_mysql_prod_tagelement proj
   on p.projectId = proj.id
-  
-  left join ds_mysql_prod_tagelement allo
-  on p.allocated = allo.id
   ),
   t2 as
   (
-	select fy_timerange, sum(allocated_up) as allocated_up, projectid_up, partner from t1
-	group by projectid_up, fy_timerange, partner
-	order by projectid_up, partner ASC
+	select fy_timerange, sum(allocated) as allocated_up, projectId, partner from t1
+	group by projectId, fy_timerange, partner
+	order by projectid, partner ASC
 	)
 	select * from t2
