@@ -1,0 +1,61 @@
+with x as (select xprojectid,fy_timerange, financialperiod,datatablebase from sus_9539 where keyword in ('third_party_fleet')
+		   and datatablebase is not null),-- and status='APPROVED'),
+		   
+temp2 as (select * ,temp1.fuel_third, temp1.fuel_consump_third,
+		  temp1.dist_third, case
+		  	when IS_ARRAY(temp1.fuel_third) = false or GET_ARRAY_LENGTH(temp1.fuel_third) = 0 then ARRAY(temp1.fuel_third)
+		  else temp1.fuel_third
+		  end as fuel_third_new
+		   
+		  from x as temp,
+		  unpivot temp.datatablebase as temp1 at row) ,/*extract table*/
+		 
+ y as (select xprojectid,financialperiod,fy_timerange,datatablebase,fuel_third,fuel_consump_third,dist_third from 
+		temp2 ytemp,ytemp.fuel_third_new as fuel_third),/*unwind*/
+ 
+  t as (select cast('Transport Emissions' as varchar) as col 
+	   /*union all
+	   select cast('Transport Consumption' as varchar) as col*/
+	   ),
+	   
+ z as (select t2.name as projectid, xprojectid,fy_timerange as time_timerange,timerange.name as financialperiod, datatablebase, d1.name  as fuel,case d1.name when 'Petrol' then 0.000271
+                                   when 'Diesel' then 0.000218
+	                               else   0
+	                               end  as mf, 
+	  coalesce(dist_third,0)*mf as Transport_Emissions,fuel_consump_third as Transport_Consumption,
+	   
+
+	   cast('Scope 3' as VARCHAR) as scope ,
+	   cast('Transport' as VARCHAR) as type
+	   
+from y 
+ left join ds_mysql_prod_tagelement d1
+on d1.id=y.fuel_third 
+/* left join ds_mysql_prod_tagelement d
+on d.id=y.type_company*/
+	   
+left join ds_mysql_prod_project t1
+on t1.id=y.xprojectid
+left join ds_mysql_prod_project t2
+on t2.id=t1.parent/*projectid*/
+	   
+left join ds_mysql_prod_tagelement quarter
+on quarter.id=y.financialPeriod
+left join ds_mysql_prod_tagelement half
+on half.id=quarter.parent
+left join ds_mysql_prod_tagelement fy
+on fy.id=half.parent
+left join ds_mysql_prod_tagelement timerange
+on timerange.id=fy.parent/*financialPeriod*/
+	  /* group by t2.name, fy_timerange,timerange.name, datatablebase, d1.name ,dist_third,fuel_consump_third,scope,type*/
+	  )
+/*select * from z*/
+select z.projectid,z.time_timerange,z.scope,z.type,z.financialPeriod,
+sum(case 
+	when t.col='Transport Emissions'  then z.Transport_Emissions
+	--when t.col='Transport Consumption'  then z.Transport_Consumption
+		else 0												
+	end ) as Total,
+ t.col as Dim
+from z cross join t
+group by z.projectid,z.time_timerange,z.scope,z.type,t.col,z.financialPeriod
