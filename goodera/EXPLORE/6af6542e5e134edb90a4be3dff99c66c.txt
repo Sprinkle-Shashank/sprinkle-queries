@@ -3,7 +3,9 @@ with t1 as
 
 case when p.file IS NULL then 'Not Available'
 else 'Download' 
-end as download
+end as download,
+ 
+row_number() over(partition by _id order by start_date desc) as row
 
 from profile_56252 as p
 
@@ -14,6 +16,8 @@ left join ds_mysql_prod_tagelement as location
   on p.location = location.id),
   
   t2 as
-(select projectId, title, description, file, location, fy_timerange, date_new, CAST(pic AS VARCHAR), download from t1 as p,  p.photo pic)
+(select projectId, title, description, file, location, fy_timerange, date_new, CAST(pic AS VARCHAR), download from t1 as p,  p.photo pic
+
+where row = 1)
 
  select p.* from t2 as p
