@@ -1,7 +1,55 @@
-select tag2.name as projectId, center_name,p1.fy_timerange no_of_constructions, no_of_mural, no_of_health_checkups, no_of_classes, no_of_children_health_checkup, no_of_children_malnourishment, no_of_children_diseases, no_of_children_disability,tag1.name as  year,substring(tag1.name,5,4) as start, substring(tag1.name,11,5) as end ,fy_timerange.start as end_date,fy_timerange.end as start_date , object('start' ,start_date , 'end' ,  end_date) as fy_timerange from profile_77341 p1 
+with t1 as(select tag2.name as projectId, center_name,p1.fy_timerange,
+no_of_constructions as Constructions_refurbishments_activity,
+no_of_mural as Mural_arts_developed,
+no_of_health_checkups as Health_check-ups_camps_organized,
+no_of_classes as Classes_conducted_by_volunteers, 
+no_of_children_health_checkup as Children_identified_for_health_check-ups, 
+no_of_children_malnourishment as Children_tested_for_malnourishment,
+no_of_children_diseases as Children_identified_with_diseases,
+no_of_children_disability as Children_identified_with_disability,
+tag1.name as  year,substring(tag1.name,5,4) as start, substring(tag1.name,11,5) as end ,fy_timerange.start as end_date,fy_timerange.end as start_date , object('start' ,start_date , 'end' ,  end_date) as fy_timerange from profile_77341 p1 
 left join ds_mysql_prod_tagelement tag1
 on p1.year  = tag1.id
 --left join profile_77340 p2
 --on p1.center_name = p2._id
 left join ds_mysql_prod_project tag2
-on p1.projectId = tag2.id
+on p1.projectId = tag2.id),
+
+item as
+(
+select 'Constructions_refurbishments_activity' as c
+union all
+select 'Mural_arts_developed' as c
+union all
+select 'Health_check-ups_camps_organized' as c
+union all
+select 'Classes_conducted_by_volunteers' as c
+union all
+select 'Children_identified_for_health_check-ups' as c
+union all
+select 'Children_tested_for_malnourishment' as c
+union all
+select 'Children_identified_with_diseases' as c
+union all
+select 'Children_identified_with_disability' as c
+
+
+),
+t2 as
+(select projectId,center_name,year,start,end,start_date,end_date,fy_timerange,
+case c
+when 'Constructions_refurbishments_activity' then t1.Constructions_refurbishments_activity
+when 'Mural_arts_developed' then t1.Mural_arts_developed
+when 'Health_check-ups_camps_organized' then t1.Health_check-ups_camps_organized
+when 'Classes_conducted_by_volunteers' then t1.Classes_conducted_by_volunteers
+when 'Children_identified_for_health_check-ups' then t1.Children_identified_for_health_check-ups
+when 'Children_tested_for_malnourishment' then t1.Children_tested_for_malnourishment
+when 'Children_identified_with_diseases' then t1.Children_identified_with_diseases
+when 'Children_identified_with_disability' then t1.Children_identified_with_disability
+else null
+end as value,item.c as dimension
+from t1 cross join item)
+select projectId,p2.center_name,fy_timerange,Dimension,sum(value) as Value
+left join profile_77340 p2
+on t2.center_name = p2._id
+group by 1,2,3,4
