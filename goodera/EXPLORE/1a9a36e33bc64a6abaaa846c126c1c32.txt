@@ -1,1 +1,47 @@
-select * from profile_46325
+with t1 as
+
+(SELECT * 
+FROM
+(select t.projectId, ngo, schedule_vii, local_yn, t.fy_timerange,  CASE 
+    WHEN t.project_end_date IS NULL THEN '-' 
+    ELSE to_char(t.project_end_date, 'YYYY-MM-DD')
+END as endd, CASE 
+    WHEN t.project_start_date IS NULL THEN '-' 
+    ELSE to_char(t.project_start_date, 'YYYY-MM-DD')
+END as start,imp_direct, csr_reg_num, state_district, ongoing,
+ 
+concat(concat(CASE 
+    WHEN t.project_start_date IS NULL THEN '-' 
+    ELSE to_char(t.project_start_date, 'YYYY-MM-DD')
+END ,'  to  '),CASE 
+    WHEN t.project_end_date IS NULL THEN '-' 
+    ELSE to_char(t.project_end_date, 'YYYY-MM-DD')
+END ) as fy_timerange1,
+ 
+
+ 
+ sum(p2.prescribed_csr) as allocated, sum(p3.amount) as disbursed,sum(p4.amount) as utilized,
+ sum(p3.amount)-sum(p4.amount) as unspent from profile_46325 t
+
+left join profile_76972 p2
+on p2.projectid=t.projectid
+
+left join profile_76976 p3
+on p3.projectid=t.projectid
+
+left join profile_76977 p4
+on p4.projectid=t.projectid
+
+where ongoing is not null 
+
+
+group by t.projectId, ngo, schedule_vii,t.project_start_date, local_yn, t.fy_timerange,start,endd, imp_direct,t.project_end_date, csr_reg_num, state_district, ongoing
+
+order by t.fy_timerange desc
+)
+UNPIVOT (
+    val FOR dim IN (allocated,disbursed,utilized,unspent))
+
+)
+select project_id,fy_timerange1,dim,val from t1
+group by project_id,fy_timerange1,dim,val
