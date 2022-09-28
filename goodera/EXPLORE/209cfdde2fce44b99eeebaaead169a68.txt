@@ -10,7 +10,7 @@ on tt.lookup_port=s.ports_lookup
 ),
 
 s3 as (
-Select t.name as projectId,t5.name as client, t1.name as carrier, s2.fy_timerange,extract(MONTH from cast(fy_timerange.start as date)) as month, s2.shipment_id, t2.name as origin_port, t3.name dest_port, s2.units, t4.name as shipment_type, s2.ports_lookup, s2.start_country, s2.dest_country, s2.start_tradelane, s2.dest_tradelane, s2.km, mm.co2_dry, mm.co2_ref, (mm.co2_dry*(s2.km*1.15)*s2.teu)/1000000 CO2_eff_dry,(mm.co2_ref*(s2.km*1.15)*s2.teu)/1000000 CO2_eff_ref,
+Select  t.name as projectid,  s2.projectId as pid,t5.name as client, t1.name as carrier, s2.fy_timerange,extract(MONTH from cast(fy_timerange.start as date)) as month, s2.shipment_id, t2.name as origin_port, t3.name dest_port, s2.units, t4.name as shipment_type, s2.ports_lookup, s2.start_country, s2.dest_country, s2.start_tradelane, s2.dest_tradelane, s2.km, mm.co2_dry, mm.co2_ref, (mm.co2_dry*(s2.km*1.15)*s2.teu)/1000000 CO2_eff_dry,(mm.co2_ref*(s2.km*1.15)*s2.teu)/1000000 CO2_eff_ref,
   case 
   when month=01 then '10'
   when month=02 then '11'
@@ -77,13 +77,13 @@ on mm.lookup_tradelane_carrier=s2.tradelane_carrier_lookup
 where s2.km is not null
 ),
 s4 as (
-Select projectId, units, fy_timerange ,(EXTRACT(YEAR FROM(CAST(s3.fy_timerange.start AS datetime)))) as year,client ,sort_order,monthh as month,month as month1, sort_able_month , origin_port , dest_port ,  sum(CO2_eff) co2_eff
+Select projectId, pid, units, fy_timerange ,(EXTRACT(YEAR FROM(CAST(s3.fy_timerange.start AS datetime)))) as year,client ,sort_order,monthh as month,month as month1, sort_able_month , origin_port , dest_port ,  sum(CO2_eff) co2_eff
 from s3
-  group by 1,2,3,4,5,6,7,8,9, origin_port , dest_port
+  group by 1,2,3,4,5,6,7,8,9,10, origin_port , dest_port
   order by sort_able_month
 ),
 s5 as (
-Select projectId, units,client,sort_order, 
+Select projectId, pid, units,client,sort_order, 
   case 
          when (year=2018 and month1>3) or (year=2019 and month1<4) then 'FY 2018-19' 
         when (year=2019 and month1>3) or (year=2020 and month1<4) then 'FY 2019-20' 
@@ -94,6 +94,7 @@ Select projectId, units,client,sort_order,
 	 end as year
   , month, origin_port ||'-'|| dest_port  as Source_dest, (co2_eff/units) as  Emission_per_unit
 from s4
+where pid like '%%'
 )
 Select projectId,client, year , month,Source_dest ,sort_order,  (Emission_per_unit) as Emission_per_unit
 from s5
