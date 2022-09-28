@@ -1,22 +1,28 @@
 with t1 as
 (
-  select p.projectId, fy_timerange, year, amount_utilized, date, p1.partner
+  select p.projectId, proj.name as proj_up, fy_timerange, year, amount_utilized, date, p1.partner, par.name as partner_up
   from profile_56356 as p
   
   left join profile_56342 p1 
   on p.projectid = p1.projectid
+  
+  left join ds_mysql_prod_tagelement par 
+  on p1.partner = par.id
+  
+  left join ds_mysql_prod_project proj
+  on p.projectId = proj.id
   ),
   t2 as
   (
-	select projectId, partner, max(date) as date_up from t1
+	select proj_up, partner_uppartner_up, max(date) as date_up from t1
 	group by projectId, partner
 	),
 	t3 as
 	(
-	  select projectId, partner, concat(substring(date_up,9,2),concat('-',concat(substring(date_up,6,2),concat('-', substring(date_up,1,4))))) as utilised_date, date_up from t2
-	  group by projectId, partner, date_up
+	  select proj_up, partner_up, concat(substring(date_up,9,2),concat('-',concat(substring(date_up,6,2),concat('-', substring(date_up,1,4))))) as utilised_date, date_up from t2
+	  group by proj_up, partner_up, date_up
 	  )
-	  select * from t3
+	  select proj_up, partner_up, date_up as fy_timerange, utilised_date from t3
 	  
 	  /*concat(substring(p.date,9,2),concat('-',concat(substring(p.date,6,2),concat('-', substring(p.date,1,4)))))*/
 										
