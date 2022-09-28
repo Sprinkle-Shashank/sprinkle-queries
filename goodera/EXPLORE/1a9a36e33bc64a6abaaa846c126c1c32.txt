@@ -1,8 +1,21 @@
 with t1 as
-
 (SELECT * 
 FROM
-(select t.projectId, ngo, schedule_vii, local_yn, t.fy_timerange, 
+(select t.projectId, ngo, schedule_vii, local_yn, t.fy_timerange,  CASE 
+    WHEN t.project_end_date IS NULL THEN '-' 
+    ELSE to_char(t.project_end_date, 'YYYY-MM-DD')
+END as endd, CASE 
+    WHEN t.project_start_date IS NULL THEN '-' 
+    ELSE to_char(t.project_start_date, 'YYYY-MM-DD')
+END as start,imp_direct, csr_reg_num, state_district, ongoing,
+ 
+concat(concat(CASE 
+    WHEN t.project_start_date IS NULL THEN '-' 
+    ELSE to_char(t.project_start_date, 'YYYY-MM-DD')
+END ,'  to  '),CASE 
+    WHEN t.project_end_date IS NULL THEN '-' 
+    ELSE to_char(t.project_end_date, 'YYYY-MM-DD')
+END ) as fy_timerange1,
  
 
  
@@ -21,12 +34,13 @@ on p4.projectid=t.projectid
 where ongoing is not null 
 
 
-group by t.projectId, t.fy_timerange,ngo,schedule_vii, local_yn
+group by t.projectId, ngo, schedule_vii,t.project_start_date, local_yn, t.fy_timerange,start,endd, imp_direct,t.project_end_date, csr_reg_num, state_district, ongoing
 
+order by t.fy_timerange desc
 )
 UNPIVOT (
     val FOR dim IN (allocated,disbursed,utilized,unspent))
 
 )
-select projectid,fy_timerange,dim,val,ngo,schedule_vii, local_yn from t1
-group by projectid,fy_timerange,dim,val,ngo,schedule_vii, local_yn
+select projectid,fy_timerange,dim,val,ngo,schedule_vii, local_yn,imp_direct, csr_reg_num, state_district, ongoing,fy_timerange1,dim,val from t1
+group by projectid,fy_timerange,dim,val,ngo,schedule_vii, local_yn,imp_direct, csr_reg_num, state_district, ongoing,fy_timerange1,dim,val
