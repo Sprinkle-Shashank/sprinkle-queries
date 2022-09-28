@@ -9,8 +9,7 @@ Select s.projectId, s.carrier,s.client, s.fy_timerange, s.shipment_id, s.origin_
 on tt.lookup_port=s.ports_lookup
 ),
 s3 as (
-
-Select t.name as projectId, t1.name as carrier, t9.name as client,s2.fy_timerange, s2.shipment_id, t2.name as origin_port, t3.name dest_port, s2.units, t4.name as shipment_type, s2.ports_lookup, t7.name as start_country,t8.name as dest_country, (t5.name  ||'-' || t6.name ) tradelane , s2.km, mm.co2_dry, mm.co2_ref, (mm.co2_dry*(s2.km*1.15)*s2.teu)/1000000 CO2_eff_dry,(mm.co2_ref*(s2.km*1.15)*s2.teu)/1000000 CO2_eff_ref,
+Select t.name as projectid, s2.projectId as pid, t1.name as carrier, t9.name as client,s2.fy_timerange, s2.shipment_id, t2.name as origin_port, t3.name dest_port, s2.units, t4.name as shipment_type, s2.ports_lookup, t7.name as start_country,t8.name as dest_country, (t5.name  ||'-' || t6.name ) tradelane , s2.km, mm.co2_dry, mm.co2_ref, (mm.co2_dry*(s2.km*1.15)*s2.teu)/1000000 CO2_eff_dry,(mm.co2_ref*(s2.km*1.15)*s2.teu)/1000000 CO2_eff_ref,
 extract(MONTH from cast(fy_timerange.start as date)) as month,
 case
 	When s2.shipment_type=1623028 then CO2_eff_dry
@@ -57,13 +56,13 @@ on mm.lookup_tradelane_carrier=s2.tradelane_carrier_lookup
 where s2.km is not null
 )
 , s4 as (
-Select projectId, carrier,client,(EXTRACT(YEAR FROM(CAST(s3.fy_timerange.start AS datetime)))) as year, shipment_id,  origin_port,dest_port,units, shipment_type,start_country,dest_country, tradelane , km,  sum(CO2_eff) as emission,monthh as month,month as month1
+Select projectId, pid, carrier,client,(EXTRACT(YEAR FROM(CAST(s3.fy_timerange.start AS datetime)))) as year, shipment_id,  origin_port,dest_port,units, shipment_type,start_country,dest_country, tradelane , km,  sum(CO2_eff) as emission,monthh as month,month as month1
 from s3
-group by projectId, carrier,fy_timerange, shipment_id,  origin_port,dest_port,units, shipment_type,start_country,dest_country, tradelane , km,monthh,client,month1
+group by projectId, carrier,fy_timerange, shipment_id,  origin_port,dest_port,units, shipment_type,start_country,dest_country, tradelane , km,monthh,client,month1,pid
 order by emission desc
 ),
 s5 as (
-Select projectId, carrier,client, 
+Select projectId, pid, carrier,client, 
   case 
   	when month1 < 4 then ('FY ' || (year-1) || '-'||(year-2000))
     else ('FY ' || (year) || '-'||(year+1-2000))
@@ -92,6 +91,7 @@ Select projectId, carrier,client,
   when s4.month='November' then 'January'
   end as month
   from s4
+  where pid like '%%'
 )
 Select projectId, carrier,client,yy as year, shipment_id,  origin_port,dest_port,units, shipment_type,start_country,dest_country, tradelane , km,  (emission) emission,month
 from s5
