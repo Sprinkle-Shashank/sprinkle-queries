@@ -1,0 +1,66 @@
+SELECT pro.name as projectid,I.fy_timerange,
+COUNT (I.name),
+
+CASE
+	WHEN projectid= 62279 THEN 25
+	when projectid = 67833 and women_coe = 'Yes' then 16
+	when projectid = 67833 and women_coe = 'No' then 15
+	when projectid = 67834 then 25
+	ELSE NULL
+END AS target,
+
+CASE
+	WHEN women_coe = 'true'
+	THEN 'Yes'
+	
+	ELSE 'No'
+END AS women_coe,
+
+CASE
+	WHEN commenced = 'true'
+	THEN 'Yes'
+	
+	ELSE 'No'
+END AS commenced,
+
+CASE 
+	WHEN t4.name IS NOT NULL
+	THEN t3.name
+	
+	WHEN t4.name IS NULL AND t3.name IS NOT NULL
+	THEN t2.name
+	
+	WHEN t3.name IS NULL AND t2.name IS NOT NULL
+	THEN t1.name
+	
+	ELSE NULL
+END AS state,
+
+CASE 
+	WHEN t4.name IS NOT NULL
+	THEN t2.name
+	
+	WHEN t4.name IS NULL AND t3.name IS NOT NULL
+	THEN t1.name 
+	
+	ELSE NULL
+END AS district
+
+FROM profile_77911 AS I
+
+LEFT JOIN ds_mysql_prod_tagelement AS t1
+ON I.location = t1.id
+
+LEFT JOIN ds_mysql_prod_tagelement AS t2
+ON t1.parent = t2.id
+
+LEFT JOIN ds_mysql_prod_tagelement AS t3
+ON t2.parent = t3.id
+
+LEFT JOIN ds_mysql_prod_tagelement AS t4
+ON t3.parent = t4.id
+
+left join ds_mysql_prod_project pro on 
+I.projectid = pro.id
+where projectid = 67834
+GROUP BY pro.name,I.fy_timerange, women_coe, commenced, I.name, state, district, target
