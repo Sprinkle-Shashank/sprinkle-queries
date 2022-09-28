@@ -1,8 +1,7 @@
 with t1 as
 (SELECT * 
 FROM
-(select t.projectId, ngo, schedule_vii, local_yn, t.fy_timerange, t.project_end_date as endd, t.project_start_date as start,imp_direct, csr_reg_num, state_district, ongoing,
-concat(concat(SUBSTRING(t.project_start_date, 1, 10),'-'),SUBSTRING(t.project_end_date, 1, 10)) as fy_timerange1,
+(select t.projectId, ngo, schedule_vii, local_yn, t.fy_timerange, case when t.project_end_date is NULL then '-' else t.project_end_date end as endd, t.project_start_date as start,imp_direct, csr_reg_num, state_district, ongoing,
 
  sum(p2.prescribed_csr) as allocated, sum(p3.amount) as disbursed,sum(p4.amount) as utilized,
  sum(p3.amount)-sum(p4.amount) as unspent from profile_46325 t
@@ -30,7 +29,8 @@ UNPIVOT (
 
 
 
-table1 as(select projectId,ngo, schedule_vii, case when local_yn IS TRUE THEN 'YES' else 'NO' end as local_yn, fy_timerange1, endd,start,imp_direct, csr_reg_num, state_district, ongoing,sum(val) as val,dim,fy_timerange from t1
+table1 as(select projectId,ngo, schedule_vii, case when local_yn IS TRUE THEN 'YES' else 'NO' end as local_yn, concat(concat(SUBSTRING(start, 1, 10),'-'),SUBSTRING(endd, 1, 10)) as fy_timerange1,
+, endd,start,imp_direct, csr_reg_num, state_district, ongoing,sum(val) as val,dim,fy_timerange from t1
 		 Group By projectId, fy_timerange, Dim,ngo, schedule_vii, local_yn, fy_timerange1, endd,start,imp_direct, csr_reg_num, state_district, ongoing
 		 ),
 
