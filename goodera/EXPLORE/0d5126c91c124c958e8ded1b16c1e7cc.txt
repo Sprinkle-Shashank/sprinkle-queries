@@ -1,4 +1,5 @@
- with t1 as(select tag3.name as projectId, fy_timerange, center_name, tag1.name as year, no_of_children_scl_opp as Children_assured_with_safety_,_comfort_and_learning_opportunities,
+ --with t1 as(
+   select tag3.name as projectId, fy_timerange, center_name, tag1.name as year, no_of_children_scl_opp as Children_assured_with_safety_,_comfort_and_learning_opportunities,
 			no_of_vol_part as Volunteers_participated,
 			no_of_house_visits as House_visits_conducted,
 			no_of_enrol_creches as Enrolments_from_the_crèches_to_formal_early_learning_centres, 
@@ -11,34 +12,10 @@ on p1.year  = tag1.id
 left join ds_mysql_prod_tagelement tag2
 on p1.half_year  = tag2.id
 left join ds_mysql_prod_project tag3
-on p1.projectId = tag3.id),
-
-item as
-(
-select 'Children_assured_with_safety_,_comfort_and_learning_opportunities' as c
-union all
-select 'Volunteers_participated' as c
-union all
-select 'Enrolments_from_the_crèches_to_formal_early_learning_centres' as c
-union all
-select 'Children_enrolled_in_formal_early_education_or_learning_centres' as c
-union all
-select 'Participants_attended_for_immunization_and_vaccinations' as c
-)
+on p1.projectId = tag3.id
+		   --),
 
 
-select  t1.start || '-' || '12-01T00:00:00.000Z' as start_date,
-t1.end || '-' || '05-31T00:00:00.000Z' as end_date, object('start' ,start_date , 'end' ,  end_date) as fy_timerange,
-case c
-when 'Children_assured_with_safety_,_comfort_and_learning_opportunities' then t1.Children_assured_with_safety_,_comfort_and_learning_opportunities
-when 'Volunteers_participated' then t1.Volunteers_participated
-when 'House_visits_conducted' then t1.House_visits_conducted
-when 'Enrolments_from_the_crèches_to_formal_early_learning_centres' then t1.Enrolments_from_the_crèches_to_formal_early_learning_centres
-when 'Children_enrolled_in_formal_early_education_or_learning_centres' then t1.Children_enrolled_in_formal_early_education_or_learning_centres
-when 'Participants_attended_for_immunization_and_vaccinations' then t1.Participants_attended_for_immunization_and_vaccinations
-else null
-end as value,item.c as dimension
-from t1 cross join item
 
 
 	
