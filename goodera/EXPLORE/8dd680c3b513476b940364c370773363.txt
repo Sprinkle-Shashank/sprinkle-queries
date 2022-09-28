@@ -1,6 +1,6 @@
 with temp1 as
 (select * from
-( select m.projectId, m.fy_timerange, m.theory_sessions, m.practical_sessions, m.average_attendance, m.school_name as school from profile_65888 as m
+(select m.projectId, m.fy_timerange, m.theory_sessions, m.practical_sessions, m.average_attendance, m.school_name as school from profile_65888 as m
 
 left join profile_65885 as n 
  on m.school_name = n._id
@@ -10,6 +10,10 @@ left join profile_65885 as n
  
 )
 UNPIVOT (
-  value for dimension IN ( Theory sessions, Practical sessions, Average attendance ))
+  value for dimension IN ( Theory sessions, Practical sessions, Average attendance )),
+ temp2 as
+ (select projectId, fy_timerange, school_name,Sum(temp1.value) as value, Dimension
+  
+ group by projectId, fy_timerange, school_name, Dimension)
 
 select * from temp1
