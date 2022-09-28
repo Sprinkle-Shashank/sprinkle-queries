@@ -1,0 +1,76 @@
+with table1 as
+( select projectId.name as projectId, p._id ,  indicator_1.name as indicator, p.sdgs, p.project_name, p.ben_type, p.target, p.proj , z.fy_timerange , q.vertical, q.focus, q.state, q.start_date, q.direct_or_partner as site, q.project_code , q.entity , z.completed, int_indi.name as int_indi, state_name.name as state_name_update from profile_61044 as p 
+ 
+ left join profile_62881 q 
+ on p.proj = q._id
+ 
+ left join ds_mysql_prod_project as projectId
+  on p.projectId = projectId.id 
+ 
+ left join ds_mysql_prod_tagelement as indicator_1
+  on p.indicator = indicator_1.id 
+ 
+ left join ds_mysql_prod_tagelement as int_indi
+  on indicator_1.parent = int_indi.id
+ 
+ left join ds_mysql_prod_tagelement as state_name
+  on q.state = state_name.id
+ 
+ left join profile_55471 z 
+ on q.project_code = z.project_code
+ 
+ where direct_or_partner=1132990 and completed=939857 and ben_type = 939858 and p.sdgs IS NOT NULL and z.fy_timerange IS NOT NULL
+ ),
+ 
+ 
+ table2 as 
+ ( 
+   select  p.projectId, indicator, p.sdgs, p.focus, sum(target) as value, fy_timerange , p.state_name_update, vertical, project_code , entity , int_indi, l.name from table1 as p
+   
+   left join profile_64961 AS l 
+ on p.state_name_update = l.state
+     
+   group by p.projectId, indicator, p.sdgs, p.focus, fy_timerange , p.state_name_update, vertical,  project_code , entity ,int_indi, l.name
+  ),
+  
+  table3 as
+  ( 
+   select p.projectId, indicator, p.sdgs, p.focus, value, fy_timerange , vertical, project_code , entity , vertical_new , int_indi, p.name from table2 as p , p.vertical as vertical_new
+   ),
+   
+   
+   table4 as
+   ( 
+	 select projectId, indicator, sdgs.name as sdgs, focus.name as focus, value, fy_timerange , project_code , ent.name as entity ,  case 
+when vert1.name IS NULL AND vert.name IS NOT NULL THEN vert.name
+else vert1.name 
+END AS vertical , int_indi, p.name from table3 as p
+	
+left join ds_mysql_prod_tagelement as vert
+  on p.vertical_new = vert.id
+  
+left join ds_mysql_prod_tagelement as vert1
+  on vert.parent = vert1.id 
+	 
+left join ds_mysql_prod_tagelement ent
+  on p.entity = ent.id 
+	 
+left join ds_mysql_prod_tagelement as focus
+  on p.focus = focus.id
+	 
+left join ds_mysql_prod_tagelement as sdgs
+  on p.sdgs = sdgs.id
+	 ),
+	 
+	 table5 as
+	 ( 
+	   select projectId, indicator,  sdgs, p.focus, cast(sum(value) as int) as value , fy_timerange , entity , 
+ vertical , int_indi, p.name from table4 as p
+	   
+	   group by  projectId, indicator, sdgs, p.focus, fy_timerange , entity ,  
+ vertical , int_indi, p.name
+	   order by sdgs asc
+	   
+ )
+ 
+select * from table5
