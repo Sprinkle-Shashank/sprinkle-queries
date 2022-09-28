@@ -1,16 +1,28 @@
 with t1 as
 (
-  select _id, projectId, date_invoice, invoice_doc, date_disbursal, invoice_amount, disbursed, receipt
+  select _id, projectId, proj.name as proj_up, date_invoice, invoice_doc, date_disbursal, invoice_amount, disbursed, receipt,
+  
+  CASE when receipt = 0 and receipt = 0 
+  then '-' else 'Disbursal Receipt' end as Disbursal_Receipt,
+  
+  CASE when invoice_doc = 0 and invoice_doc = 0 
+  then '-' else 'Invoice' end as Invoice
   from profile_56364 as p
+  
+  left join ds_mysql_prod_tagelement par 
+  on p1.partner = par.id
+  
+  left join ds_mysql_prod_project proj
+  on p.projectId = proj.id
   
   where invoice_doc<>''
   ),
   t2 as
   (
-	select _id, projectId, date_invoice as fy_timerange, invoice_doc, date_disbursal, invoice_amount, disbursed, receipt, substring(date_disbursal,1,10) as Disbursal_Date, substring(date_invoice,1,10) as Invoice_Date,       'Invoice' as Invoice, 'Disbursal Receipt' as Disbursal_Receipt from t1
+	select _id, proj_up, date_invoice as fy_timerange, invoice_doc, date_disbursal, invoice_amount, disbursed, receipt, substring(date_disbursal,1,10) as Disbursal_Date, substring(date_invoice,1,10) as Invoice_Date, 'Invoice' as Invoice, 'Disbursal Receipt' as Disbursal_Receipt from t1
 	
 	order by fy_timerange DESC
-	)
+	) 
 	select * from t2
 	
   
