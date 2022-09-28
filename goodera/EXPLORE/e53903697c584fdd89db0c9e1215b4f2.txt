@@ -1,38 +1,43 @@
-select p.projectId, p.q11_timerange,
-q.h14, q.h15, q.h16, q.h17, q.h18, q.date_today,
-cast(p.q11_timerange.start as date) as start,extract(month from start) as month,extract(year from start) as year,cast(p.q11_timerange.end as date) as end1,
-Case 
-When month=1 then 'Q4'
-When month=2 then 'Q4'
-When month=3 then 'Q4'
-When month=4 then 'Q1'
-When month=5 then 'Q1'
-When month=6 then 'Q1'
-When month=7 then 'Q2'
-When month=8 then 'Q2'
-When month=9 then 'Q2'
-When month=10 then 'Q3'
-When month=11 then 'Q3'
-When month=12 then 'Q3'
-Else 'No Data Entry'
-end as quarter, 
-concat(year,quarter) as y,
-count(*) as number,
-case 
-when q.date_today is NULL then '1'
-else '0'
-end as temp1,
-case 
-when end1 <= q.date_today
-then 'Not Reported'
-else 'Yet to Report' 
-end as temp2,
-case when temp1 ='1'
-then 'Reported'
-else temp2
-end as status
-from profile_60834 p
-left join profile_60828 q on 
-p.q11_timerange=q.q11_timerange
-where p.q11_timerange is not null
-group by p.projectId, p.q11_timerange,q.h14, q.h15, q.h16, q.h17, q.h18,start,month,year,quarter,y,end1,status,q.date_today
+with Lookup as
+(select cast((split_part(split_part(prod.name,'|',1),'.',1)) as varchar) as ProjectCode,split_part(prod.name,'|',3) as censuscode,f.name as fy_timerange,CONCAT(ProjectCode,fy_timerange) as CODE
+from profile_29973 p 
+left join ds_mysql_prod_project prod on
+prod.id=p.projectid
+left join ds_mysql_prod_tagelement f on
+p.fy=f.id
+)
+
+,Base1 as
+(select cast(q.name as varchar) as ProjectCode,f.name as fy_timerange,m.name as Project_Manager,CONCAT(ProjectCode,fy_timerange) as CODE
+from profile_27420 d
+left join ds_mysql_prod_tagelement f on
+d.fy=f.id
+left join ds_mysql_prod_tagelement m on
+d.project_manager=m.id
+left join profile_27396 q on
+d.project_code=q._id
+union
+select cast(c.name as varchar)as ProjectCode,f.name as fy_timerange,m.name as Project_Manager,CONCAT(ProjectCode,fy_timerange) as CODE 
+from profile_27396 c	
+left join ds_mysql_prod_tagelement f on
+c.fy=f.id
+left join ds_mysql_prod_tagelement m on
+c.project_manager=m.id)
+
+,Base2 as
+(select p.fy_timerange,p.Project_Manager,p.ProjectCode,l.censuscode
+from Base1 p
+left join lookup l
+on p.CODE=l.CODE),
+
+Base3 as(p.fy_timerange fy_timerange ,p.ProjectCode projectcode
+from Base2 p 
+left join profile_27489 l 
+on p.censuscode=l.name
+group by 1,2) 
+
+select * from Base3  
+order by fy_timerange 
+
+
+ 
