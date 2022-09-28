@@ -77,7 +77,7 @@ left join ds_mysql_prod_tagelement as vert1
   on vert.parent = vert1.id),
   
   temp5 as
- (select m.projectId, m.indicator, m.schedule_vii, m.focus, m.fy_timerange, m.entity, m.state, m.name, m.sdgs, m.vertical, m._id, SUM(m.target) as beneficiary, m.int_indi, m.project_code_new
+ (select m.projectId, m.indicator, m.schedule_vii, m.focus, m.fy_timerange, m.entity, m.state, m.name, m.sdgs, m.vertical, m._id, SUM(m.target) as value, m.int_indi, m.project_code_new
   from temp2 as m
   where _id NOT IN (select _id from temp3)
   group by m.projectId, m.indicator, m.schedule_vii, m.focus, m.fy_timerange, m.entity, m.state, m.name, m.sdgs, m.vertical, m._id, m.int_indi, m.project_code_new),
@@ -85,29 +85,29 @@ left join ds_mysql_prod_tagelement as vert1
   
   table6 as
   (
-  select projectId, indicator, schedule_vii, focus, fy_timerange, entity, SUM(m.target) as beneficiary, vertical, int_indi, state, name, sdgs , _id , project_code_new
+  select projectId, indicator, schedule_vii, focus, fy_timerange, entity, SUM(m.target) as value, vertical, int_indi, state, name, sdgs , _id , project_code_new
   from temp4 as m
   group by projectId, indicator, schedule_vii, focus, fy_timerange, entity, vertical, int_indi, state, name, sdgs , _id, project_code_new
   ),
   
   table7 as
   (
-  select projectId, indicator, schedule_vii, focus, fy_timerange, entity, beneficiary, vertical, project_code_new, int_indi, state, name, sdgs , _id , q
+  select projectId, indicator, schedule_vii, focus, fy_timerange, entity, value, vertical, project_code_new, int_indi, state, name, sdgs , _id , q
   from temp5 as m, m.vertical as q
    ),
    
    table8 as
    (
-	 select projectId, indicator, schedule_vii, focus, fy_timerange, entity, beneficiary, q , int_indi, state, name, sdgs , _id, project_code_new
+	 select projectId, indicator, schedule_vii, focus, fy_timerange, entity, value, q , int_indi, state, name, sdgs , _id, project_code_new
   from table7 as m
 	 ),
 	 
 	 table9 as
-	 ( select  projectId, indicator, schedule_vii, focus, fy_timerange, entity, beneficiary , int_indi, state, name, sdgs , _id , CAST(project_code_new as VARCHAR) as project_code_new, vertical_new, q as verticals from table8 as p, p.q as vertical_new
+	 ( select  projectId, indicator, schedule_vii, focus, fy_timerange, entity, value , int_indi, state, name, sdgs , _id , CAST(project_code_new as VARCHAR) as project_code_new, vertical_new, q as verticals from table8 as p, p.q as vertical_new
 	  ),
 	  
 	  table10 as
-	  ( select  projectId, indicator, schedule_vii, focus, fy_timerange, entity, beneficiary , int_indi, state, p.name, sdgs , _id , project_code_new,
+	  ( select  projectId, indicator, schedule_vii, focus, fy_timerange, entity, value , int_indi, state, p.name, sdgs , _id , project_code_new,
 	  
 	   case 
 when vert1.name IS NULL AND vert.name IS NOT NULL THEN vert.name
