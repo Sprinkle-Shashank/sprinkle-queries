@@ -29,10 +29,9 @@ select 'Children_enrolled_in_formal_early_education_or_learning_centres' as c
 union all
 select 'Participants_attended_for_immunization_and_vaccinations' as c
 )
---,
-
---t2 as
---(
+,
+t2 as
+(
   select  t1.start || '-' || '12-01T00:00:00.000Z' as start_date,
 t1.end || '-' || '05-31T00:00:00.000Z' as end_date, object('start' ,start_date , 'end' ,  end_date) as fy_timerange, projectId ,center_name , year,
 case c
@@ -45,8 +44,13 @@ when 'Participants_attended_for_immunization_and_vaccinations' then t1.Participa
 else null
 end as value,item.c as dimension
 from t1 cross join item
---)
+)
 
+select t2.projectId,p2.center_name,t2.fy_timerange,Dimension,sum(value) :: Int as Value
+from t2
+left join profile_77340 p2
+on t2.center_name = p2._id
+group by t2.projectId,p2.center_name,t2.fy_timerange,Dimension
 
 
 
