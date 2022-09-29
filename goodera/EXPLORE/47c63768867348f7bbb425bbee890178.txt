@@ -1,7 +1,7 @@
 with t1 as
 (SELECT * 
 FROM
-(select t.projectId, ngo, schedule_vii, local_yn, t.fy_timerange,  CASE 
+(select t.projectId, ngo, schedule_vii, local_yn,t.project_start_date, t.project_end_date,  CASE 
     WHEN t.project_end_date IS NULL THEN '-' 
     ELSE to_char(t.project_end_date, 'YYYY-MM-DD')
 END as endd, CASE 
@@ -47,7 +47,9 @@ UNPIVOT (
 
 table1 as(select projectId,ngo, schedule_vii, case when local_yn IS TRUE THEN 'YES' else 'NO' end as local_yn, fy_timerange1,
  endd,start,imp_direct, csr_reg_num, state_district, ongoing,val,dim,fy_timerange,
-		  concat(concat(SUBSTRING(start, 1, 10),'-'),SUBSTRING(COALESCE(CAST(endd as char),''), 1, 10)) as fy_timerange1
+		  concat(concat(SUBSTRING(start, 1, 10),'-'),SUBSTRING(COALESCE(CAST(endd as char),''), 1, 10)) as fy_timerange1,
+		  concat(concat(concat(concat('{"start":"',project_start_date),'","end":"'),project_end_date),'"}') as duration
+
 
 		  from t1
 		 Group By projectId, fy_timerange, Dim,ngo, val,schedule_vii, local_yn, fy_timerange1, endd,start,imp_direct, csr_reg_num, state_district, ongoing
