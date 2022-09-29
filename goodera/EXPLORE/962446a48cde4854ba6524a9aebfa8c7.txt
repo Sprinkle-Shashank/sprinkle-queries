@@ -25,8 +25,11 @@ left join ds_mysql_prod_project x8 on x8.id = x5.projectid
 
 where x6.profileid in (80183,27395,27405,80188) and x1.active = 't'
 and x1.status in ('REJECTED', 'PENDING_APPROVAL', 'SUBMITTED','APPROVED') and x6.name in ('Basic Qualifier','Details')
-)
-Select profileid, profileinstanceid, id, status, data, 
+),
+s2 as (
+Select profileid, projectid, profileinstanceid, id, status, data,  
+  case when profileid=81088 then data.ia end as p1088,
+  case when profileid=27405 then data.ia end as p405,
   cast(approval_log."approvalStatus" as VARCHAR) as approval_status,
   case
   	when approval_status='REJECTED' then 'No'
@@ -37,3 +40,16 @@ Select profileid, profileinstanceid, id, status, data,
   cast(approval_log."approverComments" as VARCHAR) as approver_comments,
   cast(approval_log."timestamp" as VARCHAR) as timestamp
   from s as p, p.approvallog_new as approval_log
+)
+Select *,
+case 
+	when profileid=81083 then data.name
+	when profileid=81088 then p1.name
+	when profileid=27395 then data.name
+	when profileid=27405 then p2.name
+	end as imp_agency
+from s2
+left join profile_27395 p1
+on p1._id=s2.p1088
+left join profile_27405 p2
+on p2._id=s2.p405
