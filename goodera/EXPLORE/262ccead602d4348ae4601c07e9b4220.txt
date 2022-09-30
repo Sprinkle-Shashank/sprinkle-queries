@@ -1,18 +1,19 @@
-
- with x as(Select  cast ('Sri Lanka' as varchar) as  projectid,time_timerange,t1.name as  financialperiod,  coalesce(equivalent,0)/1000 as equivalent1, coalesce(equivalent_2,0)/1000 as equivalent2,equivalent1+equivalent2 as Air_Freight_Emissions ,cast('Scope 3'as varchar) as Scope, cast('Air Freight' as varchar) as type
+with  t as (select cast('Air Freight Emissions' as varchar) as col 
+	   
+	   ),
+z as (
+Select  cast ('Sri Lanka' as varchar) as  projectid,time_timerange,t1.name as  financialperiod,  coalesce(equivalent,0)/1000 as equivalent1, coalesce(equivalent_2,0)/1000 as equivalent2,equivalent1+equivalent2 as Air_Freight_Emissions ,cast('Scope 3'as varchar) as Scope, cast('Air Freight' as varchar) as type 
+  --, sum(Air_Freight_Emissions) as total
 
 from profile_48725 p1
 
 --left join ds_mysql_prod_project p2 on p2.id=projectid
 left join ds_mysql_prod_tagelement t1 on t1.id = financial_year
 	 where time_timerange is not null and  time_timerange not in(' ')
-	 )
-	  
-	select   x.projectid,x.time_timerange, x.financialperiod,sum(x.Air_Freight_Emissions) as total, x.scope,x.type from x  group by projectid,time_timerange,scope,type,financialPeriod
-	  
---)	 
+	  --group by projectid,time_timerange,scope,type,financialPeriod,equivalent, equivalent_2
+)	 
 /*select * from z*/
-/*select z.projectid,z.time_timerange,z.scope,z.type,z.financialPeriod,
+select z.projectid,z.time_timerange,z.scope,z.type,z.financialPeriod,
 sum(case 
 	when t.col='Air Freight Emissions'  then coalesce(z.Air_Freight_Emissions ,0)
 	--when t.col='Waste Consumption'  then z.dispose_2
@@ -20,10 +21,5 @@ sum(case
 	end ) as Total,
  t.col as Dim
 from z cross join t 
-group by z.projectid,z.time_timerange,z.scope,z.type,t.col,z.financialPeriod*/
-
-/*with  t as (select cast('Air Freight Emissions' as varchar) as col 
-	   
-	   ),
-z as (*/
+group by z.projectid,z.time_timerange,z.scope,z.type,t.col,z.financialPeriod
  
