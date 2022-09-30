@@ -1,20 +1,16 @@
-with temp1 as
+ with temp1 as
 (select * from
 (select projectId.name as projectId, m.fy_timerange, m.theory_sessions, m.practical_sessions, m.average_attendance, school_name.name as school from profile_65888 as m
 
 left join ds_mysql_prod_project as projectId
 on m.projectId = projectId.id
-/*left join ds_mysql_prod_tagelement as school_name
-on m.school_name = school_name.id*/
- 
-left join profile_65885 as school_name
-on m.school_name = school_name._id 
- 
+ left join profile_65885 as school_name
+on m.school_name = school_name._id
 )
 UNPIVOT (
   val for dimension IN ( theory_sessions, practical_sessions, average_attendance ))),
  
-temp2 as
+ temp2 as
  (select projectId, fy_timerange, school, Sum(temp1.val) as val, Dimension from temp1
   
  group by projectId, fy_timerange, school, Dimension)
