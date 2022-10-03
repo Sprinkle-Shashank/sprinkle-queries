@@ -3,10 +3,13 @@ else 'NA' end as Category
 			  from profile_27395 p 
 left join ds_mysql_prod_tagelement f on
 p.fy=f.id group by f.name),
+
 Base2 as(select concat(concat(substring(registration_date,1,4),'-'),cast(substring(registration_date,1,4) as int)+1) as fy_timerange,count(*) as Number,case when fy_timerange is not null then 'New Due Diligence' 
 else 'NA' end as Category
-			  from profile_80183 p 
+from profile_80183 p 
  group by registration_date),
+ 
+ 
 Base3 as(
 select f.name as fy_timerange,count(*) as number,case when fy_timerange is not null then
 'Renewals'
@@ -16,8 +19,25 @@ left join profile_27395 l on
 p.ia=l._id
 left join ds_mysql_prod_tagelement f
 on p.fy=f.id group by f.name
-),Base4 as (select * from Base1 where Category<>'NA' union  select * from Base2 where Category<>'NA' union select * from Base3 where Category<>'NA' )
-select * from Base4 group by fy_timerange,Number,Category
+),
+
+Base4 as(select concat(concat(substring(registration_date,1,4),'-'),cast(substring(registration_date,1,4) as int)+1) as fy_timerange,count(*) as Number,case when fy_timerange is not null then 'New Due Diligence' 
+else 'NA' end as Category
+			  from profile_80188 p 
+ group by registration_date),
+ 
+ Base5 as (select * from Base1 where Category<>'NA' 
+		   union  
+		   select * from Base2 where Category<>'NA' 
+		   union 
+		   select * from Base3 where Category<>'NA' 
+		   union  
+		   select * from Base4 where Category<>'NA'
+)
+ 
+select * 
+from Base5 
+group by fy_timerange,Number,Category
 
 
 
