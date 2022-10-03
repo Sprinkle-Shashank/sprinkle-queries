@@ -1,0 +1,65 @@
+WITH TABLE1 AS (
+Select p.projectid , p.fy_timerange , 
+loc.name as location_machine,
+met.name as meter_reading,
+to_char(date_entry,'DD-MM-YYYY') as date_entry,
+op.name as operational_status,
+run.name as running_wayu_machines,
+non_operation_reason,
+p2.num_machines as number_machines,
+count_not_working,
+CASE when run.name = 'No'
+then  'Machines not working'
+else  'Machines working'
+end as case_run,
+  
+  
+ROW_NUMBER() OVER (PARTITION BY loc.name ORDER BY date_entry DESC),
+1 AS COUNT 
+
+
+
+from profile_82027 p
+LEFT JOIN profile_82026 p2 
+ON p.location_machine = p2._id
+left join ds_mysql_prod_tagelement loc
+on p2.location_machine = loc.id
+left join ds_mysql_prod_tagelement met
+on p.meter_reading = met.id
+left join ds_mysql_prod_tagelement op
+on p.operational_status = op.id
+left join ds_mysql_prod_tagelement run
+ on p.running_wayu_machines = run.id
+),
+Table2 as (
+
+Select * 
+FROM
+(
+  SELECT projectid , fy_timerange , location_machine , running_wayu_machines , number_machines , count_not_working , case_run from table1
+WHERE row_number = 1  
+)
+
+UNPIVOT (
+    val FOR dim IN (count_not_working, number_machines)
+)
+),
+Table3 as (
+  Select * ,
+  CASE when dim = 'count_not_working'
+  then 'Machines not working'
+  else 'Total Machines'
+  end as new_dim
+  
+  
+  
+  
+  from table2
+)
+Select * from table3
+
+		   
+		   
+		  
+
+
