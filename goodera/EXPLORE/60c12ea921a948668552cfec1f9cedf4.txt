@@ -1,31 +1,39 @@
-Select pace_status,cast(count as int4),projectid 
-from(
-	select pace_status, count(pace_status) as count, projectid  
-	from (select 
+with table1 as (
+		  Select
+		  p.projectid as projectid1, pace_status_2,
+		  case 
+		  when table_54267._id is null then pace_status_2 
+		  else table_54267.pace_status 
+		  end as paceStatus,
+		  case when paceStatus is null 
+		  then 845114 
+		  else paceStatus 
+		  end as paceStatus1	
+		  from profile_52713 p
+		  left join profile_52810 table_52810 
+		  on table_52810.projectId = p.projectId
+		  left join profile_54267 table_54267 
+		  on table_54267.projectId = p.projectId
+),
+table2 as (
+  		  select 
 		  listagg(distinct(paceStatus1)) as pace_status, 
 		  projectid1 as projectid		  
-		  from (Select
-				p.projectid as projectid1, pace_status_2,
-				case 
-				when table_54267._id is null then pace_status_2 
-				else table_54267.pace_status 
-				end as paceStatus,
-				case when paceStatus is null 
-				then 845114 
-				else paceStatus 
-				end as paceStatus1	
-				from profile_52713 p
-				left join profile_52810 table_52810 on
-				table_52810.projectId = p.projectId
-	
-				left join profile_54267 table_54267 on
-				table_54267.projectId = p.projectId
-		  		)
-		  		group by projectid	
-	) as k		   
-	left join ds_mysql_prod_tagelement tag_pace on
-	k.pace_status=tag_pace.id
+		  from table1
+		  group by projectid	
+),
+table3 as (
+		  select pace_status, 
+		  count(pace_status) as count,
+		  projectid  
+		  from table2 p		   
+		  left join ds_mysql_prod_tagelement tag_pace 
+		  on p.pace_status=tag_pace.id
 
-	group by pace_status,tag_pace.name,projectid
-	order by tag_pace.name
-) 
+		  group by pace_status,tag_pace.name,projectid
+		  order by tag_pace.name
+
+Select pace_status,
+cast(count as int4),
+projectid 
+from table3
