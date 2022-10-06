@@ -25,12 +25,41 @@ left join ds_mysql_prod_project x8 on x8.id = x5.projectid
 
 where x6.profileid in (27395, 27405, 80183, 80188) and x1.active = 't'
 and x1.status in ('REJECTED', 'PENDING_APPROVAL', 'SUBMITTED','APPROVED') and x6.name in ('Details','Basic Qualifier')
-)
+),
 
-select s1.*, 
+sub2 as(
+  select s1.*, 
 cast(approval_log."approvalStatus" as VARCHAR) as approval_status, 
 cast(approval_log."approverEmail" as VARCHAR) as approver_mail,
 cast(approval_log."approverComments" as VARCHAR) as approver_comments,
 cast(approval_log."timestamp" as VARCHAR) as approver_timestamp
 
-from sub1 s1, s1.approvallog_new approval_log
+from sub1 s1, s1.approvallog_new approval_log)
+
+select s2.id, t1.name as fy_timerange, s2.status, s2.approval_status, s2.approver_mail, s2.approver_comments, s2.approver_timestamp, 
+
+case
+	when s2.profileid = 80188 or s2.profileid = 27405 then 'Renewal Project'
+	else 'New Project'
+end as type_of_project,
+
+case
+	when s2.approval_status = 'APPROVED' then 'Yes'
+	when s2.approval_status = 'REJECTED' then 'No'
+	else NULL
+end as approval_status_new,
+
+case
+	when s2.profileid = 80188 then p1.name
+	when s2.profileid = 27405 then p2.name
+	when s2.profileid = 80183 then cast(s2.data.name as VARCHAR)
+	when s2.profileid = 27395 then cast(s2.data.name as VARCHAR)
+	else NULL
+end as ia
+
+from sub2 s2
+
+left join ds_mysql_prod_tagelement t1 on t1.id = s2.data.fy
+
+left join profile_80183 p1 on p1._id = s2.data.ia
+left join profile_27395 p1 on p2._id = s2.data.ia
