@@ -1,64 +1,16 @@
-with s as 
-(Select x1._id as id, x1.profileinstanceid, x1.status, x1.active, x1.data, x1.taskuserid, x2.taskid, x5.projectid, x6.profileid, x4.sectionid, x6.name as section, x7.name as profile, x8.name as project, x1.created, x1.modified,
-  
-case
-  when is_array(x1.submissionlog) = false or get_array_length(x1.submissionlog) = 0 then 
-  	   array(x1.submissionlog)
-  else x1.submissionlog
-end as submissionlog_new,
-case
-  when is_array(x1.approvallog) = false or get_array_length(x1.approvallog) = 0 then 
-  	   array(x1.approvallog)
-  else x1.approvallog
-end as approvallog_new
-  
-from ds_mongo_taskresponse x1 
-
-left join ds_mysql_prod_taskuser x2 on x2.id = x1.taskuserid
-left join ds_mysql_prod_task x3 on x3.id = x2.taskid
-left join ds_mysql_prod_flowtask x4 on x4.id = x3.flowtaskid
-left join ds_mysql_prod_projectflow x5 on x5.id = x3.projectflowid
-left join ds_mysql_prod_section x6 on x6.id = x4.sectionid
-left join ds_mysql_prod_profile x7 on x7.id = x6.profileid
-left join ds_mysql_prod_project x8 on x8.id = x5.projectid
-
-
-where x6.profileid in (27395,27405,80183,80188) and x1.active = 't'
-and x1.status in ('REJECTED', 'PENDING_APPROVAL', 'SUBMITTED','APPROVED') and x6.name in ('Details','Basic Qualifier')
-),
-s2 as (
-Select profileid, projectid, profileinstanceid, id, status, data,  
-  case when profileid=80188 then data.ia end as p0188,
-  case when profileid=27405 then data.ia end as p405,
-  cast(approval_log."approvalStatus" as VARCHAR) as approval_status,
-  case
-  	when approval_status='REJECTED' then 'No'
-	when approval_status='APPROVED' then 'Yes'
-	end as status_new,
-	
-  cast(approval_log."approverEmail" as VARCHAR) as approver_mail,
-  cast(approval_log."approverComments" as VARCHAR) as approver_comments,
-  cast(approval_log."timestamp" as VARCHAR) as timestamp
-  from s as p, p.approvallog_new as approval_log
-)
-Select s2.*,t.name as fy_timerange,
-case 
-	when profileid=80183 then 'New Project'
-	when profileid=80188 then 'Renewal Project'
-	when profileid=27395 then 'New Project'
-	when profileid=27405 then 'Renewal Project'
-	end as type_of_project,
-case 
-	when profileid=80183 then data.name
-	when profileid=80188 then p1.ia_old
-	when profileid=27395 then data.name
-	when profileid=27405 then p2.ia
-	end as ia
-from s2
-left join ds_mysql_prod_tagelement t
-on t.id=data.fy
-left join profile_27395 p1
-on p1._id=s2.p0188
-left join profile_27405 p2
-on p2._id=s2.p405
-where s2.profileid in (27395,27405,80183,80188)
+with Base1 as(select p.profileinstanceid,case when p.profileinstanceid is not null then 'New Project' end as type_of_project,p.name as Implementing_agency,p.fy as fy_timerange,p.status,approval."approvalStatus" as approval_status,approval."timestamp" as timestamp, sub_details, approval from taskresp_27395 p , p.approvallog approval, p.submissionlog sub_details
+),Base2 as(
+select p.profileinstanceid,case when p.profileinstanceid is not null then 'Renewal Project' end as type_of_project,p.ia,p.fy as fy_timerange,p.status,approval."approvalStatus" as approval_status,approval."timestamp" as timestamp, sub_details, approval from taskresp_27405 p , p.approvallog approval, p.submissionlog sub_details
+			   ),Base3 as(
+select p.profileinstanceid,case when p.profileinstanceid is not null then 'New Project' end as type_of_project,p.name as Implementing_agency,p.fy as fy_timerange,p.status,approval."approvalStatus" as approval_status,approval."timestamp" as timestamp, sub_details, approval from taskresp_80183 p , p.approvallog approval, p.submissionlog sub_details
+			   ),Base4 as(
+select p.profileinstanceid,case when p.profileinstanceid is not null then 'Renewal Project' end as type_of_project,p.ia_old,p.fy as fy_timerange,p.status,approval."approvalStatus" as approval_status,approval."timestamp" as timestamp, sub_details, approval from taskresp_80188 p , p.approvallog approval, p.submissionlog sub_details
+			   )Base5 as(select p.profileinstanceid,p.type_of_project,l.name as IA,p.fy_timerange,p.approval_status,p.timestamp from Base2 p left join
+profile_27395 l 
+on p.ia=l._id),Base6 as(select p.profileinstanceid,p.type_of_project,p.Implementing_agency,f.name as fy_timerange,p.approval_status,p.timestamp from Base1 p left join ds_mysql_prod_tagelement f on
+p.fy_timerange=f.id
+union
+select p.profileinstanceid,p.type_of_project,p.IA,f.name as fy_timerange,p.approval_status,p.timestamp from Base3 p left join  ds_mysql_prod_tagelement f on
+p.fy_timerange=f.id),Base7 as(
+select p.profileinstanceid,p.type_of_project, p.Implementing_agency,p.fy_timerange,p.approval_status, cast(split_part(cast(p.timestamp as varchar),'T',1) as date) as timestamp from Base6 p)
+select profileinstanceid,type_of_project,Implementing_agency as IA,fy_timerange,approval_status,timestamp from Base7 where type_of_project is not null and Implementing_agency is not null order by timestamp  desc
