@@ -1,0 +1,47 @@
+with temp as (
+  select 'no_of_students_math' as col
+  union all
+  select 'no_of_students_literacy' as col
+  union all
+  select 'no_of_students_hindi' as col
+  union all
+  select 'no_of_students_math_endline' as col
+  union all
+  select 'no_of_students_english_endline' as col
+  union all
+  select 'no_of_students_hindi_endline' as col
+  )
+	select p1.grade,p1.fy_timerange,temp.col as dimensions,extract (quarter from cast(p1.fy_timerange.start as date)) as quarter,
+	
+	case when quarter = 1 then 'January - March'
+	 when quarter = 2 then 'April - June'
+	 when quarter = 3 then 'July - September'
+	 when quarter = 4 then 'October - December'
+	else NULL
+	end as quarter_text,
+	
+	sum(case temp.col
+	   when 'no_of_students_math' then p1.no_of_students_math
+	    when 'no_of_students_literacy' then p1.no_of_students_literacy
+	    when 'no_of_students_hindi' then p1.no_of_students_hindi
+	    when 'no_of_students_math_endline' then p1.no_of_students_math_endline
+	    when 'no_of_students_english_endline' then p1.no_of_students_english_endline
+	    when 'no_of_students_hindi_endline' then p1.no_of_students_hindi_endline
+	   else NULL
+	   end) as values,
+	case 
+	when temp.col like '%math%' then 'Math'
+	when temp.col like '%literacy%' then 'English'
+	when temp.col like '%english%' then 'English'
+	when temp.col like '%hindi%' then 'Hindi'
+	else NULL
+	end as subjects,
+	case
+	when temp.col like '%endline' then 'Endline'
+	else 'Baseline'
+	end as baseline_endline
+	from profile_79767 p1 cross join temp
+	group by p1.grade,p1.fy_timerange,temp.col
+	
+	
+	
