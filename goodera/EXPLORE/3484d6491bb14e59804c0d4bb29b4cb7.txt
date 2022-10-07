@@ -1,0 +1,50 @@
+with temp as (
+  select 'average_proficiency_math_baseline' as col
+  union all
+  select 'avg_proficiency_english_baseline' as col
+  union all
+  select 'avg_proficiency_hindi_baseline' as col
+  union all
+  select 'average_proficiency_math_endline' as col
+  union all
+  select 'avg_proficiency_english_endline' as col
+  union all
+  select 'avg_proficiency_hindi_endline' as col
+  )
+	select t1.name as grade,p1.fy_timerange,temp.col as dimensions,extract (quarter from cast(p1.fy_timerange.start as date)) as quarter,extract(year from cast (fy_timerange.start as date)) as start_year,extract(month from cast (fy_timerange.start as date)) as start_month,
+case when start_month<4 then start_year-1 else start_year end as fy_year,
+/*('FY ('||fy_year||'-'||fy_year+1-2000||')' ) as year,*/
+concat(concat(concat('FY ',fy_year),'-'),fy_year+1-2000) as year,
+	case when quarter = 1 then 'January - March'
+	 when quarter = 2 then 'April - June'
+	 when quarter = 3 then 'July - September'
+	 when quarter = 4 then 'October - December'
+	else NULL
+	end as quarter,
+	
+	sum(case temp.col
+	   when 'average_proficiency_math_baseline' then p1.average_proficiency_math_baseline
+	    when 'avg_proficiency_english_baseline' then p1.avg_proficiency_english_baseline
+	    when 'avg_proficiency_hindi_baseline' then p1.avg_proficiency_hindi_baseline
+	    when 'average_proficiency_math_endline' then p1.average_proficiency_math_endline
+	    when 'avg_proficiency_english_endline' then p1.avg_proficiency_english_endline
+	    when 'avg_proficiency_hindi_endline' then p1.avg_proficiency_hindi_endline
+	   else NULL
+	   end) as values,
+	case 
+	when temp.col like '%math%' then 'Math'
+	when temp.col like '%english%' then 'English'
+	when temp.col like '%hindi%' then 'Hindi'
+	else NULL
+	end as subjects,
+	case
+	when temp.col like '%endline' then 'Endline'
+	else 'Baseline'
+	end as baseline_endline
+	from profile_79767 p1 cross join temp
+	/*left join ds_mysql_prod_tagelement t1 on t1.id=p1.grade*/
+	left join ds_mysql_prod_tagelement t1 on p1.grade = t1.id
+	group by t1.name,p1.fy_timerange,temp.col
+	
+	
+	
