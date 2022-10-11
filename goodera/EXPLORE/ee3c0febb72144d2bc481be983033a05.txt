@@ -9,14 +9,17 @@ left join ds_mysql_prod_tagelement tag2
 on p1.country = tag2.id
 
 ),
-sub2  as(select b.*, unwind_cycle from t1 b,b.cycle as unwind_cycle)
+sub2  as(select b.*, unwind_cycle from t1 b,b.cycle as unwind_cycle),
 
-select _id, projectId,description, start_date,end_date,factory,address,factory_latitude,factory_longitude,etp_status ,country_name ,etp_status_2,partner_id,factory_id,tag4.name as consultant, tag4.name as  consultant_tag,num_workers,male_workers,female_workers, migrant_percent , 
-num_peers ,unwind_product_category  , country ,tag3.name  as unwind_cycle ,vendor from 
+t2 as
+(select _id, projectId,description, start_date,end_date,factory,address,factory_latitude,factory_longitude,etp_status ,country_name ,etp_status_2,partner_id,factory_id,tag4.name as consultant, tag4.name as  consultant_tag,num_workers,male_workers,female_workers, migrant_percent , 
+num_peers ,unwind_product_category  as product_category , country ,tag3.name  as unwind_cycle ,vendor from 
 sub2
 left join ds_mysql_prod_tagelement tag3
 on unwind_cycle = tag3.id 
 left join ds_mysql_prod_tagelement tag4
 on consultant_tag = tag4.id
 where unwind_product_category is not null
-order by unwind_product_category ASC
+order by unwind_product_category ASC)
+
+select t2.product_category from t1
