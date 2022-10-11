@@ -1,7 +1,8 @@
-with sub1 as ( Select p.projectid , p.location ,p1.location as loc1, p1.lat as latitude , p1.longi as longitude, p1.base_dist as base_distance 
+with sub1 as ( Select p.projectid , p.location ,p1.location as loc1, p1.lat as latitude , p1.longi as longitude, p1.base_dist as base_distance,p2.names as impl 
 			  
 from profile_58511 p
-left join profile_49219 p1 on p.location = p1._id  
+left join profile_49219 p1 on p.location = p1._id
+left join profile_51990 p2 on p.imple_partner = p2._id  
 WHERE p1.location <> ' '  and p.projectid like '%%'
 ),
 			 
@@ -20,7 +21,7 @@ Select count(*) , p1.location , p2.location as loc,p.fy_timerange as date
    
    )
   
- Select loc ,sum(count), sub1.latitude , sub1.longitude , sub1.base_distance , t1.name as van, sub1.projectid,date
+ Select loc ,sum(count), sub1.latitude , sub1.longitude , sub1.base_distance , t1.name as van, sub1.projectid,date,sub1.impl
  
  from sub2 
  LEFT JOIN sub1 
@@ -28,4 +29,4 @@ Select count(*) , p1.location , p2.location as loc,p.fy_timerange as date
  LEFT JOIN ds_mysql_prod_project t1
  on sub1.projectid = t1.id
  where loc <> ' ' and loc is not null
- GROUP BY loc , count ,sub1.latitude , sub1.longitude , sub1.base_distance , t1.name,sub1.projectid,date
+ GROUP BY loc , count ,sub1.latitude , sub1.longitude , sub1.base_distance , t1.name,sub1.projectid,date,sub1.impl
