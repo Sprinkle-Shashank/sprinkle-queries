@@ -15,16 +15,21 @@ on p2.consultant_tag = tag4.id
  ),
 
  sub1  as(select a.*, unwind_cycle from t1 a,a.cycle as unwind_cycle),
- 
-   t2 as( select c._id, c.projectId,  c.training_type, c.year ,c.num_workers,c.num_management,c.country,  c.vendor,c.consultant   ,tag5.name as cycle, c.product_category from sub1 c
-   left join ds_mysql_prod_tagelement tag5 on c.unwind_cycle = tag5.id ),
+   t2 as( 
+  select c._id, c.projectId,  c.training_type, c.year ,c.num_workers,c.num_management,c.country,  c.vendor,c.consultant   ,tag5.name as cycle, c.product_category
+   from sub1 c
+   left join ds_mysql_prod_tagelement tag5
+on c.unwind_cycle = tag5.id ),
 
 		  
 
-sub2 as ( Select b.*,unwind_product_category from t2 b , b.product_category as unwind_product_category),
+sub2 as ( Select b.*,unwind_product_category from t2 b , b.product_category as unwind_product_category)
+,
 		 
- t3 as (select f._id, f.projectId,  f.training_type, f.year,f.num_workers,f.num_management,f.country,          f.vendor,f.consultant ,f.cycle, tag6.name as product_category , _id as id2from sub2 f
-		   left join ds_mysql_prod_tagelement tag6 on tag6.id = f.unwind_product_category) 
-		   
-select  t3.projectId,  t3.training_type, t3.year,t3.country,t3.vendor,t3.consultant ,t3.cycle, t3.product_category , t3._id as id2, sum(t3.num_management) as management_representative,sum(t3.num_workers) as worker_representative from t3
-group by t3.projectId,  t3.training_type, t3.year,t3.country,t3.vendor,t3.consultant ,t3.cycle, t3.product_category , t3._id 
+		 t3 as
+		(select f._id, f.projectId,  f.training_type, f.year,f.num_workers,f.num_management,f.country,          f.vendor,f.consultant ,f.cycle, tag6.name as product_category , _id as id2
+		  from sub2 f
+		   left join ds_mysql_prod_tagelement tag6 on tag6.id = f.unwind_product_category
+		   )
+		   select  t3.projectId,  t3.training_type, t3.year,t3.country,t3.vendor,t3.consultant ,t3.cycle, t3.product_category , t3._id as id2, sum(t3.num_management) as management_representative,sum(t3.num_workers) as worker_representative from t3
+		   group by 
