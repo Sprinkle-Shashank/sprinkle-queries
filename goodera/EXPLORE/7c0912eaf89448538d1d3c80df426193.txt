@@ -1,6 +1,6 @@
 with t1 as
 (
-  select p._id, p.projectid, proj.name as proj_update, fy_timerange, spoc, p.type, ty.name as type_update, spoc_email, remarks, p.projects as projects_base, spoc_contact, designation, p1.partner, par.name as partner_display, p1.projects
+  select p._id, p.projectid, proj.name as proj_update, fy_timerange, spoc, p.type, ty.name as type_update, spoc_email, remarks, p.projects as projects_base, spoc_contact, designation, p1.partner, par.name as partner_display, p1.projects, pr.name as proj_t2
   from profile_77063 as p
   
   left join profile_56342 p1 on
@@ -12,12 +12,15 @@ with t1 as
   left join ds_mysql_prod_tagelement ty
   on p.type = ty.id
   
+  left join ds_mysql_prod_tagelement pr
+  on p1.projects = pr.id
+  
   left join ds_mysql_prod_project proj
   on p.projectid = proj.id
   ),
   t2 as 
   ( 
-   select _id, proj_update, fy_timerange, spoc, designation, type_update, spoc_email, remarks, projects_base, spoc_contact, partner, projects, partner_display from t1
+   select _id, proj_update, fy_timerange, spoc, designation, type_update, spoc_email, remarks, projects_base, spoc_contact, partner, proj_t2, partner_display from t1
 	order by partner_display, type_update ASC, fy_timerange desc
    )
    select * from t2
