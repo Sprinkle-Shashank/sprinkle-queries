@@ -1,5 +1,8 @@
 with t1 as 
-( select  p3.name as projectId, tag1.name as training_type, tag2.name as  year, p1.num_workers, num_management, p1._id,  tag3.name as country,p2.vendor, p2.cycle, p2.product_category,tag4.name as consultant  from profile_61613 as p1
+( select  p3.name as projectId, tag1.name as training_type, tag2.name as  year, p1.num_workers, num_management, p1._id,  tag3.name as country,p2.vendor, p2.cycle, p2.product_category,tag4.name as consultant  from profile_61613 as p1,
+ case when consultant is null then product_category is null
+ else o
+ end as consultant
  left join profile_64362 as p2
 on p1.projectId = p2.projectId
  left join ds_mysql_prod_project p3
@@ -31,7 +34,6 @@ sub2 as ( Select b.*,unwind_product_category from t2 b , b.product_category as u
 		(select f._id, f.projectId,  f.training_type, f.year,f.num_workers,f.num_management,f.country,          f.vendor,f.consultant ,f.cycle, tag6.name as product_category , _id as id2
 		  from sub2 f
 		   left join ds_mysql_prod_tagelement tag6 on tag6.id = f.unwind_product_category
-		 where f.unwind_product_category is null
 		   )
 		   select  t3.projectId,  t3.training_type, t3.year,t3.country,t3.vendor,t3.consultant ,t3.cycle, t3.product_category , t3._id as id2 ,sum(t3.num_management) as management_representative, sum(t3.num_workers) as worker_representative
 		    from t3
