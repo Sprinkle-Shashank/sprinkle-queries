@@ -10,23 +10,14 @@ temp2 as (select * ,temp1.number_paper, temp1.cost_paper
 		temp2 ytemp)
 		select * from y
  
- /* t as (select cast('Emissions' as varchar) as col 
+  t as (select cast('paper_number_paper' as varchar) as col 
 	   union all
-	   select cast('Consumption' as varchar) as col
+	   select cast('paper_cost_paper' as varchar) as col
 	   ),
 	   
- z as (select t2.name as projectid, fy_timerange as time_timerange,timerange.name as financialperiod, datatablebase, cast(coalesce(fuel_company,0) as float) as fuelcompany, d.name as type_company,  d1.name as fuel_company_type, case d1.name when 'Petrol' then 0.00220904 
-                                   when 'Diesel' then 0.00259411
-	                               else   0
-	                               end  as Multiplicationfactortotal,
-	fuelcompany * coalesce (Multiplicationfactortotal,0) as CompanyVehicleconsumption,cast('Scope 1' as VARCHAR) as scope ,
-	   cast('Company Vehicles' as VARCHAR) as type
-	   
+ z as (select t2.name as projectid, fy_timerange as time_timerange,timerange.name as financialperiod, datatablebase, programId, organizationId,  Paper_used_and_cost, ,number_paper,cost_paper
 from y 
- left join ds_mysql_prod_tagelement d1
-on d1.id=y.fuel_company_type 
- left join ds_mysql_prod_tagelement d
-on d.id=y.type_company
+ 
 	   
 left join ds_mysql_prod_project t1
 on t1.id=y.xprojectid
@@ -43,12 +34,12 @@ left join ds_mysql_prod_tagelement timerange
 on timerange.id=fy.parent/*financialPeriod*/
 	  )
 /*select * from z*/
-select z.projectid,z.time_timerange,z.scope,z.type,z.financialPeriod,
+select z.projectid,z.time_timerange,z.programId,z.organizationId,z.financialPeriod,z.Paper_used_and_cost
 sum(case 
-	when t.col='Emissions'  then z.CompanyVehicleconsumption
-	when t.col='Consumption'  then z.fuelcompany
+	when t.col='paper_number_paper'  then z.number_paper
+	when t.col='paper_cost_paper'  then z.cost_paper
 		else 0												
 	end ) as Total,
  t.col as Dim
 from z cross join t
-group by z.projectid,z.time_timerange,z.scope,z.type,t.col,z.financialPeriod*/
+group by z.projectid,z.time_timerange,z.programId,z.organizationId,t.col,z.financialPeriod,z.Paper_used_and_cost
