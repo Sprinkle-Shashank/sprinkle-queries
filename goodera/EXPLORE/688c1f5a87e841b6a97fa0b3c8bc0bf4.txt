@@ -33,13 +33,37 @@ on c.unwind_cycle = tag3.id ),
 		  
 
 sub2 as ( Select b.*,unwind_product_category from t2 b , b.product_category as unwind_product_category
-		  )
-		 
-		 select f.projectId, f.timerange_timerange,  f.training_type, f.num_female, f.num_male, f.year ,f.country, f.factory, f.vendor,
+		  ),
+		 t3 as
+		 (select f.projectId, f.timerange_timerange,  f.training_type, f.num_female, f.num_male, f.year ,f.country, f.factory, f.vendor,
 		 f.cycle,f.consultant,tag5.name as product_category
 		 from sub2 f
-		 left join ds_mysql_prod_tagelement tag5 on tag5.id = f.unwind_product_category
+		 left join ds_mysql_prod_tagelement tag5 on tag5.id = f.unwind_product_category)
+		 
+item as
+(
+select 'num_female' as t
+union all
+select 'num_male' as t
+)
+--,
 
+--t4 as
+--(
+  select  projectId , timerange_timerange,  training_type,  year , factory, vendor, consultant,  cycle,country  ,  product_category , 
+case c
+when 'num_female' then t1.num_female
+when 'num_male' then t1.num_male
+else null
+end as workforce,item.c as gender
+from t3 cross join item
+--)
+ 
+
+--select projectId, timerange_timerange,training_type,year,factory,vendor,consultant,cycle,country,product_category,gender , gender, --sum(t2.workforce) as workforce
+--from t2 
+--group by projectId , timerange_timerange,  training_type,  year , factory, vendor, consultant, cycle,country ,  product_category ,gender
+--order by timerange_timerange DESC
 
 
 
