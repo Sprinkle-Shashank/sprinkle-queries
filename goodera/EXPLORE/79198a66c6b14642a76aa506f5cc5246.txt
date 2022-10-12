@@ -8,7 +8,6 @@ left join profile_28235 p8
 on p8._id=p1.intervention_type
 left join ds_mysql_prod_tagelement t1
 			  on t1.id = p1.project_manager
-			/* where f.name not in ('2015-2016','2016-2017','2017-2018')*/
 group by 1,2,4,5,6
 union all
 select split_part(split_part(split_part(p3.name,'|',1),'.',1),' ',1 ) as projectcode,
@@ -19,7 +18,6 @@ left join ds_mysql_prod_tagelement f on
 p3.fy=f.id 
 			  left join ds_mysql_prod_tagelement t1
 			  on t1.id = p3.project_manager
-			 /* where f.name not in ('2015-2016','2016-2017','2017-2018')*/
 group by 1,2,4,5,6),
 
 
@@ -33,7 +31,6 @@ left join ds_mysql_prod_project prod
 on prod.id=p2.projectid
 left join ds_mysql_prod_tagelement f on
 p2.fy=f.id
-		/* where f.name not in ('2015-2016','2016-2017','2017-2018')*/
 group by prod.name,2,5
 
 union all 
@@ -46,7 +43,6 @@ left join ds_mysql_prod_project prod
 on prod.id=p6.projectid
 left join ds_mysql_prod_tagelement f on
 p6.fy=f.id
-		/* where f.name not in ('2015-2016','2016-2017','2017-2018')*/
 group by prod.name,2,5),
 
 level1tab as (select m.name as level1 ,p.approver as level2,p.name as level1email from profile_27424 p
@@ -59,7 +55,7 @@ m.id = p.pm_name
 left join level1tab z on
 z.level1email = p.approver)
 		 
-Select /*tab1.CODE, tab2.CODE*/ /*tab3.CODE,*/ rtrim(tab1.interventiontype) as intervention_type, 
+Select rtrim(tab1.interventiontype) as intervention_type, 
 case  
 when  tab1.interventiontype='Indirect - Others'
 then tab1.curr_yr_budget1
@@ -71,7 +67,6 @@ end as AllocatedAmount,
 rtrim(tab1.fy_timerange) fy_timerange ,rtrim(tab1.level1) as level1,rtrim(d.level2) as level2
 from tab1 
 left join tab2 on tab1.CODE=tab2.CODE
-/*left join tab3 on tab1.CODE=tab3.CODE*/
 left join level2tab d
 on d.level1 = tab1.level1
 where tab1.level1 is not null
