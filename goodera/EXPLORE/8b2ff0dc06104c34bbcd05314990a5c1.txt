@@ -33,16 +33,37 @@ sub2 as (
   case 
   when profileid in (27395, 80183) then data."name"
   when profileid = 80188 then data."sink"
-  
    end as impl_agency,
+      case
+	when profileid = 27405 then data."ia"---------27395
+  		end as ia,
   case 
   when profileid in (80188, 80183) then data."file_pan"
   end as pan_card,
     case 
   when profileid in (80188, 80183) then data."certificate_fcra"
-  end as fcra
-  
+  end as fcra,
+  case
+  when profileid in (80188, 80183) then data."file_exemption"
+  end as tax,
+  case
+  when profileid in (80188, 80183) then data."documents"
+  end as mou,
+  case
+  when profileid in (80188, 80183) then data."audit_financials"
+  end as audit
   from sub1
+),
+
+sub3 as (
+  Select 
+  case when profileid=27405 then p2.name
+  else sub2.impl_agency
+  end as ia, fcra, pan_card, mou, audit, tax
+  
+  from sub2
+   left join profile_27395 p2
+		  ON sub2.ia=p2._id	
 )
 
-Select * from sub2
+Select * from sub3
