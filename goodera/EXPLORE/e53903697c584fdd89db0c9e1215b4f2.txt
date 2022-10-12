@@ -1,21 +1,23 @@
-select split_part(split_part(p1.name,'|',1),'.',1) as projectcode,
-f.name as fy_timerange,sum(p1.curr_yr_budget) curr_yr_budget1, p8.name as interventiontype,
-concat(projectcode,fy_timerange) as CODE,t1.name as level1
-from profile_27396 p1
+select split_part(split_part(prod.name,'|',1),'.',1) as projectcode,
+f.name as fy_timerange,
+sum( case p2.hdfc_cost_monthly when null then 0
+else p2.hdfc_cost_monthly end) as hdfc_cost_monthly,'0' as monthly_cost, 'Indirect' interventiontype,
+concat(projectcode,fy_timerange) as CODE
+from profile_29974 p2
+left join ds_mysql_prod_project prod
+on prod.id=p2.projectid
 left join ds_mysql_prod_tagelement f on
-p1.fy=f.id
-left join profile_28235 p8
-on p8._id=p1.intervention_type
-left join ds_mysql_prod_tagelement t1
-on t1.id = p1.project_manager
-group by 1,2,4,5,6
-union all
-select split_part(split_part(split_part(p3.name,'|',1),'.',1),' ',1 ) as projectcode,
-f.name as fy_timerange, sum(p3.curr_yr_budget) as curr_yr_budget1,p3.int_type_calc2 as interventiontype,
-concat(projectcode,fy_timerange) as CODE,t1.name as level1
-from profile_27420 p3
+p2.fy=f.id
+group by prod.name,2,5
+
+union all 
+select split_part(split_part(prod.name,'|',1),'.',1) as projectcode,
+f.name as fy_timerange,'0' as hdfc_cost_monthly,sum(case p6.monthly_cost when null then 0
+else p6.monthly_cost end) as monthly_cost, 'Indirect' interventiontype,
+concat(projectcode,fy_timerange) as CODE
+from profile_30171 p6
+left join ds_mysql_prod_project prod
+on prod.id=p6.projectid
 left join ds_mysql_prod_tagelement f on
-p3.fy=f.id 
-left join ds_mysql_prod_tagelement t1
-on t1.id = p3.project_manager
-group by 1,2,4,5,6
+p6.fy=f.id
+group by prod.name,2,5
