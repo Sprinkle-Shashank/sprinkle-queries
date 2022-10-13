@@ -19,16 +19,43 @@ select c.projectid,  c.name, c.title, c.date, c.impact_story, c.photo  ,c.countr
    left join ds_mysql_prod_tagelement tag5
 on c.unwind_cycle = tag5.id ),
 
+sub2 as ( Select b.*,unwind_product_category from t2 b , b.product_category as unwind_product_category)
+,
+		 
+t3 as
+(select .projectid,  f.name, f.title, f.date, f.impact_story, f.photo  ,f.country, f.factory, f.vendor, f.cycle,  un_cycle, f.product_category ,f.consultant,
+ tag6.name as un_product_category
+from sub2 f
+left join ds_mysql_prod_tagelement tag6 
+ on tag6.id = f.unwind_product_category)
 
-t4 as (select projectid,  name, title, date, impact_story, photo  ,country, factory, vendor, cycle,  null as un_cycle, product_category ,consultant
+
+
+t4 as (select projectid,  name, title, date, impact_story, photo  ,country, factory, vendor, cycle,  null as un_cycle,  null as product_category ,consultant
 from t1
 	   where projectid not in (select projectid from sub1 )
-	   )
+	   ),
 	   
-	   select  projectid,  name, title, date, impact_story, photo  ,country, factory, vendor, cycle,  un_cycle, product_category ,consultant
-
-from t2
+	   t5 as (select projectid, name, title, date, impact_story, photo, country , factory, vendor, cycle,   null as un_cycle, product_category ,consultant, null as un_product_category 
+from t1
+	   where projectid not in (select projectid from sub2 )
+		
+	
+	  )
+select 
+t3.projectid, t3.name, t3.title, t3.date, t3.impact_story, t3.photo,t3.country , t3.factory, t3.vendor, t3.cycle,  t3.un_cycle, t3.product_category ,t3.consultant, t3.un_product_category 
+from t3
+ 
 
 union all
 select * from t4
-
+union all
+select * from t5
+	   
+	   
+	   
+	   
+	   
+	   
+	   
+	   
