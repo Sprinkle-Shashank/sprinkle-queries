@@ -30,48 +30,23 @@ t3 as
  on tag6.id = f.unwind_product_category
 )
 ,
-sub3 as ( Select d.*,unwind_photo from t3 d , d.photo as unwind_photo),
-
-t4 as
-(select  t.projectid, t.name, t.title, t.date, t.impact_story, t.photo,tag7.name as unwind_photo,t.country , t.factory, t.vendor, t.cycle,  t.un_cycle, t.product_category ,t.consultant, t.un_product_category 
-from sub3 t
-  left join ds_mysql_prod_tagelement tag7 
- on tag7.id = t.unwind_photo
- ),
  
  
  
- t5 as (select projectid, name, title, date, impact_story, photo, null as unwind_photo,country , factory, vendor, cycle,   null as un_cycle, product_category ,consultant, null as un_product_category 
+ t4 as (select projectid, name, title, date, impact_story, photo, country , factory, vendor, cycle,   null as un_cycle, product_category ,consultant, null as un_product_category 
 from t1
 	   where projectid not in (select projectid from sub1 )
-		group by   projectid, name, title, date, impact_story, photo,  unwind_photo,country , factory, vendor, cycle,    un_cycle, product_category ,consultant, un_product_category 
+		group by   projectid, name, title, date, impact_story, photo,  country , factory, vendor, cycle,    un_cycle, product_category ,consultant, un_product_category 
 	
 	  ),
 	  
-
-	  
-	  
-	  t6 as(
-		select projectid, name, title, date, impact_story, photo, null as unwind_photo,country , factory, vendor, cycle,   null as un_cycle, product_category ,consultant, null as un_product_category 
-from t1
-	   where projectid not in (select projectid from sub2 )
-		group by   projectid, name, title, date, impact_story, photo,  unwind_photo,country , factory, vendor, cycle,    un_cycle, product_category ,consultant, un_product_category 
-)
-,
-t7 as(
-		select projectid, name, title, date, impact_story, photo, null as unwind_photo,country , factory, vendor, cycle,   null as un_cycle, product_category ,consultant, null as un_product_category 
-from t1
-	   where projectid not in (select projectid from sub3 )
-      group by   projectid, name, title, date, impact_story, photo,  unwind_photo,country , factory, vendor, cycle,            un_cycle, product_category ,consultant, un_product_category 
-)
 select 
-t4.projectid, t4.name, t4.title, t4.date, t4.impact_story, t4.photo, t4.unwind_photo,t4.country , t4.factory, t4.vendor, t4.cycle,  t4.un_cycle, t4.product_category ,t4.consultant, t4.un_product_category 
+t4.projectid, t4.name, t4.title, t4.date, t4.impact_story, t4.photo,t4.country , t4.factory, t4.vendor, t4.cycle,  t4.un_cycle, t4.product_category ,t4.consultant, t4.un_product_category 
 from t4
- group by   projectid, name, title, date, impact_story, photo,  unwind_photo,country , factory, vendor, cycle,            un_cycle, product_category ,consultant, un_product_category
+ group by   projectid, name, title, date, impact_story, photo, country , factory, vendor, cycle, un_cycle, product_category ,consultant, un_product_category
 
+union all
+select * from t4
 union all
 select * from t5
-union all
-select * from t6
-union all
-select * from t7
+
