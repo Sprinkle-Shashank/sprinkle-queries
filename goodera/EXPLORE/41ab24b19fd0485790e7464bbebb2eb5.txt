@@ -35,7 +35,8 @@ cast(approval_log."approverComments" as VARCHAR) as approver_comments,
 cast(approval_log."timestamp" as VARCHAR) as approver_timestamp
 
 from sub1 s1, s1.approvallog_new approval_log)
-
+,
+sub3 as(
 select s2.id, s2.profileid, t1.name as fy_timerange, s2.status, s2.approval_status, s2.approver_mail, s2.approver_comments, s2.approver_timestamp, 
 
 case
@@ -159,3 +160,16 @@ from sub2 s2
 left join ds_mysql_prod_tagelement t1 on t1.id = s2.data.fy
 left join ds_mysql_prod_tagelement t2 on t2.id = data."org_type"
 left join profile_27395 p2 on p2._id = s2.data.ia
+)
+,
+sub4 as (
+Select *,tar_bene from sub3 s3,s3.tb tar_bene
+)
+,
+sub5 as (
+Select *,listagg(t.name,', ') as target_beneficiary from sub4
+left join ds_mysql_prod_tagelement t on t.id=tar_bene
+group by  fy_timerange,ia1,ia,type_of_project,org_typee,percentage_5_yearss,tb,iaa,on_role_employeess,cost_beneficiaryy,socioeconomicc,direct_beneficiariess,org_objectivee,budgett,other_fundingg,corporate_funderss,individual_donorss,participate_boardd,pann,registration_datee,reg_numberr,mission,brief_des,profileid,government_fundingg,tar_ben,approval_status,approver_mail,approver_comments,approver_timestamp,status
+)
+
+Select * from sub5
