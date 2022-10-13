@@ -1,0 +1,161 @@
+with sub1 as 
+(Select x1._id as id, x1.profileinstanceid, x1.status, x1.active, x1.data, x1.taskuserid, x2.taskid, x5.projectid, x6.profileid, x4.sectionid, x6.name as section, x7.name as profile, x8.name as project, x1.created, x1.modified,
+  
+case
+  when is_array(x1.submissionlog) = false or get_array_length(x1.submissionlog) = 0 then 
+  	   array(x1.submissionlog)
+  else x1.submissionlog
+end as submissionlog_new,
+case
+  when is_array(x1.approvallog) = false or get_array_length(x1.approvallog) = 0 then 
+  	   array(x1.approvallog)
+  else x1.approvallog
+end as approvallog_new
+  
+from ds_mongo_taskresponse x1 
+
+left join ds_mysql_prod_taskuser x2 on x2.id = x1.taskuserid
+left join ds_mysql_prod_task x3 on x3.id = x2.taskid
+left join ds_mysql_prod_flowtask x4 on x4.id = x3.flowtaskid
+left join ds_mysql_prod_projectflow x5 on x5.id = x3.projectflowid
+left join ds_mysql_prod_section x6 on x6.id = x4.sectionid
+left join ds_mysql_prod_profile x7 on x7.id = x6.profileid
+left join ds_mysql_prod_project x8 on x8.id = x5.projectid
+
+
+where x6.profileid in (27395, 27405, 80183, 80188) and x1.active = 't'
+and x1.status in ('REJECTED', 'PENDING_APPROVAL', 'SUBMITTED','APPROVED') and x6.name in ('Details','Basic Qualifier')
+),
+
+sub2 as(
+  select s1.*, 
+cast(approval_log."approvalStatus" as VARCHAR) as approval_status, 
+cast(approval_log."approverEmail" as VARCHAR) as approver_mail,
+cast(approval_log."approverComments" as VARCHAR) as approver_comments,
+cast(approval_log."timestamp" as VARCHAR) as approver_timestamp
+
+from sub1 s1, s1.approvallog_new approval_log)
+
+select s2.id, s2.profileid, t1.name as fy_timerange, s2.status, s2.approval_status, s2.approver_mail, s2.approver_comments, s2.approver_timestamp, 
+
+case
+	when s2.profileid = 80188 or s2.profileid = 27405 then 'Renewal Project'
+	else 'New Project'
+end as type_of_project,
+
+case
+	when s2.profileid = 80188 then cast(s2.data.sink as VARCHAR)
+	when s2.profileid = 27405 then p2.name
+	when s2.profileid = 80183 then cast(s2.data.name as VARCHAR)
+	when s2.profileid = 27395 then cast(s2.data.name as VARCHAR)
+	else NULL
+end as ia,
+case 
+    when s2.profileid = 80183 then data."description"
+    when s2.profileid = 27395 then data."brief"
+  	when s2.profileid = 80188 then data."description" 
+  		end as brief_des,
+  case	
+    when s2.profileid = 80183 then data."mission"
+    when s2.profileid = 27395 then data."vision_and_mission"
+  	when s2.profileid = 80188 then data."mission" 
+  		end as mission,
+  case	
+    when s2.profileid = 80183 then data."registration_number"
+    when s2.profileid = 27395 then data."reg_number"
+  	when s2.profileid = 80188 then data."registration_number" 
+	when s2.profileid = 27405 then data."reg_number"
+  		end as reg_numberr,
+  case	
+    when s2.profileid = 80183 then data."registration_date"
+    when s2.profileid = 27395 then data."registration_date"
+  	when s2.profileid = 80188 then data."registration_date" 
+  		end as registration_datee,
+  case	
+    when s2.profileid = 80183 then data."pan_card"
+    when s2.profileid = 27395 then data."pan"
+  	when s2.profileid = 80188 then data."pan_card" 
+  		end as pann,
+		 case	
+    when s2.profileid = 80183 then data."participate_board"
+    when s2.profileid = 80188 then data."participate_board"
+  		end as participate_boardd,
+		 case	
+    when s2.profileid = 80183 then data."percentage_donors"
+    --when s2.profileid = 27395 then data."individual_donors"
+  	when s2.profileid = 80188 then data."percentage_donors" 
+	when s2.profileid = 27405 then data."individual_donors"
+  		end as individual_donorss,
+		  case	
+    when s2.profileid = 80183 then data."total_donations"
+    when s2.profileid = 27395 then data."corporate_funders"
+  	when s2.profileid = 80188 then data."total_donations" 
+	when s2.profileid = 27405 then data."corporate_funders"
+  		end as corporate_funderss,
+		  case	
+    when s2.profileid = 80183 then data."percentage_funding"
+    when s2.profileid = 27395 then data."government_funding"
+  	when s2.profileid = 80188 then data."percentage_funding" 
+	when s2.profileid = 27405 then data."government_funding"
+  		end as government_fundingg,
+		  case	
+    when s2.profileid = 80183 then data."percentage_agencies"
+    when s2.profileid = 27395 then data."other_funding"
+  	when s2.profileid = 80188 then data."percentage_agencies" 
+	when s2.profileid = 27405 then data."other_funding"
+  		end as other_fundingg,
+		  case	
+    when s2.profileid = 80183 then data."organization_budget"
+    when s2.profileid = 27395 then data."budget"
+  	when s2.profileid = 80188 then data."organization_budget" 
+	when s2.profileid = 27405 then data."budget"
+  		end as budgett,
+		   case	
+    when s2.profileid = 80183 then data."objective"
+    when s2.profileid = 27395 then data."org_objective"
+  	when s2.profileid = 80188 then data."objective" 
+	when s2.profileid = 27405 then data."org_objective"
+  		end as org_objectivee,
+		 case	
+    when s2.profileid = 80183 then data."direct_beneficiaries"
+    when s2.profileid = 27395 then data."outreach_lastfy"
+  	when s2.profileid = 80188 then data."direct_beneficiaries" 
+	when s2.profileid = 27405 then data."outreach_lastfy"
+  		end as direct_beneficiariess,
+		  case	
+    when s2.profileid = 80183 then data."percentage_socio_economic"
+    when s2.profileid = 27395 then data."socioeconomic"
+  	when s2.profileid = 80188 then data."percentage_socio_economic" 
+	when s2.profileid = 27405 then data."socioeconomic"
+  		end as socioeconomicc,
+		  case	
+    when s2.profileid = 80183 then data."cost_per_beneficiary"
+    when s2.profileid = 27395 then data."cost_beneficiary"
+  	when s2.profileid = 80188 then data."cost_per_beneficiary" 
+	when s2.profileid = 27405 then data."cost_beneficiary"
+  		end as cost_beneficiaryy,
+		  case	
+    when s2.profileid = 80183 then data."on_role_employees"
+    when s2.profileid = 27395 then data."full_term"
+  	when s2.profileid = 80188 then data."on_role_employees" 
+	when s2.profileid = 27405 then data."full_term"
+  		end as on_role_employeess,
+		 case	
+    when s2.profileid = 80183 then data."percentage_5_years"
+    when s2.profileid = 80188 then data."percentage_5_years"
+		 end as percentage_5_yearss,
+	  case	
+		  when s2.profileid in (27395,80183,80188) then t.name
+  		end as org_typee ,
+  case	
+     when s2.profileid IN (27395,80183,80188) then data."target_beneficiary"
+end as tb
+
+
+
+
+from sub2 s2
+
+left join ds_mysql_prod_tagelement t1 on t1.id = s2.data.fy
+
+left join profile_27395 p2 on p2._id = s2.data.ia
