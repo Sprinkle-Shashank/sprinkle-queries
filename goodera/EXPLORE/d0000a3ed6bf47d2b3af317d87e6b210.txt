@@ -1,14 +1,22 @@
 with t1 as
 (
-  select p.projectid, proj.name as parent1, fy_timerange, bud_allocated, bud_dis
+  select p.projectid, proj.name as projectid_updated, fy_timerange, bud_allocated, bud_dis, par1.name as parent1,
+  par2.name as parent2
   from profile_36554 as p
   
   left join ds_mysql_prod_project proj
   on p.projectid = proj.id
+  
+  left join ds_mysql_prod_tagelement as par1
+  on p.projectid = par1.id
+  
+  left join ds_mysql_prod_tagelement as par2
+  on par1.parent = par2.id
+  
   ),
   t2 as
   (
-	select projectid, fy_timerange, sum(bud_allocated) as allocated, sum(bud_dis) as disbursed, 
+	select projectid_updated, fy_timerange, sum(bud_allocated) as allocated, sum(bud_dis) as disbursed, 
 	parent1 from t1
 	group by projectid, fy_timerange, parent1
 	)
