@@ -1,19 +1,18 @@
-select  p1.projectId, p1.date, p1.topic, p1.trainer, p1.date_2, p1.master_trainers, p1.peer_learning_2, p1.peer_learning, p1.evident, p1.status_skills, p1.num_vendor, p1.num_factory,tag1.name as skills_status,tag2.name as topic,
-p2.projectId, p2.risk, p2.procedure, p2.incident, p2.act_adjust, p2.hs_training, p2.hs_risk, p2.hs_act,p3.country, p3.factory, p3.vendor, p3.product_category, p3.consultant, p3.cycle,tag3.name as country,tag4.name as cycle,tag5.name as product_category,
+select  p1.projectId,p3.country, p3.factory, p3.vendor, p3.product_category, p3.consultant, p3.cycle,tag3.name as country, tag4.name as cycle,tag5.name as product_category,
 case
 when p2.hs_risk = 1105581 then 5
 when p2.hs_risk = 1105582 then 4
 when p2.hs_risk = 1105583 then 3
 when p2.hs_risk = 1105585 then 1
 else 2
-end as HS_Risk1,
+end as HS_Risk,
 case
 when p2.incident = 1105581 then 5
 when p2.incident = 1105582 then 4
 when p2.incident = 1105583 then 3
 when p2.incident = 1105585 then 1
 else 2
-end as Incident1,
+end as Incident,
 
 case 
    when p2.hs_act = 1105581 then 5
@@ -21,7 +20,7 @@ case
    when p2.hs_act = 1105583 then 3
    when p2.hs_act = 1105585 then 1
    else 2
-   end as HS_ACT1,
+   end as HS_ACT,
 
 case
 when p2.hs_training = 1105581 then 5
@@ -30,14 +29,14 @@ when p2.hs_training - 1105583 then 3
 when p2.hs_training - 1105585 then 1
 else 2
 end as HS_Training1,
-(Incident1 + HS_Act1 + HS_Training1 + HS_Risk1) as total_score,
+(Incident + HS_Act + HS_Training + HS_Risk) as total_score,
 
 case 
 when total_score > 12 then 1
 when total_score = 12 then 1 
 else 0
 end as All_Questions,
-count(p1.projectId) as count
+count(*) as count
 
 from profile_61617 p1
 left join ds_mysql_prod_tagelement tag1
@@ -54,5 +53,4 @@ left join ds_mysql_prod_tagelement tag4
 on p3.cycle = tag4.id
 left join ds_mysql_prod_tagelement tag5
 on p3.product_category = tag5.id
-group by p1.projectId, factory, vendor, consultant, country, product_category, cycle, HS_Risk, Incident, HS_Act, HS_Training, Total_Score, All_Questions,p1.date,p1.topic,p1.trainer,p1.date_2,p1.master_trainers,p1.peer_learning_2,p1.peer_learning,p1.evident, p1.status_skills, p1.num_vendor, p1.num_factory,skills_status,topic,
-p2.projectId, p2.risk, p2.procedure, p2.incident, p2.act_adjust, p2.hs_training, p2.hs_risk, p2.hs_act,p3.country, p3.factory, p3.vendor, p3.product_category, p3.consultant, p3.cycle,tag2.name,tag3.name,tag4.name,tag5.name
+group by projectId, factory, vendor, consultant, country, product_category, cycle, HS Risk, Incident, HS Act/Adjust, HS Training, Total Score, All Questions
