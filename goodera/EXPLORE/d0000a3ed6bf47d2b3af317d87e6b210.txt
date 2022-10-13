@@ -1,8 +1,16 @@
 with t1 as
 (
-  select projectId, fy_timerange, bud_allocated, bud_dis
+  select p.projectId, proj.name as parent1, fy_timerange, bud_allocated, bud_dis
+  from profile_36554 as p
+  
+  left join ds_mysql_prod_project proj
+  on p.projectid = proj.id
   ),
   t2 as
   (
-	select projectId, fy_timerange, bud_allocated, bud_dis from t1
-	group by 
+	select projectId, fy_timerange, sum(bud_allocated) as allocated, sum(bud_dis) as disbursed, 
+	parent1 from t1
+	
+	group by projectId, fy_timerange
+	)
+	select * from t2
