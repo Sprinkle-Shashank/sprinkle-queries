@@ -27,7 +27,7 @@ and x1.status in ('REJECTED', 'PENDING_APPROVAL', 'SUBMITTED')
 
 group by x1._id, x1.profileinstanceid, x1.status, x1.active, x1.data, x1.taskuserid, x2.taskid, x5.projectid, x6.profileid, x4.sectionid, x6.name, x7.name, x8.name, x1.submissionlog, x1.approvallog, x1.created, x1.modified),
 
-sub2 as (Select profileid,
+sub2 as (Select profileid,approvallog,
 		 case	
      when profileid IN (27395,27405,80183,80188) then t2.name
   		end as fy_timerange,
@@ -153,7 +153,13 @@ end as tb
 )
 ,
 subb3 as (
-Select s2.*,tar_ben from sub2 as s2, s2.tb tar_ben
+Select s2.*,
+cast(al."approvalStatus" as VARCHAR) as approval_status, 
+cast(al."approverEmail" as VARCHAR) as approver_mail,
+cast(al."approverComments" as VARCHAR) as approver_comments,
+cast(al."timestamp" as VARCHAR) as approver_timestamp
+
+tar_ben from sub2 as s2, s2.tb tar_ben , s2.approvallog al
 )
 
 ,
@@ -170,7 +176,7 @@ sub3 as (
 		  ON subb3.ia=p2._id	
   left join ds_mysql_prod_tagelement t2 
 		  ON t2.id = subb3.tar_ben
-  group by fy_timerange,ia1,ia,type_of_project,org_typee,percentage_5_yearss,tb,iaa,on_role_employeess,cost_beneficiaryy,socioeconomicc,direct_beneficiariess,org_objectivee,budgett,other_fundingg,corporate_funderss,individual_donorss,participate_boardd,pann,registration_datee,reg_numberr,mission,brief_des,profileid,government_fundingg,tar_ben
+  group by fy_timerange,ia1,ia,type_of_project,org_typee,percentage_5_yearss,tb,iaa,on_role_employeess,cost_beneficiaryy,socioeconomicc,direct_beneficiariess,org_objectivee,budgett,other_fundingg,corporate_funderss,individual_donorss,participate_boardd,pann,registration_datee,reg_numberr,mission,brief_des,profileid,government_fundingg,tar_ben,approval_status,approver_mail,approver_comments,approver_timestamp
 )
 
 Select * from sub3
