@@ -28,7 +28,38 @@ left join ds_mysql_prod_tagelement tag6
 on p1.training_type = tag6.id
 )
 
-select projectId,notes_2,end_date_2,start_date_2,training,training_type, supervisors, employed,saturation,master_trainers, year,country,factory,vendor,consultant, product_category, product_category2,
+sub1 as ( Select b.*,unwind_product_category from t1 b , b.product_category as unwind_product_category),
+t3 as
+(
+select projectId, notes_2, end_date_2, start_date_2,training, training_type, supervisors, employed, saturation, master_trainers, year, factory, vendor, consultant, product_category,country,product_category2,
+cast('Cycle 1' as VARCHAR) as Cycle1,
+cast('Cycle 2' as VARCHAR) as Cycle2,
+tag12.name as unwind_product_category
+from sub1 f
+left join ds_mysql_prod_tagelement tag12 
+on tag12.id = f.unwind_product_category
+),
+
+t4 as
+(select  null as  unwind_product_category ,projectId, notes_2, end_date_2, start_date_2,training, training_type, supervisors, employed, saturation, master_trainers, year, factory, vendor, consultant, product_category,country,product_category2,
+cast('Cycle 1' as VARCHAR) as Cycle1,
+cast('Cycle 2' as VARCHAR) as Cycle2
+from t1
+where projectId not in (select projectId from sub1 ),
+ 
+t5 as
+(select  h.projectId, h.notes_2, h.end_date_2, h.start_date_2,h.training, training_type, supervisors, employed, saturation, master_trainers, year, factory, vendor, consultant, product_category,country,product_category2,
+cast('Cycle 1' as VARCHAR) as Cycle1,
+cast('Cycle 2' as VARCHAR) as Cycle2,
+h.unwind_product_category
+from t3 as h
+union all
+select * from t4)
+ 
+select * from t5
+
+
+/*select projectId,notes_2,end_date_2,start_date_2,training,training_type, supervisors, employed,saturation,master_trainers, year,country,factory,vendor,consultant, product_category, product_category2,
 cast('50' as VARCHAR) as Target,
 case 
 when year = 1433762 then Cycle1
@@ -38,3 +69,4 @@ else Cycle2
 end as cycle
 from t1
 Group by projectId, notes_2, end_date_2, start_date_2,training,  training_type, year, supervisors, employed, saturation, master_trainers, factory, vendor, consultant, country, product_category, Target, cycle,t1.product_category2
+*/
