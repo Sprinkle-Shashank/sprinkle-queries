@@ -1,4 +1,4 @@
-select p1.name as projectcode,
+with tab1 as (select p1.name as projectcode,
 f.name as fy_timerange,sum(p1.curr_yr_budget) curr_yr_budget1, p8.name as interventiontype,t1.name as level1,t2.name as focus_area,
 concat(projectcode,fy_timerange) as CODE
 from profile_27396 p1
@@ -24,4 +24,28 @@ on t1.id = p3.project_manager
 left join ds_mysql_prod_tagelement t2
 on p3.focus_area = t2.id
 where int_type_calc2 = 'Indirect - Others'
-group by 1,2,4,5,6
+group by 1,2,4,5,6),
+
+
+/*level1tab as (select m.name as level1 ,p.approver as level2,p.name as level1email from profile_27424 p
+left join ds_mysql_prod_tagelement m on
+m.id = p.pm_name),
+
+level2tab as (select m.name as level1 , z.level1 as level2 from profile_27424 p
+left join ds_mysql_prod_tagelement m on
+m.id = p.pm_name
+left join level1tab z on
+z.level1email = p.approver)*/
+	 
+Select tab1.CODE, tab1.interventiontype,
+case  
+when  tab1.interventiontype='Indirect - Others' 
+then sum(tab1.curr_yr_budget1)
+end as AllocatedAmount, 
+tab1.fy_timerange ,tab1.level1,tab1.focus_area,d.level2
+from tab1 
+/*left join level2tab d
+on d.level1 = tab1.level1
+where tab1.level1 is not null
+and d.level2 is not null
+order by tab1.fy_timerange, tab1.interventiontype,tab1.level1,d.level2*/
