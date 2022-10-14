@@ -64,12 +64,19 @@ then tab1.curr_yr_budget1
 when tab1.interventiontype='Indirect'
 then (tab2.hdfc_cost_monthly+tab2.monthly_cost)  
 end as AllocatedAmount, 
-rtrim(tab1.fy_timerange) fy_timerange ,rtrim(tab1.level1) as level1,rtrim(d.level2) as level2
+rtrim(tab1.fy_timerange) fy_timerange ,
+case
+when rtrim(tab1.level1) is null then 'NULL'
+else
+rtrim(tab1.level1) 
+end as level1,
+case
+when rtrim(d.level2) is null then 'Null'
+else rtrim(d.level2) 
+end as level2
 from tab1 
 left join tab2 on tab1.CODE=tab2.CODE
 left join level2tab d
 on d.level1 = tab1.level1
-where tab1.level1 is not null
-and d.level2 is not null
 order by tab1.fy_timerange, tab1.interventiontype,tab1.level1,d.level2
 
