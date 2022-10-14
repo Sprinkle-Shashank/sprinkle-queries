@@ -1,6 +1,23 @@
 with tab1 as
-(Select t2.name as fy_timerange,(t.name) as response,case when response='Yes' then split_part(split_part(p3.name,'[',1),'-',1)  when response ='No' then p2.name  end as projectcode,case when response='Yes' then m.name when response ='No' then n.name end as first_level_manager,case when response = 'Yes' then p1.int_type_renew when response = 'No' then p1.int_type_pgd end as intervention_type,
-case when p1.payment_amount is null then 0 else sum( p1.payment_amount)   end as Amount_Disbursed  ,RTRIM(projectcode)||fy_timerange as CODE from profile_27398 p1
+(Select t2.name as fy_timerange,(t.name) as response,
+ case 
+ when response='Yes' then p3.name 
+ when response ='No' then p2.name  
+ end as projectcode,
+ case 
+ when response='Yes' then m.name 
+ when response ='No' then n.name 
+ end as first_level_manager,
+ case 
+ when response = 'Yes' then p1.int_type_renew 
+ when response = 'No' then p1.int_type_pgd 
+ end as intervention_type,
+case 
+ when p1.payment_amount is null then 0 
+ else sum( p1.payment_amount)   
+ end as Amount_Disbursed  ,
+ RTRIM(projectcode)||fy_timerange as CODE 
+ from profile_27398 p1
 left join ds_mysql_prod_tagelement t
 on p1.renewal=t.id
 left join profile_27396 p2 on
@@ -24,8 +41,9 @@ left join ds_mysql_prod_tagelement f
 on p1.fy = f.id
 left join ds_mysql_prod_tagelement t1
 on p1.project_manager = t1.id 
-union
-select split_part(l.name,'[',1) as ProjectCode,f.name as fy_timerange,concat(projectcode,fy_timerange) as CODE,int_type_calc2 as intervention_type,t1.name as first_level_manager from profile_27420 p1
+union all
+select l.name as ProjectCode,f.name as fy_timerange,concat(projectcode,fy_timerange) as CODE,int_type_calc2 as intervention_type,t1.name as first_level_manager 
+ from profile_27420 p1
 left join profile_27396 l
 on p1.project_code=l._id
 left join ds_mysql_prod_tagelement t1
