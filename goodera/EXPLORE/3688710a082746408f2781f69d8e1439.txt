@@ -1,5 +1,5 @@
 with tab1 as (select p1.name as projectcode,
-f.name as fy_timerange,sum(p1.curr_yr_budget) curr_yr_budget1, p8.name as interventiontype, /*sum(p1.curr_yr_budget) curr_yr_budget,*/ t1.name as level1,t2.name as focus_area,
+f.name as fy_timerange,sum(p1.curr_yr_budget) curr_yr_budget1, p8.name as interventiontype,t1.name as level1,t2.name as focus_area,
 concat(projectcode,fy_timerange) as CODE
 from profile_27396 p1
 left join ds_mysql_prod_tagelement f on
@@ -10,11 +10,11 @@ left join ds_mysql_prod_tagelement t1
 on t1.id = p1.project_manager
 left join ds_mysql_prod_tagelement t2
 on p1.focus_area = t2.id
-where /*f.name not in ('2015-2016','2016-2017','2017-2018') and*/ p8.name = 'Indirect - Others'
+where p8.name = 'Indirect - Others'
 group by 1,2,4,5,6
 union all
 select p3.name as projectcode,
-f.name as fy_timerange, sum(p3.curr_yr_budget) as curr_yr_budget1,p3.int_type_calc2 as interventiontype, /*'0' as curr_yr_budget, */ t1.name as level1,t2.name as focus_area,
+f.name as fy_timerange, sum(p3.curr_yr_budget) as curr_yr_budget1,p3.int_type_calc2 as interventiontype,t1.name as level1,t2.name as focus_area,
 concat(projectcode,fy_timerange) as CODE
 from profile_27420 p3
 left join ds_mysql_prod_tagelement f on
@@ -23,37 +23,9 @@ left join ds_mysql_prod_tagelement t1
 on t1.id = p3.project_manager		
 left join ds_mysql_prod_tagelement t2
 on p3.focus_area = t2.id
-where /*f.name not in ('2015-2016','2016-2017','2017-2018') and*/ int_type_calc2 = 'Indirect - Others'
+where int_type_calc2 = 'Indirect - Others'
 group by 1,2,4,5,6),
 
-
-/*tab2 as (select split_part(split_part(prod.name,'|',1),'.',1) as projectcode,
-f.name as fy_timerange,
-sum( case when p2.hdfc_cost_monthly is null then 0
-else p2.hdfc_cost_monthly end) as hdfc_cost_monthly,
-'Indirect' interventiontype,
-concat(projectcode,fy_timerange) as CODE
-from profile_29974 p2
-left join ds_mysql_prod_project prod
-on prod.id=p2.projectid
-left join ds_mysql_prod_tagelement f on
-p2.fy=f.id
-where f.name not in ('2015-2016','2016-2017','2017-2018')
-group by 1,2,4),
-
-tab3 as (select split_part(split_part(prod.name,'|',1),'.',1) as projectcode,
-f.name as fy_timerange,
-sum(case when p6.monthly_cost is null then 0
-else p6.monthly_cost end) as monthly_cost,
-'Indirect' interventiontype,
-concat(projectcode,fy_timerange) as CODE
-from profile_30171 p6
-left join ds_mysql_prod_project prod
-on prod.id=p6.projectid
-left join ds_mysql_prod_tagelement f on
-p6.fy=f.id
-where f.name not in ('2015-2016','2016-2017','2017-2018')
-group by 1,2,4),*/
 
 level1tab as (select m.name as level1 ,p.approver as level2,p.name as level1email from profile_27424 p
 left join ds_mysql_prod_tagelement m on
@@ -65,15 +37,22 @@ m.id = p.pm_name
 left join level1tab z on
 z.level1email = p.approver)
 	 
-Select tab1.CODE, tab1.interventiontype ,
+Select tab1.CODE, tab1.interventiontype,
 case  
 when  tab1.interventiontype='Indirect - Others' 
-then tab1.curr_yr_budget1
+then sum(tab1.curr_yr_budget1)
 end as AllocatedAmount, 
-tab1.fy_timerange ,tab1.level1,tab1.focus_area,d.level2
+tab1.fy_timerange ,case
+when rtrim(d.level2) is null then 'Null'
+else rtrim(d.level2) 
+end as level2,
+case
+when rtrim(tab1.level1) is null then 'Null'
+else
+rtrim(tab1.level1) 
+end as level1,tab1.focus_area
 from tab1 
 left join level2tab d
 on d.level1 = tab1.level1
-where tab1.level1 is not null
-and d.level2 is not null
-order by tab1.fy_timerange, tab1.interventiontype,tab1.level1,d.level2
+group by 1,2,4,5,6,7
+order by tab1.fy_timerange, tab1.interventiontype,level1,level2
