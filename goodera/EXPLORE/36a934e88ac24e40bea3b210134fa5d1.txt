@@ -1,4 +1,24 @@
- select p.projectid , fac.name as factory ,
+With table1 as( select  projectid, facility_name,  facility_status, facility_rating, pace_status, pace_status_detail, assessor, last_assessment_date,  payment_method, pace, wcp, sst, wep, gbv, goodera_facility_name_text, fac_vpid, parent_vendor_vpid, facility_score, open_issues, total_workers,
+	
+	programs_run , 
+	parent_vendor_name_1.name as vendor_name, case when nvl2(SUBSTRING(parent_vendor_name_1.name, 1, POSITION(' (' in parent_vendor_name_1.name)), SUBSTRING(parent_vendor_name_1.name, 1, POSITION(' (' in parent_vendor_name_1.name)), parent_vendor_name_1.name)='' then parent_vendor_name_1.name else nvl2(SUBSTRING(parent_vendor_name_1.name, 1, POSITION(' (' in parent_vendor_name_1.name)), SUBSTRING(parent_vendor_name_1.name, 1, POSITION(' (' in parent_vendor_name_1.name)), parent_vendor_name_1.name) end as vendor ,
+	primary_category_1.name as primary_category ,
+	country_name_1.name as country
+	from profile_68161 p 
+	 
+	
+	  left join tagelement_1137 parent_vendor_name_1 on
+  p.parent_vendor_name = parent_vendor_name_1.id
+	
+	  left join tagelement_1137 primary_category_1 on
+  p.primary_category =  primary_category_1.id
+	
+	left join tagelement_1137 country_name_1 on
+  p.country_name =  country_name_1.id
+	
+  where facility_status in (845097,845104) ),
+  Table2 as (
+select p.projectid , fac.name as factory ,
   
 case when nvl2(SUBSTRING(substring(ven.name,9,len(ven.name)), 1, POSITION(' (' in substring(ven.name,9,len(ven.name)))), SUBSTRING(substring(ven.name,9,len(ven.name)), 1, POSITION(' (' in substring(ven.name,9,len(ven.name)))), substring(ven.name,9,len(ven.name)))='' then substring(ven.name,9,len(ven.name)) else nvl2(SUBSTRING(substring(ven.name,9,len(ven.name)), 1, POSITION(' (' in substring(ven.name,9,len(ven.name)))), SUBSTRING(substring(ven.name,9,len(ven.name)), 1, POSITION(' (' in substring(ven.name,9,len(ven.name)))), substring(ven.name,9,len(ven.name))) end as vendor , 
   
@@ -23,6 +43,13 @@ on ven.parent = cou.id
   
 
   
- where p.projectid like '%%' and country <> 'Test Country'
+ where p.projectid like '%%' and country <> 'Test Country' ),
+ 
+ Table3 as ( Select country , vendor from table1),
+ Table4 as (Select country , venodr from table2)
+ Select * from table3
+ UNION ALL 
+ Select * from table4
+ 
 
 
