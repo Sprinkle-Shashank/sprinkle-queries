@@ -3,7 +3,7 @@ Select 'Total Direct Budget' as col
 union all
 Select 'Total Indirect Budget' as col
 ),
-tab1 as(SELECT split_part(prod.name,'|',1) as projectcode,t.name as fy_timerange,concat(projectcode,fy_timerange) as CODE,
+tab1 as(SELECT p1.name as projectcode,t.name as fy_timerange,concat(projectcode,fy_timerange) as CODE,
        sum(CASE 
              WHEN p.budget_head = 'Admin Cost' THEN p.cost_yearly 
              ELSE 0 
@@ -17,13 +17,18 @@ tab1 as(SELECT split_part(prod.name,'|',1) as projectcode,t.name as fy_timerange
              ELSE 0 
            END) AS NGO_Management_Cost 
 FROM   profile_29976 p
+left join profile_27396 p1
+on p.prj_code=p1._id
 left join ds_mysql_prod_project prod on
 prod.id=p.projectid	
 left join ds_mysql_prod_tagelement t on
 p.fy=t.id
 
 GROUP  BY 1,2,3),
-tab2 as(select q.village,split_part(split_part(prod.name,'|',1),'.',1) as projectcode,f.name as fy_timerange,concat(projectcode,fy_timerange) as CODE,split_part(prod.name,'|',3) as census,sum(p.hdfc_cost_yearly) hdfc_cost_yearly,sum(p.gov_cost_yearly) as gov_cost_yearly,sum(p.comm_cost_yearly) comm_cost_yearly from profile_29973 p 
+tab2 as(select q.village,p1.name as projectcode,f.name as fy_timerange,concat(projectcode,fy_timerange) as CODE,split_part(prod.name,'|',3) as census,sum(p.hdfc_cost_yearly) hdfc_cost_yearly,sum(p.gov_cost_yearly) as gov_cost_yearly,sum(p.comm_cost_yearly) comm_cost_yearly 
+from profile_29973 p 
+left join profile_27396 p1
+on p.prj_code=p1._id
 left join ds_mysql_prod_project prod on
 prod.id=p.projectid	
 left join ds_mysql_prod_tagelement f on
