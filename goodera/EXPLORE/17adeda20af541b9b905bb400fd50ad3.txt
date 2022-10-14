@@ -1,6 +1,6 @@
 with t1 as 
 ( 
-  select  p3.name as projectId, tag1.name as training_type, tag2.name as  year, p1.num_workers, num_management, p1._id,  tag3.name as country,p2.vendor, p2.cycle, tag4.name as consultant ,p2.product_category ,mm
+  select  p3.name as projectId, tag1.name as training_type, tag2.name as  year, p1.num_workers, num_management, p1._id,  tag3.name as country,p2.vendor, p2.cycle, tag4.name as consultant ,p2.product_category 
  
   
   from profile_61613 as p1
@@ -23,7 +23,7 @@ on p2.consultant_tag = tag4.id
  sub1  as(select a.*, unwind_cycle from t1 a,a.cycle as unwind_cycle)
 ,
  t2 as( 
-select c._id, c.projectId,  c.training_type, c.year ,c.num_workers,c.num_management,c.country,  c.vendor,c.consultant   , c.cycle,tag5.name as un_cycle, c.product_category,mm
+select c._id, c.projectId,  c.training_type, c.year ,c.num_workers,c.num_management,c.country,  c.vendor,c.consultant   , c.cycle,tag5.name as un_cycle, c.product_category
 from sub1 c
 left join ds_mysql_prod_tagelement tag5
 on c.unwind_cycle = tag5.id 
@@ -35,34 +35,34 @@ sub2 as ( Select b.*,unwind_product_category from t2 b , b.product_category as u
 ,
 		 
 t3 as
-(select f._id, f.projectId,  f.training_type, f.year,f.num_workers,f.num_management,f.country,f.vendor,f.consultant ,f.un_cycle, tag6.name as un_product_category , _id as id2,mm
+(select f._id, f.projectId,  f.training_type, f.year,f.num_workers,f.num_management,f.country,f.vendor,f.consultant ,f.un_cycle, tag6.name as un_product_category , _id as id2
 from sub2 f
 left join ds_mysql_prod_tagelement tag6 
  on tag6.id = f.unwind_product_category
 
 ),
-t4 as (select t1._id as id2, projectId,  training_type, year,country,vendor,consultant , null as un_cycle, null as  un_product_category , sum(num_management) as management_representative,management_representative-1 as mm , sum(num_workers) as worker_representative
+t4 as (select t1._id as id2, projectId,  training_type, year,country,vendor,consultant , null as un_cycle, null as  un_product_category , sum(num_management) as management_representative,sum(num_workers) as worker_representative
 from t1
 	   where _id not in (select _id from sub1 )
-	group by   t1._id , projectId,  training_type, year,country,vendor,consultant ,  un_cycle, un_product_category,mm
+	group by   t1._id , projectId,  training_type, year,country,vendor,consultant ,  un_cycle, un_product_category
 	  ),
 	  
 
 	  
 	  
-	  t5 as(select t1._id as id2, projectId,  training_type, year,country,vendor,consultant , null as un_cycle, null as  un_product_category , sum(num_management) as management_representative, management_representative-1 as mm ,sum(num_workers) as worker_representative
+	  t5 as(select t1._id as id2, projectId,  training_type, year,country,vendor,consultant , null as un_cycle, null as  un_product_category , sum(num_management) as management_representative, sum(num_workers) as worker_representative
 from t1
 	   where _id not in (select _id from sub2 )
-	group by   t1._id , projectId,  training_type, year,country,vendor,consultant ,  un_cycle, un_product_category)
+	group by   t1._id , projectId,  training_type, year,country,vendor,consultant ,  un_cycle, un_product_category),
 	
-	
-select t3._id as id2, t3.projectId,  t3.training_type, t3.year,t3.country,t3.vendor,t3.consultant ,t3.un_cycle as  cycle, t3.un_product_category as product_category , sum(t3.num_management) as management_representative, sum(t3.num_workers) as worker_representative,mm
+t6 as	
+(select t3._id as id2, t3.projectId,  t3.training_type, t3.year,t3.country,t3.vendor,t3.consultant ,t3.un_cycle as  cycle, t3.un_product_category as product_category , sum(t3.num_management) as management_representative, sum(t3.num_workers) as worker_representative
 from t3
 group by t3.projectId,  t3.training_type, t3.year,t3.country,t3.vendor,t3.consultant ,cycle,product_category , t3._id 
 union all
 select * from t4
 union all
-select * from t5
+select * from t5)
 
 
 
