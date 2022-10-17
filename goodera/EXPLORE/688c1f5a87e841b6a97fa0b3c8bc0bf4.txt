@@ -1,17 +1,77 @@
-temp2 as (select * ,temp1.type_company, temp1.fuel_company_type, temp1.fuel_company,
-          case
-              when IS_ARRAY(temp1.type_company) = false or GET_ARRAY_LENGTH(temp1.type_company) = 0 then ARRAY(temp1.type_company)
-          else temp1.type_company
-          end as type_company_new,
-          
-            case
-              when IS_ARRAY(temp1.fuel_company_type) = false or GET_ARRAY_LENGTH(temp1.fuel_company_type) = 0 then ARRAY(temp1.fuel_company_type)
-          else temp1.fuel_company_type
-          end as fuel_company_type_new
-           
-          from x as temp,
-          unpivot temp.datatablebase as temp1 at row) ,/extract table/
-         
- y as (select xprojectid,financialperiod,fy_timerange,datatablebase,fuel_company,type_company,fuel_company_type from 
-        temp2 ytemp,ytemp.type_company_new as type_company,ytemp.fuel_company_type_new as fuel_company_type),/unwind/
-The fields you are unwinding, that the time of extracting them check for IS_ARRAY(temp1.type_company) = false or GET_ARRAY_LENGTH(temp1.type_company) = 0
+ with t1 as (select  p3.name as projectid,  p1.name, title, date, impact_story, photo  ,tag3.name as country, p4.factory, vendor, p2.cycle,  p2.product_category ,tag4.name as consultant from profile_62799 p1
+ left join ds_mysql_prod_project p3
+on p1.projectId= p3.id
+left join profile_64362 as p2
+on p1.projectId = p2.projectId
+left join profile_64170 as p4
+on p2.factory = p4._id
+left join ds_mysql_prod_tagelement tag3
+on p2.country = tag3.id
+left join ds_mysql_prod_tagelement tag4
+on p2.consultant_tag = tag4.id),
+
+
+ sub1  as(select a.*, unwind_cycle from t1 a,a.cycle as unwind_cycle)
+,
+ t2 as( 
+select c.projectid,  c.name, c.title, c.date, c.impact_story, c.photo  ,c.country, c.factory, c.vendor, c.cycle, tag5.name as un_cycle, c.product_category ,c.consultant
+   from  sub1 c
+   left join ds_mysql_prod_tagelement tag5
+on c.unwind_cycle = tag5.id ),
+
+sub2 as ( Select b.*,unwind_product_category from t2 b , b.product_category as unwind_product_category)
+,
+		 
+t3 as
+(select f.projectid,  f.name, f.title, f.date, f.impact_story, f.photo  ,f.country, f.factory, f.vendor, f.cycle,  un_cycle, f.product_category ,f.consultant,
+ tag6.name as un_product_category
+ from sub2 as f
+ left join ds_mysql_prod_tagelement tag6 
+ on tag6.id = f.unwind_product_category
+)
+,
+sub3 as ( Select d.*,unwind_photo from t3 d , d.photo as unwind_photo),
+
+t4 as
+(select  t.projectid, t.name, t.title, t.date, t.impact_story, t.photo,tag7.name as unwind_photo,t.country , t.factory, t.vendor, t.cycle,  t.un_cycle, t.product_category ,t.consultant, t.un_product_category 
+from sub3 t
+  left join ds_mysql_prod_tagelement tag7 
+ on tag7.id = t.unwind_photo
+ ),
+ 
+ 
+ 
+ t5 as (select projectid, name, title, date, impact_story, photo, null as unwind_photo,country , factory, vendor, cycle,   null as un_cycle, product_category ,consultant, null as un_product_category 
+from t1
+	   where projectid not in (select projectid from sub1 )
+		group by   projectid, name, title, date, impact_story, photo,  unwind_photo,country , factory, vendor, cycle,    un_cycle, product_category ,consultant, un_product_category 
+	
+	  ),
+	  
+
+	  
+	  
+	  t6 as(
+		select projectid, name, title, date, impact_story, photo, null as unwind_photo,country , factory, vendor, cycle,   null as un_cycle, product_category ,consultant, null as un_product_category 
+from t1
+	   where projectid not in (select projectid from sub2 )
+		group by   projectid, name, title, date, impact_story, photo,  unwind_photo,country , factory, vendor, cycle,    un_cycle, product_category ,consultant, un_product_category 
+)
+,
+t7 as(
+		select projectid, name, title, date, impact_story, photo, null as unwind_photo,country , factory, vendor, cycle,   null as un_cycle, product_category ,consultant, null as un_product_category 
+from t1
+	   where projectid not in (select projectid from sub3 )
+      group by   projectid, name, title, date, impact_story, photo,  unwind_photo,country , factory, vendor, cycle,            un_cycle, product_category ,consultant, un_product_category 
+)
+select 
+t4.projectid, t4.name, t4.title, t4.date, t4.impact_story, t4.photo, t4.unwind_photo,t4.country , t4.factory, t4.vendor, t4.cycle,  t4.un_cycle, t4.product_category ,t4.consultant, t4.un_product_category 
+from t4
+ group by   projectid, name, title, date, impact_story, photo,  unwind_photo,country , factory, vendor, cycle,            un_cycle, product_category ,consultant, un_product_category
+
+union all
+select * from t5
+union all
+select * from t6
+union all
+select * from t7
