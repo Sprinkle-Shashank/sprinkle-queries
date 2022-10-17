@@ -1,6 +1,29 @@
 
 with t1 as
 (select * from
+(select p.projectid, proj.name as project_id_updated, fy_timerange, fund_utilized_1, fund_utilized_2, fund_utilized_3, fund_utilized_4, fund_utilized_5, fund_utilized_6 ,fund_utilized_7, fund_utilized_8 , fund_utilized_9 , fund_utilized_10
+from profile_36554 as p
+ 
+ left join ds_mysql_prod_project as proj
+ on p.projectid = proj.id
+   )
+ UNPIVOT (
+  amount for tranch IN (fund_utilized_1, fund_utilized_2, fund_utilized_3, fund_utilized_4, fund_utilized_5, fund_utilized_6, fund_utilized_7, fund_utilized_8, fund_utilized_9, fund_utilized_10))),
+ t2 as
+ (
+ select project_id_updated, fy_timerange, sum(amount) as utilized_amount from t1
+ where amount is not null
+ group by project_id_updated, fy_timerange
+   )
+   select project_id_updated, fy_timerange, utilized_amount from t2
+   
+  
+   
+
+
+/*
+with t1 as
+(select * from
 (select p.projectid, proj.name as project_id_updated, fy_timerange, case when fund_utilized_1 is null then 0 else fund_utilized_1 end as fund_utilized_1_update, case when fund_utilized_2 is null then 0 else fund_utilized_2 end as fund_utilized_2_update, case when fund_utilized_3 is null then 0 else fund_utilized_3 end as fund_utilized_3_update, case when fund_utilized_4 is null then 0 else fund_utilized_4 end as fund_utilized_4_update, case when fund_utilized_5 is null then 0 else fund_utilized_5 end as fund_utilized_5_update, case when fund_utilized_6 is null then 0 else fund_utilized_6 end as fund_utilized_6_update, case when fund_utilized_7 is null then 0 else fund_utilized_7 end as fund_utilized_7_update, case when fund_utilized_8 is null then 0 else fund_utilized_8 end as fund_utilized_8_update, case when fund_utilized_9 is null then 0 else fund_utilized_9 end as fund_utilized_9_update, case when fund_utilized_10 is null then 0 else fund_utilized_10 end as fund_utilized_10_update
 from profile_36554 as p
  
@@ -17,5 +40,5 @@ from profile_36554 as p
    )
    select project_id_updated, fy_timerange, utilized_amount from t2
    
-  
+  */
    
