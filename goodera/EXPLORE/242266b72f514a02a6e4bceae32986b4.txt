@@ -39,10 +39,18 @@ where Core_Area in ('Focused Rural Development- Skills Training and Livelihood E
 					  'Focused Rural Development- Sanitation')
 ),
 
-Base2 as(select p.projectcode,p.fy_timerange,l.project_manager,l.Core_Area,p.hdfc_cost_yearly,p.gov_cost_yearly,p.comm_cost_yearly
+Base2 as(select p.projectcode,p.fy_timerange,l.project_manager,l.Core_Area,p.hdfc_cost_yearly,p.gov_cost_yearly,p.comm_cost_yearly,
+		 (p.hdfc_cost_yearly+p.gov_cost_yearly+p.comm_cost_yearly) as Direct
 from tab1 p 
 left join Base1 l 
 on p.CODE=l.CODE
-where l.Core_Area is not null)
-select * from Base2
-order by projectcode
+where l.Core_Area is not null),
+
+temp as(
+Select 'Total Direct Budget' as col
+)
+
+Select s.fy_timerange, s.Direct,s.hdfc_cost_yearly,s.gov_cost_yearly,s.comm_cost_yearly,
+temp.col as contri_types,s.projectcode, s.project_manager,s.Core_Area
+from base2 s
+cross join temp
