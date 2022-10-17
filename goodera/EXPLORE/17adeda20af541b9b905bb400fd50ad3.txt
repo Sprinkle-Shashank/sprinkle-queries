@@ -1,10 +1,10 @@
 with t1 as 
 ( 
-  select  p3.name as projectId, tag1.name as training_type, tag2.name as  year, p1.num_workers, num_management, p1._id,  tag3.name as country,p2.vendor, p2.cycle , tag4.name as consultant ,p2.product_category ,cast(split_part(p2.cycle,[,1)  as varchar) as komal
+  select  p3.name as projectId, tag1.name as training_type, tag2.name as  year, p1.num_workers, num_management, p1._id,  tag3.name as country,p2.vendor, p2.cycle , tag4.name as consultant ,p2.product_category 
  
   
   from profile_61613 as p1
- +
+ 
  left join profile_64362 as p2
 on p1.projectId = p2.projectId
  left join ds_mysql_prod_project p3
@@ -32,19 +32,18 @@ on c.unwind_cycle = tag5.id
 		  
 
 sub2 as ( Select b.*,unwind_product_category from t1 b , b.product_category as unwind_product_category)
-
+,
 		 
---t3 as
---(
-  select f._id, f.projectId,  f.training_type, f.year,f.num_workers,f.num_management,f.country,f.vendor,f.consultant ,cycle as un_cycle , tag6.name as un_product_category , _id as id2,tag7.name as komal
+t3 as
+(
+  select f._id, f.projectId,  f.training_type, f.year,f.num_workers,f.num_management,f.country,f.vendor,f.consultant ,cycle as un_cycle , tag6.name as un_product_category , _id as id2
 from sub2 f
 left join ds_mysql_prod_tagelement tag6 
  on tag6.id = f.unwind_product_category
-left join ds_mysql_prod_tagelement tag7
- on tag7.id = f.komal
---)
 
-/*t4 as (select t1._id as id2, projectId,  training_type, year,country,vendor,consultant , null as un_cycle, product_category as  un_product_category , sum(num_management) as management_representative,sum(num_workers) as worker_representative
+)
+
+t4 as (select t1._id as id2, projectId,  training_type, year,country,vendor,consultant , null as un_cycle, product_category as  un_product_category , sum(num_management) as management_representative,sum(num_workers) as worker_representative
 from t1
 	   where _id not in (select _id from sub1 )
 	group by   t1._id , projectId,  training_type, year,country,vendor,consultant ,  un_cycle, un_product_category
@@ -56,9 +55,8 @@ from t1
 	  t5 as(select t1._id as id2, projectId,  training_type, year,country,vendor,consultant , cycle as un_cycle, null as  un_product_category , num_management as management_representative, num_workers as worker_representative
 from t1
 	   where _id not in (select _id from sub2 /*union all select _id from sub1*/)
-	--group by   t1._id , projectId,  training_type, year,country,vendor,consultant ,  un_cycle, un_product_category
+	group by   t1._id , projectId,  training_type, year,country,vendor,consultant ,  un_cycle, un_product_category
 		   )
-/*	
 t6 as	
 (select t3._id as id2, t3.projectId,  t3.training_type, t3.year,t3.country,t3.vendor,t3.consultant ,t3.un_cycle as  cycle, t3.un_product_category as product_category , sum(t3.num_management) as management_representative, sum(t3.num_workers) as worker_representative
 from t3
@@ -68,10 +66,10 @@ select * from t4
 union all
 select * from t5)
 select * from t6
-*/
-select * from t1
 
-where cycle and product_category is null 
+--select * from t1
+
+--where cycle and product_category is null 
 
 --_id = '6000d6c6fb08b573678284e7'
 
