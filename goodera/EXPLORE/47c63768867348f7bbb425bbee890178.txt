@@ -35,7 +35,7 @@ on p4.projectid=t.projectid
 where ongoing is not null 
 
 
-group by t.projectId, ngo, schedule_vii,t.project_start_date, local_yn, start,endd, imp_direct,t.project_end_date, csr_reg_num, state_district, ongoing,duration
+group by t._id,t.projectId, ngo, schedule_vii,t.project_start_date, local_yn, start,endd, imp_direct,t.project_end_date, csr_reg_num, state_district, ongoing,duration
 
 )
 UNPIVOT (
@@ -52,7 +52,7 @@ table1 as(select _id,projectId,ngo, schedule_vii, case when local_yn IS TRUE THE
 
 
 		  from t1
-		 Group By projectId,  Dim,ngo, val,schedule_vii, local_yn, fy_timerange1, endd,start,imp_direct, csr_reg_num, state_district, ongoing,project_start_date,project_end_date,duration
+		 Group By _id,projectId,  Dim,ngo, val,schedule_vii, local_yn, fy_timerange1, endd,start,imp_direct, csr_reg_num, state_district, ongoing,project_start_date,project_end_date,duration
 		 ),
 
 table2 as (select t11.*,state_distric from t1 t11 , t11.state_district as state_distric),
@@ -61,7 +61,7 @@ tab3 as (select _id, projectId,ngo, schedule_vii, case when local_yn='true' THEN
 
 
 
-Group By projectId, state_distric, fy_timerange1,Dim,ngo,val, schedule_vii, local_yn,  endd,table2.start,imp_direct, csr_reg_num,  ongoing,duration),
+Group By _id,projectId, state_distric, fy_timerange1,Dim,ngo,val, schedule_vii, local_yn,  endd,table2.start,imp_direct, csr_reg_num,  ongoing,duration),
 
 tab4 as(
 select   _id,projectId,ngo, schedule_vii, case when local_yn='true' THEN 'YES' else 'NO' end as local_yn, fy_timerange1, endd,tb.start,case when imp_direct='true' THEN 'YES' else 'NO' end as imp_direct, csr_reg_num, t.name as state_district,t2.name as state,case when ongoing ='true' THEN 'YES' else 'NO' end as   ongoing, val,dim,duration  from tab3 tb
@@ -69,11 +69,11 @@ select   _id,projectId,ngo, schedule_vii, case when local_yn='true' THEN 'YES' e
 left join ds_mysql_prod_tagelement t on t.id=tb.state_distri
 left join ds_mysql_prod_tagelement t2 on t2.id=t.parent
 
-Group By projectId, Dim,ngo, val,schedule_vii, local_yn, fy_timerange1, endd,tb.start,imp_direct,duration, csr_reg_num,  ongoing ,t.name,t2.name),
+Group By _id, projectId, Dim,ngo, val,schedule_vii, local_yn, fy_timerange1, endd,tb.start,imp_direct,duration, csr_reg_num,  ongoing ,t.name,t2.name),
 
 tab71 as(select  _id, projectId,ngo, schedule_vii, case when local_yn='true' THEN 'YES' else 'NO' end as local_yn, fy_timerange1,endd,tb.start,case when imp_direct='true' THEN 'YES' else 'NO' end as imp_direct, csr_reg_num, LISTAGG(state_district,',') as state_district,listagg(state,',') as state,case when ongoing ='true' THEN 'YES' else 'NO' end as   ongoing,val,dim ,duration from tab4 tb
 
-Group By projectId,val, duration,Dim,ngo, schedule_vii, local_yn, fy_timerange1, endd,tb.start,imp_direct, csr_reg_num,  ongoing 
+Group By _id,projectId,val, duration,Dim,ngo, schedule_vii, local_yn, fy_timerange1, endd,tb.start,imp_direct, csr_reg_num,  ongoing 
 ),
 tab72 as(
 select *, row_number() over 
