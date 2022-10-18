@@ -1,6 +1,10 @@
-select t.projectId, ngo, schedule_vii, local_yn, project_start_date, project_end_date, imp_direct, csr_reg_num, state_district, ongoing, 
+with table1 as (select t.projectId, ngo, schedule_vii, local_yn, project_start_date, project_end_date, imp_direct, csr_reg_num, state_district, ongoing, 
  		  concat(concat(concat(concat('{"start":"',project_start_date),'","end":"'),project_end_date),'"}') as duration,
 		 sum(p3.amount) as disbursed,sum(p2.prescribed_csr) as allocated
+,
+row_number() over 
+(partition by p.projectid
+ order by p._id desc) as row
 
 from profile_46325 t
 
@@ -18,4 +22,5 @@ on p4.projectid=t.projectid
 
 where ongoing is not null
 Group By t.projectId, ngo, schedule_vii, local_yn, project_start_date, project_end_date, imp_direct, csr_reg_num, state_district, ongoing, p3.amount,p2.prescribed_csr
-
+)
+select * from table1 where row=1
