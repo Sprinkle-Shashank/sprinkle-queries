@@ -1,30 +1,5 @@
- with t1 as (select  p3.name as projectid,  p1.name, title, date, impact_story, photo  ,tag3.name as country, p4.factory, vendor, p2.cycle, 
-	case when IS_ARRAY(p2.cycle )= false or GET_ARRAY_LENGTH(p2.cycle) = 0 then ARRAY(p2.cycle) 
-			else p2.cycle 
-			 end as p2.cycle_new,
-			 p2.product_category ,tag4.name as consultant from profile_62799 p1
- left join ds_mysql_prod_project p3
-on p1.projectId= p3.id
-left join profile_64362 as p2
-on p1.projectId = p2.projectId
-left join profile_64170 as p4
-on p2.factory = p4._id
-left join ds_mysql_prod_tagelement tag3
-on p2.country = tag3.id
-left join ds_mysql_prod_tagelement tag4
-on p2.consultant_tag = tag4.id),
+select _id ,country, vendor, cycle,cyc_unwind, product_category, consultant from profile_64362 as p ,p.cycle as cyc_unwind
 
 
- sub1  as(select a.*, unwind_cycle from t1 a,a.cycle as unwind_cycle)
-,
- t2 as( 
-select c.projectid,  c.name, c.title, c.date, c.impact_story, c.photo  ,c.country, c.factory, c.vendor, c.unwind_cycle, tag5.name as un_cycle, c.product_category ,c.consultant
-   from  sub1 c
-   left join ds_mysql_prod_tagelement tag5
-on c.unwind_cycle = tag5.id )
 
-		 
-
-select  projectid,  name, title, date, impact_story, photo  ,country, factory, vendor, unwind_cycle,  un_cycle, product_category ,consultant 
-from t2 group by projectid,  name, title, date, impact_story, photo  ,country, factory, vendor, unwind_cycle,  un_cycle, product_category ,consultant 
 
