@@ -1,4 +1,7 @@
-with table1 as (select t.projectId,  ngo, schedule_vii, local_yn, project_start_date, project_end_date, imp_direct, csr_reg_num, state_district, ongoing, 
+with table1 as (
+  (SELECT * 
+FROM(
+  select t.projectId,  ngo, schedule_vii, local_yn, project_start_date, project_end_date, imp_direct, csr_reg_num, state_district, ongoing, 
 concat(concat(CASE 
     WHEN t.project_start_date IS NULL THEN '-' 
     ELSE to_char(t.project_start_date, 'YYYY-MM-DD')
@@ -26,6 +29,12 @@ left join ds_mysql_prod_tagelement t2 on t2.id=t1.parent
 where ongoing is not null
 Group By t.projectId , ngo, schedule_vii, local_yn, project_start_date, project_end_date, imp_direct, csr_reg_num, state_district, ongoing,t.fy_timerange,dis,alo,uti,unspent,t2.name
 				order by t.fy_timerange desc
+
+
+)
+UNPIVOT (
+    val FOR dim IN (allocated,disbursed,utilized,unspent))
+
 ),
 
 table2 as
