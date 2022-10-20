@@ -15,7 +15,7 @@ select * from table1
 
 table4 as  
 (
- select _id,  t3.projectId,factory ,country,vendor,unwind_cycle, unwind_product_category,consultant_tag from table3 t3, t3.product_category  as unwind_product_category
+ select _id,  t6.projectId,factory ,country,vendor,unwind_cycle, unwind_product_category,consultant_tag from table3 t6, t3.product_category  as unwind_product_category
  ),
 
 table5 as
@@ -27,16 +27,11 @@ table6 as
 union all
 select * from table5)
  ---  Two unwind cycle and product_category  from profile_64362
---,
+,
 
-/*table7 as
 
-(select  projectId,country,consultant_tag,vendor,unwind_cycle,unwind_product_category,p4.factory  as new_factory from table6 as ft
-left join profile_64170 as p4
-on ft.factory = p4._id
- )*/
  
-
+table7 as
 (select   p3.name as projectId, p1.timerange_timerange ,p1.num_female, p1.num_male, p1.year , tag1.name as training_type,   tag3.name as country, p2.vendor, p2.factory, tag4.name as consultant ,tag5.name as cycle,tag6.name as  product_category 
 
  from profile_61528 as p1
@@ -58,8 +53,35 @@ on p2.consultant_tag = tag4.id
 left join ds_mysql_prod_tagelement tag5
 on p2.unwind_cycle = tag5.id 
 left join ds_mysql_prod_tagelement tag6 
- on tag6.id = p2.unwind_product_category )
+ on tag6.id = p2.unwind_product_category ),
  
  
- 
+ table7 as
 
+(
+  select  *, p4.factory  as new_factory from table7 as ft
+left join profile_64170 as p4
+on ft.factory = p4._id
+ )
+,
+
+item as
+(
+select 'num_female' as t
+union all
+select 'num_male' as t
+)
+,
+
+
+t4 as
+(
+select  projectId , timerange_timerange,  training_type,  year , new_factory, vendor, consultant,  cycle,country  ,  product_category , 
+case t
+when 'num_female' then t3.num_female
+when 'num_male' then t3.num_male
+else null
+end as workforce,item.t as gender
+from table7 cross join item
+)
+ 
