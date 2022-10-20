@@ -1,13 +1,7 @@
 with t1 as
 (SELECT * 
 FROM
-(select t.projectId, ngo, schedule_vii, local_yn,t.project_start_date, t.project_end_date,  CASE 
-    WHEN t.project_end_date IS NULL THEN '-' 
-    ELSE to_char(t.project_end_date, 'YYYY-MM-DD')
-END as endd, CASE 
-    WHEN t.project_start_date IS NULL THEN '-' 
-    ELSE to_char(t.project_start_date, 'YYYY-MM-DD')
-END as start,imp_direct, csr_reg_num, state_district, ongoing,
+(select t.projectId, ngo, schedule_vii, local_yn,t.project_start_date, t.project_end_date, imp_direct, csr_reg_num, state_district, ongoing,
  
 concat(concat(CASE 
     WHEN t.project_start_date IS NULL THEN '-' 
@@ -16,8 +10,7 @@ END ,'  to  '),CASE
     WHEN t.project_end_date IS NULL THEN '-' 
     ELSE to_char(t.project_end_date, 'YYYY-MM-DD')
 END ) as fy_timerange1,
- 		  concat(concat(concat(concat('{"start":"',t.project_start_date),'","end":"'),t.project_end_date),'"}') as duration
-,
+ 		
 
  
 p2.prescribed_csr as allocated, p3.amount as disbursed,p4.amount as utilized,
@@ -42,9 +35,16 @@ group by t.projectId, ngo, schedule_vii,t.project_start_date, local_yn, start,en
 UNPIVOT (
     val FOR dim IN (allocated,disbursed,utilized,unspent))
 
-)
+),
 
-select * from t1
+table2 as
+(
+select *, 
+row_number() over 
+(partition by project_start_date
+ order by fy_timerange desc) as row from table1 
+ )
+ 
+ select * from table2 where row=1
 
-group by projectId, ngo, schedule_vii,project_start_date, local_yn, start,endd, imp_direct,project_end_date, csr_reg_num, state_district, ongoing,duration,dim,val,fy_timerange1
 
