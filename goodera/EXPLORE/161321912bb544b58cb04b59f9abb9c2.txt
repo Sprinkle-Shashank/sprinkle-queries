@@ -1,5 +1,5 @@
 with t1 as 
-(select p1._id, tag1.name as projectId, p1.fy_timerange, p2.name as head, sum(p1.amount) as amount, p2.category
+(select p1._id, tag1.name as projectId, p1.fy_timerange, p2.name as head, sum(p1.amount) as amount, p2.category, entity
 from profile_82741 p1
 left join profile_82736 p2
 on p1.head = p2._id
@@ -10,7 +10,12 @@ p1._id, tag1.name, p1.fy_timerange, p2.name, p1.amount, p2.category, p1.head),
 
 t2 as
 (select projectId, fy_timerange, fy_timerange.start as start_date, head, amount, category
-from t1)
+from t1),
 
-select projectId, fy_timerange, to_char(start_date, 'DD-MM-YYYY') as start_date, head, amount, category
-from t2
+t3 as 
+(select projectId, fy_timerange, start_date :: date, head, amount, category
+from t2)
+
+select projectId, fy_timerange, to_char(start_date, 'DD-MM-YYYY') as date, head, amount, category
+from t3
+
