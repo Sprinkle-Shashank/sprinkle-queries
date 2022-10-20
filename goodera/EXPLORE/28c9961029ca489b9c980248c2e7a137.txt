@@ -1,4 +1,5 @@
-select p2.name as projectid, p3.program_name as program, t1.name as country, t2.name as product_brand, p1.time_timerange as fy_timerange, sum(p1.amt_leveraged) as leveraged,
+with sub1 as(
+  select p2.name as projectid, p3.program_name as program, t1.name as country, t2.name as product_brand, p1.time_timerange as fy_timerange, sum(p1.amt_leveraged) as leveraged,
 extract(year from cast(p1.time_timerange.start as date)) as year
 
 from profile_32441 p1
@@ -11,4 +12,11 @@ left join ds_mysql_prod_tagelement t2 on t2.id = p3.product_brand
 
 where p1.amt_leveraged is not null
 
-group by p2.name, p3.program_name, t1.name, t2.name, p1.time_timerange
+group by p2.name, p3.program_name, t1.name, t2.name, p1.time_timerange)
+
+select projectid, country, product_brand, fy_timerange, leveraged, year, 
+case
+	when 'Tailored Food - Lead 2030' then 'RB_Individual Dashboards_Leveraged'
+	else program
+end as program 
+from sub1
