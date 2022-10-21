@@ -34,9 +34,23 @@ t1.facility_score,
 t1.open_issues, 
 t1.wcp_yn,
 t1.goodera_facility_name, 
-p1.projectid  from table1 t1
+p1.projectid ,
+   nvl2(SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), ven.name) as vendor_name, case when vendor_name='' then ven.name else vendor_name end as vendor, fac.name as factory,cou.name as country
+  
+  
+  from table1 t1
   LEFT JOIN profile_52810 p1 on
   t1.goodera_facility_name = p1._id
+  left join ds_mysql_prod_project fac
+on p1.projectId = fac.id
+
+left join ds_mysql_prod_project ven
+on fac.parent = ven.id
+  
+left join ds_mysql_prod_project cou
+on ven.parent = cou.id
+
+where (cou.name <> 'Test Country' and cou.name <> 'GAP Inc.')
   )
   
   Select * from table2
