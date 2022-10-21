@@ -1,17 +1,4 @@
-with t1 as
-(SELECT * 
-FROM
-(select t.projectId, ngo, schedule_vii, local_yn,t.project_start_date, t.project_end_date, imp_direct, csr_reg_num, state_district, ongoing,
- 
-concat(concat(CASE 
-    WHEN t.project_start_date IS NULL THEN '-' 
-    ELSE to_char(t.project_start_date, 'YYYY-MM-DD')
-END ,'  to  '),CASE 
-    WHEN t.project_end_date IS NULL THEN '-' 
-    ELSE to_char(t.project_end_date, 'YYYY-MM-DD')
-END ) as fy_timerange1,
- 		
-
+select t.projectId, t.project_start_date, t.project_end_date,  csr_reg_num, state_district, ongoing,
  
 p2.prescribed_csr as allocated, p3.amount as disbursed,p4.amount as utilized,
 p3.amount-p4.amount as unspent
@@ -29,14 +16,6 @@ on p4.projectid=t.projectid
 where ongoing is not null 
 
 
+group by t.projectId, ngo, schedule_vii,t.project_start_date, local_yn,  imp_direct,t.project_end_date, csr_reg_num, state_district, ongoing,duration,allocated,disbursed,utilized,fy_timerange1
 
-)
-UNPIVOT (
-    val FOR dim IN (allocated,disbursed,utilized,unspent))
-
-)
- 
-select * from t1
-
-group by projectId, ngo, schedule_vii,project_start_date, local_yn,  imp_direct,project_end_date, csr_reg_num, state_district, ongoing,fy_timerange1,dim,val
 
