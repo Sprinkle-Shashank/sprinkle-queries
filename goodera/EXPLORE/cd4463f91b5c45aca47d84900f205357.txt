@@ -1,7 +1,5 @@
-select t.projectId, ngo, schedule_vii, local_yn,t.project_start_date, t.project_end_date,  imp_direct, csr_reg_num, state_district, ongoing,
- 
-
-
+with table1 as (
+  select t.projectId, ngo, schedule_vii, local_yn,t.project_start_date, t.project_end_date,  imp_direct, csr_reg_num, state_district, ongoing,
 
 COALESCE(p2.prescribed_csr,0) as allocated, COALESCE(p3.amount,0) as disbursed from profile_46325 t
 
@@ -18,3 +16,14 @@ where ongoing is not null
 
 
 group by t.projectId, ngo, schedule_vii,t.project_start_date, local_yn, imp_direct,t.project_end_date, csr_reg_num, state_district, ongoing,allocated,disbursed
+),
+
+table2 as
+(
+select *, 
+row_number() over 
+(partition by projectid
+ order by _id desc) as row from table1 
+ )
+ 
+ select * from table2 where row=1
