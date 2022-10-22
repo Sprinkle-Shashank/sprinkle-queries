@@ -1,8 +1,24 @@
-select t.projectId, t.project_start_date, t.project_end_date,  csr_reg_num, state_district, ongoing,
+select t.projectId, ngo, schedule_vii, local_yn,t.project_start_date, t.project_end_date,  CASE 
+    WHEN t.project_end_date IS NULL THEN '-' 
+    ELSE to_char(t.project_end_date, 'YYYY-MM-DD')
+END as endd, CASE 
+    WHEN t.project_start_date IS NULL THEN '-' 
+    ELSE to_char(t.project_start_date, 'YYYY-MM-DD')
+END as start,imp_direct, csr_reg_num, state_district, ongoing,
  
-p2.prescribed_csr as allocated, p3.amount as disbursed,p4.amount as utilized,
-p3.amount-p4.amount as unspent
- from profile_46325 t
+concat(concat(CASE 
+    WHEN t.project_start_date IS NULL THEN '-' 
+    ELSE to_char(t.project_start_date, 'YYYY-MM-DD')
+END ,'  to  '),CASE 
+    WHEN t.project_end_date IS NULL THEN '-' 
+    ELSE to_char(t.project_end_date, 'YYYY-MM-DD')
+END ) as fy_timerange1,
+ 		  concat(concat(concat(concat('{"start":"',t.project_start_date),'","end":"'),t.project_end_date),'"}') as duration
+,
+
+ 
+ sum(COALESCE(p2.prescribed_csr,0)) as allocated, sum(COALESCE(p3.amount,0)) as disbursed,sum(COALESCE(p4.amount,0)) as utilized,
+ sum(COALESCE(p3.amount,0))-sum(COALESCE(p4.amount,0)) as unspent from profile_46325 t
 
 left join profile_76972 p2
 on p2.projectid=t.projectid
@@ -16,6 +32,4 @@ on p4.projectid=t.projectid
 where ongoing is not null 
 
 
-group by t.projectId, t.project_start_date, t.project_end_date, csr_reg_num, state_district, ongoing,duration,allocated,disbursed,utilized
-
-
+group by t.projectId, ngo, schedule_vii,t.project_start_date, local_yn, start,endd, imp_direct,t.project_end_date, csr_reg_num, state_district, ongoing,duration
