@@ -1,4 +1,4 @@
-Select p.registration_date,datediff(year,p.registration_date,current_date) as age_in_yrs,
+with base1 as(Select p.registration_date,datediff(year,p.registration_date,current_date) as age_in_yrs,
 case when age_in_yrs<3 then NULL
 when age_in_yrs>=3 and age_in_yrs<=10 then '3-10 years'
 when age_in_yrs>=11 and age_in_yrs<=20 then '11-20 years'
@@ -6,8 +6,33 @@ when age_in_yrs>=20 and age_in_yrs<=30 then '21-30 years'
 when age_in_yrs>30 then '30+ years' 
 else 'NA'																							
 end as Age_Category 
-from  profile_27395 p
+from  profile_27395 p),
 
+base2 as(Select p.registration_date,datediff(year,p.registration_date,current_date) as age_in_yrs,
+case when age_in_yrs<3 then NULL
+when age_in_yrs>=3 and age_in_yrs<=10 then '3-10 years'
+when age_in_yrs>=11 and age_in_yrs<=20 then '11-20 years'
+when age_in_yrs>=20 and age_in_yrs<=30 then '21-30 years'
+when age_in_yrs>30 then '30+ years' 
+else 'NA'																							
+end as Age_Category 
+from  profile_80183 p),
+
+base6 as(
+select Age_category
+from Base1 
+where Age_category<>'NA' 
+group by Age_category
+union all
+select Age_category
+from Base2
+where Age_category<>'NA' 
+group by Age_category)
+
+
+select age_category, count(*) as ngo_no 
+from base6 
+group by age_category
 
 --with Base1 as(Select p.registration_date as registrationdate,p._id, floor(datediff(month,p.registration_date,current_date)*1.0/12) as age from  profile_27395 p),Base2 as(select age,registrationdate ,_id,
 --case when age<3 then NULL
