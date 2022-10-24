@@ -1,32 +1,77 @@
-Select q.name IA1,count(*) as Number
-from profile_27395 q
-group by 1
-minus
-Select q.name IA1,count(*) as Number
-from profile_27408 q
-group by 1
-/*with Base1 as(select p.name as IA1 from profile_80183 p), 
 
-Base2 as(select l.name as IA2  from profile_27408 l left join
-profile_80183 p  on
-l.ia=p._id),
+--with Base1 as(Select p.registration_date as registrationdate,p._id, floor(datediff(month,p.registration_date,current_date)*1.0/12) as age from  profile_27395 p),Base2 as(select age,registrationdate ,_id,
+--case when age<3 then NULL
+--when age>=3 and age<=10 then '3-10 years'
+--when age>=11 and age<=20 then '11-20 years'
+--when age>=20 and age<=30 then '21-30 years'
+--when age>30 then '30+ years' 
+--else 'NA'																							
+--end as Age_Category from Base1)
+--select * from Base2
 
-Base3 as(select p.IA1 as IA1,l.IA2 as IA2 from Base1 p left join Base2 l on
-p.IA1=l.IA2),
 
-Base4 as(select q.name as IA1 from profile_27395 q), 
+--select Age_category,count(*) as ngo_no from Base2 where Age_category<>'NA' group by Age_category
+--select Age_Category,count(*) as ngo_no from Base2 where age is not NULL  and Age_Category<>'NA' group by Age_Category
 
-Base5 as(select l.name as IA2  from profile_27408 l left join
-profile_27395 q  on
-l.ia=q._id),
-Base6 as(select q.IA1 as IA1,l.IA2 as IA2 from Base4 q left join Base5 l on
-q.IA1=l.IA2)
+with Base1 as(Select p.registration_date as registrationdate,p._id, datediff(day,p.registration_date,current_date) as age_in_months,floor(age_in_months/365.25) as age_in_yrs 
+			  from  profile_80183 p),
 
-select IA1,IA2,count(*) as Number from Base3 where IA2 is  NULL group by IA1,IA2
+Base2 as(select age_in_months,age_in_yrs,registrationdate ,_id,
+case when age_in_yrs<3 then NULL
+when age_in_yrs>=3 and age_in_yrs<=10 then '3-10 years'
+when age_in_yrs>=11 and age_in_yrs<=20 then '11-20 years'
+when age_in_yrs>=20 and age_in_yrs<=30 then '21-30 years'
+when age_in_yrs>30 then '30+ years' 
+else 'NA'																							
+end as Age_Category 
+from Base1),
 
+--select * from Base2
+
+
+Base4 as(Select q.registration_date as registrationdate,q._id, datediff(day,q.registration_date,current_date) as age_in_months,floor(age_in_months/365.25) as age_in_yrs 
+		 from  profile_27395 q),
+
+Base5 as(select age_in_months,age_in_yrs,registrationdate ,_id,
+case when age_in_yrs<3 then NULL
+when age_in_yrs>=3 and age_in_yrs<=10 then '3-10 years'
+when age_in_yrs>=11 and age_in_yrs<=20 then '11-20 years'
+when age_in_yrs>=20 and age_in_yrs<=30 then '21-30 years'
+when age_in_yrs>30 then '30+ years' 
+else 'NA'																							
+end as Age_Category from Base4), 
+
+
+base6 as(
+select Age_category
+from Base2 
+where Age_category<>'NA' 
+group by Age_category
 union all
+select Age_category
+from Base5 
+where Age_category<>'NA' 
+group by Age_category)
 
-select IA1,IA2,count(*) as Number from Base6 where IA2 is  NULL group by IA1,IA2
+
+select age_category, count(*) as ngo_no from base6 group by age_category
 
 
-------------------- 27395 minus 27408*/
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-------------------yr wise ----2015-16
+-----------chk for reg_date..............CURRENT_YEAR MINUS reg_date
