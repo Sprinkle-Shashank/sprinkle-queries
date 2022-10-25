@@ -1,0 +1,38 @@
+with s1 as(
+  
+     Select p._id, p.name ia, t3.name fy,
+     case when p._id is not null then 'New Project' 
+   end as Type_of_Project
+   from profile_80183 p
+   left join ds_mysql_prod_tagelement t3
+ON t3.id=p.fy 
+   
+   union all
+   
+   Select p._id, p.sink ia, t3.name fy,
+     case when p._id is not null then 'Renewal Project' 
+end as Type_of_Project
+   from profile_80188 p
+   left join ds_mysql_prod_tagelement t3
+ON t3.id=p.fy 
+ ) 
+
+Select ia, fy, Type_of_Project,
+
+case 
+	when approvalLog.["approvalStatus"] = 'APPROVED' then 'Yes'
+	when approvalLog.["approvalStatus"] = 'SUBMITTED' then 'Yes'
+else 'No'
+end as status, max(approvalLog.["timestamp"])
+
+from ds_mongo_taskresponse x1 
+left join ds_mysql_prod_taskuser x2 on x2.id = x1.taskuserid
+left join ds_mysql_prod_task x3 on x3.id = x2.taskid
+left join ds_mysql_prod_flowtask x4 on x4.id = x3.flowtaskid
+left join ds_mysql_prod_projectflow x5 on x5.id = x3.projectflowid
+left join ds_mysql_prod_section x6 on x6.id = x4.sectionid
+left join ds_mysql_prod_profile x7 on x7.id = x6.profileid
+left join ds_mysql_prod_project x8 on x8.id = x5.projectid
+left join s1 on s1._id=x1.profileinstanceid
+group by status
+where x6.profileid in (80183, 80188) and x1.active = 't' and x6.name in ('Basic Qualifier')
