@@ -1,5 +1,5 @@
 with sub1 as(
- select p3.name as projectId,p1.name as projectname,p2.name as partner,p.fy_timerange,t1.name as district,
+ select p3.name as projectId,p1.name as projectname,p2.name as partner,p.fy_timerange,t1.name as district,b.name as bene,
 case when p.job_after_completion = 1733602 then 1 else 0 end as job_after_completion_yes,
 case when p.interested_govt_job = 1733602 then 1 else 0 end as interested_govt_job_yes,
 case when p.relocate = 1733602 then 1 else 0 end as relocate_yes,
@@ -12,6 +12,7 @@ left join project_9730 p2 on p2.id = p1.parent
 left join project_9730 p3 on p3.id=p2.parent
 left join tagelement_9730 t1 on t1.id=p.state_district
 left join tagelement_9730 t2 on t2.id=t1.parent
+left join profile_81359 b on b._id=p.beneficiary
  ),
  
 temp as(
@@ -26,7 +27,7 @@ temp as(
   select 'Finance the Training Cost' as col   
  )
  
- Select a.projectId,a.projectname,a.partner,a.fy_timerange,a.district,temp.col as Dimensions,
+ Select a.projectId,a.projectname,a.partner,a.fy_timerange,a.district,temp.col as Dimensions,a.bene
  sum(case col
 	  when 'Job after completion of Training' then a.job_after_completion_yes
 	  when 'Interested in Goverment Job' then a.interested_govt_job_yes
@@ -37,5 +38,5 @@ temp as(
 	end) as values
 	from sub1 a
 	cross join temp
-	group by a.projectId,a.projectname,a.partner,a.fy_timerange,a.district,temp.col
+	group by a.projectId,a.projectname,a.partner,a.fy_timerange,a.district,temp.col,a.bene
    
