@@ -1,7 +1,10 @@
 SELECT SC.fy_timerange, SC.beneficiary,
 P.name AS projectid,
 C.name AS cohort,
-L.name AS location,
+L1.name AS block,
+L2.name AS district,
+L3.name AS state,
+L4.name AS zone,
 COUNT(*) AS households,
 
 CASE
@@ -33,7 +36,16 @@ ON SC.cohort = C.id
 LEFT JOIN ds_mysql_prod_project AS P
 ON SC.projectid = P.id
 
-LEFT JOIN ds_mysql_prod_tagelement AS L
-ON SC.location = L.id
+LEFT JOIN ds_mysql_prod_tagelement AS L1
+ON SC.location = L1.id
 
-GROUP BY SC.fy_timerange, SC.beneficiary, P.name, C.name, L.name, SC.cookstove_sessions, SC.coaching_sessions, SC.cookstove_usage
+LEFT JOIN ds_mysql_prod_tagelement AS L2
+ON L1.parent = L2.id
+
+LEFT JOIN ds_mysql_prod_tagelement AS L3
+ON L2.parent = L3.id
+
+LEFT JOIN ds_mysql_prod_tagelement AS L4
+ON L3.parent = L4.id
+
+GROUP BY SC.fy_timerange, SC.beneficiary, P.name, C.name, L1.name, L2.name, L3.name, L4.name, SC.cookstove_sessions, SC.coaching_sessions, SC.cookstove_usage
