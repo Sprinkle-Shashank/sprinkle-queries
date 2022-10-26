@@ -1,74 +1,38 @@
-with s as (SELECT PF.projectid,
-extract(year from cast(PF.fy_allocated_timerange.start as datetime)) AS fy_timerange,
-PF.disbursed_project AS amount_disbursed,
-PDV.project_start_date, PDV.project_end_date AS end_date, t.name AS entity, PDV.project_name_display, PDC.mode, t4.name as partner, PDV.geography, PF.allocated, t3.name as schedule_7, PDC.local_area, PDC.csr_registration, PDC.csr,
-PDC.project_ended, UA.unspent_amount, IA.agency,
-
-CASE 
-  WHEN (EXTRACT(month from PDV.project_start_date) < 4) THEN (EXTRACT(year from PDV.project_start_date)-1)
-  ELSE  (EXTRACT(year from PDV.project_start_date))
-  END AS fy_start_date,
-  
- CASE 
-  WHEN (EXTRACT(month from PDV.project_end_date) <4) THEN (EXTRACT(year from PDV.project_end_date)-1)
-  ELSE (EXTRACT(year from PDV.project_end_date))
-  END AS fy_end_date,
+SELECT SC.fy_timerange, SC.beneficiary,
+P.name AS projectid,
+C.name AS cohort,
+L.name AS location,
 
 CASE
-	WHEN fy_start_date = fy_end_date
-	AND fy_end_date = (EXTRACT(year from cast(PF.fy_allocated_timerange.end as datetime)))
-	THEN 1
-	ELSE 0
-	END AS result
+	WHEN 
+	SC.cookstove_sessions = true
+	THEN 'Yes'
+	ELSE 'No'
+	END AS cookstove_sessions,
+	
+CASE
+	WHEN 
+	SC.coaching_sessions = true
+	THEN 'Yes'
+	ELSE 'No'
+	END AS coaching_sessions,
+	
+CASE
+	WHEN 
+	SC.cookstove_usage = true
+	THEN 'Yes'
+	ELSE 'No'
+	END AS cookstove_usage
 
-FROM profile_55749 AS PF
+FROM profile_82723 AS SC
 
-LEFT JOIN profile_55750 AS PDV
-ON PF.projectid = PDV.projectid
+LEFT JOIN ds_mysql_prod_tagelement AS C
+ON SC.cohort = C.id
 
-LEFT JOIN profile_55752 AS PDC
-ON PF.projectid = PDC.projectid
+LEFT JOIN ds_mysql_prod_project AS P
+ON SC.projectid = P.id
 
-LEFT JOIN profile_81346 AS UA
-ON PF.projectid = UA.projectid
+LEFT JOIN ds_mysql_prod_tagelement AS L
+ON SC.location = L.id
 
-LEFT JOIN profile_81338 AS IA
-ON PF.projectid = IA.projectid
-
-LEFT JOIN ds_mysql_prod_tagelement AS t
-ON PDV.funding_entity = t.id
-
---LEFT JOIN ds_mysql_prod_tagelement AS t2
---ON PDV.geography = t2.id
-
-LEFT JOIN ds_mysql_prod_tagelement AS t3
-ON PDC.schedule_7 = t3.id
-
-LEFT JOIN ds_mysql_prod_tagelement AS t4
-ON PDC.partner = t4.id
-		   
-		   /*
-		   WHERE  PDC.csr = true
-		   AND PDC.project_ended = true
-		   AND result = 1
-		   */
-),
-s2 as (
-SELECT projectid, fy_timerange,amount_disbursed,project_start_date, end_date,  entity,project_name_display,mode, partner, geo, allocated, schedule_7, local_area, csr_registration,csr,project_ended, unspent_amount,agency,
- fy_start_date,
-fy_end_date,result
-
-FROM s as p, p.geography as geo
-)
-SELECT p.name as projectid, fy_timerange,amount_disbursed,project_start_date, end_date,  entity,project_name_display,mode, partner, t2.name as state,t.name as district, allocated, schedule_7, local_area, csr_registration,csr,t5.name as project_ended, unspent_amount,agency,
- fy_start_date,
-fy_end_date,result
-from s2
-left join ds_mysql_prod_project p
-on p.id=s2.projectid
-LEFT JOIN ds_mysql_prod_tagelement AS t
-ON s2.geo= t.id
-LEFT JOIN ds_mysql_prod_tagelement AS t2
-ON t.parent= t2.id
-LEFT JOIN ds_mysql_prod_tagelement AS t5
-ON s2.project_ended = t5.id
+GROUP BY SC.fy_timerange, SC.beneficiary, P.name, C.name, L.name, SC.cookstove_sessions, SC.coaching_sessions, SC.ccokstove_usage
