@@ -1,0 +1,32 @@
+SELECT GES.fy_timerange,
+GE.name AS group_enterprise,
+P.name AS projectid,
+C.name AS cohort,
+L.name AS location,
+GES.sell_product
+
+CASE
+	WHEN 
+	GE.sell_product = true
+	THEN 'Yes'
+	ELSE 'No'
+	END AS sell_product_status
+
+
+FROM profile_82710 AS GES
+
+LEFT JOIN ds_mysql_prod_tagelement AS C
+ON GES.cohort = C.id
+
+LEFT JOIN ds_mysql_prod_project AS P
+ON GES.projectid = P.id
+
+LEFT JOIN ds_mysql_prod_tagelement AS L
+ON GES.location = L.id
+
+LEFT JOIN profile_82700 AS GE
+ON GE.name = GES.group_enterprise
+
+GROUP BY GE.fy_timerange, C.name, P.name, L.name, GES.sell_product, GE.name
+
+-- Check if CASE can be handled by tagelement
