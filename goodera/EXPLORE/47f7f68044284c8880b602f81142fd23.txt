@@ -1,12 +1,24 @@
 SELECT FL.fy_timerange, FL.smart_sakhis, FL.staff, FL.project_participants,
 P.name AS projectid,
 C.name AS cohort,
-L.name AS location
+L1.name AS block,
+L2.name AS district,
+L3.name AS state,
+L4.name AS zone
 
 FROM profile_82701 AS FL
 
-LEFT JOIN ds_mysql_prod_tagelement AS L
-ON FL.location = L.id
+LEFT JOIN ds_mysql_prod_tagelement AS L1
+ON FL.location = L1.id
+
+LEFT JOIN ds_mysql_prod_tagelement AS L2
+ON L1.parent = L2.id
+
+LEFT JOIN ds_mysql_prod_tagelement AS L3
+ON L2.parent = L3.id
+
+LEFT JOIN ds_mysql_prod_tagelement AS L4
+ON L3.parent = L4.id
 
 LEFT JOIN ds_mysql_prod_tagelement AS C
 ON FL.cohort = C.id
@@ -14,4 +26,4 @@ ON FL.cohort = C.id
 LEFT JOIN ds_mysql_prod_project AS P
 ON FL.projectid = P.id
 
-GROUP BY FL.fy_timerange, C.name, L.name, FL.smart_sakhis, FL.staff, FL.project_participants, P.name
+GROUP BY FL.fy_timerange, C.name, L1.name, L2.name, L3.name, L4.name, FL.smart_sakhis, FL.staff, FL.project_participants, P.name
