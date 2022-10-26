@@ -1,7 +1,10 @@
 SELECT LT.fy_timerange, LT.sessions,
 P.name AS projectid,
 C.name AS cohort,
-L.name AS location
+L1.name AS block,
+L2.name AS district,
+L3.name AS state,
+L4.name AS zone
 
 FROM profile_82707 AS LT
 
@@ -11,7 +14,16 @@ ON LT.cohort = C.id
 LEFT JOIN ds_mysql_prod_project AS P
 ON LT.projectid = P.id
 
-LEFT JOIN ds_mysql_prod_tagelement AS L
-ON LT.location = L.id
+LEFT JOIN ds_mysql_prod_tagelement AS L1
+ON LT.location = L1.id
 
-GROUP BY LT.fy_timerange, C.name, P.name, L.name, LT.sessions
+LEFT JOIN ds_mysql_prod_tagelement AS L2
+ON L1.parent = L2.id
+
+LEFT JOIN ds_mysql_prod_tagelement AS L3
+ON L2.parent = L3.id
+
+LEFT JOIN ds_mysql_prod_tagelement AS L4
+ON L3.parent = L4.id
+
+GROUP BY LT.fy_timerange, C.name, P.name, L1.name, L2.name, L3.name, L4.name, LT.sessions
