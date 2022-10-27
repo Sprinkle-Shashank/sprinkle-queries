@@ -1,0 +1,47 @@
+with sub1 as(
+ select p3.name as projectId,p1.name as projectname,p2.name as partner,p.fy_timerange,t1.name as district,t3.name as domain,
+case when p.communication_rating=1733613 then 'Excellent' p.communication_rating=1733614 then 'Good' p.communication_rating=1733615 then 'Fair'  p.communication_rating=1733616 then 'Poor' else 'Very poor' end as communication_rating_1,
+case when p.migration_rating=1733613 then 'Excellent' p.migration_rating=1733614 then 'Good' p.migration_rating=1733615 then 'Fair'  p.migration_rating=1733616 then 'Poor' else 'Very poor' end as migration_rating_1,
+case when p.banking_rating=1733613 then 'Excellent' p.banking_rating=1733614 then 'Good' p.banking_rating=1733615 then 'Fair'  p.banking_rating=1733616 then 'Poor' else 'Very poor' end as banking_rating_1,
+case when p.social_network_rating=1733613 then 'Excellent' p.social_network_rating=1733614 then 'Good' p.social_network_rating=1733615 then 'Fair'  p.social_network_rating=1733616 then 'Poor' else 'Very poor' end as social_network_rating_1,
+case when p.computer_rating=1733613 then 'Excellent' p.computer_rating=1733614 then 'Good' p.computer_rating=1733615 then 'Fair'  p.computer_rating=1733616 then 'Poor' else 'Very poor' end as computer_rating_1,
+ case when p.family_rating=1733613 then 'Excellent' p.family_rating=1733614 then 'Good' p.family_rating=1733615 then 'Fair'  p.family_rating=1733616 then 'Poor' else 'Very poor' end as family_rating_1
+from profile_81570 p
+   
+left join project_9730 p1 on p1.id = p.projectid
+left join project_9730 p2 on p2.id = p1.parent
+left join project_9730 p3 on p3.id=p2.parent
+left join tagelement_9730 t1 on t1.id=p.state_district
+left join tagelement_9730 t2 on t2.id=t1.parent
+left join profile_81359 c on c._id = p.beneficiary
+ left join tagelement_9730 t3 on t3.id=c.domain
+ ),
+ 
+temp as(
+  select 'Overall Behavioral Skills - Communication' as col
+  union all
+  select 'Overall Behavioral Skills - Willingness to Work and Migration' as col
+  union all
+  select 'Overall Behavioral Skills - Banking knowledge' as col
+  union all
+  select 'Overall Behavioral Skills - Social Network' as col
+  union all
+  select 'Overall Behavioral Skills - Basic Understanding of Computer' as col  
+  union all
+  select 'Overall Behavioral Skills - Family support' as col   
+ )
+ 
+ Select a.projectId,a.projectname,a.partner,a.fy_timerange,a.district,temp.col as Dimensions,a.domain,
+ sum(case col
+	  when 'Overall Behavioral Skills - Communication' then a.communication_rating_1
+	  when 'Overall Behavioral Skills - Willingness to Work and Migration' then a.migration_rating_1
+	  when 'Overall Behavioral Skills - Banking knowledge' then a.banking_rating_1
+	  when 'Overall Behavioral Skills - Social Network' then a.social_network_rating_1
+	  when 'Overall Behavioral Skills - Basic Understanding of Computer' then a.computer_rating_1
+	  when 'Overall Behavioral Skills - Family support' then a.family_rating_1
+	 else null
+	end) as values
+	from sub1 a
+	cross join temp
+	group by a.projectId,a.projectname,a.partner,a.fy_timerange,a.district,temp.col,a.domain
+   
