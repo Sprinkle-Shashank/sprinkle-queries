@@ -1,7 +1,10 @@
 SELECT PP.fy_timerange, PP.projectors_procured, PP.amount,
 P.name AS projectid,
 C.name AS cohort,
-L.name AS location
+L1.name AS block,
+L2.name AS district,
+L3.name AS state,
+L4.name AS zone
 
 FROM profile_82725 AS PP
 
@@ -11,7 +14,16 @@ ON PP.cohort = C.id
 LEFT JOIN ds_mysql_prod_project AS P
 ON PP.projectid = P.id
 
-LEFT JOIN ds_mysql_prod_tagelement AS L
-ON PP.location = L.id
+LEFT JOIN ds_mysql_prod_tagelement AS L1
+ON PP.location = L1.id
 
-GROUP BY PP.fy_timerange, PP.projectors_procured, PP.amount, P.name, C.name, L.name
+LEFT JOIN ds_mysql_prod_tagelement AS L2
+ON L1.parent = L2.id
+
+LEFT JOIN ds_mysql_prod_tagelement AS L3
+ON L2.parent = L3.id
+
+LEFT JOIN ds_mysql_prod_tagelement AS L4
+ON L3.parent = L4.id
+
+GROUP BY PP.fy_timerange, PP.projectors_procured, PP.amount, P.name, C.name, L1.name, L2.name, L3.name, L4.name
