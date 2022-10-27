@@ -1,22 +1,26 @@
 
-with t1 as 
-(select _id, projectId, fy_timerange, netprofit, prescribed_csr, setoff_amount, setoff_amount_preceding, surplus_previously, actual_csr, overhead_expenses, impact_assesment, unspent_account, (prescribed_csr + surplus_previously + setoff_amount) as total_csr_obligation, sum(actual_csr + overhead_expenses + impact_assesment) as total_amount_current
-from profile_82837
-group by 
-_id, projectId, fy_timerange, netprofit, prescribed_csr, setoff_amount, setoff_amount_preceding, surplus_previously, actual_csr, overhead_expenses, impact_assesment, unspent_account),
+with t1 as  
+(select *
+from
+ 
+(select projectId, fy_timerange, COALESCE(netprofit, 0) as netprofit, COALESCE(prescribed_csr, 0) as prescribed_csr, COALESCE(setoff_amount, 0) as setoff_amount, COALESCE(setoff_amount_preceding, 0) as setoff_amount_preceding, COALESCE(surplus_previously, 0) as surplus_previously, COALESCE(actual_csr, 0) as actual_csr, COALESCE(overhead_expenses, 0) as overhead_expenses, COALESCE(impact_assesment, 0) as impact_assesment, COALESCE(unspent_account, 0) as unspent_account, (COALESCE(prescribed_csr, 0) + COALESCE(surplus_previously, 0) + COALESCE( setoff_amount, 0)) as total_csr_obligation, ( COALESCE(actual_csr, 0) + COALESCE(overhead_expenses, 0) + COALESCE(impact_assesment, 0) ) as total_amount_current,
 
-t2 as 
-(select 
-_id, projectId, fy_timerange, netprofit, prescribed_csr, setoff_amount, setoff_amount_preceding, surplus_previously, actual_csr, overhead_expenses, impact_assesment, unspent_account, total_csr_obligation, total_amount_current, (total_amount_current - prescribed_csr) as excess_current
-from t1
-group by
-_id, projectId, fy_timerange, netprofit, prescribed_csr, setoff_amount, setoff_amount_preceding, surplus_previously, actual_csr, overhead_expenses, impact_assesment, unspent_account, total_csr_obligation, total_amount_current)
+case when 
+(COALESCE(actual_csr,0)+COALESCE(overhead_expenses,0)+COALESCE(impact_assesment,0)-COALESCE(prescribed_csr,0))<=0 then 0 else 
+(COALESCE(actual_csr,0)+COALESCE(overhead_expenses,0)+COALESCE(impact_assesment,0)-COALESCE(prescribed_csr,0)) end as excess_current,
 
-select 
-_id, projectId, fy_timerange, netprofit, prescribed_csr, setoff_amount, setoff_amount_preceding, surplus_previously, actual_csr, overhead_expenses, impact_assesment, unspent_account, total_csr_obligation, total_amount_current, excess_current, (excess_current - surplus_previously) as setoff_succeed
-from t2
-group by 
-_id, projectId, fy_timerange, netprofit, prescribed_csr, setoff_amount, setoff_amount_preceding, surplus_previously, actual_csr, overhead_expenses, impact_assesment, unspent_account, total_csr_obligation, total_amount_current, excess_current
+case when 
+(COALESCE(actual_csr,0)+COALESCE(overhead_expenses,0)+COALESCE(impact_assesment,0)-COALESCE(surplus_previously,0))<=0 then 0 else 
+(COALESCE(actual_csr,0)+COALESCE(overhead_expenses,0)+COALESCE(impact_assesment,0)-COALESCE(surplus_previously,0)) end as setoff_succeed				  
+from profile_82837 p)
+
+UNPIVOT (
+val FOR dim IN (surplus_previously, prescribed_csr, actual_csr, overhead_expenses, unspent_account, total_csr_obligation, total_amount_current, netprofit,setoff_amount,setoff_amount_preceding,impact_assesment,excess_current,setoff_succeed))
+
+)
+select  projectId,fy_timerange,val,dim from t1 as p
+
+Group By projectId,fy_timerange, Dim,val
 
 
 
