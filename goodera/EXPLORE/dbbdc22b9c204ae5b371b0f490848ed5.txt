@@ -1,7 +1,10 @@
 SELECT PM.fy_timerange, PM.phones_procured, PM.phones_damaged, PM.amount,
 P.name AS projectid,
 C.name AS cohort,
-L.name AS location
+L1.name AS block,
+L2.name AS district,
+L3.name AS state,
+L4.name AS zone
 
 FROM profile_82724 AS PM
 
@@ -11,7 +14,16 @@ ON PM.cohort = C.id
 LEFT JOIN ds_mysql_prod_project AS P
 ON PM.projectid = P.id
 
-LEFT JOIN ds_mysql_prod_tagelement AS L
-ON PM.location = L.id
+LEFT JOIN ds_mysql_prod_tagelement AS L1
+ON PM.location = L1.id
 
-GROUP BY PM.fy_timerange, PM.phones_procured, PM.phones_damaged, PM.amount, P.name, C.name, L.name
+LEFT JOIN ds_mysql_prod_tagelement AS L2
+ON L1.parent = L2.id
+
+LEFT JOIN ds_mysql_prod_tagelement AS L3
+ON L2.parent = L3.id
+
+LEFT JOIN ds_mysql_prod_tagelement AS L4
+ON L3.parent = L4.id
+
+GROUP BY PM.fy_timerange, PM.phones_procured, PM.phones_damaged, PM.amount, P.name, C.name, L1.name, L2.name, L3.name, L4.name
