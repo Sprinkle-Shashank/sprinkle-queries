@@ -27,7 +27,11 @@ union all
 
 Select p.name, t3.name fy, registration_number as reg_number, description, mission,t2.name org_type, substring(registration_date,1,10) registration_date, pan_card pan, NULL tax_exemption_2, 
 t1.name spriritual_agenda
-, participate_board
+, Cast(Case 
+            When participate_board='Yes' Then 'Yes' 
+            ELse 'No' END 
+        AS Varchar(256))
+  as participate_board
 , percentage_donors individual_donors, total_donations corporate_funders, percentage_funding government_funding, percentage_agencies other_funding, organization_budget budget, target_beneficiary, percentage_socio_economic socioeconomic, objective org_objective , direct_beneficiaries outreach_lastfy, cost_per_beneficiary cost_beneficiary, on_role_employees full_term, percentage_5_years perc,
   case when p._id is not null then 'New Project' 
 end as Type_of_Project
@@ -44,8 +48,12 @@ union all
 
 Select p.sink name, t3.name fy, registration_number as reg_number, description, mission,t2.name org_type,substring(registration_date,1,10) registration_date, pan_card pan, NULL tax_exemption_2, 
 t1.name spriritual_agenda
-, participate_board
-, percentage_donors individual_donors, total_donations corporate_funders, percentage_funding government_funding, percentage_agencies other_funding, organization_budget budget, target_beneficiary, percentage_socio_economic socioeconomic, objective org_objective , direct_beneficiaries outreach_lastfy, cost_per_beneficiary cost_beneficiary, on_role_employees full_term, percentage_5_years perc,
+, Cast(Case 
+            When participate_board='Yes' Then 'Yes' 
+            ELse 'No'end
+        AS Varchar(256))
+  as participate_board,
+  percentage_donors individual_donors, total_donations corporate_funders, percentage_funding government_funding, percentage_agencies other_funding, organization_budget budget, target_beneficiary, percentage_socio_economic socioeconomic, objective org_objective , direct_beneficiaries outreach_lastfy, cost_per_beneficiary cost_beneficiary, on_role_employees full_term, percentage_5_years perc,
   case when p._id is not null then 'Renewal Project' 
 end as Type_of_Project
 
@@ -69,11 +77,7 @@ s2 as(
  s3 as (
    Select sub4.name as ia, fy, reg_number, description, mission, org_type, registration_date, pan, tax_exemption_2, spriritual_agenda
 , 
-      case
-   when participate_board='true' then 'Yes'
-   when participate_board='false' then 'No'
-   else participate_board
-   end as participate_board
+     participate_board
 , individual_donors, corporate_funders, government_funding, other_funding, budget, listagg(distinct t.name,', ') as target_beneficiary 
    , socioeconomic, org_objective , outreach_lastfy, cost_beneficiary, full_term, perc, Type_of_Project
    
@@ -93,7 +97,7 @@ participate_board,
  
  union all
  
- Select p2.name as ia, t4.name fy, p.reg_number,NULL as description,NULL as mission,NULL as org_type,NULL as registration_date, p.pan, t3.name tax_exemption_2, t1.name spriritual_agenda, monitoring participate_board, p.individual_donors, p.corporate_funders, p.government_funding, p.other_funding, p.budget, NULL target_beneficiary, NULL socioeconomic_2, NULL org_objective, p.outreach_lastfy, p.cost_beneficiary, p.full_term, NULL perc,
+ Select p2.name as ia, t4.name fy, p.reg_number,NULL as description,NULL as mission,NULL as org_type,NULL as registration_date, p.pan, t3.name tax_exemption_2, t1.name spriritual_agenda, p.monitoring participate_board, p.individual_donors, p.corporate_funders, p.government_funding, p.other_funding, p.budget, NULL target_beneficiary, NULL socioeconomic_2, NULL org_objective, p.outreach_lastfy, p.cost_beneficiary, p.full_term, NULL perc,
  case when p._id is not null then 'Renewal Project' 
 end as Type_of_Project
 
