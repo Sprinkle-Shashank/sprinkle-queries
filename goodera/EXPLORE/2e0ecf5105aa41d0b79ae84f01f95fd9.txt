@@ -1,8 +1,26 @@
+WITH temp AS (
+  SELECT 'Aadhar Card' AS col
+  UNION ALL
+  SELECT 'MGNREGA Card' AS col
+  UNION ALL
+  SELECT 'PDS Card' AS col
+  )
+
 SELECT E.fy_timerange, E.aadhar_card, E.mgnrega_card, E.pds_card,
 P.name AS projectid,
-C.name AS cohort
+C.name AS cohort,
+
+CASE col
+	WHEN 'Aadhar Card' THEN E.aadhar_card
+	WHEN 'MGNREGA Card' THEN E.mgnrega_card
+	WHEN 'PDS Card' THEN E.pds_card
+	ELSE 0
+	END AS participants,
+	temp.col AS entitlement
 
 FROM profile_82711 AS E
+
+CROSS JOIN temp
 
 LEFT JOIN ds_mysql_prod_tagelement AS C
 ON E.cohort = C.id
@@ -11,5 +29,3 @@ LEFT JOIN ds_mysql_prod_project AS P
 ON E.projectid = P.id
 
 GROUP BY E.fy_timerange, E.aadhar_card, E.mgnrega_card, E.pds_card, C.name, P.name
-
---Try Pivot for Cards and accomodate in Pie Chart
