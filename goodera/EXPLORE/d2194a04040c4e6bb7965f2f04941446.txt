@@ -1,8 +1,14 @@
-with t1 as 
-(select _id, projectId, fy_timerange, prescribed_csr, setoff_amount, setoff_amount_preceding, surplus_previously, actual_csr, overhead_expenses, impact_assesment, unspent_account, netprofit
-from profile_82837)
 
-select _id, projectId, fy_timerange, netprofit, prescribed_csr, setoff_amount, setoff_amount_preceding, surplus_previously, actual_csr, overhead_expenses, impact_assesment, unspent_account, sum(prescribed_csr + surplus_previously + setoff_amount) as total_csr_obligation, sum(actual_csr + overhead_expenses + impact_assesment) as total_amount_current
+with t1 as 
+(select _id, projectId, fy_timerange, netprofit, prescribed_csr, setoff_amount, setoff_amount_preceding, surplus_previously, actual_csr, overhead_expenses, impact_assesment, unspent_account, sum(prescribed_csr + surplus_previously + setoff_amount) as total_csr_obligation, sum(actual_csr + overhead_expenses + impact_assesment) as total_amount_current
 from profile_82837
 group by 
-_id, projectId, fy_timerange, netprofit, prescribed_csr, setoff_amount, setoff_amount_preceding, surplus_previously, actual_csr, overhead_expenses, impact_assesment, unspent_account
+_id, projectId, fy_timerange, netprofit, prescribed_csr, setoff_amount, setoff_amount_preceding, surplus_previously, actual_csr, overhead_expenses, impact_assesment, unspent_account)
+
+select 
+_id, projectId, fy_timerange, netprofit, prescribed_csr, setoff_amount, setoff_amount_preceding, surplus_previously, actual_csr, overhead_expenses, impact_assesment, unspent_account, total_csr_obligation, total_amount_current, (total_amount_current - prescribed_csr) as excess_current
+from t1
+group by
+_id, projectId, fy_timerange, netprofit, prescribed_csr, setoff_amount, setoff_amount_preceding, surplus_previously, actual_csr, overhead_expenses, impact_assesment, unspent_account, total_csr_obligation, total_amount_current
+
+
