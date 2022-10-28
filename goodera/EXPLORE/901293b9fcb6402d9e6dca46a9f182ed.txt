@@ -1,0 +1,24 @@
+SELECT SR.name,
+P.name AS projectid,
+C.name AS caste,
+SR.fy_2_timerange AS fy_timerange,
+G.name AS gender,
+AVG(SR.semester_3) AS "Semester 1",
+AVG(SR.semester_4) AS "Semester 2",
+((SR.semester_3 + SR.semester_4) / 2) AS total,
+'Year 2' AS "Performance Year"
+
+FROM profile_56131 AS SR
+
+LEFT JOIN ds_mysql_prod_project AS P
+ON SR.projectid = P.id
+
+LEFT JOIN ds_mysql_prod_tagelement AS G
+ON SR.gender = G.id
+
+LEFT JOIN ds_mysql_prod_tagelement AS C
+ON SR.caste = C.id
+
+WHERE SR.fy_2_timerange IS NOT NULL
+
+GROUP BY SR.name, C.name, G.name, SR.fy_2_timerange, P.name, SR.semester_3, SR.semester_4
