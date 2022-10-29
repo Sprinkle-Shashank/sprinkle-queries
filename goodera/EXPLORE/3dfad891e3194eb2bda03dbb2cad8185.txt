@@ -1,38 +1,15 @@
-SELECT SC.fy_timerange, SC.beneficiary,
+SELECT MS.name, MS.fy_timerange, MS.sessions_attended,
+MS.name AS student,
+SR.college,
+SR.gender,
+SR.caste,
 P.name AS projectid,
-C.name AS cohort,
-L.name AS location,
+COUNT(*) AS sessions
 
-CASE
-	WHEN 
-	SC.cookstove_sessions = true
-	THEN 'Yes'
-	ELSE 'No'
-	END AS cookstove_sessions,
-	
-CASE
-	WHEN 
-	SC.coaching_sessions = true
-	THEN 'Yes'
-	ELSE 'No'
-	END AS coaching_sessions,
-	
-CASE
-	WHEN 
-	SC.cookstove_usage = true
-	THEN 'Yes'
-	ELSE 'No'
-	END AS cookstove_usage
-
-FROM profile_82723 AS SC
-
-LEFT JOIN ds_mysql_prod_tagelement AS C
-ON SC.cohort = C.id
+FROM profile_56496 AS MS
 
 LEFT JOIN ds_mysql_prod_project AS P
-ON SC.projectid = P.id
+ON SD.projectid = P.id
 
-LEFT JOIN ds_mysql_prod_tagelement AS L
-ON SC.location = L.id
-
-GROUP BY SC.fy_timerange, SC.beneficiary, P.name, C.name, L.name, SC.cookstove_sessions, SC.coaching_sessions, SC.cookstove_usage
+LEFT JOIN profile_56131 AS SR
+ON MS.student = SR._id
