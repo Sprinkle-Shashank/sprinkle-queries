@@ -60,9 +60,10 @@ sub1 as(select a.*, unwind_state_district from t5 a, a.state_district as unwind_
 t6 as 
 (select 
 projectId, ngo, schedule_vii, local_yn, project_start_date, project_end_date, imp_direct, csr_reg_num, unwind_state_district, ongoing, date, duration, allocated, disbursed, utilized, to_char( project_start_date, 'DD-MM-YYYY') as start_dur, to_char( project_end_date, 'DD-MM-YYYY') as end_dur
-from sub1)
+from sub1),
 
-select 
+t7 as 
+(select 
 tag1.name as projectId, ngo, tag2.name as schedule_vii, local_yn, project_start_date, project_end_date, imp_direct, csr_reg_num, tag3.name as state_district, ongoing, date, allocated, disbursed, utilized, 
 
 case 
@@ -75,7 +76,43 @@ on t6.projectId = tag1.id
 left join ds_mysql_prod_tagelement tag2
 on t6.schedule_vii = tag2.id
 left join ds_mysql_prod_tagelement tag3
-on t6.unwind_state_district = tag3.id
+on t6.unwind_state_district = tag3.id)
+
+items as 
+( 
+select 'allocated' as c
+union all
+select 'disbursed' as c
+union all
+select 'utilized' as c
+union all
+select 'unspent' as c
+),
+
+t8 as 
+(select projectId, ngo, schedule_vii, local_yn, project_start_date, project_end_date, imp_direct, csr_reg_num, state_district, ongoing, date,
+ case c
+ when 'allocated' then t7.allocated
+ when 'disbursed' then t7.disbursed
+ when 'utilized'then t7.utilized
+ when 'unspent' then t7.unspent
+ else null
+ end as count, item.c as item
+ from t7 cross join item
+ group by 
+ projectId, ngo, schedule_vii, local_yn, project_start_date, project_end_date, imp_direct, csr_reg_num, state_district, ongoing, date, allocated, disbursed, utilized, unspent, item.c)
+ 
+select projectId, ngo, schedule_vii, local_yn, project_start_date, project_end_date, imp_direct, csr_reg_num, state_district, ongoing, date, item, count
+ 
+
+
+
+
+
+
+
+
+--(select projectId, schedule_vii, local_yn, project_start_date, project_end_date, imp_direct, csr_reg_num, state_district, ongoing, date
 
 
 
