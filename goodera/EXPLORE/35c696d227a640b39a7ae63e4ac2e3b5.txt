@@ -18,19 +18,20 @@ first_value(project_start_date) over (partition by ngo order by project_start_da
 from profile_46325
 where ongoing is not null
 group by 
-projectId, ngo, schedule_vii, local_yn, project_start_date, project_end_date, imp_direct, csr_reg_num, state_district, ongoing, project_start_date)
+projectId, ngo, schedule_vii, local_yn, project_start_date, project_end_date, imp_direct, csr_reg_num, state_district, ongoing, project_start_date),
 
-select 
-t1.project_start_date, t1.project_end_date, t1.imp_direct, t1.csr_reg_num, t1.state_district, t1.ongoing, t1.date, concat(concat(concat(concat('{"start":"',project_start_date),'","end":"'),project_end_date),'"}') as duration, sum(p1.prescribed_csr) as allocated, sum(p2.amount) as disbursed,
-case
-when project_end_date is null then concat(concat(concat(concat('{"start":"',project_start_date),'","end":"')),'"}') 
-else concat(concat(concat(concat('{"start":"',project_start_date),'","end":"'),project_end_date),'"}')
-end as duration
+t2 as 
+(select 
+t1.project_start_date, t1.project_end_date, t1.imp_direct, t1.csr_reg_num, t1.state_district, t1.ongoing, t1.date, concat(concat(concat(concat('{"start":"',project_start_date),'","end":"'),project_end_date),'"}') as duration, sum(p1.prescribed_csr) as allocated, sum(p2.amount) as disbursed
 from t1
 left join profile_76972 p1
 on t1.projectId= p1.projectId
 left join profile_76976 p2
 on t1.projectId = p2.projectId
 group by 
-t1.project_start_date, t1.project_end_date, t1.imp_direct, t1.csr_reg_num, t1.state_district, t1.ongoing, t1.date, p2.amount
+t1.project_start_date, t1.project_end_date, t1.imp_direct, t1.csr_reg_num, t1.state_district, t1.ongoing, t1.date, p2.amount)
+
+select 
+t2.project_start_date, t2.project_end_date, t2.imp_direct, t2.csr_reg_num, t2.state_district, t2.ongoing, t2.date, t2.duration, t2.allocated, t2.disbursed,
+from t1
 
