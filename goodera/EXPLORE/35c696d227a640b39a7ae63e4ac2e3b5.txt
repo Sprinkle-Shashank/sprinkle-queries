@@ -46,37 +46,26 @@ on t3.projectId = p2.projectId
 group by 
 t3.projectId, t3.project_start_date, t3.project_end_date, t3.imp_direct, t3.csr_reg_num, t3.state_district, t3.ongoing, t3.date, t3.duration, t3.allocated)
 
-select
+t5 as 
+(select
 t4.projectId, t4.project_start_date, t4.project_end_date, t4.imp_direct, t4.csr_reg_num, t4.state_district, t4.ongoing, t4.date, t4.duration, t4.allocated, t4.disbursed, sum(p3.amount) as utilized
 from t4
 left join profile_76977 p3
 on t4.projectId = p3.projectId
 group by 
-t4.projectId, t4.project_start_date, t4.project_end_date, t4.imp_direct, t4.csr_reg_num, t4.state_district, t4.ongoing, t4.date, t4.duration, t4.allocated, t4.disbursed
+t4.projectId, t4.project_start_date, t4.project_end_date, t4.imp_direct, t4.csr_reg_num, t4.state_district, t4.ongoing, t4.date, t4.duration, t4.allocated, t4.disbursed)
+
+with sub1 as(select a.*, unwind_state_district from t5 a, a.state_district as unwind_state_district)
+
+select 
+t4.projectId, t4.project_start_date, t4.project_end_date, t4.imp_direct, t4.csr_reg_num, t4.unwind_state_district, t4.ongoing, t4.date, t4.duration, t4.allocated, t4.disbursed, t4.utilized
+from t5
 
 
 
 
 
---select
---t1.projectId, t1.project_start_date, t1.project_end_date, t1.imp_direct, t1.csr_reg_num, t1.state_district, t1.ongoing, t1.date, 
---concat(concat(concat(concat('{"start":"',project_start_date),'","end":"'),project_end_date),'"}') as duration,
- 
---sum(p1.prescribed_csr) as allocated, sum(p2.amount) as disbursed
---from t1
---left join profile_76972 p1
---on t1.projectId= p1.projectId
---left join profile_76976 p2
---on t1.projectId = p2.projectId
---group by 
---t1.projectId, t1.project_start_date, t1.project_end_date, t1.imp_direct, t1.csr_reg_num, t1.state_district, t1.ongoing, t1.date, p2.amount
 
---select 
---t2.project_start_date, t2.project_end_date, t2.imp_direct, t2.csr_reg_num, t2.state_district, t2.ongoing, t2.date, t2.allocated, t2.disbursed,
---case 
---when t2.project_end_date is null then '{"start":"'||project_start_date||'"}'
---else duration end as duration
---from t2
 
 
 
