@@ -77,7 +77,7 @@ select 'unspent' as c
 ),
 
 t8 as 
-(select projectId, ngo, schedule_vii, local_yn, project_start_date, project_end_date, imp_direct, csr_reg_num, state_district, ongoing, date,
+(select projectId, ngo, schedule_vii, local_yn, project_start_date, project_end_date, imp_direct, csr_reg_num, state_district, ongoing, date, duration,
  case c
  when 'allocated' then t7.allocated
  when 'disbursed' then t7.disbursed
@@ -87,20 +87,20 @@ t8 as
  end as count, item.c as item
  from t7 cross join item
  group by 
- projectId, ngo, schedule_vii, local_yn, project_start_date, project_end_date, imp_direct, csr_reg_num, state_district, ongoing, date, allocated, disbursed, utilized, unspent, item.c),
+ projectId, ngo, schedule_vii, local_yn, project_start_date, project_end_date, imp_direct, csr_reg_num, state_district, ongoing, date, duration, allocated, disbursed, utilized, unspent, item.c),
  
 t9 as   
-(select projectId, ngo, schedule_vii, local_yn, project_start_date, project_end_date, COALESCE(imp_direct, 'false') as imp_direct, csr_reg_num, state_district, ongoing, date, item as dim, count as val
+(select projectId, ngo, schedule_vii, local_yn, project_start_date, project_end_date, COALESCE(imp_direct, 'false') as imp_direct, csr_reg_num, state_district, ongoing, date, duration, item as dim, count as val
 from t8),
 
 t10 as 
-(select projectId, ngo, schedule_vii, project_start_date, project_end_date, csr_reg_num, date, dim, val,
+(select projectId, ngo, schedule_vii, project_start_date, project_end_date, csr_reg_num, date, duration, dim, val,
 case when local_yn = 'true' then 'yes' else 'no' end as local_yn,
 case when imp_direct = 'true' then 'yes' else 'no' end as imp_direct,
 case when ongoing = 'true' then 'yes' else 'no' end as ongoing
 
 from t9)
 
-select distinct projectId, ngo, schedule_vii, project_start_date, project_end_date, csr_reg_num, date, dim, val, local_yn, imp_direct, ongoing
+select distinct projectId, ngo, schedule_vii, project_start_date, project_end_date, csr_reg_num, date, duration, dim, val, local_yn, imp_direct, ongoing
 
 from t10
