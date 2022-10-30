@@ -39,10 +39,19 @@ projectId, fy_project, ngo, schedule_vii, local_yn, project_start_date, project_
 
 sub1 as(select a.*, unwind_state_district from t3 a, a.state_district as unwind_state_district)
 
-select projectId, fy_project as fy_timerange, ngo, schedule_vii, local_yn, project_start_date, project_end_date, imp_direct, csr_reg_num, tag1.name as state_district, ongoing, past, cumulative_allocated, cumulative_spent, disbursed, status, to_char(project_start_date, 'DD-MM-YYYY') as start, to_char(project_end_date, 'DD-MM-YYYY') as end 
+t4 as 
+(select projectId, fy_project as fy_timerange, ngo, schedule_vii, local_yn, project_start_date, project_end_date, imp_direct, csr_reg_num, tag1.name as state_district, ongoing, past, cumulative_allocated, cumulative_spent, disbursed, status, to_char(project_start_date, 'DD-MM-YYYY') as start, to_char(project_end_date, 'DD-MM-YYYY') as end 
 from sub1
 left join ds_mysql_prod_tagelement tag1
-on sub1.unwind_state_district = tag1.id
+on sub1.unwind_state_district = tag1.id)
+
+select projectId, fy_project as fy_timerange, ngo, schedule_vii, local_yn, project_start_date, project_end_date, imp_direct, csr_reg_num, tag1.name as state_district, ongoing, past, cumulative_allocated, cumulative_spent, disbursed, status, 
+case
+when end is null then concat(start_dur, ' to --')
+else start || ' to ' || end
+end as duration
+
+from t4
  
 
 
