@@ -11,113 +11,8 @@
 
 --select * from profile_77142
 
-with t1 as 
-(select 
-projectId, ngo, schedule_vii, local_yn, project_start_date, project_end_date, imp_direct, csr_reg_num, state_district, ongoing,
-first_value(project_start_date) over (partition by ngo order by project_start_date rows between unbounded preceding and unbounded following ) as date
-from profile_82842
-where ongoing is not null
-group by 
-projectId, ngo, schedule_vii, local_yn, project_start_date, project_end_date, imp_direct, csr_reg_num, state_district, ongoing, project_start_date),
-
-t2 as 
-(select t1.projectId, t1.ngo, t1.schedule_vii, t1.local_yn, t1.project_start_date, t1.project_end_date, t1.imp_direct, t1.csr_reg_num, t1.state_district, t1.ongoing, t1.date, 
-case 
-when project_end_date is null then '{"start":"'||project_start_date||'"}'
-else
-concat(concat(concat(concat('{"start":"',project_start_date),'","end":"'),project_end_date),'"}') end as duration
-from t1),
-
-t3 as 
-(select 
-t2.projectId, t2.ngo, t2.schedule_vii, t2.local_yn, t2.project_start_date, t2.project_end_date, t2.imp_direct, t2.csr_reg_num, t2.state_district, t2.ongoing, t2.date, t2.duration, sum(p1.prescribed_csr) as allocated
-from t2
-left join profile_82735 p1
-on t2.projectId = p1.projectId
-group by 
-t2.projectId, t2.ngo, t2.schedule_vii, t2.local_yn, t2.project_start_date, t2.project_end_date, t2.imp_direct, t2.csr_reg_num, t2.state_district, t2.ongoing, t2.date, t2.duration),
-
-t4 as 
-(select
-t3.projectId, t3.ngo, t3.schedule_vii, t3.local_yn, t3.project_start_date, t3.project_end_date, t3.imp_direct, t3.csr_reg_num, t3.state_district, t3.ongoing, t3.date, t3.duration, t3.allocated, sum(p2.amount) as disbursed
-from t3
-left join profile_82739 p2
-on t3.projectId = p2.projectId
-group by 
-t3.projectId, t3.ngo, t3.schedule_vii, t3.local_yn, t3.project_start_date, t3.project_end_date, t3.imp_direct, t3.csr_reg_num, t3.state_district, t3.ongoing, t3.date, t3.duration, t3.allocated),
-
-t5 as 
-(select
-t4.projectId, t4.ngo, t4.schedule_vii, t4.local_yn, t4.project_start_date, t4.project_end_date, t4.imp_direct, t4.csr_reg_num, t4.state_district, t4.ongoing, t4.date, t4.duration, t4.allocated, t4.disbursed, sum(p3.amount) as utilized
-from t4
-left join profile_82741 p3
-on t4.projectId = p3.projectId
-group by 
-t4.projectId, t4.ngo, t4.schedule_vii, t4.local_yn, t4.project_start_date, t4.project_end_date, t4.imp_direct, t4.csr_reg_num, t4.state_district, t4.ongoing, t4.date, t4.duration, t4.allocated, t4.disbursed),
-
-sub1 as(select a.*, unwind_state_district from t5 a, a.state_district as unwind_state_district),
-
-t6 as 
-(select 
-projectId, ngo, schedule_vii, local_yn, project_start_date, project_end_date, imp_direct, csr_reg_num, unwind_state_district, ongoing, date, duration, allocated, disbursed, utilized, to_char( project_start_date, 'DD-MM-YYYY') as start_dur, to_char( project_end_date, 'DD-MM-YYYY') as end_dur
-from sub1),
-
-t7 as 
-(select 
-tag1.name as projectId, ngo, tag2.name as schedule_vii, local_yn, project_start_date, project_end_date, imp_direct, csr_reg_num, tag3.name as state_district, ongoing, date, allocated, disbursed, utilized, 
-
-case 
-when end_dur is null then concat(start_dur, ' to --')
-else start_dur || ' to ' || end_dur
-end as duration, disbursed - utilized as unspent
-from t6
-left join ds_mysql_prod_project tag1
-on t6.projectId = tag1.id
-left join ds_mysql_prod_tagelement tag2
-on t6.schedule_vii = tag2.id
-left join ds_mysql_prod_tagelement tag3
-on t6.unwind_state_district = tag3.id),
-
-item as 
-( 
-select 'allocated' as c
-union all
-select 'disbursed' as c
-union all
-select 'utilized' as c
-union all
-select 'unspent' as c
-),
-
-t8 as 
-(select projectId, ngo, schedule_vii, local_yn, project_start_date, project_end_date, imp_direct, csr_reg_num, state_district, ongoing, date, duration,
- case c
- when 'allocated' then t7.allocated
- when 'disbursed' then t7.disbursed
- when 'utilized'then t7.utilized
- when 'unspent' then t7.unspent
- else null
- end as count, item.c as item
- from t7 cross join item
- group by 
- projectId, ngo, schedule_vii, local_yn, project_start_date, project_end_date, imp_direct, csr_reg_num, state_district, ongoing, date, duration, allocated, disbursed, utilized, unspent, item.c),
- 
-t9 as   
-(select projectId, ngo, schedule_vii, local_yn, project_start_date, project_end_date, COALESCE(imp_direct, 'false') as imp_direct, csr_reg_num, state_district, ongoing, date, duration, item as dim, count as val
-from t8),
-
-t10 as 
-(select projectId, ngo, schedule_vii, project_start_date, project_end_date, csr_reg_num, date, duration, dim, val,
-case when local_yn = 'true' then 'yes' else 'no' end as local_yn,
-case when imp_direct = 'true' then 'yes' else 'no' end as imp_direct,
-case when ongoing = 'true' then 'yes' else 'no' end as ongoing
-
-from t9)
-
-select distinct projectId, ngo, schedule_vii, project_start_date, project_end_date, csr_reg_num, date, duration, dim, val, local_yn, imp_direct, ongoing
-
-from t10
-
+select projectId, fy_timerange, ngo, schedule_vii, local_yn, project_start_date, project_end_date, imp_direct, csr_reg_num, state_district, ongoing, past, cumulative_allocated, cumulative_spent
+from profile_46325
  
 
 
@@ -127,7 +22,6 @@ from t10
 
 
 
---(select projectId, schedule_vii, local_yn, project_start_date, project_end_date, imp_direct, csr_reg_num, state_district, ongoing, dateimp_direct
 
 
 
