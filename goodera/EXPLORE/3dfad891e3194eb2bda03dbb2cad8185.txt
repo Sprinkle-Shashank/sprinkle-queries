@@ -1,21 +1,16 @@
-SELECT MS.name, MS.fy_timerange,
-I.name AS college,
-G.name AS gender,
-C.name AS caste,
+SELECT SR.name, SR.fy_timerange,
 P.name AS projectid,
-SR.name AS student,
-SUM(MS.sessions_attended) AS sessions_attended
+C.name AS caste,
+G.name AS gender,
+FGG.name AS first_generation_graduate,
+'In-Direct' AS direct_indirect,
+'Family Members of First Generation Graduates' as ben_type,
+SR.family_size AS total
 
-FROM profile_56496 AS MS
+FROM profile_56131 AS SR
 
 LEFT JOIN ds_mysql_prod_project AS P
-ON MS.projectid = P.id
-
-LEFT JOIN profile_56131 AS SR
-ON MS.student = SR._id
-
-LEFT JOIN profile_56221 AS I
-ON MS.college = I._id
+ON SR.projectid = P.id
 
 LEFT JOIN ds_mysql_prod_tagelement AS G
 ON SR.gender = G.id
@@ -23,4 +18,9 @@ ON SR.gender = G.id
 LEFT JOIN ds_mysql_prod_tagelement AS C
 ON SR.caste = C.id
 
-GROUP BY MS.name, MS.fy_timerange, SR.name, I.name, G.name, C.name, P.name
+LEFT JOIN ds_mysql_prod_tagelement AS FGG
+ON SR.first_generation_graduate = FGG.id
+
+WHERE FGG.name = Yes
+
+GROUP BY SR.name, C.name, G.name, SR.fy_timerange, P.name, total, direct_indirect, ben_type, FGG.name
