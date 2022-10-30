@@ -1,0 +1,66 @@
+with t1 as 
+(select p1.projectId, p1.fy_timerange as fy_project, p1.ngo, p1.schedule_vii, p1.local_yn, p1.project_start_date, p1.project_end_date, p1.imp_direct, p1.csr_reg_num, p1.state_district, p1.ongoing, p1.past, p1.cumulative_allocated, p1.cumulative_spent, p2.amount, p2.fy_timerange as fy_disbursed
+from profile_46325 p1
+left join profile_76976 p2
+on p1.projectId = p2.projectId
+where past = 904314),
+
+t2 as 
+(select projectId, fy_project, ngo, schedule_vii, local_yn, project_start_date, project_end_date, imp_direct, csr_reg_num, state_district, ongoing, past, cumulative_allocated, cumulative_spent, amount, fy_disbursed,
+case 
+when fy_project = fy_disbursed then 1 else 0 end as fy_match
+from t1),
+
+t3 as 
+(select projectId, fy_project, ngo, schedule_vii, local_yn, project_start_date, project_end_date, imp_direct, csr_reg_num, state_district, ongoing, past, cumulative_allocated, cumulative_spent, sum(amount) as disbursed,
+
+case when ongoing = 'true' then 'ongoing' else 'completed' end as status, 
+case 
+when project_end_date is null then '{"start":"'||project_start_date||'"}'
+else
+concat(concat(concat(concat('{"start":"',project_start_date),'","end":"'),project_end_date),'"}') end as duration
+from t2
+where fy_match >= 1
+group by 
+projectId, fy_project, ngo, schedule_vii, local_yn, project_start_date, project_end_date, imp_direct, csr_reg_num, state_district, ongoing, past, cumulative_allocated, cumulative_spent),
+
+sub1 as(select a.*, unwind_state_district from t3 a, a.state_district as unwind_state_district),
+
+t4 as 
+(select projectId, fy_project as fy_timerange, ngo, schedule_vii, local_yn, project_start_date, project_end_date, imp_direct, csr_reg_num, tag1.name as state_district, ongoing, past, cumulative_allocated, cumulative_spent, disbursed, status, to_char(project_start_date, 'DD-MM-YYYY') as start_dur, to_char(project_end_date, 'DD-MM-YYYY') as end_dur
+from sub1
+left join ds_mysql_prod_tagelement tag1
+on sub1.unwind_state_district = tag1.id),
+
+t5 as 
+(select projectId, fy_timerange, ngo, schedule_vii, local_yn, project_start_date, project_end_date, imp_direct, csr_reg_num, state_district, ongoing, past, cumulative_allocated, cumulative_spent, disbursed, status, 
+case
+when end_dur is null then concat(start_dur, ' to --')
+else start_dur || ' to ' || end_dur
+end as duration
+
+from t4),
+
+item as 
+(
+select 'cumulative_allocated' as c
+union all
+select 'cumulative_spent' as c
+union all
+select 'disbursed' as c
+),
+
+t6 as 
+(select projectId, fy_timerange, ngo, schedule_vii, local_yn, project_start_date, project_end_date, imp_direct, csr_reg_num, state_district, ongoing, past, status, duration,
+case c 
+when 'cumulative_allocated' then t5.cumulative_allocated
+when 'cumulative_spent' then t5.cumulative_spent
+when 'disbursed' then t5.disbursed
+else null
+end as count, item.c as item
+from t5 cross join item
+group by 
+projectId, fy_timerange, ngo, schedule_vii, local_yn, project_start_date, project_end_date, imp_direct, csr_reg_num, state_district, ongoing, past, status, duration, cumulative_allocated, cumulative_spent, disbursed, item.c)
+
+select projectId, fy_timerange, ngo, schedule_vii, local_yn, project_start_date, project_end_date, imp_direct, csr_reg_num, state_district, ongoing, past, status, duration, item as dim, count as val
+from t6
