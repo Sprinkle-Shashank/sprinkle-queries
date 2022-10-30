@@ -2,23 +2,26 @@
 
 with table1 as(select  projectId, description  , pic, fy_timerange, ngo, sdg, sdg_pic, name, s_date, state_district from profile_46325 t1),
 
-table2 as (select t1.*,state_distric from table1 t1 , t1.state_district as state_distric)
+table2 as (select t1.*,state_distric from table1 t1 , t1.state_district as state_distric),
 
-select projectId, description, pic, fy_timerange, reg.name as ngo_name, reg.name as sdg1, sdg_pic, p.name, s_date,   listagg( CASE
-    WHEN reg2.name IS NULL THEN reg2.name
-    ELSE state_district
-END as x,',') as state,ngo from table2 p
+table3 as(
+select projectId, description, pic, fy_timerange, ngo, reg.name as sdg1, sdg_pic, p.name, s_date,   reg2.name as state, ngo from table2 p
 
-left join ds_mysql_prod_tagelement reg
+  left join ds_mysql_prod_tagelement reg
 on p.sdg= reg.id
-
-
-left join ds_mysql_prod_tagelement reg1
+  
+  left join ds_mysql_prod_tagelement reg1
 on p.state_distric= reg1.id
 
 left join ds_mysql_prod_tagelement reg2
 on reg1.parent= reg2.id
 
+  Group By projectId, description, pic, fy_timerange, sdg_pic, p.name, sdg1, s_date,ngo,state
+)
+
+select projectId, description, pic, fy_timerange, ngo, reg.name as sdg1, sdg_pic, p1.name, s_date,   listagg(state,',') as state, ngo from table3 p1
 
 
-Group By projectId, description, pic, fy_timerange, sdg_pic, p.name, sdg, s_date,ngo
+
+
+Group By projectId, description, pic, fy_timerange, sdg_pic, p1.name, sdg, s_date,ngo
