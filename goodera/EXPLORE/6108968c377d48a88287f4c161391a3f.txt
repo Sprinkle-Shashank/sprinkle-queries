@@ -1,4 +1,5 @@
-SELECT PD.description,
+WITH SUB1 AS (
+  SELECT PD.description,
 SUBSTRING(PD.project_start_date,1,10) AS project_start_date,
 SUBSTRING(PD.project_end_date,1,10) AS project_end_date,
 SUBSTRING(PD.mou_start_date,1,10) AS mou_start_date,
@@ -17,3 +18,22 @@ ON P1.parent = P2.id
 
 LEFT JOIN ds_mysql_prod_tagelement AS S
 ON PD.state = S.id
+  ),
+  
+  SUB2 AS (
+	SELECT description, project_start_date, project_end_date, mou_start_date, mou_end_date, projectname, partner
+	
+	FROM SUB1 AS S1,
+	
+	S1.state AS ST
+  ),
+  
+  SUB3 AS (
+	SELECT description, project_start_date, project_end_date, mou_start_date, mou_end_date, projectname, partner,
+	LISTAGG(STATE.name,', ') AS state
+	
+	FROM SUB2
+	
+	LEFT JOIN ds_mysql_prod_tagelement AS STATE
+	ON ST = STATE.id
+	)
