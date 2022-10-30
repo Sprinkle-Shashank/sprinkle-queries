@@ -43,15 +43,41 @@ t4 as
 (select projectId, fy_project as fy_timerange, ngo, schedule_vii, local_yn, project_start_date, project_end_date, imp_direct, csr_reg_num, tag1.name as state_district, ongoing, past, cumulative_allocated, cumulative_spent, disbursed, status, to_char(project_start_date, 'DD-MM-YYYY') as start_dur, to_char(project_end_date, 'DD-MM-YYYY') as end_dur
 from sub1
 left join ds_mysql_prod_tagelement tag1
-on sub1.unwind_state_district = tag1.id)
+on sub1.unwind_state_district = tag1.id),
 
-select projectId, fy_timerange, ngo, schedule_vii, local_yn, project_start_date, project_end_date, imp_direct, csr_reg_num, state_district, ongoing, past, cumulative_allocated, cumulative_spent, disbursed, status, 
+t5 as 
+(select projectId, fy_timerange, ngo, schedule_vii, local_yn, project_start_date, project_end_date, imp_direct, csr_reg_num, state_district, ongoing, past, cumulative_allocated, cumulative_spent, disbursed, status, 
 case
 when end_dur is null then concat(start_dur, ' to --')
 else start_dur || ' to ' || end_dur
 end as duration
 
-from t4
+from t4)
+
+item as 
+(
+select 'cumulative_allocated' as c
+union all
+select 'cumulative_spent' as c
+union all
+select 'disbursed' as c
+),
+
+t6 as 
+(projectId, fy_timerange, ngo, schedule_vii, local_yn, project_start_date, project_end_date, imp_direct, csr_reg_num, state_district, ongoing, past, status, duration,
+case c 
+when 'cumulative_allocated' then t5.cumulative_allocated
+when 'cumulative_spent' then t5.cumulative_spent
+when 'disbursed' then t5.disbursed
+else null
+end as count, item.c as item
+from t5 cross join item
+group by 
+projectId, fy_timerange, ngo, schedule_vii, local_yn, project_start_date, project_end_date, imp_direct, csr_reg_num, state_district, ongoing, past, status, duration, cumulative_allocated, cumulative_spent, disbursed, item.c)
+
+select * from t6
+ 
+ 
  
 
 
