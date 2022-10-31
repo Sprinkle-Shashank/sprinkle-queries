@@ -1,6 +1,6 @@
 with t1 as
 (
-  select projectId.name as projectId, month, fy_timerange, actual_recreation_session, planned_recreation_session,
+  select projectId.name as projectId, p.month, month.name as month_updated, fy_timerange, actual_recreation_session, planned_recreation_session,
   
   case when month=836063 then 10
   when month=836064 then 11
@@ -22,15 +22,18 @@ with t1 as
   left join ds_mysql_prod_project as projectId
   on p.projectId = projectId.id
   
+  left join ds_mysql_prod_tagelement as mon
+  on p.month = mon.id
+  
   where fy_timerange<>''
   
   
   ),
   t2 as
   (
-	select projectid, month, fy_timerange, sum(actual_recreation_session) as actual_rec, sum(planned_recreation_session) as planned_rec, sort_up from t1
-	group by projectId, month, fy_timerange, sort_up
+	select projectid, month_updated, fy_timerange, sum(actual_recreation_session) as actual_rec, sum(planned_recreation_session) as planned_rec, sort_up from t1
+	group by projectId, month_updated, fy_timerange, sort_up
 	order by sort_up ASC
 	)
-	select projectId, month, fy_timerange, actual_rec, planned_rec, sort_up from t2
+	select projectId, month_updated, fy_timerange, actual_rec, planned_rec, sort_up from t2
   
