@@ -1,279 +1,4 @@
-WITH SUB1 AS (
-  SELECT PD.description,
-  SUBSTRING(PD.project_start_date,1,10) AS project_start_date,
-  SUBSTRING(PD.project_end_date,1,10) AS project_end_date,
-  SUBSTRING(PD.mou_start_date,1,10) AS mou_start_date,
-  SUBSTRING(PD.mou_end_date,1,10) AS mou_end_date,
-  P1.name AS projectname,
-  P2.name AS partner,
-  PD.state,
-  project_start_date|| '-' ||project_end_date AS project_duration
-  
-  FROM profile_81995 AS PD
-
-  LEFT JOIN ds_mysql_prod_project AS P1
-  ON PD.projectid = P1.id
-
-  LEFT JOIN ds_mysql_prod_project AS P2
-  ON P1.parent = P2.id
-  ),
-  
-  SUB2 AS (
-	SELECT description, project_start_date, project_end_date, mou_start_date, mou_end_date, projectname, partner, ST
-	
-	FROM SUB1 AS S1,
-	
-	S1.state AS ST
-  )
-
-	SELECT description, project_start_date, project_end_date, mou_start_date, mou_end_date, projectname, partner,
-	LISTAGG(STATE.name,', ') AS state
-	
-	FROM SUB2
-	
-	LEFT JOIN ds_mysql_prod_tagelement AS STATE
-	ON SUB2.ST = STATE.id
-	
-	GROUP BY description, project_start_date, project_end_date, mou_start_date, mou_end_date, projectname, partner
-/*case 
-	when profileid=27395 then data.donor_details_2
-	when profileid=27405 then data.donor_reference2
-    when profileid=80183 then data.reference_details
-  end as Donor_Reference_2,
-case 
-	when profileid=27395 then data.comment
-	when profileid=27405 then data.comment
-    when profileid=80183 then data.comments_registration
-    when profileid=80188 then data.comments_registration
-  end as Comments_Remarks,
-case 
-	when profileid=27395 then data.external_party
-    when profileid=80183 then data.third_party
-    when profileid=80188 then data.third_party
-  end as Any_external_third_party_evaluations_conducted,
-case 
-	when profileid=27395 then data.impact_indicators
-  end as Does_the_organization_have_quantitatiive_qualitative_impact_indicators,
-case 
-	when profileid=27395 then data.strategy
-    when profileid=80183 then data.details_sustainability
-  end as Please_explain_the_strategy_for_Sustainability_of_the_Projects_Undertaken,
-case 
-	when profileid=27395 then data.strategy_2
-    when profileid=80183 then data.sustainability_projects
-    when profileid=80188 then data.sustainability_projects
-  end as Is_there_a_well_defined_strategy_for_sustainability_of_the_projects_undertaken'
-case 
-	when profileid=27395 then data.env_consideration
-    when profileid=80183 then data.activities_consideration
-    when profileid=80188 then data.activities_consideration
-  end as Are_the_programmes_activities_planned_with_environment_consideration,
-case 
-	when profileid=27395 then data.progress_indicators
-  end as Is_there_a_corresponding_method_available_to_gauge_the_progress_of_the_impact_indicators_identified,
-case 
-	when profileid=27395 then data.any_ngoscbos
-    when profileid=80183 then data.network_ngo
-  end as Does_the_organization_network_with_any_other_NGOs_CBOs_and_Government_bodies_etc_in_its_operational_area'
-case 
-	when profileid=27395 then data.articul_indicators
-  end as How_are_the_impact_indicators_articulated_for_each_activity_project,
-case 
-	when profileid=27395 then data.articul_indicators_2
-    when profileid=80183 then data.impact_indicator
-    when profileid=80188 then data.impact_indicator
-  end as Are_there_clearly_articulated_impact_indicators_for_each_of_the_activity_project,
-case 
-	when profileid=27395 then data.monitor_progress
-	when profileid=27405 then data.monitor_progress
-  end as Please_explain_the_monitoring_methods_of_the_organization_to_track_the_progress_of_projects,
-case 
-	when profileid=27395 then data.monitor_progress_2
-	when profileid=27405 then data.monitor_progress_2
-    when profileid=80183 then data.participate_board
-  end as Does_the_organization_have_well_defined_monitoring_methods_to_track_the_progress_of_its_projects,
-case 
-	when profileid=27395 then data.local_network
-    when profileid=80183 then data.local_professional
-    when profileid=80188 then data.local_professional
-  end as Is_the_organization_part_of_any_local_professional_network_forum_in_its_area_field,
-case 
-	when profileid=27395 then data.accreditation
-    when profileid=80183 then data.organization
-    when profileid=80188 then data.organization
-  end as Please_select_the_accreditation_organization,
-case 
-    when profileid=80183 then data.national_international
-    when profileid=80188 then data.national_international
-  end as Is_the_organization_empanelled_enlisted_with_any_National_International_body_of_Accrediation_Credibility_assurance,
-case 
-	when profileid=27395 then data.org_accrediation
-  end as What_is_the_average_years_of_experience_of_the_staff,
-case 
-	when profileid=27395 then data.years_experience
-	when profileid=27405 then data.years_experience
-  end as Please_describe_the_structured_opportunities_the_organization_may_have_to_engage_volunteers,
-case 
-	when profileid=27395 then data.structur_opportunity_2
-  end as Does_the_orgnanization_have_structured_opportunities_to_engage_volunteers,
-case 
-	when profileid=27395 then data.provide_training
-  end as Does_the_organization_provide_training_to_its_staff,
-case 
-	when profileid=27395 then data.respons_correction_2
-  end as Is_there_any_individual_responsiblity_for_the_Monitoring_and_mid_term_correction,
-case 
-	when profileid=27395 then data.respons_correction
-  end as What_are_the_individual_responsibilities_for_monitoring_and_mid_term_correction,
-case 
-	when profileid=27395 then data.roles_responsibility
-    when profileid=80188 then data.roles_responsibilities
-  end as Please_provide_a_brief_on_the_roles_and_responsibilities_of_personnel_in_the_organization_including_the_volunteers,
-case 
-	when profileid=27395 then data.roles_responsibility_2
-  end as Does_the_organization_have_clearly_defined_roles_and_responsibilities_of_each_person_inlcuding_volunteers,
-case 
-	when profileid=27395 then data.trained_personnel
-  end as Does_the_organization_have_trained_and_experienced_personnel_to_report_on_the_progress_financial_and_project_related_and_impact_of_the_programme
-case 
-	when profileid=27395 then data.staff_number
-	when profileid=27405 then data.staff_number
-  end as How_many_staff_does_the_organization_have_for_day_to_day_operations
-case 
-	when profileid=27395 then data.staff_number_2
-	when profileid=27405 then data.staff_number_2
-  end as How_many_staff_does_the_organization_have_for_day_to_day_operation
-case 
-	when profileid=27395 then data.part_time
-	when profileid=27405 then data.part_time
-  end as Number_of_part_time_employees
-case 
-	when profileid=27395 then data.full_term
-	when profileid=27405 then data.full_term
-    when profileid=80183 then data.on_role_employees
-    when profileid=80188 then data.on_role_employees
-  end as Number_of_full_time_employees
-case 
-	when profileid=27395 then data.cost_beneficiary
-	when profileid=27405 then data.cost_beneficiary
-    when profileid=80183 then data.cost_per_beneficiary
-    when profileid=80188 then data.cost_per_beneficiary
-  end as Cost_per_beneficiary
-case 
-	when profileid=27395 then data.outreach_lastfy
-	when profileid=27405 then data.outreach_lastfy
-    when profileid=80183 then data.direct_beneficiaries
-    when profileid=80188 then data.direct_beneficiaries
-  end as Total_outreach_in_last_FY
-case 
-	when profileid=27395 then data.org_objective
-    when profileid=80183 then data.objective
-    when profileid=80188 then data.objective
-  end as Main_objective_of_the_organisation
-case 
-	when profileid=27395 then data.socioeconomic
-    when profileid=80183 then data.percentage_socio_economic_auto
-    when profileid=80188 then data.percentage_socio_economic_auto
-  end as Percentage_of_beneficiaries_belong_to_low_socioeconomic_background
-case 
-	when profileid=27395 then data.socioeconomic_2
-    when profileid=80183 then data.percentage_socio_economic
-    when profileid=80188 then data.percentage_socio_economic
-  end as What_percentage_of_beneficiaries_belong_to_low_socioeconomic_background
-case 
-	when profileid=27395 then data.target_beneficiary
-    when profileid=80183 then data.target_beneficiary
-    when profileid=80188 then data.target_beneficiary
-  end as Target_beneficiary
-case 
-	when profileid=27395 then data.donor_details
-	when profileid=27405 then data.donor_details_2
-  end as Donor_Reference_1
-case 
-	when profileid=27395 then data.amount_donated
-  end as Please_enter_the_amount_donated
-case 
-	when profileid=27395 then data.funding_sources
-	when profileid=27405 then data.other_funding_2
-    when profileid=80183 then data.funding_other_sources
-    when profileid=80188 then data.funding_sources
-  end as Are_there_any_other_sources_of_funding
-case 
-	when profileid=27395 then data.other_funding
-	when profileid=27405 then data.other_funding
-    when profileid=80183 then data.percentage_agencies
-  end as Please_give_the_Percentage_of_funding_received_from_Other_Agencies
-case 
-	when profileid=27395 then data.other_funding_2
-    when profileid=80183 then data.fund_agencies
-    when profileid=80188 then data.fund_agencies
-  end as Did_the_organization_receive_fund_from_other_agencies
-case 
-	when profileid=27395 then data.government_funding
-	when profileid=27405 then data.government_funding
-    when profileid=80183 then data.percentage_funding
-  end as Percentage_of_funding_received_from_Government
-case 
-	when profileid=27395 then data.government_fund
-	when profileid=27405 then data.government_fund
-    when profileid=80183 then data.government_funding
-    when profileid=80188 then data.government_funding
-  end as Does_the_organization_have_Government_funding
-case 
-	when profileid=27395 then data.corporate_funders
-	when profileid=27405 then data.corporate_funders
-    when profileid=80183 then data.total_donations
-  end as Percentage_of_funding_received_from_Corporate_Funders
-case 
-	when profileid=27395 then data.corporate_funders_2
-	when profileid=27405 then data.corporate_funders_2
-    when profileid=80183 then data.corporate_funders
-    when profileid=80188 then data.corporate_funders
-  end as Does_the_organization_have_Corporate_funders
-case 
-	when profileid=27395 then data.individual_donors
-	when profileid=27405 then data.individual_donors
-    when profileid=80183 then data.percentage_donors
-  end as Percentage_of_donations_received_from_Individual_Donors
-case 
-	when profileid=27395 then data.individual_donors_2
-	when profileid=27405 then data.individual_donors_2
-    when profileid=80183 then data.individual_donors
-    when profileid=80188 then data.individual_donors
-  end as Does_the_organization_have_Individual_donors
-case 
-	when profileid=27395 then data.major_funding
-	when profileid=27405 then data.major_funding
-    when profileid=80183 then data.funding_sources
-    when profileid=80188 then data.funding_sources
-  end as What_are_the_major_sources_of_funding
-case 
-	when profileid=27395 then data.fixed_asset
-  end as Mention_the_type_of_fixed_assets-Land_Office_building_Training_Centre
-case 
-	when profileid=27395 then data.income_exp
-  end as What_was_the_total_Income_vs_Expenditure_in_last_three_years
-case 
-	when profileid=27395 then data.income_exp_ratio
-  end as What_was_the_Income_vs_Expenditure_ratio_in_the_last_three_years
-case 
-	when profileid=27395 then data.total_expenditure
-	when profileid=27405 then data.total_expenditure
-  end as Total_Expenditure_in_last_three_years
-case 
-	when profileid=27395 then data.direct_prog_cost
-	when profileid=27405 then data.direct_prog_cost
-  end as Total_spend_on_direct_programme_costs_in_the_last_FY
-case
-	when profileid=27395 then data.direct_prog_cost_2
-	when profileid=27405 then data.direct_prog_cost_2
-  end as What_was_the_total_spend_on_direct_programme_costs_in_the_last_FY
-case 
-	when profileid=27395 then data.total_expenses
-	when profileid=27405 then data.total_expenses
-  end as Total_expenses_in_the_last_FY*/
-
-/*With temp1 as (
+With temp1 as (
  Select 'fy_00_timerange' as col
   union all
  Select 'fy_07_timerange' as col
@@ -346,256 +71,549 @@ case
   union all
   Select 'fy_34_timerange' as col
   ),
-  
  temp2 as (
 	Select 'd0_00' as col
+  union all
 	Select 'c0_00' as col
+  union all
 	Select 'b0_00' as col
-	Select 'a0_00' as col
+  union all
+  Select 'a0_00' as col
+  union all
 	Select 'd0_07' as col
-	Select 'j0_07' as co
+  union all
+	Select 'j0_07' as col
+  union all
 	Select 'i0_07' as col
+  union all
 	Select 'g0_07' as col
+  union all
 	Select 'b0_07' as col
+  union all
 	Select 'h0_07' as col
+  union all
 	Select 'f0_07' as col
-	Select 'a0_07' as col 
+  union all
+	Select 'a0_07' as col
+  union all
 	Select 'c0_07' as col
+  union all
 	Select 'e0_07' as col
+  union all
 	Select 'a0_11' as col
+  union all
 	Select 'b0_11' as col
+  union all
 	Select 'c0_01' as col
+  union all
 	Select 'e0_01' as col
+  union all
 	Select 'g0_01' as col
+  union all
 	Select 'f0_01' as col
+  union all
 	Select 'a0_01' as col
+  union all
 	Select 'h0_01' as col
+  union all
 	Select 'd0_01' as col
+  union all
 	Select 'b0_01' as col
+  union all
 	Select 'c0_05' as col
+  union all
 	Select 'b0_05' as col
+  union all
 	Select 'a0_05' as col
+  union all
 	Select 'd0_13' as col
+  union all
 	Select 'h0_13' as col
+  union all
 	Select 'c0_13' as col
+  union all
 	Select 'e0_13' as col
+  union all
 	Select 'b0_13' as col
+  union all
 	Select 'a0_13' as col
+  union all
 	Select 'f0_13' as col
+  union all
 	Select 'g0_13' as col
+  union all
 	Select 'e0_06' as col
+  union all
 	Select 'd0_06' as col
+  union all
 	Select 'c0_06' as col
+  union all
 	Select 'i0_06' as col
+  union all
 	Select 'f0_06' as col
+  union all
 	Select 'b0_06' as col
+  union all
 	Select 'g0_06' as col
+  union all
 	Select 'a0_06' as col
+  union all
 	Select 'h0_06' as col
+  union all
 	Select 'c0_10' as col
+  union all
 	Select 'b0_10' as col
+  union all
 	Select 'a0_10' as col
+  union all
 	Select 'c0_19' as col
+  union all
 	Select 'b0_19' as col
+  union all
 	Select 'a0_19' as col
+  union all
 	Select 'e0_19' as col
+  union all
 	Select 'd0_19' as col
+  union all
 	Select 'h0_04' as col
+  union all
 	Select 'a0_04' as col
+  union all
 	Select 'j0_04' as col
+  union all
 	Select 'b0_04' as col
+  union all
 	Select 'i0_04' as col
+  union all
 	Select 'c0_04' as col
+  union all
 	Select 'f0_04' as col
+  union all
 	Select 'e0_04' as col
+  union all
 	Select 'd0_04' as col
+  union all
 	Select 'g0_04' as col
+  union all
 	Select 'f0_18' as col
+  union all
 	Select 'a0_18' as col
+  union all
 	Select 'j0_18' as col
+  union all
 	Select 'g0_18' as col
+  union all
 	Select 'c0_18' as col
+  union all
 	Select 'k0_18' as col
+  union all
 	Select 'd0_18' as col
+  union all
 	Select 'i0_18' as col
+  union all
 	Select 'h0_18' as col
+  union all
 	Select 'e0_18' as col
+  union all
 	Select 'b0_18' as col
+  union all
 	Select 'c0_09' as col
+  union all
 	Select 'b0_09' as col
+  union all
 	Select 'd0_09' as col
+  union all
 	Select 'h0_09' as col
+  union all
 	Select 'i0_09' as col
+  union all
 	Select 'e0_09' as col
+  union all
 	Select 'f0_09' as col
+  union all
 	Select 'a0_09' as col
+  union all
 	Select 'g0_09' as col
+  union all
 	Select 'c0_24' as col
+  union all
 	Select 'b0_24' as col
+  union all
 	Select 'e0_24' as col
+  union all
 	Select 'h0_24' as col
+  union all
 	Select 'd0_24' as col
+  union all
 	Select 'g0_24' as col
+  union all
 	Select 'f0_24' as col
+  union all
 	Select 'a0_24' as col
+  union all
 	Select 'f0_14' as col
+  union all
 	Select 'c0_14' as col
+  union all
 	Select 'b0_14' as col
+  union all
 	Select 'a0_14' as col
+  union all
 	Select 'd0_14' as col
+  union all
 	Select 'e0_14' as col
+  union all
 	Select 'h0_14' as col
+  union all
 	Select 'i0_14' as col
+  union all
 	Select 'g0_14' as col
+  union all
 	Select 'j0_14' as col
+  union all
 	Select 'd0_16' as col
+  union all
 	Select 'a0_16' as col
+  union all
 	Select 'c0_16' as col
+  union all
 	Select 'f0_16' as col
+  union all
 	Select 'b0_16' as col
+  union all
 	Select 'e0_16' as col
+  union all
 	Select 'c0_31' as col
+  union all
 	Select 'b0_31' as col
+  union all
 	Select 'a0_31' as col
+  union all
 	Select 'e0_31' as col
+  union all
 	Select 'd0_31' as col
+  union all
 	Select 'd0_28' as col
+  union all
 	Select 'a0_28' as col
+  union all
 	Select 'h0_28' as col
+  union all
 	Select 'c0_28' as col
+  union all
 	Select 'g0_28' as col
+  union all
 	Select 'f0_28' as col
+  union all
 	Select 'e0_28' as col
+  union all
 	Select 'c0_03' as col
+  union all
 	Select 'a0_03' as col
+  union all
 	Select 'b0_03' as col
+  union all
 	Select 'a0_21' as col
+  union all
 	Select 'e0_21' as col
+  union all
 	Select 'd0_21' as col
+  union all
 	Select 'b0_21' as col
+  union all
 	Select 'f0_21' as col
+  union all
 	Select 'c0_21' as col
+  union all
 	Select 'e0_30' as col
+  union all
 	Select 'f0_30' as col
+  union all
 	Select 'c0_30' as col
+  union all
 	Select 'a0_30' as col
+  union all
 	Select 'd0_30' as col
+  union all
 	Select 'b0_30' as col
+  union all
 	Select 'f0_25' as col
+  union all
 	Select 'b0_25' as col
+  union all
 	Select 'e0_25' as col
+  union all
 	Select 'c0_25' as col
+  union all
 	Select 'd0_25' as col
+  union all
 	Select 'a0_25' as col
+  union all
 	Select 'g0_25' as col
+  union all
 	Select 'i0_02' as col
+  union all
 	Select 'k0_02' as col
+  union all
 	Select 'e0_02' as col
+  union all
 	Select 'b0_02' as col
+  union all
 	Select 'f0_02' as col
+  union all
 	Select 'a0_02' as col
+  union all
 	Select 'c0_02' as col
+  union all
 	Select 'g0_02' as col
+  union all
 	Select 'h0_02' as col
+  union all
 	Select 'j0_02' as col
+  union all
 	Select 'd0_02' as col
+  union all
 	Select 'd0_08' as col
+  union all
 	Select 'n0_08' as col
+  union all
 	Select 'j0_08' as col
+  union all
 	Select 'a0_08' as col
+  union all
 	Select 'k0_08' as col
+  union all
 	Select 'c0_08' as col
+  union all
 	Select 'e0_08' as col
+  union all
 	Select 'g0_08' as col
+  union all
 	Select 'h0_08' as col
+  union all
 	Select 'i0_08' as col
+  union all
 	Select 'm0_08' as col
+  union all
 	Select 'f0_08' as col
+  union all
 	Select 'l0_08' as col
+  union all
 	Select 'b0_08' as col
+  union all
 	Select 'b0_12' as col
+  union all
 	Select 'f0_12' as col
+  union all
 	Select 'g0_12' as col
+  union all
 	Select 'e0_12' as col
+  union all
 	Select 'c0_12' as col
+  union all
 	Select 'a0_12' as col
+  union all
 	Select 'd0_12' as col
+  union all
 	Select 'b0_35' as col
+  union all
 	Select 'd0_35' as col
+  union all
 	Select 'c0_35' as col
+  union all
 	Select 'e0_35' as col
+  union all
 	Select 'f0_35' as col
+  union all
 	Select 'a0_35' as col
+  union all
 	Select 'a0_17' as col
+  union all
 	Select 'c0_17' as col
+  union all
 	Select 'i0_17' as col
+  union all
 	Select 'h0_17' as col
+  union all
 	Select 'f0_17' as col
+  union all
 	Select 'd0_17' as col
+  union all
 	Select 'b0_17' as col
+  union all
 	Select 'e0_17' as col
+  union all
 	Select 'g0_17' as col
+  union all
 	Select 'd0_20' as col
+  union all
 	Select 'a0_20' as col
+  union all
 	Select 'c0_20' as col
+  union all
 	Select 'e0_20' as col
+  union all
 	Select 'b0_20' as col
+  union all
 	Select 'h0_26' as col
+  union all
 	Select 'e0_26' as col
+  union all
 	Select 'g0_26' as col
+  union all
 	Select 'i0_26' as col
+  union all
 	Select 'c0_26' as col
+  union all
     Select 'd0_26' as col
+  union all
     Select 'f0_26' as col
+  union all
     Select 'b0_26' as col
+  union all
     Select 'b0_23' as col
+  union all
     Select 'a0_23' as col
+  union all
     Select 'e0_23' as col
+  union all
     Select 'd0_23' as col
+  union all
     Select 'f0_23' as col
+  union all
     Select 'c0_23' as col
+  union all
     Select 'b0_33' as col
+  union all
     Select 'k0_33' as col
+  union all
     Select 'h0_33' as col
+  union all
     Select 'e0_33' as col
+  union all
     Select 'c0_33' as col
+  union all
     Select 'g0_33' as col
+  union all
     Select 'i0_33' as col
+  union all
     Select 'd0_33' as col
+  union all
     Select 'j0_33' as col
+  union all
     Select 'f0_33' as col
+  union all
     Select 'a0_33' as col
+  union all
     Select 'a0_27' as col
+  union all
     Select 'c0_27' as col
+  union all
     Select 'f0_27' as col
+  union all
     Select 'e0_27' as col
+  union all
     Select 'b0_27' as col
+  union all
     Select 'd0_27' as col
+  union all
     Select 'g0_27' as col
+  union all
     Select 'e0_32' as col
+  union all
     Select 'a0_32' as col
+  union all
     Select 'i0_32' as col
+  union all
     Select 'd0_32' as col
+  union all
     Select 'f0_32' as col
+  union all
     Select 'c0_32' as col
+  union all
     Select 'b0_32' as col
+  union all
     Select 'g0_32' as col
+  union all
     Select 'h0_32' as col
+  union all
     Select 'a0_22' as col
+  union all
     Select 'o0_22' as col
+  union all
     Select 'l0_22' as col
+  union all
     Select 'c0_22' as col
+  union all
     Select 'i0_22' as col
+  union all
     Select 'f0_22' as col
+  union all
     Select 'b0_22' as col
+  union all
     Select 'g0_22' as col
+  union all
     Select 'm0_22' as col
+  union all
     Select 'e0_22' as col
-    Select 'k0_22' as col /*d0_22, j0_22, n0_22, h0_22, b0_15, d0_15, g0_15, c0_15, e0_15, a0_15, f0_15, i0_15, h0_15, a0_29, e0_29, f0_29, b0_29, d0_29, c0_29, f0_34, e0_34, c0_34, d0_34, b0_34, a0_34*/
+  union all
+    Select 'k0_22' as col 
+  union all
+    Select 'd0_22' as col
+  union all
+    Select 'j0_22' as col
+  union all
+    Select 'n0_22' as col
+  union all
+    Select 'h0_22' as col
+  union all
+    Select 'b0_15' as col
+  union all
+    Select 'd0_15' as col
+  union all
+    Select 'g0_15' as col
+  union all
+    Select 'c0_15' as col
+  union all
+    Select 'e0_15' as col
+  union all
+    Select 'a0_15' as col
+  union all
+    Select 'f0_15' as col
+  union all
+    Select 'i0_15' as col
+  union all
+    Select 'h0_15' as col
+  union all
+    Select 'a0_29' as col
+  union all
+    Select 'e0_29' as col
+  union all
+    Select 'f0_29' as col
+  union all
+    Select 'b0_29' as col
+  union all
+    Select 'd0_29' as col
+  union all
+    Select 'c0_29' as col
+  union all
+    Select 'f0_34' as col
+  union all
+    Select 'e0_34' as col
+  union all
+    Select 'c0_34' as col
+  union all
+    Select 'd0_34' as col
+  union all
+    Select 'b0_34' as col
+  union all
+    Select 'a0_34' as col
 	),
-	
-s as ( Select p.fy_00_timerange,p.fy_07_timerange,p.fy_11_timerange, p.fy_01_timerange, p.fy_05_timerange, p.fy_13_timerange, p.fy_06_timerange, p.fy_10_timerange, p.fy_19_timerange, p.fy_04_timerange, p.fy_18_timerange, p.fy_09_timerange, p.fy_24_timerange, p.fy_14_timerange, p.fy_16_timerange, p.fy_31_timerange, p.fy_28_timerange, p.fy_03_timerange, p.fy_21_timerange, p.fy_30_timerange, p.fy_25_timerange, p.fy_02_timerange, p.fy_08_timerange, p.fy_12_timerange, p.fy_35_timerange, p.fy_17_timerange, p.fy_20_timerange, p.fy_26_timerange, p.fy_23_timerange, p.fy_33_timerange, p.fy_27_timerange, p.fy_32_timerange, p.fy_22_timerange, p.fy_15_timerange, p.fy_29_timerange, p.fy_34_timerange
-	  from profile_74275 p)	  
+s as ( Select p.fy_00_timerange,p.fy_07_timerange,p.fy_11_timerange, p.fy_01_timerange, p.fy_05_timerange, p.fy_13_timerange, p.fy_06_timerange, p.fy_10_timerange, p.fy_19_timerange, p.fy_04_timerange, p.fy_18_timerange, p.fy_09_timerange, p.fy_24_timerange, p.fy_14_timerange, p.fy_16_timerange, p.fy_31_timerange, p.fy_28_timerange, p.fy_03_timerange, p.fy_21_timerange, p.fy_30_timerange, p.fy_25_timerange, p.fy_02_timerange, p.fy_08_timerange, p.fy_12_timerange, p.fy_35_timerange, p.fy_17_timerange, p.fy_20_timerange, p.fy_26_timerange, p.fy_23_timerange, p.fy_33_timerange, p.fy_27_timerange, p.fy_32_timerange, p.fy_22_timerange, p.fy_15_timerange, p.fy_29_timerange, p.fy_34_timerange,
+p.d0_00, p.c0_00, p.b0_00, p.a0_00, p.d0_07, p.j0_07, p.i0_07, p.g0_07, p.b0_07, p.h0_07, p.f0_07, p.a0_07, p.c0_07, p.e0_07, p.a0_11, p.b0_11, p.c0_01, p.e0_01, p.g0_01, p.f0_01, p.a0_01, p.h0_01, p.d0_01, p.b0_01, p.c0_05, p.b0_05, p.a0_05, p.d0_13, p.h0_13, p.c0_13, p.e0_13, p.b0_13, p.a0_13, p.f0_13, p.g0_13, p.e0_06, p.d0_06, p.c0_06, p.i0_06, p.f0_06, p.b0_06, p.g0_06, p.a0_06, p.h0_06, p.c0_10, p.b0_10, p.a0_10, p.c0_19, p.b0_19, p.a0_19, p.e0_19, p.d0_19, p.h0_04, p.a0_04, p.j0_04, p.b0_04, p.i0_04, p.c0_04, p.f0_04, p.e0_04, p.d0_04, p.g0_04, p.f0_18, p.a0_18, p.j0_18, p.g0_18, p.c0_18, p.k0_18, p.d0_18, p.i0_18, p.h0_18, p.e0_18, p.b0_18, p.c0_09, p.b0_09, p.d0_09, p.h0_09, p.i0_09, p.e0_09, p.f0_09, p.a0_09, p.g0_09, p.c0_24, p.b0_24, p.e0_24, p.h0_24, p.d0_24, p.g0_24, p.f0_24, p.a0_24, p.f0_14, p.c0_14, p.b0_14, p.a0_14, p.d0_14, p.e0_14, p.h0_14, p.i0_14, p.g0_14, p.j0_14, p.d0_16, p.a0_16, p.c0_16, p.f0_16, p.b0_16, p.e0_16, p.c0_31, p.b0_31, p.a0_31, p.e0_31, p.d0_31, p.b0_28, p.d0_28, p.a0_28, p.h0_28, p.c0_28, p.g0_28, p.f0_28, p.e0_28, p.c0_03, p.a0_03, p.b0_03, p.a0_21, p.e0_21, p.d0_21, p.b0_21, p.f0_21, p.c0_21, p.e0_30, p.f0_30, p.c0_30, p.a0_30, p.d0_30, p.b0_30, p.f0_25, p.b0_25, p.e0_25, p.c0_25, p.d0_25, p.a0_25, p.g0_25, p.i0_02, p.k0_02, p.e0_02, p.b0_02, p.f0_02, p.a0_02, p.c0_02, p.g0_02, p.h0_02, p.j0_02, p.d0_02, p.d0_08, p.n0_08, p.j0_08, p.a0_08, p.k0_08, p.c0_08, p.e0_08, p.g0_08, p.h0_08, p.i0_08, p.m0_08, p.f0_08, p.l0_08, p.b0_08, p.b0_12, p.f0_12, p.g0_12, p.e0_12, p.c0_12, p.a0_12, p.d0_12, p.b0_35, p.d0_35, p.c0_35, p.e0_35, p.f0_35, p.a0_35, p.a0_17, p.c0_17, p.i0_17, p.h0_17, p.f0_17, p.d0_17, p.b0_17, p.e0_17, p.g0_17, p.d0_20, p.a0_20, p.c0_20, p.e0_20, p.b0_20, p.h0_26, p.e0_26, p.g0_26, p.i0_26, p.a0_26, p.c0_26, p.d0_26, p.f0_26, p.b0_26, p.b0_23, p.a0_23, p.e0_23, p.d0_23, p.f0_23, p.c0_23, p.b0_33, p.k0_33, p.h0_33, p.e0_33, p.c0_33, p.g0_33, p.i0_33, p.d0_33, p.j0_33, p.f0_33, p.a0_33, p.a0_27, p.c0_27, p.f0_27, p.e0_27, p.b0_27, p.d0_27, p.g0_27, p.e0_32, p.a0_32, p.i0_32, p.d0_32, p.f0_32, p.c0_32, p.b0_32, p.g0_32, p.h0_32, p.a0_22, p.o0_22, p.l0_22, p.c0_22, p.i0_22, p.f0_22, p.b0_22, p.g0_22, p.m0_22, p.e0_22, p.k0_22, p.d0_22, p.j0_22, p.n0_22, p.h0_22, p.b0_15, p.d0_15, p.g0_15, p.c0_15, p.e0_15, p.a0_15, p.f0_15, p.i0_15, p.h0_15, p.a0_29, p.e0_29, p.f0_29, p.b0_29, p.d0_29, p.c0_29, p.f0_34, p.e0_34, p.c0_34, p.d0_34, p.b0_34, p.a0_34
+from profile_74275 p)
+
 Select
 case col
  when 'fy_00_timerange' then s.fy_00_timerange
@@ -635,8 +653,279 @@ case col
  when 'fy_29_timerange' then s.fy_29_timerange
  when 'fy_34_timerange' then s.fy_34_timerange
  else null
- end as timeperiods, temp1.col as "time_data"
+ end as time_data,
+ case col2
+when 'd0_00' then s.d0_00
+when 'c0_00' then s.c0_00
+when 'b0_00' then s.b0_00
+when 'a0_00' then s.a0_00
+when 'd0_07' then s.d0_07
+when 'j0_07' then s.j0_07
+when 'i0_07' then s.i0_07
+when 'g0_07' then s.g0_07
+when	'b0_07' 	then 	s.b0_07
+when	'h0_07' 	then	s.h0_07
+when	'f0_07' 	then	s.f0_07
+when	'a0_07' 	then	s.a0_07
+when	'c0_07' 	then	s.c0_07
+when	'e0_07' 	then	s.e0_07
+when	'a0_11' 	then	s.a0_11
+when	'b0_11' 	then	s.b0_11
+when	'c0_01' 	then	s.c0_01
+when	'e0_01' 	then	s.e0_01
+when	'g0_01' 	then	s.g0_01
+when	'f0_01' 	then	s.f0_01
+when	'a0_01' 	then	s.a0_01
+when	'h0_01' 	then	s.h0_01
+when	'd0_01' 	then	s.d0_01
+when	'b0_01' 	then	s.b0_01
+when	'c0_05' 	then	s.c0_05
+when	'b0_05' 	then	s.b0_05
+when	'a0_05' 	then	s.a0_05
+when	'd0_13' 	then	s.d0_13
+when	'h0_13' 	then	s.h0_13
+when	'c0_13' 	then	s.c0_13
+when	'e0_13' 	then	s.e0_13
+when	'b0_13' 	then	s.b0_13
+when	'a0_13' 	then	s.a0_13
+when	'f0_13' 	then	s.f0_13
+when	'g0_13' 	then	s.g0_13
+when	'e0_06' 	then	s.e0_06
+when	'd0_06' 	then	s.d0_06
+when	'c0_06' 	then	s.c0_06
+when	'i0_06' 	then	s.i0_06
+when	'f0_06' 	then	s.f0_06
+when	'b0_06' 	then	s.b0_06
+when	'g0_06' 	then	s.g0_06
+when	'a0_06' 	then	s.a0_06
+when	'h0_06' 	then 	s.h0_06
+when	'c0_10' 	then 	s.c0_10
+when	'b0_10' 	then 	s.b0_10
+when	'a0_10' 	then 	s.a0_10
+when	'c0_19' 	then 	s.c0_19
+when	'b0_19' 	then 	s.b0_19
+when	'a0_19' 	then 	s.a0_19
+when	'e0_19' 	then 	s.e0_19
+when	'd0_19' 	then 	s.d0_19
+when	'h0_04' 	then	s.h0_04
+when	'a0_04' 	then	s.a0_04
+when	'j0_04' 	then	s.j0_04
+when	'b0_04' 	then	s.b0_04
+when	'i0_04' 	then	s.i0_04
+when	'c0_04' 	then	s.c0_04
+when	'f0_04' 	then	s.f0_04
+when	'e0_04' 	then	s.e0_04
+when	'd0_04' 	then	s.d0_04
+when	'g0_04' 	then	s.g0_04
+when	'f0_18' 	then	s.f0_18
+when	'a0_18' 	then	s.a0_18
+when	'j0_18' 	then	s.j0_18
+when	'g0_18' 	then	s.g0_18
+when	'c0_18' 	then	s.c0_18
+when	'k0_18' 	then	s.k0_18
+when	'd0_18' 	then	s.d0_18
+when	'i0_18' 	then	s.i0_18
+when	'h0_18' 	then	s.h0_18
+when	'e0_18' 	then	s.e0_18
+when	'b0_18' 	then	s.b0_18
+when	'c0_09' 	then	s.c0_09
+when	'b0_09' 	then	s.b0_09
+when	'd0_09' 	then	s.d0_09
+when	'h0_09' 	then	s.h0_09
+when	'i0_09' 	then	s.i0_09
+when	'e0_09' 	then	s.e0_09
+when	'f0_09' 	then	s.f0_09
+when	'a0_09' 	then	s.a0_09
+when	'g0_09' 	then	s.g0_09
+when	'c0_24' 	then	s.c0_24
+when	'b0_24' 	then	s.b0_24
+when	'e0_24' 	then	s.e0_24
+when	'h0_24' 	then	s.h0_24
+when	'd0_24' 	then 	s.d0_24
+when	'g0_24' 	then 	s.g0_24
+when	'f0_24' 	then 	s.f0_24
+when	'a0_24' 	then 	s.a0_24
+when	'f0_14' 	then 	s.f0_14
+when	'c0_14' 	then 	s.c0_14
+when	'b0_14' 	then 	s.b0_14
+when	'a0_14' 	then 	s.a0_14
+when	'd0_14' 	then 	s.d0_14
+when	'e0_14' 	then	s.e0_14
+when	'h0_14' 	then	s.h0_14
+when	'i0_14' 	then	s.i0_14
+when	'g0_14' 	then	s.g0_14
+when	'j0_14' 	then	s.j0_14
+when	'd0_16' 	then	s.d0_16
+when	'a0_16' 	then	s.a0_16
+when	'c0_16' 	then	s.c0_16
+when	'f0_16' 	then	s.f0_16
+when	'b0_16' 	then	s.b0_16
+when	'e0_16' 	then	s.e0_16
+when	'c0_31' 	then	s.c0_31
+when	'b0_31' 	then	s.b0_31
+when	'a0_31' 	then	s.a0_31
+when	'e0_31' 	then	s.e0_31
+when	'd0_31' 	then	s.d0_31
+when	'd0_28' 	then	s.d0_28
+when	'a0_28' 	then	s.a0_28
+when	'h0_28' 	then	s.h0_28
+when	'c0_28' 	then	s.c0_28
+when	'g0_28' 	then	s.g0_28
+when	'f0_28' 	then	s.f0_28
+when	'e0_28' 	then	s.e0_28
+when	'c0_03' 	then	s.c0_03
+when	'a0_03' 	then	s.a0_03
+when	'b0_03' 	then	s.b0_03
+when	'a0_21' 	then	s.a0_21
+when	'e0_21' 	then	s.e0_21
+when	'd0_21' 	then	s.d0_21
+when	'b0_21' 	then	s.b0_21
+when	'f0_21' 	then	s.f0_21
+when	'c0_21' 	then	s.c0_21
+when	'e0_30' 	then	s.e0_30
+when	'f0_30' 	then	s.f0_30
+when	'c0_30' 	then 	s.c0_30
+when	'a0_30' 	then 	s.a0_30
+when	'd0_30' 	then 	s.d0_30
+when	'b0_30' 	then 	s.b0_30
+when	'f0_25' 	then 	s.f0_25
+when	'b0_25' 	then 	s.b0_25
+when	'e0_25' 	then 	s.e0_25
+when	'c0_25' 	then 	s.c0_25
+when	'd0_25' 	then 	s.d0_25
+when	'a0_25' 	then	s.a0_25
+when	'g0_25' 	then	s.g0_25
+when	'i0_02' 	then	s.i0_02
+when	'k0_02' 	then	s.k0_02
+when	'e0_02' 	then	s.e0_02
+when	'b0_02' 	then	s.b0_02
+when	'f0_02' 	then	s.f0_02
+when	'a0_02' 	then	s.a0_02
+when	'c0_02' 	then	s.c0_02
+when	'g0_02' 	then	s.g0_02
+when	'h0_02' 	then	s.h0_02
+when	'j0_02' 	then	s.j0_02
+when	'd0_02' 	then	s.d0_02
+when	'd0_08' 	then	s.d0_08
+when	'n0_08' 	then	s.n0_08
+when	'j0_08' 	then	s.j0_08
+when	'a0_08' 	then	s.a0_08
+when	'k0_08' 	then	s.k0_08
+when	'c0_08' 	then	s.c0_08
+when	'e0_08' 	then	s.e0_08
+when	'g0_08' 	then	s.g0_08
+when	'h0_08' 	then	s.h0_08
+when	'i0_08' 	then	s.i0_08
+when	'm0_08' 	then	s.m0_08
+when	'f0_08' 	then	s.f0_08
+when	'l0_08' 	then	s.l0_08
+when	'b0_08' 	then	s.b0_08
+when	'b0_12' 	then	s.b0_12
+when	'f0_12' 	then	s.f0_12
+when	'g0_12' 	then	s.g0_12
+when	'e0_12' 	then	s.e0_12
+when	'c0_12' 	then	s.c0_12
+when	'a0_12' 	then	s.a0_12
+when	'd0_12' 	then	s.d0_12
+when	'b0_35' 	then 	s.b0_35
+when	'd0_35' 	then 	s.d0_35
+when	'c0_35' 	then 	s.c0_35
+when	'e0_35' 	then 	s.e0_35
+when	'f0_35' 	then 	s.f0_35
+when	'a0_35' 	then 	s.a0_35
+when	'a0_17' 	then 	s.a0_17
+when	'c0_17' 	then 	s.c0_17
+when	'i0_17' 	then 	s.i0_17
+when	'h0_17' 	then	s.h0_17
+when	'f0_17' 	then	s.f0_17
+when	'd0_17' 	then	s.d0_17
+when	'b0_17' 	then	s.b0_17
+when	'e0_17' 	then	s.e0_17
+when	'g0_17' 	then	s.g0_17
+when	'd0_20' 	then	s.d0_20
+when	'a0_20' 	then	s.a0_20
+when	'c0_20' 	then	s.c0_20
+when	'e0_20' 	then	s.e0_20
+when	'b0_20' 	then	s.b0_20
+when	'h0_26' 	then	s.h0_26
+when	'e0_26' 	then	s.e0_26
+when	'g0_26' 	then	s.g0_26
+when	'i0_26' 	then	s.i0_26
+when	'c0_26' 	then	s.c0_26
+when	'd0_26' 	then	s.d0_26
+when	'f0_26' 	then	s.f0_26
+when	'b0_26' 	then	s.b0_26
+when	'b0_23' 	then	s.b0_23
+when	'a0_23' 	then	s.a0_23
+when	'e0_23' 	then	s.e0_23
+when	'd0_23' 	then	s.d0_23
+when	'f0_23' 	then	s.f0_23
+when	'c0_23' 	then	s.c0_23
+when	'b0_33' 	then	s.b0_33
+when	'k0_33' 	then	s.k0_33
+when	'h0_33' 	then	s.h0_33
+when	'e0_33' 	then	s.e0_33
+when	'c0_33' 	then	s.c0_33
+when	'g0_33' 	then	s.g0_33
+when	'i0_33' 	then	s.i0_33
+when	'd0_33' 	then	s.d0_33
+when	'j0_33' 	then	s.j0_33
+when	'f0_33' 	then 	s.f0_33
+when	'a0_33' 	then 	s.a0_33
+when	'a0_27' 	then 	s.a0_27
+when	'c0_27' 	then 	s.c0_27
+when	'f0_27' 	then 	s.f0_27
+when	'e0_27' 	then 	s.e0_27
+when	'b0_27' 	then 	s.b0_27
+when	'd0_27' 	then 	s.d0_27
+when	'g0_27' 	then 	s.g0_27
+when	'e0_32' 	then	s.e0_32
+when	'a0_32' 	then	s.a0_32
+when	'i0_32' 	then	s.i0_32
+when	'd0_32' 	then	s.d0_32
+when	'f0_32' 	then	s.f0_32
+when	'c0_32' 	then	s.c0_32
+when	'b0_32' 	then	s.b0_32
+when	'g0_32' 	then	s.g0_32
+when	'h0_32' 	then	s.h0_32
+when	'a0_22' 	then	s.a0_22
+when	'o0_22' 	then	s.o0_22
+when	'l0_22' 	then	s.l0_22
+when	'c0_22' 	then	s.c0_22
+when	'i0_22' 	then	s.i0_22
+when	'f0_22' 	then	s.f0_22
+when	'b0_22' 	then	s.b0_22
+when	'g0_22' 	then	s.g0_22
+when	'm0_22' 	then	s.m0_22
+when	'e0_22' 	then	s.e0_22
+when	'k0_22' 	then	s.k0_22
+when	'd0_22' 	then	s.d0_22
+when	'j0_22' 	then	s.j0_22
+when	'n0_22' 	then	s.n0_22
+when	'h0_22' 	then	s.h0_22
+when	'b0_15' 	then	s.b0_15
+when	'd0_15' 	then	s.d0_15
+when	'g0_15' 	then	s.g0_15
+when	'c0_15' 	then	s.c0_15
+when	'e0_15' 	then	s.e0_15
+when	'a0_15' 	then	s.a0_15
+when	'f0_15' 	then	s.f0_15
+when	'i0_15' 	then	s.i0_15
+when	'h0_15' 	then	s.h0_15
+when	'a0_29' 	then	s.a0_29
+when	'e0_29' 	then 	s.e0_29
+when	'f0_29' 	then 	s.f0_29
+when	'b0_29' 	then 	s.b0_29
+when	'd0_29' 	then 	s.d0_29
+when	'c0_29' 	then 	s.c0_29
+when	'f0_34' 	then 	s.f0_34
+when	'e0_34' 	then 	s.e0_34
+when	'c0_34' 	then 	s.c0_34
+when	'd0_34' 	then 	s.d0_34
+when	'b0_34' 	then	s.b0_34
+when	'a0_34' 	then	s.a0_34
+else null
+end as data, temp2.col as "data_label",temp1.col as "timeperiods",
  from s
- cross join temp1*/
-
-
+ cross join temp1
+ cross join temp2
