@@ -1,8 +1,8 @@
 with table1 as
-(select _id , projectId,country,factory, vendor,unwind_cycle, product_category, consultant_tag from profile_64362 as p ,p.cycle as unwind_cycle),
+(select _id , p.projectId,factory,country, vendor,unwind_cycle, product_category, consultant_tag from profile_64362 as p ,p.cycle as unwind_cycle),
 
  table2 as
-(select _id, projectId,country,factory,  vendor,cycle,product_category,consultant_tag from profile_64362
+(select _id, d.projectId,factory,country, vendor,cycle,product_category,consultant_tag from profile_64362 as d
   where _id not in (select _id from table1))
   ,
   
@@ -15,83 +15,75 @@ select * from table1
 
 table4 as  
 (
- select _id,  projectId,country,factory, vendor,unwind_cycle, unwind_product_category,consultant_tag from table3 t3, t3.product_category  as unwind_product_category
+ select _id,  t6.projectId,factory ,country,vendor,unwind_cycle, unwind_product_category,consultant_tag from table3 t6, t6.product_category  as unwind_product_category
  ),
 
 table5 as
-(select _id, projectId,country,factory, vendor,unwind_cycle,  null as product_category,consultant_tag from table3 
+(select _id, h.projectId,factory,country,vendor,unwind_cycle,  null as product_category,consultant_tag from table3  h
  where _id not in (select _id from table4)),
  
 table6 as
 (select * from table4
 union all
-select * from table5),
+select * from table5)
  ---  Two unwind cycle and product_category  from profile_64362
+,
 
---select * from table6
+
+ 
 table7 as
-(select projectId,_id, status, training_type,  year, unwind_details_new from profile_64806 as p1,p1.details_new as unwind_details_new),
+(select   p3.name as projectId, p1.num_female, p1.year , tag1.name as training_type,   tag3.name as country, p2.vendor, p2.factory, tag4.name as consultant ,tag5.name as cycle,tag6.name as  product_category 
 
- table8 as
-(select _id, projectId,status, training_type,  year, null as details_new from profile_64806
- where _id not in (select _id from table7)),
-
- table9 as
- (select * from table7
-  Union all
- select * from table8
- )
-   --  one unwind details_new from profile_64806
+ from profile_61613 as p1
  
- 
-
- 
- 
- 
- 
- 
- 
-,table10 as
-(select  p3.name as projectId,p2.status,tag1.name as  training_type, tag2.name as year,p4.vendor,tag3.name as country, tag4.name as consultant ,tag5.name as cycle,tag6.name as  product_category , cast(p2.unwind_details_new as varchar) as status ,p4.factory ,tag8.name as unwind_details_n from table9 as p2   
-
-
--- This left join for getting text for details_new
- --left join profile_61928 as p6
---on p2.projectId = p6.projectId   
-
-left join table6 as p4
- on p2.projectId = p4.projectId
---left join table9 as p5
---on p2.projectId = p5.projectId
-left join ds_mysql_prod_project p3
-on p2.projectId= p3.id
+--left join profile_64170 as p4
+--on factory = p4._id
+ left join table6 as p2
+on p1.projectId = p2.projectId
+ left join ds_mysql_prod_project p3
+on p1.projectId= p3.id
 left join ds_mysql_prod_tagelement tag1
-on p2.training_type = tag1.id
+on p1.training_type = tag1.id
 left join ds_mysql_prod_tagelement tag2
-on p2.year = tag2.id
-
+on p1.year = tag2.id
 left join ds_mysql_prod_tagelement tag3
-on p4.country = tag3.id
+on p2.country = tag3.id
 left join ds_mysql_prod_tagelement tag4
-on p4.consultant_tag = tag4.id
+on p2.consultant_tag = tag4.id
 left join ds_mysql_prod_tagelement tag5
-on p4.unwind_cycle = tag5.id 
+on p2.unwind_cycle = tag5.id 
 left join ds_mysql_prod_tagelement tag6 
- on tag6.id = p4.unwind_product_category
- left join profile_61928 tag8
- on tag8._id = p2.unwind_details_new
+ on tag6.id = p2.unwind_product_category
+)
+ ,
  
+ 
+ t10 as
+(
+select  ft.projectId,   num_female,  year , training_type,   country, vendor, ft.factory,  consultant,cycle, product_category , p4.factory  as new_factory from table7 as ft
+left join profile_64170 as p4
+on ft.factory = p4._id
  )
  
- 
+,
+item as
+(
+select 'num_female' as t
+)
+,
 
 
-select  ft.projectId,  ft.unwind_details_n as details_new,  ft.training_type,  ft.year, country ,p7.factory,ft.vendor,consultant , cycle,  product_category  from table10 as ft
+t4 as
+(
+select  t10.projectId ,  training_type,  year , new_factory, vendor, consultant,  cycle,country  ,  product_category , 
+case t
+when 'num_female' then num_female
+else null
+end as total,item.t as status
+from t10 cross join item
+)
 
-left join profile_64170 as p7
-on ft.factory = p7._id
----left join ds_mysql_prod_tagelement tag7
----on ft.status = tag7.id
-where ft.status = 1247618
+select t4.projectId, t4.training_type,t4.year,t4.new_factory as factory,t4.vendor,t4.consultant,t4.cycle,t4.country,t4.product_category,t4.status, sum(t4.total) as total
+from t4
 
- 
+group by projectId ,  training_type,  year , factory, vendor, consultant, cycle,country ,  product_category ,t4.status
