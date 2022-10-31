@@ -2,10 +2,10 @@ WITH SUB1 AS (
   SELECT PD.description,
   SUBSTRING(PD.project_start_date,1,10) AS project_start_date,
   SUBSTRING(PD.project_end_date,1,10) AS project_end_date,
-  project_start_date || ' - ' || project_end_date AS project_d,
-  CONCAT(CONCAT(project_start_date, ' - '), project_end_date) AS project_duration,
+  CONCAT(CONCAT(SUBSTRING(PD.project_start_date,1,10), ' to '), SUBSTRING(PD.project_end_date,1,10)) AS project_duration,  
   SUBSTRING(PD.mou_start_date,1,10) AS mou_start_date,
   SUBSTRING(PD.mou_end_date,1,10) AS mou_end_date,
+  CONCAT(CONCAT(SUBSTRING(PD.mou_start_date,1,10), ' to '), SUBSTRING(PD.mou_end_date,1,10)) AS mou_duration,
   P1.name AS projectname,
   P2.name AS partner,
   PD.state
@@ -20,14 +20,14 @@ WITH SUB1 AS (
   ),
   
   SUB2 AS (
-	SELECT description, project_start_date, project_end_date, mou_start_date, mou_end_date, projectname, partner, ST, project_duration, project_d
+	SELECT description, project_start_date, project_end_date, mou_start_date, mou_end_date, projectname, partner, ST, project_duration, mou_duration
 	
 	FROM SUB1 AS S1,
 	
 	S1.state AS ST
   )
 
-	SELECT description, project_start_date, project_end_date, mou_start_date, mou_end_date, projectname, partner, projectduration, project_d,
+	SELECT description, project_start_date, project_end_date, mou_start_date, mou_end_date, projectname, partner, projectduration, mou_duration,
 	LISTAGG(STATE.name,', ') AS state
 	
 	FROM SUB2
@@ -35,4 +35,4 @@ WITH SUB1 AS (
 	LEFT JOIN ds_mysql_prod_tagelement AS STATE
 	ON SUB2.ST = STATE.id
 	
-	GROUP BY description, project_start_date, project_end_date, mou_start_date, mou_end_date, projectname, partner, project_duration, project_d
+	GROUP BY description, project_start_date, project_end_date, mou_start_date, mou_end_date, projectname, partner, project_duration, mou_duration
