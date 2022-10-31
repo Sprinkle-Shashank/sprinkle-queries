@@ -1,4 +1,41 @@
-case 
+WITH SUB1 AS (
+  SELECT PD.description,
+  SUBSTRING(PD.project_start_date,1,10) AS project_start_date,
+  SUBSTRING(PD.project_end_date,1,10) AS project_end_date,
+  project_start_date|| '-' ||project_end_date AS project_duration,
+  SUBSTRING(PD.mou_start_date,1,10) AS mou_start_date,
+  SUBSTRING(PD.mou_end_date,1,10) AS mou_end_date,
+  P1.name AS projectname,
+  P2.name AS partner,
+  PD.state
+  
+  FROM profile_81995 AS PD
+
+  LEFT JOIN ds_mysql_prod_project AS P1
+  ON PD.projectid = P1.id
+
+  LEFT JOIN ds_mysql_prod_project AS P2
+  ON P1.parent = P2.id
+  ),
+  
+  SUB2 AS (
+	SELECT description, project_start_date, project_end_date, mou_start_date, mou_end_date, projectname, partner, ST
+	
+	FROM SUB1 AS S1,
+	
+	S1.state AS ST
+  )
+
+	SELECT description, project_start_date, project_end_date, mou_start_date, mou_end_date, projectname, partner,
+	LISTAGG(STATE.name,', ') AS state
+	
+	FROM SUB2
+	
+	LEFT JOIN ds_mysql_prod_tagelement AS STATE
+	ON SUB2.ST = STATE.id
+	
+	GROUP BY description, project_start_date, project_end_date, mou_start_date, mou_end_date, projectname, partner
+/*case 
 	when profileid=27395 then data.donor_details_2
 	when profileid=27405 then data.donor_reference2
     when profileid=80183 then data.reference_details
@@ -234,7 +271,7 @@ case
 case 
 	when profileid=27395 then data.total_expenses
 	when profileid=27405 then data.total_expenses
-  end as Total_expenses_in_the_last_FY
+  end as Total_expenses_in_the_last_FY*/
 
 /*With temp1 as (
  Select 'fy_00_timerange' as col
