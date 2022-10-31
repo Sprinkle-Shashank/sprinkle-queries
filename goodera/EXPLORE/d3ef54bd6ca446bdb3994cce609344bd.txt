@@ -1,4 +1,35 @@
-select p1._id, tag1.name as projectId, tag2.name as onsite_offsite, tag3.name as training_type, tag4.name as year, p1.man_days, p1.date,tag5.name as country, p2.vendor, p2.product_category, tag6.name as consultant, p2.cycle,
+with table1 as
+(select _id , projectId,country, vendor,unwind_cycle, product_category, consultant_tag from profile_64362 as p ,p.cycle as unwind_cycle),
+
+ table2 as
+(select _id, projectId,country, vendor,cycle,product_category,consultant_tag from profile_64362
+  where _id not in (select _id from table1))
+  ,
+  
+table3 as
+ (
+	select * from table1
+  Union all
+  select * from table2
+ )
+ ,
+
+  
+table4 as  
+(
+ select _id,  projectId,country,vendor,unwind_cycle, unwind_product_category,consultant_tag from table3 t3, t3.product_category  as unwind_product_category
+ ),
+
+table5 as
+(select _id, projectId,country,vendor,unwind_cycle,  null as product_category,consultant_tag from table3 
+ where _id not in (select _id from table4)),
+ 
+table6 as
+(select * from table4
+union all
+select * from table5),
+
+t1 as (select p1._id, tag1.name as projectId, tag2.name as onsite_offsite, tag3.name as training_type, tag4.name as year, p1.man_days, p1.date,tag5.name as country, p2.vendor, p2.product_category, tag6.name as consultant, p2.cycle,
 to_char(p1.date, 'Month') as month, month ||'('||tag5.name ||')' as month1, p1._id as id2,
 case 
 when tag2.name = 'Onsite meeting' then 1 
@@ -14,9 +45,12 @@ else 0
 end as Virtual,
 sum(man_days) as sum_man_days,
 sum(onsite) as sum_onsite,
-sum(virtual) as sum_virtual
+sum(virtual) as sum_virtual,
+p5.unwind_product_category,p5.unwind_cycle
 
 from profile_61604 p1
+left join table6 p5
+on p1.projectId=p5.projectId
 left join profile_64362 p2
 on p1.projectId= p2.projectId
 left join ds_mysql_prod_tagelement tag1
@@ -32,4 +66,6 @@ on p2.country = tag5.id
 left join ds_mysql_prod_tagelement tag6
 on p2.consultant_tag = tag6.id
 
-group by p1.projectId, training_type, country, vendor, consultant, cycle, product_category, year, month, id2,tag1.name, tag2.name,tag3.name,tag4.name,tag5.name,tag6.name,p1.man_days,p1.date
+group by p1.projectId, training_type, country, vendor, consultant, cycle, product_category, year, month, id2,tag1.name, tag2.name,tag3.name,tag4.name,tag5.name,tag6.name,p1.man_days,p1.date)
+
+select * from t1
