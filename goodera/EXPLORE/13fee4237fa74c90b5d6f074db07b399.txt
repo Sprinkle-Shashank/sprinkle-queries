@@ -32,7 +32,7 @@ select * from table5)
 
  
 table7 as
-(select   p3.name as projectId, p1.timerange_timerange ,p1.num_female, p1.num_male, p1.year , tag1.name as training_type,   tag3.name as country, p2.vendor, p2.factory, tag4.name as consultant ,tag5.name as cycle,tag6.name as  product_category 
+(select   p3.name as projectId, p1.num_female, p1.year , tag1.name as training_type,   tag3.name as country, p2.vendor, p2.factory, tag4.name as consultant ,tag5.name as cycle,tag6.name as  product_category 
 
  from profile_61528 as p1
  
@@ -54,13 +54,13 @@ left join ds_mysql_prod_tagelement tag5
 on p2.unwind_cycle = tag5.id 
 left join ds_mysql_prod_tagelement tag6 
  on tag6.id = p2.unwind_product_category
-order by p1.timerange_timerange  DESC)
+)
  ,
  
  
  t10 as
 (
-select  ft.projectId,   timerange_timerange ,num_female, num_male, year , training_type,   country, vendor, ft.factory,  consultant,cycle, product_category , p4.factory  as new_factory from table7 as ft
+select  ft.projectId,   num_female,  year , training_type,   country, vendor, ft.factory,  consultant,cycle, product_category , p4.factory  as new_factory from table7 as ft
 left join profile_64170 as p4
 on ft.factory = p4._id
  )
@@ -69,24 +69,21 @@ on ft.factory = p4._id
 item as
 (
 select 'num_female' as t
-union all
-select 'num_male' as t
 )
 ,
 
 
 t4 as
 (
-select  t10.projectId , timerange_timerange,  training_type,  year , new_factory, vendor, consultant,  cycle,country  ,  product_category , 
+select  t10.projectId ,  training_type,  year , new_factory, vendor, consultant,  cycle,country  ,  product_category , 
 case t
 when 'num_female' then num_female
-when 'num_male' then num_male
 else null
-end as workforce,item.t as gender
+end as total,item.t as status
 from t10 cross join item
 )
 
-select t4.projectId, t4.timerange_timerange,t4.training_type,t4.year,t4.new_factory as factory,t4.vendor,t4.consultant,t4.cycle,t4.country,t4.product_category,t4.gender, sum(t4.workforce) as workforce
+select t4.projectId, t4.training_type,t4.year,t4.new_factory as factory,t4.vendor,t4.consultant,t4.cycle,t4.country,t4.product_category,t4.status, sum(t4.total) as total
 from t4
 
-group by projectId , timerange_timerange,  training_type,  year , factory, vendor, consultant, cycle,country ,  product_category ,gender
+group by projectId ,  training_type,  year , factory, vendor, consultant, cycle,country ,  product_category ,status
