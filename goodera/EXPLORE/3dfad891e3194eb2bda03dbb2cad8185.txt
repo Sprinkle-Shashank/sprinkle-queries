@@ -1,36 +1,20 @@
-WITH SUB1 AS (
-  SELECT PD.description,
-  SUBSTRING(PD.project_start_date,1,10) AS project_start_date,
-  SUBSTRING(PD.project_end_date,1,10) AS project_end_date,
-  SUBSTRING(PD.mou_start_date,1,10) AS mou_start_date,
-  SUBSTRING(PD.mou_end_date,1,10) AS mou_end_date,
-  P1.name AS projectname,
-  P2.name AS partner,
-  PD.state
-  
-  FROM profile_81995 AS PD
+SELECT DO.fy_timerange,
+DO.project_participants AS total,
+G.name AS gender,
+C.name AS category,
+P.name AS projectid,
+'Direct' AS direct_indirect,
+'Project Participants' AS ben_type
 
-  LEFT JOIN ds_mysql_prod_project AS P1
-  ON PD.projectid = P1.id
+FROM profile_82879 AS DO
 
-  LEFT JOIN ds_mysql_prod_project AS P2
-  ON P1.parent = P2.id
-  ),
-  
-  SUB2 AS (
-	SELECT description, project_start_date, project_end_date, mou_start_date, mou_end_date, projectname, partner, ST
-	
-	FROM SUB1 AS S1,
-	
-	S1.state AS ST
-  )
+LEFT JOIN ds_mysql_prod_project AS P
+ON DO.projectid = P.id
 
-	SELECT description, project_start_date, project_end_date, mou_start_date, mou_end_date, projectname, partner,
-	LISTAGG(STATE.name,', ') AS state
-	
-	FROM SUB2
-	
-	LEFT JOIN ds_mysql_prod_tagelement AS STATE
-	ON SUB2.ST = STATE.id
-	
-	GROUP BY description, project_start_date, project_end_date, mou_start_date, mou_end_date, projectname, partner
+LEFT JOIN ds_mysql_prod_tagelement AS G
+ON DO.gender = G.id
+
+LEFT JOIN ds_mysql_prod_tagelement AS C
+ON DO.category = C.id
+
+GROUP BY DO.fy_timerange, G.name, C.name, P.name, direct_indirect, ben_type, total
