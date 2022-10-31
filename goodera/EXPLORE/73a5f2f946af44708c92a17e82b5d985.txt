@@ -1,0 +1,33 @@
+SELECT PHC.fy_timerange, PHC.phc,
+L1.name AS block,
+L2.name AS district,
+L3.name AS state,
+L4.name AS zone,
+P.name AS projectname,
+COUNT(*) AS total_phc,
+
+CASE
+	WHEN 
+	PHC.phc_electrified = true
+	THEN 'Yes'
+	ELSE 'No'
+	END AS electrification_status
+	
+FROM profile_82863 AS PHC
+
+LEFT JOIN ds_mysql_prod_project AS P
+ON PHC.projectid = P.id
+
+LEFT JOIN ds_mysql_prod_tagelement AS L1
+ON PHC.location = L1.id
+
+LEFT JOIN ds_mysql_prod_tagelement AS L2
+ON L1.parent = L2.id
+
+LEFT JOIN ds_mysql_prod_tagelement AS L3
+ON L2.parent = L3.id
+
+LEFT JOIN ds_mysql_prod_tagelement AS L4
+ON L3.parent = L4.id
+
+GROUP BY PHC.fy_timerange, PHC.phc, L1.name, L2.name, L3.name, L4.name, P.name, PHC.phc_electrified
