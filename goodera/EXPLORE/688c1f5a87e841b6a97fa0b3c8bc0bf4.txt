@@ -30,10 +30,10 @@ select * from table5),
 
 --select * from table6
 table7 as
-(select projectId,_id, status, training_type,  year, unwind_details_new from profile_64806 as p1,p1.details_new as unwind_details_new),
+(select projectId,_id, name, title,  date, impact_story,unwind_photo from profile_62799 as p1,p1.photo as unwind_photo),
 
  table8 as
-(select _id, projectId,status, training_type,  year, null as details_new from profile_64806
+(select  projectId,_id, name, title,  date, impact_story, null as photo from profile_62799
  where _id not in (select _id from table7)),
 
  table9 as
@@ -45,27 +45,18 @@ table7 as
  
  
 
- select * from table9
  
  
- /*
  
  
+ 
+
 ,table10 as
-(select  p3.name as projectId,p2.status,tag1.name as  training_type, tag2.name as year,p4.vendor,tag3.name as country, tag4.name as consultant ,tag5.name as cycle,tag6.name as  product_category , cast(p2.unwind_details_new as varchar) ,p4.factory ,tag8.name as unwind_details_n , tag8.gender from table9 as p2   
-
-
-
-
+(select  p3.name as projectId, p2.name,title,date,impact_story,cast(p2.unwind_photo as varchar) as photo,p4.vendor,tag3.name as country, tag4.name as consultant ,tag5.name as cycle,tag6.name as  product_category , p7.factory  from table9 as p2   
 left join table6 as p4
  on p2.projectId = p4.projectId
 left join ds_mysql_prod_project p3
 on p2.projectId= p3.id
-left join ds_mysql_prod_tagelement tag1
-on p2.training_type = tag1.id
-left join ds_mysql_prod_tagelement tag2
-on p2.year = tag2.id
-
 left join ds_mysql_prod_tagelement tag3
 on p4.country = tag3.id
 left join ds_mysql_prod_tagelement tag4
@@ -74,27 +65,44 @@ left join ds_mysql_prod_tagelement tag5
 on p4.unwind_cycle = tag5.id 
 left join ds_mysql_prod_tagelement tag6 
  on tag6.id = p4.unwind_product_category
- left join profile_61928 tag8
- on tag8._id = p2.unwind_details_new
- where gender = 1140674
+-- left join ds_mysql_prod_tagelement tag7
+-- on tag7.id = p2.unwind_photo
+ left join profile_64170 as p7
+on p4.factory = p7._id
  
- ),
  
+ )
+ ,
  
+table11 as 
+(select  t.title 
+from table10  as t
+ 
+group by t.title )
+,
 
-table11 as
-(select  ft.projectId,ft.unwind_details_n as details_new,  ft.training_type,  ft.year, country ,p7.factory,ft.vendor,consultant , cycle,  product_category , cast('Total Representatives' as varchar) as status ,tag9.name as gender from table10 as ft
 
-left join profile_64170 as p7
-on ft.factory = p7._id
-left join ds_mysql_prod_tagelement tag7
-on ft.status = tag7.id
-left join ds_mysql_prod_tagelement tag9
-on ft.gender = tag9.id
-where ft.status = 1247618)
+table12 as
+(
+select impact_story, ne.title, photo, vendor, country, cycle, product_category, consultant,
 
- 
- 
-select tb.projectId,   tb.training_type,  tb.year, tb.factory,tb.vendor,consultant , cycle,  product_category , country,status ,count(*) 
-from table11 as tb
-group by  tb.projectId,   tb.training_type,  tb.year, tb.factory,tb.vendor,consultant , cycle,  product_category , country,status */
+from table10  as re
+left join table11 as ne on
+ ne.title = re.title)
+
+
+
+
+select product_category, tb.country
+case
+when  re.country ='' then '0'
+else re.country
+end as country
+from table12 tb
+
+	   
+	   
+	   
+	   
+	   
+	   
