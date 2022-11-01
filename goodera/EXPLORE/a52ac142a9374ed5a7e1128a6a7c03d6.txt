@@ -1,5 +1,36 @@
-select p1.projectId, p1.country, p1.vendor, p1.cycle,  p1.product_category ,p2.name as consultant,p3.end_date, p3.actual_end_date, p3.program_level_milestone as milestone,
---if(ne($actual_end_date,NA), if(lte($actual_end_date,$end_date),"Completed", if(gt($actual_end_date,$end_date),"Delayed, but Completed",NA)),NA)
+with table1 as
+(select _id , projectId,country, vendor,unwind_cycle, product_category, consultant_tag from profile_64362 as p ,p.cycle as unwind_cycle),
+
+ table2 as
+(select _id, projectId,country, vendor,cycle,product_category,consultant_tag from profile_64362
+  where _id not in (select _id from table1))
+  ,
+  
+table3 as
+ (
+	select * from table1
+  Union all
+  select * from table2
+ )
+ ,
+
+  
+table4 as  
+(
+ select _id,  projectId,country,vendor,unwind_cycle, unwind_product_category,consultant_tag from table3 t3, t3.product_category  as unwind_product_category
+ ),
+
+table5 as
+(select _id, projectId,country,vendor,unwind_cycle,  null as product_category,consultant_tag from table3 
+ where _id not in (select _id from table4)),
+ 
+table6 as
+(select * from table4
+union all
+select * from table5),
+
+t1 as (select tag2.name as projectId, tag3.name as country, p1.vendor, tag1.name as cycle,  p1.product_category ,p2.name as consultant,p3.end_date, p3.actual_end_date, p3.program_level_milestone as milestone,
+
 
 case 
 when actual_end_date = Null or actual_end_date <= p3.end_date  then 'Compeleted'
@@ -8,10 +39,20 @@ else 'NA'
 end as status ,
 count(*) as count
 from profile_64362 p1
+left join table6 p4 
+on p1.projectId= p4.projectId
 left join profile_61583 p2
 on p1.consultant= p2._id
 left join profile_64141 p3
 on p1.projectId=p3.projectId
+left join ds_mysql_prod_tagelement tag1
+on p4.unwind_cycle = tag1.id
+	   left join ds_mysql_prod_tagelement tag2
+on p1.projectId = tag2.id
+left join ds_mysql_prod_tagelement tag3
+on p1.counttry = tag3.id
 where status = 'Delayed but completed'
-Group by p1.projectId, p1.country, vendor, p1.cycle, product_category, consultant, p3.end_date, actual_end_date, milestone, status,p2.name,p3.program_level_milestone
+Group by p1.projectId, p1.country, vendor, p1.cycle, product_category, consultant, p3.end_date, actual_end_date, milestone, status,p2.name,p3.program_level_milestone)
+
+select * from t1
 
