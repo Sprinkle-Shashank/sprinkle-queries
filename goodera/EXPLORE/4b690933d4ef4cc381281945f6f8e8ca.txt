@@ -1,4 +1,35 @@
-select p1.projectId, p1.end_date, p1.actual_end_date, p1.program_level_milestone as milestone_name,p2.country, p2.vendor, p2.cycle, p2.consultant, p2.product_category,current_date as current_date,
+with table1 as
+(select _id , projectId,country, vendor,unwind_cycle, product_category, consultant_tag from profile_64362 as p ,p.cycle as unwind_cycle),
+
+ table2 as
+(select _id, projectId,country, vendor,cycle,product_category,consultant_tag from profile_64362
+  where _id not in (select _id from table1))
+  ,
+  
+table3 as
+ (
+	select * from table1
+  Union all
+  select * from table2
+ )
+ ,
+
+  
+table4 as  
+(
+ select _id,  projectId,country,vendor,unwind_cycle, unwind_product_category,consultant_tag from table3 t3, t3.product_category  as unwind_product_category
+ ),
+
+table5 as
+(select _id, projectId,country,vendor,unwind_cycle,  null as product_category,consultant_tag from table3 
+ where _id not in (select _id from table4)),
+ 
+table6 as
+(select * from table4
+union all
+select * from table5),
+
+t1 as (select tag2.name as projectId, p1.end_date, p1.actual_end_date, p1.program_level_milestone as milestone_name,tag3.name as country, p2.vendor, tag1.name as cycle, p2.consultant, p2.product_category,current_date as current_date,
 
 case 
 when current_date < p1.end_date then 'ongoing'
@@ -23,6 +54,18 @@ end as sort
 
 from profile_64141 p1
 
+left join table6 p3
+on p1.projectId = p3.projectId  
 left join profile_64362 p2 
 on p1.projectId= p2.projectId
-order by sort asc
+left join ds_mysql_prod_tagelement tag1
+on p4.unwind_cycle = tag1.id
+left join ds_mysql_prod_tagelement tag2
+on p1.projectId = tag2.id
+left join ds_mysql_prod_tagelement tag3
+on p2.country = tag3.id
+left join ds_mysql_prod_tagelement tag4
+on p2.consultant = tag4.id
+	   order by sort asc)
+
+select * from t1 
