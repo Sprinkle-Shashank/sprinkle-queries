@@ -1,0 +1,35 @@
+with t1 as
+(
+  select projectId.name as projectId, p.month, mon.name as month_updated, fy_timerange, actual_edu_session, planned_edu,
+  
+  case when month=836063 then 10
+  when month=836064 then 11
+  when month=836065 then 12
+  when month=836066 then 1
+  when month=836067 then 2
+  when month=836068 then 3
+  when month=927594 then 4
+  when month=927595 then 5
+  when month=927596 then 6
+  when month=927597 then 7
+  when month=927598 then 8
+  when month=927599 then 9
+  else 0
+  end as sort_up
+  
+  from profile_54969 as p
+  
+  left join ds_mysql_prod_project as projectId
+  on p.projectId = projectId.id
+  
+  left join ds_mysql_prod_tagelement as mon
+  on p.month = mon.id
+  ),
+  t2 as
+  (
+	select projectid, month_updated, fy_timerange, sum(planned_edu) as planned_edu_sum, sum(actual_edu_session) as actual_edu_session_sum, sort_up from t1
+	group by projectId, month_updated, fy_timerange, sort_up
+	order by sort_up ASC
+	)
+	select projectId, month_updated, fy_timerange, planned_edu_sum, actual_edu_session_sum, sort_up from t2
+  
