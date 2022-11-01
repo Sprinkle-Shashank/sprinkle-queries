@@ -1,17 +1,15 @@
 select p1.projectId, p1.end_date, p1.actual_end_date, p1.program_level_milestone as milestone_name,p2.country, p2.vendor, p2.cycle, p2.consultant, p2.product_category,current_date as current_date,
---if(lt($current_date,$end_date),Ongoing, if(ne($null_status,NA), if(lte($actual_end_date,$end_date),"Completed", if(gt($actual_end_date,$end_date),"Delayed, but Completed",NA)),NA),NA) 
+
 case 
 when current_date < p1.end_date then 'ongoing'
 when actual_end_date < p1.end_date then 'Completed'
 when actual_end_date > p1.end_date then 'Delayed, but Completed'
 else 'NA'
 end as status, 
---if(eq($milestone_name,"Vendor vetting"),1, if(eq($milestone_name,"Factory MSA - Baseline"),2, 
---if(eq($milestone_name,"Worker Survey"),3, if(eq($milestone_name,"Worker survey scorecard"),4, 
---if(eq($milestone_name,"Factory and Vendor On-boarding"),5, if(eq($milestone_name,"Formation of Worker - Management Committee"),6, if(eq($milestone_name,"Focused Group Discussion"),7, if(eq($milestone_name,"Deliver Train the Trainer workshop"),8, if(eq($milestone_name,"Factory MSA - Endline"),9, if(eq($milestone_name,"Deliver Workshop 1: Communication & Problem Solving"),10,11))))))))))
+
 case 
-when milestone_name = 'Vendor vetting' then 1
-when milestone_name = 'Factory MSA - Baseline' then 2
+when milestone_name = 'Vendor vetting' then '1'
+when milestone_name = 'Factory MSA - Baseline' then '2'
 when milestone_name = 'milestone_name,"Worker Survey' then 3
 when milestone_name = 'Worker survey scorecard' then 4
 when milestone_name = 'Factory and Vendor On-boarding' then 5
@@ -22,10 +20,7 @@ when milestone_name = 'Factory MSA - Endline' then 9
 when milestone_name = 'Deliver Workshop 1: Communication & Problem Solving' then 10
 else 11
 end as sort
---case 
---when actual_end_date= null then 'NA' 
---else actual_end_date
---end as null_status
+
 from profile_64141 p1
 left join profile_64362 p2 
 on p1.projectId= p2.projectId
