@@ -1,60 +1,87 @@
- with t1 as (select  p3.name as projectid,  p1.name, title, date, impact_story, photo  ,tag3.name as country, p4.factory, vendor, p2.cycle,  p2.product_category ,tag4.name as consultant from profile_62799 p1
- left join ds_mysql_prod_project p3
-on p1.projectId= p3.id
-left join profile_64362 as p2
-on p1.projectId = p2.projectId
-left join profile_64170 as p4
-on p2.factory = p4._id
-left join ds_mysql_prod_tagelement tag3
-on p2.country = tag3.id
-left join ds_mysql_prod_tagelement tag4
-on p2.consultant_tag = tag4.id),
+ with table1 as
+(select _id , projectId,country,factory, vendor,unwind_cycle, product_category, consultant_tag from profile_64362 as p ,p.cycle as unwind_cycle),
 
+ table2 as
+(select _id, projectId,country,factory,  vendor,cycle,product_category,consultant_tag from profile_64362
+  where _id not in (select _id from table1))
+  ,
+  
+table3 as
+ (
+select * from table1
+ Union all
+ select * from table2
+ ),
 
- sub1  as(select a.*, unwind_cycle from t1 a,a.cycle as unwind_cycle)
-,
- t2 as( 
-select c.projectid,  c.name, c.title, c.date, c.impact_story, c.photo  ,c.country, c.factory, c.vendor, c.cycle, tag5.name as un_cycle, c.product_category ,c.consultant
-   from  sub1 c
-   left join ds_mysql_prod_tagelement tag5
-on c.unwind_cycle = tag5.id ),
+table4 as  
+(
+ select _id,  projectId,country,factory, vendor,unwind_cycle, unwind_product_category,consultant_tag from table3 t3, t3.product_category  as unwind_product_category
+ ),
 
-sub2 as ( Select b.*,unwind_product_category from t2 b , b.product_category as unwind_product_category)
-,
-		 
-t3 as
-(select projectid,  f.name, f.title, f.date, f.impact_story, f.photo  ,f.country, f.factory, f.vendor, f.cycle,  un_cycle, f.product_category ,f.consultant,
- tag6.name as un_product_category
-from sub2 f
-left join ds_mysql_prod_tagelement tag6 
- on tag6.id = f.unwind_product_category),
-
-
-
-t4 as (select projectid,  name, title, date, impact_story, photo  ,country, factory, vendor, cycle,  null as un_cycle,  product_category ,consultant,null as un_product_category 
-from t1
-	   where projectid not in (select projectid from sub1 )
-	  -- group by projectid,  name, title, date, impact_story, photo  ,country, factory, vendor, cycle,   un_cycle,  product_category ,consultant,un_product_category
-	   ),
-	   
-	   t5 as (select projectid, name, title, date, impact_story, photo, country , factory, vendor, cycle,   null as un_cycle, product_category ,consultant, null as un_product_category 
-from t1
-	   where projectid not in (select projectid from sub2 )
-		--	group by  projectid,  name, title, date, impact_story, photo  ,country, factory, vendor, cycle,   un_cycle,  product_category ,consultant,un_product_category
-		
-	
-	  )
-select 
-t3.projectid, t3.name, t3.title, t3.date, t3.impact_story, t3.photo,t3.country , t3.factory, t3.vendor, t3.cycle,  t3.un_cycle, t3.product_category ,t3.consultant, t3.un_product_category 
-
-from t3
---group by projectid,  name, title, date, impact_story, photo  ,country, factory, vendor, cycle,   un_cycle,  product_category ,consultant,un_product_category
+table5 as
+(select _id, projectId,country,factory, vendor,unwind_cycle,  null as product_category,consultant_tag from table3 
+ where _id not in (select _id from table4)),
  
+table6 as
+(select * from table4
+union all
+select * from table5),
+ ---  Two unwind cycle and product_category  from profile_64362
 
-union all
-select * from t4
-union all
-select * from t5
+--select * from table6
+table7 as
+(select projectId,_id, name, title,  date, impact_story,photo from profile_62799 as p1,p1.photo as unwind_photo),
+
+ table8 as
+(select  projectId,_id, name, title,  date, impact_story, null as photo from profile_62799
+ where _id not in (select _id from table7)),
+
+ table9 as
+ (select * from table7
+  Union all
+ select * from table8
+ )
+   --  one unwind details_new from profile_64806
+ 
+ 
+select * from table9
+ 
+ 
+ 
+ 
+ 
+/* 
+,table10 as
+(select  p3.name as projectId,p2.status,tag1.name as  training_type, tag2.name as year,p4.vendor,tag3.name as country, tag4.name as consultant ,tag5.name as cycle,tag6.name as  product_category , cast(p2.unwind_details_new as varchar) ,p4.factory ,tag8.name as unwind_details_n   from table9 as p2   
+
+
+
+
+left join table6 as p4
+ on p2.projectId = p4.projectId
+left join ds_mysql_prod_project p3
+on p2.projectId= p3.id
+left join ds_mysql_prod_tagelement tag1
+on p2.training_type = tag1.id
+left join ds_mysql_prod_tagelement tag2
+on p2.year = tag2.id
+
+left join ds_mysql_prod_tagelement tag3
+on p4.country = tag3.id
+left join ds_mysql_prod_tagelement tag4
+on p4.consultant_tag = tag4.id
+left join ds_mysql_prod_tagelement tag5
+on p4.unwind_cycle = tag5.id 
+left join ds_mysql_prod_tagelement tag6 
+ on tag6.id = p4.unwind_product_category
+ left join profile_61928 tag8
+ on tag8._id = p2.unwind_details_new
+ 
+ 
+ ),
+ 
+ 
+*/
 	   
 	   
 	   
