@@ -1,20 +1,69 @@
-SELECT D.fy_timerange,
-D.project_participants AS total,
+SELECT CD.name, CD.fy_timerange, CD.beneficiary,
 G.name AS gender,
-C.name AS category,
-P.name AS projectid,
-'Direct' AS direct_indirect,
-'Project Participants' AS ben_type
+P.name AS projectname,
+L1.name AS block,
+L2.name AS district,
+L3.name AS state,
+L4.name AS zone,
 
-FROM profile_82879 AS D
+CASE
+	WHEN 
+	CD.cookstove_received = true
+	THEN 'Yes'
+	ELSE 'No'
+	END AS cookstove_received_status,
+	
+CASE
+	WHEN 
+	CD.primary_stove = true
+	THEN 'Yes'
+	ELSE 'No'
+	END AS primary_stove_status,
+	
+CASE
+	WHEN 
+	CD.repair_request = true
+	THEN 'Yes'
+	ELSE 'No'
+	END AS repair_request_status,
+	
+CASE
+	WHEN 
+	CD.repair_execution = true
+	THEN 'Yes'
+	ELSE 'No'
+	END AS repair_execution_status,
+	
+CASE
+	WHEN 
+	CD.firewood_reduction = true
+	THEN 'Yes'
+	ELSE 'No'
+	END AS firewood_reduction_status,
+	
+CASE
+	WHEN 
+	CD.time_reduction = true
+	THEN 'Yes'
+	ELSE 'No'
+	END AS time_reduction_status
+	
+FROM profile_82866 AS CD
 
 LEFT JOIN ds_mysql_prod_project AS P
-ON D.projectid = P.id
+ON CD.projectid = P.id
+
+LEFT JOIN ds_mysql_prod_tagelement AS L1
+ON CD.location = L1.id
+
+LEFT JOIN ds_mysql_prod_tagelement AS L2
+ON L1.parent = L2.id
+
+LEFT JOIN ds_mysql_prod_tagelement AS L3
+ON L2.parent = L3.id
+
+LEFT JOIN ds_mysql_prod_tagelement AS L4
+ON L3.parent = L4.id
 
 LEFT JOIN ds_mysql_prod_tagelement AS G
-ON D.gender = G.id
-
-LEFT JOIN ds_mysql_prod_tagelement AS C
-ON D.category = C.id
-
-GROUP BY D.fy_timerange, G.name, C.name, P.name, direct_indirect, ben_type, total
+ON CD.gender = G.id
