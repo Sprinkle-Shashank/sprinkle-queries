@@ -1,9 +1,45 @@
-select tag1.name as recognized_union, tag2.name as workers_production_units, tag3.name as male_female, tag4.name as female_representation, tag5.name as decision_making_attendance, tag6.name as decision_making, tag7.name as meetings_held,tag8.name as members_present_meetings, tag9.name as active_members_list, tag10.name as peers_reachout, tag11.name as retaliation, tag12.name as alternative_tradeunion, tag13.name as issues_addressed, tag14.name as reps_elected, tag15.name as follow_up, tag16.name as assessment_review, tag17.name as members_duty_released, tag18.name as progress, tag19.name as training_type, tag20.name as year, tag21.name as consultant, tag22.name as country, p2.product_category, p2.cycle,tag23.name as projectId
+with table1 as
+(select _id , projectId,country, vendor,unwind_cycle, product_category, consultant_tag from profile_64362 as p ,p.cycle as unwind_cycle),
+
+ table2 as
+(select _id, projectId,country, vendor,cycle,product_category,consultant_tag from profile_64362
+  where _id not in (select _id from table1))
+  ,
+  
+table3 as
+ (
+	select * from table1
+  Union all
+  select * from table2
+ )
+ ,
+
+  
+table4 as  
+(
+ select _id,  projectId,country,vendor,unwind_cycle, unwind_product_category,consultant_tag from table3 t3, t3.product_category  as unwind_product_category
+ ),
+
+table5 as
+(select _id, projectId,country,vendor,unwind_cycle,  null as product_category,consultant_tag from table3 
+ where _id not in (select _id from table4)),
+ 
+table6 as
+(select * from table4
+union all
+select * from table5),
+
+t1 as (select tag1.name as recognized_union, tag2.name as workers_production_units, tag3.name as male_female, tag4.name as female_representation, tag5.name as decision_making_attendance, tag6.name as decision_making, tag7.name as meetings_held,tag8.name as members_present_meetings, tag9.name as active_members_list, tag10.name as peers_reachout, tag11.name as retaliation, tag12.name as alternative_tradeunion, tag13.name as issues_addressed, tag14.name as reps_elected, tag15.name as follow_up, tag16.name as assessment_review, tag17.name as members_duty_released, tag18.name as progress, tag19.name as training_type, tag20.name as year, tag21.name as consultant, tag22.name as country, tag55.name as product_category, tag56.name as cycle,tag23.name as projectId
 --select p2.country, p2.cycle, p2.consultant, p2.product_category
 from profile_62306 p1
 left join profile_64362 p2
 on p1.projectId= p2.projectID
-
+left join table6 p3
+	   on p1.projectId= p3.projectId
+left join ds_mysql_prod_tagelement tag55
+on p3.unwind_product_category = tag55.id
+	   left join ds_mysql_prod_tagelement tag56
+on p3.unwind_cycle = tag56.id
 left join ds_mysql_prod_tagelement tag1
 on p1.recognized_union = tag1.id
 left join ds_mysql_prod_tagelement tag2
@@ -68,4 +104,6 @@ and p1.peers_reachout = 1094395
 and p1.assessment_review = 1094395
 and p1.retaliation = 1094395
 and p1.alternative_tradeunion = 1255900
-group by recognized_union, workers_production_units, male_female, female_representation, decision_making_attendance, decision_making, meetings_held, members_present_meetings, active_members_list, peers_reachout, retaliation, alternative_tradeunion, issues_addressed, reps_elected, follow_up, assessment_review, members_duty_released, progress, training_type, year, consultant, country, product_category, cycle, p1.projectId,tag1.name,tag2.name,tag3.name,tag4.name,tag5.name,tag6.name,tag7.name,tag8.name,tag9.name,tag10.name,tag11.name,tag12.name,tag13.name,tag14.name,tag15.name,tag16.name,tag17.name,tag18.name,tag19.name,tag20.name,tag21.name,tag22.name,tag23.name
+group by recognized_union, workers_production_units, male_female, female_representation, decision_making_attendance, decision_making, meetings_held, members_present_meetings, active_members_list, peers_reachout, retaliation, alternative_tradeunion, issues_addressed, reps_elected, follow_up, assessment_review, members_duty_released, progress, training_type, year, consultant, country, product_category, cycle, p1.projectId,tag1.name,tag2.name,tag3.name,tag4.name,tag5.name,tag6.name,tag7.name,tag8.name,tag9.name,tag10.name,tag11.name,tag12.name,tag13.name,tag14.name,tag15.name,tag16.name,tag17.name,tag18.name,tag19.name,tag20.name,tag21.name,tag22.name,tag23.name,tag55.name,tag56.name)
+
+select * from t1
