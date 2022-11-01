@@ -1,0 +1,69 @@
+SELECT CD.name, CD.fy_timerange, CD.beneficiary,
+G.name AS gender,
+P.name AS projectname,
+L1.name AS block,
+L2.name AS district,
+L3.name AS state,
+L4.name AS zone,
+
+CASE
+	WHEN 
+	CD.cookstove_received = true
+	THEN 'Yes'
+	ELSE 'No'
+	END AS cookstove_received_status,
+	
+CASE
+	WHEN 
+	CD.primary_stove = true
+	THEN 'Yes'
+	ELSE 'No'
+	END AS primary_stove_status,
+	
+CASE
+	WHEN 
+	CD.repair_request = true
+	THEN 'Yes'
+	ELSE 'No'
+	END AS repair_request_status,
+	
+CASE
+	WHEN 
+	CD.repair_execution = true
+	THEN 'Yes'
+	ELSE 'No'
+	END AS repair_execution_status,
+	
+CASE
+	WHEN 
+	CD.firewood_reduction = true
+	THEN 'Yes'
+	ELSE 'No'
+	END AS firewood_reduction_status,
+	
+CASE
+	WHEN 
+	CD.time_reduction = true
+	THEN 'Yes'
+	ELSE 'No'
+	END AS time_reduction_status
+	
+FROM profile_82866 AS CD
+
+LEFT JOIN ds_mysql_prod_project AS P
+ON CD.projectid = P.id
+
+LEFT JOIN ds_mysql_prod_tagelement AS L1
+ON CD.location = L1.id
+
+LEFT JOIN ds_mysql_prod_tagelement AS L2
+ON L1.parent = L2.id
+
+LEFT JOIN ds_mysql_prod_tagelement AS L3
+ON L2.parent = L3.id
+
+LEFT JOIN ds_mysql_prod_tagelement AS L4
+ON L3.parent = L4.id
+
+LEFT JOIN ds_mysql_prod_tagelement AS G
+ON CD.gender = G.id
