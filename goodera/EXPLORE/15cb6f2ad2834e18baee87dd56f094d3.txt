@@ -1,0 +1,69 @@
+SELECT SE.name, SE.fy_timerange, SE.unique_id, SE.beneficiary,
+G.name AS gender,
+P.name AS projectname,
+GL.name AS grid_level,
+L1.name AS block,
+L2.name AS district,
+L3.name AS state,
+L4.name AS zone,
+COUNT(*) AS beneficiaries,
+
+FROM profile_82867 AS SE
+
+CASE
+	WHEN 
+	SE.grid_setup = true
+	THEN 'Yes'
+	ELSE 'No'
+	END AS grid_setup_status,
+	
+CASE
+	WHEN 
+	SE.lights_provided = true
+	THEN 'Yes'
+	ELSE 'No'
+	END AS lights_provided_status,
+	
+CASE
+	WHEN 
+	SE.solar_equipments = true
+	THEN 'Yes'
+	ELSE 'No'
+	END AS repair_request_status,
+	
+CASE
+	WHEN 
+	SE.repairs = true
+	THEN 'Yes'
+	ELSE 'No'
+	END AS repairs_status,
+	
+CASE
+	WHEN 
+	SE.electricity = true
+	THEN 'Yes'
+	ELSE 'No'
+	END AS electricity_status,
+	
+FROM profile_82867 AS SE
+
+LEFT JOIN ds_mysql_prod_project AS P
+ON SE.projectid = P.id
+
+LEFT JOIN ds_mysql_prod_tagelement AS L1
+ON SE.location = L1.id
+
+LEFT JOIN ds_mysql_prod_tagelement AS L2
+ON L1.parent = L2.id
+
+LEFT JOIN ds_mysql_prod_tagelement AS L3
+ON L2.parent = L3.id
+
+LEFT JOIN ds_mysql_prod_tagelement AS L4
+ON L3.parent = L4.id
+
+LEFT JOIN ds_mysql_prod_tagelement AS G
+ON SE.gender = G.id
+
+LEFT JOIN ds_mysql_prod_tagelement AS GL
+ON SE.grid_level = GL.id
