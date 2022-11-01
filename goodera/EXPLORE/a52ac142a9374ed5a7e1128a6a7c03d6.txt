@@ -1,7 +1,14 @@
-select p1.projectId, p1.country, p1.vendor, p1.cycle,  p1.product_category ,p2.name as consultant,
-case
-when vendor = Null then 'NA'
-end as vendor 
+select p1.projectId, p1.country, p1.vendor, p1.cycle,  p1.product_category ,p2.name as consultant,p3.end_date, p3.actual_end_date, p3.program_level_milestone as milestone,
+--if(ne($actual_end_date,NA), if(lte($actual_end_date,$end_date),"Completed", if(gt($actual_end_date,$end_date),"Delayed, but Completed",NA)),NA)
+
+case 
+when actual_end_date = Null and actual_end_date <= end_date  then 'Compeleted'
+when actual_end_date >= end_date "Delayed, but Completed" 
+else 'NA'
+end as status 
 from profile_64362 p1
 left join profile_61583 p2
 on p1.consultant= p2._id
+left join profile_64141 p3
+on p1.projectId=p3.projectId
+
