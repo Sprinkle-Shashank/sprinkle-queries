@@ -146,10 +146,7 @@ union all
 
 t2 as 
 (select  projectId,country,vendor,consultant,cycle,select_factory_msa,
- case
- when score =3 then 1
- else 2
- end as filter,
+ 
  case c
 
  when 'policies' then t1.policies
@@ -169,8 +166,15 @@ t2 as
  end as score, item.c as dimensions
  from t1 cross join item 
 
-)
+),
+
+t3 as (select projectId,country,vendor,consultant,cycle,select_factory_msa,score,dimensions,filter,
+	   case 
+	   when score = 3 then 1
+	   else 2
+	   end as filter 
+from t2)
 
 select projectId,country,vendor,consultant,cycle,select_factory_msa,score,dimensions,filter
-from t2
+from t3
 group by projectId, country, vendor, consultant, cycle, select_factory_msa, dimensions,t2.score
