@@ -72,7 +72,28 @@ on p5.unwind_product_category = tag7.id
 left join ds_mysql_prod_tagelement tag8
 on p5.unwind_cycle = tag8.id
 
-group by p1.projectId, training_type, p2.country, p2.vendor, consultant, cycle, product_category, year, month, id2,tag1.name, tag2.name,tag3.name,tag4.name,tag5.name,tag6.name,p1.man_days,p1.date,p5.unwind_product_category,p5.unwind_cycle,tag7.name,tag8.name)
+group by p1.projectId, training_type, p2.country, p2.vendor, consultant, cycle, product_category, year, month, id2,tag1.name, tag2.name,tag3.name,tag4.name,tag5.name,tag6.name,p1.man_days,p1.date,p5.unwind_product_category,p5.unwind_cycle,tag7.name,tag8.name),
 
-select projectId,training_type,country,vendor,consultant,unwind_cycle as cycle,unwind_product_category as product_category,year,month1 as month,id2, sum_man_days as man_days
+item as 
+(
+select 'onsite' as c
+union all
+select 'offsite' as c
+union all
+select 'Virtual' as c
+),
+
+t2 as 
+(select projectId,training_type,country,vendor,consultant,unwind_cycle as cycle,unwind_product_category as product_category,year,month1 as month,id2, sum_man_days as man_days
+ case c
+ when 'onsite' then t1.onsite
+ when 'offsite' then t1.offsite
+ when 'Virtual' then t1.Virtual
+ else null
+ end as val, item.c as item
+ from t1 cross join item 
+-- group by projectId, fy_timerange, school_name, project_name, imp_partner, bu, theme, location, session_type, item.c, no_sessions, no_hours, no_volunteers)
+
+select projectId,training_type,country,vendor,consultant,cycle, product_category,year, month,id2, man_days,val,item
 from t1
+ group by projectId, training_type, country, vendor, consultant, cycle, product_category, year, month, id2
