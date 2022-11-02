@@ -1,5 +1,5 @@
 with sub1 as(
-  select p1.fy_timerange, p2.program_name as global_program, t2.name as country, t1.name as currency, sum(p1.value_of_reckitt_products * p3.conversion_factor) as product_value
+  select p1.fy_timerange, p2.name as global_program, t2.name as country, t1.name as currency, sum(p1.value_of_reckitt_products * p3.conversion_factor) as product_value
 
 from profile_78057 p1
 
@@ -11,6 +11,23 @@ left join profile_78083 p3 on p3.name = (t1.name||'_'||extract(year from cast(p1
 
 where p1.product_donation_global_program = 476506
 
-group by p1.fy_timerange, p2.program_name, t2.name, t1.name)
+group by p1.fy_timerange, p2.program_name, t2.name, t1.name),
 
-select fy_timerange, 'Water.org (Global)' as global_program, country, currency, product_value from sub1
+sub2 as(
+  select p4.fy_timerange, p5.name as global_program, t4.name as country, t3.name as currency, sum(p4.value_of_reckitt_products * p6.conversion_factor) as product_value
+
+from profile_78098 p4
+
+left join ds_mysql_prod_tagelement t3 on t3.id = p4.currency
+left join ds_mysql_prod_tagelement t4 on t4.id = p4.country
+
+left join profile_82820 p5 on p5._id = p1.global_program_name
+left join profile_78083 p6 on p6.name = (t3.name||'_'||extract(year from cast(p4.fy_timerange.start as date)))
+
+where p4.product_donation_global_program = 476506
+
+group by p4.fy_timerange, p5.name, t4.name, t3.name)
+
+--select fy_timerange, 'Water.org (Global)' as global_program, country, currency, product_value from sub1
+
+select * from sub2
