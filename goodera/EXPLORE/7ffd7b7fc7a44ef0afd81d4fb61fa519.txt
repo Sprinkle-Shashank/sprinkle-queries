@@ -1,4 +1,4 @@
-select p1._id, p1.projectId, p1.resources, p1.policies, p1.risk, p1.procedure, p1.grievance, p1.training, p1.monitoring, p1.incident, p1.communication, tag1.name as select_factory_msa, p1.act_adjust, p1.hs_act, p1.hs_training, p1.hs_risk,
+with t1 as (select p1._id, p1.projectId,  tag1.name as select_factory_msa,
 
 case 
 when p1.resources = 1105585 then 1
@@ -22,7 +22,7 @@ when p1.hs_risk  = 1105584 then 2
 when p1.hs_risk  = 1105583 then 3
 when p1.hs_risk  = 1105582 then 4
 when p1.hs_risk  = 1105581 then 5
-end as hs_risk1,
+end as hs_risk,
 
 case 
 when p1.risk  = 1105585 then 1
@@ -70,7 +70,7 @@ when p1.incident  = 1105584 then 2
 when p1.incident  = 1105583 then 3
 when p1.incident  = 1105582 then 4
 when p1.incident  = 1105581 then 5
-end as incident1,
+end as incident,
 
 case 
 when p1.communication  = 1105585 then 1
@@ -86,7 +86,7 @@ when p1.hs_training  = 1105584 then 2
 when p1.hs_training  = 1105583 then 3
 when p1.hs_training  = 1105582 then 4
 when p1.hs_training  = 1105581 then 5
-end as hs_training1,
+end as hs_training,
 
 case 
 when p1.act_adjust  = 1105585 then 1
@@ -106,4 +106,57 @@ end as hs_act1
 
 from profile_62477 p1
 left join ds_mysql_prod_tagelement tag1
-on p1.select_factory_msa = tag1.id
+on p1.select_factory_msa = tag1.id)
+
+item as 
+(
+select 'policies' as c
+union all
+select 'hs_risk' as c
+union all
+select 'procedure' as c
+union all
+select 'grievance' as c
+union all
+select 'training' as c
+union all
+  select 'monitoring' as c
+union all
+  select 'incident' as c
+union all
+  select 'communication' as c
+union all
+  select 'hs_training' as c
+union all
+  select 'act_adjust' as c
+union all
+  select 'hs_act' as c
+union all
+  select 'resources' as c
+
+),
+
+t2 as 
+(select  projectId,country,vendor,consultant,cycle,select_factory_msa,
+ case c
+
+ when 'policies' then t1.policies
+ when 'hs_risk' then t1.hs_risk
+ when 'risk' then t1.risk
+ when 'procedure' then t1.procedure
+ when 'grievance' then t1.grievance
+ when 'training' then t1.training
+ when 'monitoring' then t1.monitoring
+ when 'incident' then t1.incident
+ when 'communication' then t1.communication
+ when 'hs_training' then t1.hs_training
+ when 'act_adjust' then t1.act_adjust
+ when 'hs_act' then t1.hs_act
+ when 'resources' then t1.resources
+ else null
+ end as val, item.c as dimensions
+ from t1 cross join item 
+
+)
+
+select * from t2
