@@ -1,0 +1,48 @@
+with sub1 as(
+select 'photo_1' as photo
+union all
+select 'photo_2' as photo
+union all
+select 'photo_3' as photo
+union all
+select 'photo_4' as photo
+union all
+select 'photo_5' as photo
+union all
+select 'photo_6' as photo
+union all
+select 'photo_7' as photo
+union all
+  select 'photo_8' as photo
+union all
+select 'photo_9' as photo
+union all
+select 'photo_10' as photo
+union all
+select 'photo_11' as photo
+union all
+select 'photo_12' as photo),
+
+sub2 as(select p2.name as projectId, p3.name as parent1, p1.name,p1.fy_timerange, cast(sub1.photo as varchar) as pic,
+(case pic
+	when 'photo_1' then photo_1
+	when 'photo_2' then photo_2
+	when 'photo_3' then photo_3
+	when 'photo_4' then photo_4
+	when 'photo_5' then photo_5
+	when 'photo_6' then photo_6
+	when 'photo_7' then photo_7
+	when 'photo_8' then photo_8
+	when 'photo_9' then photo_9
+	when 'photo_10' then photo_10
+	when 'photo_11' then photo_11
+	when 'photo_12' then photo_12
+	end) as photo
+from profile_64447 p1
+cross join sub1
+left join ds_mysql_prod_project p2 on p2.id=p1.projectId
+left join ds_mysql_prod_project p3 on p3.id=p2.parent)
+
+select projectId,parent1, name,fy_timerange, photo
+from sub2
+where photo is not null
