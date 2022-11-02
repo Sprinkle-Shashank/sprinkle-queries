@@ -10,17 +10,46 @@ sub2 as(
   select s1.*, other_brand_unwind from sub1 s1, s1.other_brand_new other_brand_unwind),
   
 sub3 as(
-  select s2.fy_timerange, t1.name as country, t2.name as currency, p2.program_name as global_programs, sum(nvl(s2.no_of_reckitt_prods_donated,0) + nvl(p3.reckitt_kits,0)) as products_donated
+  select s2.fy_timerange, t1.name as country, t2.name as currency, p2.name as global_programs, sum(nvl(s2.no_of_reckitt_prods_donated,0) + nvl(p3.reckitt_kits,0)) as products_donated
 from sub2 s2
 
 left join ds_mysql_prod_tagelement t1 on t1.id = s2.country
 left join ds_mysql_prod_tagelement t2 on t2.id = s2.currency
 
-left join profile_63775 p2 on p2._id = s2.global_program_name
+left join profile_82820 p2 on p2._id = s2.global_program_name
 left join profile_78062 p3 on p3._id = s2.other_brand_unwind
 
 where s2.product_donation_global_program = 476506
 
-group by s2.fy_timerange, t1.name, t2.name, p2.program_name)
+group by s2.fy_timerange, t1.name, t2.name, p2.name),
 
-select fy_timerange, country, currency, 'Water.org (Global)' as global_programs, products_donated from sub3
+--xx-- One-off
+
+sub4 as(
+  select p4.*, 
+  case
+  	when IS_ARRAY(p4.other_brand) = FALSE or GET_ARRAY_LENGTH(p4.other_brand) = 0 then ARRAY(p4.other_brand)
+  else p4.other_brand
+  end as other_brand_new
+from profile_78098 p4),
+
+sub5 as(
+  select s4.*, other_brand_unwind from sub4 s4, s4.other_brand_new other_brand_unwind),
+  
+sub6 as(
+  select s5.fy_timerange, t4.name as country, t3.name as currency, p5.name as global_programs, sum(nvl(s5.no_of_reckitt_prods_donated,0) + nvl(p6.reckitt_kits,0)) as products_donated
+from sub5 s5
+
+left join ds_mysql_prod_tagelement t3 on t3.id = s5.country
+left join ds_mysql_prod_tagelement t4 on t4.id = s5.currency
+
+left join profile_82820 p5 on p5._id = s5.global_program_name
+left join profile_78062 p6 on p6._id = s5.other_brand_unwind
+
+where s5.product_donation_global_program = 476506
+
+group by s5.fy_timerange, t4.name, t3.name, p5.program_name)
+
+--select fy_timerange, country, currency, 'Water.org (Global)' as global_programs, products_donated from sub3
+
+select * from sub6
