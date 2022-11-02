@@ -1,4 +1,4 @@
-select p1._id, p1.projectId,   tag1.name as select_factory_msa,  p2.country, p2.vendor, p2.consultant, p2.cycle,
+with t1 as (select p1._id, p1.projectId,   tag1.name as select_factory_msa,  p2.country, p2.vendor, p2.consultant, p2.cycle,
 
 case 
 when p1.resources = 1105585 then 1
@@ -33,7 +33,7 @@ when p1.risk  = 1105581 then 5
 end as risk,
 
 case 
-when p1.procedure  = 1105585 then 1
+when p1.procedure  = 110558	5 then 1
 when p1.procedure  = 1105584 then 2
 when p1.procedure  = 1105583 then 3
 when p1.procedure  = 1105582 then 4
@@ -111,4 +111,14 @@ from profile_62477 p1
 left join profile_64362 p2
 on p1.projectId = p2.projectId
 left join ds_mysql_prod_tagelement tag1
-on p1.select_factory_msa = tag1.id
+on p1.select_factory_msa = tag1.id),
+
+t2 as (select _id, projectId,select_factory_msa,  country, vendor, consultant, cycle,
+	   case 
+	   when hs_mgmt > 12 then 1 
+	   else 0
+	   end as filter 
+	   from t1
+	   group by projectId, country, vendor, consultant, cycle, select_factory_msa)
+	   
+	   select * from t2 
