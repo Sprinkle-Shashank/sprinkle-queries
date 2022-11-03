@@ -1,1 +1,21 @@
-select * from profile_62799
+with sub1 as (select a.*,unwind_cycle from profile_64362 as a,a.cycle as unwind_cycle),
+t1 as
+(select _id,projectId,p1.name, description,start_date,end_date,factory,address,factory_latitude, factory_longitude,etp_status,vendor,country_name,etp_status_2,partner_id,factory_id,
+product_category,consultant,consultant_tag,num_workers,male_workers,female_workers,migrant_percent,num_peers,cycle,tag2.name as country  , tag1.name as unwind_cycle from sub1 as p1
+left join ds_mysql_prod_tagelement tag1
+on unwind_cycle = tag1.id
+left join ds_mysql_prod_tagelement tag2
+on p1.country = tag2.id
+order by unwind_cycle  ASC),
+t2 as 
+(select distinct unwind_cycle as cycle  from t1
+group by unwind_cycle)
+select t2.cycle , cycle from t2
+order by cycle ASC
+
+select 
+case
+when  cycle='Vendor Trained' then null
+else cycle
+end as cycle
+from t2
