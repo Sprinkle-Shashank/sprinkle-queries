@@ -1,7 +1,17 @@
-with t1 as (select p1._id, p1.projectId, p1.recognized_union, p1.workers_production_units, p1.male_female, p1.female_representation, p1.decision_making_attendance, p1.decision_making,p1.meetings_held,p1.members_present_meetings, p1.active_members_list, p1.peers_reachout, p1.retaliation, p1.alternative_tradeunion, p1.issues_addressed, p1.follow_up,p1.assessment_review, p1.members_duty_released, p1.training_type, p1.year, p2.country, p2.vendor, p2.cycle, p2.product_category, p2.consultant,p1._id as id2
+with t1 as (select p1._id, tag1.name as projectId, p1.recognized_union, p1.workers_production_units, p1.male_female, p1.female_representation, p1.decision_making_attendance, p1.decision_making,p1.meetings_held,p1.members_present_meetings, p1.active_members_list, p1.peers_reachout, p1.retaliation, p1.alternative_tradeunion, p1.issues_addressed, p1.follow_up,p1.assessment_review, p1.members_duty_released, tag2.name as training_type, tag4.name as year, tag3.name as country, p2.vendor, p2.cycle, p2.product_category, tag6.name as consultant,p1._id as id2
 from profile_62306 p1
 left join profile_64362 p2
-on p1.projectId= p2.projectId),
+on p1.projectId= p2.projectId
+		   left join ds_mysql_prod_tagelement tag1
+on p1.projectId = tag1.id
+		    left join ds_mysql_prod_tagelement tag2
+on p1.training_type = tag2.id
+		   left join ds_mysql_prod_tagelement tag3
+on p2.country = tag3.id
+		   left join ds_mysql_prod_tagelement tag4
+on p1.year = tag4.id
+		   left join ds_mysql_prod_tagelement tag6
+on p2.consultant_tag = tag6.id),
 
 
 item as 
@@ -92,6 +102,6 @@ t2 as
 	  left join ds_mysql_prod_tagelement tag1
 on t2.answers = tag1.id)
 	   
-	   select projectId, training_type, country, vendor, consultant, cycle, product_category, year, Questions, Answers, Question_text, id2, sum(yes_count) as yes_count, question_text
+	   select projectId, training_type, country, vendor, consultant, cycle, product_category, year, Questions, Answers, Question_text, id2, sum(yes_count) as yes_count
 	   from t3
 	   group by projectId, training_type, country, vendor, consultant, cycle, product_category, year, Questions, Answers, Question_text, id2
