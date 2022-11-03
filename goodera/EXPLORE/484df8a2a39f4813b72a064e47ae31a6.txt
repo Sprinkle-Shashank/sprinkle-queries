@@ -29,8 +29,8 @@ table6 as
 union all
 select * from table5)
 
-
-select p1._id, p3.name as projectId, p1.training_type,tag2.name as year, p1.num_female, p1.num_male, p1.timerange_timerange
+, t2 as
+(select p1._id, p3.name as projectId, p1.training_type,tag2.name as year, p1.num_female, p1.num_male, p1.timerange_timerange
 ,tag3.name as country, p2.vendor, tag5.name as cycle,tag6.name as product_category, tag4.name as consultant,timerange_timerange.start as monthnum,Cast(monthnum as varchar) as Time_Start,substring(Time_Start, 6,2) as month
 from profile_61528 as p1
 left join table6 as p2
@@ -46,4 +46,21 @@ on p2.unwind_cycle = tag5.id
 left join ds_mysql_prod_tagelement tag6 
  on tag6.id = p2.unwind_product_category
  left join ds_mysql_prod_tagelement tag2
-on p1.year = tag2.id
+on p1.year = tag2.id)
+
+select pr._id,  projectId, pr.training_type,pr.year, pr.num_female, pr.num_male, pr.timerange_timerange
+, country, pr.vendor,  cycle, product_category,  consultant, pr.monthnum, pr.Time_Start, pr.month,
+case when  pr.month='01' then  'Jan'
+when  pr.month='02' then 'Feb '
+when   pr.month='03' then 'Mar'
+when  pr.month='04' then 'Apr'
+when  pr.month='05' then 'May'
+when  pr.month='06' then 'Jun'
+when  pr.month='07' then 'Jul'
+when  pr.month='08' then 'Aug'
+when  pr.month='09' then 'Sep'
+when  pr.month='10' then 'Oct'
+when  pr.month='11' then 'Nov'
+else  'Dec'
+end as monthstring
+from t2 as pr
