@@ -10,7 +10,7 @@ when year = 1433764 then  'Cycle 1'
 else 'Cycle 2'
 end as cycle,
 timerange_timerange.start as Time_Start1 , timerange_timerange.end as time_end1 ,
-Cast(Time_Start1 as varchar) as Time_Start 
+--Cast(Time_Start1 as varchar) as Time_Start 
 from profile_61528 as p1
 left join profile_64362 as p2
 on p1.projectId = p2.projectId
@@ -20,8 +20,6 @@ on p1.projectId= p3.id
 on p2.country = tag3.id
  left join profile_64170 as p7
 on p2.factory = p7._id
--- left join ds_mysql_prod_tagelement tag5
---on p2.unwind_cycle = tag5.id 
 left join ds_mysql_prod_tagelement tag6 
  on tag6.id = p2.product_category
  left join ds_mysql_prod_tagelement tag4
@@ -31,29 +29,33 @@ on p2.consultant_tag = tag4.id
 )
 
 ,t2 as(
-select *,
- cast(time_end1 as varchar) as time_end,
+select 
+-- cast(time_end1 as varchar) as time_end,
+  timerange_timerange,
+  Cast(Time_Start1 as varchar) as Time_Start,
   substring(Time_Start, 1,4) as new_year, substring(Time_Start, 6,2) as monthnum
  
 from t1 as p)
---substring(Time_Start, 1,4) as year1, substring(Time_Start, 6,2) as month1  from t2*/
 
---, Cast(time_end1 as varchar) as time_end ,substring(Time_Start, 1,4) as year1, substring(Time_Start, 6,2) as month1 
-select *  from t2 as t
---,to_char(monthnum, 'Month') || '(' || to_char(new_year,'YYYY') || ')' as month
-/*,
-case 
-  when  monthnum='1' then 'Jan'
-  when  monthnum='2' then 'Feb '
- when   monthnum='3' then 'Mar'
-  when  monthnum='4' then 'Apr'
-  when  monthnum='5' then 'May'
-  when  monthnum='6' then 'Jun'
-  when  monthnum='7' then 'Jul'
-  when  monthnum='8' then 'Aug'
-  when  monthnum='9' then 'Sep'
-  when  monthnum='10' then 'Oct'
-  when  monthnum='11' then 'Mar'
-  else 'Dec'
-  end as monthstring */
 
+
+,t4 as
+(
+select timerange_timerange, monthnum ,new_year as year,
+case when  p.monthnum='01' then  'Jan'
+when  p.monthnum='02' then 'Feb '
+ when   p.monthnum='03' then 'Mar'
+  when  p.monthnum='04' then 'Apr'
+  when  p.monthnum='05' then 'May'
+  when  p.monthnum='06' then 'Jun'
+  when  p.monthnum='07' then 'Jul'
+  when  p.monthnum='08' then 'Aug'
+  when  p.monthnum='09' then 'Sep'
+  when  p.monthnum='10' then 'Oct'
+  when  p.monthnum='11' then 'Nov'
+else  'Dec'
+end as monthstring
+from t3 as p)
+select timerange_timerange  ,  year , monthstring   || '(' || year || ')' as month	
+from t4
+group by timerange_timerange  , year ,month
