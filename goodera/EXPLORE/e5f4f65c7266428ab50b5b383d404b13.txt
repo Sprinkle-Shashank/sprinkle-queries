@@ -1,6 +1,45 @@
-select p1.profileId, p1.projectId, p1.date, p1.topic, p1.trainer, p1.date_2, p1.master_trainers, p1.peer_learning_2, p1.peer_learning, p1.evident, p1.status_skills, p1.num_vendor, p1.num_factory,p2.projectId, p2.risk, p2.procedure, p2.incident, p2.act_adjust, p2.hs_act, p2.hs_training, p2.hs_risk, p2.select_factory_msa,p3.country, p3.factory, p3.vendor, p3.product_category, p3.consultant, p3.cycle
+select  p1.projectId, p1.date, p1.topic, p1.trainer, p1.date_2, p1.master_trainers, p1.peer_learning_2, p1.peer_learning, p1.evident, p1.status_skills, p1.num_vendor, p1.num_factory,p2.projectId, p2.risk, p2.procedure, p2.incident, p2.act_adjust, p2.hs_act, p2.hs_training, p2.hs_risk, p2.select_factory_msa,p3.country, p3.factory, p3.vendor, p3.product_category, p3.consultant, p3.cycle,
+--if(eq($hs_risk,1105581),5,if(eq($hs_risk,1105582),4,if(eq($hs_risk,1105583),3,if(eq($hs_risk,1105585),1,2))))
+case 
+when hs_risk = 1105581 then 5
+when hs_risk = 1105582 then 4
+when hs_risk = 1105583 then 3
+when hs_risk = 1105585 then 1
+else 2
+end as HS_Risk1,
+
+case 
+when incident = 1105581 then 5
+when incident = 1105582 then 4
+when incident = 1105583 then 3
+when incident = 1105585 then 1
+else 2
+end as incident1,
+
+case 
+when hs_act = 1105581 then 5
+when hs_act = 1105582 then 4
+when hs_act = 1105583 then 3
+when hs_act = 1105585 then 1
+else 2
+end as hs_act1,
+
+when hs_training = 1105581 then 5
+when hs_training = 1105582 then 4
+when hs_training = 1105583 then 3
+when hs_training = 1105585 then 1
+else 2
+end as hs_training1,
+(incident1+hs_act1+hs_training1+hs_risk1) as total_score,
+case 
+when total_score >= 12 then 1 
+else 0
+end as all_questions,
+count(*) as count
+
 from profile_61617 p1
 left join profile_62477 p2
 on p1.projectId= p2.projectId
 left join profile_64362 p3
 on p1.projectId= p3.projectId
+group by projectId, factory, vendor, consultant, country, product_category, cycle, HS_Risk, Incident, HS_Act, HS_Training, Total_Score, All_Questions, select_factory_msa
