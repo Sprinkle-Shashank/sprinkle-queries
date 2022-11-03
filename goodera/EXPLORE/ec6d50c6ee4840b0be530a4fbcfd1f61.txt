@@ -1,36 +1,19 @@
-with temp as(
-  Select 'Beneficiaries screened' as col
-  union all
-  select 'Beneficiaries with primary healthcare facility' as col
-  union all
-  select 'Beneficiaries with higher healthcare facility' as col
-  union all
-  select 'Beneficiaries supported with nutritional food' as col
-  union all
-  select 'Nutritional food distributed' as col
-  )
+with sub1 as(select a.*,unwind_domain from profile_81374 a ,a.domain as unwind_domain)
+
+select p3.name as projectId,p1.name as projectname,p2.name as partner,t1.name as target,t2.name as district,
+distinct(t3.name) as domain,
+ p.def as definition,p.number,1 as count,
+--concat(concat(concat(concat('{"start":"', p.start_date),'","end":"'),p.end_date),'"}') as fy_timerange
+p.fy_timerange
+from profile_81374 p
+
+left join project_9730 p1 on p1.id = p.projectid
+left join project_9730 p2 on p2.id = p1.parent
+left join project_9730 p3 on p3.id=p2.parent
+left join tagelement_9730 t1 on t1.id=p.target
+left join tagelement_9730 t2 on t2.id=p.location
+left join tagelement_9730 t3 on t3.id=p.unwind_domain
 
 
-Select concat(concat(concat(concat('{"start":"',a.hc_date),'","end":"'),a.hc_date),'"}') as fy_timerange
-,p.name as projectid,p1.name as parent,t1.name as rel_centre, temp.col as dimensions,
-
-
-sum(case col
-	when 'Beneficiaries screened' then a.bene_screened
-	when 'Beneficiaries with primary healthcare facility' then (a.bene_primary_treatment+a.bene_primary_over_months)
-	when 'Beneficiaries with higher healthcare facility' then (a.bene_secondary_treatment+a.bene_secondary_over_months)
-	when 'Beneficiaries supported with nutritional food' then (a.food_quantity+a.food_distributed)
-	when 'Nutritional food distributed' then a.bene_nutrition_food 
-	 else NULL
-end) as numbers
-
-from profile_80985 a
-cross join temp
-
-left join ds_mysql_prod_project p on p.id = a.projectid
-left join ds_mysql_prod_project p1 on p1.id = p.parent
-
-left join ds_mysql_prod_tagelement t1 on t1.id=a.rel_centre
-
-group by fy_timerange,p.name,p1.name,t1.name,temp.col
-
+group by p.fy_timerange,p3.name,p2.name,p1.name,t1.name,p.number,p.def,t2.name
+,t3.name
