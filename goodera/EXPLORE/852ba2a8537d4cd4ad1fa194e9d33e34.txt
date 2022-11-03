@@ -57,15 +57,13 @@ on p1.year = tag2.id
 t2 as
  (select p._id, p.projectId, p.timerange_timerange, p.year, p.vendor, p.consultant, p.country, p.cycle, p.product_category, p.month, p.id2 ,p.absenteeism_rate
  from t1 as p
- where p.absenteeism_rate is not null)
+ where p.absenteeism_rate is not null),
 
--- t3 as
- --(select pt._id, pt.projectId, pt.timerange_timerange, pt.year, pt.vendor, pt.consultant, pt.country, pt.cycle, pt.product_category, pt.month, pt.id2, sum(
--- from t1 as p
- --group by pt._id, pt.projectId,pt.timerange_timerange, pt.year, pt.vendor, pt.consultant, pt.country, --pt.cycle, pt.product_category, pt.month, pt.id2)
+ t3 as
+ (select pt._id, pt.projectId, pt.timerange_timerange, pt.year, pt.vendor, pt.consultant, pt.country, pt.cycle, pt.product_category, pt.month, pt.id2, sum(pt.p.absenteeism_rate) as absenteeism_rate
+ from t1 as p
+ group by pt._id, pt.projectId,pt.timerange_timerange, pt.year, pt.vendor, pt.consultant, pt.country, pt.cycle, pt.product_category, pt.month, pt.id2)
  
- select timerange_timerange ,absenteeism_rate, vendor,consultant,country,cycle,product_category,month ,id2  from t2
+ select timerange_timerange , vendor,consultant,country,cycle,product_category,month ,id2 ,absenteeism_rate from t3
  
---select * from table6 
---left join ds_mysql_prod_tagelement tag1
---on p1.training_type = tag1.id
+
