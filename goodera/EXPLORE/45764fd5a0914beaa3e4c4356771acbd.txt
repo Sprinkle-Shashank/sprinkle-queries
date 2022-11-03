@@ -1,8 +1,39 @@
-select  substring(p1.start_date, 1,4) as year1, substring(p1.start_date, 6,2) as month1 ,substring(p1.start_date, 9,2) as date1, date1 ||'-'|| month1||'-' ||year1 as start_date1 ,
+with table1 as
+(select _id , projectId,country, vendor,unwind_cycle, product_category, consultant_tag from profile_64362 as p ,p.cycle as unwind_cycle),
+
+ table2 as
+(select _id, projectId,country, vendor,cycle,product_category,consultant_tag from profile_64362
+  where _id not in (select _id from table1))
+  ,
+  
+table3 as
+ (
+	select * from table1
+  Union all
+  select * from table2
+ )
+ ,
+
+  
+table4 as  
+(
+ select _id,  projectId,country,vendor,unwind_cycle, unwind_product_category,consultant_tag from table3 t3, t3.product_category  as unwind_product_category
+ ),
+
+table5 as
+(select _id, projectId,country,vendor,unwind_cycle,  null as product_category,consultant_tag from table3 
+ where _id not in (select _id from table4)),
+ 
+table6 as
+(select * from table4
+union all
+select * from table5),
+
+t1 as (select  substring(p1.start_date, 1,4) as year1, substring(p1.start_date, 6,2) as month1 ,substring(p1.start_date, 9,2) as date1, date1 ||'-'|| month1||'-' ||year1 as start_date1 ,
 substring(p1.end_date, 1,4) as year2, substring(p1.end_date, 6,2) as month2 ,substring(p1.end_date, 9,2) as date2,
 date2 ||'-'|| month2||'-' ||year2 as end_date1,
 substring(p1.actual_end_date, 1,4) as year3, substring(p1.actual_end_date, 6,2) as month3 ,substring(p1.actual_end_date, 9,2) as date3,
-date3 ||'-'|| month3||'-' ||year3 as actual_end_date1,p2.country, p2.factory, p2.vendor, p2.product_category, p2.consultant,current_date as current_date,
+date3 ||'-'|| month3||'-' ||year3 as actual_end_date1,p2.country, p2.factory, p2.vendor, tag2.name as product_category, tag1.name as cycle,p2.consultant,current_date as current_date,
 --if(lte($actual_end_date,$end_date),"Completed",if(lt($Current Date,$end_date),"On-Track","Delayed, but Completed"))
 case 
 when actual_end_date1 <= end_date1 then 'Completed'
@@ -11,5 +42,11 @@ else 'Delayed, but Completed'
 end as status 
 
 from profile_64141 p1
+	   left join table6 p3
+	   on p1.projectId= p3.projectId
 left join profile_64362 p2
 on p1.projectId=p2.projectId
+	  left join ds_mysql_prod_tagelement tag1
+on p3.unwind_cycle = tag1.id
+	  left join ds_mysql_prod_tagelement tag2
+on p3.unwind_product_category = tag2.id)
