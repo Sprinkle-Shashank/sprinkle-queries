@@ -1,4 +1,75 @@
-Select p1.projectId, p1.fy_18_timerange,p1.fy_18_timerange.start as start_date,p1.fy_18_timerange.end as end_date,
+With temp1 as ( 
+  Select 'fy_18_timerange' as col1
+  ),
+ temp2 as (
+	
+	Select 'f0_18' as col
+  union all
+	Select 'a0_18' as col
+  union all
+	Select 'j0_18' as col
+  union all
+	Select 'g0_18' as col
+  union all
+	Select 'c0_18' as col
+  union all
+	Select 'k0_18' as col
+  union all
+	Select 'd0_18' as col
+  union all
+	Select 'i0_18' as col
+  union all
+	Select 'h0_18' as col
+  union all
+	Select 'e0_18' as col
+  union all
+	Select 'b0_18' as col
+ 
+	),
+s as ( Select  p.fy_18_timerange, 
+ p.f0_18, p.a0_18, p.j0_18, p.g0_18, p.c0_18, p.k0_18, p.d0_18, p.i0_18, p.h0_18, p.e0_18, p.b0_18,p.projectId
+from profile_74275 p),
+
+s2 as(Select
+case col1
+
+ when 'fy_18_timerange' then s.fy_18_timerange
+
+ else null
+ end as time_data,
+ case col
+
+when	'f0_18' 	then	s.f0_18
+when	'a0_18' 	then	s.a0_18
+when	'j0_18' 	then	s.j0_18
+when	'g0_18' 	then	s.g0_18
+when	'c0_18' 	then	s.c0_18
+when	'k0_18' 	then	s.k0_18
+when	'd0_18' 	then	s.d0_18
+when	'i0_18' 	then	s.i0_18
+when	'h0_18' 	then	s.h0_18
+when	'e0_18' 	then	s.e0_18
+when	'b0_18' 	then	s.b0_18
+else null
+end as data, temp2.col as "data_label",temp1.col1 as "timeperiods",
+substring(data_label,4,2) as  data_number,
+substring(timeperiods,4,2) as time_number,
+case 
+when data_number = time_number
+then '1'
+else '0'
+end as match,projectId
+ from s
+ cross join temp1
+ cross join temp2
+ where match=1)
+ --Select * from s2
+ Select time_data as fy_timerange,data_label,data,projectId
+ from s2
+ where fy_timerange is not null
+group by fy_timerange, data_label, data,projectId
+order by fy_timerange desc
+/*Select p1.projectId, p1.fy_18_timerange,p1.fy_18_timerange.start as start_date,p1.fy_18_timerange.end as end_date,
 p2.a0_18, p2.c0_18, p2.d0_18, p2.e0_18, p2.f0_18, p2.g0_18, p2.h0_18, p2.i0_18, p2.j0_18, p2.k0_18, p2.b0_18,
 cast(p1.fy_18_timerange.start as date) as start,extract(month from start) as month,extract(year from start) as year,
 p2.createddate,cast(p1.fy_18_timerange.end as date) as end1,
@@ -37,4 +108,4 @@ end as status
 from profile_74276 p1
 left join profile_74188 p2
 on p2.fy_18_timerange=p1.fy_18_timerange
-where p1.fy_18_timerange is not null
+where p1.fy_18_timerange is not null*/
