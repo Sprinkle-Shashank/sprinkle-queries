@@ -16,9 +16,9 @@ where status in (1247617, 1247616) and gender = 1140674
 			   ),
 
 
-table2 as (select _id,country, factory, unwind_cycle, product_category, consultant, vendor from profile_64362 p, p.cycle unwind_cycle),
+table2 as (select _id,projectid,country, factory, unwind_cycle, product_category, consultant, vendor from profile_64362 p, p.cycle unwind_cycle),
 
-table3 as (select _id,country, factory, cycle as unwind_cycle, product_category, consultant, vendor from profile_64362
+table3 as (select _id,projectid,country, factory, cycle as unwind_cycle, product_category, consultant, vendor from profile_64362
 
 where _id not in (select _id from table2)
 ),
@@ -27,19 +27,19 @@ table4 as (select * from table2
 		   union all 
 		   select * from table3),
 
-table5 as (select _id,country, factory, unwind_cycle, prod_cat, consultant, vendor from table4 t4, t4.product_category prod_cat 		   
+table5 as (select _id,projectid,country, factory, unwind_cycle, prod_cat, consultant, vendor from table4 t4, t4.product_category prod_cat 		   
 ),
 
 table6 as (
 select * from (select * from table5 
 Union all
-select  _id,country, factory, unwind_cycle, product_category as prod_cat, consultant, vendor from table4 
+select  _id,projectid,country, factory, unwind_cycle, product_category as prod_cat, consultant, vendor from table4 
 
 where _id not in (select _id from table5)
 ) ),
 
 table7 as (
-select cou.name as country,fac_part.factory,cyc.name as cycle,prod.name as prod_cat,per.name as consultant,vendor from table6 t6
+select cou.name as country,t6.projectid,fac_part.factory,cyc.name as cycle,prod.name as prod_cat,per.name as consultant,vendor from table6 t6
 
 left join ds_mysql_prod_tagelement cyc
 on t6.unwind_cycle = cyc.id
@@ -56,4 +56,7 @@ on t6.factory = fac_part._id
 left join profile_61583 per
 on t6.consultant = per._id)
 
-select * from table1
+select *,t7.cycle from table1 t1 
+
+left join table7 t7 
+on t1.projectid = t7.projectid
