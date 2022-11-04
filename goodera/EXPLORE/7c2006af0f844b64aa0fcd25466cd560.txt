@@ -1,4 +1,4 @@
-select p1.fy_timerange, p2.program_name as title, listagg(distinct t2.name, ', ') as country, t1.name as currency, p2.manager, p2.name_partner, sum(p1.direct_cash_donations * p3.conversion_factor) as local_investment, t3.name as focus_area
+select p1.fy_timerange, p2.name as title, t2.name as country, t1.name as currency, p3.manager, p3.name_partner, sum(p1.direct_cash_donations * p4.conversion_factor) as local_investment, t3.name as focus_area
 
 from profile_78057 p1
 
@@ -6,10 +6,11 @@ left join ds_mysql_prod_tagelement t1 on t1.id = p1.currency
 left join ds_mysql_prod_tagelement t2 on t2.id = p1.country
 
 left join profile_82820 p2 on p2._id = p1.global_program_name
-left join profile_78083 p3 on p3.name = (t1.name||'_'||extract(year from cast(p1.fy_timerange.start as date)))
+left join profile_63775 p3 on p3.program_name = p2.name
+left join profile_78083 p4 on p4.name = (t1.name||'_'||extract(year from cast(p1.fy_timerange.start as date)))
 
-left join ds_mysql_prod_tagelement t3 on t3.id = p2.focus_area
+left join ds_mysql_prod_tagelement t3 on t3.id = p3.focus_area
 
 where p1.product_donation_global_program = 476506
 
-group by p1.fy_timerange, p2.program_name, t1.name, p2.manager, p2.name_partner, t3.name
+group by p1.fy_timerange, p2.name, t2.name, t1.name, p3.manager, p3.name_partner, t3.name
