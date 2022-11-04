@@ -1,4 +1,5 @@
-select p1.fy_timerange, p2.name as title, t2.name as country, t1.name as currency, p3.manager, p3.name_partner, sum(p1.value_of_reckitt_products * p4.conversion_factor) as product_donation, t3.name as focus_area
+with sub1 as(
+  select p1.fy_timerange, p2.name as title, t2.name as country, t1.name as currency, p3.manager, p3.name_partner, sum(p1.value_of_reckitt_products * p4.conversion_factor) as product_donation, t3.name as focus_area
 
 from profile_78057 p1
 
@@ -13,4 +14,28 @@ left join ds_mysql_prod_tagelement t3 on t3.id = p3.focus_area
 
 where p1.product_donation_global_program = 476506
 
-group by p1.fy_timerange, p2.name, t2.name, t1.name, p3.manager, p3.name_partner, t3.name
+group by p1.fy_timerange, p2.name, t2.name, t1.name, p3.manager, p3.name_partner, t3.name),
+
+sub2 as(
+  select p5.fy_timerange, p6.name as title, t5.name as country, t4.name as currency, p7.manager, p7.name_partner, sum(p5.value_of_reckitt_products * p8.conversion_factor) as product_donation, t6.name as focus_area
+
+from profile_78098 p5
+
+left join ds_mysql_prod_tagelement t4 on t4.id = p5.currency
+left join ds_mysql_prod_tagelement t5 on t5.id = p5.country
+
+left join profile_82820 p6 on p6._id = p5.global_program_name
+left join profile_63775 p7 on p7.program_name = p6.name
+left join profile_78083 p8 on p8.name = (t4.name||'_'||extract(year from cast(p5.fy_timerange.start as date)))
+
+left join ds_mysql_prod_tagelement t6 on t6.id = p7.focus_area
+
+where p5.product_donation_global_program = 476506
+
+group by p5.fy_timerange, p6.name, t5.name, t4.name, p7.manager, p7.name_partner, t6.name)
+
+select fy_timerange, title, country, currency, manager, name_partner, local_investment, focus_area 
+from sub1
+union all
+select fy_timerange, title, country, currency, manager, name_partner, local_investment, focus_area 
+from sub2
