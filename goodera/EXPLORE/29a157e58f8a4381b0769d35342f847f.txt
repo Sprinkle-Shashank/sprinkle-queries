@@ -1,8 +1,39 @@
+with table1 as
+(select _id , projectId,country, vendor,unwind_cycle, product_category, consultant_tag from profile_64362 as p ,p.cycle as unwind_cycle),
 
-select  tag4.name as projectId, tag5.name as evident, tag6.name as status, tag7.name as training_type,tag8.name as country, p5.vendor, tag13.name as consultant,tag3.name as year, to_char(start_date_2, 'Month') || '(' || to_char(start_date_2,'YYYY') || ')' as month , p1._id as id2, count(id2) as count
+ table2 as
+(select _id, projectId,country, vendor,cycle,product_category,consultant_tag from profile_64362
+  where _id not in (select _id from table1))
+  ,
+  
+table3 as
+ (
+	select * from table1
+  Union all
+  select * from table2
+ )
+ ,
+
+  
+table4 as  
+(
+ select _id,  projectId,country,vendor,unwind_cycle, unwind_product_category,consultant_tag from table3 t3, t3.product_category  as unwind_product_category
+ ),
+
+table5 as
+(select _id, projectId,country,vendor,unwind_cycle,  null as product_category,consultant_tag from table3 
+ where _id not in (select _id from table4)),
+ 
+table6 as
+(select * from table4
+union all
+select * from table5)
+
+select  tag4.name as projectId, tag5.name as evident, tag6.name as status, tag7.name as training_type,tag8.name as country, p5.vendor, tag13.name as consultant,tag3.name as year, to_char(start_date_2, 'Month') || '(' || to_char(start_date_2,'YYYY') || ')' as month , p1._id as id2, count(id2) as count,tag14.name as cycle, tag15.name as product_category 
 from profile_64816 p1 
 
-
+left join table6 p8
+on p1.projectId = p8.projectId 
 left join ds_mysql_prod_project p2
 on p2.id = p1.projectId
 left join ds_mysql_prod_project p3
@@ -29,6 +60,9 @@ left join ds_mysql_prod_tagelement tag8
 on p5.country = tag8.id
 left join ds_mysql_prod_tagelement tag13
 on p5.consultant_tag = tag13.id
+left join ds_mysql_prod_tagelement tag15
+on p8.unwind_product_category = tag15.id
+left join ds_mysql_prod_tagelement tag14
+on p8.unwind_cycle = tag14.id
 
-
-group by p1.projectId, evident, status, training_type, p5.country, p5.vendor, consultant, year, month, id2,p1.start_date_2,tag1.name,tag2.name,tag3.name,tag4.name,tag5.name,tag6.name,tag7.name,tag8.name,tag13.name
+group by p1.projectId, evident, status, training_type, p5.country, p5.vendor, consultant, cycle, product_category, year, month, id2,p1.start_date_2,tag1.name,tag2.name,tag3.name,tag4.name,tag5.name,tag6.name,tag7.name,tag8.name,tag13.name,tag14.name,tag15.name
