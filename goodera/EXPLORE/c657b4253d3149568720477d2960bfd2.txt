@@ -1,21 +1,34 @@
-with temp1 as
-( select m.projectId, m.fy_timerange, m.desc_use_case, m.photo, m.file, m.title_use_case, m.who_used, m.select_device, r.location, r.location_type,
- 
-COALESCE(photo,'') as photo_update ,
-COALESCE(file,'') as file_update ,
- 
-CASE
-WHEN photo = '' THEN 1 
-END as photo_1,
-CASE
-WHEN file = '' THEN 1
-END as doc_1
- 
-from profile_75391 as m
- 
-left join profile_75386 as r
-on r._id = m.select_device 
- 
+select p.projectid,p.fy_timerange,p2.name as device_name,title_use_case,desc_use_case,photo,file,who_used, p2.location,loc.name as location_type,cit.name as city,
+CASE 
+WHEN photo IS NULL
+then 'a'
+ELSE
+photo 
+end as photo_1,
+CASE 
+WHEN file IS NULL
+then 'a'
+ELSE
+file 
+end as file_1,
+CASE 
+WHEN photo_1 = 'a'
+then 'NA'
+ELSE
+'Download'
+END AS photo_download,
+CASE 
+WHEN file_1 = 'a'
+then 'NA'
+ELSE
+'Download'
+END AS file_download
+from profile_75391 p
 
- )
- select * from temp1
+left join profile_75386 p2
+On p.select_device = p2._id
+
+left join ds_mysql_prod_tagelement loc
+	on p2.location_type= loc.id	
+left join ds_mysql_prod_tagelement cit
+	on p2.city= cit.id	
