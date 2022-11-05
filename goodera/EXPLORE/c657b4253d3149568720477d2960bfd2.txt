@@ -1,4 +1,5 @@
-select p.projectid,p.fy_timerange ,p2.name as device_name,title_use_case,desc_use_case,photo,file,who_used, p2.location,loc.name as location_type,
+with temp1 as
+(select projectid.name as projectId, p.fy_timerange ,p2.name as device_name,title_use_case,desc_use_case,photo,file,who_used, p2.location,loc.name as location_type,
 CASE 
 WHEN photo IS NULL
 then 'a'
@@ -29,4 +30,13 @@ left join profile_75386 p2
 On p.select_device = p2._id
 
 left join ds_mysql_prod_tagelement loc
-	on p2.location_type= loc.id	
+	on p2.location_type= loc.id
+
+left join ds_mysql_prod_project as projectId
+ on p.projectId = projectId.id
+),
+temp2 as
+( select projectId, p.fy_timrange, desc_use_case, photo, file, title_use_case, who_used, location, location_type, photo_download, doc_download 
+from temp1)
+select * from temp2
+ 
