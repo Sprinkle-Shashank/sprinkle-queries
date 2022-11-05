@@ -74,7 +74,8 @@ t3 as
 (select _id,projectId,channel,keyword_1_timerange,training_type,number,factory,vendor,consultant,country,cycle,product_category,Time_Start,new_year as year, monthstring   || '(' || year || ')' as month
 from t2)
 
-select _id,projectId,channel,keyword_1_timerange,training_type,number,factory,vendor,consultant,country,cycle,product_category,Time_Start,year,  month,
+, t4 as
+(select _id,projectId,tag2.name as channel,keyword_1_timerange,training_type,number,factory,vendor,consultant,country,cycle,product_category,Time_Start,year,  month,
 case 
 when year =1433762 then 'Cycle 1'
 when year=1433763 then 'Cycle 1'
@@ -82,3 +83,9 @@ when year=1433764 then 'Cycle 1'
 else 'Cycle 2'
 end as cycle, _id as id2
 from t3
+ left join ds_mysql_prod_tagelement tag2
+on channel = tag2.id
+)
+
+select projectId, channel, keyword_1_timerange, training_type, factory, vendor, consultant, country, product_category, Time_Start, year, month, cycle, id2 , sum(number) as number
+from t4 
