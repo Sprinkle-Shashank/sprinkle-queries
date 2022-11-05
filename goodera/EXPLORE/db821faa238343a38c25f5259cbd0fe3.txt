@@ -66,14 +66,17 @@ when  pr.monthnum='02' then 'Feb '
 else  'Dec'
 end as monthstring
 from t1 as pr)
-
-select _id,projectId,timerange_timerange,training_type, num_male, num_female,num_new,country,vendor,consultant,cycle,product_category , year,monthstring
+,t3 as 
+(select _id,projectId,timerange_timerange,training_type, num_male, num_female,num_new,country,vendor,consultant,cycle,product_category , year,monthstring   || '(' || year || ')' as month
 , _id as id2,
 case when num_male is null then 0
 else num_male
-end as num_male,
+end as num_male_m,
 case 
 when num_female is null then 0
 else num_female
-end as num_female,(num_female + num_male)-num_new as  Existing_workers
-from t2
+end as num_female_f
+--,(num_female + num_male)-num_new as  Existing_workers
+from t2)
+
+select  id,projectId,timerange_timerange,training_type, num_male, num_female,num_new,country,vendor,consultant,cycle,product_category , year,month,(num_female_f + num_male_m)-num_new as  Existing_workers
