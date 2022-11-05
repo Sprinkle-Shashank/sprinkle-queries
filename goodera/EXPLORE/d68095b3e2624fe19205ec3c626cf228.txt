@@ -1,0 +1,121 @@
+with table1 as
+(select _id , projectId,country,factory, vendor,unwind_cycle, product_category, consultant_tag from profile_64362 as p ,p.cycle as unwind_cycle),
+
+ table2 as
+(select _id, projectId,country,factory ,vendor,cycle,product_category,consultant_tag from profile_64362
+  where _id not in (select _id from table1))
+  ,
+  
+table3 as
+ (
+	select * from table1
+  Union all
+  select * from table2
+ )
+ ,
+
+  
+table4 as  
+( select _id,  projectId,country, factory,vendor,unwind_cycle, unwind_product_category,consultant_tag from table3 t3, t3.product_category  as unwind_product_category
+ ),
+
+table5 as
+(select _id, projectId,country,factory,vendor,unwind_cycle,  null as product_category,consultant_tag from table3 
+ where _id not in (select _id from table4)),
+ 
+table6 as
+(select * from table4
+union all
+select * from table5)
+
+
+,
+t1 as 
+(select  p3.name as projectId, tag8.name as grievance_type, timerange_timerange, quarter,  received, resolved, p1._id 
+,tag3.name as country, p2.vendor, p4.factory, tag5.name as cycle, tag4.name as consultant, tag6.name as product_category, tag7.name as training_type, received - resolved as unresolved, p1._id as id2
+from profile_62443  as p1
+left join table6 as p2
+on p1.projectId = p2.projectId
+left join ds_mysql_prod_project p3
+on p1.projectId= p3.id
+left join ds_mysql_prod_tagelement tag3
+on p2.country = tag3.id
+left join ds_mysql_prod_tagelement tag4
+on p2.consultant_tag = tag4.id
+left join ds_mysql_prod_tagelement tag5
+on p2.unwind_cycle = tag5.id 
+left join ds_mysql_prod_tagelement tag6 
+ on tag6.id = p2.unwind_product_category
+ left join profile_64170 as p4
+on p2.factory = p4._id
+left join ds_mysql_prod_tagelement tag7
+on p1.training_type = tag7.id
+left join ds_mysql_prod_tagelement tag8
+on p1.grievance_type = tag8.id
+where p1.projectId not in(47046, 47043, 47847, 47849, 47853, 54160))
+
+
+,
+item as 
+(
+select 'received' as c
+union all
+select 'resolved' as c
+union all
+select 'unresolved' as c
+
+),
+
+t2 as 
+(select  _id, projectId,grievance_type ,  timerange_timerange ,quarter, training_type,country, factory,vendor, consultant,product_category,cycle,id2,
+ case c
+ when 'received' then t1.received
+ when 'resolved' then t1.resolved
+ when 'unresolved' then t1.unresolved
+ 
+else null
+ end as values, item.c as grievances
+ from t1 cross join item )
+ 
+ 
+ ,t3 as 
+ (select  _id, projectId,grievance_type ,  timerange_timerange ,quarter, training_type,country, factory,vendor, consultant,product_category,cycle,id2, values, grievances ,timerange_timerange.start as start_date, Cast( start_date as varchar) as Time_Start,
+  substring(Time_Start, 1,4) as new_year, substring(Time_Start, 6,2) as monthnum
+ from t2 )
+ 
+ 
+ ,t4 as
+ (select  _id, projectId,grievance_type ,  timerange_timerange ,quarter, training_type,country, factory,vendor, consultant,product_category,cycle,id2, values, grievances ,
+ new_year as year,
+ case when  pr.monthnum='01' then  'Jan'
+when  pr.monthnum='02' then 'Feb '
+ when   pr.monthnum='03' then 'Mar'
+  when  pr.monthnum='04' then 'Apr'
+  when  pr.monthnum='05' then 'May'
+  when  pr.monthnum='06' then 'Jun'
+  when  pr.monthnum='07' then 'Jul'
+  when  pr.monthnum='08' then 'Aug'
+  when  pr.monthnum='09' then 'Sep'
+  when  pr.monthnum='10' then 'Oct'
+  when  pr.monthnum='11' then 'Nov'
+else  'Dec'
+end as monthstring
+from t3 as pr
+)
+,t5 as
+(select _id, projectId,grievance_type ,  timerange_timerange ,quarter, training_type,country, factory,vendor, consultant,product_category,cycle,id2, values, grievances , year, monthstring   || '(' || year || ')' as month	
+from t4)
+, t6 as
+(select projectId, grievance_type, timerange_timerange, quarter, training_type, country, factory, vendor, consultant, product_category, cycle, id2, grievances, year, month , sum(values) as values
+from t5 
+ where grievances ='resolved'
+group by projectId, grievance_type, timerange_timerange, quarter, training_type, country, factory, vendor, consultant, product_category, cycle, id2, grievances, year, month)
+
+select  projectId, grievance_type, timerange_timerange, quarter, training_type, country, factory, vendor, consultant, product_category,  id2, grievances, year, month ,
+case 
+when year = 2017   then 'Cycle 1'
+when year = 2018   then 'Cycle 1'
+when year = 2019   then 'Cycle 1'
+else 'Cycle 2'
+end as cycle
+from t6
