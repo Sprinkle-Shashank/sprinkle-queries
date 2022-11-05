@@ -31,8 +31,8 @@ select * from table5)
 -- upto table6 171 rows
 
 
-
-select  p3.name as projectId, tag8.name as grievance_type, timerange_timerange, quarter,  received, resolved, p1._id 
+t1 as 
+(select  p3.name as projectId, tag8.name as grievance_type, timerange_timerange, quarter,  received, resolved, p1._id 
 ,tag3.name as country, p2.vendor, p4.factory, tag5.name as cycle, tag4.name as consultant, tag6.name as product_category, tag7.name as training_type, received - resolved as unresolved, p1._id as id2
 from profile_62443  as p1
 left join table6 as p2
@@ -53,4 +53,28 @@ left join ds_mysql_prod_tagelement tag7
 on p1.training_type = tag7.id
 left join ds_mysql_prod_tagelement tag8
 on p1.grievance_type = tag8.id
-where p1.projectId not in(47046, 47043, 47847, 47849, 47853, 54160)
+where p1.projectId not in(47046, 47043, 47847, 47849, 47853, 54160))
+
+,
+,
+item as 
+(
+select 'received' as c
+union all
+select 'resolved' as c
+union all
+select 'unresolved' as c
+
+),
+
+t2 as 
+(select  _id, projectId, training_type,  timerange_timerange ,country, vendor, consultant,cycle,product_category,year,month,
+ case c
+ when 'received' then t4.received
+ when 'resolved' then t4.resolved
+ when 'unresolved' then t4.unresolved
+ 
+else null
+ end as values, item.c as Dimensions, _id as id2
+ from t1 cross join item )
+ select * from t2
