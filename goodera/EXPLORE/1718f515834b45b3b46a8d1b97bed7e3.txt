@@ -1,23 +1,26 @@
+with table1 as
+(select _id , projectId,country,factory, vendor,unwind_cycle, product_category, consultant_tag from profile_64362 as p ,p.cycle as unwind_cycle),
 
- with table4 as  
-( select _id,  projectId,country, factory,vendor,unwind_cycle, unwind_product_category,consultant_tag from table3 t3, t3.product_category  as unwind_product_category
- ),
+ table2 as
+(select _id, projectId,country,factory ,vendor,cycle,product_category,consultant_tag from profile_64362
+  where _id not in (select _id from table1))
+  ,
+  
+table3 as
+ (
+	select * from table1
+  Union all
+  select * from table2
+ )
 
-table5 as
-(select _id, projectId,country,factory,vendor,unwind_cycle,  null as product_category,consultant_tag from table3 
- where _id not in (select _id from table4)),
- 
-table6 as
-(select * from table4
-union all
-select * from table5)
 
+  
 , t1 as 
 (select p3.name as projectId, p1.name, notes, keyword_1_timerange, cop_2, tag7.name as training_type, tag8.name as year, efficiency, fpy, working_days, defect_rate, p1._id,
 tag3.name as country, p2.vendor,p4.factory, tag4.name as consultant, tag6.name as product_category ,substring(p1.name,12,14) as mid	
 ,substring(p1.name,len(p1.name)-9,10)  as month  
  from profile_62916 as p1
- left join table6 as p2
+ left join table3 as p2
 on p1.projectId = p2.projectId
 left join ds_mysql_prod_project p3
 on p1.projectId= p3.id
