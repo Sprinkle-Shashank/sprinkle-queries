@@ -30,8 +30,7 @@ select * from table5)
 ,
 t1 as 
 (select  p3.name as projectId, timerange_timerange,  tag7.name as training_type, year,num_new,
- tag3.name as country, p4.factory,p2.vendor, tag5.name as cycle, tag4.name as consultant, tag6.name as product_category, timerange_timerange.start as start_date,Cast( start_date as varchar) as Time_Start,
-   substring(Time_Start, 6,2) as monthnum
+ tag3.name as country, p4.factory,p2.vendor, tag5.name as cycle, tag4.name as consultant, tag6.name as product_category
  from profile_61528 as p1
  left join table6 as p2
 on p1.projectId = p2.projectId
@@ -52,7 +51,20 @@ on p2.factory = p4._id
  left join ds_mysql_prod_tagelement tag8
 on p1.year = tag8.id
 )
-select projectId,timerange_timerange,training_type,year,country,factory,vendor,consultant,cycle,product_category,num_new
+,t2 as
+(
+select projectId, timerange_timerange, training_type, year, country, factory, vendor, consultant, cycle, product_category ,sum(num_new) as num_new
+from t1 
+group by projectId, timerange_timerange, training_type, year, country, factory, vendor, consultant, cycle, product_category )
+
+,t3 as(
+  select projectId, timerange_timerange, training_type, year, country, factory, vendor, consultant, cycle, product_category,num_new,timerange_timerange.start as start_date,Cast( start_date as varchar) as Time_Start,
+   substring(Time_Start, 6,2) as monthnum
+  from t2 
+  
+)
+,t4 as
+(select projectId,timerange_timerange,training_type,year,country,factory,vendor,consultant,cycle,product_category,num_new
 , case when  pr.monthnum='01' then  'Jan'
 when  pr.monthnum='02' then 'Feb '
  when   pr.monthnum='03' then 'Mar'
@@ -66,4 +78,7 @@ when  pr.monthnum='02' then 'Feb '
   when  pr.monthnum='11' then 'Nov'
 else  'Dec'
 end as monthstring
-from t1 as pr
+from t3 as pr)
+
+select  projectId,timerange_timerange,training_type,year,country,factory,vendor,consultant,cycle,product_category,num_new,monthstring   || '(' || year || ')' as Month
+from t4
