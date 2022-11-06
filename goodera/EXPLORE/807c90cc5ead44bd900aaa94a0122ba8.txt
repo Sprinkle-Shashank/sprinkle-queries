@@ -1,0 +1,15 @@
+SELECT BE.name, BE.goodera_id, BE.beneficiary_name, BE.income_source,
+IB.name AS inititated_business,
+P.name AS projectname,
+CONCAT(CONCAT(CONCAT(SPLIT_PART(BE.followup_date, ' ', 1),'T'),SPLIT_PART(BE.followup_date, ' ', 2)),'.000Z') AS fy_timerange,
+COUNT(*) AS beneficiaries
+
+FROM profile_56533 AS BE
+
+LEFT JOIN ds_mysql_prod_project AS P
+ON BE.projectid = P.id
+
+LEFT JOIN ds_mysql_prod_tagelement AS IB
+ON BE.inititated_business = IB.id
+
+GROUP BY BE.name, BE.goodera_id, BE.beneficiary_name, P.name, fy_timerange, IB.name, BE.income_source
