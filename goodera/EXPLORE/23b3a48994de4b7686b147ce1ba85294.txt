@@ -1,0 +1,20 @@
+SELECT BE.name, BE.goodera_id, BE.beneficiary_name,
+BD.name AS ndlm_drop,
+P.name AS projectname,
+CONCAT(CONCAT(CONCAT(SPLIT_PART(BE.ndlm_date_enroll, ' ', 1),'T'),SPLIT_PART(BE.ndlm_date_enroll, ' ', 2)),'.000Z') AS fy_timerange,
+COUNT(*) AS beneficiaries
+
+FROM profile_56533 AS BE
+
+LEFT JOIN ds_mysql_prod_project AS P
+ON BE.projectid = P.id
+
+LEFT JOIN ds_mysql_prod_tagelement AS BD
+ON BE.ndlm_drop = BD.id
+/*
+WHERE
+PE1.name IS NOT NULL OR
+PE2.name IS NOT NULL OR
+PE3.name IS NOT NULL
+*/
+GROUP BY BE.name, BE.goodera_id, BE.beneficiary_name, P.name, fy_timerange, BD.name
