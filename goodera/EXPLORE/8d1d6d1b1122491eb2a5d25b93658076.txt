@@ -1,0 +1,25 @@
+SELECT BE.name, BE.goodera_id, BE.beneficiary_name,
+P.name AS projectname,
+AC1.name AS advance_completed_status,
+AC2.name AS advance2_completed_status,
+AC3.name AS advance3_completed_status,
+CONCAT(CONCAT(CONCAT(SPLIT_PART(BE.advance_date_enroll, ' ', 1),'T'),SPLIT_PART(BE.advance_date_enroll, ' ', 2)),'.000Z') AS fy_timerange,
+COUNT(*) AS beneficiaries
+
+FROM profile_56533 AS BE
+
+LEFT JOIN ds_mysql_prod_project AS P
+ON BE.projectid = P.id
+
+LEFT JOIN ds_mysql_prod_tagelement AS AC1
+ON BE.advance_completed = AC1.id
+
+LEFT JOIN ds_mysql_prod_tagelement AS AC2
+ON BE.advance2_completed = AC2.id
+
+LEFT JOIN ds_mysql_prod_tagelement AS AC3
+ON BE.advance3_completed = AC3.id
+
+WHERE AC1.name = 'Yes' OR AC1.name = 'Yes' OR AC3.name = 'Yes'
+
+GROUP BY BE.name, BE.goodera_id, BE.beneficiary_name, P.name, fy_timerange, AC1.name, AC2.name, AC3.name
