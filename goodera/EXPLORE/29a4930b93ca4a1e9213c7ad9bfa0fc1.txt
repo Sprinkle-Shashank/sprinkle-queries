@@ -30,7 +30,7 @@ select * from table5)
 
 ,
 t1 as 
-(select p1._id, p3.name as projectId, p1.name, keyword_1_timerange, tag7.name as training_type, efficiency, fpy, defect_rate, tag2.name as year ,
+(select p1._id, p3.name as projectId, p1.name, keyword_1_timerange, tag7.name as training_type, efficiency, fpy, defect_rate,  year ,
  tag3.name as country, p2.vendor, tag5.name as cycle,p4.factory, tag4.name as consultant, tag6.name as product_category ,substring(p1.name,len(p1.name)-9,10)  as month  ,p1._id as id2
  from profile_62916 as p1
  left join table6 as p2
@@ -45,8 +45,7 @@ left join ds_mysql_prod_tagelement tag5
 on p2.unwind_cycle = tag5.id 
 left join ds_mysql_prod_tagelement tag6 
  on tag6.id = p2.unwind_product_category
- left join  ds_mysql_prod_tagelement tag2
-on p1.year = tag2.id
+ 
   left join profile_64170 as p4
 on p2.factory = p4._id
 left join ds_mysql_prod_tagelement tag7
@@ -58,6 +57,18 @@ on p1.training_type = tag7.id
 from t1
 where efficiency is not null)
 
-select projectId, keyword_1_timerange, training_type, year, country, factory, vendor, consultant, cycle, product_category, month, id2
+,t3 as(select projectId, keyword_1_timerange, training_type, year, country, factory, vendor, consultant, cycle, product_category, month, id2
 , sum(efficiency) as efficiency from t2 
-group by projectId, keyword_1_timerange, training_type, year, country, factory, vendor, consultant, cycle, product_category, month, id2
+group by projectId, keyword_1_timerange, training_type, year, country, factory, vendor, consultant, cycle, product_category, month, id2)
+
+select projectId, keyword_1_timerange, training_type, tag8.name as year, country, factory, vendor, consultant,  product_category, month, id2,efficiency,
+ case 
+ when year =1433762 then 'Cycle 1'
+ when year =1433763 then 'Cycle 1'
+  when year =1433764then 'Cycle 1'
+  else 'Cycle 2'
+  end as cycle 
+  from t3 as t
+ left join ds_mysql_prod_tagelement tag8
+on year = tag8.id
+
