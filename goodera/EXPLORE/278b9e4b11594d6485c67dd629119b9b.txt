@@ -1,0 +1,29 @@
+SELECT BE.name, BE.goodera_id, BE.beneficiary_name,
+PE1.name AS previously_enrolled,
+PE2.name AS previously_enrolled_advance2,
+PE3.name AS previously_enrolled_advance3,
+G.name AS gender,
+P.name AS projectname,
+CONCAT(CONCAT(CONCAT(SPLIT_PART(BE.date_registration, ' ', 1),'T'),SPLIT_PART(BE.date_registration, ' ', 2)),'.000Z') AS fy_timerange,
+COUNT(*) AS beneficiaries
+
+FROM profile_56533 AS BE
+
+LEFT JOIN ds_mysql_prod_project AS P
+ON BE.projectid = P.id
+
+LEFT JOIN ds_mysql_prod_tagelement AS G
+ON BE.gender = G.id
+
+LEFT JOIN ds_mysql_prod_tagelement AS PE1
+ON BE.previously_enrolled = PE1.id
+
+LEFT JOIN ds_mysql_prod_tagelement AS PE2
+ON BE.previously_enrolled_advance2 = PE2.id
+
+LEFT JOIN ds_mysql_prod_tagelement AS PE3
+ON BE.previously_enrolled_advance3 = PE3.id
+
+--WHERE BD.name = 'Yes' OR AD1.name = 'Yes' OR AD2.name = 'Yes' OR AD3.name = 'Yes'
+
+GROUP BY BE.name, BE.goodera_id, BE.beneficiary_name, P.name, fy_timerange, G.name, PE1.name, PE2.name, PE3.name
