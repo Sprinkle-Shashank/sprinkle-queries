@@ -1,4 +1,52 @@
+
 with t1 as
+(
+  select projectId, client_id, fy_timerange, source, substring(date_ben_reg,6,2) as month_up
+  
+  case when month_up=01 then 'January'
+  when month_up=02 then 'February'
+  when month_up=03 then 'March'
+  when month_up=04 then 'April'
+  when month_up=05 then 'May'
+  when month_up=06 then 'June'
+  when month_up=07 then 'July'
+  when month_up=08 then 'August'
+  when month_up=09 then 'September'
+  when month_up=10 then 'October'
+  when month_up=11 then 'November'
+  when month_up=12 then 'December'
+  else 'NA'
+  end as month_upd,
+  
+  case when month_upd='January' then 10
+  when month_upd='February' then 11
+  when month_upd='March' then 12
+  when month_upd='April' then 1
+  when month_upd='May' then 2
+  when month_upd='June' then 3
+  when month_upd='July' then 4
+  when month_upd='August' then 5
+  when month_upd='September' then 6 
+  when month_upd='October' then 7
+  when month_upd='November' then 8
+  when month_upd='December' then 9
+  else 0
+  end as sort_up
+  
+  from profile_54243 as p
+  ),
+  t2 as
+  (
+	select projectId, client_id, date_ben_reg, fy_timerange, source, '400' as planned, count(*) as count_up from t1
+	
+	group by projectId, date_ben_reg, client_id, source, fy_timerange, month_up, planned
+	
+	/*order by sort_up ASC*/
+	)
+	select projectId, client_id, source, fy_timerange, month_up, planned, count_up from t2
+
+
+/*with t1 as
 (
   select projectId, client_id, date_ben_reg, fy_timerange, source
   
@@ -43,5 +91,12 @@ with t1 as
 	/*order by sort_up ASC*/
 	)
 	select projectId, client_id, source, fy_timerange, month_up, planned, count_up from t2
+	*/
+	
+	
+	
+  
+  
+	
   
   
