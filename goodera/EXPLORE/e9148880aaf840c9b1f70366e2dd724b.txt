@@ -1,0 +1,89 @@
+WITH temp1 AS (
+ SELECT 'fy_00_timerange' AS col1
+  UNION ALL
+  SELECT 'fy_01_timerange' AS col1
+  ),
+  
+  temp2 AS (
+	SELECT 'a0_00' AS col
+	UNION ALL
+	SELECT 'b0_00' AS col
+	UNION ALL
+	SELECT 'c0_00' AS col
+	UNION ALL
+	SELECT 'd0_00' AS col
+	UNION ALL
+	SELECT 'a0_01' AS col
+	UNION ALL
+	SELECT 'b0_01' AS col
+	UNION ALL
+	SELECT 'c0_01' AS col
+	UNION ALL
+	SELECT 'd0_01' AS col
+	UNION ALL
+	SELECT 'e0_01' AS col
+	UNION ALL
+	SELECT 'f0_01' AS col
+	UNION ALL
+	SELECT 'g0_01' AS col
+	UNION ALL
+	SELECT 'h0_01' AS col
+	),
+	
+	S AS (
+	  SELECT p.projectid, p.fy_00_timerange, p.fy_01_timerange, p.a0_00, p.b0_00, p.c0_00, p.d0_00, p.a0_01, p.b0_01, p.c0_01, p.d0_01, p.e0_01, p.f0_01, p.g0_01, p.h0_01
+	  
+	  FROM profile_74276 AS p
+	  ),
+	  
+	  S2 AS (
+		SELECT
+		CASE col1
+		WHEN 'fy_00_timerange' THEN S.fy_00_timerange
+		WHEN 'fy_01_timerange' THEN S.fy_01_timerange
+		ELSE NULL
+		END AS time_data,
+		
+		CASE col
+		WHEN 'a0_00' THEN s.a0_00
+		WHEN 'b0_00' THEN s.b0_00
+		WHEN 'c0_00' THEN s.c0_00
+		WHEN 'd0_00' THEN s.d0_00
+		WHEN 'a0_01' THEN s.a0_01
+		WHEN 'b0_01' THEN s.b0_01
+		WHEN 'c0_01' THEN s.c0_01
+		WHEN 'd0_01' THEN s.d0_01
+		WHEN 'e0_01' THEN s.e0_01
+		WHEN 'f0_01' THEN s.f0_01
+		WHEN 'g0_01' THEN s.g0_01
+		WHEN 'h0_01' THEN s.h0_01
+		ELSE NULL
+		END AS data,
+		
+		temp2.col AS "data_label",
+		temp1.col1 AS "timeperiods",
+		SUBSTRING(data_label,4,2) AS data_number,
+		SUBSTRING(timeperiods,4,2) AS time_number,
+		
+		CASE 
+		WHEN data_number = time_number THEN '1'
+		ELSE '0'
+		END AS match,projectId
+		
+		FROM S
+		
+		CROSS JOIN temp1
+		CROSS JOIN temp2
+		
+		WHERE match=1)
+		
+ --Select * from s2
+ 
+ SELECT data_label, data, projectId,
+ time_data AS fy_timerange
+ 
+ FROM S2
+ 
+ GROUP BY fy_timerange, data_label, data, projectId
+ 
+ ORDER BY fy_timerange DESC
