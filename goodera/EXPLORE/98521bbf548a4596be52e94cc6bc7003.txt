@@ -61,8 +61,14 @@ on p1.select_factory_msa = tag1.id),
 t2 as (
   select projectId,country,vendor,consultant,cycle,
   avg(hs_overall_b) :: float as hs_overall_b1  , avg(hs_overall_e) :: float as hs_overall_e1  
- , (hs_overall_e1-hs_overall_b1) as sub 
+ , (hs_overall_e1-hs_overall_b1) as sub ,
+  case 
+  when sub> 0 then 1 
+  else 0
+  end as hs_improved 
   from t1 
   group by projectId, country, vendor, consultant, cycle)
   
-  select * from t2
+  select projectId, country, vendor, consultant, cycle,hs_improved
+  from t2
+  where hs_improved =1 
