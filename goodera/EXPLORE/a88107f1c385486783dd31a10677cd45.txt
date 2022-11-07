@@ -1,7 +1,7 @@
 
 with t1 as
 (
-  select projectId, client_id, fy_timerange, source, substring(date_ben_reg,6,2) as month_up,
+  select projectId, client_id, fy_timerange, p.source, src.name as source_up, substring(date_ben_reg,6,2) as month_up,
   
   case when month_up='01' then 'January'
   when month_up='02' then 'February'
@@ -34,16 +34,19 @@ with t1 as
   end as sort_up
   
   from profile_54243 as p
+  
+  left join ds_prode_tagelement src
+  as p.source = name.id
   ),
   t2 as
   (
-	select projectId, client_id, fy_timerange, source, '400' as planned, count(*) as count_up, month_upd, sort_up from t1
+	select projectId, client_id, fy_timerange, source_up, '400' as planned, count(*) as count_up, month_upd, sort_up from t1
 	
-	group by projectId, client_id, source, fy_timerange, month_upd, planned, sort_up
+	group by projectId, client_id, source_up, fy_timerange, month_upd, planned, sort_up
 	
 	order by sort_up ASC
 	)
-	select projectId, client_id, source, fy_timerange, month_upd, planned, count_up, sort_up from t2
+	select projectId, client_id, source_up, fy_timerange, month_upd, planned, count_up, sort_up from t2
 
 
 /*with t1 as
