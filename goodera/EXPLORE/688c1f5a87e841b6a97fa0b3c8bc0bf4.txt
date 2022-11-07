@@ -1,5 +1,6 @@
 with table1 as
-(select _id , projectId,country,factory, vendor,unwind_cycle, product_category, consultant_tag from profile_64362 as p ,p.cycle as unwind_cycle),
+(select _id , projectId,country,factory, vendor,unwind_cycle, product_category, consultant_tag
+ from profile_64362 as p ,p.cycle as unwind_cycle),
 
  table2 as
 (select _id, projectId,country,factory,  vendor,cycle,product_category,consultant_tag from profile_64362
@@ -12,6 +13,8 @@ select * from table1
  Union all
  select * from table2
  ),
+
+
 
 table4 as  
 (
@@ -29,6 +32,17 @@ select * from table5),
  ---  Two unwind cycle and product_category  from profile_64362
 
 --select * from table6
+
+table15 as(
+  select projectId,_id, status, training_type,  year, unwind_details_new from profile_64806
+  case 
+  when is_array(details_new) =false or get_array_length(details_new)=0 then array(details_new)
+  else details_new 
+  end as unwind_details_n
+  from table3
+)
+select * from table15
+/*
 table7 as
 (select projectId,_id, status, training_type,  year, unwind_details_new from profile_64806 as p1,p1.details_new as unwind_details_new),
 
@@ -46,13 +60,13 @@ table7 as
  
 
  
- 
+ */
  
  
  
  
 ,table10 as
-(select  p3.name as projectId,p2.status,tag1.name as  training_type, tag2.name as year,p4.vendor,tag3.name as country, tag4.name as consultant ,tag5.name as cycle,tag6.name as  product_category , cast(p2.unwind_details_new as varchar) ,p4.factory ,tag8.name as unwind_details_n   from table9 as p2   
+(select  p3.name as projectId,p2.status,tag1.name as  training_type, tag2.name as year,p4.vendor,tag3.name as country, tag4.name as consultant ,tag5.name as cycle,tag6.name as  product_category , cast(p2.unwind_details_new as varchar) ,p4.factory ,tag8.name as unwind_details_n  from table9 as p2   
 
 
    
@@ -84,7 +98,7 @@ left join ds_mysql_prod_tagelement tag6
  
 
 table11 as(
-select  ft.projectId, ft.status,ft.unwind_details_n as details_new,  ft.training_type,  ft.year, country ,p7.factory,ft.vendor,consultant , cycle,  product_category   from table10 as ft
+select  ft.projectId, ft.status,ft.unwind_details_n as details_new,  ft.training_type,  ft.year, country ,p7.factory,ft.vendor,consultant , cycle,  product_category  from table10 as ft
 
 left join profile_64170 as p7
 on ft.factory = p7._id
