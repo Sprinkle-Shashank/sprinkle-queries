@@ -1,4 +1,4 @@
-select p1._id, p1.projectId, tag1.name as select_factory_msa, p1.hs_act, p1.hs_training, p1.hs_risk, p1.incident,p2.country, p2.vendor, p2.cycle, p2.consultant ,
+with t1 as (select p1._id, p1.projectId, tag1.name as select_factory_msa, p1.hs_act, p1.hs_training, p1.hs_risk, p1.incident,p2.country, p2.vendor, p2.cycle, p2.consultant ,
 --if(eq($hs_risk,1105585),1,if(eq($hs_risk,1105584),2,if(eq($hs_risk,1105583),3,if(eq($hs_risk,1105582),4,if(eq($hs_risk,1105581),5,)))))
 
 case 
@@ -55,4 +55,12 @@ from profile_62477 p1
 left join profile_64362 p2 
 on p1.projectId = p2.projectId
 left join ds_mysql_prod_tagelement tag1
-on p1.select_factory_msa = tag1.id
+on p1.select_factory_msa = tag1.id)
+
+t2 as (
+  select projectId,country,vendor,consultant,cycle,
+  avg(hs_overall_b) as hs_overall_b, avg(hs_overall_e) as hs_overall_e
+  from t1 
+  group by projectId, country, vendor, consultant, cycle)
+  
+  select * from t2
