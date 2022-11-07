@@ -1,0 +1,79 @@
+with table1 as
+(select _id , p.projectId,factory,country, vendor,unwind_cycle, product_category, consultant_tag from profile_64362 as p ,p.cycle as unwind_cycle),
+
+ table2 as
+(select _id, d.projectId,factory,country, vendor,cycle,product_category,consultant_tag from profile_64362 as d
+  where _id not in (select _id from table1))
+  ,
+  
+table3 as
+ (
+select * from table1
+ Union all
+ select * from table2
+ ),
+
+table4 as  
+(
+ select _id,  t6.projectId,factory ,country,vendor,unwind_cycle, unwind_product_category,consultant_tag from table3 t6, t6.product_category  as unwind_product_category
+ ),
+
+table5 as
+(select _id, h.projectId,factory,country,vendor,unwind_cycle,  null as product_category,consultant_tag from table3  h
+ where _id not in (select _id from table4)),
+ 
+table6 as
+(select * from table4
+union all
+select * from table5)
+ ---  Two unwind cycle and product_category  from profile_64362
+,
+
+
+ 
+table7 as
+(select   p3.name as projectId, p1.num_female, tag2.name as year , tag1.name as training_type,   tag3.name as country, p2.vendor, p2.factory, tag4.name as consultant ,tag5.name as cycle,tag6.name as  product_category 
+
+ from profile_61613 as p1
+ 
+--left join profile_64170 as p4
+--on factory = p4._id
+ left join table6 as p2
+on p1.projectId = p2.projectId
+ left join ds_mysql_prod_project p3
+on p1.projectId= p3.id
+left join ds_mysql_prod_tagelement tag1
+on p1.training_type = tag1.id
+left join ds_mysql_prod_tagelement tag2
+on p1.year = tag2.id
+left join ds_mysql_prod_tagelement tag3
+on p2.country = tag3.id
+left join ds_mysql_prod_tagelement tag4
+on p2.consultant_tag = tag4.id
+left join ds_mysql_prod_tagelement tag5
+on p2.unwind_cycle = tag5.id 
+left join ds_mysql_prod_tagelement tag6 
+ on tag6.id = p2.unwind_product_category
+)
+
+ ,
+ 
+ 
+table8 as
+(
+select  ft.projectId,    year , training_type,   country, vendor, ft.factory,  consultant,cycle, product_category , p4.factory  as new_factory , Cast('num_female' as varchar) as status , num_female as total from table7 as ft
+left join profile_64170 as p4
+on ft.factory = p4._id
+ ),
+ 
+
+
+
+table9 as
+(
+select  projectId,training_type, year,new_factory as factory,vendor,consultant,cycle,product_category,country,status,sum(total) as total
+from table8
+group by projectId,training_type, year,new_factory ,vendor,consultant,cycle,product_category,country ,status
+)
+
+select projectId, training_type, year,factory, vendor,consultant,cycle,product_category,country,total,status,Cast('Total Representatives Female' as varchar) as status from table9
