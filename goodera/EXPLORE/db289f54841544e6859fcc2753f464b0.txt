@@ -1,3 +1,95 @@
+with table1 as
+(select _id , projectId,country, vendor,unwind_cycle, product_category, consultant_tag from profile_64362 as p ,p.cycle as unwind_cycle),
+
+ table2 as
+(select _id, projectId,country, vendor,cycle,product_category,consultant_tag from profile_64362
+  where _id not in (select _id from table1))
+  ,
+  
+table3 as
+ (
+	select * from table1
+  Union all
+  select * from table2
+ )
+ ,
+
+  
+table4 as  
+(
+ select _id,  projectId,country,vendor,unwind_cycle, unwind_product_category,consultant_tag from table3 t3, t3.product_category  as unwind_product_category
+ ),
+
+table5 as
+(select _id, projectId,country,vendor,unwind_cycle,  null as product_category,consultant_tag from table3 
+ where _id not in (select _id from table4)),
+ 
+table6 as
+(select * from table4
+union all
+select * from table5),
+
+t4 as (select projectId, unwind_product_category,/* unwind_cycle ,*/ tag15.name as product1 , tag14.name as cycle1 ,listagg(cycle1) as cycle ,listagg(product1) as product_category
+	   from table6 
+	  left join ds_mysql_prod_tagelement tag15
+on unwind_product_category = tag15.id
+left join ds_mysql_prod_tagelement tag14
+on unwind_cycle = tag14.id
+	  group by table6.unwind_product_category,table6.unwind_cycle,tag15.name, tag14.name,table6.projectId )
+	   
+/*select tag6.name as projectId, p1.date, p1.topic, p1.trainer, p1.date_2, tag7.name as master_trainers, p1.peer_learning_2/*, tag8.name as peer_learning, */,tag9.name as evident, tag10.name as status_skills, tag11.name as training_type, tag12.name as year, p1.num_vendor, p1.num_factory, p1.topic_2, tag1.name as completed,tag2.name as Topic,tag3.name as country,p8.cycle, p8.product_category,cast('1' as VARCHAR) as Total_Factories,
+case 
+when completed = 'Yes' then 1
+else 0
+end as Peer_training_completed,
+
+ p3.factory, p2.vendor, tag13.name as consultant,
+
+case 
+when completed = 'No' then 1
+else 0
+end as peer_learning_no
+
+--count(p1.projectId) as count
+
+
+from profile_61617 p1
+left join t4 p8
+on p1.projectId = p8.projectId 
+left join ds_mysql_prod_tagelement tag1
+on p1.peer_learning = tag1.id
+left join ds_mysql_prod_tagelement tag2
+on p1.topic = tag2.id
+left join profile_64362 p2 
+on p1.projectId= p2.projectId
+left join profile_64170 as p3
+on p2.factory = p3._id
+
+left join ds_mysql_prod_tagelement tag3
+on p2.country = tag3.id
+
+left join ds_mysql_prod_tagelement tag6
+on p1.projectId = tag6.id
+left join ds_mysql_prod_tagelement tag7
+on p1.master_trainers = tag7.id
+/*left join ds_mysql_prod_tagelement tag8
+on p1.peer_learning = tag8.id*/
+left join ds_mysql_prod_tagelement tag9
+on p1.evident = tag9.id
+left join ds_mysql_prod_tagelement tag10
+on p1.status_skills = tag10.id
+left join ds_mysql_prod_tagelement tag11
+on p1.training_type = tag11.id
+left join ds_mysql_prod_tagelement tag12
+on p1.year = tag12.id
+left join ds_mysql_prod_tagelement tag13
+on p2.consultant_tag = tag13.id
+--where topic and p8.product_category is not null
+where topic is not null
+	   
+group by p1.projectId, date, trainer, date_2, master_trainers, peer_learning_2, peer_learning, evident, status_skills, training_type, year, topic_2, num_vendor, num_factory, topic, Completed, Topic, Peer_training_completed, p2.factory, vendor, consultant, country, p8.product_category, peer_learning_no, p8.cycle,tag6.name,tag7.name,tag8.name,tag9.name,tag10.name,tag11.name,tag12.name,tag13.name,tag2.name,tag3.name,p3.factory
+
+*/
 with table1 as (select tag2.name as projectId, date, tag3.name as topic, trainer, date_2, tag4.name as master_trainers, peer_learning_2, tag1.name as peer_learning, tag5.name as evident, tag6.name as status_skills, tag7.name as training_type, tag8.name as year, num_vendor, num_factory, topic_2,tag9.name as cycle,tag10.name as product_category,tag1.name as completed, tag11.name as country, p7.factory as factory, p2.vendor as vendor,tag13.name as consultant,cast('1' as VARCHAR) as Total_Factories,
 case 
 when completed = 'Yes' then 1
