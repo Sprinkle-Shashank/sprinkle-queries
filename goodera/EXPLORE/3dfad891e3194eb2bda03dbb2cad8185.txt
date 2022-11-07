@@ -1,38 +1,42 @@
-SELECT BE.name, BE.goodera_id, BE.beneficiary_name,
---AC2.name AS 
-BE.course_advance2,
---AC3.name AS 
-course_advance3,
-P.name AS projectname,
-C.name AS course,
-AA.name AS advance_availbility,
-CONCAT(CONCAT(CONCAT(SPLIT_PART(BE.date_registration, ' ', 1),'T'),SPLIT_PART(BE.date_registration, ' ', 2)),'.000Z') AS fy_timerange
---COUNT(*) AS beneficiaries
+WITH SUB1 AS (
+  SELECT SE.name, SE.fy_timerange, SE.shg_ent_name, SE.women_selected, SE.women_added,
+  SHG.name AS shg_ent,
+  P.name AS projectname
+  
+  FROM profile_56593 AS SE
 
-FROM profile_56533 AS BE
+  LEFT JOIN ds_mysql_prod_project AS P
+  ON SE.projectid = P.id
 
-LEFT JOIN ds_mysql_prod_project AS P
-ON BE.projectid = P.id
+  LEFT JOIN ds_mysql_prod_tagelement AS SHG
+  ON SE.shg_ent = SHG.id
+  ),
+  
+SUB2 AS (
+  SELECT name, fy_timerange, shg_ent_name, shg_ent, projectname, WS, women_added
+  
+  FROM SUB1 AS S1,
+  
+  S1.women_selected AS WS
+)
 
+SUB3 AS (
+  SELECT name, fy_timerange, shg_ent_name, shg_ent, projectname, WS, WA
+  
+  FROM SUB2 AS S2,
+  
+  S1.women_added AS WA
 
+SELECT SUB2.name, fy_timerange, shg_ent_name, shg_ent, projectname,
+BE1.name AS women_selected,
+BE2.name AS women_added  
 
---LEFT JOIN ds_mysql_prod_tagelement AS AC2
---ON BE.course_advance2 = AC2.id
+FROM SUB3
 
---LEFT JOIN ds_mysql_prod_tagelement AS AC3
---ON BE.course_advance3 = AC3.id
+LEFT JOIN profile_56533 AS BE1
+ON WS = BE1._id
+  
+LEFT JOIN profile_56533 AS BE2
+ON WA = BE2._id
 
-LEFT JOIN profile_56539 AS C
-ON BE.course_advance2 = C._id
-
-LEFT JOIN ds_mysql_prod_tagelement AS AA
-ON C.advance_availbility = AA.id
-
---LEFT JOIN ds_mysql_prod_tagelement AS PE3
---ON BE.previously_enrolled_advance3 = PE3.id
-
-WHERE AA.name = 'Yes'
-
---GROUP BY BE.name, BE.goodera_id, BE.beneficiary_name, P.name, fy_timerange, G.name, PE1.name, PE2.name, PE3.name
-
--- Incomplete because of two joins in same table
+--WHERE BE.name IS NOT NULL
