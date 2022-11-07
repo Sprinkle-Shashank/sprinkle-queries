@@ -2,7 +2,7 @@ with table1 as
 (select _id , projectId,country,factory, vendor,unwind_cycle, product_category, consultant_tag from profile_64362 as p ,p.cycle as unwind_cycle),
 
  table2 as
-(select _id, projectId,country,factory,  vendor,  null as cycle,product_category,consultant_tag from profile_64362
+(select _id, projectId,country,factory,  vendor,cycle,product_category,consultant_tag from profile_64362
   where _id not in (select _id from table1))
   ,
   
@@ -33,7 +33,7 @@ table7 as
 (select projectId,_id, status, training_type,  year, unwind_details_new from profile_64806 as p1,p1.details_new as unwind_details_new),
 
  table8 as
-(select _id, projectId,status, training_type,  year,  null as details_new from profile_64806
+(select _id, projectId,status, training_type,  year, null as details_new from profile_64806
  where _id not in (select _id from table7)),
 
  table9 as
@@ -80,32 +80,23 @@ left join ds_mysql_prod_tagelement tag6
  on tag8._id = p2.unwind_details_new
 
  )
- select * from table9
+ 
+ select * from table10
  --,
- /*
+/* 
 
 table11 as(
-select  ft.projectId, ft.status,ft.unwind_details_n as details_new,  ft.training_type,  ft.year, country ,p7.factory,ft.vendor,consultant , cycle,  product_category  from table10 as ft
+select  ft.projectId,ft.unwind_details_n as details_new,  ft.training_type,  ft.year, country ,p7.factory,ft.vendor,consultant , cycle,  product_category  from table10 as ft
 
 left join profile_64170 as p7
 on ft.factory = p7._id
---left join ds_mysql_prod_tagelement tag7
---on ft.status = tag7.id
+left join ds_mysql_prod_tagelement tag7
+on ft.status = tag7.id
 
-),
-table12 as 
-(select tb.projectId, tb.status , tb.training_type,  tb.year, tb.factory,tb.vendor,consultant  ,  country,product_category ,cycle ,
-count(*)
+where ft.status in (1247617, 1247616)
+
+ )
+ 
+select tb.projectId,   tb.training_type,  tb.year, tb.factory,tb.vendor,consultant  ,  country,product_category ,cycle ,count(*) ,cast('Total Representatives' as varchar) as status
 from table11 as tb
-group by  tb.projectId, tb.status , tb.training_type,  tb.year, tb.factory,tb.vendor,consultant , cycle,  product_category , country )
-
-select b.projectId, b.training_type,  b.year, b.factory,b.vendor,consultant  ,  country,product_category ,cycle ,count
-,
-
-case 
-when b.status ='1247617' then 'Representatives Left'
-when b.status ='1247618' then 'New Representatives'
-when b.status ='1247616'  then 'Retired Representatives'
---else b.status
-end as status
-from table12 as b*/
+group by  tb.projectId,   tb.training_type,  tb.year, tb.factory,tb.vendor,consultant , cycle,  product_category , country */
