@@ -28,7 +28,7 @@ union all
 select * from table5),
  ---  Two unwind cycle and product_category  from profile_64362
 
---select * from table6
+/*--select * from table6
 table7 as
 (select projectId,_id, status, training_type,  year, unwind_details_new from profile_64806 as p1,p1.details_new as unwind_details_new),
 
@@ -43,7 +43,7 @@ table7 as
  )
    --  one unwind details_new from profile_64806
  
- 
+ */
 
  
  
@@ -52,7 +52,9 @@ table7 as
  
  
 ,table10 as
-(select  p3.name as projectId,p2.status,tag1.name as  training_type, tag2.name as year,p4.vendor,tag3.name as country, tag4.name as consultant ,tag5.name as cycle,tag6.name as  product_category , cast(p2.unwind_details_new as varchar)  ,p4.factory ,tag8.name as unwind_details_n  from table9 as p2   
+(select  p3.name as projectId,p2.status,tag1.name as  training_type, tag2.name as year,p4.vendor,tag3.name as country, tag4.name as consultant ,tag5.name as cycle,tag6.name as  product_category , cast(p2.unwind_details_new as varchar) ,p4.factory
+ --,tag8.name as unwind_details_n 
+ from table9 as p2   
 
 
    
@@ -76,17 +78,26 @@ left join ds_mysql_prod_tagelement tag5
 on p4.unwind_cycle = tag5.id 
 left join ds_mysql_prod_tagelement tag6 
  on tag6.id = p4.unwind_product_category
- left join profile_61928 tag8
- on tag8._id = p2.unwind_details_new
+-- left join profile_61928 tag8
+-- on tag8._id = p2.unwind_details_new
+
+ )
+ ,
+ 
+
+table11 as(
+select  ft.projectId, ft.status,  ft.training_type,  ft.year, country ,p7.factory,ft.vendor,consultant , cycle,  product_category  from table10 as ft
+
 left join profile_64170 as p7
 on ft.factory = p7._id
- )
- --,
- select * from table10
+--left join ds_mysql_prod_tagelement tag7
+--on ft.status = tag7.id
 
-/*table11 as 
-(select tb.projectId, tb.status , tb.training_type,  tb.year, tb.factory,tb.vendor,consultant  ,  country,product_category ,cycle ,count(*)
-from table10 as tb
+),
+table12 as 
+(select tb.projectId, tb.status , tb.training_type,  tb.year, tb.factory,tb.vendor,consultant  ,  country,product_category ,cycle ,
+count(*)
+from table11 as tb
 group by  tb.projectId, tb.status , tb.training_type,  tb.year, tb.factory,tb.vendor,consultant , cycle,  product_category , country )
 
 select b.projectId, b.training_type,  b.year, b.factory,b.vendor,consultant  ,  country,product_category ,cycle ,count
@@ -99,3 +110,9 @@ when b.status ='1247616'  then 'Retired Representatives'
 --else b.status
 end as status
 from table12 as b
+ 
+ 
+ 
+ 
+ 
+ 
