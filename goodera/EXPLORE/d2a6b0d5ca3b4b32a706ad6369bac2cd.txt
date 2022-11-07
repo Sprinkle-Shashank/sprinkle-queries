@@ -25,25 +25,24 @@ table5 as
 table6 as
 (select * from table4
 union all
-select * from table5)
- ---  Two unwind cycle and product_category  from profile_64362
+select * from table5),
 
-/*--select * from table6
-table7 as
-(select projectId,_id, status, training_type,  year, unwind_details_new from profile_64806 as p1,p1.details_new as unwind_details_new),
 
- table8 as
-(select _id, projectId,status, training_type,  year, null as details_new from profile_64806
- where _id not in (select _id from table7)),
 
- table9 as
- (select * from table7
-  Union all
- select * from table8
- )
-   --  one unwind details_new from profile_64806
+table7 as(
+  select projectId,_id, status, training_type,  year, details_new ,
+  case 
+  when is_array(details_new) =false or get_array_length(details_new)=0 then array(details_new)
+  else details_new 
+  end as Final_details_new
+  from profile_64806
+)
+
+,
+table8 as
+(select projectId,_id, status, training_type,  year, unwind_details_new from table7 as p1,p1.final_details_new as unwind_details_new)
  
- */
+ 
 
  
  
@@ -52,10 +51,7 @@ table7 as
  
  
 ,table10 as
-(select  p3.name as projectId,p2.status,tag1.name as  training_type, tag2.name as year,p4.vendor,tag3.name as country, tag4.name as consultant ,tag5.name as cycle,tag6.name as  product_category ,p7.factory
--- cast(p2.unwind_details_new as varchar) 
- --,tag8.name as unwind_details_n 
- from profile_64806 as p2   
+(select  p3.name as projectId,p2.status,tag1.name as  training_type, tag2.name as year,p4.vendor,tag3.name as country, tag4.name as consultant ,tag5.name as cycle,tag6.name as  product_category , cast(p2.unwind_details_new as varchar) ,p4.factory ,tag8.name as unwind_details_n  from table8 as p2   
 
 
    
@@ -79,47 +75,28 @@ left join ds_mysql_prod_tagelement tag5
 on p4.unwind_cycle = tag5.id 
 left join ds_mysql_prod_tagelement tag6 
  on tag6.id = p4.unwind_product_category
--- left join profile_61928 tag8
--- on tag8._id = p2.unwind_details_new
- left join profile_64170 as p7
-on p4.factory = p7._id
+ left join profile_61928 tag8
+ on tag8._id = p2.unwind_details_new
 
  )
--- ,
---select * from table10
+ ,
+ 
 
- /*
-table12 as 
-(select tb.projectId, tb.status , tb.training_type,  tb.year, tb.factory,tb.vendor,consultant  ,  country,product_category ,cycle ,
-count(*)
-from table10 as tb
-group by  tb.projectId, tb.status , tb.training_type,  tb.year, tb.factory,tb.vendor,consultant , cycle,  product_category , country )
+table11 as(
+select  ft.projectId,ft.unwind_details_n as details_new,  ft.training_type,  ft.year, country ,p7.factory,ft.vendor,consultant , cycle,  product_category  from table10 as ft
 
-select b.projectId, b.training_type,  b.year, b.factory,b.vendor,consultant  ,  country,product_category ,cycle ,count
-,
+left join profile_64170 as p7
+on ft.factory = p7._id
+left join ds_mysql_prod_tagelement tag7
+on ft.status = tag7.id
 
-case 
-when b.status ='1247617' then 'Representatives Left'
-when b.status ='1247618' then 'New Representatives'
-when b.status ='1247616'  then 'Retired Representatives'
---else b.status
-end as status
-from table12 as b
- 
- 
- 
- 
- */
-,table12 as
-( select  projectId, status, training_type, year, factory, vendor, consultant, cycle, country, product_category , count(*)  from table10
- 
-group by projectId, status, training_type, year, factory, vendor, consultant, cycle, country, product_category )
+where ft.status in (1247617, 1247616)
 
-select projectId, status, training_type, year, factory, vendor, consultant, cycle, country, product_category ,count
-,
-case 
-when b.status =1247617 then 'Representatives Left'
-when b.status =1247618 then 'New Representatives'
-when b.status =1247616  then 'Retired Representatives'
-end as status
-from table12 as b
+ ),
+ table12 as 
+(select tb.projectId,   tb.training_type,  tb.year, tb.factory,tb.vendor,consultant  ,  country,product_category ,cycle ,count(*) 
+from table11 as tb
+group by  tb.projectId,   tb.training_type,  tb.year, tb.factory,tb.vendor,consultant , cycle,  product_category , country )
+
+select projectId,training_type,year,factory,vendor,consultant,country,product_category,cycle,count ,cast('Total Representatives' as varchar) as status
+from table12
