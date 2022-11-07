@@ -1,0 +1,21 @@
+ with sub1 as(select p.name as projectId, tag4.name as country, vendor, tag2.name as  consultant, tag1.name as  training_type,  tag3.name as cycle,split_part(p2.name, '-' ,1) as filter from profile_73974 p1
+left join ds_mysql_prod_project p
+on p.id = p1.projectId
+left join ds_mysql_prod_project p2 
+on p2.id = p.parent
+left join ds_mysql_prod_project p3
+on p3.id = p2.parent
+left join ds_mysql_prod_tagelement tag2
+on p1.consultant_tag = tag2.id
+left join ds_mysql_prod_tagelement tag1
+on p1.training_type = tag1.id
+left join ds_mysql_prod_tagelement tag3
+on p1.cycle  = tag3.id
+left join ds_mysql_prod_tagelement tag4
+on p1.country = tag4.id
+)
+
+select s1.projectid, s1.country, s1.vendor, s1.consultant, s1.cycle
+from sub1 s1
+where filter != 'NA'
+group by s1.projectid, s1.country, s1.vendor, s1.consultant, s1.cycle
