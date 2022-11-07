@@ -1,7 +1,7 @@
-with table1 as (select projectId, year, num_female, train.name as training_type from profile_61613 p
+with table1 as (select projectId, pro.name ,year, num_female, train.name as training_type from profile_61613 p
 
---left join ds_mysql_prod_tagelement stat
---on p.status = stat.id
+left join ds_mysql_prod_project pro
+on p.projectid = pro.id
 
 left join ds_mysql_prod_tagelement train
 on p.training_type = train.id
@@ -56,7 +56,7 @@ on t6.factory = fac_part._id
 left join profile_61583 per
 on t6.consultant = per._id),
 table8 as (
-select t1.projectid,training_type,year,num_female,t7.country,t7.factory,t7.cycle,t7.prod_cat,t7.consultant,t7.vendor from table1 t1 
+select t1.projectid,t1.name,training_type,year,num_female,t7.country,t7.factory,t7.cycle,t7.prod_cat,t7.consultant,t7.vendor from table1 t1 
 
 left join table7 t7 
 on t1.projectid = t7.projectid
@@ -64,18 +64,18 @@ on t1.projectid = t7.projectid
 where training_type = 'Target Led' and  cycle not ilike '%vendor%'
 ),
 table9 as (
-select t1.projectid,training_type,year,num_female,t7.country,t7.factory,t7.cycle,t7.prod_cat,t7.consultant,t7.vendor from table1 t1 
+select t1.projectid,t1.name,training_type,year,num_female,t7.country,t7.factory,t7.cycle,t7.prod_cat,t7.consultant,t7.vendor from table1 t1 
 
 left join table7 t7 
 on t1.projectid = t7.projectid
 
 where training_type not ilike '%Target Led%' and  cycle ilike '%vendor%')
 
-select projectid,training_type,year,country,factory,cycle,prod_cat,consultant,vendor,sum(num_female)  as num_female from table8
-group by  projectid,training_type,year,country,factory,cycle,prod_cat,consultant,vendor
+select projectid,name,training_type,year,country,factory,cycle,prod_cat,consultant,vendor,sum(num_female)  as num_female from table8
+group by  projectid,name,training_type,year,country,factory,cycle,prod_cat,consultant,vendor
 Union all 
-select  projectid,training_type,year,country,factory,cycle,prod_cat,consultant,vendor,sum(num_female)  as num_female from table9
-group by  projectid,training_type,year,country,factory,cycle,prod_cat,consultant,vendor
+select  projectid,name,training_type,year,country,factory,cycle,prod_cat,consultant,vendor,sum(num_female)  as num_female from table9
+group by  projectid,name,training_type,year,country,factory,cycle,prod_cat,consultant,vendor
 
 
 --select * from table1
