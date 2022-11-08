@@ -1,0 +1,82 @@
+With temp1 as (
+ Select 'fy_23_timerange' as col1
+  union all
+ Select 'fy_24_timerange' as col1),
+ 
+ temp2 as (
+	Select 'a0_23' as col
+  union all
+	Select 'b0_23' as col
+  union all
+	Select 'c0_23' as col
+  union all
+    Select 'd0_23' as col
+  union all
+	Select 'e0_23' as col
+  union all
+    Select 'f0_23' as col
+  union all
+	Select 'a0_24' as col
+  union all
+	Select 'b0_24' as col
+  union all
+	Select 'c0_24' as col
+  union all
+	Select 'd0_24' as col
+  union all
+	Select 'e0_24' as col
+  union all
+	Select 'f0_24' as col
+   union all
+	Select 'g0_24' as col
+  union all
+	Select 'h0_24' as col
+ ),
+	
+s as ( Select p.fy_23_timerange,p.fy_24_timerange,
+p.a0_23, p.b0_23, p.c0_23, p.d0_23, p.e0_23,p.f0_23, p.a0_24, p.b0_24, p.c0_24, p.d0_24, p.e0_24, p.f0_24,p.g0_24,p.h0_24 ,p.projectId
+from profile_74188 p),
+
+s2 as(Select
+case col1
+ when 'fy_23_timerange' then s.fy_23_timerange
+ when 'fy_24_timerange' then s.fy_24_timerange
+ else null
+ end as time_data,
+	  
+case col
+when 'a0_23' then s.a0_23
+when 'b0_23' then s.b0_23
+when 'c0_23' then s.c0_23
+when 'd0_23' then s.d0_23
+when 'e0_23' then s.e0_23
+when 'f0_23' then s.f0_23
+when 'a0_24' then s.a0_24
+when 'b0_24' then s.b0_24
+when 'c0_24' then s.c0_24
+when 'd0_24' then s.d0_24
+when 'e0_24' then s.e0_24
+when 'f0_24' then s.f0_24
+when 'g0_24' then s.g0_24
+when 'h0_24' then s.h0_24
+
+else null
+end as data, temp2.col as "data_label",temp1.col1 as "timeperiods",
+substring(data_label,4,2) as  data_number,
+substring(timeperiods,4,2) as time_number,
+	  
+case 
+when data_number = time_number
+then '1'
+else '0'
+end as match,projectId
+from s
+cross join temp1
+cross join temp2
+where match=1)
+ 
+Select time_data as fy_timerange,data_label,data,projectId
+from s2
+where fy_timerange is not null
+group by fy_timerange, data_label, data,projectId
+order by fy_timerange desc
