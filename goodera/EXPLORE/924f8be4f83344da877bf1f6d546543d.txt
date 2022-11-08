@@ -1,0 +1,181 @@
+with sub1 as(
+  select p1._id as id, p2.name as projectid, t1.name as select_factory_msa, p3.cycle, t2.name as country, p3.vendor, p4.name as consultant,
+
+case
+	when p1.resources = 1105585 then 1
+	when p1.resources = 1105584 then 2
+	when p1.resources = 1105583 then 3
+	when p1.resources = 1105582 then 4
+	when p1.resources = 1105581 then 5
+	else NULL
+end as resources,
+
+case
+	when p1.policies = 1105585 then 1
+	when p1.policies = 1105584 then 2
+	when p1.policies = 1105583 then 3
+	when p1.policies = 1105582 then 4
+	when p1.policies = 1105581 then 5
+	else NULL
+end as policies,
+
+case
+	when p1.risk = 1105585 then 1
+	when p1.risk = 1105584 then 2
+	when p1.risk = 1105583 then 3
+	when p1.risk = 1105582 then 4
+	when p1.risk = 1105581 then 5
+	else NULL
+end as risk,
+
+case
+	when p1.procedure = 1105585 then 1
+	when p1.procedure = 1105584 then 2
+	when p1.procedure = 1105583 then 3
+	when p1.procedure = 1105582 then 4
+	when p1.procedure = 1105581 then 5
+	else NULL
+end as procedure,
+
+case
+	when p1.grievance = 1105585 then 1
+	when p1.grievance = 1105584 then 2
+	when p1.grievance = 1105583 then 3
+	when p1.grievance = 1105582 then 4
+	when p1.grievance = 1105581 then 5
+	else NULL
+end as grievance,
+
+case
+	when p1.training = 1105585 then 1
+	when p1.training = 1105584 then 2
+	when p1.training = 1105583 then 3
+	when p1.training = 1105582 then 4
+	when p1.training = 1105581 then 5
+	else NULL
+end as training,
+
+case
+	when p1.monitoring = 1105585 then 1
+	when p1.monitoring = 1105584 then 2
+	when p1.monitoring = 1105583 then 3
+	when p1.monitoring = 1105582 then 4
+	when p1.monitoring = 1105581 then 5
+	else NULL
+end as monitoring,
+
+case
+	when p1.incident = 1105585 then 1
+	when p1.incident = 1105584 then 2
+	when p1.incident = 1105583 then 3
+	when p1.incident = 1105582 then 4
+	when p1.incident = 1105581 then 5
+	else NULL
+end as incident,
+
+case
+	when p1.communication = 1105585 then 1
+	when p1.communication = 1105584 then 2
+	when p1.communication = 1105583 then 3
+	when p1.communication = 1105582 then 4
+	when p1.communication = 1105581 then 5
+	else NULL
+end as communication,
+
+case
+	when p1.act_adjust = 1105585 then 1
+	when p1.act_adjust = 1105584 then 2
+	when p1.act_adjust = 1105583 then 3
+	when p1.act_adjust = 1105582 then 4
+	when p1.act_adjust = 1105581 then 5
+	else NULL
+end as act_adjust,
+
+case
+	when p1.hs_act = 1105585 then 1
+	when p1.hs_act = 1105584 then 2
+	when p1.hs_act = 1105583 then 3
+	when p1.hs_act = 1105582 then 4
+	when p1.hs_act = 1105581 then 5
+	else NULL
+end as hs_act,
+
+case
+	when p1.hs_training = 1105585 then 1
+	when p1.hs_training = 1105584 then 2
+	when p1.hs_training = 1105583 then 3
+	when p1.hs_training = 1105582 then 4
+	when p1.hs_training = 1105581 then 5
+	else NULL
+end as hs_training,
+
+case
+	when p1.hs_risk = 1105585 then 1
+	when p1.hs_risk = 1105584 then 2
+	when p1.hs_risk = 1105583 then 3
+	when p1.hs_risk = 1105582 then 4
+	when p1.hs_risk = 1105581 then 5
+	else NULL
+end as hs_risk
+
+from profile_62477 p1
+
+left join ds_mysql_prod_project p2 on p2.id = p1.projectid
+left join profile_64362 p3 on p3.projectid = p1.projectid
+left join profile_61583 p4 on p4._id = p3.consultant
+
+left join ds_mysql_prod_tagelement t1 on t1.id = p1.select_factory_msa
+left join ds_mysql_prod_tagelement t2 on t2.id = p3.country),
+
+sub2 as(
+  select s1.*, cycle_new from sub1 s1, s1.cycle cycle_new), 
+ 
+sub3 as(
+  select s2.id, s2.projectid, s2.select_factory_msa, s2.country, s2.vendor, s2.consultant, t3.name as cycle, 
+
+LEAST(s2.resources, s2.policies, s2.hs_risk, s2.risk) as plan, 
+LEAST(s2.procedure, s2.communication, s2.grievance, s2.training, s2.hs_training) as do, 
+LEAST(s2.incident, s2.monitoring) as check,
+LEAST(s2.act_adjust, s2.hs_act) as act
+  
+from sub2 s2
+left join ds_mysql_prod_tagelement t3 on t3.id = s2.cycle_new),
+
+sub4 as(
+  select s3.id, s3.projectid, s3.select_factory_msa, s3.country, s3.vendor, s3.consultant, s3.cycle,
+
+LEAST(s3.plan, s3.do, s3.check, s3.act) as overall
+
+from sub3 s3),
+
+sub5 as(
+  select s4.projectid, s4.country, s4.vendor, s4.consultant, s4.cycle, s4.select_factory_msa,
+avg(cast(s4.overall as FLOAT)) as overall
+from sub4 s4
+group by s4.projectid, s4.country, s4.vendor, s4.consultant, s4.cycle, s4.select_factory_msa),
+
+sub6 as(
+  select s5.projectid, s5.country, s5.vendor, s5.consultant, s5.cycle, s5.select_factory_msa, 
+
+case
+	when s5.select_factory_msa = 'Baseline' then s5.overall
+	else 0
+end as overall_b,
+
+case
+	when s5.select_factory_msa = 'Endline' then s5.overall
+	else 0
+end as overall_e
+
+from sub5 s5),
+
+sub7 as(
+  select s6.projectid, s6.country, s6.vendor, s6.consultant, s6.cycle, 
+sum(s6.overall_b) as overall_b, sum(s6.overall_e) as overall_e
+
+from sub6 s6
+group by s6.projectid, s6.country, s6.vendor, s6.consultant, s6.cycle)
+
+select projectid, country, vendor, consultant, cycle, (overall_e - overall_b) as improvement
+from sub7
+where improvement < 0
