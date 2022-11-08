@@ -1,9 +1,37 @@
-select p1._id as id, p2.name as projectid, t1.name as select_factory_msa, p1.grievance, t2.name as country, p3.vendor, p3.cycle, p4.name as consultant
+with sub1 as(
+  select p1._id as id, p2.name as projectid, t1.name as select_factory_msa, t2.name as country, p3.vendor, p3.cycle, p4.name as consultant,
+case
+	when p1.grievance = 1105585 then 1
+	when p1.grievance = 1105584 then 2
+	when p1.grievance = 1105583 then 3
+	when p1.grievance = 1105582 then 4
+	when p1.grievance = 1105581 then 5
+	else NULL
+end as grievance
+
 from profile_62477 p1
 
 left join ds_mysql_prod_project p2 on p2.id = p1.projectid
 left join profile_64362 p3 on p3.projectid = p1.projectid
-left join profile_61583 p4 on p4._id = p1.consultant
+left join profile_61583 p4 on p4._id = p3.consultant
 
 left join ds_mysql_prod_tagelement t1 on t1.id = p1.select_factory_msa
-left join ds_mysql_prod_tagelement t2 on t2.id = p3.country
+left join ds_mysql_prod_tagelement t2 on t2.id = p3.country),
+
+sub2 as(
+  select s1.*, cycle_new from sub1 s1, s1.cycle cycle_new)
+  
+select s2.id, s2.projectid, s2.country, s2.vendor, t3.name as cycle, s2.consultant,
+
+case
+	when s2.select_factory_msa = 'Baseline' then s2.grievance
+	else NULL
+end as grievance_b,
+
+case
+	when s2.select_factory_msa = 'Endline' then s2.grievance
+	else NULL
+end as grievance_e
+
+from sub2 s2
+left join ds_mysql_prod_tagelement t3 on t3.id = s2.cycle_new
