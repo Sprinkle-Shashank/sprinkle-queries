@@ -133,26 +133,10 @@ sub2 as(
 sub3 as(
   select s2.id, s2.projectid, s2.select_factory_msa, s2.country, s2.vendor, s2.consultant, t3.name as cycle, 
 
-LEAST(
-		nvl(s2.resources, s2.policies, s2.hs_risk, s2.risk),
-  		nvl(s2.policies, s2.resources, s2.hs_risk, s2.risk),
-  		nvl(s2.hs_risk, s2.resources, s2.policies, s2.risk),
-  		nvl(s2.risk, s2.resources, s2.policies, s2.hs_risk)) as plan, 
-  
-LEAST(
-  		nvl(s2.procedure, s2.communication, s2.grievance, s2.training, s2.hs_training),
-		nvl(s2.communication, s2.procedure, s2.grievance, s2.training, s2.hs_training),
-		nvl(s2.grievance, s2.procedure, s2.communication, s2.training, s2.hs_training),
-		nvl(s2.training, s2.procedure, s2.communication, s2.grievance, s2.hs_training),
-		nvl(s2.hs_training, s2.procedure, s2.communication, s2.grievance, s2.training)) as do, 
-  
-LEAST(
-  		nvl(s2.incident, s2.monitoring),
-  		nvl(s2.monitoring, s2.incident)) as check, 
-  
-LEAST(
-  		nvl(s2.act_adjust, s2.hs_act),
-  		nvl(s2.hs_act, s2.act_adjust)) as act
+LEAST(s2.resources, s2.policies, s2.hs_risk, s2.risk) as plan, 
+LEAST(s2.procedure, s2.communication, s2.grievance, s2.training, s2.hs_training) as do, 
+LEAST(s2.incident, s2.monitoring) as check,
+LEAST(s2.act_adjust, s2.hs_act) as act
   
 from sub2 s2
 left join ds_mysql_prod_tagelement t3 on t3.id = s2.cycle_new),
