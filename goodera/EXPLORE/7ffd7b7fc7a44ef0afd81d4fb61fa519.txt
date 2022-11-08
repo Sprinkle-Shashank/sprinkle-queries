@@ -29,7 +29,8 @@ table6 as
 union all
 select * from table5),
 
-t1 as (select p1._id, tag2.name as projectId,  tag1.name as select_factory_msa,tag3.name as country,p2.vendor,p3.name as consultant,tag5.name as cycle,
+t1 as (select p1._id, tag2.name as projectId,  tag1.name as select_factory_msa,tag3.name as country,p2.vendor,p3.name as consultant,
+	   --tag5.name as cycle,
 
 case 
 when p1.resources = 1105585 then 1
@@ -138,15 +139,15 @@ end as hs_act
 from profile_62477 p1
 left join profile_64362 p2
 on p1.projectId=p2.projectId
-left join table6 p5
-on p1.projectId=p5.projectId
+--left join table6 p5
+--on p1.projectId=p5.projectId
 			 left join profile_61583 p3
 on p2.consultant= p3._id
 left join ds_mysql_prod_tagelement tag1
 on p1.select_factory_msa = tag1.id
 	   left join ds_mysql_prod_tagelement tag5
-on p5.unwind_cycle = tag5.id
-		   left join ds_mysql_prod_project tag2
+--on p5.unwind_cycle = tag5.id
+--		   left join ds_mysql_prod_project tag2
 on p1.projectId = tag2.id
 		   left join ds_mysql_prod_tagelement tag3
 on p2.country = tag3.id),
@@ -180,7 +181,8 @@ union all
 ),
 
 t2 as 
-(select  projectId,country,vendor,consultant,cycle,select_factory_msa,
+(select  projectId,country,vendor,consultant,select_factory_msa,
+ --cycle,
  
  case c
 
@@ -203,7 +205,8 @@ t2 as
 
 ),
 
-t3 as (select projectId,country,vendor,consultant,cycle,select_factory_msa,score,dimensions,
+t3 as (select projectId,country,vendor,consultant,select_factory_msa,score,dimensions,
+	   --cycle,
 	   case 
 	   when score = 3 then 1
 	   when score = 4 then 1
@@ -212,8 +215,10 @@ t3 as (select projectId,country,vendor,consultant,cycle,select_factory_msa,score
 	   end as filter 
 from t2)
 
-select projectId,country,vendor,consultant,cycle,select_factory_msa,dimensions,cast('1' as VARCHAR) as count
+select projectId,country,vendor,consultant,select_factory_msa,dimensions,cast('1' as VARCHAR) as count
+--,cycle
 from t3
 where filter =1 
-group by projectId, country, vendor, consultant, cycle, select_factory_msa, dimensions
+group by projectId, country, vendor, consultant, select_factory_msa, dimensions
+--, cycle
 
