@@ -19,9 +19,10 @@ left join ds_mysql_prod_tagelement t1 on t1.id = p1.select_factory_msa
 left join ds_mysql_prod_tagelement t2 on t2.id = p3.country),
 
 sub2 as(
-  select s1.*, cycle_new from sub1 s1, s1.cycle cycle_new)
+  select s1.*, cycle_new from sub1 s1, s1.cycle cycle_new),
   
-select s2.id, s2.projectid, s2.country, s2.vendor, t3.name as cycle, s2.consultant,
+sub3 as(
+  select s2.id, s2.projectid, s2.country, s2.vendor, t3.name as cycle, s2.consultant,
 
 case
 	when s2.select_factory_msa = 'Baseline' then s2.grievance
@@ -34,4 +35,20 @@ case
 end as grievance_e
 
 from sub2 s2
-left join ds_mysql_prod_tagelement t3 on t3.id = s2.cycle_new
+left join ds_mysql_prod_tagelement t3 on t3.id = s2.cycle_new),
+
+sub4 as(
+  select s3.projectid, s3.country, s3.vendor, s3.cycle, s3.consultant, 
+avg(s3.grievance_b) as grievance_b, avg(s3.grievance_e) as grievance_e
+
+from sub3 s3
+group by s3.projectid, s3.country, s3.vendor, s3.cycle, s3.consultant)
+
+select projectid, country, vendor, cycle, consultant, 
+(grievance_e - grievance_b) as grievance_improvement,
+case 
+	when grievance_improvement > 0 then 1 
+	else 0
+end as filter
+from sub4
+where filter = 1
