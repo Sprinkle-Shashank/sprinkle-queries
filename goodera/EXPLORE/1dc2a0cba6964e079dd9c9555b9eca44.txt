@@ -154,7 +154,8 @@ avg(cast(s4.overall as FLOAT)) as overall
 from sub4 s4
 group by s4.projectid, s4.country, s4.vendor, s4.consultant, s4.cycle, s4.select_factory_msa)
 
-select s5.projectid, s5.country, s5.vendor, s5.consultant, s5.cycle,
+sub6 as(
+  select s5.projectid, s5.country, s5.vendor, s5.consultant, s5.cycle, s5.select_factory_msa, 
 
 case
 	when s5.select_factory_msa = 'Baseline' then s5.overall
@@ -166,4 +167,10 @@ case
 	else 0
 end as overall_e
 
-from sub5 s5
+from sub5 s5)
+
+select s6.projectid, s6.country, s6.vendor, s6.consultant, s6.cycle, 
+sum(s6.overall_b) as overall_b, sum(s6.overall_e) as overall_e
+
+from sub6 s6
+group by s6.projectid, s6.country, s6.vendor, s6.consultant, s6.cycle
