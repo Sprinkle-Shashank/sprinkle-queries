@@ -1,0 +1,27 @@
+SELECT BE.name, BE.goodera_id, BE.beneficiary_name,
+P.name AS projectname,
+C.name AS caste,
+G.name AS gender,
+NC.name AS ndlm_completed,
+CONCAT(CONCAT(CONCAT(SPLIT_PART(BE.date_registration, ' ', 1),'T'),SPLIT_PART(BE.date_registration, ' ', 2)),'.000Z') AS fy_timerange,
+BE.family AS beneficiaries,
+'In-Direct' AS outreach_type,
+'Family Members (Digital Literacy)' AS beneficiary_type
+
+FROM profile_56533 AS BE
+
+LEFT JOIN ds_mysql_prod_project AS P
+ON BE.projectid = P.id
+
+LEFT JOIN ds_mysql_prod_tagelement AS C
+ON BE.caste = C.id
+
+LEFT JOIN ds_mysql_prod_tagelement AS G
+ON BE.gender = G.id
+
+LEFT JOIN ds_mysql_prod_tagelement AS NC
+ON BE.basic_completed = NC.id
+
+WHERE NC.name = 'Yes'
+
+GROUP BY BE.name, BE.goodera_id, BE.beneficiary_name, P.name, C.name, G.name, NC.name, BE.family, BE.date_registration
