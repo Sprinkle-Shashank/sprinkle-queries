@@ -29,14 +29,14 @@ table6 as
 union all
 select * from table5),
 
-t2 as (select projectId, unwind_cycle,tag2.name as cycle2
+t2 as (select projectId, vendor,consultant_tag,country,unwind_cycle,tag2.name as cycle2
 	   from table6
 	   left join ds_mysql_prod_tagelement tag2
 on unwind_cycle = tag2.id),
 
 --select * from t2
 	   
-t1 as (select p1._id, tag6.name as projectId, tag1.name as select_factory_msa,  tag3.name as country, p2.vendor, tag13.name as consultant, p2.cycle,gg.cycle2,
+t1 as (select p1._id, tag6.name as projectId, tag1.name as select_factory_msa,  tag3.name as country, gg.vendor, tag13.name as consultant, gg.cycle,gg.cycle2,
 
 case 
 when p1.resources = 1105585 then 1
@@ -143,18 +143,21 @@ when p1.hs_act  = 1105581 then 5
 end as hs_act1
 
 from profile_62477 p1
-left join profile_64362 p2
-on p1.projectId = p2.projectId
+	   
+--left join profile_64362 p2
+--on p1.projectId = p2.projectId
+
 left join t2 gg
 on p1.projectId = gg.projectId
+	   
 left join ds_mysql_prod_tagelement tag1
 on p1.select_factory_msa = tag1.id 
 left join ds_mysql_prod_tagelement tag6
 on p1.projectId = tag6.id
 left join ds_mysql_prod_tagelement tag3
-on p2.country = tag3.id
+on gg.country = tag3.id
 left join ds_mysql_prod_tagelement tag13
-on p2.consultant_tag = tag13.id
+on gg.consultant_tag = tag13.id
 )
 
 select  t1.projectId, select_factory_msa,  country,vendor, consultant, t1.cycle2 as cycle ,
