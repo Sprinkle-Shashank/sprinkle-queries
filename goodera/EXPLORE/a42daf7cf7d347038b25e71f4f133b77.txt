@@ -139,11 +139,16 @@ LEAST(nvl(s2.incident,10), nvl(s2.monitoring,10)) as check,
 LEAST(nvl(s2.act_adjust,10), nvl(s2.hs_act,10)) as act
   
 from sub2 s2
-left join ds_mysql_prod_tagelement t3 on t3.id = s2.cycle_new)
+left join ds_mysql_prod_tagelement t3 on t3.id = s2.cycle_new),
 
-select s3.id, s3.projectid, s3.select_factory_msa, s3.country, s3.vendor, s3.consultant, s3.cycle,
+sub4 as(
+  select s3.id, s3.projectid, s3.select_factory_msa, s3.country, s3.vendor, s3.consultant, s3.cycle,
 
 LEAST(s3.plan, s3.do, s3.check, s3.act) as overall
 
 from sub3 s3
-where s3.select_factory_msa = 'Endline'
+where s3.select_factory_msa = 'Endline')
+
+select s4.projectid, s4.country, s4.vendor, s4.consultant, s4.cycle, avg(s4.overall) as score
+from sub4 s4
+group by s4.projectid, s4.country, s4.vendor, s4.consultant, s4.cycle
