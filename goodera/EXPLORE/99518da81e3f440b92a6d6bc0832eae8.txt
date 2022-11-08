@@ -1,12 +1,12 @@
 with table1 as(select  projectId, description  , pic, fy_timerange, ngo, sdg,sdg_pic, name, s_date, state_district
 from profile_46325 t1),
 
-table2 as (select t1.*,state_district,sdg1 from table1 t1 , t1.state_district as state_distric
+table2 as (select t1.*,state_distric,sdg1 from table1 t1 , t1.state_district as state_distric
 		   , t1.sdg as sdg1
 		  ),
 
 table3 as(
-select projectId, description, pic, fy_timerange,ngo, listagg(cast(reg.name as varchar),',') as sdg1, sdg_pic, p.name, s_date,  
+select projectId, description, pic, fy_timerange,ngo, reg.name as sdg1, sdg_pic, p.name, s_date,  
   
   CASE when reg2.name='' then reg2.name else reg1.name end as state
   from table2 p
@@ -24,7 +24,7 @@ on reg1.parent= reg2.id
   Group By projectId, description, pic, fy_timerange, sdg_pic, p.name, reg.name, s_date,ngo,state
 )
 
-select projectId, description, pic, fy_timerange, ngo, sdg1, sdg_pic, p1.name, s_date,   listagg(state,',') as stat from table3 p1
+select projectId, description, pic, fy_timerange, ngo, listagg(cast(sdg1 as varchar),','), sdg_pic, p1.name, s_date,   listagg(state,',') as stat from table3 p1
 
 
 
