@@ -1,8 +1,8 @@
 with table1 as
-(select _id , projectId,country, vendor,unwind_cycle, product_category, consultant_tag from profile_64362 as p ,p.cycle as unwind_cycle),
+(select _id , projectId,country, vendor,unwind_cycle, product_category,factory, consultant_tag from profile_64362 as p ,p.cycle as unwind_cycle),
 
  table2 as
-(select _id, projectId,country, vendor,cycle,product_category,consultant_tag from profile_64362
+(select _id, projectId,country, vendor,cycle,product_category,factory,consultant_tag from profile_64362
   where _id not in (select _id from table1))
   ,
   
@@ -17,11 +17,11 @@ table3 as
   
 table4 as  
 (
- select _id,  projectId,country,vendor,unwind_cycle, unwind_product_category,consultant_tag from table3 t3, t3.product_category  as unwind_product_category
+ select _id,  projectId,country,vendor,unwind_cycle, unwind_product_category,factory,consultant_tag from table3 t3, t3.product_category  as unwind_product_category
  ),
 
 table5 as
-(select _id, projectId,country,vendor,unwind_cycle,  null as product_category,consultant_tag from table3 
+(select _id, projectId,country,vendor,unwind_cycle,  null as product_category,factory,consultant_tag from table3 
  where _id not in (select _id from table4)),
  
 table6 as
@@ -29,20 +29,23 @@ table6 as
 union all
 select * from table5)
 
-select tag1.name as projectId,  p1.name, p1.date, p1.notes, p1.agenda_2, p1.photo, tag2.name as year, p1.num_vendor, p1.num_factory,  tag5.name as training_type,tag3.name as country, p5.factory, p2.vendor,  tag13.name as consultant, tag15.name as product_category, 
+select tag1.name as projectId,  p1.name, p1.date, p1.notes, p1.agenda_2, p1.photo, tag2.name as year, p1.num_vendor, p1.num_factory,  tag5.name as training_type,tag3.name as country, p5.factory, p3.vendor,  tag13.name as consultant, tag15.name as product_category, 
 --if(or(eq($year,1433762),eq($year,1433763),eq($year,1433764)),"Cycle 1","Cycle 2")
 case
-when unwind_cycle = 1433762 or unwind_cycle = 1433763 or unwind_cycle = 1433764 then 'Cycle 1'
+when year = 1433762 or year = 1433763 or year = 1433764 then 'Cycle 1'
 else 'Cycle 2'
 end as cycle ,
-count(*) as worker_management_committee_meetings_held
+count(p1.projectId) as worker_management_committee_meetings_held
 from profile_61606 p1
+
 left join table6 p3
 on p1.projectId= p3.projectId
-left join profile_64362 p2
-on p1.projectId= p2.projectId
+
+--left join profile_64362 p2
+--on p1.projectId= p2.projectId
+
 left join ds_mysql_prod_tagelement tag3
-on p2.country = tag3.id
+on p3.country = tag3.id
 left join ds_mysql_prod_tagelement tag1
 on p1.projectId = tag1.id
 left join ds_mysql_prod_tagelement tag2
@@ -50,7 +53,7 @@ on p1.year = tag2.id
 left join ds_mysql_prod_tagelement tag5
 on p1.training_type = tag5.id
 left join profile_64170 as p5
-on p2.factory = p5._id
+on p3.factory = p5._id
 left join ds_mysql_prod_tagelement tag15
 on unwind_product_category = tag15.id
 
