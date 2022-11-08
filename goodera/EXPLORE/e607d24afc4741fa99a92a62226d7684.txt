@@ -1,0 +1,60 @@
+with table1 as
+(select _id , projectId,country, vendor,unwind_cycle, product_category, consultant_tag from profile_64362 as p ,p.cycle as unwind_cycle),
+
+ table2 as
+(select _id, projectId,country,vendor,cycle,product_category,consultant_tag from profile_64362
+  where _id not in (select _id from table1))
+  ,
+  
+table3 as
+ (
+	select * from table1
+  Union all
+  select * from table2
+ )
+ ,
+
+  
+table4 as  
+( select _id,  projectId,country,vendor,unwind_cycle, unwind_product_category,consultant_tag from table3 t3, t3.product_category  as unwind_product_category
+ ),
+
+table5 as
+(select _id, projectId,country,vendor,unwind_cycle,  null as product_category,consultant_tag from table3 
+ where _id not in (select _id from table4)),
+ 
+table6 as
+(select * from table4
+union all
+select * from table5)
+
+,
+t1 as 
+( select p1._id, p3.name as projectId, p1.name, keyword_1_timerange, tag7.name as training_type, tag8.name as year, fpy :: float
+ , tag3.name as country,  p2.vendor, tag5.name as cycle, tag4.name as consultant, tag6.name as product_category ,substring(p1.name,len(p1.name)-9,10)  as month  
+ from profile_62916 as p1
+ left join table6 as p2
+on p1.projectId = p2.projectId
+left join ds_mysql_prod_project p3
+on p1.projectId= p3.id
+left join ds_mysql_prod_tagelement tag3
+on p2.country = tag3.id
+left join ds_mysql_prod_tagelement tag4
+on p2.consultant_tag = tag4.id
+left join ds_mysql_prod_tagelement tag5
+on p2.unwind_cycle = tag5.id 
+left join ds_mysql_prod_tagelement tag6 
+ on tag6.id = p2.unwind_product_category
+left join ds_mysql_prod_tagelement tag7
+on p1.training_type = tag7.id
+ left join ds_mysql_prod_tagelement tag8
+on p1.year = tag8.id
+ where  training_type=1411055)
+ , t2 as
+ (
+ select  _id, projectId,keyword_1_timerange, year, fpy,vendor,consultant,country,product_category, cycle,month, _id as id2 from t1
+ where fpy is not null)
+ , t3 as
+ (select _id, projectId, keyword_1_timerange, year, vendor, consultant, country, product_category, cycle, month, id2 ,count(*) as count from t2
+ group by _id, projectId, keyword_1_timerange, year, vendor, consultant, country, product_category, cycle, month, id2)
+ select keyword_1_timerange,vendor,  consultant, country, product_category, cycle,month,id2,count from t3
