@@ -29,6 +29,19 @@ table6 as
 union all
 select * from table5),
 
+table7 as(
+  select projectId,_id, status, training_type,  year, cycle ,
+  case 
+  when is_array(cycle) =false or get_array_length(cycle)=0 then array(cycle)
+  else cycle 
+  end as Final_cycle
+  from profile_64362
+)
+
+,
+table8 as
+(select projectId,_id, status, training_type,  year, unwind_cycle from table7 as p1,p1.final_cycle as unwind_cycle),
+
 t1 as (select tag2.name as projectId, tag3.name as country, p1.vendor, tag1.name as cycle,  p1.product_category ,p2.name as consultant,p3.end_date, p3.actual_end_date, p3.program_level_milestone as milestone,
 
 
@@ -37,23 +50,28 @@ when actual_end_date = Null or actual_end_date <= p3.end_date  then 'Compeleted'
 when actual_end_date >= p3.end_date then  'Delayed but completed' 
 else 'NA'
 end as status ,
+	   
 count(*) as count
+	   
 from profile_64362 p1
+	   
 left join table6 p4 
 on p1.projectId= p4.projectId
+	   
 left join profile_61583 p2
 on p1.consultant= p2._id
+	   
 left join profile_64141 p3
 on p1.projectId=p3.projectId
 left join ds_mysql_prod_tagelement tag1
 on p4.unwind_cycle = tag1.id
-	   left join ds_mysql_prod_tagelement tag2
+left join ds_mysql_prod_tagelement tag2
 on p1.projectId = tag2.id
 left join ds_mysql_prod_tagelement tag3
 on p1.country = tag3.id
 where status = 'Compeleted'
---Group by p1.projectId, p1.country, p1.vendor, p1.cycle, product_category, consultant, p3.end_date, actual_end_date, milestone, status,p2.name,p3.program_level_milestone,tag2.name,tag1.name,tag3.name
+Group by p1.projectId, p1.country, p1.vendor, p1.cycle, product_category, consultant, p3.end_date, actual_end_date, milestone, status,p2.name,p3.program_level_milestone,tag2.name,tag1.name,tag3.name
 	  )
 
-select * from t1
+select * from table8
 
