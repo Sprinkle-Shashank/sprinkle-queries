@@ -147,8 +147,20 @@ sub4 as(
 LEAST(s3.plan, s3.do, s3.check, s3.act) as overall
 
 from sub3 s3
-where s3.select_factory_msa = 'Endline')
+where s3.select_factory_msa = 'Endline'),
 
-select s4.projectid, s4.country, s4.vendor, s4.consultant, s4.cycle, avg(s4.overall) as score
+sub5 as(
+  select s4.projectid, s4.country, s4.vendor, s4.consultant, s4.cycle, avg(s4.overall) as score
 from sub4 s4
-group by s4.projectid, s4.country, s4.vendor, s4.consultant, s4.cycle
+group by s4.projectid, s4.country, s4.vendor, s4.consultant, s4.cycle)
+
+select projectid, country, vendor, consultant, cycle, score, 1 as count,
+case
+	when score = 1 then 'Basic'
+	when score = 2 then 'Reactive'
+	when score = 3 then 'Compliant'
+	when score = 4 then 'Proactive'
+	when score = 5 then 'Resilient'
+	else NULL
+end as x_axis
+from sub5
