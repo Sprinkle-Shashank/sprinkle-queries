@@ -29,6 +29,18 @@ table6 as
 union all
 select * from table5),
 
+table7 as(
+  select projectId,_id, status, training_type,  year, cycle ,
+  case 
+  when is_array(cycle) =false or get_array_length(cycle)=0 then array(cycle)
+  else cycle
+  end as Final_cycle
+  from profile_64362
+),
+table8 as
+(select projectId, unwind_cycle 
+ from table7 as p1,p1.final_cycle as unwind_cycle),
+
 t1 as (select p1._id, tag2.name as projectId,  tag1.name as select_factory_msa,tag3.name as country,p2.vendor,p3.name as consultant,
 	   --tag5.name as cycle,
 
@@ -213,12 +225,13 @@ t3 as (select projectId,country,vendor,consultant,select_factory_msa,score,dimen
 	   when score = 5 then 1
 	   else 0
 	   end as filter 
-from t2)
+from t2),
 
-select projectId,country,vendor,consultant,select_factory_msa,dimensions,cast('1' as VARCHAR) as count
+tt as (select projectId,country,vendor,consultant,select_factory_msa,dimensions,cast('1' as VARCHAR) as count
 --,cycle
 from t3
 where filter =1 
 group by projectId, country, vendor, consultant, select_factory_msa, dimensions
 --, cycle
-
+)
+select * from table8
