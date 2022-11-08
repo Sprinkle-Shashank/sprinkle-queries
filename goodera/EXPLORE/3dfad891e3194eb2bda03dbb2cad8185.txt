@@ -1,43 +1,14 @@
-WITH SUB1 AS (
-  SELECT SE.name, SE.fy_timerange, SE.shg_ent_name, SE.women_selected, SE.women_added,
-  SHG.name AS shg_ent,
-  P.name AS projectname
-  
-  FROM profile_56593 AS SE
+SELECT BE.name BE.goodera_id, BE.beneficiary_name,
+P.name AS projectname
+BE.date_registration,
+BE.caste,
+BE.gender,
+BE.basic_completed
 
-  LEFT JOIN ds_mysql_prod_project AS P
-  ON SE.projectid = P.id
+FROM profile_56533 AS BE
 
-  LEFT JOIN ds_mysql_prod_tagelement AS SHG
-  ON SE.shg_ent = SHG.id
-  ),
-  
-SUB2 AS (
-  SELECT name, fy_timerange, shg_ent_name, shg_ent, projectname, WS, women_added
-  
-  FROM SUB1 AS S1,
-  
-  S1.women_selected AS WS
-),
+LEFT JOIN ds_mysql_prod_project AS P
+ON BE.projectid = P.id
 
-SUB3 AS (
-  SELECT name, fy_timerange, shg_ent_name, shg_ent, projectname, WS, WA
-  
-  FROM SUB2 AS S2,
-  
-  S1.women_added AS WA
-  )
-
-SELECT SUB3.name, fy_timerange, shg_ent_name, shg_ent, projectname,
-BE1.name AS women_selected,
-BE2.name AS women_added  
-
-FROM SUB3
-
-LEFT JOIN profile_56533 AS BE1
-ON WS = BE1._id
-  
-LEFT JOIN profile_56533 AS BE2
-ON WA = BE2._id
-
---WHERE BE.name IS NOT NULL
+--LEFT JOIN ds_mysql_prod_tagelement AS OT
+--ON L.order_type = OT.id
