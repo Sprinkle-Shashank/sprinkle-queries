@@ -1,10 +1,149 @@
-with x as (select xprojectid,fy_timerange, financialperiod,datatablebase from sus_9539 where keyword in ('third_party_fleet')
-		   and datatablebase is not null and status='APPROVED'),
-		   
-temp2 as (select * ,temp1.fuel_third, temp1.fuel_consump_third,
-		  temp1.dist_third		   
-		  from x as temp,
-		  unpivot temp.datatablebase as temp1 at row)
-		  
+with sub1 as(
+  select p1._id as id, p2.name as projectid, t1.name as select_factory_msa, p3.cycle, t2.name as country, p3.vendor, p4.name as consultant,
 
-select * from temp2
+case
+	when p1.resources = 1105585 then 1
+	when p1.resources = 1105584 then 2
+	when p1.resources = 1105583 then 3
+	when p1.resources = 1105582 then 4
+	when p1.resources = 1105581 then 5
+	else NULL
+end as resources,
+
+case
+	when p1.policies = 1105585 then 1
+	when p1.policies = 1105584 then 2
+	when p1.policies = 1105583 then 3
+	when p1.policies = 1105582 then 4
+	when p1.policies = 1105581 then 5
+	else NULL
+end as policies,
+
+case
+	when p1.risk = 1105585 then 1
+	when p1.risk = 1105584 then 2
+	when p1.risk = 1105583 then 3
+	when p1.risk = 1105582 then 4
+	when p1.risk = 1105581 then 5
+	else NULL
+end as risk,
+
+case
+	when p1.procedure = 1105585 then 1
+	when p1.procedure = 1105584 then 2
+	when p1.procedure = 1105583 then 3
+	when p1.procedure = 1105582 then 4
+	when p1.procedure = 1105581 then 5
+	else NULL
+end as procedure,
+
+case
+	when p1.grievance = 1105585 then 1
+	when p1.grievance = 1105584 then 2
+	when p1.grievance = 1105583 then 3
+	when p1.grievance = 1105582 then 4
+	when p1.grievance = 1105581 then 5
+	else NULL
+end as grievance,
+
+case
+	when p1.training = 1105585 then 1
+	when p1.training = 1105584 then 2
+	when p1.training = 1105583 then 3
+	when p1.training = 1105582 then 4
+	when p1.training = 1105581 then 5
+	else NULL
+end as training,
+
+case
+	when p1.monitoring = 1105585 then 1
+	when p1.monitoring = 1105584 then 2
+	when p1.monitoring = 1105583 then 3
+	when p1.monitoring = 1105582 then 4
+	when p1.monitoring = 1105581 then 5
+	else NULL
+end as monitoring,
+
+case
+	when p1.incident = 1105585 then 1
+	when p1.incident = 1105584 then 2
+	when p1.incident = 1105583 then 3
+	when p1.incident = 1105582 then 4
+	when p1.incident = 1105581 then 5
+	else NULL
+end as incident,
+
+case
+	when p1.communication = 1105585 then 1
+	when p1.communication = 1105584 then 2
+	when p1.communication = 1105583 then 3
+	when p1.communication = 1105582 then 4
+	when p1.communication = 1105581 then 5
+	else NULL
+end as communication,
+
+case
+	when p1.act_adjust = 1105585 then 1
+	when p1.act_adjust = 1105584 then 2
+	when p1.act_adjust = 1105583 then 3
+	when p1.act_adjust = 1105582 then 4
+	when p1.act_adjust = 1105581 then 5
+	else NULL
+end as act_adjust,
+
+case
+	when p1.hs_act = 1105585 then 1
+	when p1.hs_act = 1105584 then 2
+	when p1.hs_act = 1105583 then 3
+	when p1.hs_act = 1105582 then 4
+	when p1.hs_act = 1105581 then 5
+	else NULL
+end as hs_act,
+
+case
+	when p1.hs_training = 1105585 then 1
+	when p1.hs_training = 1105584 then 2
+	when p1.hs_training = 1105583 then 3
+	when p1.hs_training = 1105582 then 4
+	when p1.hs_training = 1105581 then 5
+	else NULL
+end as hs_training,
+
+case
+	when p1.hs_risk = 1105585 then 1
+	when p1.hs_risk = 1105584 then 2
+	when p1.hs_risk = 1105583 then 3
+	when p1.hs_risk = 1105582 then 4
+	when p1.hs_risk = 1105581 then 5
+	else NULL
+end as hs_risk
+
+from profile_62477 p1
+
+left join ds_mysql_prod_project p2 on p2.id = p1.projectid
+left join profile_64362 p3 on p3.projectid = p1.projectid
+left join profile_61583 p4 on p4._id = p3.consultant
+
+left join ds_mysql_prod_tagelement t1 on t1.id = p1.select_factory_msa
+left join ds_mysql_prod_tagelement t2 on t2.id = p3.country),
+
+sub2 as(
+  select s1.*, cycle_new from sub1 s1, s1.cycle cycle_new), 
+ 
+sub3 as(
+  select s2.id, s2.projectid, s2.select_factory_msa, s2.country, s2.vendor, s2.consultant, t3.name as cycle, 
+
+LEAST( s2.resources, s2.policies, s2.hs_risk, s2.risk) as plan, 
+LEAST(s2.procedure, s2.communication, s2.grievance, s2.training, s2.hs_training) as do, 
+LEAST(s2.incident, s2.monitoring) as check,
+LEAST(s2.act_adjust, s2.hs_act) as act
+  
+from sub2 s2
+left join ds_mysql_prod_tagelement t3 on t3.id = s2.cycle_new)
+
+select s3.id, s3.projectid, s3.select_factory_msa, s3.country, s3.vendor, s3.consultant, s3.cycle,
+s3.plan, s3.do, s3.check, s3.act,
+
+LEAST(s3.plan, s3.do, s3.check, s3.act) as overall
+
+from sub3 s3
