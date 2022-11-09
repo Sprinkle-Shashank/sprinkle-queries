@@ -8,12 +8,12 @@ With table1 as (
   p1.schedule_vii as schedule_7_unwind,
   p1.sdg as sdg_unwind,
   p1.sdg_pic as sdg_icon_unwind,
-  p1.location as location_unwind
+  p1.state_district as location_unwind
   ),
 
 
  table2 as ( 
-  Select table1._id, table1.name , table1.projectid , proj.name AS projectname, table1.fy_timerange , table1.status ,table1.location, table1.title , table1.type , ng.name as ngo , table1.proj_img, table1.s_date, table1.e_date,table1.desc,table1.spoc_name,table1.spoc_email,table1.spoc_contact,table1.budget , table1.outcome,to_char(table1.s_date, 'MM-YYYY') as start_final , to_char(table1.e_date, 'MM-YYYY') as end_final , concat(concat(start_final,' to  '),end_final) as new_dur,  INITCAP(ent.name) as entity ,
+  Select table1._id, table1.name , table1.projectid , proj.name AS projectname, table1.fy_timerange  ,table1.state_district , ng.name as ngo , table1.pic, table1.project_start_date, table1.project_end_date,table1.desc ,to_char(table1.project_start_date, 'MM-YYYY') as start_final , to_char(table1.project_end_date, 'MM-YYYY') as end_final , concat(concat(start_final,' to  '),end_final) as new_dur, 
   
  listagg(distinct cast(foc.name as varchar),',') AS schedule_7_unwind,	
  listagg(distinct cast(sg.name as varchar),',') AS sdg_unwind,
@@ -41,16 +41,11 @@ ON ng.id = table1.ngo
    
 LEFT JOIN ds_mysql_prod_project AS proj
 ON table1.projectid = proj.id
-   
-Left join ds_mysql_prod_tagelement ent 
-ON table1.entity = ent.id
   
-Left join ds_mysql_prod_tagelement sta 
-ON table1.status = sta.id
   
   GROUP BY 
    table1._id,
-  table1.name , table1.projectid , table1.fy_timerange , table1.status , table1.title , table1.type , table1.ngo , table1.proj_img, table1.s_date, table1.e_date,table1.desc,table1.spoc_name,table1.spoc_email,table1.spoc_contact,table1.budget , table1.outcome , ng.name , proj.name, table1.location , table1.entity , ent.name , sta.name , st.name , st1.name  ), 
+  table1.name , table1.projectid , table1.fy_timerange , table1.ngo , table1.pic, table1.project_start_date, table1.project_end_date,table1.desc , ng.name , proj.name, table1.location , sta.name , st.name , st1.name  ), 
   
   
   
@@ -76,9 +71,9 @@ LEFT JOIN table4 t4
 on p._id = t4._id
 )
 
-select p.desc , proj_img , sdg_photo_unwind2 , ngo , new_dur , status_update , count_state , count(*) as count_check , projectname , _id , entity , fy_timerange from table5 as p
+select p.desc , pic , sdg_photo_unwind2 , ngo , new_dur , status_update , count_state , count(*) as count_check , projectname , _id  , fy_timerange from table5 as p
 
-group by  p.desc , proj_img , sdg_photo_unwind2 , ngo , new_dur , status_update , count_state  , _id , entity , fy_timerange , projectname
+group by  p.desc , pic , sdg_photo_unwind2 , ngo , new_dur , status_update , count_state , _id , fy_timerange , projectname
 
 order by count_state desc
 
