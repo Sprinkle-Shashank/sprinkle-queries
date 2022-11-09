@@ -45,9 +45,23 @@ left join ds_mysql_prod_tagelement t1 on t1.id = p1.select_factory_msa
 left join ds_mysql_prod_tagelement t2 on t2.id = p3.country),
 
 sub2 as(
-  select s1.*, cycle_new from sub1 s1, s1.cycle cycle_new)
+  select s1.*, cycle_new from sub1 s1, s1.cycle cycle_new),
   
-select s2.id, s2.projectid, s2.select_factory_msa, s2.country, s2.vendor, s2.consultant, t3.name as cycle, 
-(nvl(s2.hs_act, 0) + nvl(s2.hs_training, 0) + nvl(s2.hs_risk, 0) + nvl(s2.incident, 0)) as hs_overall
+sub3 as(
+  select s2.id, s2.projectid, s2.select_factory_msa, s2.country, s2.vendor, s2.consultant, t3.name as cycle, 
+(nvl(s2.hs_act, 0) + nvl(s2.hs_training, 0) + nvl(s2.hs_risk, 0) + nvl(s2.incident, 0)) as hs_overall,
+  
+case
+	when s2.select_factory_msa = 'Baseline' then hs_overall
+ 	else NULL
+end as hs_overall_b,
+  
+case
+	when s2.select_factory_msa = 'Endline' then hs_overall
+ 	else NULL
+end as hs_overall_e
+
 from sub2 s2
-left join ds_mysql_prod_tagelement t3 on t3.id = s2.cycle_new
+left join ds_mysql_prod_tagelement t3 on t3.id = s2.cycle_new)
+
+select * from sub3
