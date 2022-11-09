@@ -1,0 +1,125 @@
+with table1 as
+(select _id , projectId,country, vendor,unwind_cycle, product_category, consultant_tag from profile_64362 as p ,p.cycle as unwind_cycle),
+
+ table2 as
+(select _id, projectId,country, vendor,cycle,product_category,consultant_tag from profile_64362
+  where _id not in (select _id from table1))
+  ,
+  
+table3 as
+ (
+	select * from table1
+  Union all
+  select * from table2
+ )
+ ,
+
+  
+table4 as  
+(
+ select _id,  projectId,country,vendor,unwind_cycle, unwind_product_category,consultant_tag from table3 t3, t3.product_category  as unwind_product_category
+ ),
+
+table5 as
+(select _id, projectId,country,vendor,unwind_cycle,  null as product_category,consultant_tag from table3 
+ where _id not in (select _id from table4)),
+ 
+table6 as
+(select * from table4
+union all
+select * from table5)
+
+, t2 as
+(select p1._id, p3.name as projectId, tag1.name as training_type,tag2.name as year, p1.num_less_3, p1.num_3_6, p1.num_6_12, p1.num_1_3, p1.num_3_5, p1.num_more_5, p1.num_less_1,p1.timerange_timerange
+,tag3.name as country, p2.vendor, tag5.name as cycle,tag6.name as product_category, tag4.name as consultant,timerange_timerange.start as monthnum,Cast(monthnum as varchar) as Time_Start,substring(Time_Start, 6,2) as month
+from profile_61528 as p1
+left join table6 as p2
+on p1.projectId = p2.projectId
+left join ds_mysql_prod_project p3
+on p1.projectId= p3.id
+left join ds_mysql_prod_tagelement tag3
+on p2.country = tag3.id
+left join ds_mysql_prod_tagelement tag4
+on p2.consultant_tag = tag4.id
+left join ds_mysql_prod_tagelement tag5
+on p2.unwind_cycle = tag5.id 
+left join ds_mysql_prod_tagelement tag6 
+ on tag6.id = p2.unwind_product_category
+ left join ds_mysql_prod_tagelement tag2
+on p1.year = tag2.id
+left join ds_mysql_prod_tagelement tag1 
+on p1.training_type = tag1.id)
+
+,
+t3 as
+(select pr._id,  projectId, pr.training_type,pr.year,pr.num_less_3 as "< 3 Months", pr.num_3_6 as "3-6 Months", pr.num_6_12 as "6-12 Months", pr.num_1_3 as "1-3 Years", pr.num_3_5 as "3-5 Years", pr.num_more_5 as "> 5 Years", pr.num_less_1 as "New Workers < 1 Month" ,pr.timerange_timerange
+, country, pr.vendor,  cycle, product_category,  consultant, pr.monthnum, pr.Time_Start, pr.month,
+case when  pr.month='01' then  'Jan'
+when  pr.month='02' then 'Feb '
+when   pr.month='03' then 'Mar'
+when  pr.month='04' then 'Apr'
+when  pr.month='05' then 'May'
+when  pr.month='06' then 'Jun'
+when  pr.month='07' then 'Jul'
+when  pr.month='08' then 'Aug'
+when  pr.month='09' then 'Sep'
+when  pr.month='10' then 'Oct'
+when  pr.month='11' then 'Nov'
+else  'Dec'
+end as monthstring
+from t2 as pr)
+, t4 as
+(select p._id,  projectId, p.training_type,  p.timerange_timerange , p."< 3 Months",p."3-6 Months",p."1-3 Years",p."6-12 Months",p."3-5 Years",p."> 5 Years",p."New Workers < 1 Month",
+, country, p.vendor,  cycle, product_category,  consultant,p.year, p.monthstring , monthstring   || '(' || year || ')' as month
+from t3 as p)
+,
+item as 
+(
+select '< 3 Months' as c
+union all
+select '3-6 Months' as c
+union all
+select '6-12 Months' as c
+union all
+select '1-3 Years' as c
+union all
+select '3-5 Years' as c
+  union all
+select '> 5 Years' as c
+   union all
+select 'New Workers < 1 Month' as c
+)
+,
+
+t5 as 
+(select  _id, projectId, training_type,  timerange_timerange ,country, vendor, consultant,cycle,product_category,year,month
+ ,
+case c
+ when '< 3 Months' then t4."< 3 Months"
+ when '3-6 Months'  then t4."3-6 Months"
+when '6-12 Months' then t4."6-12 Months"
+ when '1-3 Years' then t4."1-3 Years"
+ when '3-5 Years' then t4."3-5 Years"
+  when '> 5 Years' then t4."> 5 Years"
+  when 'New Workers < 1 Month' then t4."New Workers < 1 Month"
+else null
+ end as Values, item.c as Dimensions
+from t4 cross join item 
+)
+,t6 as
+(select _id,projectId,timerange_timerange,training_type,country,vendor,consultant,product_category,cycle,year,month,Dimensions,Values,
+case
+when Dimensions='< 3 Months' then 1
+when Dimensions='3-6 Months' then 2
+when Dimensions='6-12 Months' then 3
+when Dimensions='1-3 Years' then 4
+ when Dimensions='3-5 Years' then 5
+ when Dimensions='> 5 Years' then 6
+else 7
+end as sort,_id as id2
+from t5
+ )
+
+select  projectId, training_type,  timerange_timerange ,country, vendor, consultant,cycle,product_category,year,month,Dimensions,sort, id2,sum(Values) as values
+from  t6
+group by projectId, training_type,  timerange_timerange ,country, vendor, consultant,cycle,product_category,year,month,Dimensions,sort,id2
