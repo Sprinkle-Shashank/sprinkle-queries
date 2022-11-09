@@ -1,5 +1,19 @@
 with table1 as
-( select p.projectid , p._id , fy_timerange , p.desc , ngo , sdg , sdg_pic , project_start_date , project_end_date , pic , state_district , ongoing , past from profile_46325 as p
- )
+( select p.projectid , p._id , fy_timerange , p.desc , ngo , sdg , sdg_pic , project_start_date , project_end_date , pic , state_district , ongoing , past , past_update.name as past_update_new from profile_46325 as p
  
- select * from table1
+ left join ds_mysql_prod_tagelement past_update 
+ on p.past = past_update.id
+ ),
+ 
+ table2 as
+ (
+ select p.*, from table1 as p , p.state_district as state_dstrict_update , p.sdg as sdg_update
+  ),
+  
+  table3 as
+  (
+	select p.projectid , p._id , fy_timerange , p.desc , ngo , sdg_pic , project_start_date , project_end_date , pic , state_dstrict_update , ongoing, past_update_new , sdg_update from table2 as p
+	)
+	
+	select * from table3
+  
