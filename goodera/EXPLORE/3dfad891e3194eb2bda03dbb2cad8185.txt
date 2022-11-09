@@ -1,44 +1,18 @@
-SELECT BE.name, BE.goodera_id, BE.beneficiary_name,
-P.name AS projectname,
-C.name AS caste,
-G.name AS gender,
-BC.name AS basic_completed,
-AC1.name AS advance1_completed,
-AC2.name AS advance2_completed,
-AC3.name AS advance3_completed,
-CONCAT(CONCAT(CONCAT(SPLIT_PART(BE.date_registration, ' ', 1),'T'),SPLIT_PART(BE.date_registration, ' ', 2)),'.000Z') AS fy_timerange,
-BE.family AS beneficiaries,
-'In-Direct' AS outreach_type,
-'Family Members (Basic + Advanced)' AS beneficiary_type
+SELECT SE.groups_reached
 
-FROM profile_56533 AS BE
+FROM profile_56593 AS SE
 
+/*
 LEFT JOIN ds_mysql_prod_project AS P
-ON BE.projectid = P.id
+ON SE.projectid = P.id
 
-LEFT JOIN ds_mysql_prod_tagelement AS C
-ON BE.caste = C.id
+LEFT JOIN ds_mysql_prod_tagelement AS SHG
+ON SE.shg_ent = SHG.id
 
-LEFT JOIN ds_mysql_prod_tagelement AS G
-ON BE.gender = G.id
+LEFT JOIN ds_mysql_prod_tagelement AS D
+ON SE.closed = D.id
 
-LEFT JOIN ds_mysql_prod_tagelement AS BC
-ON BE.basic_completed = BC.id
+WHERE SHG.name = 'SHG'
 
-LEFT JOIN ds_mysql_prod_tagelement AS AC1
-ON BE.advance_completed = AC1.id
-
-LEFT JOIN ds_mysql_prod_tagelement AS AC2
-ON BE.advance2_completed = AC2.id
-
-LEFT JOIN ds_mysql_prod_tagelement AS AC3
-ON BE.advance3_completed = AC3.id
-
-WHERE
-BC.name = 'Yes' OR
-AC1.name = 'Yes' OR
-AC1.name = 'Yes' OR
-AC3.name = 'Yes' AND
-BE.family IS NOT NULL
-
-GROUP BY BE.name, BE.goodera_id, BE.beneficiary_name, P.name, C.name, G.name, BC.name, BE.date_registration, AC1.name, AC2.name, AC3.name, BE.family
+GROUP BY SE.name, SE.fy_timerange, SE.groups_reached, SE.shg_ent_name, SHG.name, P.name, D.name
+*/
