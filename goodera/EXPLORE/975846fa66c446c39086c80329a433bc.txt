@@ -29,7 +29,7 @@ table6 as
 union all
 select * from table5),
 
-t1 as (select tag1.name as projectId, p1.training_type, tag5.name as year,tag6.name as country, p2.vendor, tag2.name as cycle, tag3.name as product_category, tag4.name as consultant,p1.recognized_union, p1.workers_production_units, p1.male_female, p1.female_representation, p1.decision_making_attendance, p1.decision_making,p1.meetings_held,p1.members_present_meetings, p1.active_members_list, p1.peers_reachout, p1.retaliation, p1.alternative_tradeunion, p1.issues_addressed, p1.follow_up,p1.assessment_review, p1.members_duty_released,p1._id as id2
+t1 as (select tag1.name as projectId, tag9.name as training_type, tag5.name as year,tag6.name as country, p2.vendor, tag2.name as cycle, tag3.name as product_category, tag4.name as consultant,p1.recognized_union, p1.workers_production_units, p1.male_female, p1.female_representation, p1.decision_making_attendance, p1.decision_making,p1.meetings_held,p1.members_present_meetings, p1.active_members_list, p1.peers_reachout, p1.retaliation, p1.alternative_tradeunion, p1.issues_addressed, p1.follow_up,p1.assessment_review, p1.members_duty_released,p1._id as id2
 from profile_62306 p1
 
 left join table6 p2
@@ -46,7 +46,9 @@ on p2.consultant_tag = tag4.id
 left join ds_mysql_prod_tagelement tag5
 on p1.year = tag5.id
 left join ds_mysql_prod_tagelement tag6
-on p2.country = tag6.id),
+on p2.country = tag6.id
+	  left join ds_mysql_prod_tagelement tag9
+on p1.training_type = tag9.id),
 
 item as 
 (
@@ -141,160 +143,7 @@ on t2.answers = tag7.id
 	  
 	  select projectId, training_type, country, vendor, consultant, cycle, product_category, year, Questions, Answers, Question_text, id2, sum(f.yes_count) as yes_count 
 	  from final as f 
+	  where yes_count =0
 	  group by projectId, training_type, country, vendor, consultant, cycle, product_category, year, Questions, Answers, Question_text, id2
  
  
-
-
-
-
-
-
-/*with table1 as
-(select _id , projectId,country, vendor,unwind_cycle, product_category, consultant_tag from profile_64362 as p ,p.cycle as unwind_cycle),
-
- table2 as
-(select _id, projectId,country, vendor,cycle,product_category,consultant_tag from profile_64362
-  where _id not in (select _id from table1))
-  ,
-  
-table3 as
- (
-	select * from table1
-  Union all
-  select * from table2
- )
- ,
-
-  
-table4 as  
-(
- select _id,  projectId,country,vendor,unwind_cycle, unwind_product_category,consultant_tag from table3 t3, t3.product_category  as unwind_product_category
- ),
-
-table5 as
-(select _id, projectId,country,vendor,unwind_cycle,  null as product_category,consultant_tag from table3 
- where _id not in (select _id from table4)),
- 
-table6 as
-(select * from table4
-union all
-select * from table5),
-
-t1 as (select p1._id, tag1.name as projectId, p1.recognized_union, p1.workers_production_units, p1.male_female, p1.female_representation, p1.decision_making_attendance, p1.decision_making,p1.meetings_held,p1.members_present_meetings, p1.active_members_list, p1.peers_reachout, p1.retaliation, p1.alternative_tradeunion, p1.issues_addressed, p1.follow_up,p1.assessment_review, p1.members_duty_released, tag2.name as training_type, tag4.name as year, tag3.name as country, p5.vendor, tag11.name as cycle, tag12.name as product_category, tag6.name as consultant,p1._id as id2
-from profile_62306 p1
-	   
---left join profile_64362 p2
---on p1.projectId= p2.projectId
-	   
-	   left join table6 p5
-	   on p1.projectId=p5.projectId
-	   
-	   left join ds_mysql_prod_tagelement tag11
-on p5.unwind_cycle = tag11.id
-	   left join ds_mysql_prod_tagelement tag12
-on p5.unwind_product_category = tag12.id
-		   left join ds_mysql_prod_tagelement tag1
-on p1.projectId = tag1.id
-		    left join ds_mysql_prod_tagelement tag2
-on p1.training_type = tag2.id
-		   left join ds_mysql_prod_tagelement tag3
-on p5.country = tag3.id
-		   left join ds_mysql_prod_tagelement tag4
-on p1.year = tag4.id
-		   left join ds_mysql_prod_tagelement tag6
-on p5.consultant_tag = tag6.id),
-
-
-item as 
-(
-select 'recognized_union' as c
-union all
-select 'workers_production_units' as c
-union all
-select 'male_female' as c
-union all
-select 'female_representation' as c
-union all
-select 'decision_making_attendance' as c
-union all
-  select 'decision_making' as c
-union all
-  select 'meetings_held' as c
-union all
-  select 'members_present_meetings' as c
-union all
-  select 'active_members_list' as c
-union all
-  select 'peers_reachout' as c
-union all
-  select 'retaliation' as c
-union all
-  select 'alternative_tradeunion' as c
-union all
-  select 'issues_addressed' as c
-union all
-  select 'follow_up' as c
-union all
-  select 'asessment_review' as c
-union all
-  select 'members_duty_released' as c
- 
-),
-
-
-t2 as 
-(select projectId, training_type,country,vendor,consultant,cycle,product_category,year,id2,
- case c
- when 'recognized_union' then t1.recognized_union
- when 'workers_production_units' then t1.workers_production_units
- when 'male_female' then t1.male_female
- when 'female_representation' then t1.female_representation
- when 'decision_making_attendance' then t1.decision_making_attendance
- when 'decision_making' then t1.decision_making
- when 'meetings_held' then t1.meetings_held
- when 'members_present_meetings' then t1.members_present_meetings
- when 'active_members_list' then t1.active_members_list
- when 'peers_reachout' then t1.peers_reachout
- when 'retaliation' then t1.retaliation
- when 'alternative_tradeunion' then t1.alternative_tradeunion
- when 'issues_addressed' then t1.issues_addressed
- when 'follow_up' then t1.follow_up
- when 'assessment_review' then t1.assessment_review
- when 'members_duty_released' then t1.members_duty_released
- else null
- end as Answers, item.c as Questions
- from t1 cross join item ),
- 
- 
- t3 as( select projectId, training_type,country,vendor,consultant,cycle,product_category,year,Questions,tag1.name as Answers,id2,
-	   case 
-	   when tag1.name = 'Yes' then 1 
-	   else 0
-	   end as yes_count,
-	   case 
-	   when questions = 'assessment_review' then 'Committee members (including worker representatives) have actively contributed to reviewing assessment findings and discussing root cause and solutions.'
-	   when questions = 'follow_up' then 'There has been follow up on the action points mentioned in the worker management committee minutes.'
-	   when questions = 'alternative_tradeunion' then 'The worker/ management committee is not used as an alternative to a trade union.'
-	   when questions = 'Questions,retaliation' then 'There has been no retaliation against worker representatives due to their activity on the committee, and no retaliation against trade union representatives or members due to their union affiliation or activities.'
-	   when questions = 'female_representation'  then 'Female worker representation in the committee is reflective of the workforce gender ratio of production workers in the factory.'
-	   when questions = 'male_female' then 'Men and women are present on the worker-management committee (on both worker and management side).'
-	   when questions = 'peers_reachout' then 'Worker representatives on the committee actively reaching out to their peers to obtain input for discussions in the committee as well as to share updates on upcoming developments in the factory and realized activities.'
-	   when questions = 'workers_production_units' then 'Workers from various production units are represented on worker management committee.'
-	   when questions = 'members_duty_released' then 'Worker/management committee members are released from work duties to prepare for, participate in, and follow up on meetings.'
-	   when questions = 'recognized_union' then 'Recognized unions (if present) are represented in worker management committee.'
-	   when questions = 'members_present_meetings' then '100 % of members were present at least 4 of the 6 meetings.'
-	   when questions = 'decision_making' then 'A manager with decision-making power and/or manager with access to a manager with decision-making power is on the worker management committee.'
-	   when questions = 'issues_addressed' then 'Issues addressed are based on real problems in the factory.'
-	   when questions = 'meetings_held' then 'At least 6 meetings are held during the past 12 months.'
-	   when questions = 'decision_making_attendance' then 'A manager with decision-making power and/or manager with access to a manager with decision-making power attends at least 60% of meetings.'
-	   else 'There is an updated list of all active members.'
-	   end as Question_text
-	   from t2
-	  left join ds_mysql_prod_tagelement tag1
-on t2.answers = tag1.id)
-	   
-	   select projectId, training_type, country, vendor, consultant, cycle, product_category, year, Questions, Answers, Question_text, id2, sum(yes_count) as yes_count
-	   from t3
-	   where yes_count =1
-	   group by projectId, training_type, country, vendor, consultant, cycle, product_category, year, Questions, Answers, Question_text, id2*/
