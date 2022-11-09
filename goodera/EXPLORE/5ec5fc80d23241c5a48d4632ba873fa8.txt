@@ -1,4 +1,43 @@
-with table1 as
+with sub1 as (select a.*, unwind_product_category from profile_64362 as a, a.product_category as unwind_product_category), 
+
+t1 as (select tag1.name as projectId,  p1.name, p1.date, p1.notes, p1.agenda_2, p1.photo, tag2.name as year, p1.num_vendor, p1.num_factory,  tag5.name as training_type,tag3.name as country, p5.factory, p3.vendor,  tag13.name as consultant, tag15.name as product_category, 
+
+case
+when year = 1433762 or year = 1433763 or year = 1433764 then 'Cycle 1'
+else 'Cycle 2'
+end as cycle 
+	   
+from profile_61606 p1
+
+left join sub1 p3
+on p1.projectId= p3.projectId
+
+
+
+left join ds_mysql_prod_tagelement tag3
+on p3.country = tag3.id
+left join ds_mysql_prod_project tag1
+on p1.projectId = tag1.id
+left join ds_mysql_prod_tagelement tag2
+on p1.year = tag2.id
+left join ds_mysql_prod_tagelement tag5
+on p1.training_type = tag5.id
+left join profile_64170 as p5
+on p3.factory = p5._id   
+left join ds_mysql_prod_tagelement tag15
+on unwind_product_category = tag15.id
+left join ds_mysql_prod_tagelement tag13
+on p3.consultant_tag = tag13.id
+
+)
+
+select projectId,  name, date, notes, agenda_2, photo, year, num_vendor, num_factory, country, factory, vendor, product_category, consultant, cycle, training_type, count(*) as count
+ from t1
+ group by  projectId, name, date, notes, agenda_2, photo, year, num_vendor, num_factory, country, factory, vendor, product_category, consultant, cycle, training_type
+
+
+
+/*with table1 as
 (select _id , projectId,country, vendor,unwind_cycle, product_category,factory, consultant_tag from profile_64362 as p ,p.cycle as unwind_cycle),
 
  table2 as
@@ -65,4 +104,4 @@ on p3.consultant_tag = tag13.id
 
 group by p1.projectId, p1.name, date, notes, agenda_2, photo, year, num_vendor, num_factory,country, p5.factory, vendor, consultant, cycle, training_type
 ,tag3.name,tag13.name,p3.unwind_cycle,tag15.name,tag13.name,tag1.name,tag3.name,tag5.name,tag2.name
-p3.unwind_product_category, product_category,
+p3.unwind_product_category, product_category,*/
