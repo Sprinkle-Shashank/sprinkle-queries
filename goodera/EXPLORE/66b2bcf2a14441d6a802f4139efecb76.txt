@@ -1,9 +1,52 @@
-select p1._id as id, p2.name as projectid, t1.name as select_factory_msa, p1.hs_act, p1.hs_training, p1.hs_risk, p1.incident, t2.name as country, p3.vendor, p4.name as consultant, p3.cycle
+with sub1 as(
+  select p1._id as id, p2.name as projectid, t1.name as select_factory_msa, t2.name as country, p3.vendor, p4.name as consultant, p3.cycle,
+case
+	when p1.hs_act = 1105585 then 1
+	when p1.hs_act = 1105584 then 2
+	when p1.hs_act = 1105583 then 3
+	when p1.hs_act = 1105582 then 4
+	when p1.hs_act = 1105581 then 5
+	else NULL
+end as hs_act,
 
-from profile_62477 p2
+case
+	when p1.hs_training = 1105585 then 1
+	when p1.hs_training = 1105584 then 2
+	when p1.hs_training = 1105583 then 3
+	when p1.hs_training = 1105582 then 4
+	when p1.hs_training = 1105581 then 5
+	else NULL
+end as hs_training,
+
+case
+	when p1.hs_risk = 1105585 then 1
+	when p1.hs_risk = 1105584 then 2
+	when p1.hs_risk = 1105583 then 3
+	when p1.hs_risk = 1105582 then 4
+	when p1.hs_risk = 1105581 then 5
+	else NULL
+end as hs_risk,
+
+case
+	when p1.incident = 1105585 then 1
+	when p1.incident = 1105584 then 2
+	when p1.incident = 1105583 then 3
+	when p1.incident = 1105582 then 4
+	when p1.incident = 1105581 then 5
+	else NULL
+end as incident
+
+from profile_62477 p1
 left join ds_mysql_prod_project p2 on p2.id = p1.projectid
 left join profile_64362 p3 on p3.projectid = p1.projectid
 left join profile_61583 p4 on p4._id = p3.consultant
 
 left join ds_mysql_prod_tagelement t1 on t1.id = p1.select_factory_msa
-left join ds_mysql_prod_tagelement t2 on t2.id = p3.country
+left join ds_mysql_prod_tagelement t2 on t2.id = p3.country),
+
+sub2 as(
+  select s1.*, cycle_new from sub1 s1, s1.cycle cycle_new)
+  
+select s2.id, s2.projectid, s2.select_factory_msa, s2.country, s2.vendor, s2.consultant, t3.name as cycle, (s2.hs_act + s2.hs_training + s2.hs_risk + s2.incident) as hs_overall
+from sub2 s2
+left join ds_mysql_prod_tagelement t3 on t3.id = s2.cycle_new
