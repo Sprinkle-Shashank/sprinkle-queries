@@ -155,9 +155,10 @@ table1 as(
   union all
   select 'act_adjust' as col
   union all
-  select 'hs_act' as col)
+  select 'hs_act' as col),
   
-select s2.projectid, s2.country, s2.vendor, s2.consultant, s2.select_factory_msa, table1.col as dimensions, t3.name as cycle,
+sub3 as(
+  select s2.projectid, s2.country, s2.vendor, s2.consultant, s2.select_factory_msa, table1.col as dimensions, t3.name as cycle,
 case table1.col
 	when 'resources' then s2.resources
 	when 'policies' then s2.policies
@@ -176,4 +177,9 @@ case table1.col
 end as score
 from sub2 s2
 cross join table1
-left join ds_mysql_prod_tagelement t3 on t3.id = s2.cycle_new
+left join ds_mysql_prod_tagelement t3 on t3.id = s2.cycle_new)
+
+select projectid, country, vendor, consultant, select_factory_msa, dimensions, cycle, score
+from sub3
+where score >= 3
+group by projectid, country, vendor, consultant, select_factory_msa, dimensions, cycle, score
