@@ -1,1 +1,79 @@
-select p.projectid from profile_54646 as p
+
+With table1 as (
+  
+  Select p1.* , schedule_7_unwind , sdg_unwind , sdg_icon_unwind , location_unwind
+  
+  from profile_46325 as p1,
+  
+  p1.schedule_vii as schedule_7_unwind,
+  p1.sdg as sdg_unwind,
+  p1.sdg_pic as sdg_icon_unwind,
+  p1.state_district as location_unwind
+  ),
+
+
+ table2 as ( 
+  Select table1._id, table1.name , table1.projectid , proj.name AS projectname, table1.fy_timerange  ,table1.state_district , ng.name as ngo , table1.pic, table1.project_start_date, table1.project_end_date,table1.desc ,to_char(table1.project_start_date, 'MM-YYYY') as start_final , to_char(table1.project_end_date, 'MM-YYYY') as end_final , concat(concat(start_final,' to  '),end_final) as new_dur, 
+  
+ listagg(distinct cast(foc.name as varchar),',') AS schedule_7_unwind,	
+ listagg(distinct cast(sg.name as varchar),',') AS sdg_unwind,
+ listagg(distinct cast(st.name as varchar),',') AS locationdistrict_unwind,
+ listagg(distinct cast(st1.name as varchar),',') AS locationstate_unwind ,
+ listagg(DISTINCT CAST(table1.sdg_icon_unwind AS VARCHAR),',') AS sdg_photo_unwind2,
+  sta.name as status_update , st.name as district_update_new , st1.name as state_update_new
+ 
+from table1
+  
+LEFT JOIN ds_mysql_prod_tagelement AS foc
+ON foc.id = table1.schedule_7_unwind
+  
+LEFT JOIN ds_mysql_prod_tagelement AS sg
+ON sg.id = table1.sdg_unwind
+  
+LEFT JOIN ds_mysql_prod_tagelement AS st
+ON st.id = table1.location_unwind
+   
+LEFT JOIN ds_mysql_prod_tagelement AS st1
+ON st.parent = st1.id
+   
+LEFT JOIN ds_mysql_prod_tagelement AS ng
+ON ng.id = table1.ngo
+   
+LEFT JOIN ds_mysql_prod_project AS proj
+ON table1.projectid = proj.id
+  
+  
+  GROUP BY 
+   table1._id,
+  table1.name , table1.projectid , table1.fy_timerange , table1.ngo , table1.pic, table1.project_start_date, table1.project_end_date,table1.desc , ng.name , proj.name, table1.location , sta.name , st.name , st1.name  ), 
+  
+  
+  
+ table3 as ( Select _id, district_update_new  , state_update_new , 
+			
+case when state_update_new is not null then state_update_new else district_update_new end as total_location_covered , projectname
+			
+from table2 as p
+),
+
+table4 as
+( select _id , count( distinct total_location_covered) as count_state , projectname  from table3 as p
+ 
+ group by _id , projectname 
+
+order by count_state desc),
+
+
+table5 as
+( Select p.*, t4.count_state from table2 as p
+	
+LEFT JOIN table4 t4
+on p._id = t4._id
+)
+
+select p.desc , pic , sdg_photo_unwind2 , ngo , new_dur , status_update , count_state , count(*) as count_check , projectname , _id  , fy_timerange from table5 as p
+
+group by  p.desc , pic , sdg_photo_unwind2 , ngo , new_dur , status_update , count_state , _id , fy_timerange , projectname
+
+order by count_state desc
+
