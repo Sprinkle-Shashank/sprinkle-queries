@@ -1,21 +1,25 @@
-with sub1 as (select a.*, unwind_schedule_7 from profile_75046 as a, a.schedule_7 as unwind_schedule_7, a.sdg_select as unwind_sdg_select ),
+with sub1 as(
+  select p2.name as projectid, t1.name as country, p1.vendor, t2.name as cycle,p1.factory,p1.factory_id,p1.consultant,p1.training_type,p1.year,
+case
+	when IS_ARRAY(p1.product_category) = FALSE or GET_ARRAY_LENGTH(p1.product_category) = 0 then ARRAY(p1.product_category)
+	else p1.product_category
+end as product_category_new
+  
+from profile_73974 p1
+  
+left join ds_mysql_prod_project p2 on p2.id = p1.projectid
+left join ds_mysql_prod_tagelement t1 on t1.id = p1.country
+left join ds_mysql_prod_tagelement t2 on t2.id = p1.cycle
 
-t1 as 
-(select p1.projectId, p1.unwind_schedule_7, p1.start_date, p1.end_date, p1.description, p1.logo, p1.spoc, p1.unwind_sdg_select, p1.status, p1.phone, p1.fy_timerange, p1.spoc || ' - ' || p1.phone as spoc_details, p2.sdg_icon,
-case 
-when status = 1497035 then 'completed' 
-else 'ongoing'
-end as status_2, to_char(start_date, 'DD  Month YYYY') as start_date1, to_char(end_date, 'DD  Month YYYY') as end_date1
-from sub1 p1
-left join profile_76600 p2
-on p1.unwind_sdg_select = p2._id
-group by  p1.projectId,description, logo, sdg_select, fy_timerange, spoc_details, status, p1.unwind_schedule_7,p1.start_date,p1.end_date,p1.spoc,p1.unwind_sdg_select,p1.phone,p2.sdg_icon
-
-)
-
-select distinct tag2.name as projectId, t1.description, t1.logo, t1.fy_timerange, t1.spoc_details, t1.status_2 as status, t1.start_date1 || ' - ' || t1.end_date1 as duration, tag1.name as focus_area, t1.sdg_icon
-from t1
-left join ds_mysql_prod_tagelement tag1
-on t1.unwind_schedule_7 = tag1.id
-left join ds_mysql_prod_project tag2
-on t1.projectId = tag2.id
+where p1.projectid not in (47042, 47043, 47847, 47849, 47851, 47853, 47855, 47857, 47049, 47846, 47854, 47856)),
+  
+sub2 as(
+  select s1.*, product_category_unwind 
+  from sub1 s1, 
+  s1.product_category_new product_category_unwind)
+  select * from sub1
+/*select s2.projectid, s2.country, s2.vendor, t2.name as product_category, s2.cycle, count(*) as count
+from sub2 s2
+left join ds_mysql_prod_tagelement t2 
+on t2.id = s2.product_category_unwind
+group by s2.projectid, s2.country, s2.vendor, t2.name, s2.cycle*/
