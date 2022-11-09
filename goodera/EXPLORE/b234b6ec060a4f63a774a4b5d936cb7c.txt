@@ -1,4 +1,6 @@
-SELECT M.name, M.location, M.scheme_beneficiary,
+SELECT M.name,
+L.name AS location,
+SB.name AS scheme_beneficiary,
 P.name AS projectid,
 G.name AS shg,
 SUBSTRING(CAST(M.date AS varchar),1,10)||'T00:00:00.000Z'||'|'||SUBSTRING(CAST(M.date AS varchar),1,10)||'T00:00:00.000Z' AS fy_timerange,
@@ -13,7 +15,12 @@ ON M.projectId = P.id
 LEFT JOIN profile_58848 AS G
 ON M.shg = G._id
 
+LEFT JOIN profile_58845 AS L
+ON M.location = L._id
+
+LEFT JOIN ds_mysql_prod_tagelement AS SB
+ON M.scheme_beneficiary = SB.id
+
 WHERE M.date IS NOT NULL
 
-GROUP BY 1,2,3,4,5,6, 7
-
+GROUP BY 1,2,3,4,5,6,7
