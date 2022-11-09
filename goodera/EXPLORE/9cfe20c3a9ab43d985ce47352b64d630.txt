@@ -1,74 +1,85 @@
-With temp1 as ( 
-  Select cast('fy_18_timerange' as varchar) as col1
-  from profile_74275
-  )
-  Select * from temp1
- /* temp2 as (
-	
-	Select 'f0_18' as col
-  union all
-	Select 'a0_18' as col
-  union all
-	Select 'j0_18' as col
-  union all
-	Select 'g0_18' as col
-  union all
-	Select 'c0_18' as col
-  union all
-	Select 'k0_18' as col
-  union all
-	Select 'd0_18' as col
-  union all
-	Select 'i0_18' as col
-  union all
-	Select 'h0_18' as col
-  union all
-	Select 'e0_18' as col
-  union all
-	Select 'b0_18' as col
- 
+WITH temp1 AS (
+ SELECT 'fy_00_timerange' AS col1
+  UNION ALL
+  SELECT 'fy_18_timerange' AS col1
+  ),
+  
+  temp2 AS (
+	SELECT 'a0_18' AS col
+	UNION ALL
+	SELECT 'b0_18' AS col
+	UNION ALL
+	SELECT 'c0_18' AS col
+	UNION ALL
+	SELECT 'd0_18' AS col
+	UNION ALL
+	SELECT 'e0_18' AS col
+	UNION ALL
+	SELECT 'f0_18' AS col
+	UNION ALL
+	SELECT 'g0_18' AS col
+	UNION ALL
+	SELECT 'h0_18' AS col
+	UNION ALL
+	SELECT 'i0_18' AS col
+	UNION ALL
+	SELECT 'j0_18' AS col
+	UNION ALL
+	SELECT 'k0_18' AS col
 	),
-s as ( Select  p.fy_18_timerange, 
- p.f0_18, p.a0_18, p.j0_18, p.g0_18, p.c0_18, p.k0_18, p.d0_18, p.i0_18, p.h0_18, p.e0_18, p.b0_18,p.projectId
-from profile_74275 p),
-
-s2 as(Select
-case col1
-
- when 'fy_18_timerange' then s.fy_18_timerange
-
- else null
- end as time_data,
- case col
-
-when	'f0_18' 	then	s.f0_18
-when	'a0_18' 	then	s.a0_18
-when	'j0_18' 	then	s.j0_18
-when	'g0_18' 	then	s.g0_18
-when	'c0_18' 	then	s.c0_18
-when	'k0_18' 	then	s.k0_18
-when	'd0_18' 	then	s.d0_18
-when	'i0_18' 	then	s.i0_18
-when	'h0_18' 	then	s.h0_18
-when	'e0_18' 	then	s.e0_18
-when	'b0_18' 	then	s.b0_18
-
-else null
-end as data, temp2.col as "data_label",temp1.col1 as "timeperiods",
-substring(data_label,4,2) as  data_number,
-substring(timeperiods,4,2) as time_number,
-case 
-when data_number = time_number
-then '1'
-else '0'
-end as match,projectId
- from s
- cross join temp1
- cross join temp2
- where match=1)
+	
+	S AS (
+	  SELECT p.projectid,p.fy_18_timerange,p.a0_18, p.b0_18, p.c0_18, p.d0_18, p.e0_18, p.f0_18, p.g0_18, p.h0_18,p.i0_18,p.j0_18,p.k0_18
+	  
+	  FROM profile_74275 AS p
+	  ),
+	  
+	  S2 AS (
+		SELECT
+		CASE col1
+		WHEN 'fy_18_timerange' THEN S.fy_18_timerange
+		ELSE NULL
+		END AS time_data,
+		
+		CASE col
+		WHEN 'a0_18' THEN s.a0_18
+		WHEN 'b0_18' THEN s.b0_18
+		WHEN 'c0_18' THEN s.c0_18
+		WHEN 'd0_18' THEN s.d0_18
+		WHEN 'e0_18' THEN s.e0_18
+		WHEN 'f0_18' THEN s.f0_18
+		WHEN 'g0_18' THEN s.g0_18
+		WHEN 'h0_18' THEN s.h0_18
+		WHEN 'i0_18' THEN s.i0_18
+		WHEN 'j0_18' THEN s.j0_18
+		WHEN 'k0_18' THEN s.k0_18
+		ELSE NULL
+		END AS data,
+		
+		temp2.col AS "data_label",
+		temp1.col1 AS "timeperiods",
+		SUBSTRING(data_label,4,2) AS data_number,
+		SUBSTRING(timeperiods,4,2) AS time_number,
+		
+		CASE 
+		WHEN data_number = time_number THEN '1'
+		ELSE '0'
+		END AS match,projectId
+		
+		FROM S
+		
+		CROSS JOIN temp1
+		CROSS JOIN temp2
+		
+		WHERE match=1)
+		
  --Select * from s2
- Select time_data as fy_timerange,data_label,data,projectId
- from s2
- where fy_timerange is not null
-group by fy_timerange, data_label, data,projectId
-order by fy_timerange desc*/
+ 
+ SELECT data_label, data, projectId,
+ JSON_SERIALIZE(time_data) AS fy_timerange
+ 
+ FROM S2
+ 
+ GROUP BY fy_timerange, data_label, data, projectId
+ 
+ ORDER BY fy_timerange DESC
