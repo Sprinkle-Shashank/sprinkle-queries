@@ -1,76 +1,39 @@
-with table1 as
-(select _id , projectId,country, vendor,unwind_cycle,factory, product_category, consultant_tag from profile_64362 as p ,p.cycle as unwind_cycle),
-
- table2 as
-(select _id, projectId,country, vendor,cycle,factory,product_category,consultant_tag from profile_64362
-  where _id not in (select _id from table1))
-  ,
+with sub1 as(
+  select p2.name as projectid, t1.name as country, p1.vendor, t2.name as cycle,p3.name as factory,t3.name as factory_id,t4.name as consultant,t5.name as training_type,t6.name as year,
+case
+	when IS_ARRAY(p1.product_category) = FALSE or GET_ARRAY_LENGTH(p1.product_category) = 0 then ARRAY(p1.product_category)
+	else p1.product_category
+end as product_category_new
   
-table3 as
- (
-	select * from table1
-  Union all
-  select * from table2
- )
- ,
-
-  
-table4 as  
-(
- select _id,  projectId,country,vendor,unwind_cycle,factory, unwind_product_category,consultant_tag from table3 t3, t3.product_category  as unwind_product_category
- ),
-
-table5 as
-(select _id, projectId,country,vendor,factory,unwind_cycle,  null as product_category,consultant_tag from table3 
- where _id not in (select _id from table4)),
- 
-table6 as
-(select * from table4
-union all
-select * from table5),
-
-t1 as (select tag2.name as projectId,p1.vendor,p1.factory_id,tag5.name as consultant,tag6.name as training_type,tag1.name as year,tag7.name as country,tag9.name as product_category1,tag8.name as cycle1
-   , p3.name as  factory,p1.product_category, p1.factory as factory1
---cast('1' as VARCHAR) as total_fields
 from profile_73974 p1
-	   
---left join profile_64362 p5
---on p1.projectId = p5.projectId
-	   
 
-	   
-left join table6 p4
-on p1.projectId = p4.projectId
-	   
 left join profile_64170 as p3
-on p4.factory = p3._id
-	   
-left join ds_mysql_prod_tagelement tag9
-on p4.unwind_product_category= tag9.id
-left join ds_mysql_prod_tagelement tag1
-on p1.year= tag1.id
-left join ds_mysql_prod_tagelement tag2
-on p1.projectId = tag2.id
-	   
-left join ds_mysql_prod_project tag3
-on p1.factory = tag3.id
-	   
-left join ds_mysql_prod_tagelement tag5
-on p1.consultant_tag = tag5.id
-left join ds_mysql_prod_tagelement tag6
-on p1.training_type = tag6.id
-left join ds_mysql_prod_tagelement tag7
-on p1.country = tag7.id
-	   
-left join ds_mysql_prod_tagelement tag8
-on p1.cycle = tag8.id
-	   
-where p1.projectId not in(47042, 47043, 47847, 47849, 47851, 47853, 47855, 47857, 47049, 47846, 47854, 47856) 
-	  
-  )
+on p1.factory = p3._id  
+  
+left join ds_mysql_prod_project p2 
+ on p2.id = p1.projectid
+left join ds_mysql_prod_tagelement t1 
+ on t1.id = p1.country
+  left join ds_mysql_prod_tagelement t3 
+ on t3.id = p1.factory_id
+  left join ds_mysql_prod_tagelement t4 
+ on t4.id = p1.consultant_tag
+  left join ds_mysql_prod_tagelement t5
+ on t5.id = p1.training_type
+  left join ds_mysql_prod_tagelement t6
+ on t6.id = p1.year
+left join ds_mysql_prod_tagelement t2 
+on t2.id = p1.cycle
 
-select  projectId, vendor, factory_id, consultant, training_type, year, country, product_category, cycle1,  count(*) as total_fields 
-,factory
-from t1
-group by projectId, vendor, factory_id, consultant, training_type, year, country, product_category, cycle1
-, factory
+where p1.projectid not in (47042, 47043, 47847, 47849, 47851, 47853, 47855, 47857, 47049, 47846, 47854, 47856)),
+  
+sub2 as(
+  select s1.*, product_category_unwind 
+  from sub1 s1, 
+  s1.product_category_new product_category_unwind)
+  
+select s2.projectid, s2.factory,s2.country, s2.vendor,s2.factory_id,s2.consultant,s2.training_type,s2.year, t2.name as product_category, s2.cycle, count(*) as total_fields
+from sub2 s2
+left join ds_mysql_prod_tagelement t2 
+on t2.id = s2.product_category_unwind
+group by projectId, vendor, factory_id, consultant, training_type, year, country, product_category, cycle, factory
