@@ -5,8 +5,8 @@ t1 as (select tag1.name as projectId,  p1.name, p1.date, p1.notes, p1.agenda_2, 
 case
 when year = 1433762 or year = 1433763 or year = 1433764 then 'Cycle 1'
 else 'Cycle 2'
-end as cycle ,
-count(p1.projectId) as worker_management_committee_meetings_held
+end as cycle 
+	   
 from profile_61606 p1
 
 left join sub1 p3
@@ -16,21 +16,23 @@ on p1.projectId= p3.projectId
 
 left join ds_mysql_prod_tagelement tag3
 on p3.country = tag3.id
-left join ds_mysql_prod_tagelement tag1
+left join ds_mysql_prod_project tag1
 on p1.projectId = tag1.id
 left join ds_mysql_prod_tagelement tag2
 on p1.year = tag2.id
 left join ds_mysql_prod_tagelement tag5
 on p1.training_type = tag5.id
 left join profile_64170 as p5
-on p3.factory = p5._id
-	   
+on p3.factory = p5._id   
 left join ds_mysql_prod_tagelement tag15
 on unwind_product_category = tag15.id
 left join ds_mysql_prod_tagelement tag13
 on p3.consultant_tag = tag13.id
 
-group by p1.projectId, p1.name, date, notes, agenda_2, photo, year, num_vendor, num_factory,country, p5.factory, vendor, product_category, consultant, cycle, training_type
-,tag3.name,tag13.name,p3.unwind_product_category,p3.unwind_cycle,tag15.name,tag13.name,tag1.name,tag3.name,tag5.name,tag2.name)
+--group by p1.projectId, p1.name, date, notes, agenda_2, photo, year, num_vendor, num_factory,country, p5.factory, vendor, product_category, consultant, cycle, training_type
+--,tag3.name,tag13.name,p3.unwind_product_category,tag15.name,tag13.name,tag1.name,tag3.name,tag5.name,tag2.name\
+)
 
-select * from t1
+select projectId, profileId, name, date, notes, agenda_2, photo, year, num_vendor, num_factory, country, factory, vendor, product_category, consultant, cycle, training_type, count(*) as count
+ from t1
+ group by  projectId, profileId, name, date, notes, agenda_2, photo, year, num_vendor, num_factory, country, factory, vendor, product_category, consultant, cycle, training_type
