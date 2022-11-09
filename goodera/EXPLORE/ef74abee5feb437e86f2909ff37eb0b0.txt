@@ -27,9 +27,9 @@ table5 as
 table6 as
 (select * from table4
 union all
-select * from table5)
+select * from table5),
 
-select tag1.name as projectId, p1.training_type, tag5.name as year,tag6.name as country, p2.vendor, tag2.name as cycle, tag3.name as product_category, tag4.name as consultant
+t1 as (select tag1.name as projectId, p1.training_type, tag5.name as year,tag6.name as country, p2.vendor, tag2.name as cycle, tag3.name as product_category, tag4.name as consultant
 from profile_62306 p1
 
 left join table6 p2
@@ -46,7 +46,67 @@ on p2.consultant_tag = tag4.id
 left join ds_mysql_prod_tagelement tag5
 on p1.year = tag5.id
 left join ds_mysql_prod_tagelement tag6
-on p2.country = tag6.id
+on p2.country = tag6.id),
+
+item as 
+(
+select 'recognized_union' as c
+union all
+select 'workers_production_units' as c
+union all
+select 'male_female' as c
+union all
+select 'female_representation' as c
+union all
+select 'decision_making_attendance' as c
+union all
+  select 'decision_making' as c
+union all
+  select 'meetings_held' as c
+union all
+  select 'members_present_meetings' as c
+union all
+  select 'active_members_list' as c
+union all
+  select 'peers_reachout' as c
+union all
+  select 'retaliation' as c
+union all
+  select 'alternative_tradeunion' as c
+union all
+  select 'issues_addressed' as c
+union all
+  select 'follow_up' as c
+union all
+  select 'asessment_review' as c
+union all
+  select 'members_duty_released' as c
+ 
+),
+t2 as 
+(select projectId, training_type,country,vendor,consultant,cycle,product_category,year,
+ case c
+ when 'recognized_union' then t1.recognized_union
+ when 'workers_production_units' then t1.workers_production_units
+ when 'male_female' then t1.male_female
+ when 'female_representation' then t1.female_representation
+ when 'decision_making_attendance' then t1.decision_making_attendance
+ when 'decision_making' then t1.decision_making
+ when 'meetings_held' then t1.meetings_held
+ when 'members_present_meetings' then t1.members_present_meetings
+ when 'active_members_list' then t1.active_members_list
+ when 'peers_reachout' then t1.peers_reachout
+ when 'retaliation' then t1.retaliation
+ when 'alternative_tradeunion' then t1.alternative_tradeunion
+ when 'issues_addressed' then t1.issues_addressed
+ when 'follow_up' then t1.follow_up
+ when 'assessment_review' then t1.assessment_review
+ when 'members_duty_released' then t1.members_duty_released
+ else null
+ end as Answers, item.c as Questions
+ from t1 cross join item )
+ 
+ select * from t2
 
 
 
