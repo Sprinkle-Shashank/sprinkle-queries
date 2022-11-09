@@ -133,9 +133,31 @@ sub2 as(
 sub3 as(
   select s2.id, s2.projectid, s2.select_factory_msa, s2.country, s2.vendor, s2.consultant, t3.name as cycle, 
 
-LEAST(s2.resources, s2.policies, s2.hs_risk, s2.risk) as plan
+LEAST(s2.resources, s2.policies, s2.hs_risk, s2.risk) as plan,
+  
+case
+  	when s2.select_factory_msa = 'Baseline' then plan
+  	else NULL
+end as plan_b,
+case
+  	when s2.select_factory_msa = 'Endline' then plan
+  	else NULL
+end as plan_e
   
 from sub2 s2
-left join ds_mysql_prod_tagelement t3 on t3.id = s2.cycle_new)
+left join ds_mysql_prod_tagelement t3 on t3.id = s2.cycle_new),
 
-select * from sub4
+sub4 as(
+  s3.projectid, s3.country, s3.vendor, s3.consultant, s3.cycle,
+avg(cast(s3.plan_b as FLOAT)) as plan_b, avg(cast(s3.plan_e as FLOAT)) as plan_e
+  
+from sub3 s3
+group by s3.projectid, s3.country, s3.vendor, s3.consultant, s3.cycle)
+
+select projectid, country, vendor, consultant, cycle, (plan_e - plan_b) as improvement, 
+case
+	when improvement > 0 then 1
+	else 0
+end as filter
+from sub4 
+where filter = 1
