@@ -1,24 +1,20 @@
 with sub1 as(
-  select p2.name as projectid, t1.name as country, p1.vendor,
+  select p2.name as projectid, t1.name as country, p1.vendor, t2.name as cycle,
 case
 	when IS_ARRAY(p1.product_category) = FALSE or GET_ARRAY_LENGTH(p1.product_category) = 0 then ARRAY(p1.product_category)
 	else p1.product_category
-end as product_category_new,
-case
-	when IS_ARRAY(p1.cycle) = FALSE or GET_ARRAY_LENGTH(p1.cycle) = 0 then ARRAY(p1.cycle)
-	else p1.cycle
-end as cycle_new
-
+end as product_category_new
+  
 from profile_73974 p1
 left join ds_mysql_prod_project p2 on p2.id = p1.projectid
 left join ds_mysql_prod_tagelement t1 on t1.id = p1.country
+left join ds_mysql_prod_tagelement t2 on t2.id = p1.cycle
 
 where p1.projectid not in (47042, 47043, 47847, 47849, 47851, 47853, 47855, 47857, 47049, 47846, 47854, 47856)),
   
 sub2 as(
-  select s1.*, product_category_unwind, cycle_unwind from sub1 s1, s1.cycle_new cycle_unwind, s1.product_category_new product_category_unwind)
+  select s1.*, product_category_unwind from sub1 s1, s1.cycle_new cycle_unwind, s1.product_category_new product_category_unwind)
   
 select s2.projectid, s2.country, s2.vendor, t2.name as product_category, t3.name as cycle
 from sub2 s2
 left join ds_mysql_prod_tagelement t2 on t2.id = s2.product_category_unwind
-left join ds_mysql_prod_tagelement t3 on t3.id = s2.cycle_unwind
