@@ -6,6 +6,14 @@ with temp as (
   select 'hindi_rc_endline' as col
   union all
   select 'hindi_vocab_endline' as col
+  union all
+  select 'hindi_rskills_baseline' as col
+  union all
+  select 'hindi_lc_baseline' as col
+  union all
+  select 'hindi_rskills_endline' as col
+  union all
+  select 'hindi_lc_endline' as col
   )
 	select t1.name as grade,p1.fy_timerange,temp.col as dimensions,extract (quarter from cast(p1.fy_timerange.start as date)) as quarter,extract(year from cast (fy_timerange.start as date)) as start_year,extract(month from cast (fy_timerange.start as date)) as start_month,
 case when start_month<4 then start_year-1 else start_year end as fy_year,
@@ -19,15 +27,21 @@ concat(concat(concat('FY ',fy_year),'-'),fy_year+1-2000) as year,
 	end as quarter,
 	
 	sum(case temp.col
-	   when 'hindi_rc_baseline' then p1.hindi_rc_baseline
+	    when 'hindi_rc_baseline' then p1.hindi_rc_baseline
 	    when 'hindi_vocab_baseline' then p1.hindi_vocab_baseline
 	    when 'hindi_rc_endline' then p1.hindi_rc_endline
 	    when 'hindi_vocab_endline' then p1.hindi_vocab_endline
+		when 'hindi_rskills_baseline' then p1.hindi_rskills_baseline
+	    when 'hindi_lc_baseline' then p1.hindi_lc_baseline
+	    when 'hindi_rskills_endline' then p1.hindi_rskills_endline
+	    when 'hindi_lc_endline' then p1.hindi_lc_endline
 	   else NULL
 	   end) as values,
 	case
 	when temp.col like '%rc%' then 'Reading Comprehension'
 	when temp.col like '%vocab%' then 'Vocabulary'
+	when temp.col like '%lc%' then 'Listening Comprehension'
+	when temp.col like '%rskills%' then 'Reading Skills'
 	else NULL
 	end as subjects,
 	case
