@@ -1,4 +1,76 @@
-with table1 as
+with sub1 as (select a.*, unwind_cycle from profile_64362 as a, a.cycle as unwind_cycle),
+
+t1 as (select  p1.projectId, p1.country, p1.vendor, tag1.name as cycle, p1.product_category,p2.name as consultant
+	   
+from sub1 p1
+left join profile_61583 p2
+on p1.consultant= p2._id
+left join ds_mysql_prod_tagelement tag1
+on p1.unwind_cycle = tag1.id
+),
+
+t2 as(select projectId, country, 
+	  case 
+	   when t.vendor is null then 'NA'
+	   else t.vendor
+	   end as vendor,
+	  case 
+	   when t.cycle is null then 'NA'
+	   else t.cycle
+	   end as cycle,
+	  case 
+	   when t.product_category is null then 'NA'
+	   else t.product_category
+	   end as product_category,
+	  case 
+	   when t.consultant is null then 'NA'
+	   else t.consultant
+	   end as consultant
+	   
+from t1 t),
+
+t3 as ( select tt.projectId, tt.country,vendor,tt.cycle,product_category,consultant, 
+	   
+	   case 
+	   when p2.end_date is null then 'NA'
+	   else cast(p2.end_date as varchar)
+	   end as end_date,
+	   case 
+	   when p2.actual_end_date is null then 'NA'
+	   else cast(p2.actual_end_date as varchar)
+	   end as actual_end_date,
+	   case 
+	   when p2.program_level_milestone is null then 'NA'
+	   else p2.program_level_milestone
+	   end as milestone
+	   from t2 tt
+	  left join profile_64141 p2
+	  on tt.projectId=p2.projectId ),
+	  
+	  t4 as ( select ttt.*,
+			 case 
+			 when actual_end_date != 'NA' and actual_end_date <= end_date then 'Completed'
+			 when actual_end_date != 'NA' and actual_end_date > end_date then 'Delayed, but Completed'
+			 else 'NA'
+			 end as status
+			 from t3 ttt),
+
+t5 as (select tag2.name as projectId, tag3.name as country, vendor, cycle, product_category, consultant, end_date, actual_end_date, milestone, status
+
+from t4 tttt
+left join ds_mysql_prod_project tag2
+on tttt.projectId = tag2.id
+   left join ds_mysql_prod_tagelement tag3
+on tttt.country = tag3.id
+  )
+
+select t8.*, count(*) as count 
+from t5 t8
+where status = 'Delayed but completed'
+group by projectId, country, vendor, cycle, product_category, consultant, end_date, actual_end_date, milestone, status
+
+
+/*with table1 as
 (select _id , projectId,country, vendor,unwind_cycle, product_category, consultant_tag from profile_64362 as p ,p.cycle as unwind_cycle),
 
  table2 as
@@ -56,3 +128,4 @@ Group by p1.projectId, p1.country, p1.vendor, p1.cycle, product_category, consul
 
 select * from t1
 
+*/
