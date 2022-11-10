@@ -53,12 +53,18 @@ t3 as ( select tt.projectId, tt.country,vendor,tt.cycle,product_category,consult
 			 when actual_end_date != 'NA' and actual_end_date > end_date then 'Delayed, but Completed'
 			 else 'NA'
 			 end as status
-			 from t3 ttt)
+			 from t3 ttt),
 
-select tag2.name as projectId, country, vendor, cycle, product_category, consultant, end_date, actual_end_date, milestone, status
-, count(*) as count 
+t5(select tag2.name as projectId, tag3.name as country, vendor, cycle, product_category, consultant, end_date, actual_end_date, milestone, status
+
 from t4 tttt
-left join ds_mysql_prod_tagelement tag2
+left join ds_mysql_prod_project tag2
 on tttt.projectId = tag2.id
+   left join ds_mysql_prod_tagelement tag3
+on tttt.country = tag3.id
+  )
+
+select t8.*, count(*) as count 
+from t5 t8
 where status = 'Completed'
 group by projectId, country, vendor, cycle, product_category, consultant, end_date, actual_end_date, milestone, status
