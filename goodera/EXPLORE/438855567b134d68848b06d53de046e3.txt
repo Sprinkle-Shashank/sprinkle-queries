@@ -1,0 +1,87 @@
+WITH temp1 AS (
+ SELECT 'fy_19_timerange' AS col1
+  UNION ALL
+  SELECT 'fy_35_timerange' AS col1
+  ),
+  
+  temp2 AS (
+	SELECT 'a0_19' AS col
+	UNION ALL
+	SELECT 'b0_19' AS col
+	UNION ALL
+	SELECT 'c0_19' AS col
+	UNION ALL
+	SELECT 'd0_19' AS col
+	UNION ALL
+	SELECT 'e0_19' AS col
+	UNION ALL
+	SELECT 'a0_35' AS col
+	UNION ALL
+	SELECT 'b0_35' AS col
+	UNION ALL
+	SELECT 'c0_35' AS col
+	UNION ALL
+	SELECT 'd0_35' AS col
+	UNION ALL
+	SELECT 'e0_35' AS col
+	UNION ALL
+	SELECT 'f0_35' AS col
+	),
+	
+	S AS (
+	  SELECT p.projectid,p.fy_19_timerange,p.fy_35_timerange,p.a0_19, p.b0_19, p.c0_19, p.d0_19, p.e0_19, p.a0_35, p.b0_35, p.c0_35,p.d0_35,p.e0_35,p.f0_35
+	  
+	  FROM profile_74276 AS p
+	  ),
+	  
+	  S2 AS (
+		SELECT
+		CASE col1
+		WHEN 'fy_19_timerange' THEN S.fy_19_timerange
+		WHEN 'fy_35_timerange' THEN S.fy_35_timerange
+		ELSE NULL
+		END AS time_data,
+		
+		CASE col
+		WHEN 'a0_19' THEN s.a0_19
+		WHEN 'b0_19' THEN s.b0_19
+		WHEN 'c0_19' THEN s.c0_19
+		WHEN 'd0_19' THEN s.d0_19
+		WHEN 'e0_19' THEN s.e0_19
+		WHEN 'a0_35' THEN s.a0_35
+		WHEN 'b0_35' THEN s.b0_35
+		WHEN 'c0_35' THEN s.c0_35
+		WHEN 'd0_35' THEN s.d0_35
+		WHEN 'e0_35' THEN s.e0_35
+		WHEN 'f0_35' THEN s.f0_35
+
+		ELSE NULL
+		END AS data,
+		
+		temp2.col AS "data_label",
+		temp1.col1 AS "timeperiods",
+		SUBSTRING(data_label,4,2) AS data_number,
+		SUBSTRING(timeperiods,4,2) AS time_number,
+		
+		CASE 
+		WHEN data_number = time_number THEN '1'
+		ELSE '0'
+		END AS match,projectId
+		
+		FROM S
+		
+		CROSS JOIN temp1
+		CROSS JOIN temp2
+		
+		WHERE match=1)
+		
+ --Select * from s2
+ 
+ SELECT data_label, data, projectId,
+ JSON_SERIALIZE(time_data) AS fy_timerange
+ 
+ FROM S2
+ 
+ GROUP BY fy_timerange, data_label, data, projectId
+ 
+ ORDER BY fy_timerange DESC
