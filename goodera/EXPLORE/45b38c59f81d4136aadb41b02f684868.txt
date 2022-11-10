@@ -1,104 +1,15 @@
-with table1 as (select add_factory.projectid,pace_mapping.name_factory as factory,pace_mapping.name_vendor_filter as vendor,pace_mapping.name_country as country,factory_vpid_1 as community_id, child_vendor_vpid as vp_id from profile_52713 add_factory
-
-left join profile_54646 pace_mapping 
-on add_factory.projectid = pace_mapping.projectid ),
-
-table2 as ( 
-  select projectid, start_date, end_date, end_date_2, num_females,concat(projectid,start_date) as unique from profile_4227 p
-  /*left join ds_mysql_prod_project as pro
-on p.projectid = pro.id*/
-  where end_date_2 is null 
-),
-table3 as ( select  projectid,count(*) as completed from profile_4228 p
-		   
-		   left join ds_mysql_prod_project as pro
-on p.projectid = pro.id
-		   where end_date is not null 
-		  group by projectid),
-table4 as ( select  projectid,count(*) as ongoing from profile_4228 p
-		   
-		   left join ds_mysql_prod_project as pro
-on p.projectid = pro.id
-		   where end_date is  null 
-		  group by projectid ),
-		
-table7 as ( SELECT _id,mon.creatorid, u.email as cemail, mon.modifierid, m.email as memail
-from ds_mongo_profileinstance mon
-left join ds_mysql_prod_user u on
-mon.creatorid = u.id
-left join ds_mysql_prod_user m  on
-mon.modifierid = m.id
-where mon.profileId='4227' and mon.active = 't' and mon.securitycontextid is not null
-			 ),		
-creationdate_table_for_batch as (	select p._id,projectid,p.name,/*substring(createddate,1,10)*/ createddate as batch_date,row_number() over 
-(partition by name
- order by createddate desc) as row,t7.cemail,p.end_date_2,start_date,concat(projectid,start_date) as unique from profile_4227 p   
- left join table7 t7 on
-	p._id = t7._id	
-	where end_date_2 is null							),
-	
-table8 as ( SELECT _id,mon.creatorid, u.email as cemail, mon.modifierid, m.email as memail
-from ds_mongo_profileinstance mon
-left join ds_mysql_prod_user u on
-mon.creatorid = u.id
-left join ds_mysql_prod_user m  on
-mon.modifierid = m.id
-where mon.profileId='4228' and mon.active = 't' and mon.securitycontextid is not null
-			 ),	
- 
- creationdate_table_for_module as (	select p._id,p.class, projectid,/*substring(createddate,1,10)as*/createddate as module_date,row_number() over 
-(partition by class
- order by createddate desc) as row,t8.cemail from profile_4228 p
-			left join table8 t8 on
-			p._id = t8._id					  ),
- 
- table5 as ( select * from creationdate_table_for_batch 
-			where row = 1 ),
-			
- table6 as ( select * from creationdate_table_for_module 
-			where row = 1 ),
-  
- creation_date as ( select t5.projectid,batch_date,t5.cemail as batch_email,t6.module_date,t6.cemail as module_email,t5.unique from table5 t5
-  
-  left join table6 t6 on 
-  t5._id= t6.class ),
-  
-table9 as (  
-select t1.projectid ,factory, vendor, country, community_id, vp_id,t2.start_date, t2.end_date,  t2.num_females,t2.unique,t3.completed,t4.ongoing  
-
-/*case when t_cd.module_date > t_cd.batch_date then t_cd.module_date
-     else t_cd.batch_date end as latest_date,
-case when t_cd.module_date > t_cd.batch_date then t_cd.module_email
-     else t_cd.batch_email end as email_id*/	 
-
-from table1 t1
-
-left join table2 t2 on
-t1.projectid = t2.projectid
-
-left join table3 t3 on
-t1.projectid = t3.projectid
-
-left join table4 t4 on
-t1.projectid = t4.projectid )
+Select p3.name as projectId,p1.name as projectname,p2.name as partner,p.bene_name,p.fy_timerange,t2.name as district,t3.name as state,t1.name as appear_assessment,p.bene_assess_grade,t12.name as domain,
+case when t1.name = 'Yes' then 1 else 0 end as count
+from profile_81359 p
+left join profile_81360 p4 on p4._id=p.batch
+left join project_9730 p1 on p1.id = p.projectid
+left join project_9730 p2 on p2.id = p1.parent
+left join project_9730 p3 on p3.id=p2.parent
+left join tagelement_9730 t1 on t1.id=p.appear_assessment
+left join tagelement_9730 t2 on t2.id=p4.state_district
+left join tagelement_9730 t3 on t3.id=t2.parent
+left join tagelement_9730 t11 on t11.id=p4.domain_trade
+left join tagelement_9730 t12 on t12.id=t11.parent
 
 
-
-select t9.projectid,t9.factory,t9.vendor,t9.country,t9.community_id,t9.vp_id,t9.start_date,t9.end_date,t9.num_females,t9.unique,t9.completed,t9.ongoing,
-case when t_cd.module_date > t_cd.batch_date then t_cd.module_date
-     else t_cd.batch_date end as latest_date,cast(current_date as datetime) as current_date,
-case when t_cd.module_date > t_cd.batch_date then t_cd.module_email
-     else t_cd.batch_email end as email_id,
-	case when current_date-latest_date<= 30 then 'Updated in last 30 days'
-	when 30< current_date-latest_date<= 90 then 'No updates in the last 30 days'
-		  else 'No updates in the last 90 days' end as Date_range, datediff(day,latest_date,current_date)
-	 from table9 t9
-
-left join creation_date t_cd on
-t9.unique = t_cd.unique
-
-
-
-
-
---select * from creation_date*/
+where p.projectid like '%%'
