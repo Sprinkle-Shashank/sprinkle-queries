@@ -74,12 +74,12 @@ p3.country, p3.vendor, p4.name as consultant,
  
 case
   	when IS_ARRAY(p3.cycle) = FALSE or GET_ARRAY_LENGTH(p3.cycle) = 0 then ARRAY(p3.cycle)
-  	else ARRAY(p3.cycle)
+  	else p3.cycle
 end as cycle_new,
   
 case
   	when IS_ARRAY(p3.product_category) = FALSE or GET_ARRAY_LENGTH(p3.product_category) = 0 then ARRAY(p3.product_category)
-  	else ARRAY(p3.product_category)
+  	else p3.product_category
 end as product_category_new
   
 from profile_62306 p1
@@ -92,7 +92,7 @@ sub2 as(
   select s1.*, cycle_unwind, product_category_unwind from sub1 s1, s1.cycle_new cycle_unwind, s1.product_category_new product_category_unwind),
   
 sub3 as(
-  select s2.id, s2.projectid, t1.name as training_type, t2.name as country, s2.vendor, s2.consultant, t3.name as cycle, t4.name as product_category, t5.name as year, s2.questions, t6.name as answers, s2.cycle_unwind,
+  select s2.id, s2.projectid, t1.name as training_type, t2.name as country, s2.vendor, s2.consultant, t3.name as cycle, t4.name as product_category, t5.name as year, s2.questions, t6.name as answers,
 
 case
 	when t6.name = 'Yes' then 1
@@ -109,7 +109,6 @@ left join ds_mysql_prod_tagelement t6 on t6.id = s2.answers
 
 where yes_count = 1)
 
-select id, projectid, training_type, country, vendor, consultant, cycle, product_category, year, questions, answers, sum(yes_count) as yes_count, cycle_unwind
-
+select id, projectid, training_type, country, vendor, consultant, cycle, product_category, year, questions, answers, sum(yes_count) as yes_count
 from sub3
-group by id, projectid, training_type, country, vendor, consultant, cycle, product_category, year, questions, answers, cycle_unwind
+group by id, projectid, training_type, country, vendor, consultant, cycle, product_category, year, questions, answers
