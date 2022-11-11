@@ -1,0 +1,16 @@
+with temp1 as 
+(select projectId.name as projectId, quarter, financial_year, fy_timerange, project_name,SUM(m.amount_disbursed) as disbursed, SUM(m.amount_utilized) as Utilized from profile_51734 as m
+
+left join ds_mysql_prod_project as projectId
+on m.projectId = projectId.id
+  
+group by projectId, project_name, quarter, financial_year, fy_timerange
+),
+  
+temp2 as
+(select * from temp1
+ 
+UNPIVOT (
+  val for dimension IN (utilized, disbursed)))
+
+select * from temp2
