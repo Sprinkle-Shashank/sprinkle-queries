@@ -145,9 +145,16 @@ on p3.org_type=t2.id
 ),
 
 ss3 as(
-Select sf.*,cast(tb as varchar) as tb from s3 as sf,sf.target_beneficiary tb
+Select sf.*,tb from s3 as sf,sf.target_beneficiary tb
 )
-
+,
+sss as (
+Select *,
+case when tb is not null then cast(tb as int)
+else NULL
+end  as tbb
+ from ss3
+)
 
 Select Name_of_the_Implementation_Agency,
 Select_the_financial_year_when_this_data_is_being_entered,
@@ -247,9 +254,9 @@ Total_Expenditure_in_last_three_years,
 Total_spend_on_direct_programme_costs_in_the_last_FY,
 What_was_the_total_spend_on_direct_programme_costs_in_the_last_FY,
 Total_expenses_in_the_last_FY 
-from ss3
+from sss
 left join hdfc_tag t
-on t.id=ss3.tb
+on t.id=sss.tbb
 group by 
 Name_of_the_Implementation_Agency,
 Select_the_financial_year_when_this_data_is_being_entered,
