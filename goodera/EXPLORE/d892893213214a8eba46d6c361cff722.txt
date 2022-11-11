@@ -1,0 +1,23 @@
+with temp1 as
+(select as m._id, m.projectId, m.disbursed, m.fy_timerange, r.focus_area, Parent_focus_area.name as Parent_focus_area
+ from profile_56364
+ 
+ left join profile_56342 AS r
+ 	on m.projectId = r.projectId
+ 
+left join ds_mysql_prod_tagelement as focus_area
+  on m.focus_area = focus_area.id
+  
+left join ds_mysql_prod_tagelement as Parent_focus_area
+  on focus_area.parent = Parent_focus_area.id),
+  
+temp2 as 
+(select projectId.name as projectId, fy_timerange, SUM(m.disbursed) as Total_Amount_disbursed, focus_area, Parent_focus_area from temp1 as m
+ 
+ left join ds_mysql_prod_project as projectId
+  on m.projectId = projectId.id
+ 
+group by projectId.name, fy_timerange, focus_area, Parent_focus_area)
+
+select * from temp2
+  
