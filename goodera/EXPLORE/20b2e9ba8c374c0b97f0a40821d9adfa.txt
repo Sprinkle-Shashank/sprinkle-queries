@@ -1,4 +1,4 @@
-select projectId.name as projectId, line_item.name as line_item, m.date as fy_timerange, SUM(m.amount_utilized) as Total_Amount_Utilized, direct_indirect.name as direct_indirect
+(select projectId.name as projectId, m.line_item, m.date as fy_timerange, SUM(m.amount_utilized) as Total_Amount_Utilized, direct_indirect.name as direct_indirect
 from profile_56356 as m
 
 left join profile_56355 AS r
@@ -7,10 +7,16 @@ left join profile_56355 AS r
 left join ds_mysql_prod_project as projectId
   on m.projectId = projectId.id
   
-/*left join ds_mysql_prod_tagelement as line_item
-  on m.line_item = line_item.id*/
-  
 left join ds_mysql_prod_tagelement as direct_indirect
   on r.direct_indirect = direct_indirect.id
   
-group by projectId.name, line_item.name, m.date, direct_indirect.name
+group by projectId.name, line_item.name, m.date, direct_indirect.name),
+
+temp 2 as
+(select projectId, line_item.name as line_item, fy_timerange, Total_Amount_Utilized, direct_indirect
+ from temp1 as m
+ 
+ left join ds_mysql_prod_tagelement as line_item
+  on m.line_item = line_item.id)
+  
+select * from temp2 
