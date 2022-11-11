@@ -12,20 +12,22 @@ with table1 as
   
   table3 as
   (
-	select p.projectid , p._id , fy_timerange , p.desc , ngo , sdg_pic , project_start_date , project_end_date , pic , ongoing, past_update_new , sdg_update_new.name as sdg_update_new_latest , proj.name as projectname , state_dstrict_update , st_dst.name as district_update , st_dst_new.name as state_update from table2 as p
+	select p.projectid , p._id , fy_timerange , p.desc , ngo , sdg_pic , project_start_date , project_end_date , pic , ongoing, past_update_new , sdg_update_new.name as sdg_update_new_latest , proj.name as projectname , state_dstrict_update from table2 as p
 	
 	left join ds_mysql_prod_tagelement sdg_update_new
 	on p.sdg_update = sdg_update_new.id
 	
    left join ds_mysql_prod_project as proj
    on p.projectid = proj.id
+  ),
+  
+  table4 as
+  (
+	select p.projectid , p._id , fy_timerange , p.desc , ngo , sdg_pic , project_start_date , project_end_date , pic , ongoing, past_update_new , sdg_update_new_latest , projectname , dis.name as district_update from table3 as p
 	
-   left join ds_mysql_prod_project as st_dst
-   on p.state_dstrict_update = st_dst.id
-	
-   left join ds_mysql_prod_project as st_dst_new
-   on st_dst.parent = st_dst_new.id
+	left join ds_mysql_prod_tagelement  dis
+	on p.state_dstrict_update = dis.id
 	)
 	
-	select * from table3
+	select * from table4
   
