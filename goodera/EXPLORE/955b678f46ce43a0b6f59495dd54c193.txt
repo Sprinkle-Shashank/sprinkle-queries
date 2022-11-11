@@ -96,7 +96,13 @@ p3.direct_beneficiaries as Total_outreach_in_last_FY,
 p3.objective as Main_objective_of_the_organisation,
 p3.percentage_socio_economic as Percentage_of_beneficiaries_belong_to_low_socioeconomic_background,
 CAST(NULL as varchar) as What_percentage_of_beneficiaries_belong_to_low_socioeconomic_background,
-p3.target_beneficiary,
+
+case
+  when is_array(p3.target_beneficiary) = false or get_array_length(p3.target_beneficiary) = 0 then 
+  	   array(p3.target_beneficiary)
+  else p3.target_beneficiary
+end as target_beneficiary
+,
 '' as Donor_Reference_1,
 CAST(NULL as INT) as Please_enter_the_amount_donated,
 CASE
@@ -220,8 +226,8 @@ Total_outreach_in_last_FY,
 Main_objective_of_the_organisation,
 Percentage_of_beneficiaries_belong_to_low_socioeconomic_background,
 What_percentage_of_beneficiaries_belong_to_low_socioeconomic_background,
-tb as target_beneficiary,
---listagg(t.name ,' ,') as Target_beneficiary,
+--tb as target_beneficiary,
+listagg(t.name ,' ,') as Target_beneficiary,
 Donor_Reference_1,
 Please_enter_the_amount_donated,
 Are_there_any_other_sources_of_funding,
@@ -242,7 +248,7 @@ Total_spend_on_direct_programme_costs_in_the_last_FY,
 What_was_the_total_spend_on_direct_programme_costs_in_the_last_FY,
 Total_expenses_in_the_last_FY 
 from ss3
-/*left join hdfc_tag t
+left join hdfc_tag t
 on t.id=ss3.tb
 group by 
 Name_of_the_Implementation_Agency,
