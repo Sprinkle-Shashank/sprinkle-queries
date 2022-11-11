@@ -2,11 +2,14 @@ with t1 as
 (
   select projectId, services, fy_timerange,
   
-  CASE when services=NULL then NULL
-  else NULL
+  CASE when services=NULL then 'NULL'
+  else 'NULL'
   end as services_updated
   
   from profile_54243 as p
+  
+  left join ds_mysql_prod_project as projectId
+  on p.projectId = projectId.id
   
   ),
   
@@ -14,9 +17,9 @@ with t1 as
   (
 	select fy_timerange, count(*) as count_up, projectId, services_updated from t1
 	
-	group by projectid, services_updated, fy_timerange
+	group by projectId, services_updated, fy_timerange
 	)
-  select projectid, cast(services_updated as VARCHAR) as services_new, fy_timerange, count_up from t2
+  select projectId, cast(services_updated as VARCHAR) as services_new, fy_timerange, count_up from t2
 	
 
 /*
