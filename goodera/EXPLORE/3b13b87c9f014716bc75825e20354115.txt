@@ -1,4 +1,17 @@
-with sub1 as(
+with sub0 as(
+  select x1._id as id, x1.profileinstanceid, x1.status, x1.active, x1.creatorid
+  
+from ds_mongo_taskresponse x1 
+
+left join ds_mysql_prod_taskuser x2 on x2.id = x1.taskuserid
+left join ds_mysql_prod_task x3 on x3.id = x2.taskid
+left join ds_mysql_prod_flowtask x4 on x4.id = x3.flowtaskid
+left join ds_mysql_prod_projectflow x5 on x5.id = x3.projectflowid
+left join ds_mysql_prod_section x6 on x6.id = x4.sectionid
+
+where x6.profileid = 78057 and x1.active = 't' and x1.status = 'SUBMITTED'),
+
+sub1 as(
   select p1._id as p3id, p1.creatorid, t1.email, 
   
 p1.fy_timerange, t2.name as quarter, t3.name as country, 
@@ -30,7 +43,7 @@ p1.no_of_individuals_directly_engaged, p1.women_engaged, p1.people_engaged_expla
 t14.name as measure_outcome, p1.no_of_individuals_better_knowledge, p1.no_of_individuals_behaviour_changed, p1.no_of_individuals_reporting_improvement, p1.charity_measured_outcome, p1.outcome_evidence
   
 from profile_78057 p1
-  
+left join sub0 x1 on x1.profileinstanceid = p1._id  
 left join ds_mysql_prod_user t1 on t1.id = p1.creatorid
 
 left join ds_mysql_prod_tagelement t2 on t2.id = p1.quarter
