@@ -1,1 +1,16 @@
-select p.projectid from profile_54646 as p
+with t1 as
+(
+  select projectId, services, fy_timerange, ser
+  from profile_54243 as p, p.services as ser
+  ),
+  
+  t2 as
+  (
+	select fy_timerange, count(*) as count_up, projectid,serv.name as service_updated from t1
+	
+	left join ds_mysql_prod_tagelement serv
+on p.ser = serv.id
+	group by projectid, service_updated, fy_timerange
+	)
+  select projectid, cast(service_updated as VARCHAR) as service_new, fy_timerange, count_up from t2
+	
