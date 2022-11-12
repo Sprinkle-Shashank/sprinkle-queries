@@ -401,12 +401,22 @@ Total_spend_on_direct_programme_costs_in_the_last_FY,
 What_was_the_total_spend_on_direct_programme_costs_in_the_last_FY,
 Total_expenses_in_the_last_FY 
 )
-
+,
+finalsub as (
 Select * from s1
 Union all
 Select * from s2
 Union all
 Select * from s3
+)
+
+Select 
+* from(
+Select fs.*,
+rank() over(partition by Name_of_the_Implementation_Agency order by Select_the_financial_year_when_this_data_is_being_entered desc) as rnk
+ from finalsub fs
+) as x
+where rnk=1
 
 
 /*with s1 as(
