@@ -1,0 +1,104 @@
+WITH temp1 AS (
+ SELECT 'fy_12_timerange' AS col1
+  UNION ALL
+  SELECT 'fy_13_timerange' AS col1
+  ),
+  
+  temp2 AS (
+	SELECT 'a0_12' AS col
+	UNION ALL
+	SELECT 'b0_12' AS col
+	UNION ALL
+	SELECT 'c0_12' AS col
+	UNION ALL
+	SELECT 'd0_12' AS col
+	UNION ALL
+	SELECT 'e0_12' AS col
+	UNION ALL
+	SELECT 'f0_12' AS col
+	UNION ALL
+	SELECT 'g0_12' AS col
+	UNION ALL
+	SELECT 'a0_13' AS col
+	UNION ALL
+	SELECT 'b0_13' AS col
+	UNION ALL
+	SELECT 'c0_13' AS col
+	UNION ALL
+	SELECT 'd0_13' AS col
+	UNION ALL
+	SELECT 'e0_13' AS col
+	UNION ALL
+	SELECT 'f0_13' AS col
+	UNION ALL
+	SELECT 'g0_13' AS col
+	UNION ALL
+	SELECT 'h0_13' AS col
+
+
+
+	),
+	
+	S AS (
+	  SELECT p.projectid,p.fy_12_timerange,p.fy_13_timerange,p.a0_12, p.b0_12, p.c0_12, p.d0_12, p.e0_12, p.f0_12, p.g0_12,p.a0_13, p.b0_13, p.c0_13, p.d0_13, p.e0_13, p.f0_13, p.g0_13, p.h0_13
+	  
+	  FROM profile_74275 AS p
+	  ),
+	  
+	  S2 AS (
+		SELECT
+		CASE col1
+		WHEN 'fy_12_timerange' THEN S.fy_12_timerange
+		WHEN 'fy_13_timerange' THEN S.fy_13_timerange
+		ELSE NULL
+		END AS time_data,
+		
+		CASE col
+		WHEN 'a0_12' THEN s.a0_12
+		WHEN 'b0_12' THEN s.b0_12
+		WHEN 'c0_12' THEN s.c0_12
+		WHEN 'd0_12' THEN s.d0_12
+		WHEN 'e0_12' THEN s.e0_12
+		WHEN 'f0_12' THEN s.f0_12
+		WHEN 'g0_12' THEN s.g0_12
+		WHEN 'a0_13' THEN s.a0_13
+		WHEN 'b0_13' THEN s.b0_13
+		WHEN 'c0_13' THEN s.c0_13
+		WHEN 'd0_13' THEN s.d0_13
+		WHEN 'e0_13' THEN s.e0_13
+		WHEN 'f0_13' THEN s.f0_13
+		WHEN 'g0_13' THEN s.g0_13
+		WHEN 'h0_13' THEN s.h0_13
+
+
+
+		ELSE NULL
+		END AS data,
+		
+		temp2.col AS "data_label",
+		temp1.col1 AS "timeperiods",
+		SUBSTRING(data_label,4,2) AS data_number,
+		SUBSTRING(timeperiods,4,2) AS time_number,
+		
+		CASE 
+		WHEN data_number = time_number THEN '1'
+		ELSE '0'
+		END AS match,projectId
+		
+		FROM S
+		
+		CROSS JOIN temp1
+		CROSS JOIN temp2
+		
+		WHERE match=1)
+		
+ --Select * from s2
+ 
+ SELECT data_label, data, projectId,
+ JSON_SERIALIZE(time_data) AS fy_timerange
+ 
+ FROM S2
+ 
+ GROUP BY fy_timerange, data_label, data, projectId
+ 
+ ORDER BY fy_timerange DESC
