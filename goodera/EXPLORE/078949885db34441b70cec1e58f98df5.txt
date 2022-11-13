@@ -1,0 +1,127 @@
+WITH temp1 AS (
+ SELECT 'fy_07_timerange' AS col1
+  UNION ALL
+  SELECT 'fy_08_timerange' AS col1
+  ),
+  
+  temp2 AS (
+	SELECT 'a0_07' AS col
+	UNION ALL
+	SELECT 'b0_07' AS col
+	UNION ALL
+	SELECT 'c0_07' AS col
+	UNION ALL
+	SELECT 'd0_07' AS col
+	UNION ALL
+	SELECT 'e0_07' AS col
+	UNION ALL
+	SELECT 'f0_07' AS col
+	UNION ALL
+	SELECT 'g0_07' AS col
+	UNION ALL
+	SELECT 'h0_07' AS col
+	UNION ALL
+	SELECT 'i0_07' AS col
+	UNION ALL
+	SELECT 'j0_07' AS col
+	UNION ALL
+	SELECT 'a0_08' AS col
+	UNION ALL
+	SELECT 'b0_08' AS col
+	UNION ALL
+	SELECT 'c0_08' AS col
+	UNION ALL
+	SELECT 'd0_08' AS col
+	UNION ALL
+	SELECT 'e0_08' AS col
+	UNION ALL
+	SELECT 'f0_08' AS col
+	UNION ALL
+	SELECT 'g0_08' AS col
+	UNION ALL
+	SELECT 'h0_08' AS col
+	UNION ALL
+	SELECT 'i0_08' AS col
+	UNION ALL
+	SELECT 'j0_08' AS col
+	UNION ALL
+	SELECT 'k0_08' AS col
+	UNION ALL
+	SELECT 'l0_08' AS col
+	UNION ALL
+	SELECT 'm0_08' AS col
+	UNION ALL
+	SELECT 'n0_08' AS col
+
+	),
+	
+	S AS (
+	  SELECT p.projectid,p.fy_07_timerange,p.fy_08_timerange,p.a0_07, p.b0_07, p.c0_07, p.d0_07, p.e0_07, p.f0_07, p.g0_07, p.h0_07,p.i0_07,p.j0_07,p.a0_08, p.b0_08, p.c0_08, p.d0_08, p.e0_08, p.f0_08, p.g0_08, p.h0_08, p.i0_08, p.j0_08, p.k0_08, p.l0_08,p.m0_08,p.n0_08
+	  
+	  FROM profile_74276 AS p
+	  ),
+	  
+	  S2 AS (
+		SELECT
+		CASE col1
+		WHEN 'fy_07_timerange' THEN S.fy_07_timerange
+		WHEN 'fy_08_timerange' THEN S.fy_08_timerange
+		ELSE NULL
+		END AS time_data,
+		
+		CASE col
+		WHEN 'a0_07' THEN s.a0_07
+		WHEN 'b0_07' THEN s.b0_07
+		WHEN 'c0_07' THEN s.c0_07
+		WHEN 'd0_07' THEN s.d0_07
+		WHEN 'e0_07' THEN s.e0_07
+		WHEN 'f0_07' THEN s.f0_07
+		WHEN 'g0_07' THEN s.g0_07
+		WHEN 'h0_07' THEN s.h0_07
+		WHEN 'i0_07' THEN s.i0_07
+		WHEN 'j0_07' THEN s.j0_07
+		WHEN 'a0_08' THEN s.a0_08
+		WHEN 'b0_08' THEN s.b0_08
+		WHEN 'c0_08' THEN s.c0_08
+		WHEN 'd0_08' THEN s.d0_08
+		WHEN 'e0_08' THEN s.e0_08
+		WHEN 'f0_08' THEN s.f0_08
+		WHEN 'g0_08' THEN s.g0_08
+		WHEN 'h0_08' THEN s.h0_08
+		WHEN 'i0_08' THEN s.i0_08
+		WHEN 'j0_08' THEN s.j0_08
+		WHEN 'k0_08' THEN s.k0_08
+		WHEN 'l0_08' THEN s.l0_08
+		WHEN 'm0_08' THEN s.m0_08
+		WHEN 'n0_08' THEN s.n0_08
+
+		ELSE NULL
+		END AS data,
+		
+		temp2.col AS "data_label",
+		temp1.col1 AS "timeperiods",
+		SUBSTRING(data_label,4,2) AS data_number,
+		SUBSTRING(timeperiods,4,2) AS time_number,
+		
+		CASE 
+		WHEN data_number = time_number THEN '1'
+		ELSE '0'
+		END AS match,projectId
+		
+		FROM S
+		
+		CROSS JOIN temp1
+		CROSS JOIN temp2
+		
+		WHERE match=1)
+		
+ --Select * from s2
+ 
+ SELECT data_label, data, projectId,
+ JSON_SERIALIZE(time_data) AS fy_timerange
+ 
+ FROM S2
+ 
+ GROUP BY fy_timerange, data_label, data, projectId
+ 
+ ORDER BY fy_timerange DESC
