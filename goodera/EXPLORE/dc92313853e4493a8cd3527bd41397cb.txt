@@ -1,7 +1,3 @@
---with sub1 as (select a.*, unwind_grade from profile_80586 a, a.grade as unwind_grade)
---select * from sub1
-
-
 with temp1 as
 ( select projectId.name as projectId, fy_timerange, last_yr_status, SUM(m.csr_spend) as csr_spend1 ,SUM(m.last_yr_spend) as last_year_spend1 
  
@@ -20,11 +16,16 @@ temp2 as
 case
 when last_yr_status = '656829' then ((csr_spend1 :: float/last_year_spend1:: float)*100)-100 else '0' end as percentage
 
-from temp1)
+from temp1),
+temp3 as
+(select projectid, fy_timerange, last_yr_status, csr_spend1, last_year_spend1, percentage
+ 
+UNPIVOT (
+  amount for dimension IN (csr_spend1, percent, last_year_spend1))
 
-select projectid, fy_timerange, last_yr_status, csr_spend1, last_year_spend1, percentage
+from temp2)
 
-from temp2
+select * from temp3
 
 
 
