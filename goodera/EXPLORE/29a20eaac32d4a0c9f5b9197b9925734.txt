@@ -1,24 +1,39 @@
 with t1 as
 (
-  select projectId.name as projectId, services, fy_timerange,
-  
-  CASE when services=NULL then 'NULL'
-  end as services_updated
-  
+  select projectId, services, fy_timerange
   from profile_54243 as p
-  
-  left join ds_mysql_prod_project as projectId
-  on p.projectId = projectId.id
+  )
+  t2 as
+  (
+	select projectId, services, fy_timerange, count(*) as count_up from t1
+	group by projectId, services, fy_timerange
+	)
+	select projectId, services, fy_timerange, count_up from t2
+
+/*
+with t1 as
+(
+  select pro, fy_timerange, ser
+   
+  from profile_54243 as p, p.services as ser, p.projectId as pro
   
   ),
   
   t2 as
   (
-	select fy_timerange, count(*) as count_up, projectId, services_updated from t1
+	select fy_timerange, count(*) as count_up, projectId, ser, serv.name as services_updated, pro, 
+	proj.name as proj_up from t1
 	
-	group by projectId, services_updated, fy_timerange
+	left join ds_mysql_prod_project as proj
+	on t1.pro = proj.id
+	
+	left join ds_mysql_prod_tagelement as serv
+	on t1.ser = serv.id
+	
+	group by proj_up, services_updated, fy_timerange
 	)
-  select projectId, cast(services_updated as VARCHAR) as services_new, fy_timerange, count_up from t2
+  select proj_up, cast(services_updated as VARCHAR) as services_new, fy_timerange, count_up from t2
+  */
 	
 
 /*
