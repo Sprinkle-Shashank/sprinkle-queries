@@ -1,4 +1,13 @@
-select p1._id, p1.projectId, p1.select_factory_msa, p1.grievance,p2.country, p2.vendor, p2.cycle, p2.consultant
+with sub1 as (select a.*, unwind_cycle from profile_64362 as a, a.cycle as unwind_cycle),
+
+
+t1 as(select p1._id, p1.projectId, tag1.name as select_factory_msa, p1.grievance,p2.country, p2.vendor, tag2.name as cycle, p2.consultant
 from profile_62477 p1
 left join profile_64362 p2
 on p1.projectId = p2.projectId
+left join ds_mysql_prod_tagelement tag1
+on p1.select_factory_msa = tag1.id
+left join ds_mysql_prod_tagelement tag2
+on p2.unwind_cycle = tag2.id)
+
+select * from t1
