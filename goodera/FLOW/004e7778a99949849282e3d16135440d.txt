@@ -1,6 +1,5 @@
 drop table if exists Imp_agency_p127395;
 create table Imp_agency_p127395 as
-
 with s1 as (
 Select 
 p1.name as Name_of_the_Implementation_Agency,
@@ -17,7 +16,7 @@ case
   	   array(p1.core_area)
   else p1.core_area
 end as core_area,
-t3.name as Please_select_the_Organization_Type,
+t3.name as Please_select_the_Organizat ion_Type,
 t4.name as schedule7,
 p1.reg_number as Organisation_Registration_Number,
 p1.registration_date as Organization_registration_date,
@@ -204,10 +203,17 @@ left join hdfc_tag t42
 on p1.external_party=t42.id
 left join hdfc_tag t43
 on p1.direct_prog_cost_2=t43.id
-) 
-,
-ss1 as( Select s.*,core_a,tar_ben,acc
-from s1 as s,s.core_area as core_a,s.target_beneficiary as tar_ben,s.accreditation as acc
+) ,
+
+ss1 as
+( Select s.*,
+core_a,
+tar_ben,
+acc
+from s1 as s,
+s.core_area as core_a,
+s.target_beneficiary as tar_ben,
+s.accreditation as acc
 )
 
 
@@ -221,7 +227,7 @@ Email_ID_of_contact_person,
 Mobile_number_of_contact_person,
 Brief_description_of_the_Programs_of_the_Organisation,
 Vision_and_Mission_of_the_Organisation,
---CAST(listagg(t1.name,' ,') AS VARCHAR) as Please_select_the_Area_of_Intervention_in_which_your_Organisation_works,
+SPLIT_TO_ARRAY(listagg(t1.name,' ,')) as Please_select_the_Area_of_Intervention_in_which_your_Organisation_works,
 Please_select_the_Organization_Type,
 schedule7,
 Organisation_Registration_Number,
@@ -269,7 +275,7 @@ Are_there_clearly_articulated_impact_indicators_for_each_of_the_activity_project
 Please_explain_the_monitoring_methods_of_the_organization_to_track_the_progress_of_projects,
 Does_the_organization_have_well_defined_monitoring_methods_to_track_the_progress_of_its_projects,
 Is_the_organization_part_of_any_local_professional_network_forum_in_its_area_field,
---CAST(listagg(t2.name,' ,') AS VARCHAR) as Please_select_the_accreditation_organization,
+SPLIT_TO_ARRAY(listagg(t2.name,' ,')) as Please_select_the_accreditation_organization,
 Is_the_organization_empanelled_enlisted_with_any_National_International_body_of_Accrediation_Credibility_assurance,
 What_is_the_average_years_of_experience_of_the_staff,
 Please_describe_the_structured_opportunities_the_organization_may_have_to_engage_volunteers,
@@ -289,7 +295,7 @@ Total_outreach_in_last_FY,
 Main_objective_of_the_organisation,
 Percentage_of_beneficiaries_belong_to_low_socioeconomic_background,
 What_percentage_of_beneficiaries_belong_to_low_socioeconomic_background,
---CAST(listagg(t3.name,' ,') AS VARCHAR) as Target_beneficiary,
+SPLIT_TO_ARRAY(listagg(t3.name,' ,')) as Target_beneficiary,
 Donor_Reference_1,
 Please_enter_the_amount_donated,
 Are_there_any_other_sources_of_funding,
@@ -301,7 +307,7 @@ Percentage_of_funding_received_from_Corporate_Funders,
 Does_the_organization_have_Corporate_funders,
 Percentage_of_donations_received_from_Individual_Donors,
 Does_the_organization_have_Individual_donors,
-What_are_the_major_sources_of_funding,
+What_are_the_major_sources_of_funding, 
 Mention_the_type_of_fixed_assets_Land_Office_building_Training_Centre,
 What_was_the_total_Income_vs_Expenditure_in_last_three_years,
 What_was_the_Income_vs_Expenditure_ratio_in_the_last_three_years,
@@ -310,12 +316,12 @@ Total_spend_on_direct_programme_costs_in_the_last_FY,
 What_was_the_total_spend_on_direct_programme_costs_in_the_last_FY,
 Total_expenses_in_the_last_FY 
 from ss1
-/*left join ds_mysql_prod_tagelement t1
+left join ds_mysql_prod_tagelement t3
+on t3.id=ss1.tar_ben
+left join ds_mysql_prod_tagelement t1
 on t1.id=ss1.core_a
 left join ds_mysql_prod_tagelement t2
 on t2.id=ss1.acc
-left join ds_mysql_prod_tagelement t3
-on t3.id=ss1.tar_ben*/
 group by 
 Name_of_the_Implementation_Agency,
 Select_the_financial_year_when_this_data_is_being_entered,
