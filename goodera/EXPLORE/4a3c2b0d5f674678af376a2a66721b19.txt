@@ -1,0 +1,78 @@
+With temp1 as (
+ Select 'fy_29_timerange' as col1
+  union all
+ Select 'fy_30_timerange' as col1),
+ 
+ temp2 as (
+	Select 'a0_29' as col
+  union all
+	Select 'b0_29' as col
+  union all
+	Select 'c0_29' as col
+  union all
+    Select 'd0_29' as col
+  union all
+	Select 'e0_29' as col
+  union all
+    Select 'f0_29' as col
+  union all
+	Select 'a0_30' as col
+  union all
+	Select 'b0_30' as col
+  union all
+	Select 'c0_30' as col
+  union all
+	Select 'd0_30' as col
+  union all
+	Select 'e0_30' as col
+  union all
+	Select 'f0_30' as col
+ ),
+	
+s as ( Select p.fy_29_timerange,p.fy_30_timerange,
+p.a0_29, p.b0_29, p.c0_29, p.d0_29, p.e0_29,p.f0_29, p.a0_30, p.b0_30, p.c0_30, p.d0_30, p.e0_30, p.f0_30,p.projectId
+from profile_74275 p),
+
+s2 as(Select
+case col1
+ when 'fy_29_timerange' then s.fy_29_timerange
+ when 'fy_30_timerange' then s.fy_30_timerange
+ else null
+ end as time_data,
+	  
+case col
+when 'a0_29' then s.a0_29
+when 'b0_29' then s.b0_29
+when 'c0_29' then s.c0_29
+when 'd0_29' then s.d0_29
+when 'e0_29' then s.e0_29
+when 'f0_29' then s.f0_29
+
+when 'a0_30' then s.a0_30
+when 'b0_30' then s.b0_30
+when 'c0_30' then s.c0_30
+when 'd0_30' then s.d0_30
+when 'e0_30' then s.e0_30
+when 'f0_30' then s.f0_30
+
+
+else null
+end as data, temp2.col as "data_label",temp1.col1 as "timeperiods",
+substring(data_label,4,2) as  data_number,
+substring(timeperiods,4,2) as time_number,
+	  
+case 
+when data_number = time_number
+then '1'
+else '0'
+end as match,projectId
+from s
+cross join temp1
+cross join temp2
+where match=1)
+ 
+Select data_label,data,projectId,JSON_SERIALIZE(time_data) AS fy_timerange
+from s2
+where fy_timerange is not null
+group by fy_timerange, data_label, data,projectId
+order by fy_timerange desc
