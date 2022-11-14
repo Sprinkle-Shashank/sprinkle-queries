@@ -1,13 +1,11 @@
 with temp1 as
-( select projectId.name as projectId, fy_timerange,/* last1.name as */last_yr_status, SUM(m.csr_spend) as Csr_spend ,SUM(m.last_yr_spend) as Last_year_spend
+( select projectId.name as projectId, fy_timerange, last_yr_status, SUM(m.csr_spend) as csr_spend1 ,SUM(m.last_yr_spend) as last_year_spend1
  
  
 from profile_44750 as m
 
 left join ds_mysql_prod_project as projectId
 on m.projectId = projectId.id
-/*left join ds_mysql_prod_tagelement last1
-on m.last_yr_status= last1.id*/
  
 group by projectId.name, fy_timerange, last_yr_status
 ),
@@ -15,7 +13,7 @@ temp2 as
 (select *,
   
 case
-when last_yr_status = '656829' then (((Csr_spend/Last_year_spend)*100)-100) else '0' end as percentage
+when last_yr_status = '656829' then ((csr_spend1/last_year_spend1)*100 else '0' end as percentage
 
 from temp1)
  
