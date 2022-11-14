@@ -1,4 +1,4 @@
-select projectId, project_name, quarter, uc, financial_year, fy_timerange, amount_utilized, amount_disbursed, payment_receipts,
+select projectId.name as projectId, p_name.name as project_name, quarter, uc, financial_year, fy_timerange, amount_utilized, amount_disbursed, payment_receipts,
 
 COALESCE(uc,'') as uc_update ,
 COALESCE(payment_receipts,'') as receipts_update ,
@@ -6,8 +6,10 @@ case
 when uc_update = '' then '-' else 'Click here' end as uc_click,
 case 
 when receipts_update = '' then '-' else 'Click here' end as receipts_click
-
-
 from profile_51734 as m
-if(eq(ifNull($uc,0),0),"-","Click here")
-if(eq(ifNull($bod,0),0)," NOT UPLOADED ","Download")
+
+left join ds_mysql_prod_project as projectId
+on m.projectId = projectId.id
+
+left join ds_mysql_prod_tagelement p_name
+ on m.project_name= p_name.id
