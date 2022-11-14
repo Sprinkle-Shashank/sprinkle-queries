@@ -1,6 +1,6 @@
 with sub1 as (select a.*, unwind_cycle from profile_64362 as a, a.cycle as unwind_cycle),
 
-t1 as (select  p1.projectId, tag1.name as select_factory_msa,p2.country, p2.vendor, tag2.name as cycle, p2.consultant,
+t1 as (select  p1.projectId, p2.country, p2.vendor, tag2.name as cycle, p2.consultant,
 case 
 when p1.grievance = 1105585 then 1
 when p1.grievance = 1105584 then 2
@@ -18,7 +18,9 @@ end as grievance_b,
 case 
 when tag1.name = 'Endline' then grievance1
 --else 0
-end as grievance_e
+end as grievance_e,
+avg(grievance_b :: float ) as avg_b,
+avg(grievance_e :: float) as avg_e
 	   
 from profile_62477 p1 
 left join sub1 p2
@@ -28,14 +30,13 @@ on p1.select_factory_msa = tag1.id
 left join ds_mysql_prod_tagelement tag2
 on p2.unwind_cycle = tag2.id
 	   
-group by  p1.projectId, country, vendor, consultant, cycle,tag1.name,p1.grievance,tag2.name)
+group by  p1.projectId, country, vendor, consultant,p1.grievance,tag1.name,tag2.name)
 
 select * from t1
 
 /*
 
-avg(grievance_b :: float ) as avg_b,
-avg(grievance_e :: float) as avg_e
+
 (avg_e-avg_b) as sub,
 case
 when sub>0 then 1
