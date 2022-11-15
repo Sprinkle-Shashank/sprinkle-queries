@@ -1,2 +1,111 @@
-Select datediff(days,'2020-12-31','2021-01-01')
-from profile_80183
+with base1 as(Select p.registration_date,datediff(date,p.registration_date,current_date) as age_in_yrs,
+case when age_in_yrs<3 then NULL
+when (age_in_yrs)/365.25>=3 and (age_in_yrs)/365.25<=10 then '3-10 years'
+when (age_in_yrs)/365.25>=11 and (age_in_yrs)/365.25<=20 then '11-20 years'
+when (age_in_yrs)/365.25>=20 and (age_in_yrs)/365.25<=30 then '21-30 years'
+when (age_in_yrs)/365.25>30 then '30+ years' 
+else 'NA'																							
+end as Age_Category 
+from  profile_27395 p),
+
+base2 as(Select p.registration_date,datediff(date,p.registration_date,current_date) as age_in_yrs,
+case when age_in_yrs<3 then NULL
+when (age_in_yrs)/365.25>=3 and (age_in_yrs)/365.25<=10 then '3-10 years'
+when (age_in_yrs)/365.25>=11 and (age_in_yrs)/365.25<=20 then '11-20 years'
+when (age_in_yrs)/365.25>=20 and (age_in_yrs)/365.25<=30 then '21-30 years'
+when (age_in_yrs)/365.25>30 then '30+ years' 
+else 'NA'																							
+end as Age_Category 
+from  profile_80183 p),
+
+base6 as(
+select Age_category,age_in_yrs
+from Base1 
+where Age_category<>'NA' 
+group by 1,2
+union all
+select Age_category,age_in_yrs
+from Base2
+where Age_category<>'NA' 
+group by 1,2)
+
+
+select age_category,sum(age_in_yrs),
+case 
+when Age_category='3-10 years' then 1
+when Age_category='11-20 years' then 2
+when Age_category='21-30 years' then 3
+when Age_category='30+ years' then 4 
+end as sort
+from base6 
+group by 1
+
+/*with Base1 as(Select p.registration_date as registrationdate,p._id, datediff(day,p.registration_date,current_date) as age_in_months,floor(age_in_months/365.25) as age_in_yrs 
+			  from  profile_80183 p),
+
+Base2 as(select age_in_months,age_in_yrs,registrationdate ,_id,
+case when age_in_yrs<3 then NULL
+when age_in_yrs>=3 and age_in_yrs<=10 then '3-10 years'
+when age_in_yrs>=11 and age_in_yrs<=20 then '11-20 years'
+when age_in_yrs>=20 and age_in_yrs<=30 then '21-30 years'
+when age_in_yrs>30 then '30+ years' 
+else 'NA'																							
+end as Age_Category 
+from Base1),
+
+--select * from Base2
+
+
+Base4 as(Select q.registration_date as registrationdate,q._id, datediff(day,q.registration_date,current_date) as age_in_months,floor(age_in_months/365.25) as age_in_yrs 
+		 from  profile_27395 q),
+
+Base5 as(select age_in_months,age_in_yrs,registrationdate ,_id,
+case when age_in_yrs<3 then NULL
+when age_in_yrs>=3 and age_in_yrs<=10 then '3-10 years'
+when age_in_yrs>=11 and age_in_yrs<=20 then '11-20 years'
+when age_in_yrs>=20 and age_in_yrs<=30 then '21-30 years'
+when age_in_yrs>30 then '30+ years' 
+else 'NA'																							
+end as Age_Category from Base4), 
+
+
+base6 as(
+select Age_category,
+  case 
+when Age_category='3-10 years' then 1
+when Age_category='11-20 years' then 2
+when Age_category='21-30 years' then 3
+when Age_category='30+ years' then 4 
+end as sort
+from Base2 where Age_category<>'NA' group by Age_category
+union all
+--select * from Base5
+select Age_category,case when Age_category='3-10 years' then 1
+when Age_category='11-20 years' then 2
+when Age_category='21-30 years' then 3
+when Age_category='30+ years' then 4
+end as sort
+from Base5 where Age_category<>'NA' group by Age_category)
+
+
+select age_category, count(*) as ngo_no, sort from base6 group by age_category, sort*/
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-------------------yr wise ----2015-16
+-----------chk for reg_date..............CURRENT_YEAR MINUS reg_date
