@@ -1,7 +1,7 @@
 with sub1 as (select a.*, unwind_cycle from profile_64362 as a, a.cycle as unwind_cycle),
 
-t1 as (select  p1.projectId, p2.country, p2.vendor, tag2.name as cycle, p2.consultant,
-case 
+t1 as(select p1._id, tag3.name as projectId, tag1.name as select_factory_msa, tag4.name as country, p2.vendor, tag2.name as cycle, p2.consultant,
+	  case 
 when p1.grievance = 1105585 then 1
 when p1.grievance = 1105584 then 2
 when p1.grievance = 1105583 then 3
@@ -9,8 +9,7 @@ when p1.grievance = 1105582 then 4
 when p1.grievance = 1105581 then 5
 else 0
 end as grievance1,
-
-case 
+	  case 
 when tag1.name = 'Baseline' then grievance1
 --else 0
 end as grievance_b,
@@ -18,35 +17,35 @@ end as grievance_b,
 case 
 when tag1.name = 'Endline' then grievance1
 --else 0
-end as grievance_e,
-avg(grievance_b :: float ) as avg_b,
-avg(grievance_e :: float) as avg_e
-	   
-	   
-from profile_62477 p1 
+end as grievance_e
+	  
+from profile_62477 p1
 left join sub1 p2
-on p1.projectId= p2.projectId
+on p1.projectId = p2.projectId
 left join ds_mysql_prod_tagelement tag1
 on p1.select_factory_msa = tag1.id
 left join ds_mysql_prod_tagelement tag2
 on p2.unwind_cycle = tag2.id
-	   
-group by  p1.projectId, country, vendor, consultant,p1.grievance,tag1.name,tag2.name)
-
-select t.* 
+	  left join ds_mysql_prod_project tag3
+on p1.projectId = tag3.id
+	  left join ds_mysql_prod_tagelement tag4
+on p2.country = tag4.id
+	 
+	 ),
+t2 as(select projectId, country, vendor, consultant, cycle,
+avg(grievance_b) as avg_b,
+avg(grievance_e) as avg_e
 from t1 t
+group by projectId, country, vendor, consultant, cycle),
 
-/*
-
-
-(avg_e-avg_b) as sub,
-case
-when sub>0 then 1
-else 0
-end as grievance_improvement 	
-
-
---where grievance_improvement = 1
-,tag2.name)*/
-
---select * from t1 
+t3 as( select tt.*,
+	    (avg_e-avg_b) as sub,
+		case
+		when sub>0 then 1
+		else 0
+		end as grievance_improvement 
+	  from t2 tt)
+	  
+	  select projectId, country, vendor, consultant, cycle, grievance_improvement
+	  from t3
+	  where grievance_improvement=1
