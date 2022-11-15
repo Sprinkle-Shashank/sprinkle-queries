@@ -1,13 +1,15 @@
-with x as (select grantproposalid,date_of_entry,metrics_1,metrics_2 from profile_43726 a ),
+with x as (select grantproposalid,createddate,date_of_entry,metrics_1,metrics_2 from profile_43726 a ),
 
 table1 as (
-select p.grantproposalid,date_of_entry,coun.progress,coun.uom  From x as p, unpivot p.metrics_1 as coun ),
+select p.grantproposalid,date_of_entry,createddate,coun.progress,coun.uom  From x as p, unpivot p.metrics_1 as coun ),
 y as (
-select grantproposalid,date_of_entry,metrics_1,metrics_2 from profile_43728),
+select grantproposalid,createddate,date_of_entry,metrics_1,metrics_2 from profile_43728),
 table2 as (
-select p.grantproposalid,date_of_entry,coun.progress,coun.uom From y as p, unpivot p.metrics_1 as coun)
+select p.grantproposalid,date_of_entry,createddate,coun.progress,coun.uom From y as p, unpivot p.metrics_1 as coun)
 
-select t1.grantproposalid,t1.date_of_entry,t1.progress,t1.uom,t2.date_of_entry as date2, t2.progress as progress2,t2.uom as uom2,t2.grantproposalid, 
+select t1.grantproposalid,t1.progress,t1.uom, t2.progress as progress2,t2.uom as uom2,t2.grantproposalid, 
+case when t1.date_of_entry is null then createddate else t1.date_of_entry end date1,
+case when t2.date_of_entry is null then createddate else t2.date_of_entry end date2,
 case when t2.grantproposalid is not null then progress2
      else t1.progress end final_progress
 from table1 t1
