@@ -1,6 +1,6 @@
 with t1 as
 (
-  select projectId, period, fy_timerange, plan_school_goal, actual_num_schools_goals,
+  select projectId.name as projectid, p.period, py.name as period_updated, fy_timerange, plan_school_goal, actual_num_schools_goals,
   
   case when period=931060 then 1
   when period=931061 then 2
@@ -8,11 +8,17 @@ with t1 as
   end as sort_up
   
   from profile_55408 as p
+  
+  left join ds_mysql_prod_project projectid
+  on p.projectid = projectid.id
+  
+  left join ds_mysql_prod_tagelement py
+  on p.period = py.id
   ),
   t2 as
   (
-	select projectId, period, fy_timerange, sort_up, sum(plan_school_goal) as plan_school_goal_sum,
-	sum(actual_num_schools_goals) as actual_num_schools_goals_sum from t1
+	select projectId, period, fy_timerange, sum(plan_school_goal) as plan_school_goal_sum,
+	sum(actual_num_schools_goals) as actual_num_schools_goals_sum, sort_up from t1
 	
 	group by projectId, period, fy_timerange, sort_up
 	order by sort_up ASC
