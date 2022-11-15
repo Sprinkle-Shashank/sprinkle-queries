@@ -1,23 +1,44 @@
-with base1 as(Select p.registration_date,
-			  datediff(days,p.registration_date,current_date) as age_in_yrs,
-case when (age_in_yrs)/365.25<3 then NULL
-when (age_in_yrs)/365.25>=3 and (age_in_yrs)/365.25<=10 then '3-10 years'
-when (age_in_yrs)/365.25>=11 and (age_in_yrs)/365.25<=20 then '11-20 years'
-when (age_in_yrs)/365.25>=20 and (age_in_yrs)/365.25<=30 then '21-30 years'
-when (age_in_yrs)/365.25>30 then '30+ years' 
-else 'NA'																							
-end as Age_Category 
-from  profile_27395 p),
+with temp as(
+  Select '3-10 years' as col
+  union all
+  Select '11-20 years' as col
+  union all
+  Select '21-30 years' as col
+  union all
+  Select '30+ years' as col
+),
 
-base2 as(Select p.registration_date,datediff(days,p.registration_date,current_date) as age_in_yrs,
-case when (age_in_yrs)/365.25<3 then NULL
-when (age_in_yrs)/365.25>=3 and (age_in_yrs)/365.25<=10 then '3-10 years'
-when (age_in_yrs)/365.25>=11 and (age_in_yrs)/365.25<=20 then '11-20 years'
-when (age_in_yrs)/365.25>=20 and (age_in_yrs)/365.25<=30 then '21-30 years'
-when (age_in_yrs)/365.25>30 then '30+ years' 
-else 'NA'																							
-end as Age_Category 
-from  profile_80183 p),
+base1 as(
+  Select p.registration_date,
+			  datediff(days,p.registration_date,current_date) as age_in_yrs,
+  temp.col as Dim, 
+  
+count(case col
+	  when (age_in_yrs)/365.25<3 then 'NA'
+	  when (age_in_yrs)/365.25>=3 and (age_in_yrs)/365.25<=10 then '3-10 years'
+	  when (age_in_yrs)/365.25>=11 and (age_in_yrs)/365.25<=20 then '11-20 years'
+	  when (age_in_yrs)/365.25>=20 and (age_in_yrs)/365.25<=30 then '21-30 years'
+	  when (age_in_yrs)/365.25>30 then '30+ years' 
+	  else 'NA'									
+ end)
+as Age_Category 
+from  profile_27395 p
+ggroup by 1,2,3),
+
+base2 as(
+  Select p.registration_date,
+  datediff(days,p.registration_date,current_date) as age_in_yrs, temp.col as Dim,
+count(case col
+	  when (age_in_yrs)/365.25<3 then 'NA'
+	  when (age_in_yrs)/365.25>=3 and (age_in_yrs)/365.25<=10 then '3-10 years'
+	  when (age_in_yrs)/365.25>=11 and (age_in_yrs)/365.25<=20 then '11-20 years'
+	  when (age_in_yrs)/365.25>=20 and (age_in_yrs)/365.25<=30 then '21-30 years'
+	  when (age_in_yrs)/365.25>30 then '30+ years' 
+	  else 'NA'									
+ end)
+as Age_Category 
+from  profile_80183 p
+group by 1,2,3),
 
 base6 as(
 select Age_category,age_in_yrs
@@ -31,7 +52,7 @@ where Age_category<>'NA'
 group by 1,2)
 
 
-select age_category,count(age_in_yrs),
+select Age_category,Dim,
 case 
 when Age_category='3-10 years' then 1
 when Age_category='11-20 years' then 2
