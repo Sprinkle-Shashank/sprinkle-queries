@@ -1,0 +1,81 @@
+WITH temp1 AS (
+ SELECT 'fy_14_timerange' AS col1
+  UNION ALL
+  SELECT 'fy_17_timerange' AS col1
+  ),
+  
+  temp2 AS (
+	SELECT 'a0_17' AS col
+	UNION ALL
+	SELECT 'b0_17' AS col
+	UNION ALL
+	SELECT 'c0_17' AS col
+	UNION ALL
+	SELECT 'd0_17' AS col
+	UNION ALL
+	SELECT 'e0_17' AS col
+	UNION ALL
+	SELECT 'f0_17' AS col
+	UNION ALL
+	SELECT 'g0_17' AS col
+	UNION ALL
+	SELECT 'h0_17' AS col
+	UNION ALL
+	SELECT 'i0_17' AS col
+
+
+	),
+	
+	S AS (
+	  SELECT p.projectid,p.fy_17_timerange,p.a0_17, p.b0_17, p.c0_17, p.d0_17, p.e0_17, p.f0_17, p.g0_17, p.h0_17, p.i0_17
+	  FROM profile_74276 AS p
+	  ),
+	  
+	  S2 AS (
+		SELECT
+		CASE col1
+		WHEN 'fy_17_timerange' THEN S.fy_17_timerange
+		ELSE NULL
+		END AS time_data,
+		
+		CASE col
+		WHEN 'a0_17' THEN s.a0_17
+		WHEN 'b0_17' THEN s.b0_17
+		WHEN 'c0_17' THEN s.c0_17
+		WHEN 'd0_17' THEN s.d0_17
+		WHEN 'e0_17' THEN s.e0_17
+		WHEN 'f0_17' THEN s.f0_17
+		WHEN 'g0_17' THEN s.g0_17
+		WHEN 'h0_17' THEN s.h0_17
+		WHEN 'i0_17' THEN s.i0_17
+
+		ELSE NULL
+		END AS data,
+		
+		temp2.col AS "data_label",
+		temp1.col1 AS "timeperiods",
+		SUBSTRING(data_label,4,2) AS data_number,
+		SUBSTRING(timeperiods,4,2) AS time_number,
+		
+		CASE 
+		WHEN data_number = time_number THEN '1'
+		ELSE '0'
+		END AS match,projectId
+		
+		FROM S
+		
+		CROSS JOIN temp1
+		CROSS JOIN temp2
+		
+		WHERE match=1)
+		
+ --Select * from s2
+ 
+ SELECT data_label, data, projectId,
+ JSON_SERIALIZE(time_data) AS fy_timerange
+ 
+ FROM S2
+ 
+ GROUP BY fy_timerange, data_label, data, projectId
+ 
+ ORDER BY fy_timerange DESC
