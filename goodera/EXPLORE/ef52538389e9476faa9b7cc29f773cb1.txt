@@ -1,10 +1,13 @@
 with temp1 as
-( select m.name, m.fy_timerange, SUM(r.amount_disbursed) as disbursed, SUM(m.amount_utilized) as Utilized from profile_80774 as m
+( select projectId.name, m.fy_timerange, SUM(r.amount_disbursed) as disbursed, SUM(m.amount_utilized) as Utilized from profile_80774 as m
 
 left join profile_81476 AS r
  on m.name = r.name
+ 
+left join ds_mysql_prod_project as projectId
+on m.projectId = projectId.id
 
-group by m.name,  m.fy_timerange
+group by projectId.name,  m.fy_timerange
 ),
 temp2 as
 (select * from temp1
@@ -12,6 +15,6 @@ temp2 as
 UNPIVOT (
   amount for dimension IN (utilized, disbursed))),
 temp3 as
-( select name, fy_timerange,
+( select projectId, fy_timerange,
  dimension, amount:: float/100000 as amount   from temp2)
 select * from temp3
