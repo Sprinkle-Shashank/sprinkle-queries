@@ -1,0 +1,336 @@
+with table12 as
+ ( 
+  select p.projectid , p._id , cast(d1 as varchar) as d1_update , cast(d2 as varchar) as d2_update , cast(d3 as varchar) as d3_update , cast(d4 as varchar) as d4_update , cast(d5 as varchar) as d5_update , cast(d6 as varchar) as d6_update , cast(d7 as varchar) as d7_update , cast(d8 as varchar) as d8_update from profile_16619 as p,p.trainer as d1, p.trainer_2 as d2 ,  p.trainer_3 as d3  ,  p.trainer_4 as d4  ,  p.trainer_5 as d5  ,  p.trainer_6 as d6  ,  p.trainer_7 as d7  ,  p.trainer_8 as d8  
+ ),
+ 
+ table14 as
+ (
+ select p.projectid , p._id , p.d1_update , p1.name as name_update, p2.name as name_update_2 , p3.name as name_update_3  , p4.name as name_update_4  , p5.name as name_update_5  ,p6.name as name_update_6  , p7.name as name_update_7  , p8.name as name_update_8 , ROW_NUMBER() over (order by p.projectid ) as row, 1 as count from table12 as p
+   
+left join profile_17028 p1
+on p.d1_update= p1._id
+   
+left join profile_17028 p2
+on p.d2_update= p2._id
+   
+left join profile_17028 p3
+on p.d3_update= p3._id
+   
+left join profile_17028 p4
+on p.d4_update= p4._id
+   
+left join profile_17028 p5
+on p.d5_update= p5._id
+   
+left join profile_17028 p6
+on p.d6_update= p6._id
+   
+left join profile_17028 p7
+on p.d7_update= p7._id
+   
+left join profile_17028 p8
+on p.d8_update= p8._id
+),
+
+table15 as
+( select * from table14 where row=1 ),
+
+
+table16 as
+(
+  select p.projectid , p._id , ROW_NUMBER() over (order by p.projectid ) as row , total_Workers , sustainability_rating from profile_31726 as p 
+),
+
+table17 as
+(
+ select * from table16 where row=1 
+ ),
+ 
+table18 as 
+(
+select p.projectid, p.facility_status , facility.name as facility_status_update , case when facility_status_update='Active' then 'Active' else 'Deactive' end as Active_Filter , goodera_facility_name_text from profile_68161 as p
+  
+left join ds_mysql_prod_tagelement facility 
+on p.facility_status = facility.id
+),
+
+
+ table11 as
+(
+SELECT * 
+FROM (SELECT p.projectid , p._id , p.date, p.date_2, p.date_3, p.date_4,  p.date_5, p.date_6, p.date_7, p.date_8   FROM profile_16619 p  
+	 ) 
+UNPIVOT (
+    val FOR dim IN ( date, date_2, date_3, date_4,  date_5, date_6, date_7, date_8 )
+)
+),
+
+table21 as
+( select p.*, ROW_NUMBER() over (partition by p.projectid order by p.val desc) as row from table11 as p ),
+
+
+table31 as 
+(
+select p.*, cast(val as date) as  Date_of_latest_assessmentd_done , case when dim='date' then '1'  when dim='date_2' then '2'  when dim='date_3' then '3'  when dim='date_4' then '4'  when dim='date_5' then '5'  when dim='date_6' then '6'  when dim='date_7' then '7'  when dim='date_8' then '8' else '-' end as  Number_of_modules_completed 
+from table21 as p where row=1
+),
+
+
+ table71 as
+( select p.projectid  , rate.name as rating_average  , count(p.projectid) as record_count_rating , ROW_NUMBER() over (partition by p.projectid order by p._id desc) as row
+ from profile_16619 as p
+
+left join profile_16864 p1
+on p.projectid = p1.projectid
+
+left join ds_mysql_prod_tagelement rate 
+on p1.rating = rate.id
+
+group by  p.projectid , rate.name , p._id ),
+
+
+table80 as
+(
+  select * from table71 where row=1
+  ),
+
+
+table37 as
+(
+  select p.projectid , p._id , case when p.date is not null then 8 else 0 end as date_update , case when p.date_7 is not null then 8 else 0  end as date_update_7 , case when p.date_8 is not null then 8 else 0  end as date_update_8 ,  case when p.date_2 is not null then 4 else 0  end as date_update_2 , case when p.date_3 is not null then 4 else 0  end as date_update_3 , case when p.date_4 is not null then 4 else 0  end as date_update_4 , case when p.date_5 is not null then 4 else 0  end as date_update_5 , case when p.date_6 is not null then 4 else 0  end as date_update_6 , sum(date_update+date_update+date_update_2+date_update_3+date_update_4+date_update_5+date_update_6+date_update_7+date_update_8) as  Total_number_of_training_hours_completed
+  
+  from profile_16619 as p 
+  
+  group by p.projectid , p._id , date_update ,date_update_2 , date_update_3 , date_update_4 , date_update_5 , date_update_6 , date_update_7 , date_update_8
+  ),
+  
+  
+  
+   table75 as
+  ( select p.projectid , p._id , case when worker_rep is not null then worker_rep else 0 end as worker_rep_update, case when worker_rep_2 is not null then worker_rep_2 else 0 end as worker_rep_update_2 , case when worker_rep_3 is not null then worker_rep_3 else 0 end as worker_rep_update_3 , case when worker_rep_4 is not null then worker_rep_4 else 0 end as worker_rep_update_4 , case when worker_rep_5 is not null then worker_rep_5 else 0 end as worker_rep_update_5 , case when worker_rep_6 is not null then worker_rep_6 else 0 end as worker_rep_update_6 , case when worker_rep_7 is not null then worker_rep_7 else 0 end as worker_rep_update_7 , case when worker_rep_8 is not null then worker_rep_8 else 0 end as worker_rep_update_8 ,  case when worker_rep_9 is not null then worker_rep_9 else 0 end as worker_rep_update_9  
+   
+   
+ ,  case when mgmt_rep is not null then mgmt_rep else 0 end as mgmt_rep_update ,  case when mgmt_rep_2 is not null then mgmt_rep_2 else 0 end as mgmt_rep_update_2 ,  case when mgmt_rep_3 is not null then mgmt_rep_3 else 0 end as mgmt_rep_update_3 ,  case when mgmt_rep_4 is not null then mgmt_rep_4 else 0 end as mgmt_rep_update_4 ,  case when mgmt_rep_5 is not null then mgmt_rep_5 else 0 end as mgmt_rep_update_5 ,  case when mgmt_rep_6 is not null then mgmt_rep_6 else 0 end as mgmt_rep_update_6 ,  case when mgmt_rep_7 is not null then mgmt_rep_7 else 0 end as mgmt_rep_update_7 ,  case when mgmt_rep_8 is not null then mgmt_rep_8 else 0 end as mgmt_rep_update_8 , case when mgmt_rep_9 is not null then mgmt_rep_9 else 0 end as mgmt_rep_update_9  from profile_16619 as p ),
+ 
+ table90 as 
+ ( select p.projectid , p._id , worker_rep_update , worker_rep_update_2 , worker_rep_update_3 , worker_rep_update_4 , worker_rep_update_5 , worker_rep_update_6 , worker_rep_update_7 , worker_rep_update_8 , worker_rep_update_9 , 
+  
+  mgmt_rep_update , mgmt_rep_update_2 , mgmt_rep_update_3 , mgmt_rep_update_4 , mgmt_rep_update_5 , mgmt_rep_update_6 , mgmt_rep_update_7 , mgmt_rep_update_8 , mgmt_rep_update_9 , sum( worker_rep_update + worker_rep_update_2 + worker_rep_update_3 + worker_rep_update_4 + worker_rep_update_5 + worker_rep_update_6 + worker_rep_update_7 + worker_rep_update_8 + worker_rep_update_9 + 
+  
+  mgmt_rep_update + mgmt_rep_update_2 + mgmt_rep_update_3 + mgmt_rep_update_4 + mgmt_rep_update_5 + mgmt_rep_update_6 + mgmt_rep_update_7 + mgmt_rep_update_8 + mgmt_rep_update_9 ) as numerator from table75 as p
+  
+  group by p.projectid , p._id , worker_rep_update , worker_rep_update_2 , worker_rep_update_3 , worker_rep_update_4 , worker_rep_update_5 , worker_rep_update_6 , worker_rep_update_7 , worker_rep_update_8 , worker_rep_update_9 , 
+  
+  mgmt_rep_update , mgmt_rep_update_2 , mgmt_rep_update_3 , mgmt_rep_update_4 , mgmt_rep_update_5 , mgmt_rep_update_6 , mgmt_rep_update_7 , mgmt_rep_update_8 , mgmt_rep_update_9 
+  ),
+  
+  table95 as 
+  ( select p.* , ROW_NUMBER() over (partition by p.projectid order by p._id desc) as row from table90 as p),
+  
+  table98 as
+  ( select * from table95 where row=1 ),
+
+
+table1 as
+( select p.projectid , p._id , fac.name as factory , case when nvl2(SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), ven.name)='' then ven.name else nvl2(SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), ven.name) end as vendor , cou.name as country , p1.factory_id
+ , p2.vpid as vendor_id , 
+ coalesce(sta.name,'0') as status_update , 
+
+ cast(p.date_enrollment as date) as date_enrollment_update , cast(p.date_completion as date) as date_completion_update , 
+ 
+ case when status_update='0' and date_enrollment is not null and date_completion is null then 'Ongoing'  when status_update='0' and date_enrollment is not null and date_completion is not null then 'completed' else status_update end as wcp_status , sub.name as sub_unit_update , case when sub_unit_update is not null then sub_unit_update else 'No' end as are_there_multiple  , coalesce(name_subunit,'0') as name_subunit_update , case when name_subunit_update='0' or name_subunit_update is null then 'NA' else name_subunit_update end as name_subunit_update_new , cast(p.modifieddate as date) as last_date_submission , extract(year from date_enrollment_update) as wcp_start_year , wcp_start_year as year_new , date_enrollment_update as WCP_enrollment_date , p.formation as Date_of_formation_of_BC , (worker_rep + mgmt_rep) as Total_number_of_BC_members_enrolled , p3.total_Workers as Total_workforce_represented , p.date as Module_1_training_date ,
+  p4.name_update as Module_1_workplace_trainer , p.total_trained as Module_1_training_participants , p.date_formation as wcp_intervention , (p.worker_rep_absent + p.mgmt_rep_absent) as Total_BC_members_absent , p.remarks as remarks , 
+ 
+ case when (p.worker_rep + p.mgmt_rep)>0 or Total_BC_members_absent is not null then ((p.worker_rep + p.mgmt_rep)/
+(p.worker_rep + p.mgmt_rep+Total_BC_members_absent))*100 end as module_1_attendance_rate 
+ 
+ , p.date_2 as module_2_training_date , p4.name_update_2 as module_2_workplace_trainer, total_trained_2 as module_2_training_participants , (p.worker_rep_absent_2 + p.mgmt_rep_absent_2) as module_2_Total_BC_members_absent
+ , (p.worker_rep_dropped_2 + p.mgmt_rep_dropped_2) as Module_2_Total_number_of_dropped_members , p.remarks_2 as module_2_remarks_2 , 
+ 
+ case when (p.worker_rep_3 + p.mgmt_rep_3)>0 or module_2_Total_BC_members_absent is not null then 
+((p.worker_rep_3 + p.mgmt_rep_3)/(p.worker_rep_3 + p.mgmt_rep_3+module_2_Total_BC_members_absent))*100 end as Module_2_Attendance_Rate 
+
+ 
+, p.date_3 as module_3_training_date , p4.name_update_3 as module_3_workplace_trainer, total_trained_3 as module_3_training_participants , (p.worker_rep_absent_3 + p.mgmt_rep_absent_3) as module_3_Total_BC_members_absent
+ , (p.worker_rep_dropped_3 + p.mgmt_rep_dropped_3) as Module_3_Total_number_of_dropped_members , p.remarks_3 as module_3_remarks_3 , 
+ 
+ case when (p.worker_rep_4 + p.mgmt_rep_4)>0 or module_3_Total_BC_members_absent is not null then 
+((p.worker_rep_4 + p.mgmt_rep_4)/(p.worker_rep_4 + p.mgmt_rep_4+module_3_Total_BC_members_absent))*100 end as Module_3_Attendance_Rate
+ 
+ 
+ 
+, p.date_4 as module_4_training_date , p4.name_update_4 as module_4_workplace_trainer, total_trained_4 as module_4_training_participants , (p.worker_rep_absent_4 + p.mgmt_rep_absent_4) as module_4_Total_BC_members_absent
+ , (p.worker_rep_dropped_4 + p.mgmt_rep_dropped_4) as Module_4_Total_number_of_dropped_members , p.remarks_4 as module_4_remarks_4 , 
+ 
+ case when (p.worker_rep_5 + p.mgmt_rep_5)>0 or module_4_Total_BC_members_absent is not null then 
+((p.worker_rep_5 + p.mgmt_rep_5)/(p.worker_rep_5 + p.mgmt_rep_5+module_4_Total_BC_members_absent))*100 end as Module_4_Attendance_Rate
+ 
+ 
+, p.date_5 as module_5_training_date , p4.name_update_5 as module_5_workplace_trainer, total_trained_5 as module_5_training_participants , (p.worker_rep_absent_5 + p.mgmt_rep_absent_5) as module_5_Total_BC_members_absent
+ , (p.worker_rep_dropped_5 + p.mgmt_rep_dropped_5) as Module_5_Total_number_of_dropped_members , p.remarks_5 as module_5_remarks_5 , 
+ 
+ case when (p.worker_rep_6 + p.mgmt_rep_6)>0 or module_5_Total_BC_members_absent is not null then 
+((p.worker_rep_6 + p.mgmt_rep_6)/(p.worker_rep_6 + p.mgmt_rep_6+module_5_Total_BC_members_absent))*100 end as Module_5_Attendance_Rate
+ 
+ 
+, p.date_6 as module_6_training_date , p4.name_update_6 as module_6_workplace_trainer, total_trained_6 as module_6_training_participants , (p.worker_rep_absent_6 + p.mgmt_rep_absent_6) as module_6_Total_BC_members_absent
+ , (p.worker_rep_dropped_6 + p.mgmt_rep_dropped_6) as Module_6_Total_number_of_dropped_members , p.remarks_6 as module_6_remarks_6 , 
+ 
+ case when (p.worker_rep_7 + p.mgmt_rep_7)>0 or module_6_Total_BC_members_absent is not null then 
+((p.worker_rep_7 + p.mgmt_rep_7)/(p.worker_rep_7 + p.mgmt_rep_7+module_6_Total_BC_members_absent))*100 end as Module_6_Attendance_Rate
+ 
+ 
+ 
+, p.date_7 as module_7_training_date , p4.name_update_7 as module_7_workplace_trainer, total_trained_7 as module_7_training_participants , (p.worker_rep_absent_7 + p.mgmt_rep_absent_7) as module_7_Total_BC_members_absent
+ , (p.worker_rep_dropped_7 + p.mgmt_rep_dropped_7) as Module_7_Total_number_of_dropped_members , p.remarks_7 as module_7_remarks_7 , 
+ 
+ case when (p.worker_rep_8 + p.mgmt_rep_8)>0 or module_7_Total_BC_members_absent is not null then 
+((p.worker_rep_8 + p.mgmt_rep_8)/(p.worker_rep_8 + p.mgmt_rep_8+module_7_Total_BC_members_absent))*100 end as Module_7_Attendance_Rate
+ 
+ 
+, p.date_8 as module_8_training_date , p4.name_update_8 as module_8_workplace_trainer, total_trained_8 as module_8_training_participants , (p.worker_rep_absent_8 + p.mgmt_rep_absent_8) as module_8_Total_BC_members_absent
+ , (p.worker_rep_dropped_8 + p.mgmt_rep_dropped_8) as Module_8_Total_number_of_dropped_members , p.remarks_8 as module_8_remarks_8 , 
+ 
+ case when (p.worker_rep_9 + p.mgmt_rep_9)>0 or module_8_Total_BC_members_absent is not null then 
+((p.worker_rep_9 + p.mgmt_rep_9)/(p.worker_rep_9 + p.mgmt_rep_9+module_8_Total_BC_members_absent))*100 end as Module_8_Attendance_Rate
+ 
+ 
+, p.date_completion as  WCP_End_date , p3.sustainability_rating as Current_sustainability_score , t18.active_filter , t31.Date_of_latest_assessmentd_done , t31.Number_of_modules_completed
+ , t80.record_count_rating , t37.Total_number_of_training_hours_completed  , t98.numerator 
+ 
+from profile_16619 as p 
+
+left join ds_mysql_prod_project fac
+on  p.projectid = fac.id
+
+left join ds_mysql_prod_project ven
+on fac.parent = ven.id
+
+left join ds_mysql_prod_project cou
+on ven.parent = cou.id
+ 
+left join ds_mysql_prod_tagelement sta
+on p.status = sta.id
+
+left join ds_mysql_prod_tagelement sub
+on p.sub_unit = sub.id
+ 
+left join profile_4722 p1 
+on p.projectid = p1.projectid 
+ 
+left join profile_4718 p2 
+on p.projectid = p2.projectid 
+
+left join table17 p3 
+on p.projectid = p3.projectid
+
+left join table15 p4
+on p._id = p4._id
+ 
+left join table18 t18 on 
+fac.name = t18.goodera_facility_name_text
+ 
+left join table31 t31 
+on p._id = t31._id 
+ 
+left join table80 t80 
+on p.projectid = t80.projectid
+ 
+left join table37 t37 
+on p._id = t37._id
+ 
+left join table98 t98 
+on p._id = t98._id
+ 
+where cou.id != 13761
+),
+
+
+table111 as
+(
+  
+  select  p.projectid , p._id ,  factory ,  vendor , country , factory_id
+ ,  vendor_id ,  status_update , 
+
+  date_enrollment_update , date_completion_update , 
+  wcp_status , sub_unit_update , are_there_multiple  , name_subunit_update ,  name_subunit_update_new ,  last_date_submission ,  wcp_start_year , year_new , WCP_enrollment_date ,  Date_of_formation_of_BC , Total_number_of_BC_members_enrolled ,  Total_workforce_represented ,  Module_1_training_date ,
+Module_1_workplace_trainer , Module_1_training_participants , wcp_intervention , Total_BC_members_absent , remarks , 
+ 
+ module_1_attendance_rate 
+ 
+ , module_2_training_date , module_2_workplace_trainer, module_2_training_participants , module_2_Total_BC_members_absent
+ , Module_2_Total_number_of_dropped_members , module_2_remarks_2 , 
+ 
+Module_2_Attendance_Rate 
+
+ 
+, module_3_training_date ,  module_3_workplace_trainer, module_3_training_participants , module_3_Total_BC_members_absent
+ , Module_3_Total_number_of_dropped_members , module_3_remarks_3 , 
+ 
+  Module_3_Attendance_Rate
+ 
+ 
+ 
+,  module_4_training_date ,  module_4_workplace_trainer, module_4_training_participants ,  module_4_Total_BC_members_absent
+ , Module_4_Total_number_of_dropped_members , module_4_remarks_4 , 
+ 
+Module_4_Attendance_Rate
+ 
+ 
+, module_5_training_date ,  module_5_workplace_trainer, module_5_training_participants , module_5_Total_BC_members_absent
+ ,  Module_5_Total_number_of_dropped_members ,  module_5_remarks_5 , 
+ 
+Module_5_Attendance_Rate
+ 
+ 
+, module_6_training_date ,  module_6_workplace_trainer, module_6_training_participants , module_6_Total_BC_members_absent
+ ,  Module_6_Total_number_of_dropped_members , module_6_remarks_6 , 
+ 
+Module_6_Attendance_Rate
+ 
+ 
+ 
+,  module_7_training_date ,module_7_workplace_trainer, module_7_training_participants ,  module_7_Total_BC_members_absent
+ ,  Module_7_Total_number_of_dropped_members , module_7_remarks_7 , 
+ 
+Module_7_Attendance_Rate
+ 
+ 
+, module_8_training_date ,  module_8_workplace_trainer,  module_8_training_participants , module_8_Total_BC_members_absent
+ ,  Module_8_Total_number_of_dropped_members ,  module_8_remarks_8 , 
+ 
+Module_8_Attendance_Rate
+ 
+ 
+,  WCP_End_date ,  Current_sustainability_score , active_filter , Date_of_latest_assessmentd_done , Number_of_modules_completed
+ , record_count_rating , Total_number_of_training_hours_completed  , numerator 
+   from table1 as p
+),
+
+table112 as 
+( select p.projectid  , p._id , case when module_1_attendance_rate is not null then (module_1_attendance_rate/100) else 0 end as module_1_attendance_rate_update ,  case when module_2_attendance_rate is not null then (module_2_attendance_rate/100) else 0 end as module_2_attendance_rate_update ,  case when module_3_attendance_rate is not null then (module_3_attendance_rate/100) else 0 end as module_3_attendance_rate_update ,  case when module_4_attendance_rate is not null then (module_4_attendance_rate/100) else 0 end as module_4_attendance_rate_update ,  case when module_5_attendance_rate is not null then (module_5_attendance_rate/100) else 0 end as module_5_attendance_rate_update ,  case when module_6_attendance_rate is not null then (module_6_attendance_rate/100) else 0 end as module_6_attendance_rate_update ,  case when module_7_attendance_rate is not null then (module_7_attendance_rate/100) else 0 end as module_7_attendance_rate_update ,  case when module_8_attendance_rate is not null then (module_8_attendance_rate/100) else 0 end as module_8_attendance_rate_update , sum(module_1_attendance_rate_update+module_2_attendance_rate_update+module_3_attendance_rate_update+module_4_attendance_rate_update+module_5_attendance_rate_update+module_6_attendance_rate_update+module_7_attendance_rate_update+module_8_attendance_rate_update) as total_modules_sum
+ 
+ ---module_1_attendance_rate , module_2_attendance_rate , module_3_attendance_rate , module_4_attendance_rate , module_5_attendance_rate , module_6_attendance_rate , module_7_attendance_rate , module_8_attendance_rate , 
+ from table111 as p
+ 
+ group by p.projectid , p._id , module_1_attendance_rate , module_2_attendance_rate , module_3_attendance_rate , module_4_attendance_rate , module_5_attendance_rate , module_6_attendance_rate , module_7_attendance_rate , module_8_attendance_rate 
+ ),
+ 
+ table113 as
+ (
+   select  p.* , t112.total_modules_sum , (numerator/(t112.total_modules_sum+numerator)) as Average_attendance , Average_attendance*100 as Average_attendance_percent ,  ROW_NUMBER() over (partition by p.projectid order by p._id desc) as row
+ from table111 as p
+   
+   left join table112 t112 
+   on p._id = t112._id 
+  )
+/*Select * from table113 
+where projectid = 59910*/
+
+select projectid	,factory,	vendor,	country	,factory_id,	vendor_id,	status_update,	date_enrollment_update	,date_completion_update,	wcp_status,	sub_unit_update,	are_there_multiple	,name_subunit_update,	name_subunit_update_new,	last_date_submission,	wcp_start_year,	year_new	,wcp_enrollment_date,	date_of_formation_of_bc,	total_number_of_bc_members_enrolled,	total_workforce_represented,	module_1_training_date,	module_1_workplace_trainer,	module_1_training_participants,	wcp_intervention,	total_bc_members_absent,	remarks	,module_1_attendance_rate,	module_2_training_date,	module_2_workplace_trainer,	module_2_training_participants,	module_2_total_bc_members_absent,	module_2_total_number_of_dropped_members,	module_2_remarks_2	,module_2_attendance_rate,	module_3_training_date,	module_3_workplace_trainer,	module_3_training_participants	,module_3_total_bc_members_absent,	module_3_total_number_of_dropped_members,	module_3_remarks_3,	module_3_attendance_rate	,module_4_training_date,	module_4_workplace_trainer,	module_4_training_participants,	module_4_total_bc_members_absent,	module_4_total_number_of_dropped_members,	module_4_remarks_4,	module_4_attendance_rate,	module_5_training_date,	module_5_workplace_trainer,	module_5_training_participants,	module_5_total_bc_members_absent,	module_5_total_number_of_dropped_members,	module_5_remarks_5,	module_5_attendance_rate,	module_6_training_date,	module_6_workplace_trainer,	module_6_training_participants,	module_6_total_bc_members_absent,	module_6_total_number_of_dropped_members,	module_6_remarks_6,	module_6_attendance_rate	,module_7_training_date,	module_7_workplace_trainer,	module_7_training_participants,	module_7_total_bc_members_absent,	module_7_total_number_of_dropped_members,	module_7_remarks_7,	module_7_attendance_rate,	module_8_training_date,	module_8_workplace_trainer,	module_8_training_participants,	module_8_total_bc_members_absent,	module_8_total_number_of_dropped_members,	module_8_remarks_8,	module_8_attendance_rate,	wcp_end_date,	current_sustainability_score,	active_filter,	date_of_latest_assessmentd_done	,number_of_modules_completed,	record_count_rating	,total_number_of_training_hours_completed,	numerator,	total_modules_sum,	average_attendance,	average_attendance_percent
+ from table113 as p 
+ where projectid = 59910
+ GROUP BY projectid	,factory,	vendor,	country	,factory_id,	vendor_id,	status_update,	date_enrollment_update	,date_completion_update,	wcp_status,	sub_unit_update,	are_there_multiple	,name_subunit_update,	name_subunit_update_new,	last_date_submission,	wcp_start_year,	year_new	,wcp_enrollment_date,	date_of_formation_of_bc,	total_number_of_bc_members_enrolled,	total_workforce_represented,	module_1_training_date,	module_1_workplace_trainer,	module_1_training_participants,	wcp_intervention,	total_bc_members_absent,	remarks	,module_1_attendance_rate,	module_2_training_date,	module_2_workplace_trainer,	module_2_training_participants,	module_2_total_bc_members_absent,	module_2_total_number_of_dropped_members,	module_2_remarks_2	,module_2_attendance_rate,	module_3_training_date,	module_3_workplace_trainer,	module_3_training_participants	,module_3_total_bc_members_absent,	module_3_total_number_of_dropped_members,	module_3_remarks_3,	module_3_attendance_rate	,module_4_training_date,	module_4_workplace_trainer,	module_4_training_participants,	module_4_total_bc_members_absent,	module_4_total_number_of_dropped_members,	module_4_remarks_4,	module_4_attendance_rate,	module_5_training_date,	module_5_workplace_trainer,	module_5_training_participants,	module_5_total_bc_members_absent,	module_5_total_number_of_dropped_members,	module_5_remarks_5,	module_5_attendance_rate,	module_6_training_date,	module_6_workplace_trainer,	module_6_training_participants,	module_6_total_bc_members_absent,	module_6_total_number_of_dropped_members,	module_6_remarks_6,	module_6_attendance_rate	,module_7_training_date,	module_7_workplace_trainer,	module_7_training_participants,	module_7_total_bc_members_absent,	module_7_total_number_of_dropped_members,	module_7_remarks_7,	module_7_attendance_rate,	module_8_training_date,	module_8_workplace_trainer,	module_8_training_participants,	module_8_total_bc_members_absent,	module_8_total_number_of_dropped_members,	module_8_remarks_8,	module_8_attendance_rate,	wcp_end_date,	current_sustainability_score,	active_filter,	date_of_latest_assessmentd_done,	number_of_modules_completed,	record_count_rating	,total_number_of_training_hours_completed,	numerator,	total_modules_sum,	average_attendance,	average_attendance_percent
+
+
+
