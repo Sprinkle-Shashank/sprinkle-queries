@@ -1,11 +1,11 @@
-Select p1.projectId, p1.fy_01_timerange,cast(p1.fy_01_timerange.start as varchar) as start_date,
+with tab1 as (Select p1.projectId, p1.fy_01_timerange,cast(p1.fy_01_timerange.start as varchar) as start_date,
 cast(p1.fy_01_timerange.end as varchar) as end_date,
 concat(concat(concat(concat('{"start":"',start_date),'","end":"'),end_date),'"}') as fy_timerange,
 p1.a0_01, p1.b0_01, p1.c0_01, p1.d0_01, p1.e0_01, p1.f0_01, p1.g0_01, p1.h0_01,
 cast(p1.fy_01_timerange.start as date) as start,
 extract(month from start) as month,
 extract(year from start) as year,
-p2.createddate,cast(p1.fy_01_timerange.end as date) as end1,
+cast(p1.fy_01_timerange.end as date) as end1,
 Case 
 When month=1 then 'Q4'
 When month=2 then 'Q4'
@@ -21,24 +21,29 @@ When month=11 then 'Q3'
 When month=12 then 'Q3'
 Else 'No Data Entry'
 End as quarter,
-year || '-'||quarter as y,
+year || '-'||quarter as y
+from profile_74276 p1),
+
+tab2 as(select p1.projectId,p1.fy_timerange,p1.a0_01, p1.b0_01, p1.c0_01, p1.d0_01, p1.e0_01, p1.f0_01, p1.g0_01, p1.h0_01,
+		p1.end1 as end1,p1.y as y,
+		p2.createddate,
 case 
 when p2.createddate is NULL then '1'
 else '0'
 end as temp1,
-
 case 
 when end1 <= p2.createddate
 then 'Reported'
 else 'Not Reported'
 end as temp2,
-
 case
 when temp1 ='1'
 then 'Yet to Report'
 else temp2
 end as status
-from profile_74276 p1
-left join profile_74188 p2
-on p2.fy_01_timerange=fy_timerange
-where fy_timerange is not null
+from profile_74188 p2
+left join profile_74276 p1
+on p2.fy_01_timerange=p1.fy_timerange
+where p1.fy_timerange is not null)
+
+select * from tab2
