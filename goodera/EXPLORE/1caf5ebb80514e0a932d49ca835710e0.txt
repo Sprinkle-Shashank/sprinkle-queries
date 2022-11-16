@@ -1,4 +1,6 @@
-select projectId.name as projectId,/* proj_doc.name as*/ project_duration, imple_partners, spoc_name, p_name.name as project_name, sch.name as sched7, m.fy_timerange, r.budget_allocated from profile_44749 as m
+with table1 as
+(
+  select projectId.name as projectId,/* proj_doc.name as*/ project_duration, imple_partners, spoc_name, p_name.name as project_name, sch.name as sched7, m.fy_timerange, r.budget_allocated from profile_44749 as m
 
 left join profile_81476 AS r
  on m.projectId = r.projectId
@@ -11,4 +13,27 @@ left join ds_mysql_prod_tagelement p_name
  
 left join ds_mysql_prod_tagelement sch
  on m.sched7= sch.id
-
+  ),
+  
+  
+  table2 as 
+  (
+	select p.*, d1,d2 from table1 as p , p.project_duration as d1 , p.imple_partners as d2)
+	
+	table3 as
+	(
+	select p.*, d1_up.name as project_duration_update, d2_up.name as imple_partners_update from table2 as p
+	  
+	  left join ds_mysql_prod_tagelement d1_up
+	  on p.d1 = d1_up.id 
+	  
+	  left join ds_mysql_prod_tagelement d2_up
+	  on p.d2 = d2_up.id
+	),
+	
+	table4 as
+	( select p.projectid , p._id , project_duration_update , imple_partners_update , spoc_name , project_name  , sched7 , fy_timerange , budget_allocated from table3 as p
+	 )
+	 
+	 select * from table4
+     
