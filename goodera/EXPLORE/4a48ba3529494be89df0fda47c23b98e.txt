@@ -1,0 +1,97 @@
+With temp1 as (
+ Select 'fy_33_timerange' as col1
+  union all
+ Select 'fy_34_timerange' as col1),
+ 
+ temp2 as (
+	Select 'a0_33' as col
+  union all
+	Select 'b0_33' as col
+  union all
+	Select 'c0_33' as col
+  union all
+    Select 'd0_33' as col
+  union all
+	Select 'e0_33' as col
+  union all
+    Select 'f0_33' as col
+  union all
+	Select 'g0_33' as col
+  union all
+	Select 'h0_33' as col
+  union all
+	Select 'i0_33' as col
+    union all
+	Select 'j0_33' as col
+  union all
+	Select 'k0_33' as col
+  union all
+   
+   Select 'a0_34' as col
+  union all
+	Select 'b0_34' as col
+  union all
+	Select 'c0_34' as col
+  union all
+    Select 'd0_34' as col
+  union all
+	Select 'e0_34' as col
+  union all
+    Select 'f0_34' as col
+  
+ ),
+	
+s as ( Select p.fy_33_timerange,p.fy_34_timerange,
+p.a0_33, p.b0_33, p.c0_33, p.d0_33, p.e0_33,p.f0_33, p.g0_33, p.h0_33, p.i0_33,p.j0_33, p.k0_33,p.a0_34, p.b0_34, p.c0_34, p.d0_34, p.e0_34,p.f0_34
+	  p.projectId
+from profile_74275 p),
+
+s2 as(Select
+case col1
+ when 'fy_33_timerange' then s.fy_33_timerange
+ when 'fy_34_timerange' then s.fy_34_timerange
+ else null
+ end as time_data,
+	  
+case col
+when 'a0_33' then s.a0_33
+when 'b0_33' then s.b0_33
+when 'c0_33' then s.c0_33
+when 'd0_33' then s.d0_33
+when 'e0_33' then s.e0_33
+when 'f0_33' then s.f0_33
+when 'g0_33' then s.g0_33
+when 'h0_33' then s.h0_33
+when 'i0_33' then s.i0_33
+when 'j0_33' then s.j0_33
+when 'k0_33' then s.k0_33
+	  
+when 'a0_34' then s.a0_34
+when 'b0_34' then s.b0_34
+when 'c0_34' then s.c0_34
+when 'd0_34' then s.d0_34
+when 'e0_34' then s.e0_34
+when 'f0_34' then s.f0_34
+
+
+
+else null
+end as data, temp2.col as "data_label",temp1.col1 as "timeperiods",
+substring(data_label,4,2) as  data_number,
+substring(timeperiods,4,2) as time_number,
+	  
+case 
+when data_number = time_number
+then '1'
+else '0'
+end as match,projectId
+from s
+cross join temp1
+cross join temp2
+where match=1)
+ 
+Select data_label,data,projectId,JSON_SERIALIZE(time_data) AS fy_timerange
+from s2
+where fy_timerange is not null
+group by fy_timerange, data_label, data,projectId
+order by fy_timerange desc
