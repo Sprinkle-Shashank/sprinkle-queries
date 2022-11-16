@@ -1,0 +1,27 @@
+with t1 as
+(
+  select projectId.name as projectid, p.qtr, qt.name as qtr_updated, fy_timerange, num_prof_assess,
+  
+  case when qtr=335190 then 1
+  when qtr=335189 then 2
+  when qtr=335188 then 3
+  else 4
+  end as sort_up
+  
+  from profile_55397 as p
+  
+  left join ds_mysql_prod_project projectid
+  on p.projectid = projectid.id
+  
+  left join ds_mysql_prod_tagelement qt
+  on p.qtr = qt.id
+  
+  ),
+  t2 as
+  (
+	select projectid, qtr_updated, fy_timerange, sum(num_prof_assess) as num_prof_assess_sum, sort_up from t1
+	
+	group by projectid, qtr_updated, fy_timerange, sort_up
+	)
+	select * from t2
+	
