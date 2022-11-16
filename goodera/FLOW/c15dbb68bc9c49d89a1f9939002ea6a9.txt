@@ -1,0 +1,27 @@
+drop table if exists sus_82955;
+ create table sus_82955 as
+				select st.xprojectid, p.name, st.financialperiod, t.name as finPeriod,
+				concat(concat(substring(cast(timestamp 'epoch' + CAST(t.start AS BIGINT)/1000 * interval '1 second' as varchar), 1, 10),'T'), concat(split_part(cast(timestamp 'epoch' + CAST(t.start AS BIGINT)/1000 * interval '1 second' as varchar), ' ',2),'.000Z')) as startdate,
+				concat(concat(substring(cast(timestamp 'epoch' + CAST(t.end AS BIGINT)/1000 * interval '1 second' as varchar), 1, 10),'T'), concat(split_part(cast(timestamp 'epoch' + CAST(t.end AS BIGINT)/1000 * interval '1 second' as varchar), ' ',2),'.000Z')) as enddate,
+				concat(concat(startdate,'|'),enddate) as fy_timerange,
+				-- concat(concat(t.start,'|'),t.end) as fy_timerange,
+				st.xquestionid,
+				q.questiontype,
+				q.keyword,
+				q.questiontext,
+				cast(st.datanum as float),
+				cast(st.dataNumBase as float),
+				st.datatext,
+				st.datatagref as dataselect,
+				st.datatable,
+				st.dataTableBase,
+				st.measureunit,
+				st.measureunitBase,
+				st.tableSettings
+				from ds_mongo_sustainabilityTask st
+				left join ds_mysql_prod_question q on st.xquestionid = q.id
+				left join ds_mysql_prod_project p on st.xprojectid = p.id
+				left join ds_mysql_prod_tagelement t on st.financialperiod = t.id
+				where xprofileId='82955' and status = 'APPROVED' and st.active='t'
+				and keyword in ('name','tot_consumption','recyclable_packaging','ac_recyclable_packaging','tar_packaging_intensity','project_reduce_material','epr_compliance_target','ac_epr_compliace','tot_cons_plastic','recyclable_plastic','ac_recyclable_plastic','tar_plastic_intensity','materials_saved','tot_virgin_plastic','pvc_share','ac_recyclable_rigid','emission_saved','vir_plastic_rigid','pcr_rigid','ac_recyclable_flexi','pellet_loss_free','vir_hdpe','pcr_flexible','ac_recyclable_mlp','vir_pp','pcr_mlp','ac_pvc_share','vir_pet','ac_pcr_plastic_share','vir_masterbatch','ac_pcr_rigid','vir_petg','ac_pcr_flexible','vir_other','ac_pcr_mlp','vir_flexible','paper_share','shrink_sleeves_pvc','recycled_paper_share')
+				
