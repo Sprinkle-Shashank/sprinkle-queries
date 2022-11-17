@@ -9,7 +9,7 @@ end as metrics_final
 from profile_43726 p1),
 
 sub2 as(
-  select s1.grantproposalid, s1.grantproposalid, s1.date_of_entry, coun.progress, coun.uom 
+  select s1.grantproposalid, s1.date_of_entry, s1.createddate, coun.progress, coun.uom 
 from sub1 as s1, unpivot s1.metrics_final as coun),
 
 sub3 as(
@@ -20,5 +20,15 @@ case
   	else p2.metrics_2
 end as metrics_final
   
-from profile_43728 p2)
-select * from sub3
+from profile_43728 p2),
+
+sub4 as(
+  select s3.grantproposalid, s3.date_of_entry, s3.createddate, coun2.progress, coun2.uom 
+from sub3 as s3, unpivot s3.metrics_final as coun2),
+
+sub5(
+  select grantproposalid, date_of_entry, createddate, progress, uom from sub2
+  union all
+  select grantproposalid, date_of_entry, createddate, progress, uom from sub4)
+  
+select * from sub5
