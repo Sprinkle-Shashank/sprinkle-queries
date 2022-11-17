@@ -112,9 +112,21 @@ on p1.projectId= p2.projectId
 left join ds_mysql_prod_tagelement tag1
 on p1.select_factory_msa = tag1.id
 left join ds_mysql_prod_tagelement tag2
-on p2.unwind_cycle = tag2.id)
+on p2.unwind_cycle = tag2.id),
 
-select t.* ,
+t2 as (select t.* ,
 least(plan,do1,check1,act) as overall 
 from t1 t
-where select_factory_msa = 'Baseline' 
+where select_factory_msa = 'Baseline' )
+
+select projectId, country, vendor, consultant, cycle, sum(overall) as score,
+case
+	when score = 1 then 'Basic'
+	when score = 2 then 'Reactive'
+	when score = 3 then 'Compliant'
+	when score = 4 then 'Proactive'
+	when score = 5 then 'Resilient'
+	else NULL
+end as x_axis, 1 as count
+from t2
+group by projectId, country, vendor, consultant, cycle
