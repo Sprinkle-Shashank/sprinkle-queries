@@ -9,7 +9,7 @@ end as metrics_final
 from profile_43726 p1),
 
 sub2 as(
-  select s1.grantproposalid as grantproposalid_1, s1.date_of_entry, s1.createddate, coun.progress, coun.uom 
+  select s1.grantproposalid as grantproposalid_1, s1.date_of_entry, s1.createddate, coun.progress as progress_1, coun.uom 
 from sub1 as s1, unpivot s1.metrics_final as coun),
 
 sub3 as(
@@ -23,9 +23,29 @@ end as metrics_final
 from profile_43728 p2),
 
 sub4 as(
-  select s3.grantproposalid  as grantproposalid_2 , s3.date_of_entry, s3.createddate, coun2.progress, coun2.uom 
+  select s3.grantproposalid  as grantproposalid_2 , s3.date_of_entry, s3.createddate, coun2.progress as progress_2, coun2.uom 
 from sub3 as s3, unpivot s3.metrics_final as coun2)
   
-select s2.grantproposalid_1, s2.date_of_entry, s2.createddate, s4.grantproposalid_2
+select s2.grantproposalid_1, s2.date_of_entry, s2.createddate, s2.progress_1, s4.grantproposalid_2, s4.progress_2, 
+case
+	when s2.grantproposalid_1 = s4.grantproposalid_2 then s4.progress_2
+	else s2.progress_1
+end as progress_final,
+
+case
+	when s2.grantproposalid_1 = s4.grantproposalid_2 then s4.uom
+	else s2.uom
+end as uom_final,
+
+case
+	when s2.grantproposalid_1 = s4.grantproposalid_2 then s4.date_of_entry
+	else s2.date_of_entry
+end as date_of_entry_final,
+
+case
+	when s2.grantproposalid_1 = s4.grantproposalid_2 then s4.createddate
+	else s2.createddate
+end as createddate_final
+
 from sub2 s2
 left join sub4 s4 on s2.grantproposalid_1 = s4.grantproposalid_2
