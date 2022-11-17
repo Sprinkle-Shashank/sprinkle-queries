@@ -1,6 +1,6 @@
 with t1 as
 (
-  select projectId, fy_timerange, bd_1, bd_2, bd_3, bd_4,
+  select projectId, fy_timerange, bd_1, bd_2, bd_3, bd_4, pivot_ele, p.disbursed_amount as pivot_ele,
   
   case when allocated=bd_1 then "Tool Development and Completion"
   when allocated=bd_2 then "Sign-Off"
@@ -21,8 +21,11 @@ with t1 as
   
   t2 as
   (
-	select projectId, fy_timerange, status, sum(disbursed_amount) as disbursed_amount_sum, sort_up
-	from t1
+	select pivot_ele.name as pivot_ele_up, projectId, fy_timerange, status, sum(disbursed_amount) as disbursed_amount_sum, sort_up
+	from t1 as p
+	
+	left join ds_mysql_prod_tagelement pivot_elem
+  on p.pivot_elem = pivot_elem.id
 	
 	group by projectId, fy_timerange, status, sort_up
 	)
