@@ -1,2 +1,23 @@
-Select projectId, fy_timerange, eng_marks as English, math_marks as Mathematics , sci_marks as Science , class
-from profile_75706
+With temp as (
+ Select 'English' as col
+union all
+Select 'Mathematics' as col
+union all
+Select 'Science' as col
+),
+
+s as (Select p.projectId, p.fy_timerange, p.eng_marks as English, p.math_marks as Mathematics , p.sci_marks as Science , t1name as class
+from profile_75706 p
+	 left join ds_mysql_prod_tagelement t1
+on p.class = t1.id)
+
+Select projectId,fy_timerange,class ,
+case col
+when ' English' then s.English
+when 'Mathematics' then s.Mathematics
+when 'Science' then s.Science
+
+else null
+end as Marks,temp.col as "Subjects"
+from s
+cross join temp
