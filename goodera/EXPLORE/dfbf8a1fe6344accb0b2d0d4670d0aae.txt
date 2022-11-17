@@ -1,3 +1,24 @@
-Select projectId, fy_timerange, rating_time as Time_Saved , rating_simple as Simple , rating_transparent as Transparent , rating_paperless as Less_Paperwork
+With temp as (
+ Select 'Time_Saved ' as col
+union all
+Select 'Simple' as col
+union all
+Select 'Transparent' as col
+union all
+Select 'Less_Paperwork' as col
+),
+
+s as (Select p.projectId, p.fy_timerange, p.rating_time as Time_Saved , p.rating_simple as Simple , p.rating_transparent as Transparent , p.rating_paperless as Less_Paperwork
 from profile_75708 p
-group by projectId, Time_Saved, Simple, Transparent, Less_Paperwork, fy_timerange
+group by projectId, Time_Saved, Simple, Transparent, Less_Paperwork, fy_timerange)
+
+Select projectId,fy_timerange ,
+case col
+when 'Time_Saved' then s.Time_Saved
+when 'Simple' then s.Simple
+when 'Transparent' then s.Transparent
+when 'Less_Paperwork' then s.Less_Paperwork
+else null
+end as Value,temp.col as "Dimension"
+from s
+cross join temp
