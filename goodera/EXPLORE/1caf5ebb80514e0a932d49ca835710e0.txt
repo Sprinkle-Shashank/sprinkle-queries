@@ -1,7 +1,29 @@
-select projectId.name as projectId, r.category_of_schedule, m.budget_allocated from profile_81476 as m 
+with table1 as
+(select projectId.name as projectId, m._id, r.category_of_schedule, m.budget_allocated from profile_81476 as m 
 
 left join profile_80883 as r
 on m.projectId = r.projectId
 
 left join ds_mysql_prod_project as projectId
 on r.projectId = projectId.id
+),
+table2 as 
+  (
+	select p.*, d1 from table1 as p , p.category_of_schedule as d1
+   ),
+	
+	table3 as
+	(
+	select p.*, d1_up.name as category_of_schedule_update from table2 as p
+	  
+	  left join ds_mysql_prod_tagelement d1_up
+	  on p.d1 = d1_up.id 
+	  
+	  
+	),
+	
+	table4 as
+	( select p.projectid , p._id , category_of_schedule_update , fy_timerange , budget_allocated from table3 as p
+	 )
+	 
+	 select * from table4
