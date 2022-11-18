@@ -1,17 +1,33 @@
-with table1 as
-( select p.projectid , p.fy_timerange, p.bd_1, p.bd_2, p.bd_3, p.bd_4 
- from profile_55424 as p, p.disbursed_amount as allocated),
-
-table2 as
+with t1 as
 (
-select * , d1_new.name as d1_new_update from table1 as p
+  select projectid, fy_timerange, bd_1, bd_2, bd_3, bd_4,
   
-left join ds_mysql_prod_tagelement d1_new
-  on p.allocated = d1_new.id
-)
-
-
-select * from table2
+  case when allocated=bd_1 then "Tool Development and Completion"
+  when allocated=bd_2 then "Sign-Off"
+  when allocated=bd_3 then "Live"
+  when allocated=bd_4 then "AMC"
+  else '-'
+  end as status,
+  
+  from profile_55424 as p
+  )
+  UNPIVOT (
+  disbursed_amount for allocated IN (bd_1, bd_2, bd_3, bd_4))),
+  t2 as
+  (
+	select projectid, fy_timerange, status, sum(disbursed_amount) as disbursed_amount_sum from t1,
+	
+  case when status='Tool Development and Completion' then 1
+  when status='Sign-Off' then 2
+  when status='Live' then 3
+  when status='AMC' then 4
+  else '-'
+  end as sort_up
+	
+	group by projectId, fy_timerange, status
+	order by sort_up ASC
+	)
+	select * from t2
    
  
 
