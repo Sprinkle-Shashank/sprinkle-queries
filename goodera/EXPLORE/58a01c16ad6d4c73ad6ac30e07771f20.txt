@@ -1,6 +1,6 @@
 with sub1 as (select a.*, unwind_cycle from profile_64362 as a, a.cycle as unwind_cycle),
 
-t1 as (select p1._id as id2, p1.projectId,  p1.select_factory_msa,p2.country, p2.vendor, p2.cycle, p2.consultant,
+t1 as (select p1._id as id2, tag3.name as projectId,  tag1.name as select_factory_msa, tag4.name as country, p2.vendor, tag2.name as cycle, tag5.name as consultant,
 	   case 
 	   when p1.hs_risk = 1105585 then 1
 	   when p1.hs_risk = 1105584 then 2 
@@ -36,7 +36,17 @@ t1 as (select p1._id as id2, p1.projectId,  p1.select_factory_msa,p2.country, p2
 	   (hs_risk1 + hs_training1 + incident1 + hs_act1) as hs_overall
 from profile_62477 p1
 	   left join sub1 p2
-	   on p1.projectId= p2.projectId),
+	   on p1.projectId= p2.projectId
+	  left join ds_mysql_prod_tagelement tag1
+on p1.select_factory_msa = tag1.id
+left join ds_mysql_prod_tagelement tag2
+on p2.unwind_cycle = tag2.id
+left join ds_mysql_prod_project tag3
+on p1.projectId = tag3.id
+left join ds_mysql_prod_tagelement tag4
+on p2.country = tag4.id
+left join ds_mysql_prod_tagelement tag5
+on p2.consultant_tag = tag5.id),
 	   
 item as 
 (
