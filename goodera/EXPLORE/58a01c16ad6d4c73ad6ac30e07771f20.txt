@@ -37,5 +37,29 @@ t1 as (select p1._id, p1.projectId,  p1.select_factory_msa,p2.country, p2.vendor
 from profile_62477 p1
 	   left join sub1 p2
 	   on p1.projectId= p2.projectId)
-	   select * from t1
+	   
+item as 
+(
+select 'PLAN - H&S Risk Assessment: How would you rate the factory in terms of risk assessment?' as c
+union all
+select 'DO - H&S Training & Implementation: How would you rate the factory in terms of H&S Implementation?' as c
+union all
+select 'CHECK - H&S Incident Management: How would you rate the factory in terms of incident management?' as c
+union all
+select 'H&S Act/Adjust: How would you rate the factory in terms of H&S - Act/ Adjust?' as c
+),
+
+t2 as 
+(select projectId, select_factory_msa, country, vendor, consultant, cycle, id2,
+ case c
+ when 'PLAN - H&S Risk Assessment: How would you rate the factory in terms of risk assessment?' then t1.hs_risk1
+ when 'DO - H&S Training & Implementation: How would you rate the factory in terms of H&S Implementation?' then t1.hs_training1
+ when 'CHECK - H&S Incident Management: How would you rate the factory in terms of incident management?' then t1.incident1
+ when 'H&S Act/Adjust: How would you rate the factory in terms of H&S - Act/ Adjust?' then t1.hs_act1
+ else null
+ end as val, item.c as dimensions
+ from t1 cross join item 
+ group by projectId, select_factory_msa, country, vendor, consultant, cycle, Dimensions, id2)
+	   
+select * from t2
 	   
