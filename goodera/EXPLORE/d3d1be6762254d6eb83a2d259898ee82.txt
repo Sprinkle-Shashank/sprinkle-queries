@@ -1,11 +1,28 @@
 with temp1 as
-(select r.projectId, m.category_of_schedule, r.fy_timerange, r.budget_allocated from profile_80883 as m
+(select r.projectId, r._id,  m.category_of_schedule, r.fy_timerange, r.amount_utilized from profile_80883 as m
 
-left join profile_81476 as r
+left join profile_80774 as r
  on m.projectId = r.projectId
-)
-
-select * from temp1
-
+),
+table2 as 
+  (
+	select p.*, d1 from table1 as p , p.category_of_schedule as d1
+   ),
+	
+	table3 as
+	(
+	select p.*, d1_up.name as category_of_schedule_update from table2 as p
+	  
+	  left join ds_mysql_prod_tagelement d1_up
+	  on p.d1 = d1_up.id 
+	  
+	  
+	),
+	
+	table4 as
+	( select p.projectid , p._id , category_of_schedule_update , fy_timerange , amount_utilized from table3 as p
+	 )
+	 
+	 select * from table4
 
 
