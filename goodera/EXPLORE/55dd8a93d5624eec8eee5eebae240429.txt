@@ -1,31 +1,38 @@
 with sub1 as(
   select p1.xprojectid, p1.fy_timerange, p1.keyword, p1.datatablebase, table1.fuel_company as col
 from sus_9539 as p1, unpivot p1.datatablebase as table1
-where keyword = 'company_vehicles'),
+where p1.keyword = 'company_vehicles'),
 
 sub2 as(
   select p1.xprojectid, p1.fy_timerange, p1.keyword, p1.datatablebase, table2.fuel_consump_own as col
 from sus_9539 as p1, unpivot p1.datatablebase as table2
-where keyword = 'own_fleet'),
+where p1.keyword = 'own_fleet'),
 
 sub3 as(
   select p1.xprojectid, p1.fy_timerange, p1.keyword, p1.datatablebase, table3.fuel_consump_leased as col
 from sus_9539 as p1, unpivot p1.datatablebase as table3
-where keyword = 'leased_fleet'),
+where p1.keyword = 'leased_fleet'),
 
 sub4 as(
   select p1.xprojectid, p1.fy_timerange, p1.keyword, p1.datatablebase, table4.fuel_consump_third as col
 from sus_9539 as p1, unpivot p1.datatablebase as table4
-where keyword = 'third_party_fleet'),
+where p1.keyword = 'third_party_fleet'),
 
 sub5 as(
+  select p1.xprojectid, p1.fy_timerange, p1.keyword, p1.datanumbase as col
+from sus_9539 as p1
+where p1.keyword in ('generator_consump', 'fuel_refill') ),
+
+sub6 as(
   select xprojectid, fy_timerange, keyword, col from sub1
 union all
 select xprojectid, fy_timerange, keyword, col from sub2
 union all
 select xprojectid, fy_timerange, keyword, col from sub3
 union all
-select xprojectid, fy_timerange, keyword, col from sub4)
+select xprojectid, fy_timerange, keyword, col from sub4
+union all
+select xprojectid, fy_timerange, keyword, col from sub5)
 
 select p2.name as projectid, p3.name as country, s5.fy_timerange, s5.keyword, 
 sum(s5.col) as total
