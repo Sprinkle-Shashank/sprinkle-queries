@@ -1,14 +1,25 @@
 with sub1 as(
-  select p2.name as projectid, p3.name as country, p1.fy_timerange, p1.datanumbase, p1.keyword 
-from sus_9539 p1
+  select xprojectid, fy_timerange, datanumbase as col, keyword 
+from sus_9539
 
-left join ds_mysql_prod_project p2 on p2.id = p1.xprojectid
+where keyword in ('co2_refilled', 'dry_powder_refilled', 'electric_consumption_1', 'electric_consumption_2', 'electric_consumption_3', 'solar_generation', 'water_consumption_1', 'water_consumption_2', 'water_consumption_3')),
+
+sub2 as(
+  select p1.xprojectid, p1.fy_timerange, p1.keyword, p1.datatablebase, table1.refrigerant_amount as col
+from sus_9539 as p1, unpivot p1.datatablebase as table1
+where p1.keyword = 'refrigerant_type_amount'),
+
+sub3 as(
+  select xprojectid, fy_timerange, keyword, col from sub1
+  union all
+  select xprojectid, fy_timerange, keyword, col from sub2)
+
+select p2.name as projectid, p3.name as country, s3.fy_timerange, s3.keyword, sum(s3.col) as total
+from sub3 s3
+
+left join ds_mysql_prod_project p2 on p2.id = s3.xprojectid
 left join ds_mysql_prod_project p3 on p3.id = p2.parent
 
-where keyword in ('refrigerant_type_amount', 'co2_refilled', 'dry_powder_refilled', 'electric_consumption_1', 'electric_consumption_2', 'electric_consumption_3', 'solar_generation', 'water_consumption_1', 'water_consumption_2', 'water_consumption_3', 'waste_type') 
+where s3.col is not null and s3.col > 0
 
-and datanumbase is not null and datanumbase > 0)
-
-select projectid, country, fy_timerange, keyword, sum(datanumbase) as total
-from sub1 
-group by projectid, country, fy_timerange, keyword
+group by p2.name, p3.name, s3.fy_timerange, s3.keyword
