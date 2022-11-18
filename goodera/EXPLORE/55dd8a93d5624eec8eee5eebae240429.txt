@@ -1,27 +1,39 @@
 with sub1 as(
-  select p1.xprojectid, p1.fy_timerange, p1.keyword, p1.datatablebase, table1.fuel_company 
+  select p1.xprojectid, p1.fy_timerange, p1.keyword, p1.datatablebase, table1.fuel_company as col
 from sus_9539 as p1, unpivot p1.datatablebase as table1
 where keyword = 'company_vehicles'),
 
 sub2 as(
-  select p1.xprojectid, p1.fy_timerange, p1.keyword, p1.datatablebase, table2.fuel_consump_own 
+  select p1.xprojectid, p1.fy_timerange, p1.keyword, p1.datatablebase, table2.fuel_consump_own as col
 from sus_9539 as p1, unpivot p1.datatablebase as table2
 where keyword = 'own_fleet'),
 
 sub3 as(
-  select p1.xprojectid, p1.fy_timerange, p1.keyword, p1.datatablebase, table3.fuel_consump_leased 
+  select p1.xprojectid, p1.fy_timerange, p1.keyword, p1.datatablebase, table3.fuel_consump_leased as col
 from sus_9539 as p1, unpivot p1.datatablebase as table3
 where keyword = 'leased_fleet'),
 
 sub4 as(
-  select p1.xprojectid, p1.fy_timerange, p1.keyword, p1.datatablebase, table4.fuel_consump_third 
+  select p1.xprojectid, p1.fy_timerange, p1.keyword, p1.datatablebase, table4.fuel_consump_third as col
 from sus_9539 as p1, unpivot p1.datatablebase as table4
-where keyword = 'third_party_fleet')
+where keyword = 'third_party_fleet'),
 
-select xprojectid, fy_timerange, keyword, fuel_company from sub1
+sub5 as(
+  select xprojectid, fy_timerange, keyword, col from sub1
 union all
-select xprojectid, fy_timerange, keyword, fuel_consump_own from sub2
+select xprojectid, fy_timerange, keyword, col from sub2
 union all
-select xprojectid, fy_timerange, keyword, fuel_consump_leased from sub3
+select xprojectid, fy_timerange, keyword, col from sub3
 union all
-select xprojectid, fy_timerange, keyword, fuel_consump_third from sub4
+select xprojectid, fy_timerange, keyword, col from sub4)
+
+select p2.name as projectid, p3.name as country, s5.fy_timerange, s5.keyword, 
+sum(s5.col) as total
+from sub5 s5
+
+left join ds_mysql_prod_project p2 on p2.id = s5.projectid
+left join ds_mysql_prod_project p3 on p3.id = p2.parent
+
+where s5.col is not null
+
+group by p2.name, p3.name, s5.fy_timerange, s5.keyword
