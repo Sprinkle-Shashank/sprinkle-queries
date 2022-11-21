@@ -1,106 +1,77 @@
-with sub1 as(select p1.fy_timerange,p4.name as projectid,t1.name as village,1 as count,p2.name as activity,p3.name as participants,t2.name as caste,p3.age,t4.name as gender,count(p3.hh_id) as hh_total,p3.hh_id,t5.name as farm_category,extract(year from cast(p1.fy_timerange.start as date)) as start_year,SUM(p1.nyra_contri),
-
-case
-	when age < 18 then 'Below 18'
-	when age > 17 and age < 41 then '18-40'
-	when age > 40 and age < 60 then '18-45'
-	when age > 60 then 'Above 60'
-	else null
-end as age_group, count(*) as count_new
-
+with sub1 as(Select hh_id , hh_head , participant  from profile_81185 WHERE hh_head =  1400577),
+sub2 as(Select hh_id ,count(hh_id) as total_members  from profile_81185
+group by hh_id),
+--------------------------------
+agri as(select p4.name as projectid,p1.fy_timerange,p3.name as activity,p2.hh_id,t2.name as head,t1.name as village,p2.cluster,p2.name as participants,sum(p1.nyra_contri) as total_benefits,t3.name as change_income_due_yn, p1.change_income, tab1.participant as head_of_fam, 1 as count, tab2.total_members
 from profile_81209 p1
-left join profile_81201 p2 on p2._id=p1.activity
-left join profile_81185 p3 on p3._id=p1.participants
+left join profile_81185 p2 on p2._id=p1.participants
+left join profile_81201 p3 on p3._id=p1.activity
 left join ds_mysql_prod_project p4 on p4.id=p1.projectid
-left join ds_mysql_prod_tagelement t1 on t1.id=p1.village
-left join ds_mysql_prod_tagelement t2 on t2.id=p3.caste
-left join ds_mysql_prod_tagelement t3 on t3.id=p3.age
-left join ds_mysql_prod_tagelement t4 on t4.id=p3.gender
-left join ds_mysql_prod_tagelement t5 on t5.id = p3.farm_category 
-
-group by p2.name,p1.fy_timerange,t1.name,p2.name,p3.name,t2.name,t4.name,age_group,t5.name,p3.hh_id, start_year,p3.age,p4.name),
-
-sub2 as( select p1.fy_timerange,p4.name as projectid, t1.name as village,1 as count,p2.name as activity,p3.name as participants,t2.name as caste,p3.age,t4.name as gender,count(p3.hh_id) as hh_total,p3.hh_id,t5.name as farm_category,extract(year from cast(p1.fy_timerange.start as date)) as start_year,SUM(p1.nyra_contri),
-
-case
-	when age < 18 then 'Below 18'
-	when age > 17 and age < 41 then '18-40'
-	when age > 40 and age < 60 then '18-45'
-	when age > 60 then 'Above 60'
-	else null
-end as age_group, count(*) as count_new
-
+left join ds_mysql_prod_tagelement t1 on t1.id=p2.village
+left join ds_mysql_prod_tagelement t2 on t2.id=p2.hh_head
+left join ds_mysql_prod_tagelement t3 on t3.id=p1.change_income_due_yn
+left join sub1 tab1 on tab1.hh_id = p2.hh_id
+left join sub2 tab2 on tab2.hh_id = p2.hh_id
+		
+group by p1.fy_timerange,p2.hh_id,t2.name,t1.name,p2.cluster,p3.name,p2.name,t3.name,p1.change_income,p4.name,tab1.participant, tab2.total_members
+),
+--Baif_agri_HH_details_activities, Baif_agri_HH_participants,Baif_agri_HH_Change_income, Baif_agri_HH_Total_benefits_received
+--Baif_WID_HH_Details_Activities
+wid as(
+select p4.name as projectid, p1.fy_timerange,p3.name as activity,p2.hh_id,t2.name as head,t1.name as village,p2.cluster,p2.name as participants,sum(p1.nyra_contri) as total_benefits, null as change_income_due_yn, 0 as change_income,tab1.participant as head_of_fam,1 as count, tab2.total_members
+ 
 from profile_81208 p1
-left join profile_81201 p2 on p2._id=p1.activity
-left join profile_81185 p3 on p3._id=p1.participants
+left join profile_81185 p2 on p2._id=p1.participants
+left join profile_81201 p3 on p3._id=p1.activity
 left join ds_mysql_prod_project p4 on p4.id=p1.projectid
-left join ds_mysql_prod_tagelement t1 on t1.id=p1.village
-left join ds_mysql_prod_tagelement t2 on t2.id=p3.caste
-left join ds_mysql_prod_tagelement t3 on t3.id=p3.age
-left join ds_mysql_prod_tagelement t4 on t4.id=p3.gender
-left join ds_mysql_prod_tagelement t5 on t5.id = p3.farm_category 
-
-group by p2.name,p1.fy_timerange,t1.name,p2.name,p3.name,t2.name,t4.name,age_group,t5.name,p3.hh_id, start_year,p3.age,p4.name
+left join ds_mysql_prod_tagelement t1 on t1.id=p2.village
+left join ds_mysql_prod_tagelement t2 on t2.id=p2.hh_head
+left join sub1 tab1 on tab1.hh_id = p2.hh_id
+left join sub2 tab2 on tab2.hh_id = p2.hh_id
+  
+group by p1.fy_timerange,p2.hh_id,t2.name,t1.name,p2.cluster,p3.name,p2.name,p4.name,tab1.participant, tab2.total_members
 ),
-sub3 as(select p1.fy_timerange,p4.name as projectid, t1.name as village,1 as count,p2.name as activity,p3.name as participants,t2.name as caste,p3.age as age,t4.name as gender,count(p3.hh_id) as hh_total,p3.hh_id as hh_id , t5.name as farm_category,extract(year from cast(p1.fy_timerange.start as date)) as start_year,SUM(p1.nyra_contri),
+--BAIF_WRD_HH_Details_activities,BAIF_WRD_HH_participants, BAIF_WRD_HH_Total_benefits_received and Change_income
 
-case
-	when age < 18 then 'Below 18'
-	when age > 17 and age < 41 then '18-40'
-	when age > 40 and age < 60 then '18-45'
-	when age > 60 then 'Above 60'
-	else null
-end as age_group, count(*) as count_new
-
+wrd as(select p4.name as projectid,p1.fy_timerange,p3.name as activity,p2.hh_id,t2.name as head,t1.name as village,p2.cluster, p2.name as participants,sum(p1.nyra_contri) as total_benefits, null as change_income_due_yn, SUM ( p1.change_income + p1.change_income_install) as change_income , tab1.participant as head_of_fam,1 as count, tab2.total_members 
+ 
 from profile_81203 p1
-left join profile_81201 p2 on 
-p2._id=p1.activity
-left join profile_81185 p3 on 
-p3._id=p1.participants
+left join profile_81185 p2 on p2._id=p1.participants
+left join profile_81201 p3 on p3._id=p1.activity
 left join ds_mysql_prod_project p4 on p4.id=p1.projectid
-left join ds_mysql_prod_tagelement t1 on
-t1.id=p1.village
-left join ds_mysql_prod_tagelement t2 on 
-t2.id=p3.caste
-left join ds_mysql_prod_tagelement t3 on
-t3.id=p3.age
-left join ds_mysql_prod_tagelement t4 on 
-t4.id=p3.gender
-left join ds_mysql_prod_tagelement t5 on t5.id = p3.farm_category 
-
-group by p2.name,p1.fy_timerange,t1.name,p2.name,p3.name,t2.name,t3.name,t4.name,age_group , p3.age  ,p3.hh_id,t5.name,start_year,p4.name
-),
-sub4 as(select p1.fy_timerange,p4.name as projectid,t1.name as village,1 as count,p2.name as activity,p3.name as participants,t2.name as caste,p3.age,t4.name as gender,count(p3.hh_id) as hh_total, p3.hh_id, t5.name as farm_category,extract(year from cast(p1.fy_timerange.start as date)) as start_year,SUM(p1.nyra_contri),
-
-case
-	when age < 18 then 'Below 18'
-	when age > 17 and age < 41 then '18-40'
-	when age > 40 and age < 60 then '18-45'
-	when age > 60 then 'Above 60'
-	else null
-end as age_group, count(*) as count_new
-
+left join ds_mysql_prod_tagelement t1 on t1.id=p2.village
+left join ds_mysql_prod_tagelement t2 on t2.id=p2.hh_head
+left join sub1 tab1 on tab1.hh_id = p2.hh_id
+left join sub2 tab2 on tab2.hh_id = p2.hh_id
+	   
+group by p1.fy_timerange,p2.hh_id,t2.name,t1.name,p2.cluster,p3.name,p2.name , tab1.participant,p4.name,tab1.participant, tab2.total_members),
+--sub5 as (select * from sub4),
+--Baif_Livestock_HH_Details
+livestock as(
+select p4.name as projectid, p1.fy_timerange,p3.name as activity,p2.hh_id,t2.name as head,t1.name as village,p2.cluster,p2.name as participants,sum(p1.nyra_contri) as total_benefits, null as change_income_due_yn,p1.change_income,tab1.participant as head_of_fam,1 as count, tab2.total_members
+ 
 from profile_81207 p1
-left join profile_81201 p2 on p2._id=p1.activity
-left join profile_81185 p3 on p3._id=p1.participants
+left join profile_81185 p2 on p2._id=p1.participants
+left join profile_81201 p3 on p3._id=p1.activity
 left join ds_mysql_prod_project p4 on p4.id=p1.projectid
-left join ds_mysql_prod_tagelement t1 on t1.id=p1.village
-left join ds_mysql_prod_tagelement t2 on t2.id=p3.caste
-left join ds_mysql_prod_tagelement t3 on t3.id=p3.age
-left join ds_mysql_prod_tagelement t4 on t4.id=p3.gender
-left join ds_mysql_prod_tagelement t5 on t5.id = p3.farm_category 
-
-group by p2.name,p1.fy_timerange,t1.name,p2.name,p3.name,t2.name,t4.name,age_group,p3.hh_id,t5.name, start_year,p3.age,p4.name
+left join ds_mysql_prod_tagelement t1 on t1.id=p2.village
+left join ds_mysql_prod_tagelement t2 on t2.id=p2.hh_head
+left join sub1 tab1 on tab1.hh_id = p2.hh_id
+left join sub2 tab2 on tab2.hh_id = p2.hh_id 
+  
+group by p1.fy_timerange,p2.hh_id,t2.name,t1.name,p2.cluster,p3.name,p2.name,p1.change_income,p4.name,tab1.participant, tab2.total_members
 ),
 
-sub5 as(select * from sub1
+
+summary as(select * from agri
 union all
-select * from sub2
+select * from wid
 union all
-select * from sub3
+select * from wrd
 union all
-select * from sub4)
-select *,CONCAT(projectid,activity) as uni_activity from sub5
+select * from livestock)
+
+select *,CONCAT(projectid,activity) as uni_activity from summary
 
 /*
 
