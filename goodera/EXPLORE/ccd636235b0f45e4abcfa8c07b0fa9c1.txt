@@ -29,12 +29,21 @@ table6 as
 union all
 select * from table5),
 
-t1 as (select p1._id as id2 , p1.projectId, p1.name, p1.timerange_timerange, p1.training_type, p1.year, p1.absenteeism_rate,p2.country, p2.vendor, p2.unwind_cycle as cycle, p2.consultant_tag as consultant, p2.unwind_product_category as product_category,
+t1 as (select p1._id as id2 , p1.projectId, p1.name, p1.timerange_timerange, p1.training_type, p1.year, p1.absenteeism_rate,tag4.name as country, p2.vendor, tag2.name as cycle, tag1.name as consultant, tag3.name as product_category,
 	   substring(p1.name,len(p1.name)-9,10) as month 
 
 from profile_61528 p1 
 	   left join table6 p2 
 	   on p1.projectId = p2.projectId
+	   left join ds_mysql_prod_tagelement tag2
+on p2.unwind_cycle = tag2.id
+left join ds_mysql_prod_tagelement tag4
+on p2.country = tag4.id
+left join ds_mysql_prod_tagelement tag3
+on p2.unwind_product_category = tag3.id
+	  left join ds_mysql_prod_tagelement tag1
+on p2.consultant_tag = tag1.id
+	   
 where p1.training_type in (1733931, 1411056, 1733930)
 	   )
 	   
@@ -42,4 +51,4 @@ where p1.training_type in (1733931, 1411056, 1733930)
 	   sum(absenteeism_rate) as absenteeism_rate
 	   from t1 
 	   where absenteeism_rate is not null 
-	   group by id, projectId, timerange_timerange, year, vendor, country, cycle, product_category, month, id2, consultant
+	   group by id2, projectId, timerange_timerange, year, vendor, country, cycle, product_category, month, id2, consultant
