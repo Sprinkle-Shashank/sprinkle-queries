@@ -43,9 +43,21 @@ sub5 as(
   select s1.xprojectid, s1.fy_timerange, s1.keyword, 'Scope 1' as scope, s1.datatablebase, table2.type_company, table2.fuel_company
 
 from sus_9539 s1, UNPIVOT s1.datatablebase as table2
-where keyword = 'company_vehicles' and s1.datatablebase is not NULL)
+where keyword = 'company_vehicles' and s1.datatablebase is not NULL),
 
-select s5.xprojectid, s5.fy_timerange, s5.keyword, s5.scope, type_company_unwind, s5.fuel_company
+sub6 as(
+  select s5.xprojectid, s5.fy_timerange, s5.keyword, s5.scope, type_company_unwind, s5.fuel_company
   
 from sub5 s5, s5.type_company type_company_unwind
-where s5.fuel_company != 0 and s5.fuel_company is not null
+where s5.fuel_company != 0 and s5.fuel_company is not null)
+
+select s6.xprojectid, s6.fy_timerange, s6.keyword, s6.scope, t2.name as type_company, s6.fuel_company,
+ 
+case
+  	when t2.name = 'Petrol' then s6.fuel_company * 0.00220904
+  	when t2.name = 'Diesel' then s6.fuel_company * 0.00259411
+	else 0
+end as col
+
+from sub6 s6
+left join ds_mysql_prod_tagelement t2 on t2.id = s6.type_company_unwind
