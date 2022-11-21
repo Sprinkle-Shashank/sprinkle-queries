@@ -1,8 +1,17 @@
 select p3.name as country, p2.name as projectid, p1.fy_timerange, p1.keyword, 'Scope 1' as scope,
-sum(p1.datanumbase * 0.00259411) as col 
+
+sum(
+  case
+  	when p1.keyword = 'generator_consump' then p1.datanumbase * 0.00259411
+	else p1.datanumbase * 0.001
+end) as col 
+
 from sus_9539 p1
 
 left join ds_mysql_prod_project p2 on p2.id = p1.xprojectid
 left join ds_mysql_prod_project p3 on p3.id = p2.parent
 
-where p1.keyword = 'generator_consump' and p1.datanumbase is not null
+where p1.keyword in ('generator_consump', 'co2_refilled', 'dry_powder_refilled') 
+and p1.datanumbase is not null
+
+group by p3.name, p2.name, p1.fy_timerange, p1.keyword
