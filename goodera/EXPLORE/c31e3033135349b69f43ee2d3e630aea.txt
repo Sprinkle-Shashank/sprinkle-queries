@@ -1,4 +1,5 @@
-select p1.xprojectid, p3.name as country, p2.name as projectid, p1.fy_timerange, p1.keyword, p1.datanumbase,
+with sub1 as(
+  select p1.xprojectid, p3.name as country, p2.name as projectid, p1.fy_timerange, p1.keyword, p1.datanumbase,
 
 case
 	when p1.xprojectid = 10253 then 0.00041725
@@ -30,4 +31,9 @@ from sus_9539 p1
 left join ds_mysql_prod_project p2 on p2.id = p1.xprojectid
 left join ds_mysql_prod_project p3 on p3.id = p2.parent
 
-where p1.keyword in ('electric_consumption_1', 'electric_consumption_2', 'electric_consumption_3', 'solar_generation') and p1.datanumbase is not null and p1.datanumbase != 0
+where p1.keyword in ('electric_consumption_1', 'electric_consumption_2', 'electric_consumption_3', 'solar_generation') and p1.datanumbase is not null and p1.datanumbase != 0)
+
+select country, projectid, fy_timerange, keyword, sum(col) as total 
+from sub1
+where col != 0
+group by country, projectid, fy_timerange, keyword
