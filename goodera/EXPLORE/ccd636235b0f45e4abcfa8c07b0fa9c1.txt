@@ -29,7 +29,7 @@ table6 as
 union all
 select * from table5),
 
-t1 as (select p1._id, p1.projectId, p1.name, p1.timerange_timerange, p1.training_type, p1.year, p1.absenteeism_rate,p2.country, p2.vendor, p2.unwind_cycle, p2.consultant_tag, p2.unwind_product_category,
+t1 as (select p1._id as id2 , p1.projectId, p1.name, p1.timerange_timerange, p1.training_type, p1.year, p1.absenteeism_rate,p2.country, p2.vendor, p2.unwind_cycle as cycle, p2.consultant_tag as consultant, p2.unwind_product_category as product_category,
 	   substring(p1.name,len(p1.name)-9,10) as month 
 
 from profile_61528 p1 
@@ -38,4 +38,8 @@ from profile_61528 p1
 where p1.training_type in (1733931, 1411056, 1733930)
 	   )
 	   
-	   select * from t1 
+	   select  timerange_timerange, vendor, country, cycle, product_category, month, id2, consultant,
+	   sum(absenteeism_rate) as absenteeism_rate
+	   from t1 
+	   where absenteeism_rate is not null 
+	   group by id, projectId, timerange_timerange, year, vendor, country, cycle, product_category, month, id2, consultant
