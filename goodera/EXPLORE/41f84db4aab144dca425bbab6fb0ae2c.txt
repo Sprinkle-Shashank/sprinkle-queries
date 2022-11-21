@@ -1,0 +1,67 @@
+with table1 as
+(select _id , projectId,country, vendor,unwind_cycle, product_category,factory, consultant_tag from profile_64362 as p ,p.cycle as unwind_cycle),
+
+ table2 as
+(select _id, projectId,country, vendor,cycle,product_category,factory,consultant_tag from profile_64362
+  where _id not in (select _id from table1))
+  ,
+  
+table3 as
+ (
+	select * from table1
+  Union all
+  select * from table2
+ )
+ ,
+
+  
+table4 as  
+(
+ select _id,  projectId,country,vendor,unwind_cycle,factory, unwind_product_category,consultant_tag from table3 t3, t3.product_category  as unwind_product_category
+ ),
+
+table5 as
+(select _id, projectId,country,factory,vendor,unwind_cycle,  null as product_category,consultant_tag from table3 
+ where _id not in (select _id from table4)),
+ 
+table6 as
+(select * from table4
+union all
+select * from table5),
+
+t1 as (select p1._id as id2, tag7.name as projectId,  p1.keyword_1_timerange, tag8.name as training_type, p1.efficiency,   p1.year,p1.name,
+tag4.name as country, p2.factory, p2.vendor, tag3.name as product_category, tag1.name as consultant, tag2.name as cycle,tag6.name as year1
+from profile_62916 p1
+left join table6 p2 on 
+p1.projectId= p2.projectId
+	  left join ds_mysql_prod_tagelement tag2
+on p2.unwind_cycle = tag2.id
+left join ds_mysql_prod_tagelement tag4
+on p2.country = tag4.id
+left join ds_mysql_prod_tagelement tag3
+on p2.unwind_product_category = tag3.id
+	  left join ds_mysql_prod_tagelement tag1
+on p2.consultant_tag = tag1.id
+	  left join ds_mysql_prod_tagelement tag6
+on p1.year = tag6.id
+	  left join ds_mysql_prod_project tag7
+on p1.projectId = tag7.id
+	  left join ds_mysql_prod_tagelement tag8
+on p1.training_type = tag8.id),
+
+t2 as (select t.*,
+substring(t.name,len(t.name)-9,10) as month 
+from t1 t
+where product_category in ('Apparel', 'Accessories')
+	  and efficiency is not null )
+
+select  projectId, keyword_1_timerange, training_type, year1 as year, country, factory, vendor, consultant, cycle, product_category, month, id2, count(*) as count,
+case
+when tt.year = 1433762 then 'Cycle 1'
+when tt.year = 1433763 then 'Cycle 1'
+when tt.year = 1433764 then 'Cycle 1'
+else 'Cycle 2'
+end as cycle1 
+
+from t2 tt
+group by projectId, keyword_1_timerange, training_type, year, country, factory, vendor, consultant, cycle, product_category, tt.year1,month, id2,tt.name
