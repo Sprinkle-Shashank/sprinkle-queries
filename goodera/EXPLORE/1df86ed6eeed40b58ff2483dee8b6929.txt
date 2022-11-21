@@ -1,4 +1,4 @@
- select country,name,finperiod,fy_timerange,(tot_consumption-vir_plastic_mlp-wad)*100.0/tot_consumption as recyclable_packag_material_share,tot_cons_plastic*100.0/tot_consumption as tot_plastic_share from (select xprojectid,cou.name as country,p.name,finperiod,fy_timerange,keyword, datanumbase
+ with table1 as (select country,name,finperiod,fy_timerange,(tot_consumption-vir_plastic_mlp-wad)*100.0/tot_consumption as recyclable_packag_material_share,tot_cons_plastic*100.0/tot_consumption as tot_plastic_share from (select xprojectid,cou.name as country,p.name,finperiod,fy_timerange,keyword, datanumbase
 --tot_cons_plastic/tot_consumption as tot_plastic_share
 				
 
@@ -14,3 +14,7 @@ where keyword in('tot_consumption','vir_plastic_mlp','wad','tot_cons_plastic') )
 PIVOT (
    sum(datanumbase) FOR keyword IN ('tot_consumption','vir_plastic_mlp','wad','tot_cons_plastic')
 ) 
+)
+
+select * from table1 
+unpivot (datanumbase for dim in ('recyclable_packag_material_share','tot_plastic_share'))
