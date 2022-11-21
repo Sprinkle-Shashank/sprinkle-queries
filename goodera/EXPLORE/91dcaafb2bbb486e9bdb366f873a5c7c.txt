@@ -1,8 +1,7 @@
 with sub1 as(
-  select xprojectid, fy_timerange, keyword, 'Scope 1' as scope,
-
-sum(
-  case
+  select xprojectid, fy_timerange, keyword, 'Scope 1' as scope, datanumbase,
+  
+case
   	when keyword = 'generator_consump' then datanumbase * 0.00259411
 	else datanumbase * 0.001
 end) as col 
@@ -10,9 +9,9 @@ end) as col
 from sus_9539
 
 where keyword in ('generator_consump', 'co2_refilled', 'dry_powder_refilled') 
-and datanumbase is not null and datanumbase != 0
+and datanumbase is not null and datanumbase != 0),
 
-group by xprojectid, fy_timerange, keyword),
+------------
 
 sub2 as(
   select s1.xprojectid, s1.fy_timerange, s1.keyword, 'Scope 1' as scope, s1.datatablebase, table1.refrigerant_type, table1.refrigerant_amount
@@ -26,6 +25,13 @@ sub3 as(
 from sub2 s2, s2.refrigerant_type refrigerant_type_unwind
 where s2.refrigerant_amount != 0)
 
-select s3.xprojectid, s3.fy_timerange, s3.keyword, s3.scope, t1.name as refrigerant_type, s3.refrigerant_amount
+select s3.xprojectid, s3.fy_timerange, s3.keyword, s3.scope, t1.name as refrigerant_type, s2.refrigerant_amount,
+ 
+case
+  	when t1.name = 'Air Conditioning Refrigerant - R410' then s2.refrigerant_amount * 2.088
+  	when t1.name = 'Air Conditioning Refrigerant - R22/R404' then s2.refrigerant_amount * 3.922
+	else 0
+end as col
+
 from sub3 s3
 left join ds_mysql_prod_tagelement t1 on t1.id = s3.refrigerant_type_unwind
