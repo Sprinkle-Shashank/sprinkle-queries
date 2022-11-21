@@ -5,7 +5,7 @@ with table1 as (select
 				case when pace_brand like '%1151834%' then 1 else 0 end  as brand,
 				class,module_name,attendance,num_enrolled_class,
 				--table_52810.start_date,
-				module_name as select_modules,
+				module_name as select_module1,
 				table_4227.start_date as start_date,		
 				case when num_enrolled_class and attendance and num_enrolled_class != 0 and attendance is not null then (cast(attendance as float)/cast(num_enrolled_class as float)) else null end as avg_attendance,
 				case when table_52810.offset_date is null then '2020-02-01T00:00:00.000Z' else table_52810.offset_date end as offset_date,
@@ -24,16 +24,36 @@ inner join profile_4227 table_4227 on
 table_4227._id = p.class
 ),
 
-table2 as (select brand,case when start_date >= offset_date then 1 else 0 end as token,select_modules, avg(avg_attendance) as total_avg_attendance,
+table2 as (select brand,case when start_date >= offset_date then 1 else 0 end as token,select_module1, avg(avg_attendance) as total_avg_attendance,
 		   moduleTable.name as module ,attendance,num_enrolled_class,id1,start_date,projectid1,code
 
 			from table1 p
 		   
 left join ds_mysql_prod_tagelement moduleTable on
-moduleTable.Id = select_modules
+moduleTable.Id = select_module1
 		   
-group by brand,token,select_modules,module,moduleTable.sortOrder,attendance,num_enrolled_class,id1,start_date,projectid1,code
+group by brand,token,select_module1,module,moduleTable.sortOrder,attendance,num_enrolled_class,id1,start_date,projectid1,code
 order by moduleTable.sortOrder
-)
+), 
 
-select total_avg_attendance,select_modules,module,start_date,projectid1 as projectid, code from table2 p where brand = 1 and token = 1 and select_modules in (    '64504','70914','70905','70906','70916','70946','70915','70917','70933','70949','70947','70899','459391','459394','459395','64506','70928','70920','70898','70908','70907','70942','70936','70904','70918','70924','70923','459392','459393','459397','64507','70937','70944','70930','70931','70950','70929','70921','70932','70934','70948','70938','459396','459398','459399','64509','70925','70927','70943','70939','70940','64508','70317','70919','70922','70926','70935','70945')
+table3 as (
+select total_avg_attendance,select_module1,module,start_date,projectid1 as projectid, code,brand, token,
+case 
+when select_module1 in ('64504','70914','70905','70906','70916','70946','70915','70917','70933','70949','70947','70899','459391','459394','459395','1760031')
+then '64504'
+when select_module1 in ('64507','70937','70944','70930','70931','70950','70929','70921','70932','70934','70948','70938','459396','459398','459399') 
+then '64507'
+when select_module1 in 
+('64509','70925','70937','70943','70939','70940','1760033') 
+then '64509'
+when select_module1 in 
+('70317','70919','70922','70926','70935','70945','1760032')
+then '70317'
+else '60504' end as parent
+from table2 p where select_module1 in (   '64504','70914','70905','70906','70916','70946','70915','70917','70933','70949','70947','70899','459391','459394','459395','1760031','64507','70937','70944','70930','70931','70950','70929','70921','70932','70934','70948','70938','459396','459398','459399','64509','70925','70927','70943','70939','70940','64508','1760033','70317','70919','70922','70926','70935','70945','1760032') 
+  )
+  
+select total_avg_attendance,select_module1,module,start_date,projectid, code,cast(parent as int4) as select_modules
+from table 3 
+where brand = 1 and token = 1 
+  
