@@ -1,26 +1,4 @@
-with sub1 as(select p1.fy_timerange,t1.name as village,1 as count,p2.name as activity,p3.name as participants,t2.name as caste,t3.name as age,t4.name as gender,count(p3.hh_id) as hh_total,p3.hh_id,t5.name as farm_category,
-
-case
-	when age < 18 then 'Below 18'
-	when age > 17 and age < 41 then '18-40'
-	when age > 40 and age < 60 then '40-60'
-	when age > 60 then 'Above 60'
-	else null
-end as age_group,count(*) as count_new
-
-from profile_81209 p1
-left join profile_81201 p2 on p2._id=p1.activity
-left join profile_81185 p3 on p3._id=p1.participants
-left join ds_mysql_prod_tagelement t1 on t1.id=p1.village
-left join ds_mysql_prod_tagelement t2 on t2.id=p3.caste
-left join ds_mysql_prod_tagelement t3 on t3.id=p3.age
-left join ds_mysql_prod_tagelement t4 on t4.id=p3.gender
-left join ds_mysql_prod_tagelement t5 on t5.id = p3.farm_category 
-
-group by p2.name,p1.fy_timerange,t1.name,p2.name,p3.name,t2.name,t3.name,t4.name,age_group,t5.name,p3.hh_id
-),
-
-sub2 as (select p1.fy_timerange,t1.name as village,1 as count,p2.name as activity,p3.name as participants,t2.name as caste,t3.name as age,t4.name as gender,count(p3.hh_id) as hh_total,p3.hh_id,t5.name as farm_category,
+with sub1 as(select p1.fy_timerange,p4.name as projectid,t1.name as village,1 as count,p2.name as activity,p3.name as participants,t2.name as caste,p3.age,t4.name as gender,count(p3.hh_id) as hh_total,p3.hh_id,t5.name as farm_category,extract(year from cast(p1.fy_timerange.start as date)) as start_year,
 
 case
 	when age < 18 then 'Below 18'
@@ -33,15 +11,38 @@ end as age_group, count(*) as count_new
 from profile_81208 p1
 left join profile_81201 p2 on p2._id=p1.activity
 left join profile_81185 p3 on p3._id=p1.participants
+left join ds_mysql_prod_project p4 on p4.id=p1.projectid
 left join ds_mysql_prod_tagelement t1 on t1.id=p1.village
 left join ds_mysql_prod_tagelement t2 on t2.id=p3.caste
 left join ds_mysql_prod_tagelement t3 on t3.id=p3.age
 left join ds_mysql_prod_tagelement t4 on t4.id=p3.gender
 left join ds_mysql_prod_tagelement t5 on t5.id = p3.farm_category 
 
-group by p2.name,p1.fy_timerange,t1.name,p2.name,p3.name,t2.name,t3.name,t4.name,age_group,p1.hh_count,t5.name,p3.hh_id),
+group by p2.name,p1.fy_timerange,t1.name,p2.name,p3.name,t2.name,t4.name,age_group,t5.name,p3.hh_id, start_year,p3.age,p4.name),
 
-sub3 as (select p1.fy_timerange,t1.name as village,1 as count,p2.name as activity,p3.name as participants,t2.name as caste,p3.age as age,t4.name as gender,count(p3.hh_id) as hh_total,p3.hh_id as hh_id , t5.name as farm_category,
+sub2 as( select p1.fy_timerange,p4.name as projectid, t1.name as village,1 as count,p2.name as activity,p3.name as participants,t2.name as caste,p3.age,t4.name as gender,count(p3.hh_id) as hh_total,p3.hh_id,t5.name as farm_category,extract(year from cast(p1.fy_timerange.start as date)) as start_year,
+
+case
+	when age < 18 then 'Below 18'
+	when age > 17 and age < 41 then '18-40'
+	when age > 40 and age < 60 then '18-45'
+	when age > 60 then 'Above 60'
+	else null
+end as age_group, count(*) as count_new
+
+from profile_81208 p1
+left join profile_81201 p2 on p2._id=p1.activity
+left join profile_81185 p3 on p3._id=p1.participants
+left join ds_mysql_prod_project p4 on p4.id=p1.projectid
+left join ds_mysql_prod_tagelement t1 on t1.id=p1.village
+left join ds_mysql_prod_tagelement t2 on t2.id=p3.caste
+left join ds_mysql_prod_tagelement t3 on t3.id=p3.age
+left join ds_mysql_prod_tagelement t4 on t4.id=p3.gender
+left join ds_mysql_prod_tagelement t5 on t5.id = p3.farm_category 
+
+group by p2.name,p1.fy_timerange,t1.name,p2.name,p3.name,t2.name,t4.name,age_group,t5.name,p3.hh_id, start_year,p3.age,p4.name
+),
+sub3 as(select p1.fy_timerange,p4.name as projectid, t1.name as village,1 as count,p2.name as activity,p3.name as participants,t2.name as caste,p3.age as age,t4.name as gender,count(p3.hh_id) as hh_total,p3.hh_id as hh_id , t5.name as farm_category,extract(year from cast(p1.fy_timerange.start as date)) as start_year,
 
 case
 	when age < 18 then 'Below 18'
@@ -56,6 +57,7 @@ left join profile_81201 p2 on
 p2._id=p1.activity
 left join profile_81185 p3 on 
 p3._id=p1.participants
+left join ds_mysql_prod_project p4 on p4.id=p1.projectid
 left join ds_mysql_prod_tagelement t1 on
 t1.id=p1.village
 left join ds_mysql_prod_tagelement t2 on 
@@ -66,9 +68,9 @@ left join ds_mysql_prod_tagelement t4 on
 t4.id=p3.gender
 left join ds_mysql_prod_tagelement t5 on t5.id = p3.farm_category 
 
-group by p2.name,p1.fy_timerange,t1.name,p2.name,p3.name,t2.name,t3.name,t4.name,age_group , p3.age  ,p3.hh_id,t5.name),
-
-sub4 as (select p1.fy_timerange,t1.name as village,1 as count,p2.name as activity,p3.name as participants,t2.name as caste,t3.name as age,t4.name as gender,count(p3.hh_id) as hh_total, p3.hh_id, t5.name as farm_category,
+group by p2.name,p1.fy_timerange,t1.name,p2.name,p3.name,t2.name,t3.name,t4.name,age_group , p3.age  ,p3.hh_id,t5.name,start_year,p4.name
+),
+sub4 as(select p1.fy_timerange,p4.name as projectid,t1.name as village,1 as count,p2.name as activity,p3.name as participants,t2.name as caste,p3.age,t4.name as gender,count(p3.hh_id) as hh_total, p3.hh_id, t5.name as farm_category,extract(year from cast(p1.fy_timerange.start as date)) as start_year,
 
 case
 	when age < 18 then 'Below 18'
@@ -81,13 +83,15 @@ end as age_group, count(*) as count_new
 from profile_81207 p1
 left join profile_81201 p2 on p2._id=p1.activity
 left join profile_81185 p3 on p3._id=p1.participants
+left join ds_mysql_prod_project p4 on p4.id=p1.projectid
 left join ds_mysql_prod_tagelement t1 on t1.id=p1.village
 left join ds_mysql_prod_tagelement t2 on t2.id=p3.caste
 left join ds_mysql_prod_tagelement t3 on t3.id=p3.age
 left join ds_mysql_prod_tagelement t4 on t4.id=p3.gender
 left join ds_mysql_prod_tagelement t5 on t5.id = p3.farm_category 
 
-group by p2.name,p1.fy_timerange,t1.name,p2.name,p3.name,t2.name,t3.name,t4.name,age_group,p3.hh_id,t5.name),
+group by p2.name,p1.fy_timerange,t1.name,p2.name,p3.name,t2.name,t4.name,age_group,p3.hh_id,t5.name, start_year,p3.age,p4.name
+),
 
 sub5 as(select * from sub1
 union all
@@ -96,7 +100,6 @@ union all
 select * from sub3
 union all
 select * from sub4)
-
 select *,CONCAT(projectid,activity) as uni_activity from sub5
 --fy_timerange, projectid, village,1 as count, activity, participants, caste, age, gender, hh_total from sub1,sub2,sub3,sub4
 		 
