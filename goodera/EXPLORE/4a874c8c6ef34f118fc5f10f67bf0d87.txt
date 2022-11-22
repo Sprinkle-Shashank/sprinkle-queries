@@ -1,7 +1,7 @@
 with t1 as
 (select * from
 (
-  select projectId.name as projectid, planned_doi, planned_doc, planned_signoff, planned_live, fy_timerange, actual_doi, actual_doc, actual_signoff, actual_live,
+  select projectId.name as projectid, planned_doi as planned_doi_up, planned_doc, planned_signoff, planned_live, fy_timerange, actual_doi, actual_doc, actual_signoff, actual_live,
   
   case when actual_doi IS NULL then 'Not available'
   when planned_doi<=actual_doi then 'Completed'
@@ -35,7 +35,14 @@ with t1 as
   date_up for type IN (planned_doi, planned_doc, planned_signoff, planned_live))),
   t2 as
   (
-	select * from t1
+	select *,
+	case when type=planned_doi then doi_status
+	when type=planned_doc then doc_status
+	when type=planned_signoff then signoff_status
+	when type=planned_live then live_status
+	else '-'
+	end as status
+	from t1
 	)
 	select * from t2
 	
