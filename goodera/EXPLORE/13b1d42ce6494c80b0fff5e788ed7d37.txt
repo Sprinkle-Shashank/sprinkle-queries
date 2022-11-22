@@ -1,41 +1,30 @@
-with sub8 as(
-  select s1.xprojectid, s1.fy_timerange, s1.keyword, 'Scope 3' as scope, s1.datatablebase, table3.commute_distance,
+with sub5 as(
+  select s1.xprojectid, s1.fy_timerange, s1.keyword, 'Scope 3' as scope, s1.datatablebase, table2.dispose_type, table2.dispose_2, x_axis
+
+from sus_9539 s1, UNPIVOT s1.datatablebase as table2 at x_axis
+where keyword = 'waste_type' and s1.datatablebase is not NULL),
+
+sub6 as(
+  select s5.xprojectid, s5.fy_timerange, s5.keyword, s5.scope, dispose_type_unwind, s5.dispose_2, s5.x_axis 
+from sub5 s5, s5.dispose_type dispose_type_unwind),
+
+sub7 as(
+  select s6.xprojectid, s6.fy_timerange, s6.keyword, s6.scope, 
+(s6.x_axis || '-' || t2.name) as dispose_type, s6.dispose_2,
   
 case
-  when IS_ARRAY(table3.fuel_type) = FALSE or GET_ARRAY_LENGTH(table3.fuel_type) = 0 then ARRAY(table3.fuel_type)
-  else table3.fuel_type
-end as fuel_type,
-  
-case
-  when IS_ARRAY(table3.mode) = FALSE or GET_ARRAY_LENGTH(table3.mode) = 0 then ARRAY(table3.mode)
-  else table3.mode
-end as mode
-
-from sus_9539 s1, UNPIVOT s1.datatablebase as table3
-where keyword = 'employee_commute' and s1.datatablebase is not NULL),
-
-sub9 as(
-  select s8.xprojectid, s8.fy_timerange, s8.keyword, s8.scope, mode_unwind, s8.commute_distance, fuel_type_unwind 
-from sub8 s8, s8.mode mode_unwind, s8.fuel_type fuel_type_unwind),
-
-sub10 as(
-  select s9.xprojectid, s9.fy_timerange, s9.keyword, s9.scope, 
-(t3.name || '_' || t4.name) as transport_type, s9.commute_distance,
-  
-case
-  when transport_type = 'Bus_Fuel' then 0.00010471
-  when transport_type = 'Train_Electricity' then 0.00004115
-  when transport_type = 'Train_Petrol' then 0.00004115
-  when transport_type = 'Motorbike_Petrol' then 0.000109
-  when transport_type = 'Car / Van_Diesel' then 0.00017
-  when transport_type = 'Car / Van_Petrol' then 0.000202
-  else 0 
+  when dispose_type = 'food-Landfill' then 0.000626959
+  when dispose_type = 'paper-Landfill' then 0.001064
+  when dispose_type = 'plastic-Landfill' then 0.0000089
+  when dispose_type = 'wood-Landfill' then 0.000828117
+  when dispose_type = 'paper-Recycle' then 0.000001576
+  when dispose_type = 'plastic-Recycle' then 0.00002134
+  else 0
 end as multiplication_factor,
   
-(s9.commute_distance * multiplication_factor) as col
+(s6.dispose_2 * multiplication_factor) as col
 
-from sub9 s9
-left join ds_mysql_prod_tagelement t3 on t3.id = s9.mode_unwind
-left join ds_mysql_prod_tagelement t4 on t4.id = s9.fuel_type_unwind)
+from sub6 s6
+left join ds_mysql_prod_tagelement t2 on t2.id = s6.dispose_type_unwind)
 
-select * from sub8
+select * from sub7
