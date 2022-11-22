@@ -72,7 +72,12 @@ left join ds_mysql_prod_tagelement t1 on t1.id = s3.fuel_third_unwind),
 -------
 
 sub5 as(
-  select s1.xprojectid, s1.fy_timerange, s1.keyword, 'Scope 3' as scope, s1.datatablebase, table2.dispose_type, table2.dispose_2, x_axis
+  select s1.xprojectid, s1.fy_timerange, s1.keyword, 'Scope 3' as scope, s1.datatablebase, table2.dispose_2, x_axis,
+  
+case
+  when IS_ARRAY(table2.dispose_type) = FALSE or GET_ARRAY_LENGTH(table2.dispose_type) = 0 then ARRAY(table2.dispose_type)
+  else table2.dispose_type
+end as dispose_type
 
 from sus_9539 s1, UNPIVOT s1.datatablebase as table2 at x_axis
 where keyword = 'waste_type' and s1.datatablebase is not NULL),
