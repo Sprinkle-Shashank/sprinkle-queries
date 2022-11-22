@@ -1,0 +1,44 @@
+with t1 as
+(select * from
+(
+  select projectid.name as projectid, fy_timerange, ba_1 as ba_1_update, ba_2 as ba_2_update, ba_3 as ba_3_update, ba_4 as ba_4_update, ba_1, ba_2, ba_3, ba_4
+ 
+from profile_55424 as p
+ 
+ left join ds_mysql_prod_project as projectid
+ on p.projectid = projectid.id
+   )
+ UNPIVOT (
+  allocated_amount for allocated IN (ba_1, ba_2, ba_3, ba_4))),
+
+ 
+ t2 as
+ (
+ select projectid, fy_timerange, allocated, ba_1, ba_2, ba_3, ba_4, sum(allocated_amount) as allocated_amount_sum
+   from t1
+ group by projectid, fy_timerange, ba_1_update, ba_2_update, ba_3_update, ba_4_update, allocated
+   ),
+   
+   t3 as
+   (
+	 select p.*, 
+	 
+	 case when allocated='ba_1' then 'Tool Development and Completion'
+  when allocated='ba_2' then 'Sign-Off'
+  when allocated='ba_3' then 'Live'
+  when allocated='ba_4' then 'AMC'
+  else '-'
+  end as status ,
+	 
+	 case when status='Tool Development and Completion' then '1'
+	 when status =  'Sign-Off' then '2'
+	 when status = 'Live' then '3'
+	 when status = 'AMC' then '4' 
+	 else '-' end as sort_update
+	 from t2 as p 
+	 order by sort_update ASC
+	 )
+	 
+   select projectid, fy_timerange, allocated, disbursed_amount_sum, status , sort_update from t3
+ 
+
