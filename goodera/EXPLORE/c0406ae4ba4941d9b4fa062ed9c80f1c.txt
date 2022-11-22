@@ -1,4 +1,5 @@
-select p1.xprojectid, p1.fy_timerange, p1.keyword, p1.datanumbase, 'Scope 3' as scope,
+with sub1 as(
+  select p1.xprojectid, p1.fy_timerange, p1.keyword, p1.datanumbase, 'Scope 3' as scope,
 
 case
 	when p2.parent = 10253 then 0.00041725
@@ -42,4 +43,32 @@ from sus_9539 p1
 
 left join ds_mysql_prod_project p2 on p2.id = p1.xprojectid
 
-where p1.keyword in ('electric_consumption_1', 'electric_consumption_2', 'electric_consumption_3', 'solar_generation') and p1.datanumbase is not null and p1.datanumbase != 0
+where p1.keyword in ('electric_consumption_1', 'electric_consumption_2', 'electric_consumption_3', 'solar_generation') and p1.datanumbase is not null and p1.datanumbase != 0)
+
+--------------
+
+sub2 as(
+  select s1.xprojectid, s1.fy_timerange, s1.keyword, 'Scope 3' as scope, s1.datatablebase, table1.fuel_third, table1.dist_third
+
+from sus_9539 s1, UNPIVOT s1.datatablebase as table1
+where keyword = 'third_party_fleet' and s1.datatablebase is not NULL),
+
+sub3 as(
+  select s2.xprojectid, s2.fy_timerange, s2.keyword, s2.scope, fuel_third_unwind, s2.dist_third 
+from sub2 s2, s2.fuel_third fuel_third_unwind),
+
+sub4 as(
+  select s3.xprojectid, s3.fy_timerange, s3.keyword, s3.scope, t1.name as refrigerant_type, s3.dist_third,
+ 
+case
+  	when t1.name = 'Petrol' then s3.dist_third * 0.000271
+  	when t1.name = 'Diesel' then s3.dist_third * 0.000218
+	else 0
+end as col
+
+from sub3 s3
+left join ds_mysql_prod_tagelement t1 on t1.id = s3.fuel_third_unwind)
+
+-------
+
+selet * from sub4
