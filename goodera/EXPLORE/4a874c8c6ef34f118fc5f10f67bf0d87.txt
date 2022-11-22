@@ -41,13 +41,35 @@ with t1 as
 	when type='planned_signoff' then signoff_status
 	when type='planned_live' then live_status
 	else '-'
-	end as status
+	end as status,
+	
+	case when type='planned_doi' then 'Initiation'
+	when type='planned_doc' then 'Completion'
+	when type='planned_signoff' then 'Sign-off'
+	when type='planned_live' then 'Live'
+	else '-'
+	end as title,
+	
+	case when type='planned_doi' then 'IHMS Tool Development and DEA Development'
+	when type='planned_doc' then 'IHMS Tool Development and DEA Development'
+	when type='planned_signoff' then 'User Acceptance Testing'
+	when type='planned_live' then 'GO Live of the Application'
+	else '-'
+	end as subtitle
 	from t1
 	),
 	t3 as
 	(
 	  select *, concat(substring(date_up,9,2),concat('-',concat(substring(date_up,6,2),concat('-',substring(date_up,1,4))))) as date_updated from t2
-	  )
-	select * from t3
+	  ),
+	  t4 as
+	  (
+		select *, 
+		case when status='Completed' then '1'
+		end as newstatus
+		from t3
+		)
+	select * from t4
+	WHERE newstatus<>''
 	
   
