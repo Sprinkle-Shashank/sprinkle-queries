@@ -1,13 +1,6 @@
 with t1 as
 (select * from
-(select projectid.name as projectid, fy_timerange, bd_1, bd_2, bd_3, bd_4,
- 
- case when allocated=bd_1 then "Tool Development and Completion"
-  when allocated=bd_2 then "Sign-Off"
-  when allocated=bd_3 then "Live"
-  when allocated=bd_4 then "AMC"
-  else '-'
-  end as status
+(select projectid.name as projectid, fy_timerange, bd_1, bd_2, bd_3, bd_4
  
 from profile_55424 as p
  
@@ -18,7 +11,14 @@ from profile_55424 as p
   disbursed_amount for allocated IN (bd_1, bd_2, bd_3, bd_4))),
  t2 as
  (
- select projectid, fy_timerange, allocated, status, sum(disbursed_amount) as disbursed_amount_sum from t1
+ select projectid, fy_timerange, allocated, status, sum(disbursed_amount) as disbursed_amount_sum,
+   case when allocated=bd_1 then "Tool Development and Completion"
+  when allocated=bd_2 then "Sign-Off"
+  when allocated=bd_3 then "Live"
+  when allocated=bd_4 then "AMC"
+  else '-'
+  end as status
+   from t1
  group by projectid, fy_timerange, allocated, status
    )
    select projectid, fy_timerange, allocated, status, disbursed_amount_sum from t2
