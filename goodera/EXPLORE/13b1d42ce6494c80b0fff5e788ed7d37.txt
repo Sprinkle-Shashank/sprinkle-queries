@@ -1,5 +1,15 @@
 with sub8 as(
-  select s1.xprojectid, s1.fy_timerange, s1.keyword, 'Scope 3' as scope, s1.datatablebase, table3.mode, table3.fuel_type, table3.commute_distance
+  select s1.xprojectid, s1.fy_timerange, s1.keyword, 'Scope 3' as scope, s1.datatablebase, table3.commute_distance,
+  
+case
+  when IS_ARRAY(table3.fuel_type) = FALSE or GET_ARRAY_LENGTH(table3.fuel_type) = 0 then ARRAY(table3.fuel_type)
+  else table3.fuel_type
+end as fuel_type,
+  
+case
+  when IS_ARRAY(table3.mode) = FALSE or GET_ARRAY_LENGTH(table3.mode) = 0 then ARRAY(table3.mode)
+  else table3.mode
+end as mode
 
 from sus_9539 s1, UNPIVOT s1.datatablebase as table3
 where keyword = 'employee_commute' and s1.datatablebase is not NULL),
