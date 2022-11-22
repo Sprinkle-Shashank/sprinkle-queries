@@ -2,29 +2,5 @@ with sub5 as(
  select s1.xprojectid, s1.fy_timerange, s1.keyword, 'Scope 3' as scope, s1.datatablebase, table4.class, table4.numb, table4.dist
 
 from sus_9539 s1, UNPIVOT s1.datatablebase as table4
-where keyword = 'sour_dest' and s1.datatablebase is not NULL),
-
-sub6 as(
-  select s5.xprojectid, s5.fy_timerange, s5.keyword, s5.scope, dispose_type_unwind, s5.dispose_2, s5.x_axis 
-from sub5 s5, s5.dispose_type dispose_type_unwind),
-
-sub7 as(
-  select s6.xprojectid, s6.fy_timerange, s6.keyword, s6.scope, 
-(s6.x_axis || '-' || t2.name) as dispose_type, s6.dispose_2,
-  
-case
-  when dispose_type = 'food-Landfill' then 0.000626959
-  when dispose_type = 'paper-Landfill' then 0.001064
-  when dispose_type = 'plastic-Landfill' then 0.0000089
-  when dispose_type = 'wood-Landfill' then 0.000828117
-  when dispose_type = 'paper-Recycle' then 0.000001576
-  when dispose_type = 'plastic-Recycle' then 0.00002134
-  else 0
-end as multiplication_factor,
-  
-(s6.dispose_2 * multiplication_factor) as col
-
-from sub6 s6
-left join ds_mysql_prod_tagelement t2 on t2.id = s6.dispose_type_unwind)
-
+where keyword = 'sour_dest' and s1.datatablebase is not NULL)
 select * from sub5
