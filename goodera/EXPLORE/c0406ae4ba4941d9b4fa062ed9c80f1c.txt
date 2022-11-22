@@ -67,8 +67,25 @@ case
 end as col
 
 from sub3 s3
-left join ds_mysql_prod_tagelement t1 on t1.id = s3.fuel_third_unwind)
+left join ds_mysql_prod_tagelement t1 on t1.id = s3.fuel_third_unwind),
 
 -------
 
-select * from sub4
+sub5 as(
+  select s1.xprojectid, s1.fy_timerange, s1.keyword, 'Scope 3' as scope, s1.datatablebase, table2.dispose_type, table2.dispose_2, x_axis
+
+from sus_9539 s1, UNPIVOT s1.datatablebase as table2 at x_axis
+where keyword = 'waste_type' and s1.datatablebase is not NULL),
+
+sub6 as(
+  select s5.xprojectid, s5.fy_timerange, s5.keyword, s5.scope, dispose_type_unwind, s5.dispose_2, s5.x_axis 
+from sub5 s5, s5.dispose_type dispose_type_unwind),
+
+sub7 as(
+  select s6.xprojectid, s6.fy_timerange, s6.keyword, s6.scope, t2.name as dispose_type, s6.dispose_2
+ 
+
+from sub6 s6
+left join ds_mysql_prod_tagelement t2 on t2.id = s6.dispose_type_unwind)
+
+select * from sub7
