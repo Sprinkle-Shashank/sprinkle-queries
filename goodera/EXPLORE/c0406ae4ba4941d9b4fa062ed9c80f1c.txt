@@ -135,10 +135,36 @@ left join ds_mysql_prod_tagelement t4 on t4.id = s9.fuel_type_unwind),
 --------
 
 sub11 as(
-  select xprojectid, fy_timerange, keyword, datanumbase, datanumbase * 0.000344 as col
+  select xprojectid, fy_timerange, keyword, datanumbase, datanumbase * 0.000344 as col, 'Scope 3' as scope
 from sus_9539
 where keyword in ('water_consumption_1', 'water_consumption_2', 'water_consumption_3')
 and datanumbase is not null and datanumbase != 0)
 
 -------
-select * from sub11
+
+sub12 as(
+  select s1.xprojectid, s1.fy_timerange, s1.keyword, 'Scope 3' as scope, s1.datatablebase, table4.class, table4.numb, table4.dist
+
+from sus_9539 s1, UNPIVOT s1.datatablebase as table4
+where keyword = 'sour_dest' and s1.datatablebase is not NULL),
+
+sub13 as(
+  select s12.xprojectid, s12.fy_timerange, s12.keyword, s12.scope, class_unwind, s12.numb, s12.dist
+from sub12 s12, s12.class class_unwind),
+
+sub14 as(
+  select s13.xprojectid, s13.fy_timerange, s13.keyword, s13.scope, 
+t5.name as class, s13.numb, s13.dist,
+  
+case
+  when class = 'Business' then (s13.numb + s13.dist) * 0.00017
+  when class = 'Economy' then (s13.numb + s13.dist) * 0.000081
+  else 0 
+end as col
+
+from sub13 s13
+left join ds_mysql_prod_tagelement t5 on t5.id = s13.class_uwind)
+
+----
+
+select * from sub14
