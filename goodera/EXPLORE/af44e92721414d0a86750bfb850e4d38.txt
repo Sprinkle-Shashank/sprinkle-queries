@@ -1,12 +1,32 @@
-with table1 as
-(
-  select p.projectid , p._id , p.projects , fy_timerange , sta.name as state_update , scho_type.name as school_type , schools_reach , students_reach , cost_per_child , books_distributed , bags_distributed , ready_reckoners , shoes , crayons , geometry_box , learning_aid , pwd_kits , case when photo is null then '-' else 'Download' end as photo_update , case when upload is null then '-' else upload end as upload_update from profile_51203 as p
-  
-  left join ds_mysql_prod_tagelement sta
-  on p.state = sta.id
-  
-  left join ds_mysql_prod_tagelement scho_type
-  on p.type_of_school = scho_type.id
-  )
-  
-  select * from table1
+with t1 as
+(select * from
+(select projectid.name as projectid, fy_timerange, bd_1, bd_2, bd_3, bd_4
+ 
+from profile_55424 as p
+ 
+ left join ds_mysql_prod_project as projectid
+ on p.projectid = projectid.id
+   )
+ UNPIVOT (
+  disbursed_amount for allocated IN (bd_1, bd_2, bd_3, bd_4))),
+ t2 as
+ (
+ select projectid, fy_timerange, allocated, bd_1, bd_2, bd_3, bd_4, sum(disbursed_amount) as disbursed_amount_sum
+   from t1
+ group by projectid, fy_timerange, bd_1, bd_2, bd_3, bd_4, allocated
+   ),
+   
+   t3 as
+   (
+	 select p.*, 
+	 
+	 case when allocated=bd_1 then "Tool Development and Completion"
+  when allocated=bd_2 then "Sign-Off"
+  when allocated=bd_3 then "Live"
+  when allocated=bd_4 then "AMC"
+  else '-'
+  end as status
+	 from t2 as p
+	 )
+   select projectid, fy_timerange, allocated, disbursed_amount_sum from t2
+ 
