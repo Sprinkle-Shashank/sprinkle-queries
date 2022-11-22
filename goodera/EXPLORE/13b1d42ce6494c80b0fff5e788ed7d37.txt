@@ -1,23 +1,7 @@
 with sub2 as(
-  select s1.xprojectid, s1.fy_timerange, s1.keyword, 'Scope 3' as scope, s1.datatablebase, table1.fuel_third, table1.dist_third
+  select s1.xprojectid, s1.fy_timerange, s1.keyword, 'Scope 3' as scope, s1.datatablebase, table3.mode, table3.fuel_type, table3.commute_distance
 
-from sus_9539 s1, UNPIVOT s1.datatablebase as table1
-where keyword = 'third_party_fleet' and s1.datatablebase is not NULL),
-
-sub3 as(
-  select s2.xprojectid, s2.fy_timerange, s2.keyword, s2.scope, fuel_third_unwind, s2.dist_third 
-from sub2 s2, s2.fuel_third fuel_third_unwind),
-
-sub4 as(
-  select s3.xprojectid, s3.fy_timerange, s3.keyword, s3.scope, t1.name as fuel_third, s3.dist_third,
- 
-case
-  	when t1.name = 'Petrol' then s3.dist_third * 0.000271
-  	when t1.name = 'Diesel' then s3.dist_third * 0.000218
-	else 0
-end as col
-
-from sub3 s3
-left join ds_mysql_prod_tagelement t1 on t1.id = s3.fuel_third_unwind)
+from sus_9539 s1, UNPIVOT s1.datatablebase as table3
+where keyword = 'employee_commute' and s1.datatablebase is not NULL)
 
 select * from sub2
