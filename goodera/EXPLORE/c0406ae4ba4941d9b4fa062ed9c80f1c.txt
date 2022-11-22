@@ -98,6 +98,26 @@ end as multiplication_factor,
 (s6.dispose_2 * multiplication_factor) as col
 
 from sub6 s6
-left join ds_mysql_prod_tagelement t2 on t2.id = s6.dispose_type_unwind)
+left join ds_mysql_prod_tagelement t2 on t2.id = s6.dispose_type_unwind),
 
-select * from sub7
+-------
+
+sub8 as(
+  select s1.xprojectid, s1.fy_timerange, s1.keyword, 'Scope 3' as scope, s1.datatablebase, table3.mode, table3.fuel_type, table3.commute_distance
+
+from sus_9539 s1, UNPIVOT s1.datatablebase as table3
+where keyword = 'employee_commute' and s1.datatablebase is not NULL),
+
+sub9 as(
+  select s8.xprojectid, s8.fy_timerange, s8.keyword, s8.scope, dispose_type_unwind, s8.commute_distance, fuel_type_unwind 
+from sub8 s8, s8.mode mode_unwind, s8.fuel_type fuel_type_unwind),
+
+sub10 as(
+  select s9.xprojectid, s9.fy_timerange, s9.keyword, s9.scope, 
+(t3.name || '-' || t4.name) as dispose_type, s9.commute_distance
+
+from sub9 s9
+left join ds_mysql_prod_tagelement t3 on t3.id = s9.mode_unwind
+left join ds_mysql_prod_tagelement t4 on t4.id = s9.fuel_type_unwind)
+
+select * from sub10
