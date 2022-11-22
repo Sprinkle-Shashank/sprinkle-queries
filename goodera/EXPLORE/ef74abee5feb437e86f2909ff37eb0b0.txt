@@ -1,141 +1,61 @@
-with sub1 as (select a.*, unwind_cycle from profile_64362 as a, a.cycle as unwind_cycle),
+with table1 as
+(select _id , projectId,country, vendor,unwind_cycle, product_category,factory, consultant_tag from profile_64362 as p ,p.cycle as unwind_cycle),
 
-t1 as (select p1._id, tag3.name as projectId, tag1.name as select_factory_msa,tag4.name as country, p2.vendor, tag5.name as consultant, tag2.name as cycle,
-	   
-	  
-	   case 
-	   when p1.resources = 1105585 then 1 
-	   when p1.resources = 1105584 then 2 
-	   when p1.resources = 1105583 then 3 
-	   when p1.resources = 1105582 then 4
-	   when p1.resources = 1105581 then 5
-	   end as  resources1,
-	   --cast(resources as int) as reources,
-	    case 
-	   when p1.policies = 1105585 then 1
-	   when p1.policies = 1105584 then 2 
-	   when p1.policies = 1105583 then 3 
-	   when p1.policies = 1105582 then 4
-	   when p1.policies = 1105581 then 5
-	   end as policies1,
-	   --cast(policies as int) as policies,
-	   case 
-	   when p1.risk = 1105585 then 1
-	   when p1.risk = 1105584 then 2 
-	   when p1.risk = 1105583 then 3 
-	   when p1.risk = 1105582 then 4
-	   when p1.risk = 1105581 then 5
-	   end as risk1 ,
-	   --cast(risk as int) as risk,
-	   case 
-	   when p1.hs_risk = 1105585 then 1
-	   when p1.hs_risk = 1105584 then 2 
-	   when p1.hs_risk = 1105583 then 3 
-	   when p1.hs_risk = 1105582 then 4
-	   when p1.hs_risk = 1105581 then 5
-	   end as hs_risk1, 
-	   --cast(hs_risk as int) as hs_risk,
-	   case 
-	   when p1.procedure = 1105585 then 1
-	   when p1.procedure = 1105584 then 2 
-	   when p1.procedure = 1105583 then 3 
-	   when p1.procedure = 1105582 then 4
-	   when p1.procedure = 1105581 then 5
-	   end as procedure1,
-	   case 
-	   when p1.grievance = 1105585 then 1
-	   when p1.grievance = 1105584 then 2 
-	   when p1.grievance = 1105583 then 3 
-	   when p1.grievance = 1105582 then 4
-	   when p1.grievance = 1105581 then 5
-	   end as grievance1,
-	   case 
-	   when p1.training = 1105585 then 1
-	   when p1.training = 1105584 then 2 
-	   when p1.training = 1105583 then 3 
-	   when p1.training = 1105582 then 4
-	   when p1.training = 1105581 then 5
-	   end as training1,
-	   case 
-	   when p1.monitoring = 1105585 then 1
-	   when p1.monitoring = 1105584 then 2 
-	   when p1.monitoring = 1105583 then 3 
-	   when p1.monitoring = 1105582 then 4
-	   when p1.monitoring = 1105581 then 5
-	   end as monitoring1,
-	   case 
-	   when p1.incident = 1105585 then 1
-	   when p1.incident = 1105584 then 2 
-	   when p1.incident = 1105583 then 3 
-	   when p1.incident = 1105582 then 4
-	   when p1.incident = 1105581 then 5
-	   end as incident1,
-	   case 
-	   when p1.communication = 1105585 then 1
-	   when p1.communication = 1105584 then 2 
-	   when p1.communication = 1105583 then 3 
-	   when p1.communication = 1105582 then 4
-	   when p1.communication = 1105581 then 5
-	   end as communication1,
-	   case 
-	   when p1.hs_training = 1105585 then 1
-	   when p1.hs_training = 1105584 then 2 
-	   when p1.hs_training = 1105583 then 3 
-	   when p1.hs_training = 1105582 then 4
-	   when p1.hs_training = 1105581 then 5
-	   end as hs_training1,
-	   case 
-	   when p1.act_adjust = 1105585 then 1
-	   when p1.act_adjust = 1105584 then 2 
-	   when p1.act_adjust = 1105583 then 3 
-	   when p1.act_adjust = 1105582 then 4
-	   when p1.act_adjust = 1105581 then 5
-	   end as act_adjust1,
-	   case 
-	   when p1.hs_act = 1105585 then 1
-	   when p1.hs_act = 1105584 then 2 
-	   when p1.hs_act = 1105583 then 3 
-	   when p1.hs_act = 1105582 then 4
-	   when p1.hs_act = 1105581 then 5
-	   end as hs_act1,
-	   
-	  least(resources1 ,policies1,hs_risk1,risk1) as plan, 
-	  LEAST(procedure1, communication1, grievance1,training1, hs_training1) as do1, 
-	  LEAST(incident1, monitoring1) as check1,
-	  LEAST(act_adjust1, hs_act1) as act
-	   
-	
-	   
-from profile_62477 p1
-left join sub1 p2
-on p1.projectId= p2.projectId
-left join ds_mysql_prod_tagelement tag1
-on p1.select_factory_msa = tag1.id
-left join ds_mysql_prod_tagelement tag2
+ table2 as
+(select _id, projectId,country, vendor,cycle,product_category,factory,consultant_tag from profile_64362
+  where _id not in (select _id from table1))
+  ,
+  
+table3 as
+ (
+	select * from table1
+  Union all
+  select * from table2
+ )
+ ,
+
+  
+table4 as  
+(
+ select _id,  projectId,country,vendor,unwind_cycle,factory, unwind_product_category,consultant_tag from table3 t3, t3.product_category  as unwind_product_category
+ ),
+
+table5 as
+(select _id, projectId,country,factory,vendor,unwind_cycle,  null as product_category,consultant_tag from table3 
+ where _id not in (select _id from table4)),
+ 
+table6 as
+(select * from table4
+union all
+select * from table5),
+
+t1 as (select p1._id as id2 , p1. _id,p1.projectId, p1.name, p1.timerange_timerange, p1.training_type, p1.year, p1.absenteeism_rate,tag4.name as country, p2.vendor, tag2.name as cycle, tag1.name as consultant, tag3.name as product_category,
+	   substring(p1.name,len(p1.name)-9,10) as month 
+
+from profile_61528 p1 
+	   left join table6 p2 
+	   on p1.projectId = p2.projectId
+	   left join ds_mysql_prod_tagelement tag2
 on p2.unwind_cycle = tag2.id
-left join ds_mysql_prod_project tag3
-on p1.projectId = tag3.id
 left join ds_mysql_prod_tagelement tag4
 on p2.country = tag4.id
-left join ds_mysql_prod_tagelement tag5
-on p2.consultant_tag = tag5.id),
-
-t2 as (select t.* ,
-least(plan,do1,check1,act) as overall 
-from t1 t
-where select_factory_msa = 'Baseline' ),
-
-t3 as (select projectId, country, vendor, consultant, cycle, sum(overall) as score,
-case
-	when score = 1 then 'Basic'
-	when score = 2 then 'Reactive'
-	when score = 3 then 'Compliant'
-	when score = 4 then 'Proactive'
-	when score = 5 then 'Resilient'
-	else NULL
-end as x_axis, 1 as count
-from t2
-	  group by projectId, country, vendor, consultant, cycle)
-
-select * from t3
-
+left join ds_mysql_prod_tagelement tag3
+on p2.unwind_product_category = tag3.id
+	  left join ds_mysql_prod_tagelement tag1
+on p2.consultant_tag = tag1.id
+	   
+where p1.training_type in (1733931, 1411056, 1733930)
+	   )
+	   ,t5 as
+	 (  select  _id,projectId, timerange_timerange, vendor, country, cycle,year, product_category, month, id2, consultant,absenteeism_rate
+	   --,
+	 --  sum(absenteeism_rate) as absenteeism_rate
+	   from t1 
+	   where absenteeism_rate is not null 
+	 --  group by id2, projectId, timerange_timerange, year, vendor, country, cycle, product_category, month, id2, consultant
+	 )
+	   
+	   select _id,timerange_timerange, vendor, country, cycle, product_category, month, id2, year,consultant,sum(absenteeism_rate) as absenteeism_rate
+	   from t5 as aa
+	   where month = 'may (2021)'
+	    group by id2, projectId, timerange_timerange, year, vendor, country, cycle, product_category, month, consultant,_id
