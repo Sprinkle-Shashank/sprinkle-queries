@@ -1,0 +1,28 @@
+with temp as ( select 'Webinar kkc' as c
+			   Union all
+			   select 'Farmer webinar' as c
+			   Union all
+			   select 'Calls IVR' as c
+			   Union all
+			   select 'Agent kcc' as c
+			   Union all
+			   select 'Farmer Media' as c
+			   Union all 
+			   select 'Avg PKF Rating' as c
+)
+
+select pro.name as projectid,fy_timerange,
+sum (case c when 'Webinar kkc' then p.webinars_kkc
+       when 'Farmer webinar' then p.farmer_webinar
+	   when 'Calls IVR' then p.calls_ivr
+	   when 'Agent kcc' then p.agent_kcc
+	   when 'Farmer Media' then p.farmer_media
+	   when 'Avg PKF Rating' then p.avg_pkf_rating end ) as val, temp.c as dim
+	 
+from profile_81302 p
+
+cross join temp
+ 
+  left join ds_mysql_prod_project as pro
+  on p.projectid = pro.id
+group by pro.name,fy_timerange,temp.c
