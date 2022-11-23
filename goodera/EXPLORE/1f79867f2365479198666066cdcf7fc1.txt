@@ -1,0 +1,64 @@
+with temp as ( select 'Ponds' as c
+			   Union all
+			   select 'Water Capacity' as c
+			   Union all 
+			   select 'Farmer Outreached' as c
+			   Union all
+			   select 'Agronomist' as c
+			   Union all
+			   select 'Visits by Agronomist' as c
+			   Union all
+			   select 'Training by Agronomist' as c
+			   Union all 
+			   select 'Hours spent by Agronomist' as c
+			   Union all 
+			   select 'Training to Agronomist' as c
+			   Union all
+			   select 'Agribusiness Center' as c
+			   Union all 
+			   select 'Farmers impacted by Agribusiness' as c
+			   Union all
+			   select 'Services by Agribusiness' as c
+			   Union all 
+			   select 'Acreage Enrolled' as c
+			   Union all
+			   select 'Productivity' as c
+			   Union all 
+			   select 'Trail/Demo Farms' as c
+			   Union all
+			   select 'Production volume impacted by water conservation potential' as c
+			  )
+
+select pro.name as projectid,fy_timerange,dist.name as district,stat.name as state,financial_year,
+sum (case c when 'Ponds'  then p.ponds  
+       when 'Water Capacity' then p.water_capacity
+	   when 'Farmer Outreached' then p.farmer_outreached
+	   when 'Agronomist' then p.agronomist
+	   when 'Visits by Agronomist' then p.visits_agronomist
+	   when 'Training by Agronomist' then p.trainings_by_agronomist
+	   when 'Hours spent by Agronomist' then p.hours_agronomist
+	   when 'Training to Agronomist' then p.training_to_agronomist
+	   when 'Agribusiness Center' then p.agribusiness_center
+	   when 'Farmers impacted by Agribusiness' then p.farmer_impacted_agribusiness
+	   when 'Services by Agribusiness' then p.services_by_agribusiness
+	   when 'Acreage Enrolled' then p.acreage_enrolled
+	   when 'Productivity' then p.productivity
+	   when 'Trail/Demo Farms' then p.trial_demo_farms
+	   when 'Production volume impacted by water conservation potential' then p.volume_production
+	   else null
+	   end) as val, temp.c as dim 
+	  
+from profile_81298 p
+
+cross join temp 
+
+left join ds_mysql_prod_tagelement as dist
+  on p.state_district = dist.id
+  
+left join ds_mysql_prod_tagelement as stat
+  on dist.parent = stat.id  
+  
+  left join ds_mysql_prod_project as pro
+  on p.projectid = pro.id
+
+group by pro.name, fy_timerange,dist.name,stat.name,temp.c , financial_year
