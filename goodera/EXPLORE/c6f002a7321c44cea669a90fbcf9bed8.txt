@@ -1,0 +1,27 @@
+with t1 as
+(
+  select projectId.name as projectid, community_name, start_date as fy_timerange, location_centre, num_aarogya_mitras
+  from profile_64357 as p
+  
+  left join ds_mysql_prod_project projectid
+  on p.projectid = projectid.id
+  ),
+  t2 as
+  (
+	select fy_timerange, projectId, community_name, sum(num_aarogya_mitras) as num_aarogya_mitras_sum,
+	(num_aarogya_mitras*2) as Target 
+	from t1
+  ),
+  t3 as 
+  (select * from
+  (
+	select projectid, fy_timerange, community_name, sum(Target) as Target_sum, num_aarogya_mitras_sum 
+	from t2
+	
+	group by community_name, fy_timerange, projectId
+	)
+   UNPIVOT
+ (Value FOR Dimension IN (Target, communities_reached, num_aarogya_mitras))
+   )
+   select * from t3
+	
