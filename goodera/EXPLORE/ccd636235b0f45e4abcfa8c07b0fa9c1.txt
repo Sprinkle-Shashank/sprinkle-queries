@@ -1,4 +1,25 @@
-with table1 as
+with tt1 as (select case
+when is_array(p1.cycle) = false or get_array_length(p1.cycle) = 0 then array(p1.cycle)
+else (p1.cycle)
+end as cycle1,p1.*
+from profile_64362 p1),
+
+sub1 as (select a.*, unwind_cycle from tt1 as a, a.cycle1 as unwind_cycle),
+
+tt2 as (select case
+when is_array(p1.product_category) = false or get_array_length(p1.product_category) = 0 then array(p1.product_category)
+else (p1.product_category)
+end as product_category1, p1.*
+from tt1 p1),
+
+sub2 as (select a.*, unwind_product_category from tt2 as a, a.product_category1 as unwind_product_category),
+
+table6 as ( select p1.unwind_cycle,p2.unwind_product_category,p1.country,p1.vendor,p1.consultant_tag,p1.projectId
+		  from sub1 p1
+		  left join sub2 p2 
+		  on p1.projectId= p2.projectId),
+
+/*with table1 as
 (select _id , projectId,country, vendor,unwind_cycle, product_category,factory, consultant_tag from profile_64362 as p ,p.cycle as unwind_cycle),
 
  table2 as
@@ -28,22 +49,24 @@ table6 as
 (select * from table4
 union all
 select * from table5),
+*/
 
 t1 as (select p1._id as id2 , p1. _id,p1.projectId, p1.name, p1.timerange_timerange, p1.training_type, tag5.name as year, p1.absenteeism_rate,tag4.name as country, p2.vendor, tag2.name as cycle, tag1.name as consultant, tag3.name as product_category,
 	   substring(p1.name,len(p1.name)-9,10) as month 
 
 from profile_61528 p1 
+	   
 	   left join table6 p2 
 	   on p1.projectId = p2.projectId
-	   left join ds_mysql_prod_tagelement tag2
+	   left join tagElement_7746 tag2
 on p2.unwind_cycle = tag2.id
-left join ds_mysql_prod_tagelement tag4
+left join tagElement_7746 tag4
 on p2.country = tag4.id
-left join ds_mysql_prod_tagelement tag3
+left join tagElement_7746 tag3
 on p2.unwind_product_category = tag3.id
-	  left join ds_mysql_prod_tagelement tag1
+	  left join tagElement_7746 tag1
 on p2.consultant_tag = tag1.id
-	   left join target_tagelement_name tag5
+	   left join tagElement_7746 tag5
 on p1.year = tag5.id
 	   
 where p1.training_type in (1733931, 1411056, 1733930)
