@@ -44,12 +44,12 @@ on p.status = sta.id*/
 ),
 Table2 as (
   
-  Select factory , vendor , country , facility_id , new_sub , recordcount , t1.name as quarter , t2.name as fy , absenteeism_rate , day_1_workers , last_day_workers , workers_exited , bc_meetings , method , labor_disputes , person_days_lost , production_efficiency ,
+  Select factory , vendor , country , facility_id , new_sub , recordcount , t1.name as quarter , t2.name as fy  , day_1_workers , last_day_workers , workers_exited , bc_meetings , method , labor_disputes , person_days_lost , production_efficiency ,
  coalesce(t3.name,'0') as status_update  ,
-  cast(p.date_enrollment as date) as date_enrollment_update , cast(p.date_completion as date) as date_completion_update ,
-  case when status_update='0' and date_enrollment is not null and date_completion is null then 'Ongoing'  when status_update='0' and date_enrollment is not null and date_completion is not null then 'completed' else status_update end as wcp_status
+  cast(p.date_enrollment as date) as date_enrollment_update , cast(p.date_completion as date) as date_completion_update , extract(year from date_enrollment_update) as wcp_start_year, case when status_update='0' and date_enrollment is not null and date_completion is null then 'Ongoing'  when status_update='0' and date_enrollment is not null and date_completion is not null then 'completed' else status_update end as wcp_status , date_enrollment ,  date_completion, (2*workers_exited)/(last_day_workers + day_1_workers) as workturnover , workturnover*100 / recordcount as workerturnoverratio , 
+absenteeism_rate/ recordcount as absenteeism_rate_final , production_efficiency/recordcount as production_efficiency_final ,   labor_disputes / recordcount as labour_disputes_finals , person_days_lost / recordcount as person_day_lost_final 
   
-  , date_enrollment ,  date_completion from table1 p
+  from table1 p
 
  LEFT join tagElement_1137 as t1
   on p.quarter =t1.id
