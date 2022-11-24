@@ -1,0 +1,20 @@
+with t1 as
+(select * from
+(
+  select _id, projectId.name as projectid, num_reach, num_people_screen, fy_timerange
+  from profile_64416 as p
+  
+  left join ds_mysql_prod_project projectid
+  on p.projectid = projectid.id
+  )
+ UNPIVOT
+ (Value FOR Dimension IN (screen, reach))
+  ),
+  t2 as
+  (
+	select fy_timerange, projectId, sum(num_reach) as reach, sum(num_people_screen) as screen from t1
+	
+	group by projectid, fy_timerange
+	)
+	select projectid, fy_timerange, Dimension, Value from t2
+	
