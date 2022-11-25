@@ -149,6 +149,29 @@ on  p1.select_factory_msa = tag13.id
 
  from t1), t3 as (
  select  _id,projectId,country,vendor,consultant,cycle,select_factory_msa,resources1,policies1,hs_risk1,risk1,procedure1,grievance1,training1,monitoring1,incident1,communication1,hs_training1,act_adjust1,hs_act1,least(resources1,policies1,hs_risk1,risk1)  as plan , least(procedure1,communication1,grievance1,training1,hs_training1) as do , least(incident1,monitoring1)   as check, least(act_adjust1,hs_act1)  as act   from t2)
- 
+ ,t4 as(
  select projectId, country, vendor, consultant, cycle, select_factory_msa , avg(t3.plan) as plan,avg(t3.do) as do,avg(t3.check) as check, avg(t3.act) as act from t3
  group by projectId, country, vendor, consultant, cycle, select_factory_msa
+ ),
+ 
+   item as 
+(
+select 'do' as c
+union all
+select 'check' as c
+union all
+select 'act' as c
+union all
+select '' as c
+)
+
+
+(select  projectId, country, vendor, consultant, cycle, select_factory_msa,
+ case c
+ when 'do' then t4.do
+ when 'check' then t4.check
+  when 'act' then t4.act
+  when 'plan' then t4.plan
+else null
+ end as score, item.c as dimensions
+ from t4 cross join item )
