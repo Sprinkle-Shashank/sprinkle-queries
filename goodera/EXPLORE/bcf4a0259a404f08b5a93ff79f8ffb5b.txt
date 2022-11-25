@@ -1,0 +1,20 @@
+with table1 as (select country,name,finperiod,fy_timerange,tot_consumption,tot_cons_plastic from (select xprojectid,cou.name as country,p.name,finperiod,fy_timerange,keyword, datanumbase
+--tot_cons_plastic/tot_consumption as tot_plastic_share
+				
+
+
+
+from sus_82955 p
+left join ds_mysql_prod_project pro on 
+p.xprojectid = pro.id
+
+left join ds_mysql_prod_project cou on 
+pro.parent= cou.id
+where keyword in('tot_consumption','tot_cons_plastic',) )
+PIVOT (
+   sum(datanumbase) FOR keyword IN ('tot_consumption','tot_cons_plastic')
+) 
+)
+
+select * from table1 
+unpivot (datanumbase for keyword in (tot_consumption,tot_cons_plastic))
