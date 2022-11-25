@@ -1,17 +1,14 @@
-Select f.name as fy_timerange, split_part(split_part(prod.name,'|',1),'.',1) as ProjectCode , split_part(prod.name,'|',2) as Region,len(file_upload),
-  case 
+with Base1 as(
+  Select f.name as fy_timerange, split_part(split_part(prod.name,'|',1),'.',1) as ProjectCode , split_part(prod.name,'|',2) as Region,
+   case 
   when file_upload like 'https://api.p3fy.com%'  then file_upload
   else 'No'
-  end as file_upload1
-from profile_60787
-left join  ds_mysql_prod_project prod  on
-prod.id=projectid
-left join ds_mysql_prod_tagelement f 
-on fy=f.id
-
-/*with Base1 as(
-  Select f.name as fy_timerange, split_part(split_part(prod.name,'|',1),'.',1) as ProjectCode , split_part(prod.name,'|',2) as Region,
-  file_upload
+  end as file_upload1,
+  
+  case 
+  when select_quarter='Quarter 1' and file_upload1 != 'No' then file_upload1
+  else 'N1'
+  end as q1
   
 from profile_60787
 left join  ds_mysql_prod_project prod  on
@@ -38,13 +35,9 @@ on k.project_code=p._id
 left join ds_mysql_prod_tagelement m on 
 k.project_manager=m.id),
 
-Base4 as(select p.fy_timerange,p.ProjectCode, k.Core_area,k.Project_Manager, file_upload as click_Here,'Click Here'as click
+Base4 as(select p.fy_timerange,p.ProjectCode, k.Core_area,k.Project_Manager, file_upload as click_Here,'Submitted'as click
 from Base1 p
 left join Base3 k 
 on p.ProjectCode=k.ProjectCode) 
 
-Select * from base4
-/*
-select * from Base4
-union all
-select * from Base2*/*/
+select * from Base1
