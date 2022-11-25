@@ -1,7 +1,6 @@
 WITH table1 as (
  
-  Select SUM(1) as count,p.projectid , p.sub_unit , quarter , fy , absenteeism_rate , day_1_workers ,
-  last_day_workers , workers_exited , bc_meetings ,method, labor_disputes , person_days_lost ,sum(1) as recordcount,production_efficiency,fac.name as factory , case when nvl2(SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), ven.name)='' then ven.name else nvl2(SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), ven.name) end as vendor , cou.name as country , p10.factory_id as facility_id , p12.vpid as vpid  , p13.name_subunit as new_sub , p13.status as status , p13.date_enrollment , p13.date_completion , p13.sub_unit as sub_unit_new
+  Select SUM(1) as count,p.projectid , p.sub_unit , quarter , fy ,fac.name as factory , case when nvl2(SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), ven.name)='' then ven.name else nvl2(SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), ven.name) end as vendor , cou.name as country , p10.factory_id as facility_id , p12.vpid as vpid  , p13.name_subunit as new_sub , p13.status as status , p13.date_enrollment , p13.date_completion , p13.sub_unit as sub_unit_new
   from profile_16862 p
   left join ds_mysql_prod_project fac
 on  p.projectid = fac.id
@@ -38,9 +37,8 @@ where cou.id != 13761
 /*LEFT JOIN tagelement_1137 sta
 on p.status = sta.id*/
   
-  GROUP BY p.projectid , p.sub_unit , quarter , fy , absenteeism_rate , day_1_workers ,
-  last_day_workers , workers_exited , bc_meetings , labor_disputes , person_days_lost,
-  fac.name , ven.name , cou.name , production_efficiency , facility_id  , vpid  , p13.name_subunit , method  , p13.date_enrollment , p13.status , p13.date_completion,
+  GROUP BY p.projectid , p.sub_unit , quarter , fy ,
+  fac.name , ven.name , cou.name ,  facility_id  , vpid  , p13.name_subunit , method  , p13.date_enrollment , p13.status , p13.date_completion,
   p13.sub_unit
 
   
@@ -49,9 +47,7 @@ Table2 as (
   
   Select factory , vendor , country , facility_id , new_sub , recordcount , t1.name as quarter , t2.name as fy  , day_1_workers , last_day_workers , workers_exited , bc_meetings , method , labor_disputes , person_days_lost , production_efficiency ,
  coalesce(t3.name,'0') as status_update  , t4.name as sub_unit_1 , CASE WHEN sub_unit_1 ='' or  sub_unit_1 is NULL then 'No' Else sub_unit_1 END AS multiple_bc_final,
-  cast(p.date_enrollment as date) as date_enrollment_update , cast(p.date_completion as date) as date_completion_update , extract(year from date_enrollment_update) as wcp_start_year, case when status_update='0' and date_enrollment is not null and date_completion is null then 'Ongoing'  when status_update='0' and date_enrollment is not null and date_completion is not null then 'completed' else status_update end as wcp_status , date_enrollment ,  date_completion, (2*workers_exited)/(last_day_workers + day_1_workers) as workturnover , workturnover*100 / recordcount as workerturnoverratio ,
- ROUND(workerturnoverratio,2) as workerturnoverratio_final,
-absenteeism_rate/ recordcount as absenteeism_rate_final , production_efficiency/recordcount as production_efficiency_final ,   labor_disputes / recordcount as labour_disputes_finals , person_days_lost / recordcount as person_day_lost_final 
+  cast(p.date_enrollment as date) as date_enrollment_update , cast(p.date_completion as date) as date_completion_update , extract(year from date_enrollment_update) as wcp_start_year, case when status_update='0' and date_enrollment is not null and date_completion is null then 'Ongoing'  when status_update='0' and date_enrollment is not null and date_completion is not null then 'completed' else status_update end as wcp_status , date_enrollment ,  date_completion
   
   from table1 p
 
