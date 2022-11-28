@@ -1,7 +1,12 @@
 with
+t0 as (
+  Select split_part(split_part(prod.name,'|',1),'.',1) as ProjectCode, f.name as fy_timerange, CONCAT(ProjectCode,fy_timerange) as CODE
+  from profile_60787
+), 
+
 t1 as (
   Select payment_amount,
-  case when renewal='430820' then t1.name
+  case when renewal='430820' then split_part(t1.name, ' ', 1)
   else t2.name
   end as prj_code
   
@@ -14,13 +19,14 @@ t1 as (
 ),
 
 t2 as(
-	Select  fy, name_project, State, ngo_partner, Project_Manager, intervention_type,start_date, end_date, curr_yr_budget
+	Select  fy, name_project, State, ngo_partner, Project_Manager, intervention_type,start_date, end_date, curr_yr_budget, name
 	from profile_27396 sq, sq.state State
  ),
 
 t3 as (
-  Select name_project,q.name as intervention_type, l.name as implementing_agency,t1.name state, m.name as Project_Manager, start_date, end_date, curr_yr_budget
+  Select f.name as fy_timerange, name_project,q.name as intervention_type, l.name as implementing_agency,t1.name state, m.name as Project_Manager, start_date, end_date, curr_yr_budget,cast(p.name as varchar) as ProjectCode, CONCAT(ProjectCode,fy_timerange) code
 from t2 p
+  
 left join profile_28235 q
 ON p.intervention_type=q._id
 left join profile_27395 l on
@@ -29,13 +35,19 @@ left join ds_mysql_prod_tagelement t1
 on p.State=t1.id
 left join ds_mysql_prod_tagelement m on
 p.project_manager=m.id
+left join ds_mysql_prod_tagelement f on
+p.fy=f.id
 
 union all
 
-Select name_project, int_type_calc2 intervention_type, ngo as implementing_agency, NULL state, m.name as project_manager, start_date, end_date, curr_yr_budget
+Select f.name as fy_timerange, name_project, int_type_calc2 intervention_type, ngo as implementing_agency, NULL state, m.name as project_manager, start_date, end_date, curr_yr_budget, cast(m.name as varchar) as ProjectCode, CONCAT(ProjectCode,fy_timerange) as CODE
 from profile_27420 p
+left join ds_mysql_prod_tagelement m on
+p.project_manager=m.id
+left join ds_mysql_prod_tagelement f on
+p.fy=f.id  
 left join ds_mysql_prod_tagelement m on
 p.project_manager=m.id
   )
   
-  Select * from t1
+  Select * from t0
