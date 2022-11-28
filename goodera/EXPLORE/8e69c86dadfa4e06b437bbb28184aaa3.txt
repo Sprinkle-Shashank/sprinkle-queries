@@ -1,65 +1,35 @@
-with temp as(
-  Select '3-10 years' as col
-  union all
-  Select '11-20 years' as col
-  union all
-  Select '21-30 years' as col
-  union all
-  Select '30+ years' as col
-),
+with main as (select p.subcat_output,n1.name as focus,r.name as fy_timerange,n.name as months, cast((split_part(split_part(prod.name,'|',1),'.',1)) as varchar) as ProjectCode,CONCAT(ProjectCode,fy_timerange) as code from profile_54963 p
+left join ds_mysql_prod_project prod on
+prod.id=p.projectid
+left join ds_mysql_prod_tagelement r on
+r.id=p.fy
+left join ds_mysql_prod_tagelement n on
+n.id=p.month
+			  
+left join ds_mysql_prod_tagelement n1 on
+n1.id=p.focus_area),
 
-base1 as(
-  Select p.registration_date,
-			  datediff(days,p.registration_date,current_date) as age_in_yrs,
-  temp.col as Dim, (age_in_yrs)/365 as age_in_yrs1,
-  
-count(case col
-	  when age_in_yrs1<3 then 'NA'
-	  when age_in_yrs1>=3 and age_in_yrs1<=10 then '3-10 years'
-	  when age_in_yrs1>=11 and age_in_yrs1<=20 then '11-20 years'
-	  when age_in_yrs1>=20 and age_in_yrs1<=30 then '21-30 years'
-	  when age_in_yrs1>30 then '30+ years' 
-	  else 'NA'									
- end)
-as Age_Category 
-  from  profile_27395 p
-  cross join temp
-group by 1,2,3),
 
-base2 as(
-  Select p.registration_date,
-  datediff(days,p.registration_date,current_date) as age_in_yrs, temp.col as Dim,
-  (age_in_yrs)/365 as age_in_yrs1,
-count(case col
-	  when age_in_yrs1<3 then 'NA'
-	  when age_in_yrs1>=3 and age_in_yrs1<=10 then '3-10 years'
-	  when age_in_yrs1>=11 and age_in_yrs1<=20 then '11-20 years'
-	  when age_in_yrs1>=20 and age_in_yrs1<=30 then '21-30 years'
-	  when age_in_yrs1>30 then '30+ years' 
-	  else 'NA'								
- end)
-as Age_Category 
-from  profile_80183 p
-  cross join temp
-group by 1,2,3),
-
-base6 as(
-select Age_category,age_in_yrs
-from Base1 
-where Age_category<>'NA' 
-group by 1,2
+lookup as (select cast(q.name as varchar) as ProjectCode,f.name as fy_timerange,m.name as Project_Manager,CONCAT(ProjectCode,fy_timerange) as code
+from profile_27420 d
+left join ds_mysql_prod_tagelement f on
+d.fy=f.id
+left join ds_mysql_prod_tagelement m on
+d.project_manager=m.id
+left join profile_27396 q on
+d.project_code=q._id
+		   
 union all
-select Age_category,age_in_yrs
-from Base2
-where Age_category<>'NA' 
-group by 1,2)
+		   
+select cast(c.name as varchar)as ProjectCode,f.name as fy_timerange,m.name as Project_Manager,CONCAT(ProjectCode,fy_timerange) as code 
+from profile_27396 c	
+left join ds_mysql_prod_tagelement f on
+c.fy=f.id
+left join ds_mysql_prod_tagelement m on
+c.project_manager=m.id),
 
-
-select Age_category,Dim,
-case 
-when Age_category='3-10 years' then 1
-when Age_category='11-20 years' then 2
-when Age_category='21-30 years' then 3
-when Age_category='30+ years' then 4 
-end as sort
-from base6 
+main2 as (
+select b.fy_timerange as fy,b.months,b.code,q.Project_Manager as level1,sum(b.subcat_output) as output,b.focus from main b
+left join lookup q on
+q.code = b.code
+group by b.fy_timerange,b.months,b.code,q.Project_Manager,b.focus),
