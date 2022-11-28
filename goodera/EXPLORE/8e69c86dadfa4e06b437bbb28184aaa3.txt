@@ -1,6 +1,5 @@
 with Base1 as(
-  Select f.name as fy_timerange, split_part(split_part(prod.name,'|',1),'.',1) as ProjectCode , split_part(prod.name,'|',2) as Region, CONCAT(fy_timerange, ProjectCode) as CODE,
-  
+  Select f.name as fy_timerange, split_part(split_part(prod.name,'|',1),'.',1) as ProjectCode , split_part(prod.name,'|',2) as Region, CONCAT(fy_timerange , ProjectCode) as CODE,
    case 
   when file_upload like 'https://api.p3fy.com%'  then file_upload
   else 'No'
@@ -31,7 +30,7 @@ left join ds_mysql_prod_tagelement f
 on fy=f.id),
 
 b2 as(
-  Select cast(q.name as varchar) as ProjectCode,m.name as Project_Manager,CONCAT(ProjectCode,fy_timerange) as code
+  Select cast(q.name as varchar) as ProjectCode,f.name as fy_timerange,m.name as Project_Manager,CONCAT(ProjectCode,fy_timerange) as code
 from profile_27420 d
 left join ds_mysql_prod_tagelement f on
 d.fy=f.id
@@ -50,4 +49,7 @@ left join ds_mysql_prod_tagelement m on
 c.project_manager=m.id
 )
 
-Select * from base1
+Select *, Project_Manager
+from base1 b1
+left join b2
+on b1.CODE=b2.code
