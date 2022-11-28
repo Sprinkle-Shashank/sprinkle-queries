@@ -1,6 +1,6 @@
 with t1 as
 (
-  select projectid.name as projectid, fy_timerange, CAST(per_low_diabetes as FLOAT) as per
+  select projectid.name as projectid, fy_timerange, CAST(per_low_diabetes as FLOAT) as low_diabetes
   from profile_64416 as p
   
   left join ds_mysql_prod_project projectid
@@ -8,7 +8,7 @@ with t1 as
   ),
   t2 as
 	(
-	select projectid, fy_timerange, avg(per) as Controlled_Sugar from t1
+	select projectid, fy_timerange, avg(low_diabetes) as Controlled_Sugar from t1
 	  group by projectid, fy_timerange
 	  ),
 	t3 as
@@ -18,7 +18,7 @@ with t1 as
 	UNPIVOT
 	(Value FOR Dimension IN(Controlled_Sugar))
 	)
-	select projectid, fy_timerange, Dimension, CAST(Value as FLOAT) as val from t3
+	select projectid, fy_timerange, Dimension, Value from t3
 	
 
   
