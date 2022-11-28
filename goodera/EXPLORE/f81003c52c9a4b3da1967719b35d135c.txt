@@ -1,5 +1,5 @@
 with Base1 as(
-  Select f.name as fy_timerange, split_part(split_part(prod.name,'|',1),'.',1) as ProjectCode , split_part(prod.name,'|',2) as Region,
+  Select f.name as fy_timerange, split_part(split_part(prod.name,'|',1),'.',1) as ProjectCode , split_part(prod.name,'|',2) as Region, CONCAT(ProjectCode,fy_timerange) as CODE,
    case 
   when file_upload like 'https://api.p3fy.com%'  then file_upload
   else 'No'
@@ -29,38 +29,27 @@ prod.id=projectid
 left join ds_mysql_prod_tagelement f 
 on fy=f.id),
 
-Base2 as(
-  Selectb ProjectCode,f.name as Core_area,m.name as Project_Manager 
-  from Base1 
-  left join profile_27396 on
-ProjectCode=name
-left join ds_mysql_prod_tagelement f on 
-focus_area=f.id
-left join ds_mysql_prod_tagelement m on 
-project_manager=m.id
-  union all
-  Select fy_timerange ,p.name as ProjectCode, k.focus_area as Core_area,m.name as Project_Manager
-		 from profile_27420 k
-left join profile_27396 p
-on k.project_code=p._id
-left join ds_mysql_prod_tagelement m on 
-k.project_manager=m.id
-),
+b2 as(
+  Select cast(q.name as varchar) as ProjectCode,f.name as fy_timerange,m.name as Project_Manager,CONCAT(ProjectCode,fy_timerange) as CODE
+from profile_27420 d
+left join ds_mysql_prod_tagelement f on
+d.fy=f.id
+left join ds_mysql_prod_tagelement m on
+d.project_manager=m.id
+left join profile_27396 q on
+d.project_code=q._id
+		   
+union all
+		   
+select cast(c.name as varchar)as ProjectCode,f.name as fy_timerange,m.name as Project_Manager,CONCAT(ProjectCode,fy_timerange) as CODE 
+from profile_27396 c	
+left join ds_mysql_prod_tagelement f on
+c.fy=f.id
+left join ds_mysql_prod_tagelement m on
+c.project_manager=m.id
+)
 
-Base3 as(
-  Select k.focus_area as Core_area,m.name as Project_Manager,p.name as ProjectCode 
-		 from profile_27420 k
-left join profile_27396 p
-on k.project_code=p._id
-left join ds_mysql_prod_tagelement m on 
-k.project_manager=m.id
-
-
-),
-
-Base4 as(select p.fy_timerange,p.ProjectCode, k.Core_area,k.Project_Manager, file_upload1 as click_Here,'Submitted'as click
-from Base1 p
-left join Base3 k 
-on p.ProjectCode=k.ProjectCode) 
-
-select * from Base1
+Select *, Project_Manager
+from base1 b1
+left join b2
+on b1.CODE=b2.code
