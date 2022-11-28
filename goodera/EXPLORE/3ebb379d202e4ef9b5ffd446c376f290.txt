@@ -2,6 +2,10 @@ with
 t0 as (
   Select split_part(split_part(prod.name,'|',1),'.',1) as ProjectCode, f.name as fy_timerange, CONCAT(ProjectCode,fy_timerange) as CODE
   from profile_60787
+  left join  ds_mysql_prod_project prod  on
+prod.id=projectid
+left join ds_mysql_prod_tagelement f 
+on fy=f.id
 ), 
 
 t1 as (
@@ -40,14 +44,14 @@ p.fy=f.id
 
 union all
 
-Select f.name as fy_timerange, name_project, int_type_calc2 intervention_type, ngo as implementing_agency, NULL state, m.name as project_manager, start_date, end_date, curr_yr_budget, cast(m.name as varchar) as ProjectCode, CONCAT(ProjectCode,fy_timerange) as CODE
+Select f.name as fy_timerange, name_project, int_type_calc2 intervention_type, ngo as implementing_agency, NULL state, m.name as project_manager, start_date, end_date, curr_yr_budget, cast(m1.name as varchar) as ProjectCode, CONCAT(ProjectCode,fy_timerange) as CODE
 from profile_27420 p
 left join ds_mysql_prod_tagelement m on
 p.project_manager=m.id
 left join ds_mysql_prod_tagelement f on
 p.fy=f.id  
-left join ds_mysql_prod_tagelement m on
-p.project_manager=m.id
+left join ds_mysql_prod_tagelement m1 on
+p.project_manager=m1.id
   )
   
   Select * from t0
