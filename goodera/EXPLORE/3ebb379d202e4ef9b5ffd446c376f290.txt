@@ -1,5 +1,12 @@
-Select name_project,q.name as intervention_type, l.name as implementing_agency,t1.name state, m.name as Project_Manager, start_date, end_date, curr_yr_budget
-from profile_27396 p
+with
+t2 as(
+	Select  fy, name_project, curr_yr_budget, State, ngo_partner, Project_Manager, intervention_type
+	from profile_27396 sq, sq.state State
+ ),
+
+t3 as (
+  Select name_project,q.name as intervention_type, l.name as implementing_agency,t1.name state, m.name as Project_Manager, start_date, end_date, curr_yr_budget
+from t2 p
 left join profile_28235 q
 ON p.intervention_type=q._id
 left join profile_27395 l on
@@ -9,3 +16,12 @@ on p.state=t1.id
 left join ds_mysql_prod_tagelement m on
 p.project_manager=m.id
 
+union all
+
+Select name_project, int_type_calc2 intervention_type, ngo as implementing_agency, NULL state, m.name as project_manager, start_date, end_date, curr_yr_budget
+from profile_27420
+left join ds_mysql_prod_tagelement m on
+p.project_manager=m.id
+  )
+  
+  Select * from t3
