@@ -1,8 +1,11 @@
-with x as (select datatablebase,fy_timerange,name From sus_82955 as p where keyword='epr_compliance_target')
-select fy_timerange,name, ven.name as vendor, coun.state,coun.mlp,coun.flexible,coun.rigid From x as p, unpivot p.datatablebase as coun at abc
+with x as (select datatablebase,fy_timerange,name From sus_82955 as p where keyword='epr_compliance_target'),
+table1 as (
+select fy_timerange,name, coun.vendor, coun.state,coun.mlp,coun.flexible,coun.rigid From x as p, unpivot p.datatablebase as coun at abc)
 
-left join ds_mysql_prod_tagelement ven on 
-coun.vendor= ven.id
+select fy_timerange,name,vendor,state from table1 t1
+unpivot(datanumbase for keyword in (mlp,flexible,rigid))
+
+
 
 /*select xprojectid,cou.name as country,p.name,finperiod ,fy_timerange,keyword, datanumbase
 --tot_cons_plastic/tot_consumption as tot_plastic_share
