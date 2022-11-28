@@ -1,3 +1,26 @@
-with temp1 as
-( select projectId,name as projectId, fy_timerange, title, descr, date, m.photos as photos2 from profile_78885 as m )
-select * from temp1
+with table1 as
+( select projectId,name as projectId, fy_timerange, title, descr, date, m.photos as photos2 from profile_78885 as m
+
+left join ds_mysql_prod_project as projectId
+on m.projectId = projectId.id),
+table2 as 
+  (
+	select p.*, d1 from table1 as p , p.photos2 as d1
+   ),
+	
+	table3 as
+	(
+	select p.*, d1_up.name as photos2_update from table2 as p
+	  
+	  left join ds_mysql_prod_tagelement d1_up
+	  on p.d1 = d1_up.id 
+	  
+	  
+	),
+	
+	table4 as
+	( select p.projectid , p._id , photos2_update , fy_timerange , title, descr, date from table3 as p
+	 )
+	 
+	 select * from table4
+select * from table4
