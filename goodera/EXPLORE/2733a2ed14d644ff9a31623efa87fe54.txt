@@ -4,16 +4,36 @@ with temp as(
   Select 'schools' as col
   union all
   Select 'youth' as col
+    union all
+  Select 'students' as col
+  union all
+  Select 'teachers' as col
+    union all
+  Select 'fellows' as col
+  union all
+  Select 'farmers' as col
+    union all
+  Select 'women' as col
+  union all
+  Select 'others' as col
   )
-Select new_villages, new_schools, new_youth, temp.col as dim,t.name select_quarter,
+Select t1.name fy, new_villages, new_schools, new_youth, temp.col as dim,t.name select_quarter,
 sum(case col
   when 'villages' then sq.new_villages
   when 'schools' then sq.new_schools
   when 'youth' then sq.new_youth
+  when 'students' then sq.new_students
+  when 'teachers' then sq.new_teachers
+  when 'fellows' then sq.new_fellows
+  when 'farmers' then sq.new_farmers
+  when 'women' then sq.new_women
+  when 'others' then sq.new_other
 	else NULL
 	end) as Values
 from profile_60787 sq
 cross join temp
 left join ds_mysql_prod_tagelement t
 on t.id=sq.select_quarter
+left join ds_mysql_prod_tagelement t1
+ON t1.id=sq.fy
 group by new_villages, new_schools, temp.col, new_youth, t.name
