@@ -10,7 +10,7 @@ temp as (
   select 'rigid' as C
    )
    
- select finperiod,fy_timerange,name,vendor,state,
+ select finperiod,fy_timerange,name,ven.name as vendor,stat.name as state,
  
  Sum(Case C
 	When 'mlp' then t1.mlp
@@ -19,7 +19,13 @@ temp as (
 	else null end) as val, temp.c as dim from table1 t1
 	
 	cross join temp
-group by finperiod,fy_timerange,name,vendor,state,temp.c	
+left join ds_mysql_prod_tagelement ven on 
+t1.vendor = ven.id
+
+left join ds_mysql_prod_tagelement stat on 
+t1.state = stat.id
+
+group by finperiod,fy_timerange,name,ven.name,stat.name,temp.c	
 
 
 
