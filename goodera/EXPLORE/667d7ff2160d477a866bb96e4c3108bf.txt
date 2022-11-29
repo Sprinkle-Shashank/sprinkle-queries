@@ -1,35 +1,23 @@
-SELECT SA.fy_timerange, T2.name AS subject,
---T1.name AS type,
-T3.name AS grade,
---COUNT(SE.unique_id) AS students,
-SE.name as student_enrolled,
-AVG(((SA.marks_obtained * 100) / (SA.marks_max))) AS score,
+drop table if exists GapInc_WCP_Vendor_New_Filter;
+ create table GapInc_WCP_Vendor_New_Filter as
 
-	CASE
-		WHEN score > 60
-		THEN true
-		ELSE false
-	END AS above_60 ,
-	1 as count
+with table1 as 
+(
+select p.projectid as project , nvl2(SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), ven.name) as vendor_name, case when vendor_name='' then ven.name else vendor_name end as vendor, fac.name as factory,cou.name as country,p.status , case when p.name_subunit is null or p.name_subunit=' ' then 'N/A' else p.name_subunit end  as unit from profile_16619 p
 
-FROM profile_79041 AS SA
+left join ds_mysql_prod_project fac
+on p.projectId = fac.id
 
-LEFT JOIN ds_mysql_prod_tagelement AS T1
-ON T1.id = SA.type
+left join ds_mysql_prod_project ven
+on fac.parent = ven.id
+  
+left join ds_mysql_prod_project cou
+on ven.parent = cou.id
 
-LEFT JOIN profile_79039 AS SE
-ON SE._id = SA.student
+where (cou.name <> 'Test Country' and cou.name <> 'GAP Inc.') and  (p.status = 1400365 or p.status is null)
+and project like '%%'  
+)
 
-LEFT JOIN ds_mysql_prod_tagelement AS T2
-ON T2.id = SA.subject
-
-LEFT JOIN ds_mysql_prod_tagelement AS T3
-ON T3.id = SE.grade
-
---WHERE 
---T1.name = 'Term 3' AND 
-
---above_60 = true
-
-GROUP BY SA.fy_timerange, T2.name, SE.unique_id, T3.name , SE.name
-order by se.name desc
+select distinct project, vendor , factory,country , unit from table1 p 
+group by project, vendor, factory, country , unit
+order by vendor
