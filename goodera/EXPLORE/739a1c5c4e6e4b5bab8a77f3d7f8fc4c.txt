@@ -44,20 +44,20 @@ temp1 as (
    )
    
  select 
- case C when 'mlp_new' then concat(finperiod,concat(ven.name,concat(stat.name,'mlp')))
-        when 'flexible_recycled' then concat(finperiod,concat(ven.name,concat(stat.name,'flexible')))
-		when 'rigid_recycled' then concat(finperiod,concat(ven.name,concat(stat.name,'rigid')))
+ case C when 'mlp_new' then concat(t2.finperiod,concat(ven.name,concat(stat.name,'mlp')))
+        when 'flexible_recycled' then concat(t2.finperiod,concat(ven.name,concat(stat.name,'flexible')))
+		when 'rigid_recycled' then concat(t2.finperiod,concat(ven.name,concat(stat.name,'rigid')))
 	end as unique	
- ,finperiod,fy_timerange,t2.name,ven.name as vendor,stat.name as state,
+ ,t2.finperiod,t2.fy_timerange,t2.name,ven.name as vendor,stat.name as state,
  
  Sum(Case C
 	When 'mlp_new' then t2.mlp_new
 	when 'flexible_recycled' then t2.flexible_recycled
 	when 'rigid_recycled' then t2.rigid_recycled 
-	else null end) as val, temp1.c as dim ,
+	else null end) as actual, temp1.c as dim ,
  case c when 'mlp_new' then 'MLP'
         when 'flexible_recycled' then 'Flexible'
-		else 'Rigid' end as type 
+		else 'Rigid' end as type ,targ.val as target
 	from table2 t2
 	
 	cross join temp1
@@ -67,7 +67,9 @@ t2.vendor_name = ven.id
 left join ds_mysql_prod_tagelement stat on 
 t2.state_name = stat.id
 
-group by finperiod,fy_timerange,t2.name,ven.name,stat.name,temp1.c  
+left join target targ
+on t2.unique = targ.unique
+group by finperiod,fy_timerange,t2.name,ven.name,stat.name,temp1.c,targ.val  
 
 --select * from target
 
