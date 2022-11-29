@@ -68,9 +68,15 @@ left join ds_mysql_prod_tagelement stat on
 t2.state_name = stat.id
 
 
-group by finperiod,fy_timerange,t2.name,ven.name,stat.name,temp1.c)
+group by finperiod,fy_timerange,t2.name,ven.name,stat.name,temp1.c),
 
-select act.finperiod,act.fy_timerange,act.name,act.vendor,act.state,actual,type,targ.val as target, round(cast((actual*100/target) as float),2 as compliance,concat(compliance,'%') as new_comp from actual act
+subx as(
+  select act.finperiod,act.fy_timerange,act.name,act.vendor,act.state,actual,type,targ.val as target, round(cast((actual*100/target) as float),2) as compliance
+
+from actual act
 
 left join target targ
-on act.unique = targ.unique
+on act.unique = targ.unique)
+
+select finperiod, fy_timerange, name, vendor, state, actual, type, target, compliance
+from subx
