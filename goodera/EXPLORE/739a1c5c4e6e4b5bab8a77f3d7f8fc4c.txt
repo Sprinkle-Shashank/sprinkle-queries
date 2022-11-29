@@ -1,10 +1,28 @@
 with x as (select datatablebase,fy_timerange,name From sus_82955 as p where keyword='epr_compliance_target'),
 table1 as (
-select fy_timerange,name, coun.vendor, coun.state,coun.mlp,coun.flexible,coun.rigid From x as p, unpivot p.datatablebase as coun )
+select fy_timerange,name, coun.vendor, coun.state,coun.mlp,coun.flexible,coun.rigid From x as p, unpivot p.datatablebase as coun ),
+
+temp as (
+  select 'mlp' as C
+  Union all
+  select 'flexible' as C
+  Union all 
+  select 'rigid' as C
+   )
+   
+ select fy_timerange,name,vendor,state,
+ 
+ Sum(Case C
+	When 'mlp' then t1.mlp
+	when 'flexible' then p.flexible
+	when 'rigid' then p.rigid 
+	else null) end as val, temp.c as dim from table1 t1
+	
+	cross join temp
+group by fy_timerange,name,vendor,state,temp.c	
 
 
-select * from table1 t1
-unpivot(data1 for keyword in (mlp,flexible,rigid))
+
 
 
 
