@@ -1,5 +1,34 @@
-select id, projectId.name as projectid,ben_telehealth,fy_timerange
-  from profile_64416 as p
+with t1 as
+(
+  select projectId.name as projectid, community_name, CAST(start_date as TIMESTAMP) as fy_timerange, location_centre, num_aarogya_mitras
+  from profile_64357 as p
   
   left join ds_mysql_prod_project projectid
   on p.projectid = projectid.id
+  ),
+  t2 as
+  (
+	select fy_timerange, projectId, community_name, num_aarogya_mitras, sum(num_aarogya_mitras) as num_aarogya_mitras_sum, (num_aarogya_mitras*2) as Target 
+	from t1
+	group by projectid, fy_timerange, community_name, num_aarogya_mitras
+  ),
+  t3 as 
+  (select * from
+  (
+	select projectid, fy_timerange, community_name,Target, count(*) as communities_reached,
+	sum(Target) as Target_sum, num_aarogya_mitras_sum , num_aarogya_mitras
+	from t2
+	
+	group by projectid, fy_timerange, Target, community_name, num_aarogya_mitras_sum, num_aarogya_mitras
+	
+	)
+   UNPIVOT
+ (Value_up FOR Dimension IN (Target, communities_reached, num_aarogya_mitras_sum))
+   )
+   select projectid, community_name, fy_timerange, Dimension, Value_up, target_sum from t3
+
+/*select id, projectId.name as projectid,ben_telehealth,fy_timerange
+  from profile_64416 as p
+  
+  left join ds_mysql_prod_project projectid
+  on p.projectid = projectid.id*/
