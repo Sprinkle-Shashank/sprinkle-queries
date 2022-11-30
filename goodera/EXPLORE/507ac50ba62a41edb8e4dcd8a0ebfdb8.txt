@@ -1,0 +1,25 @@
+Select p.projectid , (p.workers_exited/((p.last_day_workers + p.day_1_workers)/2 )) as numerator ,fy1.name as year_new , qa.name as quarter ,
+			   s.name as status ,cou.name as country , p2.date_enrollment ,
+nvl2(SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)),ven.name) as vendor_name, case when vendor_name='' then ven.name else vendor_name end as vendor, fac.name as factory
+			   
+from profile_16862 p
+LEFT JOIN tagelement_1137 AS fy1 ON
+p.fy = fy1.id
+			   
+
+ LEFT JOIN tagelement_1137 AS qa ON
+p.quarter = qa.id
+			   
+ LEFT JOIN tagelement_1137 AS S ON
+p2.status = s.id
+			   
+left join project_1137 fac
+on p.projectid = fac.id
+left join project_1137 ven
+on fac.parent = ven.id
+left join project_1137 cou
+on ven.parent = cou.id
+where p1.projectId is not null and  p.projectId like '%%' and cou.name <> 'Test Country' and (p1.status = 1400365 or p1.status is null)  and country <> 'GAP Inc.' 
+
+			   
+			   GROUP BY p.projectid ,fy1.name, qa.name,s.name,cou.name,p2.date_enrollment,fac.name , ven.name
