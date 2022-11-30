@@ -13,11 +13,54 @@ on ven.parent = cou.id
 
 where (cou.name <> 'Test Country' and cou.name <> 'GAP Inc.') 
 and project like '%%'  
-)
+),
+Table2 as (
+ select p.projectid as project , nvl2(SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), ven.name) as vendor_name, case when vendor_name='' then ven.name else vendor_name end as vendor, fac.name as factory,cou.name as country,p.status , case when p.name_subunit is null or p.name_subunit=' ' then 'N/A' else p.name_subunit end  as unit from profile_16863 p
+
+left join ds_mysql_prod_project fac
+on p.projectId = fac.id
+
+left join ds_mysql_prod_project ven
+on fac.parent = ven.id
   
+left join ds_mysql_prod_project cou
+on ven.parent = cou.id
+
+where (cou.name <> 'Test Country' and cou.name <> 'GAP Inc.') 
+and project like '%%' 
+  ),
+  ,
+Table3 as (
+ select p.projectid as project , nvl2(SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), ven.name) as vendor_name, case when vendor_name='' then ven.name else vendor_name end as vendor, fac.name as factory,cou.name as country,p.status , case when p.name_subunit is null or p.name_subunit=' ' then 'N/A' else p.name_subunit end  as unit from profile_18224 p
+
+left join ds_mysql_prod_project fac
+on p.projectId = fac.id
+
+left join ds_mysql_prod_project ven
+on fac.parent = ven.id
+  
+left join ds_mysql_prod_project cou
+on ven.parent = cou.id
+
+where (cou.name <> 'Test Country' and cou.name <> 'GAP Inc.') 
+and project like '%%' 
+  ),
+  table4 as (
+select distinct project, vendor , factory,country , unit from table1  
+group by project, vendor, factory, country , unit
+order by vendor
+
+UNION ALL 
+select distinct project, vendor , factory,country , unit from table2  
+group by project, vendor, factory, country , unit
+order by vendor
+
+UNION ALL 
+select distinct project, vendor , factory,country , unit from table3  
+group by project, vendor, factory, country , unit
+order by vendor)
+
+Select * from table4
   
   
 
-select distinct project, vendor , factory,country , unit from table1 p 
-group by project, vendor, factory, country , unit
-order by vendor
