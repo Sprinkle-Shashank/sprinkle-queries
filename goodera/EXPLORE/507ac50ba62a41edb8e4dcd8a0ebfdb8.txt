@@ -1,6 +1,14 @@
 Select p.projectid , (p.workers_exited/((p.last_day_workers + p.day_1_workers)/2 )) as numerator ,(qa.name + (',' + fy1.name )) as quarter_fy ,
 			   p1.status as status ,cou.name as country ,
-nvl2(SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)),ven.name) as vendor_name, case when vendor_name='' then ven.name else vendor_name end as vendor, fac.name as factory, count(*)
+nvl2(SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)),ven.name) as vendor_name, case when vendor_name='' then ven.name else vendor_name end as vendor, fac.name as factory, count(*),
+case
+	when qa.name = 'Q1' then 1
+	when qa.name = 'Q2' then 2
+	when qa.name = 'Q3' then 3
+	else 4
+end as quarter_sort,
+
+(fy1.name || quarter_sort) as x_axis_sort
 			   
 from profile_16862 p
 LEFT JOIN tagelement_1137 AS fy1 ON
