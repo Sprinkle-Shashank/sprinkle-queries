@@ -1,0 +1,36 @@
+WITH SUB1 AS (
+  SELECT SC.projectId,SC.date as fy_timerange, SC.title, SC.description, SC.file, SC.photo,
+  
+  CASE
+  	WHEN is_array(SC.file) = false OR get_array_length(SC.file) = 0
+  	THEN array(SC.file)
+  	ELSE SC.file
+  	END AS file_new
+  
+  FROM profile_75923 AS SC
+),
+  
+SUB2 AS (
+  SELECT S1.*,
+  CAST(photos AS VARCHAR),
+  CAST(files AS VARCHAR)
+  
+  FROM SUB1 AS S1,
+  
+  S1.photo AS photos,
+  S1.file_new AS files
+)
+
+SELECT S2.date, S2.title, S2.description,S2.ProjectId
+ANY_VALUE(S2.photos) AS photos_upload,
+LISTAGG(S2.files, ', ') AS doc_upload,
+
+CASE
+	WHEN doc_upload IS NULL
+	THEN '-'
+	ELSE 'Download'
+	END AS download_label
+	
+	FROM SUB2 AS S2
+	
+GROUP BY S2.date, S2.title, S2.description,S2.ProjectId
