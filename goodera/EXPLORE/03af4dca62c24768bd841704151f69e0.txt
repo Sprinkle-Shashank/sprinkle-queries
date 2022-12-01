@@ -23,13 +23,13 @@ end as flag
   
 from ds_mongo_taskresponse x1 
 
-left join taskuser_4188 x2 on x2.id = x1.taskuserid
-left join task_4188 x3 on x3.id = x2.taskid
-left join flowtask_4188 x4 on x4.id = x3.flowtaskid
-left join projectflow_4188 x5 on x5.id = x3.projectflowid
-left join section_4188 x6 on x6.id = x4.sectionid
-left join profile_4188 x7 on x7.id = x6.profileid
-left join project_4188 x8 on x8.id = x5.projectid
+left join ds_mysql_prod_taskuser x2 on x2.id = x1.taskuserid
+left join ds_mysql_prod_task x3 on x3.id = x2.taskid
+left join ds_mysql_prod_flowtask x4 on x4.id = x3.flowtaskid
+left join ds_mysql_prod_projectflow x5 on x5.id = x3.projectflowid
+left join ds_mysql_prod_section x6 on x6.id = x4.sectionid
+left join ds_mysql_prod_profile x7 on x7.id = x6.profileid
+left join ds_mysql_prod_project x8 on x8.id = x5.projectid
 
 where x6.profileid = 54963 and x1.active = 't' and flag = 1
 and x1.status in ('PENDING_APPROVAL', 'SUBMITTED')
@@ -52,11 +52,11 @@ end as parentcode
 from sub1 s1
 
 left join profile_54963 p1 on p1._id = s1.profileinstanceid
-left join project_4188 p2 on p2.id = s1.projectid 
-left join project_4188 p3 on p3.id = p2.parent
+left join ds_mysql_prod_project p2 on p2.id = s1.projectid 
+left join ds_mysql_prod_project p3 on p3.id = p2.parent
 
-left join tagelement_4188 t1 on t1.id = p1.fy
-left join tagelement_4188 t2 on t2.id = p1.month),
+left join ds_mysql_prod_tagelement t1 on t1.id = p1.fy
+left join ds_mysql_prod_tagelement t2 on t2.id = p1.month),
 
 sub3 as(
   select s2.id, s2.projectcode, s2.approvallog_new, s2.fy, s2.month, s2.subcat_output, s2.project_parent, s2.project_name, s2.parentcode, t1.name as fy_27396, t2.name as project_manager_27396, t3.name as fy_27420, t4.name as project_manager_27420,
@@ -74,11 +74,11 @@ from sub2 s2
 left join profile_27396 p4 on p4.name = s2.parentcode
 left join profile_27420 p5 on p5.project_code = p4._id
 
-left join tagelement_4188 t1 on t1.id = p4.fy
-left join tagelement_4188 t2 on t2.id = p4.project_manager
+left join ds_mysql_prod_tagelement t1 on t1.id = p4.fy
+left join ds_mysql_prod_tagelement t2 on t2.id = p4.project_manager
 
-left join tagelement_4188 t3 on t3.id = p5.fy
-left join tagelement_4188 t4 on t4.id = p5.project_manager),
+left join ds_mysql_prod_tagelement t3 on t3.id = p5.fy
+left join ds_mysql_prod_tagelement t4 on t4.id = p5.project_manager),
 
 sub4 as(
   select s3.id, s3.projectcode, s3.approvallog_new, s3.fy, s3.month, s3.project_name, s3.fy_27396, s3.project_manager_27396, s3.fy_27420_new, s3.project_manager_27420_new, s3.fy_27420, s3.subcat_output,
@@ -94,7 +94,7 @@ row_number() over(partition by s3.id order by split_part(s3.fy_27420_new, '-', 1
 from sub3 s3),
 
 sub5 as(
-  select s4.id, s4.projectcode, s4.approvallog_new, s4.fy, s4.month, s4.project_name, s4.fy_27396, s4.project_manager_27396, s4.fy_27420_new, s4.project_manager_27420_new, s4.subcat_output,s4.flag,
+  select s4.id, s4.projectcode, s4.approvallog_new, s4.fy, s4.month, s4.project_name, s4.fy_27396, s4.project_manager_27396, s4.fy_27420_new, s4.project_manager_27420_new, s4.subcat_output,
 
 case s4.month
 	when 'January' then 1
@@ -112,8 +112,8 @@ case s4.month
 end as month_sort
   
 from sub4 s4 
-  where s4.row = 1 and s4.flag = 1
-),
+
+where s4.row = 1 and s4.flag = 1),
 
 sub6 as(
   select s5.projectcode, s5.fy, s5.fy_27420_new, s5.fy_27396, s5.project_name, s5.month, s5.month_sort, s5.project_manager_27420_new, s5.project_manager_27396, s5.subcat_output,
@@ -138,4 +138,5 @@ sub7 as(
 from sub6 s6
 
 group by s6.fy, s6.month, s6.project_manager)
+
 select * from sub7
