@@ -1,23 +1,5 @@
-with sub1 as( 
-select 'Moderate Restriction' as col
-union all
-select 'No Restriction' as col
-union all
-select 'High Restriction' as col
-union all
-select 'Mild Restriction' as col),
-
- 
-sub2 as (select p1.fy_timerange,t2.name as center,t1.name as pre_p_score,t3.name as post_p_score, t4.name as on_job_participation, t5.name as training_complete, t6.name as inplant_training, t7.name as placement_training, t8.name as self_emp_skills,SUM(1) as count,
-case col
-when t1.name='Moderate Restriction' then 'Moderate Restriction'
-when t1.name='No Restriction' then 'No Restriction'
-when t1.name='High Restriction' then 'High Restriction'
-when t1.name='Mild Restriction' then 'Mild Restriction'
-else null
-end as val
-		 
-
+with table1 as
+(select p1.fy_timerange,t2.name as center,t1.name as pre_p_score,t3.name as post_p_score, t4.name as on_job_participation, t5.name as training_complete, t6.name as inplant_training, t7.name as placement_training, t8.name as self_emp_skills,SUM(1) as count
 
 
 from profile_82850 p1
@@ -29,9 +11,23 @@ left join tagElement_3161 t5 on p1.training_completion = t5.id
 left join tagElement_3161 t6 on p1.plant_train = t6.id
 left join tagElement_3161 t7 on p1.placement_training = t7.id
 left join tagElement_3161 t8 on p1.self_emp_skills = t8.id
-cross join sub1
+
 --where t3.name is not null
-group by p1.fy_timerange,t2.name,t1.name,t3.name,t4.name,t5.name,t6.name, t7.name,t8.name)
-
-
-select * from sub2
+group by p1.fy_timerange,t2.name,t1.name,t3.name,t4.name,t5.name,t6.name, t7.name,t8.name
+ ),
+ 
+  table2 as 
+  (
+	select * from 
+	( select fy_timerange, center , pre_p_score , post_p_score , on_job_participation , training_complete , inplant_training , placement_training , self_emp_skills , count from table1
+	 )
+	UNPIVOT (
+  amount for tranch IN ( pre_p_score , post_p_score )))
+	
+	
+select *, 
+case 
+when post_p_score is null then 0
+else post_p_score
+end as post_score
+from table2
