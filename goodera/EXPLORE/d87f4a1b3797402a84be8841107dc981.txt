@@ -1,0 +1,47 @@
+select p.projectId, p1.status, cou.name as country , 
+nvl2(SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)),ven.name) as vendor_name, case when vendor_name='' then ven.name else vendor_name end as vendor, fac.name as factory ,
+case when country in ('India', 'Bangladesh', 'Sri Lanka')
+then 'South Asia'
+when country in ('China')
+then 'North Asia'
+when country in ('Guatemala', 'El Salvador', 'Dominican Republic')
+then 'Americas'
+when country in ('Philippines', 'Cambodia',  'Vietnam',  'Indonesia', 'Myanmar')
+then 'South East Asia'
+end as region ,case when p1.name_subunit is null or p1.name_subunit=' ' then  'N/A' else p1.name_subunit end  as unit,
+cast(DATEPART(YEAR,p1.date_enrollment) as varchar) as year_new ,
+fy1.name as fy,
+p.day_1_workers , p.last_day_workers , p.workers_exited , p.absenteeism_rate , p.labor_disputes , p.bc_meetings , p.person_days_lost  , 1 as count, (quarter1.name + (',' + fy1.name )) as quarter_fy,
+workers_exited/((day_1_workers + last_day_workers)/2)*100 as workersexited,
+
+case
+	when quarter1.name = 'Q1' then 1
+	when quarter1.name = 'Q2' then 2
+	when quarter1.name = 'Q3' then 3
+	else 4
+end as quarter_sort,
+
+(fy1.name || quarter_sort) as x_axis_sort
+    
+from profile_16862 p
+  
+  
+left join project_1137 fac
+on p.projectid = fac.id
+left join project_1137 ven
+on fac.parent = ven.id
+left join project_1137 cou
+on ven.parent = cou.id
+left join profile_16619 p1
+on p.sub_unit = p1._id
+  left join tagelement_1137 quarter1 on
+  p.quarter = quarter1.id
+  left join tagelement_1137 fy1 on
+  p.fy = fy1.id
+  
+where p1.projectId is not null and  p.projectId like '%%' and cou.name <> 'Test Country' and (p1.status = 1400365 or p1.status is null)  and country <> 'GAP Inc.' 
+
+group by  p.projectId, p1.status, cou.name , ven.name, fac.name , p1.name_subunit , p1.date_enrollment ,
+p.day_1_workers , p.last_day_workers , p.workers_exited , p.absenteeism_rate , p.labor_disputes , p.bc_meetings , p.person_days_lost , quarter1.name , fy1.name
+  
+  order by quarter_fy desc 
