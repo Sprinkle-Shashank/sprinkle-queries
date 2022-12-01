@@ -1,3 +1,36 @@
-SELECT SC.date, SC.title, SC.description, SC.photo, SC.file
+WITH SUB1 AS (
+  SELECT SC.date, SC.title, SC.description, SC.photo, SC.file,
+  
+  CASE
+  	WHEN is_array(SC.photo) = false OR get_array_length(SC.photo) = 0
+  	THEN array(SC.photo)
+  	ELSE SC.photo
+  	END AS photo_new
+  
+  FROM profile_75923 AS SC
+),
+  
+SUB2 AS (
+  SELECT S1.*,
+  CAST(photo AS VARCHAR),
+  CAST(file AS VARCHAR)
+  
+  FROM SUB1 AS S1,
+  
+  S1.photo_new AS photo,
+  S1.file AS file
+)
 
-FROM profile_75923 AS SC
+SELECT S2.date, S2.title, S2.description, S2.photo, S2.file,
+ANY_VALUE(S2.photo) AS photos,
+LISTAGG(S2.file, ', ') AS doc_upload
+
+CASE
+	WHEN doc_upload IS NULL
+	THEN '-'
+	ELSE 'Download'
+	END AS download
+	
+	FROM SUB2 AS S2
+	
+GROUP BY S2.date, S2.title, S2.description, S2.photo, S2.file, photos, doc_upload
