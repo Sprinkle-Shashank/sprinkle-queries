@@ -1,5 +1,5 @@
 WITH SUB1 AS (
-  SELECT SC.date, SC.title, SC.description, SC.photo, SC.file,
+  SELECT SC.date, SC.title, SC.description, SC.file,
   
   CASE
   	WHEN is_array(SC.file) = false OR get_array_length(SC.file) = 0
@@ -12,18 +12,18 @@ WITH SUB1 AS (
   
 SUB2 AS (
   SELECT S1.*,
-  CAST(photo AS VARCHAR),
-  CAST(file AS VARCHAR)
+  --CAST(photo AS VARCHAR),
+  CAST(files AS VARCHAR)
   
   FROM SUB1 AS S1,
   
-  S1.photo AS photos,
-  S1.file AS file
+  --S1.photo AS photos,
+  S1.file_new AS files
 )
 
-SELECT S2.date, S2.title, S2.description, S2.photo, S2.file,
-ANY_VALUE(S2.photos) AS photos,
-LISTAGG(S2.file, ', ') AS doc_upload,
+SELECT S2.date, S2.title, S2.description,
+--ANY_VALUE(S2.photos) AS photos,
+LISTAGG(S2.files, ', ') AS doc_upload,
 
 CASE
 	WHEN doc_upload IS NULL
@@ -33,4 +33,4 @@ CASE
 	
 	FROM SUB2 AS S2
 	
-GROUP BY S2.date, S2.title, S2.description, photos, doc_upload
+GROUP BY S2.date, S2.title, S2.description, doc_upload
