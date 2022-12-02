@@ -1,15 +1,17 @@
-with tab1 as (Select tag2.name as projectId, p1.story, p1.fy_timerange, p1.photo, p1.doc, p1.title, p1.date, p1.code,p2.name as  projectid1, p3.name as projectid2,
+with tab1 as (Select /*tag2.name as*/ p1.projectId as ProjectID3,  p1.ben_name, p1.story, p1.fy_timerange, p1.photo, p1.doc, p1.title, p1.date, p1.code,p2.name as  projectid1, p3.name as projectid2,
+
 case 
 when p1.doc is null
 then '0' 
 else 'Download'
 end as Download,
 (substring(date,9,2) || '-' || substring(date,6,2) || '-' || substring(date,1,4)) as date,
+
 case 
 when p2.name  = 'SCCD'
 then 'SCCD' 
 else p3.name 
-end as projectId3
+end as projectname
 from profile_55343 p1
 left join ds_mysql_prod_project p2
 on p2.id = p1.projectId
@@ -17,11 +19,10 @@ left join ds_mysql_prod_project p3
 on p3.id = p2.parent
 left join ds_mysql_prod_project p4
 on p4.id = p3.parent
-left join ds_mysql_prod_tagelement tag2
-on tag2.id = p1.projectId
-order by fy_timerange,date desc)
 
-Select ben_name, story, fy_timerange, photo, doc, title,code,Download, date, code,projectId3
+order by month_timerange,date desc)
+
+Select projectname, ben_name, story, fy_timerange, photo, doc, title, date, code,Download
 from tab1
 
 
