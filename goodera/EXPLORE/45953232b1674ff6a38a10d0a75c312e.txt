@@ -1,4 +1,10 @@
-with t1 as(
+with temp as(
+  Select 'Completed' as col
+  union all
+  Select 'Enrolled' as col
+),
+
+t1 as(
   Select id, t.name as ts, p.name as bs
 from profile_3864 sq
 left join profile_3863 p 
@@ -10,15 +16,17 @@ On t.id=sq.training_status
 Select bs, 
   case
   when ts='Completed' then 'Completed'
-end as s,
+end as s
 from t1
 Where bs!='' and s!=''
 )
 
 Select 
-case
-when bs then 'Enr'
-when ts then 'Cert'
+case col
+when 'Enrolled' then bs
+when 'Completed' then s
 end as t21,
 count(*)
 from t2
+cross join temp
+group by bs, ts
