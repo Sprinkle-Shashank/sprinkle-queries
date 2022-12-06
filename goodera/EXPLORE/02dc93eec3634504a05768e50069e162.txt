@@ -1,0 +1,40 @@
+with temp as(
+  Select '6 months' as col
+  union all
+  Select 'Placed' as col
+),
+
+t1 as(
+  Select t.name as ps, p.name as bs, p1.name projectId, sq.timerange_timerange, t1.name cs
+from profile_3864 sq
+left join profile_3863 p 
+ON p._id=sq.batch_details
+left join ds_mysql_prod_tagelement t
+On t.id=sq.placement_status
+left join ds_mysql_prod_tagelement t1
+On t1.id=sq.continuing
+left join ds_mysql_prod_project p1
+on p1.id=sq.projectid
+  ),
+
+t2 as(
+Select projectId,timerange_timerange,
+  case
+  when ts='6 months' then '6 months'
+end as bs  
+  case
+  when ts='Placed' then 'Placed'
+end as s
+from t1
+)
+
+Select temp.col as dim,projectId,timerange_timerange,
+case col
+when '6 months' then bs
+when 'Placed' then s
+end as t21,
+count(*)
+from t2
+cross join temp
+where t21 !=''
+group by bs, s, temp.col, projectId,timerange_timerange
