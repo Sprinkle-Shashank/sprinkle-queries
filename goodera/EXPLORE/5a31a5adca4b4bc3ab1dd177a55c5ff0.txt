@@ -1,13 +1,15 @@
 with t1 as(
-  Select id, t.name as ts, p.name as bs, sq.timerange_timerange
+  Select id, t.name as ts, p.name as bs, sq.timerange_timerange,  p1.name projectId
 from profile_3864 sq
 left join profile_3863 p 
 ON p._id=sq.batch_details
 left join ds_mysql_prod_tagelement t
 On t.id=sq.training_status
+  left join ds_mysql_prod_project p1
+on p1.id=sq.projectid
   )
   
-Select  timerange_timerange,
+Select  timerange_timerange, projectId,
   case
   when ts='Completed' then 'Completed'
 when ts='Dropout' then 'Certified'
@@ -15,4 +17,4 @@ end as s,
 count(*)
 from t1
 Where s!=''
-group by bs,ts
+group by bs,ts,timerange_timerange, projectId
