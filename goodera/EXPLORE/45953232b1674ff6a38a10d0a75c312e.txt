@@ -5,15 +5,17 @@ with temp as(
 ),
 
 t1 as(
-  Select id, t.name as ts, p.name as bs
+  Select id, t.name as ts, p.name as bs, p1.name projectId
 from profile_3864 sq
 left join profile_3863 p 
 ON p._id=sq.batch_details
 left join ds_mysql_prod_tagelement t
 On t.id=sq.training_status
+  left join ds_mysql_prod_project p1
+on p1.id=sq.projectid
   ),
   t2 as(
-Select bs, 
+Select bs, projectId,
   case
   when ts='Completed' then 'Trained'
 
@@ -22,7 +24,7 @@ from t1
 Where bs!=''
 )
 
-Select temp.col as dim,
+Select temp.col as dim,projectId,
 case col
 when 'Enrolled' then bs
 when 'Trained' then s
