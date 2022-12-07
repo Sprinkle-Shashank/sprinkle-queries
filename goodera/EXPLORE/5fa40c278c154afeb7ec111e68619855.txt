@@ -1,27 +1,35 @@
-with table1 as (select projectid,name,wmc_bc,function,issue,bc_selection,suggestion,comfort,complaint,quality,satisfaction,useful,decision from profile_18299 p, p.decisions decision)
+with table1 as (select projectid,name,wmc_bc,function,issue,bc_selection,suggestion,comfort,complaint,quality,satisfaction,useful,decision from profile_18299 p, p.decisions decision),
 
-select fac_vpid,child_vendor_vpid,goodera_facility_name_text, ROW_NUMBER () OVER
+table2 as (
+select fac_vpid,child_vendor_vpid as vpid,goodera_facility_name_text as factory, ROW_NUMBER () OVER
 (
  PARTITION BY goodera_facility_name_text
  ORDER BY _id asc 
-) as row  from profile_68161
-/*select t1.projectid,t1.name,wmc_bc,function,issue,bc_selection,suggestion,comfort,complaint,quality,satisfaction,useful,decision,faci.factory_id,
+) as row  from profile_68161 )
+select t1.projectid,t1.name,wmc_bc,function,issue,bc_selection,suggestion,comfort,complaint,quality,satisfaction,useful,decision,t2.fac_vpid,
 case 
      when wcp.date_enrollment is not null and wcp.date_completion is null then 'Ongoing'
 	 when wcp.date_enrollment is not null and wcp.date_completion is not null then 'Completed'
-	 else null end as status, vid.vpid 
+	 else null end as status, t2.vpid
 from table1 t1
 
-left join profile_4722 faci on
-t1.projectid = faci.projectid
+/*left join profile_4722 faci on
+t1.projectid = faci.projectid*/
 
 left join profile_16619 wcp on
 t1.projectid = wcp.projectid
 
-left join profile_4718 vid on
+left join project_1137 pro
+on t1.projectid = pro.id
+
+left join table2 t2 on
+pro.name = t2.factory
+
+
+/*left join profile_4718 vid on
 t1.projectid = vid.projectid*/
 
 --select * from table1
 
 --tagElement_1137
-
+--project_1137
