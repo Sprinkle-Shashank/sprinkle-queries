@@ -10,7 +10,19 @@ when mth.name in ('August', 'September', 'October')
 then '3rd(Aug-Oct)'
 when mth.name in ('November', 'December',  'January')
 then '4th(Nov-Jan)'
-end as quarter , loc_parent.name as state,loc_child.name as district , count(p.projectid) as count 
+end as quarter ,  count(p.projectid) as count ,
+loc_child.name as district_old,loc_parent.name as state_old,
+CASE when loc_parent.name is NULL
+then loc_child.name
+else loc_parent.name
+END AS state ,
+CASE when loc_parent.name is NULL
+then 'NA'
+else loc_child.name
+END as district
+
+
+
 from profile_29530 p
 left join tagelement_3645 yr
 on p.year = yr.id
@@ -24,5 +36,5 @@ on loc_child.parent = loc_parent.id
 
 
 
-group by yr.name  , quarter , state , district
+group by yr.name  , quarter , state_old , district_old
 
