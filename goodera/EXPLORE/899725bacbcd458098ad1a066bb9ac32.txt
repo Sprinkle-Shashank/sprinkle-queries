@@ -1,4 +1,4 @@
-Select loc_parent.name as state,loc_child.name as district,count(p.name) as count,'STATE' as states , yr.name as year , datepart(month,p.date_of_formation) as month , case when month in ('2', '3', '4')
+Select count(p.name) as count,'STATE' as states , yr.name as year , datepart(month,p.date_of_formation) as month , case when month in ('2', '3', '4')
 then '1st(Feb-Apr)'
 when month in ('5','6','7')
 then '2nd(May-Jul)'
@@ -6,7 +6,21 @@ when month in ('8', '9', '10')
 then '3rd(Aug-Oct)'
 when month in ('11', '12',  '1')
 then '4th(Nov-Jan)'
-end as quarter from profile_29179 p
+end as quarter,
+ loc_child.name as district_old,loc_parent.name as state_old,
+CASE when loc_parent.name is NULL
+then loc_child.name
+else loc_parent.name
+END AS state ,
+CASE when loc_parent.name is NULL
+then 'NA'
+else loc_child.name
+END as district
+
+
+
+
+from profile_29179 p
 left join tagelement_3645 yr
 on p.year = yr.id
 left join tagelement_3645 loc_child
