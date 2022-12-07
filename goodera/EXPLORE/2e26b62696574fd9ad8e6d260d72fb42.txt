@@ -6,7 +6,15 @@ when month in ('8', '9', '10')
 then '3rd(Aug-Oct)'
 when month in ('11', '12',  '1')
 then '4th(Nov-Jan)'
-end as quarter , count(p.name) as count , loc_parent.name as state,loc_child.name as district 
+end as quarter , count(p.name) as count , loc_child.name as district_old,loc_parent.name as state_old,
+CASE when loc_parent.name is NULL
+then loc_child.name
+else loc_parent.name
+END AS state ,
+CASE when loc_parent.name is NULL
+then 'NA'
+else loc_child.name
+END as district
  
 from profile_29179 p
 left join tagelement_3645 yr
@@ -17,7 +25,7 @@ on p.location = loc_child.id
 left join tagelement_3645 loc_parent
 on loc_child.parent = loc_parent.id
 
-where district <> block and lg_status = 847850 or lg_status is null
+where  lg_status = 847850 or lg_status is null
 
 group by yr.name , p.date_of_formation , month , state , district
 /*select yr.name as year , datepart(month,p.date_of_formation) as month , case when month in ('2', '3', '4')
