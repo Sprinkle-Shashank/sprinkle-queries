@@ -1,23 +1,37 @@
-with table1 as 
+with table1 as (select projectid,name,wmc_bc,function,issue,bc_selection,suggestion,comfort,complaint,quality,satisfaction,useful,decision from profile_18299 p, p.decisions decision),
+
+table2 as (
+select fac_vpid,child_vendor_vpid as vpid,goodera_facility_name_text as factory, ROW_NUMBER () OVER
 (
-select p.projectid as project , nvl2(SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), ven.name) as vendor_name, case when vendor_name='' then ven.name else vendor_name end as vendor, fac.name as factory,cou.name as country,p.status , case when p.name_subunit is null or p.name_subunit=' ' then 'N/A' else p.name_subunit end  as unit from profile_16619 p
+ PARTITION BY goodera_facility_name_text
+ ORDER BY _id asc 
+) as row  from profile_68161 ),
 
-left join ds_mysql_prod_project fac
-on p.projectId = fac.id
+table3 as (select projectid,date_enrollment,date_completion,ROW_NUMBER () OVER
+(
+ PARTITION BY projectid
+ ORDER BY _id asc 
+) as row1 from profile_16619),
+table4 as (select * from table2
+		  where row = 1),
+table5 as (select * from table3
+		  where row1 = 1)		  
 
-left join ds_mysql_prod_project ven
-on fac.parent = ven.id
-  
-left join ds_mysql_prod_project cou
-on ven.parent = cou.id
+select t1.projectid,t1.name,wmc_bc,function,issue,bc_selection,suggestion,comfort,complaint,quality,satisfaction,useful,decision,t4.fac_vpid,
+case 
+     when wcp.date_enrollment is not null and wcp.date_completion is null then 'Ongoing'
+	 when wcp.date_enrollment is not null and wcp.date_completion is not null then 'Completed'
+	 else null end as status, t4.vpid
+from table1 t1
 
-where (cou.name <> 'Test Country' and cou.name <> 'GAP Inc.') 
-and project like '%%'  
-)
-  
-  
-  
+/*left join profile_4722 faci on
+t1.projectid = faci.projectid*/
 
-select distinct project, vendor , factory,country , unit from table1 p 
-group by project, vendor, factory, country , unit
-order by vendor
+left join table5 wcp on
+t1.projectid = wcp.projectid
+
+left join project_1137 pro
+on t1.projectid = pro.id
+
+left join table4 t4 on
+pro.name = t4.factory
