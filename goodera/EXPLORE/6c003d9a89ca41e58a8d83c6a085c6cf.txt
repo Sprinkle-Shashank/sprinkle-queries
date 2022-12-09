@@ -1,181 +1,149 @@
 WITH SUB1 AS (
-  SELECT DH.upload, DH.fy_timerange,
-P1.name AS projectname,
-DT.name AS doc_type,
-
-CASE
+  SELECT DH.fy_timerange,
+  DH.upload AS due_diligence,
+  P1.name AS projectname,
+  DT.name AS doc_type,
+  
+  CASE
 	WHEN DH.upload IS NOT NULL
 	THEN 'Download'
 	ELSE '-'
 	END AS due_diligence_label
 
-FROM profile_55868 AS DH
+  FROM profile_55868 AS DH
 
-LEFT JOIN ds_mysql_prod_tagelement AS DT
-ON DH.doc_type = DT.id
+  LEFT JOIN ds_mysql_prod_tagelement AS DT
+  ON DH.doc_type = DT.id
 	
-LEFT JOIN ds_mysql_prod_project AS P1
-ON DH.projectId = P1.id
-
-WHERE DT.name = 'Due Diligence'
-  ),
+  LEFT JOIN ds_mysql_prod_project AS P1
+  ON DH.projectId = P1.id
+  
+  WHERE DT.name = 'Due Diligence'
+),
   
 SUB2 AS (
-	SELECT LC.trust_deed, LC.registration, LC.pan, LC.address_proof, LC.tweleve_a, LC.eighty_g, LC.thirty_five_a_c, LC.csr1, LC.renewed_tweleve_a, LC.renewed_eighty_g, LC.fcra, LC.annual_report, LC.itr, LC.audited_financials, LC.ten_b, LC.self_declaration, LC.ifsc,
-  LC.fy_timerange, LC.bank_account,
+  SELECT LC.trust_deed, LC.registration, LC.pan, LC.address_proof, LC.tweleve_a, LC.eighty_g, LC.thirty_five_a_c, LC.csr1, LC.renewed_tweleve_a, LC.renewed_eighty_g, LC.fcra, LC.annual_report, LC.itr, LC.audited_financials, LC.ten_b, LC.self_declaration, LC.ifsc, LC.fy_timerange, LC.bank_account,
+  AT.name AS account_type,
+  P2.name AS projectname
 
-CASE 
+  CASE 
 	WHEN LC.trust_deed IS NOT NULL
 	THEN 'Download'
 	ELSE '-'
 	END AS trust_deed_label,
 	
-CASE
+  CASE
 	WHEN LC.registration IS NOT NULL
 	THEN 'Download'
 	ELSE '-'
 	END AS registration_label,
 	
-CASE
+  CASE
 	WHEN LC.pan IS NOT NULL
 	THEN 'Download'
 	ELSE '-'
 	END AS pan_label,
 
-CASE
+  CASE
 	WHEN LC.address_proof IS NOT NULL
 	THEN 'Download'
 	ELSE '-'
 	END AS address_proof_label,
 
-CASE
+  CASE
 	WHEN LC.tweleve_a IS NOT NULL
 	THEN 'Download'
 	ELSE '-'
 	END AS tweleve_a_label,
 
-CASE
+  CASE
 	WHEN LC.eighty_g IS NOT NULL
 	THEN 'Download'
 	ELSE '-'
 	END AS eighty_g_label,
 
-CASE
+  CASE
 	WHEN LC.thirty_five_a_c IS NOT NULL
 	THEN 'Download'
 	ELSE '-'
 	END AS thirty_five_a_c_label,
 
-CASE
+  CASE
 	WHEN LC.csr1 IS NOT NULL
 	THEN 'Download'
 	ELSE '-'
 	END AS csr1_label,
 
-CASE
+  CASE
 	WHEN LC.renewed_tweleve_a IS NOT NULL
 	THEN 'Download'
 	ELSE '-'
 	END AS renewed_tweleve_a_label,
 
-CASE
+  CASE
 	WHEN LC.renewed_eighty_g IS NOT NULL
 	THEN 'Download'
 	ELSE '-'
 	END AS renewed_eighty_g_label,
 	
-CASE
+  CASE
 	WHEN LC.fcra IS NOT NULL
 	THEN 'Download'
 	ELSE '-'
 	END AS fcra_label,
 	
-CASE
+  CASE
 	WHEN LC.annual_report IS NOT NULL
 	THEN 'Download'
 	ELSE '-'
 	END AS annual_report_label,
 
-CASE
+  CASE
 	WHEN LC.itr IS NOT NULL
 	THEN 'Download'
 	ELSE '-'
 	END AS itr_label,
 
-CASE
+  CASE
 	WHEN LC.audited_financials IS NOT NULL
 	THEN 'Download'
 	ELSE '-'
 	END AS audited_financials_label,
 
-CASE
+  CASE
 	WHEN LC.ten_b IS NOT NULL
 	THEN 'Download'
 	ELSE '-'
 	END AS ten_b_label,
 
-CASE
+  CASE
 	WHEN LC.self_declaration IS NOT NULL
 	THEN 'Download'
 	ELSE '-'
 	END AS self_declaration_label,
 
-AT.name AS account_type,
-P2.name AS projectname
+  FROM profile_81441 AS LC
 
-FROM profile_81441 AS LC
-
-LEFT JOIN ds_mysql_prod_tagelement AS AT
-ON LC.account_type = AT.id
+  LEFT JOIN ds_mysql_prod_tagelement AS AT
+  ON LC.account_type = AT.id
 	
-LEFT JOIN ds_mysql_prod_project AS P2
-ON LC.projectId = P2.id
+  LEFT JOIN ds_mysql_prod_project AS P2
+  ON LC.projectId = P2.id
 ),
 
 SUB3 AS (
   SELECT S1.*
   
   FROM SUB1 AS S1
-  ),
+),
   
-  SUB4 AS (
-	SELECT S2.*
+SUB4 AS (
+  SELECT S2.*
 	
-	FROM SUB2 AS S2
-	)
+  FROM SUB2 AS S2
+)
 
-
-
-
-/*
-SELECT * FROM SUB3
-UNION ALL
-SELECT * FROM SUB4
-*/
-
-
-
-
-
-
-
-
-
-
-
-
-
-/*
-SELECT * FROM SUB1
-UNION ALL
-SELECT * FROM SUB2
-*/
-
-
-
-
-
-  SELECT upload, fy_timerange, projectname, doc_type, due_diligence_label,
+SELECT due_diligence, fy_timerange, projectname, doc_type, due_diligence_label,
 '-' AS trust_deeed,
 '-' AS registration,
 '-' AS pan,
@@ -217,40 +185,10 @@ FROM SUB3
 UNION ALL
 
 SELECT
-'-' AS upload,
+'-' AS due_diligence,
 fy_timerange, projectname,
 '-' AS doc_type,
 '-' AS due_diligence_label,
 trust_deed, registration, pan, address_proof, tweleve_a, eighty_g, thirty_five_a_c, csr1, renewed_tweleve_a, renewed_eighty_g, fcra, annual_report, itr, audited_financials, ten_b, self_declaration, bank_account, ifsc, trust_deed_label, registration_label, pan_label, address_proof_label, tweleve_a_label, eighty_g_label, thirty_five_a_c_label, csr1_label, renewed_tweleve_a_label, renewed_eighty_g_label, fcra_label, annual_report_label, itr_label, audited_financials_label, ten_b_label, self_declaration_label, account_type
  
-
 FROM SUB4
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
--- S1 = 5 columns
--- S2 = 37 columns
-
-
-
-
-
-
-
-
-/*
-SELECT S1.*
-FROM SUB1 AS S1
-*/
