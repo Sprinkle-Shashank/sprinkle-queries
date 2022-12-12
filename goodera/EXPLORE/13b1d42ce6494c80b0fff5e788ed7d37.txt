@@ -5,6 +5,13 @@ from profile_60928 p1
 where p1.timeperiod_timerange is not null),
 
 sub2 as(
-  select * from sub1 where rank = 1)
+  select s1.*, source_div_unwind, region_unwind
+  from sub1 s1, s1.region region_unwind,  s1.source_div source_div_unwind
+  where rank = 1)
   
-select * from sub2
+select s2.factory_id, s2.factory_name, nvl(t2.name, t1.name) as business_div, (t4.name, t3.name) as region
+from sub2 s2
+left join tagElement_7200 t1 on t1.id = s2.source_div_unwind
+left join tagElement_7200 t2 on t2.id = t1.parent
+left join tagElement_7200 t3 on t3.id = s2.region_unwind
+left join tagElement_7200 t4 on t4.id = t3.parent
