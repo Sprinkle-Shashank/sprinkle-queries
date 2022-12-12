@@ -1,14 +1,40 @@
-select p3.name as projectId,p1.name as projectname,p2.name as partner,t1.name as target,p.number,count(*),
---concat(concat(concat(concat('{"start":"', p.start_date),'","end":"'),p.end_date),'"}') as fy_timerange
-p.fy_timerange
-from profile_81374 p
 
-left join project_9730 p1 on p1.id = p.projectid
-left join project_9730 p2 on p2.id = p1.parent
-left join project_9730 p3 on p3.id=p2.parent
-left join tagelement_9730 t1 on t1.id=p.target
+/*with sub2 as(
+  select (p1.date_visit || '|' || p1.date_visit) as fy_timerange, p2.name as trucker_id, t1.name as plant,
+ case
+  when (bp_systolic >=75 and bp_systolic < 90) and (bp_diastolic >= 30 and bp_diastolic < 60)  then 'Total Test' 
+ when (bp_systolic >=90 and bp_systolic <= 140) and (bp_diastolic >= 60 and bp_diastolic <= 90) then  'Total Test' 
+ when (bp_systolic >=141  and bp_diastolic >= 91) then 'Total Test' 
+ else NULL
+ end as bp_range
+from profile_73098 p1
+left join profile_73096 p2 on p2._id = p1.trucker_id
+left join profile_73150 p3 on p3._id = p1.clinic
+left join ds_mysql_prod_tagelement t1 on t1.id = p3.plant), */
 
-where t1.name = 'Beneficiaries Trained' 
-and p.projectid like '%%'
+with sub3 as(
+  select (s1.date_visit || '|' || s1.date_visit) as fy_timerange, p2.name as trucker_id, t1.name as plant,
+ case
+ when (bp_systolic >=75 and bp_systolic < 90) or (bp_diastolic >= 30 and bp_diastolic < 60)  then 'Hypotension (Low blood pressure)'
+ when (bp_systolic >=90 and bp_systolic <= 140) and (bp_diastolic >= 60 and bp_diastolic <= 90) then  'Blood Pressure Normal'
+ when (bp_systolic >=141  or bp_diastolic >= 91) then 'Hypertension (High blood pressure)'
+ else NULL
+ end as bp_range
 
-group by p.fy_timerange,p2.name,p1.name,t1.name,p.number,p3.name
+from profile_73098 s1
+left join profile_73096 p2 on p2._id = s1.trucker_id
+left join profile_73150 p3 on p3._id = s1.clinic
+left join ds_mysql_prod_tagelement t1 on t1.id = p3.plant)
+/*,
+
+--group by fy_timerange,p2.name,t1.name,t2.name, diabetic_diagnosed,diabetic_range,s1.date_visit)
+
+
+sub4 as (
+select fy_timerange, trucker_id, plant,bp_range from sub2
+union all
+select fy_timerange, trucker_id, plant, bp_range from sub3)*/
+
+select fy_timerange, plant,bp_range,trucker_id, count(*) from sub3
+where bp_range IS NOT NULL
+group by fy_timerange, plant, bp_range,trucker_id
