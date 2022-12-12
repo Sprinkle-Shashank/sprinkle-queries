@@ -10,8 +10,8 @@ with sub3 as(
 from profile_73098 s1
 left join profile_73096 p2 on p2._id = s1.trucker_id
 left join profile_73150 p3 on p3._id = s1.clinic
-left join ds_mysql_prod_tagelement t1 on t1.id = p3.plant)
-/*,
+left join ds_mysql_prod_tagelement t1 on t1.id = p3.plant),
+/*
 
 --group by fy_timerange,p2.name,t1.name,t2.name, diabetic_diagnosed,diabetic_range,s1.date_visit)
 
@@ -21,6 +21,35 @@ select fy_timerange, trucker_id, plant,bp_range from sub2
 union all
 select fy_timerange, trucker_id, plant, bp_range from sub3)*/
 
-select fy_timerange, plant,bp_range,trucker_id, count(*) from sub3
+sub4 as (select fy_timerange, plant,bp_range,trucker_id, count(*),
+case
+when bp_range = 'Blood Pressure Normal' then 1
+when bp_range = 'Hypotension (Low blood pressure)' then 2
+when bp_range = 'Hypertension (High blood pressure)' then 3
+else NULL end as status
+from sub3
 --where bp_range IS NOT NULL
-group by fy_timerange, plant, bp_range,trucker_id
+group by fy_timerange, plant, bp_range,trucker_id)
+
+
+
+
+
+
+
+select fy_timerange,trucker_id, count(*)
+from (select t.*,
+             lag() over (partition by trucker_id order by status desc) as prev_status
+      from sub4 t
+     ) t
+where status = 1 and prev_status in (3, 4)
+group by fy_timerange,trucker_id
+
+
+
+
+
+
+
+
+
