@@ -1,5 +1,5 @@
 with sub3 as(
-  select (s1.date_visit || '|' || s1.date_visit) as fy_timerange, p2.name as trucker_id, t1.name as plant,
+  select (s1.date_visit || '|' || s1.date_visit) as fy_timerange, p2.name as trucker_id, t1.name as plant,p2.patient,
  case
  when (bp_systolic >=75 and bp_systolic < 90) or (bp_diastolic >= 30 and bp_diastolic < 60)  then 'Hypotension (Low blood pressure)'
  when (bp_systolic >=90 and bp_systolic <= 140) and (bp_diastolic >= 60 and bp_diastolic <= 90) then  'Blood Pressure Normal'
@@ -21,7 +21,7 @@ select fy_timerange, trucker_id, plant,bp_range from sub2
 union all
 select fy_timerange, trucker_id, plant, bp_range from sub3)*/
 
-sub4 as (select fy_timerange, plant,bp_range,trucker_id, count(*),
+sub4 as (select fy_timerange, plant,bp_range,trucker_id, count(*),patient,
 case
 when bp_range = 'Blood Pressure Normal' then 1
 when bp_range = 'Hypotension (Low blood pressure)' then 2
@@ -37,7 +37,7 @@ group by fy_timerange, plant, bp_range,trucker_id)
 
 
 
-select fy_timerange,trucker_id, count(*)
+select fy_timerange,trucker_id,plant, patient,count(*)
 from (select t.*,
              rank() over (partition by trucker_id order by status desc) as prev_status
       from sub4 t
