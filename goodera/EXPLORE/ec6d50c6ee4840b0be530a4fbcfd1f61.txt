@@ -29,7 +29,7 @@ when bp_range = 'Hypertension (High blood pressure)' then 3
 else NULL end as status
 from sub3
 --where bp_range IS NOT NULL
-group by fy_timerange, plant, bp_range,trucker_id,patient)
+group by trucker_id,fy_timerange, plant, bp_range,patient)
 
 
 
@@ -39,11 +39,11 @@ group by fy_timerange, plant, bp_range,trucker_id,patient)
 
 select fy_timerange,trucker_id,plant, patient,count(*)
 from (select t.*,
-             lag() over (partition by trucker_id order by status desc) as prev_status
+             rank() over (partition by trucker_id order by status desc) as prev_status
       from sub4 t
      ) t
 where status = 1 and prev_status in (3, 2)
-group by fy_timerange,trucker_id,plant,patient
+group by trucker_id,fy_timerange,plant,patient
 
 
 
