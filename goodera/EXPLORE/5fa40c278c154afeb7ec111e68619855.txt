@@ -25,6 +25,8 @@ table5 as (select * from table3
 		  where row1 = 1)		  
 
 select t1.projectid,t1.name,wmc.name as wmc_bc,fun.name as function,iss.name as issue,bc.name as bc_selection,sug.name as suggestion,com.name as comfort,cum.name as complaint,qal.name as quality,sat.name as satisfaction,usef.name as useful,dec.name as decision,t4.fac_vpid,
+nvl2(SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), ven.name) as vendor_name, case when vendor_name='' then ven.name else vendor_name end as vendor, fac.name as factory,cou.name as country,
+
 case 
      when wcp.date_enrollment is not null and wcp.date_completion is null then 'Ongoing'
 	 when wcp.date_enrollment is not null and wcp.date_completion is not null then 'Completed'
@@ -76,6 +78,15 @@ left join tagelement_1137 usef on
   
 left join tagelement_1137 dec on
   t1.decision = dec.id
+  
+ left join ds_mysql_prod_project fac
+on t1.projectId = fac.id
+
+left join ds_mysql_prod_project ven
+on fac.parent = ven.id
+  
+left join ds_mysql_prod_project cou
+on ven.parent = cou.id
 
 --where t2.row = 1 and wcp.row1
 
