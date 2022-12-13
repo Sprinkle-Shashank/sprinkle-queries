@@ -47,9 +47,67 @@ left join ds_mysql_prod_tagelement f on
 c.fy=f.id
 left join ds_mysql_prod_tagelement m on
 c.project_manager=m.id
-)
+),
 
-Select b1.fy_timerange, b1.ProjectCode, b2.Project_Manager, b1.Region, q1, q2, q3, q4
+t5 as
+(
+Select b1.fy_timerange, b1.ProjectCode, b2.Project_Manager, b1.Region, 
+  ---cast(b1.fy_timerange as VARCHAR) as f1, 
+  CAST(b1.ProjectCode as VARCHAR) as f2, 
+  CAST(b2.Project_Manager as VARCHAR) as f3,
+  CAST(b1.Region as VARCHAR) as f4,
+case 
+	when q1 like 'https%' then q1
+	else NULL
+end as q11,
+case 
+	when q2 like 'https%' then q2
+	else NULL
+end as q12,
+case 
+	when q3 like 'https%' then q3
+	else NULL
+end as q13,
+case 
+	when q4 like 'https%' then q4
+	else NULL
+end as q14
 from base1 b1
 left join b2
 on b1.CODE=b2.code
+),
+
+t6 as(
+Select  fy_timerange, ProjectCode, Project_Manager, Region,
+(f2 || f3 || f4) as ok, q11
+from t5
+where q11 is not NULL
+),
+
+t7 as(
+Select  fy_timerange, ProjectCode, Project_Manager, Region,
+(f2 || f3 || f4) as ok, q12
+from t5
+where q12 is not NULL),
+
+t8 as(
+Select  fy_timerange, ProjectCode, Project_Manager, Region,
+(f2 || f3 || f4) as ok, q13
+from t5
+where q13 is not NULL),
+
+t9 as(
+Select  fy_timerange, ProjectCode, Project_Manager, Region,
+(f2 || f3 || f4) as ok, q14
+from t5
+where q14 is not NULL)
+
+
+Select t6.q11,t7.q12, t8.q13, t9.q14, t6.fy_timerange, t6.ProjectCode, t6.Project_Manager, t6.Region
+from t6
+left join t7
+ON t6.ok=t7.ok
+left join t8
+ON t6.ok=t8.ok
+left join t9
+ON t6.ok=t9.ok
