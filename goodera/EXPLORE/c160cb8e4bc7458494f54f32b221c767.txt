@@ -1,0 +1,99 @@
+with table1 as (select projectid,name,wmc_bc,function,issue,bc_selection,suggestion,comfort,complaint,quality,satisfaction,useful,decision from profile_20704 p, p.decisions decision),
+
+table2 as (
+select fac_vpid,child_vendor_vpid as vpid,goodera_facility_name_text as factory, ROW_NUMBER () OVER
+(
+ PARTITION BY goodera_facility_name_text
+ ORDER BY _id asc 
+) as row  from profile_68161 ),
+
+table3 as (select projectid,date_enrollment,date_completion,
+		   name_subunit,
+		   cast(DATEPART(YEAR,profile_16619.date_enrollment) as varchar) as year_new,
+		   
+		   
+		   
+		   
+		   ROW_NUMBER () OVER
+(
+ PARTITION BY projectid
+ ORDER BY _id asc 
+) as row1 from profile_16619),
+table4 as (select * from table2
+		  where row = 1),
+table5 as (select * from table3
+		  where row1 = 1)		  
+
+select t1.projectid,t1.name,wmc.name as wmc_bc,fun.name as function,iss.name as issue,bc.name as bc_selection,sug.name as suggestion,com.name as comfort,cum.name as complaint,qal.name as quality,sat.name as satisfaction,usef.name as useful,dec.name as decision,t4.fac_vpid,
+nvl2(SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), ven.name) as vendor_name, case when vendor_name='' then ven.name else vendor_name end as vendor, fac.name as factory,cou.name as country,
+
+case 
+     when wcp.date_enrollment is not null and wcp.date_completion is null then 'Ongoing'
+	 when wcp.date_enrollment is not null and wcp.date_completion is not null then 'Completed'
+	 else null end as status, t4.vpid,name_subunit,year_new
+	
+from table1 t1
+
+/*left join profile_4722 faci on
+t1.projectid = faci.projectid*/
+
+left join table5 wcp on
+t1.projectid = wcp.projectid
+
+left join project_1137 pro
+on t1.projectid = pro.id
+
+left join table4 t4 on
+pro.name = t4.factory
+
+left join tagelement_1137 wmc on
+  t1.wmc_bc = wmc.id 
+  
+left join tagelement_1137 fun on
+  t1.function = fun.id 
+  
+left join tagelement_1137 iss on
+  t1.issue = iss.id 
+
+left join tagelement_1137 bc on
+  t1.bc_selection = bc.id 
+
+left join tagelement_1137 sug on
+  t1.suggestion = sug.id
+  
+left join tagelement_1137 com on
+  t1.comfort = com.id
+  
+ left join tagelement_1137 cum on
+  t1.complaint = cum.id 
+
+left join tagelement_1137 qal on
+  t1.quality = qal.id
+  
+left join tagelement_1137 sat on
+  t1.satisfaction = sat.id 
+  
+left join tagelement_1137 usef on
+  t1.useful = usef.id
+  
+left join tagelement_1137 dec on
+  t1.decision = dec.id
+  
+ left join ds_mysql_prod_project fac
+on t1.projectId = fac.id
+
+left join ds_mysql_prod_project ven
+on fac.parent = ven.id
+  
+left join ds_mysql_prod_project cou
+on ven.parent = cou.id
+
+--where t2.row = 1 and wcp.row1
+
+/*left join profile_4718 vid on
+t1.projectid = vid.projectid*/
+
+--select * from table2
+
+--tagElement_1137
+--project_1137
