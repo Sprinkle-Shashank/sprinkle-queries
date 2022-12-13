@@ -48,8 +48,8 @@ group by trucker_id,fy_timerange,plant,patient*/
 
 select t.fy_timerange,t.trucker_id,t.status, t.patient,
 case 
-when prev_status = 3 and status =1 then 'Hypertension to Normal'
-when prev_status = 2 and status =1 then 'Hypotension to Normal'
+when t.prev_status = 3 and status =1 then 'Hypertension to Normal'
+when t.prev_status = 2 and status =1 then 'Hypotension to Normal'
 else NULL
 end as range_change,
 count(*) from ( select t.*,
@@ -57,7 +57,7 @@ count(*) from ( select t.*,
 lag(t.status) over (partition by t.trucker_id order by t.fy_timerange desc) as prev_status from sub4 t ) t
 
 where status = 1 and prev_status in (3,2)
-group by t.trucker_id,t.fy_timerange,t.plant,t.patient,t.status
+group by t.trucker_id,t.fy_timerange,t.plant,t.patient,t.status,t.prev_status
 
 
 
