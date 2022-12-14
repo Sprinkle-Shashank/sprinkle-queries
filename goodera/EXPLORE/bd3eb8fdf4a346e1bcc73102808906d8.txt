@@ -1,0 +1,37 @@
+
+with sub2 as(
+  select (p1.date_visit || '|' || p1.date_visit) as fy_timerange, p2.name as trucker_id, t1.name as plant,
+ case
+  when sugar_value >=  60 then 'Total Test' 
+  else null
+  end as diabetic_range
+from profile_73098 p1
+left join profile_73096 p2 on p2._id = p1.trucker_id
+left join profile_73150 p3 on p3._id = p1.clinic
+left join ds_mysql_prod_tagelement t1 on t1.id = p3.plant), 
+
+sub3 as(
+  select (s1.date_visit || '|' || s1.date_visit) as fy_timerange, p2.name as trucker_id, t1.name as plant,
+ case
+ when sugar_value >=60 and sugar_value < 140 then 'Diabetes Normal'
+ when sugar_value >=140 and sugar_value <= 200 then  'Pre diabetes'
+ when sugar_value > 200 then 'Diabetes'
+ else NULL
+ end as diabetic_range
+
+from profile_73098 s1
+left join profile_73096 p2 on p2._id = s1.trucker_id
+left join profile_73150 p3 on p3._id = s1.clinic
+left join ds_mysql_prod_tagelement t1 on t1.id = p3.plant),
+
+--group by fy_timerange,p2.name,t1.name,t2.name, diabetic_diagnosed,diabetic_range,s1.date_visit)
+
+
+sub4 as (
+select fy_timerange, trucker_id, plant,diabetic_range from sub2
+union all
+select fy_timerange, trucker_id, plant, diabetic_range from sub3)
+
+select fy_timerange, plant,diabetic_range, count(*) from sub4
+where diabetic_range IS NOT NULL
+group by fy_timerange, plant, diabetic_range
