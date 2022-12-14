@@ -1,55 +1,59 @@
-with table1 as(select p.projectId from profile_16619 p
+with table1 as 
+(
+select p.projectid, p.facility_status , facility.name as facility_status_update , case when facility_status_update='Active' then 'Active' else 'Deactive' end as Active_Filter , goodera_facility_name_text , primary_category from profile_68161 as p
+  
+left join tagelement_1137 facility 
+on p.facility_status = facility.id
+), 
 
-			    
-left join profile_18224 p2
-on p.projectId = p2.projectId
-			   
-group by p.projectId
-),	
-
-table2 as(Select p.projectId as project,fac.name as factory,ven.name as vendor1,nvl2(SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), ven.name) as vendor_name, case when vendor_name='' then ven.name else vendor_name end as vendor,cou.name as country,case when country in ('India', 'Bangladesh', 'Sri Lanka')
-then 'South Asia'
-when country in ('China')
-then 'North Asia'
-when country in ('Guatemala', 'El Salvador', 'Dominican Republic')
-then 'Americas'
-when country in ('Philippines', 'Cambodia',  'Vietnam',  'Indonesia', 'Myanmar')
-then 'South East Asia'
-end as region,case when p2.name_subunit is null or p2.name_subunit=' ' then 'N/A' else p2.name_subunit end  as unit,decode(DATEPART(YEAR,p2.date_enrollment),null,0,DATEPART(YEAR,p2.date_enrollment)) as year_new,p2.status,t1.projectId,representative.name as mr_wr,date_enrollment,
-count(mr_wr) as total_representatives
-
-from profile_18224 p
-
-
-
-left join profile_16619 p2
-on p.sub_unit = p2._id
-
-left join table1 t1 on
-p.projectId = t1.projectId
-
+table2 as 
+( select p.projectid , p._id , fac.name as factory , cou.name as country 
+ 
+ , case when nvl2(SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), ven.name)='' then ven.name else nvl2(SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), ven.name) end as vendor,
+ 
+ p2.fac_cl_vpid, p2.vendor_ngo_id, pri.name as primary_category , t1.active_filter , trai.name as training_type_update, to_char(date,'DD-MM-YYYY') as training_date ,num_managers , num_other as num_participants , hours , trainer_organization
+ from profile_61572 as p
+ 
+ 
 left join project_1137 fac
-on p.projectid = fac.id
+on  p.projectid = fac.id
+
 left join project_1137 ven
-on fac.parent = ven.id
+on  fac.parent = ven.id
+
 left join project_1137 cou
-on ven.parent = cou.id
-		  
-
-left join tagelement_1137 representative
-on p.mr_wr = representative.id
-
-			
-
-
-
-where  (cou.name <> 'Test Country' and cou.name <> 'GAP Inc.') and (p2.status = 1400365 or p2.status is null)
-and		  
-t1.projectId is not null
-	    and   project like '%%' 
-group by  p.projectId,fac.name ,ven.name,vendor,cou.name,region,unit,year_new,p2.status,t1.projectId,representative.name,date_enrollment
-
-
+on  ven.parent = cou.id 
+ 
+ left join profile_52810 p2 on
+ p.projectid = p2.projectid
+ 
+left join table1 t1 on 
+fac.name = t1.goodera_facility_name_text
+ 
+left join tagelement_1137 pri
+on  p2.primary_category = pri.id  
+ 
+left join tagelement_1137 trai
+on  p.training_type = trai.id 
+ 
+-- where p.projectid like '%%' and cou.name !='Test Country'
+ ),
+ 
+ 
+ table3 as
+ ( select p.* , d1 from table2 as p, p.trainer_organization as d1 ),
+ 
+ table4 as 
+ ( select  p.projectid , p._id ,  factory ,  country , vendor,
+ 
+fac_cl_vpid, vendor_ngo_id,  primary_category , active_filter , training_type_update, training_date ,num_managers , num_participants , hours , listagg(trainer_org.name,' , ') as trainer_org_update from table3 as p
+  
+left join tagelement_1137 trainer_org
+on  p.d1 = trainer_org.id  
+  
+  group by  p.projectid , p._id ,  factory ,  country , vendor,
+ 
+fac_cl_vpid, vendor_ngo_id,  primary_category , active_filter , training_type_update, training_date ,num_managers , num_participants , hours 
 )
-select factory,projectId,country,vendor,unit,year_new,mr_wr,total_representatives,region,date_enrollment from table2
-
+ 
+ select * from table4 where country !='Test Country'
