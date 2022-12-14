@@ -1,0 +1,55 @@
+with table1 as(select p.projectId from profile_16619 p
+
+			    
+left join profile_18224 p2
+on p.projectId = p2.projectId
+			   
+group by p.projectId
+),	
+
+table2 as(Select p.projectId as project,fac.name as factory,ven.name as vendor1,nvl2(SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), ven.name) as vendor_name, case when vendor_name='' then ven.name else vendor_name end as vendor,cou.name as country,case when country in ('India', 'Bangladesh', 'Sri Lanka')
+then 'South Asia'
+when country in ('China')
+then 'North Asia'
+when country in ('Guatemala', 'El Salvador', 'Dominican Republic')
+then 'Americas'
+when country in ('Philippines', 'Cambodia',  'Vietnam',  'Indonesia', 'Myanmar')
+then 'South East Asia'
+end as region,case when p2.name_subunit is null or p2.name_subunit=' ' then 'N/A' else p2.name_subunit end  as unit,decode(DATEPART(YEAR,p2.date_enrollment),null,0,DATEPART(YEAR,p2.date_enrollment)) as year_new,p2.status,t1.projectId,representative.name as mr_wr,
+count(mr_wr) as total_representatives
+
+from profile_18224 p
+
+
+
+left join profile_16619 p2
+on p.sub_unit = p2._id
+
+left join table1 t1 on
+p.projectId = t1.projectId
+
+left join project_1137 fac
+on p.projectid = fac.id
+left join project_1137 ven
+on fac.parent = ven.id
+left join project_1137 cou
+on ven.parent = cou.id
+		  
+
+left join tagelement_1137 representative
+on p.mr_wr = representative.id
+
+			
+
+
+
+where  (cou.name <> 'Test Country' and cou.name <> 'GAP Inc.') and (p2.status = 1400365 or p2.status is null)
+and		  
+t1.projectId is not null
+	    and   project like '%%' 
+group by  p.projectId,fac.name ,ven.name,vendor,cou.name,region,unit,year_new,p2.status,t1.projectId,representative.name
+
+
+)
+select factory,projectId,country,vendor,unit,year_new,mr_wr,total_representatives,region from table2
+
