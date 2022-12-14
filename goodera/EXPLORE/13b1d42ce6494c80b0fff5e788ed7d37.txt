@@ -7,9 +7,10 @@ where p1.timeperiod_timerange is not null),
 sub2 as(
   select s1.*, source_div_unwind, region_unwind
   from sub1 s1, s1.region region_unwind,  s1.source_div source_div_unwind
-  where rank = 1)
+  where rank = 1),
   
-select s2.factory_id, s2.factory_name, nvl(t2.name, t1.name) as business_div, nvl(t4.name, t3.name) as region, p2.brand_text as brand
+sub3 as(
+  select s2.factory_id, s2.factory_name, nvl(t2.name, t1.name) as business_div, nvl(t4.name, t3.name) as region, p2.brand_text as brand
 from sub2 s2
 left join tagElement_7200 t1 on t1.id = s2.source_div_unwind
 left join tagElement_7200 t2 on t2.id = t1.parent
@@ -17,3 +18,10 @@ left join tagElement_7200 t3 on t3.id = s2.region_unwind
 left join tagElement_7200 t4 on t4.id = t3.parent
 
 left join profile_81437 p2 on p2.business_division_text = nvl(t2.name, t1.name)
+
+where p2.brand_text != 'Heritage Brands')
+
+select factory_id, factory_name, listagg(distinct business_div, ', ') as  business_div,
+listagg(distinct region, ', ') as  region, listagg(distinct brand, ', ') as  brand
+from sub3
+group by factory_id, factory_name
