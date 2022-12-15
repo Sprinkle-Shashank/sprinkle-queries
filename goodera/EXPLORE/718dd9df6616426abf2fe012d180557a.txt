@@ -1,5 +1,22 @@
-select proj.name as projectid, venue, tag1.name as activity_type, description, start_date, end_date, shg_train, shg_member_train, tag2.name as training_type, cast(fy_timerange.start as varchar)||'|'||cast(fy_timerange.end as varchar) as fy_timerange, shg_non_member_training, to_char(cast(substring(cast(p.fy_timerange.start as varchar),1,10)as date),'Mon') as month, to_char(cast(substring(cast(p.fy_timerange.start as varchar),1,10)as date),'MM') as month_num,  count(*) as trainees from profile_58864 p
-left join ds_mysql_prod_project proj on p.projectId=proj.id
-left join ds_mysql_prod_tagelement tag1 on p.activity_type=tag1.id
-left join profile_58863 tag2 on p.training_type=tag2._id
-group by 1,2,3,4,5,6,7,8,9,10,11,12,13 order by 12
+SELECT venue, description, start_date, end_date, shg_train, shg_member_train, shg_non_member_training,
+P.name AS projectid,
+T1.name AS activity_type,
+T2.name AS training_type,
+CAST(fy_timerange.start AS VARCHAR)||'|'|| CAST(fy_timerange.end AS VARCHAR) AS fy_timerange,
+TO_CHAR(CAST(SUBSTRING(CAST(TS.fy_timerange.start AS VARCHAR), 1, 10) AS date),'MM')||'-' ||TO_CHAR(CAST(SUBSTRING(CAST(TS.fy_timerange.start AS VARCHAR), 1, 10) AS date),'Mon') AS month,
+COUNT(*) AS trainees
+
+FROM profile_58864 AS TS
+
+LEFT JOIN ds_mysql_prod_project AS P
+ON TS.projectId = P.id
+
+LEFT JOIN ds_mysql_prod_tagelement AS T1
+ON TS.activity_type = T1.id
+
+LEFT JOIN profile_58863 AS T2
+ON TS.training_type = T2._id
+
+GROUP BY 1,2,3,4,5,6,7,8,9,10,11,12
+
+ORDER BY 11
