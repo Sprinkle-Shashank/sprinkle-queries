@@ -1,0 +1,34 @@
+SELECT SA.fy_timerange, T2.name AS subject,
+
+T3.name AS grade,
+SE.name as student_enrolled,
+(SA.marks_obtained * 100) / SA.marks_max AS score,
+
+	CASE
+		WHEN score > 60
+		THEN 'true'
+		ELSE 'false'
+	END AS above_60 ,
+	count(*)
+
+FROM profile_79041 AS SA
+
+LEFT JOIN ds_mysql_prod_tagelement AS T1
+ON T1.id = SA.type
+
+LEFT JOIN profile_79039 AS SE
+ON SE._id = SA.student
+
+LEFT JOIN ds_mysql_prod_tagelement AS T2
+ON T2.id = SA.subject
+
+LEFT JOIN ds_mysql_prod_tagelement AS T3
+ON T3.id = SE.grade
+
+--WHERE 
+--T1.name = 'Term 3' AND 
+
+--above_60 = true
+
+GROUP BY SA.fy_timerange, T2.name, SE.unique_id, T3.name , SE.name
+order by se.name desc
