@@ -1,0 +1,41 @@
+with temp as ( 
+select 'ratio_of_applications_to_quality' as c
+  Union all 
+select 'pre_incubation_stage_selected' as c
+  Union all 
+select 'incubation_stage_selected' as c 
+  Union all 
+  select 'jobs_created_directly' as c
+  Union all 
+  select 'jobs_created_indirectly' as c 
+  Union all 
+  select 'customers_targeted_thr_ventures' as c 
+  Union all 
+  select 'cities_targeted_fr_ventures_traction' as c 
+  Union all 
+  select 'group_sessions_conducted' as c 
+  Union all 
+  select 'one_on_one_sessions_conducted' as c 
+  )
+  
+  
+  select pro.name as projectid, fy_timerange,
+sum( case c when 'ratio_of_applications_to_quality' then p.children_enrolled_regular
+	        when 'pre_incubation_stage_selected' then p.children_enrolled_irregular
+	        when 'incubation_stage_selected' then p.health_sensitization_session
+	        when 'jobs_created_directly' then p.nutrition_sensitization_sessions
+	        when 'jobs_created_indirectly' then p.life_skills_sensitization_sessions
+	        when 'customers_targeted_thr_ventures' then p.health_checkups_organized
+	        when 'cities_targeted_fr_ventures_traction' then p.drug_deaddiction
+	        when 'group_sessions_conducted' then p.psychosocial_sessions_held
+	        when 'one_on_one_sessions_conducted' then p.psychosocial_sessions
+	
+	
+	        else null end ) as val, temp.c as dim from profile_83099 p
+			
+			left join ds_mysql_prod_project pro
+             on p.projectid = pro.id
+			cross join temp
+			
+group by projectid,fy_timerange,temp.c,pro.name			
+			
