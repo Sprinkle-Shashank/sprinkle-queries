@@ -3,21 +3,21 @@
 with t1 as
 (SELECT * 
 FROM
-(Select  projectId, school_name, level, fy_timerange, attend_less_than_5, attend_5_to_15, attend_more_than_15, teacher_name,SUBSTRING(CAST(fy_timerange.start as varchar),6,2) as x from profile_65258
+(Select  projectId, school_name, level, fy_timerange, attend_less_than_5 as < 5 Days, attend_5_to_15 as 5 - 15 Days, attend_more_than_15 as > 15 Days, teacher_name,SUBSTRING(CAST(fy_timerange.start as varchar),6,2) as x from profile_65258
 
 )
 UNPIVOT (
-    val FOR dim IN (attend_less_than_5, attend_5_to_15,attend_more_than_15))
+    val FOR dim IN (< 5 Days, 5 - 15 Days,> 15 Days))
 
 )
 
-select p.projectId, p.school_name, p.level, p.fy_timerange, p.teacher_name, CASE WHEN x='03' then 'January' else x end as xx, sum(val) as vl,dim from t1 as p
+select p.projectId, p.school_name, p.level, p.fy_timerange, p.teacher_name, CASE WHEN x='01' then 'January'  WHEN  x='02' then 'February'  WHEN  x='03' then 'March'  WHEN  x='04' then 'April' WHEN   x='05' then 'May'  WHEN  x='06' then 'June'  WHEN   x='07' then 'July'  WHEN  x='08' then 'August'  WHEN  x='09' then 'September'  WHEN  x='10' then 'October'  WHEN  x='11' then 'November'   WHEN  x='12' then 'December' else 'Not Reported' end as monthsplit, sum(val) as vl,dim from t1 as p
 
 left join profile_65257 p1
 on p.teacher_name= p1._id
 
 
-Group By p.projectId, p.school_name, p.level, p.fy_timerange, xx,  dim, p.teacher_name  
+Group By p.projectId, p.school_name, p.level, p.fy_timerange, monthsplit,x,  dim, p.teacher_name  
   
 
 
