@@ -1,2 +1,40 @@
-select projectId, fy_timerange, beneficiary, pre_assessment, post_assessment
-from profile_61656
+--Agrasar Assessment
+with t1 as 
+(select tag1.name as projectId, p1.fy_timerange, p1.pre_assessment, p1.post_assessment, p2.name as beneficiary, tag2.name as location, tag3.name as batch
+from profile_61656 p1
+left join ds_mysql_prod_project tag1
+on p1.projectId = tag1.id
+left join profile_61651 p2
+on p1.beneficiary = p2._id
+left join ds_mysql_prod_tagelement tag2
+on p2.location = tag2.id
+left join ds_mysql_prod_tagelement tag3
+on p2.batch = tag3.id),
+
+items as 
+(
+select 'pre_assessment' as c
+union all
+select 'post_assessment' as c
+),   
+
+t2 as (
+select it.c,
+case c
+when 'pre_assessment' then t1.pre_assessment
+when 'post_assessment' then t1.post_assessment
+else null
+end 
+from t1 cross join items as it  
+)
+
+select distinct t1.projectId, t1.beneficiary, t2.c as Assesments, t2.case as val, t1.batch, t1.location 
+from t1, t2
+group by t1.projectId, t1.beneficiary, t2.c, t2.case , t1.batch, t1.location 
+
+
+
+
+
+
+  
