@@ -1,9 +1,10 @@
+--MylanIndia_Overall_Project_Details
 with temp1 AS
 (select m.projectId, m.project_name, m.vertical, m.focus, cast(m.start_date as date) as start_date1, m.project_code, m.entity, CAST(r.fy_timerange.end as date) as update_date, compl.name as completed, prog.name as progress, 
 concat(start_date1,'T00:00:00.000Z') as start1,
 concat(update_date,'T00:00:00.000Z') as end2,
 concat(concat(concat(concat('{"start":"',start1),'","end":"'),end2),'"}') as fy_1,
- m.description, month,row_number() over (partition by m.project_code order by m._id desc) as row 
+ m.description, month,row_number() over (partition by m.project_code order by m._id desc) as row , m._id
   
 from profile_62881 as m
 
@@ -38,10 +39,10 @@ when month_1 = 11 then 'Nov'
 when month_1 = 12 then 'Dec'
 else NULL
 END AS month_name
-, concat(month_name,concat('-',year)) ,   case 
+, concat(month_name,concat('-',year)) as update_month ,   case 
 when vert1.name IS NULL AND vert.name IS NOT NULL THEN vert.name
 else vert1.name 
-END AS vertical
+END AS vertical , m._id
 
 from temp2 as m
 
@@ -57,10 +58,21 @@ left join ds_mysql_prod_tagelement as focus
 left join ds_mysql_prod_tagelement as entity
   on m.entity = entity.id
 
-group by m.project_name, m.projectId, focus.name, m.project_code, entity.name, m.progress, m.completed, m.start_date1, m.update_date, m.fy_1,m.description , vertical , vert1.name , vert.name
+group by m.project_name, m.projectId, focus.name, m.project_code, entity.name, m.progress, m.completed, m.start_date1, m.update_date, m.fy_1,m.description , vertical , vert1.name , vert.name , m._id , update_month
 
 order by m.project_code asc, update_date desc
- )
+ ),
+
+table4 as
+(
+select m.project_name, focus, m.project_code, entity, progress , completed , update_date , m.start_date1, fy_timerange ,m.description , vertical , _id , update_month from table3 as m
+),
+
+table5 as (
+select m._id , m.project_code , m.fy_timerange , m.description , update_month, m.vertical , m.entity , start_date1 , listagg(distinct m.completed, ' , ') as complete_update , listagg(distinct m.update_date, ' , ') as update_date_new , listagg(distinct m.progress, ' , ') as progress_update from table4 as m 
 
 
-select * from table3
+group by  m._id , m.project_code , m.fy_timerange , m.description , update_month, m.vertical , m.entity , start_date1 
+)
+
+select * from table5 
