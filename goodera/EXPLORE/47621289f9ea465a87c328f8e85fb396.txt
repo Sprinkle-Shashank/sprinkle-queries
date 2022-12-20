@@ -1,3 +1,4 @@
+--HDFC_IA_NGO_Maturity
 with base1 as(
 Select p.registration_date,datediff(year,p.registration_date,cast(current_date as datetime)) as age_in_yrs,
 case when age_in_yrs <3 then 'NA'
@@ -20,21 +21,33 @@ end as Age_Category
 from  profile_80183 p),
 
 base6 as(
-select Age_category, count(Age_category)
+select Age_category
 from Base1 
 where Age_category<>'NA' 
-group by 1
+--group by 1
 union all
-select Age_category,count(Age_category)
+select Age_category
 from Base2
 where Age_category<>'NA' 
-group by 1
+--group by 1
 )
+Select Age_category,
+case when Age_category='3-10 years' then 1
+when Age_category='11-20 years' then 2
+when Age_category='21-30 years' then 3
+when Age_category='30+ years' then 4
+end as sort,
+count(*)
+from base6
+group by 1,2
+
+
+/*
 
 Select * from base6
 group by base6.Age_category,base6.count
 
-/*
+
 select age_category,count(age_category),
 case 
 when Age_category='3-10 years' then 1
