@@ -1,3 +1,4 @@
+--Capgemini_PositiveParentingBeneficiaries
 with table1 as (select fy_timerange, num_direct_bene, loc_sates_districts, case when num_direct_bene is not null then 'Not Known' end as gender, t.name as proj_location, t1.name as partner, t2.name as projectId, t3.name as project,  t0.code as state_codes, st.name as state, case when Substring(json_serialize(fy_timerange),3,3) = 'end' then Substring(json_serialize(fy_timerange),9,4) else Substring(json_serialize(fy_timerange),11,4) end as FY
 
 from profile_27711
@@ -19,7 +20,10 @@ on profile_75455.projectId=profile_27711.projectId
 left join ds_mysql_prod_tagelement st
 on  profile_27711.loc_sates_districts = st.id
 				
-left join ds_mongo_reftagelementmetadata t0 on t0._id = st.reftagelementmetadataid
+left join ds_mysql_prod_tagelement st2
+on  st2.id = st.parent
+				
+left join ds_mongo_reftagelementmetadata t0 on t0._id = st2.reftagelementmetadataid
 ),
 table2 as (
   select t.name as projectid,  proj_start_date, proj_end_date,fa.name as focus_area, pp.name as project_pillar, pt.name as project_type from profile_65552
