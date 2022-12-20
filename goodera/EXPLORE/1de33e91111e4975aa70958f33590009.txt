@@ -1,5 +1,6 @@
+--bajaj_1_2_unq
 --34752,4492
-with row_number as (select id,completedon,action,grantproposalid,grantflowtaskid,
+with row_number as (select id,cast(concat(concat(substring(cast(timestamp 'epoch' + CAST(completedon AS BIGINT)/1000 * interval '1 second' as varchar), 1, 10),'T'), concat(split_part(cast(timestamp 'epoch' + CAST(completedon AS BIGINT)/1000 * interval '1 second' as varchar), ' ',2),'.000Z')) as datetime) as completedon,action,grantproposalid,grantflowtaskid,
 ROW_NUMBER() over(partition by grantproposalid, grantflowtaskid order by openedon DESC) AS row_number 
 from ds_mysql_prod_grantflowtaskgrantproposalrecord), 
 
@@ -8,6 +9,6 @@ temp1 as(
 select id,completedon,action,grantproposalid,grantflowtaskid,row_number from temp
 where grantflowtaskid in (34752,4492) and (action is not null))
 
-select DISTINCT(p1.grantpartnerid) as id,p3.name as grant_name,t1.completedon,t1.action,t1.grantproposalid,t1.grantflowtaskid,t1.row_number from temp1 t1
+select DISTINCT(p1.grantpartnerid) as id,t1.completedon,t1.action,t1.grantproposalid,t1.grantflowtaskid,t1.row_number from temp1 t1
 left join ds_mysql_prod_grantproposal p1
 on t1.grantproposalid = p1.id
