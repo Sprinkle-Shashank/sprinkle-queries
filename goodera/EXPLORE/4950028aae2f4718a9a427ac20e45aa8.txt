@@ -1,17 +1,22 @@
-with Base1 as(select p.fy_timerange,f.name as financial_year,t2.name as Project,p.emp_name from profile_145 p
+--TRRAIN_Overview_top_5_employers
+with Base1 as(select p.fy_timerange,f.name as financial_year,t2.name as Project,e.name as emp_name from profile_145 p
 LEFT JOIN ds_mysql_prod_project t on p.projectId=t.id
 LEFT JOIN ds_mysql_prod_project t1 on t.parent=t1.id
 LEFT JOIN ds_mysql_prod_project t2 on t1.parent=t2.id
 left join ds_mysql_prod_tagelement f on
 p.financial_year=f.id
+left join ds_mysql_prod_tagelement e on
+p.emp_name=e.id
 where p.emp_name is not null
 union all
-select l.fy_timerange,f.name,t2.name as Project,l.emp_name from profile_36901 l
+select l.fy_timerange,f.name,t2.name as Project,e.name from profile_36901 l
 LEFT JOIN ds_mysql_prod_project t on l.projectId=t.id
 LEFT JOIN ds_mysql_prod_project t1 on t.parent=t1.id
 LEFT JOIN ds_mysql_prod_project t2 on t1.parent=t2.id
 left join ds_mysql_prod_tagelement f on
 l.financial_year=f.id
+left join ds_mysql_prod_tagelement e on
+l.emp_name=e.id
 where l.emp_name is not null
 )
 select *,count(*) from Base1 group by fy_timerange,financial_year,Project,emp_name
