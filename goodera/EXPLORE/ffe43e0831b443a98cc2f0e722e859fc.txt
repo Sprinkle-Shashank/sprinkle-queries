@@ -1,36 +1,39 @@
+--Bajaj Sector wise major project details for the annual report
 --46184, 46299, 46318, 46228, 55677, 55825
 with base11 as(
-	select grantproposalid,grantflowtaskid,name_org,value.amount_released,value.payment_date,approved_amount_project,disbursement_thru from profile_46184 p1, unpivot p1.disbursement_plan as value at disbursement_plan
+	select grantproposalid,grantflowtaskid,name_org,value.amount_released,value.payment_date,focus_area,approved_amount_project,disbursement_thru from profile_46184 p1, unpivot p1.disbursement_plan as value at disbursement_plan
 ),
 base21 as(
-	select grantproposalid,grantflowtaskid,name_org,value.amount_released,value.payment_date,approved_amount_project,cast(disbursement_thru[0] as INT4) from profile_46299 p1, unpivot p1.disbursement_plan as value at disbursement_plan
+	select grantproposalid,grantflowtaskid,name_org,value.amount_released,value.payment_date,focus_area,approved_amount_project,cast(disbursement_thru[0] as INT4) from profile_46299 p1, unpivot p1.disbursement_plan as value at disbursement_plan
 ),
 base31 as(
-	select grantproposalid,grantflowtaskid,name_org,value.amount_released,value.payment_date,approved_amount_project,disbursement_thru from profile_46318 p1, unpivot p1.disbursement_plan as value at disbursement_plan
+	select grantproposalid,grantflowtaskid,name_org,value.amount_released,value.payment_date,focus_area,approved_amount_project,disbursement_thru from profile_46318 p1, unpivot p1.disbursement_plan as value at disbursement_plan
 ),
 base41 as(
-	select grantproposalid,grantflowtaskid,name_org,value.amount_released,value.payment_date,disbursement_thru,approved_amount_project from profile_46228 p1, unpivot p1.disbursement_plan as value at disbursement_plan
+	select grantproposalid,grantflowtaskid,name_org,value.amount_released,value.payment_date,disbursement_thru,focus_area,approved_amount_project from profile_46228 p1, unpivot p1.disbursement_plan as value at disbursement_plan
 ),
 base51 as(
-	select grantproposalid,grantflowtaskid,name as name_org,value.amount_released,value.payment_date,approved_amount_project,cast(disbursement_thru as INT4) from profile_55677 p1, unpivot p1.disbursement_plan as value at disbursement_plan
+	select grantproposalid,grantflowtaskid,name as name_org,value.amount_released,value.payment_date,approved_amount_project,focus_area,cast(disbursement_thru as INT4) from profile_55677 p1, unpivot p1.disbursement_plan as value at disbursement_plan
 ),
 base61 as(
-	select grantproposalid,grantflowtaskid,name as name_org,value.amount_released,value.payment_date,approved_amount_project,cast(disbursement_thru as INT4) from profile_55825 p1, unpivot p1.disbursement_plan as value at disbursement_plan
+	select grantproposalid,grantflowtaskid,name as name_org,value.amount_released,value.payment_date,approved_amount_project,focus_area,cast(disbursement_thru as INT4) from profile_55825 p1, unpivot p1.disbursement_plan as value at disbursement_plan
 ),
 base as (
-select name_org,amount_released,disbursement_thru,payment_date from base11
+select name_org,amount_released,disbursement_thru,focus_area,payment_date from base11
 union all
-select name_org,amount_released,disbursement_thru,payment_date from base21
+select name_org,amount_released,disbursement_thru,focus_area,payment_date from base21
 union all
-select name_org,amount_released,disbursement_thru,payment_date from base31
+select name_org,amount_released,disbursement_thru,focus_area,payment_date from base31
 union all
-select name_org,amount_released,disbursement_thru,payment_date from base41
+select name_org,amount_released,disbursement_thru,focus_area,payment_date from base41
 union all
-select name_org,amount_released,disbursement_thru,payment_date from base51
+select name_org,amount_released,disbursement_thru,focus_area,payment_date from base51
 union all
-select name_org,amount_released,disbursement_thru,payment_date from base61
+select name_org,amount_released,disbursement_thru,focus_area,payment_date from base61
 )
-select b.name_org,cast(b.payment_date as TIMESTAMPTZ) as payment_date,SUM(cast(b.amount_released as float4)) as amount_released,tag1.name as disbursement_thru from base b
+select b.name_org,cast(b.payment_date as TIMESTAMPTZ) as payment_date,SUM(cast(b.amount_released as float4)) as amount_released,tag1.name as disbursement_thru,tag2.name as focus_area from base b
 left join ds_mysql_prod_tagelement tag1
 on b.disbursement_thru = tag1.id
-group by 1,2,4
+left join ds_mysql_prod_tagelement tag2
+on b.focus_area = tag2.id
+group by 1,2,4,5
