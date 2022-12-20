@@ -1,4 +1,42 @@
+--PadminiVNA_ExecutiveSummary_YearFilter
 with table1 as (select fy_timerange from profile_80249
 union
 select fy_timerange from profile_79500
-order by fy_timerange) select fy_timerange from table1
+order by fy_timerange) ,table2 as ( select 
+Substring(json_serialize(fy_timerange),11,4)::smallint as year, Substring(json_serialize(fy_timerange),16,2)::smallint as start_month,
+  Substring(json_serialize(fy_timerange),49,2)::smallint as end_month,
+case when start_month = 1 then 'January'
+	 when start_month = 2 then 'February'
+	 when start_month = 3 then 'March'
+	 when start_month = 4 then 'April'
+	 when start_month = 5 then 'May'
+	 when start_month = 6 then 'June'
+	 when start_month = 7 then 'July'
+	 when start_month = 8 then 'August'
+	 when start_month = 9 then 'September'
+	 when start_month = 10 then 'October'
+	 when start_month = 11 then 'November'
+	when start_month = 12 then 'December' end as start_month_name,
+   case when end_month = 2 then 'January'
+	 when end_month = 3 then 'February'
+	 when end_month = 4 then 'March'
+	 when end_month = 5 then 'April'
+	 when end_month = 6 then 'May'
+	 when end_month = 7 then 'June'
+	 when end_month = 8 then 'July'
+	 when end_month = 9 then 'August'
+	 when end_month = 10 then 'September'
+	 when end_month = 11 then 'October'
+	 when end_month = 12 then 'November'
+	when end_month = 1 then 'December' end as end_month_name from table1),table3 as 
+	(
+	select case when (year=2019 and start_month>3) or (year=2020 and start_month<4) then 'FY 2019-20'
+	 when (year=2020 and start_month>3) or (year=2021 and start_month<4) then 'FY 2020-21'
+	 when (year=2021 and start_month>3) or (year=2022 and start_month<4) then 'FY 2021-22' 
+	 when (year=2022 and start_month>3) or (year=2023 and start_month<4) then 'FY 2022-23'
+	 when (year=2023 and start_month>3) or (year=2024 and start_month<4) then 'FY 2023-24'
+	 else 'FY 2024-25' end as year from table2
+	 )
+	 select year from table3
+	 group by year
+
