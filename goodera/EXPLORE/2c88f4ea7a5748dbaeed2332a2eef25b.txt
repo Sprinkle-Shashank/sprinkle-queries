@@ -1,5 +1,4 @@
-select * from profile_65267
-/*
+
 with
 t3 as
 (SELECT * 
@@ -14,6 +13,7 @@ UNPIVOT (
 t4 as (
 select projectId, class,sum(val) as val,dim,select_name, teacher_name,  exam_type,fy_timerange from t3 as p
 
+  
 
 where val is not null
 
@@ -21,6 +21,17 @@ Group By projectId,  dim,class,select_name, teacher_name,  exam_type,fy_timerang
   ),
   t5 as (select t1.*,clas from t4 t1 , t1.class as clas)
   
-  select projectId,  clas   , val,dim,select_name, teacher_name,  exam_type,fy_timerange from t5 as p
+  select projectId,  p3.name as clas   , val,dim,p4.name as school_name, p1.name as teacher_name,  p2.name as exam_type,fy_timerange from t5 as p
 
-*/
+
+left join profile_65257 p1
+on p.teacher_name= p1._id
+
+ left join ds_mysql_prod_tagelement p2
+  on p.exam_type = p2.id
+  
+ left join ds_mysql_prod_tagelement p3
+  on p.clas = p3.id
+   left join ds_mysql_prod_tagelement p4
+  on p.select_name = p4.id
+Group By projectId,  dim,fy_timerange.p3.name,p4.name,p1.name,p2.name
