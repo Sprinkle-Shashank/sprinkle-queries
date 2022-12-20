@@ -1,0 +1,39 @@
+--client_test
+with history_allied as (
+	select fy_timerange, projectid, sum(vision_allied + vision_partner) as allied
+  	from profile_63885
+  	group by 1,2
+),
+
+history as (
+  	select fy_timerange, projectid,
+  	case when vision_truckers is not null then 'Trucker' end as f_category,
+  	sum(vision_truckers) as total_sum
+  	from profile_63885
+  	group by 1,2,3
+  
+  	union all
+  
+  	select fy_timerange, projectid,
+  	case when allied is not null then 'Allied' end as f_category,
+  	sum(allied) as total_sum
+  	from history_allied
+  	group by 1,2,3
+),
+final_temp as (
+	select f_reg_date as fy_timerange, projectid, f_category, count(*) as total_sum
+  	from profile_59462
+  	where vision in ('1012445', '1012446', '1012447', '1012448', '1012449')
+  	group by 1,2,3
+  
+  	union
+  
+ 	select fy_timerange, projectid, f_category, sum(total_sum) as total_sum 
+  	from history
+  	group by 1,2,3
+)
+
+
+select fy_timerange, projectid, f_category, sum(total_sum) as total_sum
+from final_temp
+group by 1,2,3
