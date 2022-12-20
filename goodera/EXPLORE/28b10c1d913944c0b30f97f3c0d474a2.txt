@@ -1,0 +1,33 @@
+with temp as ( select 'Carbon Sequestration per Tree in Total Lifespan' as c
+			   Union all
+			   select 'Carbon Sequestration per Tree in the Reporting Year' as c
+			   Union all 
+			   select 'Total Carbon Sequestration Potential Utilized' as c
+			   Union all
+			   select 'Total Carbon Sequestration Potential Available' as c)
+
+select pro.name as projectid,p.fy_timerange,p1.ngo_name as ngoname,dist.name as district,stat.name as state,p.financial_year,
+sum (case c when 'Carbon Sequestration per Tree in Total Lifespan'  then p.carbon_per_tree_total  
+       when 'Carbon Sequestration per Tree in the Reporting Year' then p.carbon_per_tree_reporting
+	   when 'Total Carbon Sequestration Potential Utilized' then p.carbon_potential_utilized
+	   when 'Total Carbon Sequestration Potential Available' then p.carbon_potential_available
+	   else null
+	   end) as val, temp.c as dim 
+	  
+from profile_83171 p
+
+cross join temp 
+
+left join profile_83168 p1 
+on p.ngo_name = p1._id
+  
+left join ds_mysql_prod_tagelement as dist
+  on p.state_district = dist.id
+  
+left join ds_mysql_prod_tagelement as stat
+  on dist.parent = stat.id  
+  
+left join ds_mysql_prod_project as pro
+  on p.projectid = pro.id
+
+group by pro.name, p.fy_timerange,dist.name,stat.name,p1.ngo_name,temp.c , p.financial_year
