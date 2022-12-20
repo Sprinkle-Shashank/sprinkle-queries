@@ -1,2 +1,54 @@
-select * 
-from profile_65060
+--DK TCLP Books Issued
+with t1 as 
+(select p1._id, tag1.name as projectId, p1.name, p1.fy_timerange, p1.issue_date :: date, p1.book_title, p1.bar_code, p2.name as card_number, tag2.name as member_gender, p2.dob :: date, p2.full_name, to_char(p1.issue_date, 'MM') as issue_month
+from profile_65060 p1
+left join ds_mysql_prod_project tag1 
+on p1.projectId = tag1.id
+left join profile_65059 p2
+on p1.card_number = p2._id
+left join ds_mysql_prod_tagelement tag2
+on p2.member_gender = tag2.id),
+
+t2 as 
+(select t1._id, t1.projectId, t1.name, t1.fy_timerange, t1.issue_date, t1.book_title, t1.bar_code, t1.card_number, t1.member_gender, t1.dob, t1.full_name, t1.issue_month :: integer, round((t1.issue_date - t1.dob)/365) as age,
+
+case t1.issue_month :: integer
+when t1.issue_month :: integer = 1 then 'Jan'
+when t1.issue_month :: integer = 2 then 'Feb'
+when t1.issue_month :: integer = 3 then 'Mar'
+when t1.issue_month :: integer = 4 then 'Apr'
+when t1.issue_month :: integer = 5 then 'May'
+when t1.issue_month :: integer = 6 then 'Jun'
+when t1.issue_month :: integer = 7 then 'Jul'
+when t1.issue_month :: integer = 8 then 'Aug'
+when t1.issue_month :: integer = 9 then 'Sep'
+when t1.issue_month :: integer = 10 then 'Oct'
+when t1.issue_month :: integer = 11 then 'Nov'
+when t1.issue_month :: integer = 12 then 'Dec'
+else null
+end as issue_month1
+
+from t1)
+
+select t2._id, t2.projectId, t2.name, t2.fy_timerange, t2.issue_date, t2.book_title, t2.bar_code, t2.card_number, t2.member_gender, t2.dob, t2.full_name, t2.issue_month as issue_month_no, t2.age :: integer, t2.issue_month1 as issue_month,
+
+case t2.age :: integer 
+when t2.age :: integer <= 10 then 'Less than 10 years'
+when t2.age :: integer <= 15 then 'Between 10-15 years'
+when t2.age :: integer <= 20 then 'Between 15-20 years'
+when t2.age :: integer <= 25 then 'Between 20-25 years'
+else null
+
+
+end as age_group, count(*) as Books
+from t2
+
+group by
+t2._id, t2.projectId, t2.name, t2.fy_timerange, t2.issue_date, t2.book_title, t2.bar_code, t2.card_number, t2.member_gender, t2.dob, t2.full_name, t2.issue_month,  t2.age, t2.issue_month1
+
+order by issue_month_no asc
+
+
+
+
+
