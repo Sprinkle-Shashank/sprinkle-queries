@@ -1,5 +1,21 @@
-select p2.name as projectid, p1.timerange_timerange as fy_timerange ,p1. learning_hours_35,p1. learning_hours_56, p.name, p3.name as centre_name,t1.name as location, p4.name as quarter_time, count(*)
+--3M_SRP_Number of learning hours for Children1
+With Temp as (
+  select 'learning_hours35' as col
+  Union all select 'learning_hours56' as col) 
+
+
+
+select p2.name as projectid, p1.timerange_timerange as fy_timerange , temp.col as total_learning_hours , p.name, p3.name as centre_name,t1.name as location, p1.quarter_time, count(*),
+sum(case col 
+   when 'learning_hours35' then p1.learning_hours_35
+   when 'learning_hours56' then p1.learning_hours_56
+   else null
+   end) as values
+   
+  
 from profile_54538 as p1 
+cross join
+temp
 left join
 ds_mysql_prod_project as p2 on p2.id=p1.projectid
 left join
@@ -8,10 +24,9 @@ left join
 ds_mysql_prod_tagelement as t1 on t1.id=p.location 
 left join
 profile_54537 as p3 on p3._id = p1.centre_name 
-left join 
-profile_54538 as p4 on p4._id = p1.quarter_time
+
 
 group by
-p2.name, p1.timerange_timerange, p1. learning_hours_35,p1. learning_hours_56, p.name,t1.name,p4.name, p3.name
+p2.name, p1.timerange_timerange, temp.col , p.name,t1.name, p3.name, p1.quarter_time
 order by
 p1.timerange_timerange asc
