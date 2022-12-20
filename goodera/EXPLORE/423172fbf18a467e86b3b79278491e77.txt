@@ -1,3 +1,4 @@
+--Tally_Leadership_Location
 with sub1 as(
 select p.name as projectId, sched7, spoc_name, location, project_duration, logo_image, project_descrip, project_name, spoc_email, project_status, fy_timerange, extract(year from cast (fy_timerange.start as date)) as year,extract(month from cast (fy_timerange.start as date)) as start_month,budget_approved, bene_num, spoc_number, a.name, t1.name as choose
   
@@ -18,10 +19,13 @@ budget_approved, bene_num, spoc_number, name
 from sub1 a, a.location location1)
 
 select projectId, fy_timerange, t.name as location, 1 as count, 
-('FY('||s2.fy_year-2000||'-'||s2.fy_year+1-2000||')') as fy, choose 
+('FY('||s2.fy_year-2000||'-'||s2.fy_year+1-2000||')') as fy, choose,
+case
+	when choose = 'Long Term Projects' then 'Long Term'
+	when choose = 'Short Term Projects' then 'Short Term'
+	else NULL
+end as x_axis
 from sub2 as s2
-
-case when choose="Long Term Projects" then "Long Term" else "Short Term" end as choose1
 
 left join ds_mysql_prod_tagelement t
 on t.id=location1
