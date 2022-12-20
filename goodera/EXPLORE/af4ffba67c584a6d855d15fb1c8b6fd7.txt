@@ -8,7 +8,7 @@ with temp as ( select 'Number of Farmers Benefitted' as c
 			   Union all
 			   select 'Number of Households Benefitted' as c)
 
-select pro.name as projectid,fy_timerange,ngo.name as ngoname,pz.name as plantation,dist.name as district,stat.name as state,financial_year,
+select pro.name as projectid,fy_timerange,p1.ngo_name as ngoname,dist.name as district,stat.name as state,financial_year,
 sum (case c when 'Number of Farmers Benefitted'  then p.farmers_benefitted  
        when 'Number of Families Benefitted' then p.families_benefitted
 	   when 'Number of Villages Benefitted' then p.villages_benefited
@@ -21,11 +21,8 @@ from profile_83170 p
 
 cross join temp 
 
-left join ds_mysql_prod_tagelement as ngo
-  on p.ngo_name = ngo.id
-  
-left join ds_mysql_prod_tagelement as pz
-  on p.plantation_zone = pz.id
+left join profile_83168 p1 
+on p.ngo_name = p1._id
   
 left join ds_mysql_prod_tagelement as dist
   on p.state_district = dist.id
@@ -33,7 +30,7 @@ left join ds_mysql_prod_tagelement as dist
 left join ds_mysql_prod_tagelement as stat
   on dist.parent = stat.id  
   
-  left join ds_mysql_prod_project as pro
+left join ds_mysql_prod_project as pro
   on p.projectid = pro.id
 
-group by pro.name, fy_timerange,dist.name,stat.name,ngo.name,pz.name,temp.c , financial_year
+group by pro.name, fy_timerange,dist.name,stat.name,ngo.name,temp.c , financial_year
