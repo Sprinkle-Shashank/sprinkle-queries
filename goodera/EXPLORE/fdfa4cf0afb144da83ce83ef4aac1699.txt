@@ -1,3 +1,4 @@
+--Honeywell_Executive_Summary_Swades_Water_for_Agriculture
 with table1 as (select pro.name as projectid, s.fy_timerange, sum(households) as count,detail.schedule_7,detail.location from profile_79706 s
 
 LEFT JOIN ds_mysql_prod_project AS pro
@@ -10,7 +11,7 @@ group by pro.name ,s.fy_timerange,detail.schedule_7,detail.location),
 
 table2 as ( select projectid,fy_timerange,schedule,locate,count from table1 tab1, tab1.schedule_7 schedule, tab1.location locate)
 
-select projectid, fy_timerange, count,sche.name as schedule_7,dist.name as district,sta.name as state,reftag.code 
+select projectid, fy_timerange, count,sche.name as schedule_7,listagg(dist.name , ',') as district,sta.name as state,reftag.code 
 from table2 tab2
 
 LEFT JOIN ds_mysql_prod_tagelement AS sche
@@ -24,3 +25,4 @@ ON dist.parent = sta.id
 
 left join ds_mongo_reftagelementmetadata reftag on
 sta.name = reftag.name
+group by projectid,fy_timerange,count,sche.name,sta.name,reftag.code
