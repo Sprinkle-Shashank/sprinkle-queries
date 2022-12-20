@@ -1,33 +1,24 @@
 
-
 with
 t3 as
 (SELECT * 
 FROM
-(Select   projectId, select_name, teacher_name, class, exam_type, eh_beginner, engsmall_letter, eng_cap_letter, eh_word, eh_sentence, eh_story, eng_grammar, eng_story_comp, eng_vocab, eng_conversat, mat_3_beginner, mat_3_recognition, mat_3_addition, mat_3_subtraction, mat_3_multiplication, mat_3_division, mat_3_odd_even, mat_4_5_fraction, mat_4_unitary_method, mat_4_profit_loss,  hcf_5, lcm_5, dec_5, percentage_5, fy_timerange from profile_65267 p
+(Select   projectId,  class,  eh_beginner from profile_65267 p
 )
 UNPIVOT (
-    val FOR dim IN (eh_beginner, engsmall_letter, eng_cap_letter, eh_word, eh_sentence, eh_story, eng_grammar, eng_story_comp, eng_vocab, eng_conversat, mat_3_beginner, mat_3_recognition, mat_3_addition, mat_3_subtraction, mat_3_multiplication, mat_3_division, mat_3_odd_even, mat_4_5_fraction, mat_4_unitary_method, mat_4_profit_loss, hcf_5, lcm_5, dec_5, percentage_5))
+    val FOR dim IN (eh_beginner))
 
 )
 ,
 t4 as (
-select p.projectId, p4.name as school_name, class  p2.name as exam_type, p.fy_timerange,  sum(val) as val,dim,p1.name as teacher_name from t3 as p
+select projectId, class,sum(val) as val,dim from t3 as p
 
-left join profile_65257 p1
-on p.teacher_name= p1._id
 
- left join ds_mysql_prod_tagelement p2
-  on p.exam_type = p2.id
-  
-
-   left join ds_mysql_prod_tagelement p4
-  on p.select_name = p4.id
 where val is not null
 
-Group By p.projectId,   p.fy_timerange, dim, p1.name  ,p2.name,p4.name
+Group By p.projectId,  dim
   ),
   t5 as (select t1.*,clas from t4 t1 , t1.class as clas)
   
-  select projectId, school_name, clas   exam_type, fy_timerange,  sum(val) as val,dim,teacher_name from t5 as p
+  select projectId,  clas   , val,dim from t5 as p
 
