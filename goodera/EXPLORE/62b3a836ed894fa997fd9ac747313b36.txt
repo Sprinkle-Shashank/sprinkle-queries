@@ -1,3 +1,124 @@
-select 
-id, projectId, fy_timerange, target_enrollment, target_books_curated, target_schools, target_community_vols, target_member_homes, target_beyond_vols, target_workshops, target_parti_ws, target_fluency_progs, target_parti_fluency_prog, actual_books_curated, actual_member_homes, actual_schools, actual_community_volunteers, actual_beyond_volunteers, actual_workshops, actual_ws_parti, actual_fluency_progs, actual_parti_fluency_progs
-from profile_65062
+--DK TCLP Target and Actual Numerical Values
+with t1 as 
+(select 
+_id, tag1.name as projectId, fy_timerange, target_enrollment, target_books_curated, target_schools, target_community_vols, target_member_homes, target_beyond_vols, target_workshops, target_parti_ws, target_fluency_progs, target_parti_fluency_prog, actual_books_curated, actual_member_homes, actual_schools, actual_community_volunteers, actual_beyond_volunteers, actual_workshops, actual_ws_parti, actual_fluency_progs, actual_parti_fluency_progs, 
+
+cast(1000 as INT) as percentage_members_reached, 
+round(((actual_books_curated :: decimal/target_books_curated :: decimal)*100),2) as percentage_books_curated,
+round(((actual_schools :: decimal/target_schools:: decimal)*100),2) as percentage_schools_reached,
+round(((actual_community_volunteers :: decimal/target_community_vols:: decimal)*100),2) as percentage_volunteers_reached,
+round(((actual_beyond_volunteers:: decimal/target_beyond_vols:: decimal)*100),2) as percentage_volunteers_beyond_reached,
+round(((actual_member_homes:: decimal/target_member_homes:: decimal)*100),2) as percentage_member_homes_reached,
+round(((actual_workshops:: decimal/target_workshops:: decimal)*100),2) as percentage_workshops,
+round(((actual_fluency_progs:: decimal/target_fluency_progs:: decimal)*100),2) as percentage_fluency_progs,
+round(((actual_ws_parti:: decimal/target_parti_ws:: decimal)*100),2) as percentage_parti_ws,
+round(((actual_parti_fluency_progs:: decimal/target_parti_fluency_prog:: decimal)*100),2) as percentage_parti_fluency
+from profile_65062 p1
+left join ds_mysql_prod_project tag1
+on p1.projectId = tag1.id),
+
+items as (
+select 'target_books_curated' as c 
+union all  
+select 'target_schools' as c
+union all  
+select 'target_community_vols' as c
+union all  
+select 'target_member_homes' as c
+union all  
+select 'target_beyond_vols' as c
+union all  
+select 'target_workshops' as c
+union all  
+select 'target_parti_ws' as c
+union all  
+select 'target_fluency_progs' as c
+union all  
+select 'target_parti_fluency_prog' as c
+union all  
+select 'actual_books_curated' as c
+union all  
+select 'actual_member_homes' as c
+union all  
+select 'actual_schools' as c
+union all  
+select 'actual_community_volunteers' as c
+union all  
+select 'actual_beyond_volunteers' as c
+union all  
+select 'actual_workshops' as c
+union all  
+select 'actual_ws_parti' as c
+union all  
+select 'actual_fluency_progs' as c
+union all  
+select 'actual_parti_fluency_progs' as c
+union all  
+select 'percentage_members_reached' as c
+union all  
+select 'percentage_books_curated' as c
+union all  
+select 'percentage_schools_reached' as c
+union all  
+select 'percentage_volunteers_reached' as c
+union all  
+select 'percentage_volunteers_beyond_reached' as c
+union all  
+select 'percentage_member_homes_reached' as c
+union all  
+select 'percentage_workshops' as c
+union all  
+select 'percentage_fluency_progs' as c
+union all  
+select 'percentage_parti_ws' as c
+union all  
+select 'percentage_parti_fluency' as c
+union all  
+select 'target_enrollment' as c  
+),
+
+t2 as(
+select it.c,
+case c
+		when 'target_books_curated' then t1.target_books_curated   
+		when 'target_schools' then t1.target_schools 
+		when 'target_community_vols' then t1.target_community_vols
+		when 'target_member_homes' then t1.target_member_homes
+		when 'target_beyond_vols' then t1.target_beyond_vols
+		when 'target_workshops' then t1.target_workshops
+		when 'target_parti_ws' then t1.target_parti_ws
+		when 'target_fluency_progs' then t1.target_fluency_progs
+		when 'target_parti_fluency_prog' then t1.target_parti_fluency_prog 
+		when 'actual_books_curated' then t1.actual_books_curated 
+		when 'actual_member_homes' then t1.actual_member_homes
+		when 'actual_schools' then t1.actual_schools
+		when 'actual_community_volunteers' then t1.actual_community_volunteers
+		when 'actual_beyond_volunteers' then t1.actual_beyond_volunteers
+		when 'actual_workshops' then t1.actual_workshops
+		when 'actual_ws_parti' then t1.actual_ws_parti 
+		when 'actual_fluency_progs' then t1.actual_fluency_progs
+		when 'actual_parti_fluency_progs' then t1.actual_parti_fluency_progs
+		when 'percentage_members_reached' then t1.percentage_members_reached
+		when 'percentage_books_curated' then t1.percentage_books_curated
+		when 'percentage_schools_reached' then t1.percentage_schools_reached
+		when 'percentage_volunteers_reached' then t1.percentage_volunteers_reached
+		when 'percentage_volunteers_beyond_reached' then t1.percentage_volunteers_beyond_reached
+		when 'percentage_member_homes_reached' then t1.percentage_member_homes_reached
+		when 'percentage_workshops' then t1.percentage_workshops
+		when 'percentage_fluency_progs' then t1.percentage_fluency_progs
+		when 'percentage_parti_ws' then t1.percentage_parti_ws
+		when 'percentage_parti_fluency' then t1.percentage_parti_fluency
+		when 'target_enrollment' then t1.target_enrollment
+		else null
+end 
+from t1 cross join items as it
+)
+
+select t1._id, t1.projectId, t1.fy_timerange, t2.c as dimesions, sum(t2.case) as values
+from t1, t2
+group by t1._id, t1.projectId, t1.fy_timerange, t2.c
+  
+  
+  
+  
+  
