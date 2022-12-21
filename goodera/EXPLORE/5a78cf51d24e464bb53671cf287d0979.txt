@@ -1,5 +1,7 @@
 with table1 as
-( select p.projectid , p._id, fy_timerange , bel_1 , entity , bel_2 , photo , file , file_title , remark , link , bel_1_new.name as bel_1_update ,  bel_2_new.name as bel_2_update , ent.name as entity_update from profile_83212 as p
+( select p.projectid , p._id, fy_timerange , bel_1 , entity , bel_2 , photo , file , file_title , remark , link , bel_1_new.name as bel_1_update ,  bel_2_new.name as bel_2_update , ent.name as entity_update , case when is_array(photo) = false or get_array_length(photo) = 0 then array(photo)
+else (photo) end as photo_update , case when is_array(file) = false or get_array_length(file) = 0 then array(file)
+else (file) end as file_update  from profile_83212 as p
 
 left join ds_mysql_prod_tagelement bel_1_new
 on p.bel_1 = bel_1_new.id
@@ -9,6 +11,10 @@ on p.bel_2 = bel_2_new.id
  
 left join ds_mysql_prod_tagelement ent
 on p.entity = ent.id),
+
+table3 as
+(
+  select p.*,  case when photo_update is null then 'NOT UPLOADED' else 'Download' end as photo_update_new ,  case when file_update is null then 'NOT UPLOADED' else 'Download' end as file_update_new ,   from 
 
 table2 as
 ( 
