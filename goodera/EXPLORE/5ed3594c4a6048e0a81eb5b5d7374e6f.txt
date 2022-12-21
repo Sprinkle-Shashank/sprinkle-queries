@@ -20,13 +20,19 @@ t2 as(
 Select bs, projectId,timerange_timerange, bi
 
 from t1                                                  
-)            
+),            
 
-Select temp.col as dim,projectId,timerange_timerange,
-case col
-when 'Enrolled' then bi
-when 'Mobilized' then bs
-end as t21, count(t21)
+t3 as (
+Select projectId,timerange_timerange, bs, 'Mobilized' as col
 from t2
-cross join temp
-group by bs, bi, temp.col, projectId,timerange_timerange
+),
+
+t4 as (
+Select projectId,timerange_timerange, bs, 'Enrolled' as col
+from t2
+ where bs is not NULL
+)
+
+Select * from t3
+union all
+Select * from t4
