@@ -1,1 +1,18 @@
-select projectId, name, start_date, end_date, training_type, vendor_attendees, man_days, supervisors_2, num_male_supervisors, num_female_supervisors, master_trainers, supervisors, employed, saturation, year from profile_61602
+select p3.name as projectId, name, start_date, end_date, training_type, vendor_attendees, man_days, supervisors_2, num_male_supervisors, num_female_supervisors, master_trainers, supervisors, employed, saturation, year ,tag2.nam as country, p4.factory, vendor, product_category, tag8.name as consultant
+case
+when is_array(product_category) = false or get_array_length(product_category) = 0 then array(product_category)
+else (product_category)
+end as product_category_new
+from profile_61602 as p1
+left join profile_64362 as p2 on
+p1.projectId = p2.projectId
+left join project_7746 p3
+on p2.projectId= p3.id
+left join tagElement_7746 tag2
+on p2.country = tag2.id
+left join tagElement_7746 tag3
+on p1.training_type = tag3.id
+left join tagElement_7746 tag8
+on p2.consultant_tag = tag8.id
+left join profile_64170 as p4 on
+t2.factory = p4._id
