@@ -1,0 +1,51 @@
+with t1 as (select p3.name as projectId1,p2.projectId, p1.start_date, topic_2, p1.end_date, notes, attachment, photo, days, tag3.name as training_type, num_vendor, num_factory, man_days, num_male, num_female, year ,
+tag2.name as country, vendor, product_category, tag4.name as consultant,tag5.name as topic,
+case
+when is_array(product_category) = false or get_array_length(product_category) = 0 then array(product_category)
+else (product_category)
+end as product_category_new,
+case
+when year=1433762 then 'Cycle 1'
+when year=1433763 then 'Cycle 1'
+when year= 1433764 then 'Cycle 1'
+else 'Cycle 2'
+end as cycle
+from profile_61596 as p1
+left join profile_64362 as p2 on
+p1.projectId = p2.projectId
+left join project_7746 p3
+on p2.projectId= p3.id
+left join tagElement_7746 tag2
+on p2.country = tag2.id
+left join tagElement_7746 tag3
+on p1.training_type = tag3.id
+			left join tagElement_7746 tag4
+on p2.consultant_tag = tag4.id
+			left join tagElement_7746 tag5
+on p1.topic_2 = tag5.id
+)
+
+,t2 as (
+select projectId1, p.projectId,start_date,topic_2,end_date,notes,attachment,photo,days,training_type,year,num_vendor,num_factory,man_days,num_male,num_female,vendor,cycle,country,consultant,unwind_product_category,topic from t1 as p ,p.product_category_new as unwind_product_category)
+
+,t3 as(
+select projectId1,projectId, start_date, tag7.name as topic_2, end_date, notes, attachment, photo, days, training_type, tag6.name as year, num_vendor, num_factory, man_days, num_male, num_female, vendor, cycle, country, consultant, tag1.name as product_category, topic,count(*)  from t2 
+left join tagElement_7746 tag1
+on unwind_product_category = tag1.id 
+left join tagElement_7746 tag6
+on year = tag6.id
+left join tagElement_7746 tag7
+on  topic_2 = tag7.id
+where projectId is not null
+and topic_2 is not null
+group by projectId1,projectId, start_date, tag7.name, end_date, notes, attachment, photo, days, training_type, tag6.name, num_vendor, num_factory, man_days, num_male, num_female, vendor, cycle, country, consultant,tag1.name, topic )
+
+select p7.name as projectId, h.start_date, topic_2, h.end_date, notes, attachment, photo, days, training_type, year, num_vendor, num_factory, man_days, num_male, num_female, h.vendor, h.cycle, h.country, h.product_category,topic,count,tag8.name as consultant from t3 as h
+left join profile_64362 as p5 on
+h.projectId = p5.projectId
+left join tagElement_7746 tag8
+on p5.consultant_tag = tag8.id
+left join project_7746 p7
+on p5.projectId= p7.id
+group by p7.name , h.start_date, topic_2, h.end_date, notes, attachment, photo, days, training_type, year, num_vendor, num_factory, man_days, num_male, num_female, h.vendor, h.cycle, h.country, h.product_category,topic,count,tag8.name 
+
