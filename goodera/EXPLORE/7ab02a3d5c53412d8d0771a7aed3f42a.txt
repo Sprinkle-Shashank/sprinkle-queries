@@ -1,1 +1,18 @@
-select * from profile_65301
+with t3 as
+(SELECT * 
+FROM
+(Select projectId, term, edu_support as Education_Support, personality_dev as Personality_Development, hr_gender as Gender_and_Human_Rights , reprod_sexual_health as Reproductive_and_Sexual_Health, career_counselling as Career_Counselling, fy_timerange   from profile_65301 p
+)
+UNPIVOT (
+    val FOR dim IN (Education_Support, Personality_Development, Gender_and_Human_Rights, Reproductive_and_Sexual_Health, Career_Counselling))
+
+)
+
+select projectId, p2.name as term,p3.name as val,dim,fy_timerange,count(*) from t3 
+ left join ds_mysql_prod_tagelement p2
+  on t3.term = p2.id
+  
+ left join ds_mysql_prod_tagelement p3
+  on t3.val = p3.id
+where val ='Yes'
+Group By projectId, term, fy_timerange, dim, val,p2.name,p3.name
