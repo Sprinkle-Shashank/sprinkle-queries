@@ -1,1 +1,11 @@
-select projectId,SUBSTRING(CAST(event_date as date),6,2), location, community_served, attendees, term from profile_65295
+select projectId,CASE WHEN SUBSTRING(CAST(event_date as date),6,2)='01' then 'January'  WHEN  SUBSTRING(CAST(event_date as date),6,2)='02' then 'February'  WHEN  SUBSTRING(CAST(event_date as date),6,2)='03' then 'March'  WHEN  SUBSTRING(CAST(event_date as date),6,2)='04' then 'April' WHEN   SUBSTRING(CAST(event_date as date),6,2)='05' then 'May'  WHEN  SUBSTRING(CAST(event_date as date),6,2)='06' then 'June'  WHEN   
+SUBSTRING(CAST(event_date as date),6,2)='07' then 'July'  WHEN  SUBSTRING(CAST(event_date as date),6,2)='08' then 'August'  WHEN  SUBSTRING(CAST(event_date as date),6,2)='09' then 'September'  WHEN  SUBSTRING(CAST(event_date as date),6,2)='10' then 'October'  WHEN  SUBSTRING(CAST(event_date as date),6,2)='11' then 'November'   WHEN  SUBSTRING(CAST(event_date as date),6,2)='12' then 'December' else 
+'Not Reported' end as monthsplit, SUBSTRING(CAST(event_date as date),6,2) as monthh,p2.name as location, p3.name as community_served, attendees, p2.name as term, event_date as fy_timerange,count(*) from profile_65295 p
+left join ds_mysql_prod_tagelement p1
+  on p.term = p1.id
+  left join ds_mysql_prod_tagelement p2
+  on p.location = p2.id
+  left join ds_mysql_prod_tagelement p3
+  on p.community_served = p3.id
+Group By projectId, term, event_date, p.location, community_served, attendees, monthh, monthsplit,p1.name,p2.name,p3.name
+order by monthh
