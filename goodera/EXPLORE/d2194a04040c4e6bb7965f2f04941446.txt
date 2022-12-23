@@ -1,9 +1,10 @@
+--Forbes_Complaiance_Budget_Summary
 
 with t1 as  
 (select *
 from
  
-(select projectId, fy_timerange, COALESCE(netprofit, 0) as netprofit, COALESCE(prescribed_csr, 0) as prescribed_csr, COALESCE(setoff_amount, 0) as setoff_amount, COALESCE(setoff_amount_preceding, 0) as setoff_amount_preceding, COALESCE(surplus_previously, 0) as surplus_previously, COALESCE(actual_csr, 0) as actual_csr, COALESCE(overhead_expenses, 0) as overhead_expenses, COALESCE(impact_assesment, 0) as impact_assesment, COALESCE(unspent_account, 0) as unspent_account, (COALESCE(prescribed_csr, 0) + COALESCE(surplus_previously, 0) + COALESCE( setoff_amount, 0)) as total_csr_obligation, ( COALESCE(actual_csr, 0) + COALESCE(overhead_expenses, 0) + COALESCE(impact_assesment, 0) ) as total_amount_current,
+(select projectId, project_name, fy_timerange, COALESCE(netprofit, 0) as netprofit, COALESCE(prescribed_csr, 0) as prescribed_csr, COALESCE(setoff_amount, 0) as setoff_amount, COALESCE(setoff_amount_preceding, 0) as setoff_amount_preceding, COALESCE(surplus_previously, 0) as surplus_previously, COALESCE(actual_csr, 0) as actual_csr, COALESCE(overhead_expenses, 0) as overhead_expenses, COALESCE(impact_assesment, 0) as impact_assesment, COALESCE(unspent_account, 0) as unspent_account, (COALESCE(prescribed_csr, 0) + COALESCE(surplus_previously, 0) + COALESCE( setoff_amount, 0)) as total_csr_obligation, ( COALESCE(actual_csr, 0) + COALESCE(overhead_expenses, 0) + COALESCE(impact_assesment, 0) ) as total_amount_current,
 
 case when 
 (COALESCE(actual_csr,0)+COALESCE(overhead_expenses,0)+COALESCE(impact_assesment,0)-COALESCE(prescribed_csr,0))<=0 then 0 else 
@@ -18,11 +19,11 @@ UNPIVOT (
 val FOR dim IN (surplus_previously, prescribed_csr, actual_csr, overhead_expenses, unspent_account, total_csr_obligation, total_amount_current, netprofit,setoff_amount,setoff_amount_preceding,impact_assesment,excess_current,setoff_succeed))
 
 )
-select  tag1.name as projectId,fy_timerange,val,dim from t1 as p
+select  tag1.name as projectId, project_name, fy_timerange,val,dim from t1 as p
 left join ds_mysql_prod_project tag1
 on p.projectid = tag1.id 
 
-Group By tag1.name,fy_timerange, Dim,val
+Group By tag1.name, project_name, fy_timerange, Dim,val
 
 
 
