@@ -22,12 +22,14 @@ t2 as(
  ),
 
 t3 as (
-  Select f.name as fy_timerange, p.name_project,q.name as intervention_type, l.name as implementing_agency,t1.name state, m.name as Project_Manager, start_date, end_date, curr_yr_budget,cast(p.name as varchar) as ProjectCode, CONCAT(ProjectCode,fy_timerange) code, p.focus_area
+  Select f.name as fy_timerange, p.name_project,q.name as intervention_type, l.name as implementing_agency,t1.name state, m.name as Project_Manager, start_date, end_date, curr_yr_budget,cast(p.name as varchar) as ProjectCode, CONCAT(ProjectCode,fy_timerange) code, t2.name focus_area
 from t2 p
 left join profile_28235 q
 ON p.intervention_type=q._id
 left join profile_27395 l on
 l._id=p.ngo_partner
+left join ds_mysql_prod_tagelement t2
+on p.focus_area=t2.id
 left join ds_mysql_prod_tagelement t1
 on p.State=t1.id
 left join ds_mysql_prod_tagelement m on
@@ -45,7 +47,7 @@ left join ds_mysql_prod_tagelement m on
 p.project_manager=m.id
 left join ds_mysql_prod_tagelement f on
 p.fy=f.id  
-where p.focus_area <> '430786' and p.focus_area <> '430789' and p.focus_area <> '430784'
+where p.focus_area <> 'Others' and p.focus_area <> 'Eradicating Poverty' and p.focus_area <> 'Holistic Rural Development'
   )
   
 Select distinct(ProjectCode), t3.fy_timerange, name_project, intervention_type, implementing_agency, state, project_manager, substring(CAST(start_date AS VARCHAR),1,10) start_date, substring(CAST(end_date AS VARCHAR),1,10) end_date, curr_yr_budget, t1.payment_amount
