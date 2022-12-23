@@ -1,4 +1,66 @@
-Select distinct(p.name)
-from profile_3863 sq
-left join ds_mysql_prod_project p
-ON sq.projectid=p.id
+--HDFC_FRD_Summary_Summary_Table
+with
+t0 as (
+  Select split_part(split_part(prod.name,'|',1),'.',1) as ProjectCode, f.name as fy_timerange, CONCAT(ProjectCode,fy_timerange) as CODE
+  from profile_60787
+  left join  ds_mysql_prod_project prod  on
+prod.id=projectid
+left join ds_mysql_prod_tagelement f 
+on fy=f.id
+), 
+
+t1 as (
+  Select payment_amount,
+  case when renewal='430820' then split_part(t1.name, ' ', 1)
+  else t2.name
+  end as prj_code,
+  
+  CONCAT(prj_code,f.name) code
+  from profile_27398 p
+  left join profile_27420 t1
+  ON t1._id=p.project_renew
+  left join profile_27396 t2
+  on t2._id=p.project_name
+  left join ds_mysql_prod_tagelement f 
+  on p.fy=f.id
+),
+
+t2 as(
+	Select  fy, name_project, State, ngo_partner, Project_Manager, intervention_type,start_date, end_date, curr_yr_budget, name
+	from profile_27396 sq, sq.state State
+ ),
+
+t3 as (
+  Select f.name as fy_timerange, name_project,q.name as intervention_type, l.name as implementing_agency,t1.name state, m.name as Project_Manager, start_date, end_date, curr_yr_budget,cast(p.name as varchar) as ProjectCode, CONCAT(ProjectCode,fy_timerange) code
+from t2 p
+  
+left join profile_28235 q
+ON p.intervention_type=q._id
+left join profile_27395 l on
+l._id=p.ngo_partner
+left join ds_mysql_prod_tagelement t1
+on p.State=t1.id
+left join ds_mysql_prod_tagelement m on
+p.project_manager=m.id
+left join ds_mysql_prod_tagelement f on
+p.fy=f.id
+
+union all
+
+Select f.name as fy_timerange, name_project, int_type_calc2 intervention_type, ngo as implementing_agency, NULL state, m.name as project_manager, start_date, end_date, curr_yr_budget, cast(m1.name as varchar) as ProjectCode, CONCAT(ProjectCode,fy_timerange) as code
+from profile_27420 p
+left join ds_mysql_prod_tagelement m on
+p.project_manager=m.id
+left join ds_mysql_prod_tagelement f on
+p.fy=f.id  
+left join ds_mysql_prod_tagelement m1 on
+p.project_manager=m1.id
+  )
+  
+  Select t3.fy_timerange, t0.ProjectCode, name_project, intervention_type, implementing_agency, state, project_manager, substring(CAST(start_date AS VARCHAR),1,10) start_date, substring(CAST(end_date AS VARCHAR),1,10) end_date, curr_yr_budget, t1.payment_amount
+  from t3
+  left join t1
+  ON t1.code=t3.code
+  left join t0
+  ON t3.code=t0.code
+  group by t3.fy_timerange, t0.ProjectCode, name_project, intervention_type, implementing_agency, state, project_manager, start_date, end_date, curr_yr_budget, t1.payment_amount
