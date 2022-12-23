@@ -1,37 +1,46 @@
 --Genpact Communications Gallery
-with s as (Select p1.month_timerange as fy_timerange, p1.pic, p1.title as title1, p1.projectId as ProjectID3,p2.name as project,
-cast(p1.month_timerange.start as date) as start,/*p2.name as  projectid1, p3.name as projectid2,*/
-extract(month from start) as month,
-extract(year from start) as year,
-Case 
-When month=1 then 'Jan'
-When month=2 then 'Feb'
-When month=3 then 'Mar'
-When month=4 then 'Apr'
-When month=5 then 'May'
-When month=6 then 'Jun'
-When month=7 then 'July'
-When month=8 then 'Aug'
-When month=9 then 'Sep'
-When month=10 then 'Oct'
-When month=11 then 'Nov'
-When month=12 then 'Dec'
---Else 'No Data Entry'
-end as month1
-/*case 
+WITH SUB1 AS (
+  SELECT P1.pic,
+  P1.month_timerange AS fy_timerange,
+  P1.title AS title1,
+  P1.projectId AS ProjectID3,
+  P2.name AS project,
+  CAST(P1.month_timerange.start AS date) AS start,
+  --p2.name as  projectid1, p3.name as projectid2,
+  EXTRACT(MONTH FROM start) AS month,
+  EXTRACT(YEAR FROM start) AS year,
+  
+  CASE
+  	WHEN month = 1 THEN 'Jan'
+  	WHEN month = 2 THEN 'Feb'
+  	WHEN month = 3 THEN 'Mar'
+  	WHEN month = 4 THEN 'Apr'
+  	WHEN month = 5 THEN 'May'
+	WHEN month = 6 THEN 'Jun'
+	WHEN month = 7 THEN 'July'
+	WHEN month = 8 THEN 'Aug'
+	WHEN month = 9 THEN 'Sep'
+	WHEN month = 10 THEN 'Oct'
+	WHEN month = 11 THEN 'Nov'
+	WHEN month = 12 THEN 'Dec'
+	--ELSE 'No Data Entry'
+  	END AS month1
+
+  /*case 
 when p2.name  = 'SCCD'
 then 'SCCD' 
 else p3.name 
 end as projectname*/
---p2.name || ' -' || month1 || ' (' || year || ') ' || '- ' || title1  AS title
-  --|| ' (' || year || ') ' || '- ' || title1
-from profile_55828 p1
 
-left join ds_mysql_prod_project p2
-on p2.id = p1.projectId
+  FROM profile_55828 AS P1
 
-order by fy_timerange desc
+  LEFT JOIN ds_mysql_prod_project AS P2
+  ON P2.id = P1.projectId
 )
-Select s.*,
+
+SELECT SUB1.*,
 project || ' -' || month1 || ' (' || year || ') ' || '- ' || title1  AS title
- from s
+
+FROM SUB1
+ 
+ORDER BY fy_timerange DESC
