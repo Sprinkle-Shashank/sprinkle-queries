@@ -1,5 +1,5 @@
---SCCD Outcome_6_14 _Progress Tab
-SELECT projectId, fy_timerange, sno,
+--SCCD Short Term_6_14 _Progress Tab_Trends
+SELECT projectId,fy_timerange,
 CAST(fy_timerange.start AS DATE) AS start,
 EXTRACT(MONTH FROM start) AS month,
 EXTRACT(YEAR FROM start) AS year,
@@ -23,49 +23,134 @@ CASE
 year || '-'||quarter AS y,
 
 CASE
-	WHEN base_tar in ('Target')
-	THEN 'Target'
-	ELSE y
+	WHEN base_tar not in ('Target','Baseline')
+	THEN y
+	ELSE base_tar
 	END AS Period,
 
 CASE
-	WHEN payment IS NULL
+	WHEN teacher_train IS NULL
 	THEN 0
-	ELSE payment
-	END AS payment,
+	ELSE teacher_train
+	END AS teacher_train,
 
 CASE
-	WHEN awareness IS NULL
+	WHEN sports IS NULL
 	THEN 0
-	ELSE awareness
-	END AS awareness,
+	ELSE sports
+	END AS sports,
 
 CASE
-	WHEN mentor IS NULL
+	WHEN competition IS NULL
 	THEN 0
-	ELSE mentor
-	END AS mentor,
+	ELSE competition
+	END AS competition,
 
 CASE
-	WHEN leader IS NULL
+	WHEN home_visit IS NULL
 	THEN 0
-	ELSE leader
-	END AS leader,
+	ELSE home_visit
+	END AS home_visit,
 
 CASE
-	WHEN gender IS NULL
+	WHEN capa_building IS NULL
 	THEN 0
-	ELSE gender
-	END AS gender,
+	ELSE capa_building
+	END AS capa_building,
 
 CASE
-	WHEN higher_edu IS NULL
+	WHEN joint_event IS NULL
 	THEN 0
-	ELSE higher_edu
-	END AS higher_edu,
+	ELSE joint_event
+	END AS joint_event,
 
+CASE
+	WHEN smc IS NULL
+	THEN 0
+	ELSE smc
+	END AS smc,
+
+CASE
+	WHEN resolve IS NULL
+	THEN 0
+	ELSE resolve
+	END AS resolve,
+
+CASE
+	WHEN ptm IS NULL
+	THEN 0
+	ELSE ptm
+	END AS ptm,
+
+CASE
+	WHEN parent_visit IS NULL
+	THEN 0
+	ELSE parent_visit
+	END AS parent_visit,
+
+CASE
+	WHEN dropout IS NULL
+	THEN 0
+	ELSE dropout
+	END AS dropout,
+
+CASE
+	WHEN improvement IS NULL
+	THEN 0
+	ELSE improvement
+	END AS improvement,
+
+CASE
+	WHEN access IS NULL
+	THEN 0
+	ELSE access
+	END AS access,
+
+CASE
+	WHEN teacher_meet IS NULL
+	THEN 0
+	ELSE teacher_meet
+	END AS teacher_meet,
+
+CASE
+	WHEN child_infra IS NULL
+	THEN 0
+	ELSE child_infra
+	END AS child_infra,
+
+CASE
+	WHEN good_edu IS NULL
+	THEN 0
+	ELSE good_edu
+	END AS good_edu,
+
+CASE
+	WHEN sno IS NULL
+	THEN 0
+	ELSE sno
+	END AS sno,
+OBJECT('start','2017-04-01T00:00:00.000Z','end','2025-04-01T00:00:00.000Z') AS fy_test,
+
+CASE
+	WHEN base_tar NOT IN ('Target', 'Baseline')
+	THEN fy_timerange
+	ELSE fy_test
+	END AS fy_timerange,
+CASE
+	WHEN quarter = 'Q4'
+	THEN year-1
+	ELSE Year
+	END AS Year1,
+CASE
+	WHEN base_tar NOT IN ('Target', 'Baseline')
+	THEN year1
+	ELSE '2017'
+	END AS financial_year,
+'FY'||' '||financial_year || '-'||financial_year + 1 AS time_trend,
 count(*) as Number
-	
-FROM profile_62923
+
+FROM profile_62954
+
 WHERE fy_timerange IS NOT NULL
-group by projectId, base_tar, fy_timerange, sno, start, month, year, Period, payment, awareness, mentor, leader, gender, higher_edu
+
+GROUP BY projectId, fy_timerange, best_practices, start, month, year, quarter, y, Period, teacher_train, sports, competition, home_visit, capa_building, joint_event, smc, resolve, ptm, parent_visit, dropout, improvement, access, teacher_meet, child_infra, good_edu, sno
