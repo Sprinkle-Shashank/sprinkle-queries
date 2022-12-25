@@ -1,0 +1,52 @@
+--SCCD Short Term_6_14 _Progress Tab_Trends
+SELECT projectId, base_tar, fy_timerange, sno, improvement
+CAST(fy_timerange.start AS DATE) AS start,
+EXTRACT(MONTH FROM start) AS month,
+EXTRACT(YEAR FROM start) AS year,
+
+CASE
+	WHEN month = 1 THEN 'Q4'
+	WHEN month = 2 THEN 'Q4'
+	WHEN month = 3 THEN 'Q4'
+	WHEN month = 4 THEN 'Q1'
+	WHEN month = 5 THEN 'Q1'
+	WHEN month = 6 THEN 'Q1'
+	WHEN month = 7 THEN 'Q2'
+	WHEN month = 8 THEN 'Q2'
+	WHEN month = 9 THEN 'Q2'
+	WHEN month = 10 THEN 'Q3'
+	WHEN month = 11 THEN 'Q3'
+	WHEN month = 12 THEN 'Q3'
+	ELSE 'No Data Entry'
+	END AS quarter,
+
+year || '-'||quarter AS y,
+
+CASE
+	WHEN base_tar not in ('Target','Baseline')
+	THEN y
+	ELSE base_tar
+	END AS Period,
+
+CASE
+	WHEN sno IS NULL
+	THEN 0
+	ELSE sno
+	END AS sno,
+CASE
+	WHEN quarter = 'Q4'
+	THEN year-1
+	ELSE Year
+	END AS Year1,
+CASE
+	WHEN base_tar NOT IN ('Target', 'Baseline')
+	THEN year1
+	ELSE '2017'
+	END AS financial_year,
+'FY'||' '||financial_year || '-'||financial_year + 1 AS time_trend,
+count(*) as Number
+
+FROM profile_62954
+WHERE improvement > 1
+
+GROUP BY projectId, base_tar, fy_timerange, sno, improvement, start, month, year, Period
