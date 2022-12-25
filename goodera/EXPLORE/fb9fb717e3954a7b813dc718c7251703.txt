@@ -6,7 +6,8 @@ WITH SUB1 AS (
   P1.projectId AS ProjectID3,
   P2.name AS project,
   CAST(P1.month_timerange.start AS date) AS start,
-  p3.name as  projectid1, p4.name as projectid2,
+  P3.name AS  projectid1,
+  P4.name AS projectid2,
   EXTRACT(MONTH FROM start) AS month,
   EXTRACT(YEAR FROM start) AS year,
   
@@ -25,31 +26,31 @@ WITH SUB1 AS (
 	WHEN month = 12 THEN 'Dec'
 	--ELSE 'No Data Entry'
   	END AS month1,
-
   
-  case 
-when p3.name  = 'SCCD'
-then 'SCCD' 
-else p4.name 
-end as projectname
+  CASE 
+	WHEN P3.name  = 'SCCD'
+	THEN 'SCCD' 
+	ELSE P4.name 
+	END AS projectname
   
-
   FROM profile_55828 AS P1
 
- LEFT JOIN ds_mysql_prod_project AS P2
- ON P2.id = P1.projectId
- left join ds_mysql_prod_project p3
-on p3.id = p1.projectId
-left join ds_mysql_prod_project p4
-on p4.id = p3.parent
-left join ds_mysql_prod_project p5
-on p5.id = p4.parent
+  LEFT JOIN ds_mysql_prod_project AS P2
+  ON P2.id = P1.projectId
+  
+  LEFT JOIN ds_mysql_prod_project AS P3
+  ON P3.id = P1.projectId
+  
+  LEFT JOIN ds_mysql_prod_project AS P4
+  ON P4.id = P3.parent
+  
+  LEFT JOIN ds_mysql_prod_project AS P5
+  ON P5.id = P4.parent
   
   ORDER BY fy_timerange DESC
 )
 
-SELECT /*SUB1.**/ fy_timerange,pic,projectname,
+SELECT /*SUB1.**/ fy_timerange, pic, projectname,
 project || ' - ' || month1 || ' (' || year || ')' || ' - ' || title1  AS title
-
 
 FROM SUB1
