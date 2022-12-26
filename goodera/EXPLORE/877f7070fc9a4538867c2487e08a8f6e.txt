@@ -1,0 +1,30 @@
+--hdfc_indirect_cost_donut
+with
+tab2 as(select q.village,split_part(split_part(prod.name,'|',1),'.',1) as ProjectCode,f.name as fy_timerange,concat(ProjectCode,fy_timerange) as CODE,split_part(prod.name,'|',3) as census,p.hdfc_cost_monthly,p.focus_area from profile_29974 p 
+left join ds_mysql_prod_project prod on
+prod.id=p.projectid	
+left join ds_mysql_prod_tagelement f on
+p.fy=f.id
+left join profile_27489 q on
+split_part(prod.name,'|',3)=q.name
+where p.focus_area is not null),
+
+tab4 as(select p.name as projectcode,f.name as fy_timerange,concat(projectcode,fy_timerange) as CODE,m.name  as project_manager from profile_27396 p
+left join ds_mysql_prod_tagelement m on
+p.project_manager=m.id
+left join ds_mysql_prod_tagelement f on
+p.fy=f.id
+union
+select l.name as projectcode,f.name as fy_timerange,concat(projectcode,fy_timerange) as CODE,m.name as project_manager
+from profile_27420 p
+left join profile_27396 l on
+p.project_code=l._id
+left join ds_mysql_prod_tagelement m on
+p.project_manager=m.id
+left join ds_mysql_prod_tagelement f on
+p.fy=f.id)
+
+select distinct(t1.village),t1.projectcode,t.project_manager,t1.fy_timerange,t1.focus_area,sum(t1.hdfc_cost_monthly) as total from tab2 t1
+left join tab4 t on
+t1.CODE=t.CODE
+group by 1,2,3,4,5
