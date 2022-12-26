@@ -1,1 +1,17 @@
-select projectId, unique_id, training_status,fy_timerange, ((SUBSTRING(CAST(fy_timerange.start as varchar),1,4)) -(SUBSTRING(CAST(date_of_birth as varchar),1,4))) as age,date_of_birth, benef_name, marital_status, gender, occupation, category, monthly_income, religion,fy_timerange from profile_65315
+select projectId, unique_id, training_status,fy_timerange, ((SUBSTRING(CAST(fy_timerange.start as varchar),1,4)) -(SUBSTRING(CAST(date_of_birth as varchar),1,4))) as age,date_of_birth, benef_name,pro.name as projectId, case when pro2.name is null then 'not reported' else pro2.name end as training_status, benef_name, case when monthly_income=1256926 then 'Less than Rs. 5000' when monthly_income=1256927 then 'Rs. 5000 - 8000' when monthly_income=1256928 then 'Rs. 8000 - 10000' when monthly_income=1256930 then 'Rs. 10000 - 15000' when monthly_income=1256929 then 'More than Rs. 15000' else 'not reported' end as monthly_income, case when pro4.name is null then 'not reported' else pro4.name end   as occupation, case when pro5.name is null then 'not reported' else pro5.name end   as gender, case when pro6.name is null then 'not reported' else pro6.name end   as religion, case when pro3.name is null then 'not reported' else pro3.name end  as category, fy_timerange, case when age<18 or age is null then 'Less than 18 years' when age<25 then '18-25 years' when age<40 then '25 - 40 years' when age>40 then 'greater than 40' else 'not reported' end as age, pro1.name as marital_status,count(*),fy_timerange from profile_65315 p
+
+ left join ds_mysql_prod_project pro
+  on p.projectid = pro.id
+  
+    left join ds_mysql_prod_tagelement pro1
+  on p.marital_status = pro1.id
+    left join ds_mysql_prod_tagelement pro2
+  on p.training_status = pro2.id
+    left join ds_mysql_prod_tagelement pro3
+  on p.category = pro3.id
+    left join ds_mysql_prod_tagelement pro4
+  on p.occupation = pro4.id
+    left join ds_mysql_prod_tagelement pro5
+  on p.gender = pro5.id
+    left join ds_mysql_prod_tagelement pro6
+  on p.religion = pro6.id
