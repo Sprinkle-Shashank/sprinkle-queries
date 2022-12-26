@@ -1,25 +1,46 @@
---Budget Summary
---select * from profile_82837
---CSR WEB Links 
---select * from profile_82839
---Capital Assets Creation
---select * from profile_82840
---Unspent Amount
---select * from profile_82841
---Project Alllocation
---select * from profile_82842
+--Marico_Afforestation_Plantation_of_Trees
+with temp as ( select 'Fruit Bearing Trees' as c
+			   Union all
+			   select 'Horticultural Trees' as c
+			   Union all 
+			   select 'Medicinal Trees' as c
+			   Union all
+			   select 'Timber Trees' as c )
 
---select * from profile_77142
+select pro.name as projectid,p.fy_timerange,p1.ngo_name as ngoname,pz.name as plantation,pt.name as partner_name,dist.name as district,stat.name as state,codes.name as map_codes,p.financial_year,
+sum (case c when 'Fruit Bearing Trees'  then p.fruit_bearing_trees  
+       when 'Horticultural Trees' then p.horticultural_trees
+	   when 'Medicinal Trees' then p.medicinal_trees
+	   when 'Timber Trees' then p.timber_tree
+	   else null
+	   end) as val, temp.c as dim 
+	  
+from profile_83169 p
 
+cross join temp 
 
---select * from profile_76057
+left join profile_83168 p1 
+on p.ngo_name = p1._id
+  
+left join ds_mysql_prod_tagelement as pz
+  on p.plantation_zone = pz.id
+  
+left join ds_mysql_prod_tagelement as pt
+  on p.partner = pt.id
+  
+left join ds_mysql_prod_tagelement as dist
+  on p.state_district = dist.id
+  
+left join ds_mysql_prod_tagelement as stat
+  on dist.parent = stat.id  
+  
+left join ds_mongo_reftagelementmetadata codes
+on stat.name = codes.name
+  
+  left join ds_mysql_prod_project as pro
+  on p.projectid = pro.id
 
-
-select p2.name as projectId, url_1, url_2, title, cast('click-here' as VARCHAR) as link_1, cast('click-here' as VARCHAR) as link_2
-from profile_82839 p
-left join ds_mysql_prod_project p2 on p2.id = p.projectId
- 
- 
+group by pro.name, p.fy_timerange,dist.name,stat.name,p1.ngo_name,pz.name,pt.name,temp.c , p.financial_year,codes.name
  
 
 
