@@ -1,33 +1,51 @@
-with temp1 as
-(select projectId, district, fy_timerange from profile_46325 as m,
+with temp as ( select 'Fruit Bearing Trees' as c
+			   Union all
+			   select 'Horticultural Trees' as c
+			   Union all 
+			   select 'Medicinal Trees' as c
+			   Union all
+			   select 'Timber Trees' as c
+			   Union all
+			   select 'Total Number of Trees Planted' as c
+			   Union all
+			   select 'Total Area Covered under the Plantation' as c )
 
-m.state_district district)
+select pro.name as projectid,p.fy_timerange,p1.ngo_name as ngoname,pz.name as plantation,pt.name as partner_name,dist.name as district,stat.name as state,codes.name as map_codes,p.financial_year,
+sum (case c when 'Fruit Bearing Trees'  then p.fruit_bearing_trees  
+       when 'Horticultural Trees' then p.horticultural_trees
+	   when 'Medicinal Trees' then p.medicinal_trees
+	   when 'Timber Trees' then p.timber_trees
+	   when 'Total Number of Trees Planted' then p.total_no_of_trees
+	   when 'Total Area Covered under the Plantation' then p.total_area_plantation
+	   else null
+	   end) as val, temp.c as dim 
+	  
+from profile_83169 p
 
-select projectId.name as projectId, count(*), codes.name as map_codes, fy_timerange,
+cross join temp 
 
-case
-WHEN state1_parent.name IS NULL THEN state1.name else state1_parent.name END as state
- 
- 
-from temp1
-
-left join ds_mysql_prod_project as projectId
-  on temp1.projectId = projectId.id 
- 
-left join ds_mysql_prod_tagelement as state1
-on temp1.district = state1.id
- 
-left join ds_mysql_prod_tagelement as state1_parent
-on state1.parent = state1_parent.id
- 
- 
+left join profile_83168 p1 
+on p.ngo_name = p1._id
+  
+left join ds_mysql_prod_tagelement as pz
+  on p.plantation_zone = pz.id
+  
+left join ds_mysql_prod_tagelement as pt
+  on p.partner = pt.id
+  
+left join ds_mysql_prod_tagelement as dist
+  on p.state_district = dist.id
+  
+left join ds_mysql_prod_tagelement as stat
+  on dist.parent = stat.id  
+  
 left join ds_mongo_reftagelementmetadata codes
-on district.name = codes.name
+on stat.name = codes.name
+  
+  left join ds_mysql_prod_project as pro
+  on p.projectid = pro.id
 
- 
---WHERE district IS not NULL
-
-group by projectId.name, fy_timerange, state, codes.name
+group by pro.name, p.fy_timerange,dist.name,stat.name,p1.ngo_name,pz.name,pt.name,temp.c , p.financial_year,codes.name
 
 
 
