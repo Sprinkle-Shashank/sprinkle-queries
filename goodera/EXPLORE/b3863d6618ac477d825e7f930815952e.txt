@@ -1,5 +1,11 @@
 with table1 as 
-( select p._id, p.projectId, fy_timerange, file, remarks, doc_type, projects, link, theme
- from profile_75323 as p )
+( select p._id, p.projectId, fy_timerange, file, remarks, doc_type, projects, link, theme , case when is_array(file) = false or get_array_length(file) = 0 then array(file)
+else (file) end as file_update , case when is_array(link) = false or get_array_length(link) = 0 then array(link)
+else (link) end as link_update 
+ from profile_75323 as p ),
+ 
+ table2 as
+ ( select p.*, d1, d2 from table1 as p, p.file_update as d1, p.link_update as d2
+  )
 
-select * from table1
+select * from table2
