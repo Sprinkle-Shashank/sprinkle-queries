@@ -1,4 +1,3 @@
---Marico_Afforestation_Plantation_of_Trees
 with temp as ( select 'Fruit Bearing Trees' as c
 			   Union all
 			   select 'Horticultural Trees' as c
@@ -7,51 +6,20 @@ with temp as ( select 'Fruit Bearing Trees' as c
 			   Union all
 			   select 'Timber Trees' as c )
 
-select pro.name as projectid,p.fy_timerange,p1.ngo_name as ngoname,pz.name as plantation,pt.name as partner_name,dist.name as district,stat.name as state,codes.name as map_codes,p.financial_year,
-sum (case c when 'Fruit Bearing Trees'  then p.fruit_bearing_trees  
+select tag1.name as projectid, fy_timerange, partner_name,
+case c when 'Fruit Bearing Trees'  then p.fruit_bearing_trees  
        when 'Horticultural Trees' then p.horticultural_trees
 	   when 'Medicinal Trees' then p.medicinal_trees
-	   when 'Timber Trees' then p.timber_tree
+	   when 'Timber Trees' then p.timber_trees
 	   else null
-	   end) as val, temp.c as dim 
-	  
+	   end as val, temp.c as dim 
+
 from profile_83169 p
 
-cross join temp 
+cross join temp
 
-left join profile_83168 p1 
-on p.ngo_name = p1._id
-  
-left join ds_mysql_prod_tagelement as pz
-  on p.plantation_zone = pz.id
-  
-left join ds_mysql_prod_tagelement as pt
-  on p.partner = pt.id
-  
-left join ds_mysql_prod_tagelement as dist
-  on p.state_district = dist.id
-  
-left join ds_mysql_prod_tagelement as stat
-  on dist.parent = stat.id  
-  
-left join ds_mongo_reftagelementmetadata codes
-on stat.name = codes.name
-  
-  left join ds_mysql_prod_project as pro
-  on p.projectid = pro.id
-
-group by pro.name, p.fy_timerange,dist.name,stat.name,p1.ngo_name,pz.name,pt.name,temp.c , p.financial_year,codes.name
- 
-
-
-
- 
-
-
-
-
-
-
+left join ds_mysql_prod_project as tag1
+on p.projectid = tag1.id
 
 
 
