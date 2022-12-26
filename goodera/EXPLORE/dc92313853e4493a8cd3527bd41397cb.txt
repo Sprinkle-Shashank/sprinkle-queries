@@ -1,9 +1,11 @@
 with t1 as 
 (select projectId, district, fy_timerange from profile_46325 as m,
 
-m.state_district district)
+m.state_district district),
 
-select tag1.name as projectid, fy_timerange, district, state1.name as a, state1_parent.name as b, codes.name as map_codes
+temp2 as 
+
+(select tag1.name as projectid, fy_timerange, district, state1.name as state, state1_parent.name as district, codes.name as map_codes1
 from t1
 left join ds_mysql_prod_project as tag1
 on t1.projectId = tag1.id 
@@ -15,8 +17,12 @@ left join ds_mysql_prod_tagelement as state1_parent
 on state1.parent = state1_parent.id
 
 left join ds_mongo_reftagelementmetadata codes
-on district.name = codes.name
+on district.name = codes.name)
 
+select projectid, fy_timerange, district,state, district, 
+LEFT JOIN ds_mongo_reftagelementmetadata reftag
+on temp2.state = reftag.name
+WHERE  reftag.code IS not NULL
 
  
 
