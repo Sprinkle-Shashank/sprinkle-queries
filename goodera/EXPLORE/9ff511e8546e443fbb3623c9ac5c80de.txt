@@ -1,0 +1,49 @@
+--HDFC_FRD_Financial_Total_Direct_Budget
+with tab1 as(select p1.name as projectcode,f.name as fy_timerange,concat(projectcode,fy_timerange) as CODE,split_part(prod.name,'|',3) as census, sum(hdfc_cost_yearly) hdfc_cost_yearly,sum(gov_cost_yearly) as gov_cost_yearly,sum(comm_cost_yearly) comm_cost_yearly
+from profile_29973 p
+left join profile_27396 p1
+on p.prj_code=p1._id
+left join ds_mysql_prod_project prod on
+prod.id=p.projectid
+left join ds_mysql_prod_tagelement f on
+p.fy=f.id
+group by  1,f.name,split_part(prod.name,'|',3)),
+
+Base1 as
+(select p.name as projectcode,f.name as fy_timerange,concat(projectcode,fy_timerange) as CODE,m.name  as project_manager,
+tf.name as Core_Area
+from profile_27396 p
+left join ds_mysql_prod_tagelement m on
+p.project_manager=m.id
+left join ds_mysql_prod_tagelement f on
+p.fy=f.id
+left join ds_mysql_prod_tagelement tf on
+p.focus_area=tf.id
+where Core_Area in ('Eradicating Poverty')
+union all
+select split_part(l.name,'[',1) as projectcode,f.name as fy_timerange,concat(projectcode,fy_timerange) as CODE,m.name as project_manager,p.focus_area as Core_Area
+from profile_27420 p
+left join profile_27396 l on
+p.project_code=l._id
+left join ds_mysql_prod_tagelement m on
+p.project_manager=m.id
+left join ds_mysql_prod_tagelement f on
+p.fy=f.id
+where Core_Area in ('Eradicating Poverty')
+),
+
+Base2 as(select p.projectcode,p.fy_timerange,l.project_manager,l.Core_Area,p.hdfc_cost_yearly,p.gov_cost_yearly,p.comm_cost_yearly,
+		 (p.hdfc_cost_yearly+p.gov_cost_yearly+p.comm_cost_yearly) as Direct
+from tab1 p 
+left join Base1 l 
+on p.CODE=l.CODE
+where l.Core_Area is not null),
+
+temp as(
+Select 'Total Direct Budget' as col
+)
+
+Select s.fy_timerange, s.Direct,s.hdfc_cost_yearly,s.gov_cost_yearly,s.comm_cost_yearly,
+temp.col as contri_types,s.projectcode, s.project_manager,s.Core_Area
+from base2 s
+cross join temp
