@@ -62,6 +62,7 @@ Select b1.fy_timerange, b1.ProjectCode, b2.Project_Manager, b1.Region,
   CAST(b1.ProjectCode as VARCHAR) as f2, 
   CAST(b2.Project_Manager as VARCHAR) as f3,
   CAST(b1.Region as VARCHAR) as f4,
+  (f1 || f2 || f3 || f4) as ok,
 case 
 	when q1 like 'https%' then q1
 	else NULL
@@ -108,7 +109,7 @@ Select  fy_timerange, ProjectCode, Project_Manager, Region,
 from t5
 where q14 is not NULL)
 
-Select t6.fy_timerange, t6.ProjectCode, t6.Project_Manager, t6.Region, t6.q11 as Submitted1,t7.q12 Submitted2, t8.q13 Submitted3, t9.q14 Submitted4,  
+Select distinct(t5.ProjectCode) ProjectCode, t5.fy_timerange, t5.Project_Manager, t5.Region, t6.q11 as Submitted1,t7.q12 Submitted2, t8.q13 Submitted3, t9.q14 Submitted4,  
 case
 	when t6.q11 like 'https%' then 'Submitted'
 	else 'NA'
@@ -126,10 +127,14 @@ case
 	else 'NA'
 	end as Click4
 
-from t6
+from t5
+left join t6
+on t5.ok=t6.ok
 left join t7
-ON t6.ok=t7.ok
+ON t5.ok=t7.ok
 left join t8
-ON t6.ok=t8.ok
+ON t5.ok=t8.ok
 left join t9
-ON t6.ok=t9.ok
+ON t5.ok=t9.ok
+where t5.Project_Manager <> 'Test PM1'
+group by 2,3,4,5,6,7,8, t5.ProjectCode
