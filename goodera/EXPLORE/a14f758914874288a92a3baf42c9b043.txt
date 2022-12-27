@@ -62,6 +62,7 @@ Select b1.fy_timerange, b1.ProjectCode, b2.Project_Manager, b1.Region,
   CAST(b1.ProjectCode as VARCHAR) as f2, 
   CAST(b2.Project_Manager as VARCHAR) as f3,
   CAST(b1.Region as VARCHAR) as f4,
+  (f1 || f2 || f3 || f4) as ok,
 case 
 	when q1 like 'https%' then q1
 	else NULL
@@ -81,6 +82,57 @@ end as q14
 from base1 b1
 left join b2
 on b1.CODE=b2.CODE
-)
+),
 
-Select * from t5
+t6 as(
+Select  fy_timerange, ProjectCode, Project_Manager, Region,
+(f1 || f2 || f3 || f4) as ok, q11
+from t5
+where q11 is not NULL
+),
+
+t7 as(
+Select  fy_timerange, ProjectCode, Project_Manager, Region,
+(f1 || f2 || f3 || f4) as ok, q12
+from t5
+where q12 is not NULL),
+
+t8 as(
+Select  fy_timerange, ProjectCode, Project_Manager, Region,
+(f1 || f2 || f3 || f4) as ok, q13
+from t5
+where q13 is not NULL),
+
+t9 as(
+Select  fy_timerange, ProjectCode, Project_Manager, Region,
+(f1 || f2 || f3 || f4) as ok, q14
+from t5
+where q14 is not NULL)
+
+Select t6.fy_timerange, t6.ProjectCode, t6.Project_Manager, t6.Region, t6.q11 as Submitted1,t7.q12 Submitted2, t8.q13 Submitted3, t9.q14 Submitted4,  
+case
+	when t6.q11 like 'https%' then 'Submitted'
+	else 'NA'
+	end as Click1,
+	case
+	when t7.q12 like 'https%' then 'Submitted'
+	else 'NA'
+	end as Click2,
+	case
+	when t8.q13 like 'https%' then 'Submitted'
+	else 'NA'
+	end as Click3,
+	case
+	when t9.q14 like 'https%' then 'Submitted'
+	else 'NA'
+	end as Click4
+
+from t5
+left join t6
+on t5.ok=t6.ok
+left join t7
+ON t5.ok=t7.ok
+left join t8
+ON t5.ok=t8.ok
+left join t9
+ON t5.ok=t9.ok
