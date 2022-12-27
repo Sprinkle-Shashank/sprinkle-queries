@@ -1,0 +1,86 @@
+with table1 as(select p.projectId from profile_16619 p
+
+			   
+left join profile_20704 p2
+on p.projectId = p2.projectId
+			   
+group by p.projectId
+),
+table2 as(select p.projectId,fac.name as factory,nvl2(SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), ven.name) as vendor_name, case when vendor_name='' then ven.name else vendor_name end as vendor,cou.name as country,case when country in ('India', 'Bangladesh', 'Sri Lanka')
+then 'South Asia'
+when country in ('China')
+then 'North Asia'
+when country in ('Guatemala', 'El Salvador', 'Dominican Republic')
+then 'Americas'
+when country in ('Philippines', 'Cambodia',  'Vietnam',  'Indonesia', 'Myanmar')
+then 'South East Asia'
+end as region,case when p2.name_subunit is null or p2.name_subunit=' ' then 'N/A' else p2.name_subunit end  as unit,decode(DATEPART(YEAR,p2.date_enrollment),null,0,DATEPART(YEAR,p2.date_enrollment)) as year_new,bc.name as who from profile_20704 p
+
+left join project_1137 fac
+on p.projectid = fac.id
+left join project_1137 ven
+on fac.parent = ven.id
+left join project_1137 cou
+on ven.parent = cou.id
+
+left join profile_16619 p2
+on p.sub_unit = p2._id
+
+left join table1 t1 on
+p.projectId = t1.projectId
+			   
+left join tagelement_1137 bc
+on p.who_bc = bc.id
+
+where  (cou.name <> 'Test Country' and cou.name <> 'GAP Inc.') and (p.projectId like '%%') and (t1.projectId is not null) and (p2.status = 1400365 or p2.status is null)
+),
+table3 as(SELECT * 
+FROM (SELECT projectId,factory,vendor,country,region,year_new,unit,who,count(who) as total 
+	  
+	  from table2 
+	  
+	  
+
+	 group by projectId,who,factory,vendor,country,region,year_new,unit)
+
+PIVOT (
+    SUM(total) FOR who IN ('Yes' as rights,'No, I don''t know' as no,'Not answered' as n_a)
+)
+),
+table4 as(select projectId,factory,vendor,country,region,year_new,unit,case when rights is null then 0 else rights end as right_count,
+		  case when no is null then 0 else no end as no_count,
+		  case when n_a is null then 0 else n_a end as n_a_count,
+		 (right_count+no_count+n_a_count) as total,
+(right_count*100.0)/total as right_percent,
+		
+		  (no_count*100.0)/total as no_percent,
+	(n_a_count*100.0)/total as not_answer_percent 
+		  from table3
+		  
+),
+temp as (
+  select 'Yes' as dim
+  union all
+  select 'No, I don''t know' as dim
+  union all
+  select 'Not answered' as dim
+)
+select  projectId,factory,vendor,country,region,year_new,unit,right_count,no_count,n_a_count,total,right_percent,no_count,not_answer_percent,temp.dim,case dim
+	when 'Yes' then right_percent 
+	 
+	when 'No, I don''t know' then no_percent
+	when 'Not answered' then not_answer_percent
+
+	Else Null
+	End as value1	
+	from table4
+	cross join temp
+
+group by projectId,factory,vendor,country,region,year_new,unit,right_count,no_count,n_a_count,total,temp.dim,right_percent,no_percent,not_answer_percent
+
+
+	  
+	  
+
+	 
+
