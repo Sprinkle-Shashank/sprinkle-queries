@@ -1,6 +1,14 @@
-select tag1.name as projectid, fy_timerange, fy_timerange.start :: date as start_date, tag2.name as social_work
+with t1 as 
+(select tag1.name as projectid, fy_timerange, fy_timerange.start :: date as start_date, tag2.name as social_work
 from profile_83263 p1
 left join ds_mysql_prod_project tag1
 on p1.projectid = tag1.id
 left join ds_mysql_prod_tagelement tag2
-on p1.social_work = tag2.id
+on p1.social_work = tag2.id)
+
+select projectid, fy_timerange, to_char(start_date, 'MONTH') as start_month, count(*)
+from t1
+group by 
+projectid, fy_timerange, start_date
+
+
