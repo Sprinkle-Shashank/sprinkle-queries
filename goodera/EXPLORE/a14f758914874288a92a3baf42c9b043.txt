@@ -1,4 +1,6 @@
-Select f.name as fy_timerange, split_part(split_part(prod.name,'|',1),'.',1) as ProjectCode, split_part(prod.name,'|',1) as Region1,
+with a as(
+  
+  Select f.name as fy_timerange, split_part(split_part(prod.name,'|',1),'.',1) as ProjectCode, split_part(prod.name,'|',1) as Region1,
   case 
       when Region1 like '%.%' then split_part(prod.name,'|',2)
      else '-'
@@ -31,4 +33,19 @@ left join  ds_mysql_prod_project prod  on
 prod.id=projectid
   
 left join ds_mysql_prod_tagelement f 
-on fy=f.id
+on fy=f.id),
+
+q as(
+select cast(c.name as varchar)as ProjectCode,f.name as fy_timerange,m.name as Project_Manager,CONCAT(ProjectCode,fy_timerange) as CODE 
+from profile_27396 c	
+left join ds_mysql_prod_tagelement f on
+c.fy=f.id
+left join ds_mysql_prod_tagelement m on
+c.project_manager=m.id
+)
+
+
+select a.ProjectCode
+from a
+left join q
+ON a.code=q.code
