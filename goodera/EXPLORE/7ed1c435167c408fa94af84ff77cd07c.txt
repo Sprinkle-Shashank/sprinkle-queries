@@ -4,7 +4,23 @@ from profile_83265 p1
 left join ds_mysql_prod_project tag1
 on p1.projectid = tag1.id
 left join profile_83261 p2
-on p1.benef_name = p2._id)
+on p1.benef_name = p2._id),
 
-select projectid, fy_timerange, to_char(start_date, 'MONTH') as month, extract(year from start_date) as year, benef_name, physics, chemistry, maths
-from t1
+t2 as 
+(select projectid, fy_timerange, to_char(start_date, 'MONTH') as month, extract(year from start_date) as year, benef_name, physics, chemistry, maths
+from t1),
+
+temp as ( select 'physics' as c
+		 union all
+		 select 'Chemistry' as c
+		 union all
+		 select 'maths' as c )
+select projectid, fy_timerange, month, year, benef_name,
+case c when 'physics' then t2.physics
+	   when 'chemistry' then t2.chemistry
+	   when 'maths' then t2.maths
+	   else null
+
+from t2
+
+
