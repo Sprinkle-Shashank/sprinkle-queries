@@ -1,6 +1,10 @@
-select tag1.name as projectid, p1.fy_timerange, p1.fy_timerange.start :: date as start_date, p2.name as benef_name, p1.physics, p1.chemistry, p1.zoology, p1.botany, round((p1.physics :: float/180)*100,2) as physics_percentage, round((p1.chemistry :: float/180)*100,2) as chemistry_percentage, round((p1.zoology:: float/180)*100,2) as zoology_percentage, round((p1.botany:: float/180)*100,2) as botany_percentage, p1.physics + p1.chemistry + p1.zoology + p1.botany as tota_marks
+with t1 as 
+(select tag1.name as projectid, p1.fy_timerange, p1.fy_timerange.start :: date as start_date, p2.name as benef_name, p1.physics, p1.chemistry, p1.zoology, p1.botany, round((p1.physics :: float/180)*100,2) as physics_percentage, round((p1.chemistry :: float/180)*100,2) as chemistry_percentage, round((p1.zoology:: float/180)*100,2) as zoology_percentage, round((p1.botany:: float/180)*100,2) as botany_percentage, p1.physics + p1.chemistry + p1.zoology + p1.botany as total_marks
 from profile_83266 p1
 left join ds_mysql_prod_project tag1
 on p1.projectid = tag1.id
 left join profile_83261 p2
-on p1.benef_name = p2._id
+on p1.benef_name = p2._id)
+
+select projectid, fy_timerange, to_char(start_date, 'MONTH') as month, to_char(start_date, 'YYYY') as year, physics_percentage, chemistry_percentage, zoology_percentage, botany_percentage, round((total_marks :: float/720)*100,2) as total_marks_percentage
+from t1
