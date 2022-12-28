@@ -1,5 +1,5 @@
 with t1 as 
-(select tag1.name as projectid, p1.fy_timerange, p1.fy_timerange.start :: date as start_date, p2.name as benef_name, p1.physics , p1.chemistry, p1.maths, (p1.physics :: float/100)*100 as physics_percentage, (p1.chemistry :: float/100)*100 as chemistry_percentage, (p1.maths :: float/100)*100 as maths_percentage
+(select tag1.name as projectid, p1.fy_timerange, p1.fy_timerange.start :: date as start_date, p2.name as benef_name, p1.physics , p1.chemistry, p1.maths, (p1.physics :: float/100)*100 as physics_percentage, (p1.chemistry :: float/100)*100 as chemistry_percentage, (p1.maths :: float/100)*100 as maths_percentage, p1.physics + p1.chemistry + p1.maths as total_marks
 from profile_83265 p1
 left join ds_mysql_prod_project tag1
 on p1.projectid = tag1.id
@@ -7,8 +7,8 @@ left join profile_83261 p2
 on p1.benef_name = p2._id),
 
 t2 as
-(select projectid, fy_timerange, to_char(start_date, 'MONTH') as month, to_char(start_date, 'YYYY') as year, physics_percentage, chemistry_percentage, maths_percentage
+(select projectid, fy_timerange, to_char(start_date, 'MONTH') as month, to_char(start_date, 'YYYY') as year, physics_percentage, chemistry_percentage, maths_percentage, (total_marks :: float/300)*100 as total_marks_percentage
 from t1)
 
-select projectid, fy_timerange, month||'-'||year as month_year, physics_percentage, chemistry_percentage, maths_percentage
+select projectid, fy_timerange, month||'-'||year as month_year, physics_percentage, chemistry_percentage, maths_percentage, total_marks_percentage
 from t2
