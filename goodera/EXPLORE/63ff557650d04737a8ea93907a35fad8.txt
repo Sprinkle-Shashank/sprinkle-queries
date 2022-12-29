@@ -1,12 +1,6 @@
-Select projectId,quarter,timerange_timerange,first_value(quarter)
-over(partition by projectId
-order by timerange_timerange asc
-rows between unbounded preceding and unbounded following) from
-
-(SELECT prod.name AS projectId,t2.name AS year, t1.name AS quarter, timerange_timerange, SUM(amount_utilized) AS Utilized, SUM(amount_rvd) AS Approved,(Approved - Utilized) as To_be_Spent
-
---order by venueseats desc
---rows between unbounded preceding and unbounded following)
+with s as
+(SELECT prod.name AS projectId,t2.name AS year, t1.name AS quarter, timerange_timerange, SUM(amount_utilized) AS Utilized, SUM(amount_rvd) AS Approved,(Approved - Utilized) as To_be_Spent,
+rank() over(partition by projectId , t1.name order by timerange_timerange asc) as rnk
 
 FROM profile_3537
 left join  ds_mysql_prod_tagelement t1  on
@@ -19,3 +13,5 @@ WHERE timerange_timerange is not null
 GROUP BY prod.name, t2.name, t1.name, timerange_timerange, amount_utilized, amount_rvd
 --ORDER BY t1.name DESC
 )
+Select * from s 
+where rnk=1
