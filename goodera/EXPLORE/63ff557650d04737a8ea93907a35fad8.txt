@@ -1,6 +1,7 @@
-SELECT prod.name AS projectId,t2.name AS year, t1.name AS quarter, timerange_timerange, SUM(amount_utilized) AS Utilized, SUM(amount_rvd) AS Approved,(Approved - Utilized) as To_be_Spent,
-first_value(t1.name)
-over(partition by prod.name)
+Select prod.name,t1.name,timerange_timerange,first_value(t1.name)
+over(partition by prod.name) from
+
+(SELECT prod.name AS projectId,t2.name AS year, t1.name AS quarter, timerange_timerange, SUM(amount_utilized) AS Utilized, SUM(amount_rvd) AS Approved,(Approved - Utilized) as To_be_Spent
 
 --order by venueseats desc
 --rows between unbounded preceding and unbounded following)
@@ -14,4 +15,4 @@ left join  ds_mysql_prod_project prod  on
 prod.id=projectid
 WHERE timerange_timerange is not null
 GROUP BY prod.name, t2.name, t1.name, timerange_timerange, amount_utilized, amount_rvd
-ORDER BY t1.name DESC
+ORDER BY t1.name DESC)
