@@ -1,4 +1,4 @@
-Select p3.name as projectId,p1.name as projectname,p2.name as partner,p.bene_name,
+with s2 as (Select p3.name as projectId,p1.name as projectname,p2.name as partner,p.bene_name,
 concat(concat(concat(concat('{"start":"',(TO_CHAR(p4.start_date, 'YYYY-MM-DD"T"HH24":"MI:SS.000"Z"'))),'","end":"'),(TO_CHAR(p4.proposed_end_date, 'YYYY-MM-DD"T"HH24":"MI:SS.000"Z"'))),'"}') as fy_timerange,
 t3.name as district, t4.name as state, t9.name as domain,
 case when t5.name = 'Yes' then 1 else 0 end as bene_enrolled_num,
@@ -22,8 +22,11 @@ left join tagelement_9730 t4 on t4.id=t3.parent
 left join tagelement_9730 t8 on t8.id=p4.domain_trade
 left join tagelement_9730 t9 on t9.id=t8.parent
 
-where p.projectid like '%%' and p4.proposed_end_date IS NOT NULL
+where p.projectid like '%%' and p4.proposed_end_date IS NOT NULL)
 
+Select projectId,projectname,partner,fy_timerange,
+district,domain,undergoing_yes_no,bene_training
+from s2
 
 
 --group by p2.name,p4.start_date,p4.end_date,t3.name,t4.name,t8.name,t2.name,p.bene_name,p1.name,p3.name,t9.name
