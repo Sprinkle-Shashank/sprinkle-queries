@@ -1,4 +1,15 @@
-SELECT timerange_timerange, prod.name as projectId, t1.name as ws, t2.name as is, t3.name as ls,t4.name as fl,t5.name as se
+With temp AS(
+  SELECT 'ws' AS col
+  UNION ALL
+  SELECT 'is' AS col
+  UNION ALL
+  SELECT 'ls' AS col
+  UNION ALL
+  SELECT 'fl' AS col
+  UNION ALL
+  SELECT 'se' AS col
+),
+tab1 as (SELECT timerange_timerange, prod.name as projectId, t1.name as ws, t2.name as iis, t3.name as ls,t4.name as fl,t5.name as se
 FROM profile_3863
 left join ds_mysql_prod_project prod
 on prod.id=projectId
@@ -14,58 +25,22 @@ left join ds_mysql_prod_tagelement t5
 on t5.id=spoken_english
 where ws is not null
 and ls is not null
-/*With temp AS(
-  SELECT 'ws' AS col
-  UNION ALL
-  SELECT 'is' AS col
-  UNION ALL
-  SELECT 'ls' AS col
-  UNION ALL
-  SELECT 'fl' AS col
-  UNION ALL
-  SELECT 'se' AS col
-)
-tab1 as (SELECT timerange_timerange, prod.name as projectId, t1.name ws, t2.name is, t3.name ls,t4.name fl,t5.name se
-FROM profile_3863
-left join ds_mysql_prod_project prod
-on prod.id=projectId
-left join ds_mysql_prod_tagelement t1
-on t1.id=worksplace_skills
-left join ds_mysql_prod_tagelement t2
-on t2.id=it_skills
-left join ds_mysql_prod_tagelement t3
-on t3.id=life_skill
-left join ds_mysql_prod_tagelement t4
-on t4.id=financial_literacy
-left join ds_mysql_prod_tagelement t5
-on t5.id=spoken_english
-where ws is not null
-and is is not null
+and iis is not null
+and fl is not null
+and se is not null)
 
   
   
-  SELECT timerange_timerange, prod.name projectId,temp.col as inter,
+SELECT timerange_timerange, projectId,temp.col as inter,
 case col
-  when 'ws' then t1.name
-  when 'is' then t2.name
-  when 'ls' then t3.name
-  when 'fl' then t4.name
-  when 'se' then t5.name
+  when 'ws' then ws
+  when 'is' then iis
+  when 'ls' then ls
+  when 'fl' then fl
+  when 'se' then se
   else NULL
 end as num, count(*) as num2
-FROM profile_3863
-left join ds_mysql_prod_project prod
-on prod.id=projectId
-left join ds_mysql_prod_tagelement t1
-on t1.id=worksplace_skills
-left join ds_mysql_prod_tagelement t2
-on t2.id=it_skills
-left join ds_mysql_prod_tagelement t3
-on t3.id=life_skill
-left join ds_mysql_prod_tagelement t4
-on t4.id=financial_literacy
-left join ds_mysql_prod_tagelement t5
-on t5.id=spoken_english
+FROM tab1
 cross join temp
 where num is not null
-group by timerange_timerange, prod.name,inter,num*/
+group by timerange_timerange, prod.name,inter,num
