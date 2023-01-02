@@ -1,17 +1,7 @@
 with temp1 as
-(select city1.name as city1, state1.name as state1, fy_timerange, school1.name as school1, action_plan, training, students, family_member, pre_awareness , post_awareness, fy_timerange.start as start1, extract(Month from start1::date) as month1,extract(Year from start1::date) as year1,CONCAT(CONCAT(city1,'-'),state1) AS location
-from profile_51222 as m
-
-left join ds_mysql_prod_project as projectId
-on m.projectId = projectId.id
-left join ds_mysql_prod_tagelement as state1
-on m.state = state1.id
-left join ds_mysql_prod_tagelement as city1
-on m.city = city1.id
-left join ds_mysql_prod_tagelement as school1
-on m.school = school1.id),
-temp2 as
-(select *,CASE month1
+(select city1.name as city1, state1.name as state1, fy_timerange, school1.name as school1, action_plan, training, students, family_member, pre_awareness , post_awareness, fy_timerange.start as start1, extract(Month from start1::date) as month1,extract(Year from start1::date) as year1,CONCAT(CONCAT(city1,'-'),state1) AS location,
+ 
+CASE month1
 	  
 WHEN '1' THEN 'January'
 WHEN '2' THEN 'February'
@@ -26,7 +16,20 @@ WHEN '10' THEN 'October'
 WHEN '11' THEN 'November'
 WHEN '12' THEN 'December'
  
-  Else null
-end as Month2,CONCAT(CONCAT(CONCAT(Month2,'('),year1),')') as mt
+ Else null
+end as Month2,
+from profile_51222 as m
+
+left join ds_mysql_prod_project as projectId
+on m.projectId = projectId.id
+left join ds_mysql_prod_tagelement as state1
+on m.state = state1.id
+left join ds_mysql_prod_tagelement as city1
+on m.city = city1.id
+left join ds_mysql_prod_tagelement as school1
+on m.school = school1.id),
+temp2 as
+(select *,
+ CONCAT(CONCAT(CONCAT(Month2,'('),year1),')') as mt
  from temp1)
 select * from temp2
