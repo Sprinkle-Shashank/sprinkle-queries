@@ -1,8 +1,9 @@
+--PadminiVNA_Emissions_Scope1_Canteen_N2O
 with table0 as (Select t.name as projectid,fy_timerange, substring(finperiod,strpos(finperiod, ' ')+2,7) as year, datatable, questiontext
 
 from sus_78882
 				
-left join ds_mysql_prod_project t
+left join project_9166 t
 on xprojectid=t.id
 				
 where keyword='scope_1_canteen'
@@ -18,7 +19,7 @@ from table0 as p, unpivot p.datatable as coun at xyz
 select projectid ,fy_timerange, year, ft.name as fuel_type, fuel_consumed, sno from table1
   
   
-  left join ds_mysql_prod_tagelement ft
+  left join tagElement_9166 ft
 on table1.fuel_type = ft.id
   
 ),
@@ -28,7 +29,7 @@ emission_conversion as (
  calorific_value,
 emission_factor from profile_80891
   
-  left join ds_mysql_prod_tagelement es
+  left join tagElement_9166 es
 on profile_80891.emission_source = es.id
   
 
@@ -43,4 +44,3 @@ left join emission_conversion on
 emission_conversion.emission_source = table2.fuel_type
 )
 select projectid ,table3.fy_timerange, year, fuel_type, fuel_consumed, fuel_consumed * litre_to_kg * kg_to_gg * calorific_value * emission_factor / 1000 as emission from table3
-
