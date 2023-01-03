@@ -1,12 +1,18 @@
-with t1 as
-(select tag1.name as projectid, p1.fy_timerange, p1.fy_timerange.start :: date as start_date, p1.physics, p1.chemistry, p1.zoology, p1.botany, (p1.physics + p1.chemistry + p1.zoology + p1.botany)/4 as avg_marks
+with t1 as 
+( p1.projectid, p1.fy_timerange, p1.fy_timerange.start :: date as start_date, sum(physics) as physics, sum(chemistry) as chemistry, sum(zoology) as zoology, sum(botany) as botany
 from profile_83266 p1
+group by 
+p1.projectid, p1.fy_timerange
+ 
+with t2 as
+(select tag1.name as projectid, t1.fy_timerange, t1.fy_timerange.start :: date as start_date, t1.physics, t1.chemistry, t1.zoology, t1.botany, (t1.physics + t1.chemistry + t1.zoology + t1.botany)/4 as avg_marks
+from t1
 left join ds_mysql_prod_project tag1
 on p1.projectid = tag1.id),
 
-t2 as 
+t3 as 
 (select projectid, fy_timerange, to_char(start_date, 'MONTH') as month, extract(year from start_date) as year, physics, chemistry, zoology, botany, avg_marks
-from t1),
+from t2),
 
 temp as ( select 'physics' as c
 		 union all
@@ -26,7 +32,7 @@ case c when 'physics' then t2.physics
 	   else null
 	   end as marks, temp.c as subjects
 
-from t2
+from t3
 cross join temp
 
 
