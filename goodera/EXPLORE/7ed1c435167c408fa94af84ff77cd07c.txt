@@ -1,11 +1,11 @@
 with t1 as 
-(select tag1.name as projectid, p1.fy_timerange, p1.fy_timerange.start :: date as start_date, p1.physics, p1.chemistry, p1.maths, (p1.physics + p1.chemistry + p1.maths)/3 as avg_marks, 100 as total_marks
+(select tag1.name as projectid, p1.fy_timerange, p1.fy_timerange.start :: date as start_date, p1.physics, p1.chemistry, p1.maths, (p1.physics + p1.chemistry + p1.maths)/3 as avg_marks
 from profile_83265 p1
 left join ds_mysql_prod_project tag1
 on p1.projectid = tag1.id),
 
 t2 as 
-(select projectid, fy_timerange, to_char(start_date, 'MONTH') as month, extract(year from start_date) as year, physics, chemistry, maths, avg_marks, total_marks
+(select projectid, fy_timerange, to_char(start_date, 'MONTH') as month, extract(year from start_date) as year, physics, chemistry, maths, avg_marks
 from t1),
 
 temp as ( select 'physics' as c
@@ -15,7 +15,7 @@ temp as ( select 'physics' as c
 		 select 'maths' as c
 		 union all
 		 select 'avg_marks' as c)
-select projectid, fy_timerange, month, year, total_marks,
+select projectid, fy_timerange, month, year,
 case c when 'physics' then t2.physics
 	   when 'chemistry' then t2.chemistry
 	   when 'maths' then t2.maths
