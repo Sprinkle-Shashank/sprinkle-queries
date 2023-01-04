@@ -1,0 +1,52 @@
+with temp as ( select 'No of applications received' as c
+			   Union all
+			   select 'No of innovations awarded' as c
+			   Union all 
+			   select 'Total women applicants' as c
+			   Union all
+			   select 'Total men applicants' as c
+			   Union all
+			   select 'Total women winners' as c
+			   Union all
+			   select 'Total men winners' as c
+			   Union all 
+			   select 'No of business org' as c
+			   Union all 
+			   select 'No of social org' as c
+			   Union all
+			   select 'Consolidated PR value' as c
+			   Union all 
+			   select 'PR value received' as c
+			   Union all
+			   select 'NPS by awardees' as c
+			   Union all 
+			   select 'NPS by audience' as c
+			   Union all 
+			   select 'NPS by MIF CGC' as c
+			  )
+
+select pro.name as projectid,fy_timerange,financial_year,
+sum (case c when 'No of applications received'  then p.no_of_app_received  
+       when 'No of innovations awarded' then p.no_of_innov_awarded
+	   when 'Total women applicants' then p.women_applicants
+	   when 'Total men applicants' then p.men_applicants
+	   when 'Total women winners' then p.women_winners
+	   when 'Total men winners' then p.men_winners
+	   when 'No of business org' then p.business_org
+	   when 'No of social org' then p.social_org
+	   when 'Consolidated PR value' then p.cons_pr_value
+	   when 'PR value received' then p.pr_value_received
+	   when 'NPS by awardees' then p.nps_by_awardees
+	   when 'NPS by audience' then p.nps_by_audience
+	   when 'NPS by MIF CGC' then p.nps_by_mif_cgc
+	   else null
+	   end) as val, temp.c as dim 
+	  
+from profile_83243 p
+
+cross join temp 
+
+left join ds_mysql_prod_project as pro
+  on p.projectid = pro.id
+
+group by pro.name, fy_timerange, temp.c, financial_year
