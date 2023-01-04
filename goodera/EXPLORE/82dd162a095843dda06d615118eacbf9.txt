@@ -25,15 +25,15 @@ t3 as (
 Select tt.*,cgf from t2 as tt,tt.completedgrantflowtask cgf
 )
 
-Select t3.*,cast(t3.todo."action" as varchar) as action,
+Select t3.*,cast(t3.todo."action" as varchar) as action,case
+	when cgf."status" = 'COMPLETED' and cgf."taskId"=28720 then grantproposalid
+	end as comp
 object(
 'In Progress', 
 ARRAY(JSON_PARSE(case
 	when action = 'PENDING' and todo."taskId"=28720 then grantproposalid
 	end)),
-  'Completed', LISTAGG(case
-	when cgf."status" = 'COMPLETED' and cgf."taskId"=28720 then grantproposalid
-	end),
+  'Completed', LISTAGG(comp,','),
  'Rejected', jSON_PARSE(case
 	when action = 'REJECTED' and todo."taskId"=28720 then grantproposalid
 	end)
