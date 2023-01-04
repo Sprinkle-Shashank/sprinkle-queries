@@ -1,11 +1,11 @@
 select p3.name as projectId,p2.name as projectname,p1.name as partner,/*p.fy_timerange*/
 concat(concat(concat(concat('{"start":"',(TO_CHAR(p.opening_date, 'YYYY-MM-DD"T"HH24":"MI:SS.000"Z"'))),'","end":"'),(TO_CHAR(p.opening_date, 'YYYY-MM-DD"T"HH24":"MI:SS.000"Z"'))),'"}') as fy_timerange,
-t1.name as block, t2.name as district, t3.name as state, p.village,p.bene_name,t4.name as Bene_Gender
-,t5.name as Ed_Qualification,t6.name as Economic_status, t7.name as Geography_type,
+t1.name as block, t2.name as district, t3.name as state,p.bene_name,t5.name as Enterprise,t4.name as Business
+,t6.name as Economic_status, t7.name as Geography_type,
 case 
-when amount_invested_at_so <= 10000 then 'Upto 10k'
-when amount_invested_at_so > 10000 and amount_invested_at_so <=15000  then '10k to 15k'
-when amount_invested_at_so > 15000 and amount_invested_at_so <=30000  then '15k to 30k'
+when (amount_invested_at_so + amt_invested_next_6) <= 10000 then 'Upto 10k'
+when (amount_invested_at_so + amt_invested_next_6) > 10000 and (amount_invested_at_so + amt_invested_next_6) <=15000  then '10k to 15k'
+when (amount_invested_at_so + amt_invested_next_6) > 15000 and (amount_invested_at_so + amt_invested_next_6) <=30000  then '15k to 30k'
 end as Amount_invested_Range
 
 
@@ -18,8 +18,8 @@ left join ds_mysql_prod_project p3 on p3.id=p2.parent
 left join tagelement_9730 t1 on t1.id=p.state_district_block
 left join tagelement_9730 t2 on t2.id=t1.parent
 left join tagelement_9730 t3 on t3.id=t2.parent
-left join tagelement_9730 t4 on t4.id=p.gender
-left join tagelement_9730 t5 on t5.id=p.ed_qualification
+left join tagelement_9730 t4 on t4.id=p.enterprise_type
+left join tagelement_9730 t5 on t5.id=t4.parent
 left join tagelement_9730 t6 on t6.id=p.economic_status
 left join tagelement_9730 t7 on t7.id=p.geography_type
 where p.projectid like '%%' 
