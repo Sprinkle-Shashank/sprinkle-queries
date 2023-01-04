@@ -1,3 +1,38 @@
-Select p1.id from project_9730 p1
-/*Select p.projectid, p1.id from profile_83228 p
-left join project_9730 p1 on p1.id = p.projectid*/
+with t1 as (
+      select p3.name as projectId,p2.name as projectname,p1.name as partner,
+      p.fy_timerange,t1.name as block, t2.name as district, t3.name as state,
+      case when t7.name = 'Yes' then 1 else 0 end as PMSBY
+      case when t8.name = 'Yes' then 1 else 0 end as PMJJY
+      case when t9.name = 'Yes' then 1 else 0 end as Atal_Pension_Yojna
+	  from profile_83228 p
+
+      left join project_9730 p1 on p1.id = p.projectid
+      left join project_9730 p2 on p2.id = p1.parent
+      left join project_9730 p3 on p3.id=p2.parent
+
+      left join tagelement_9730 t1 on t1.id=p.state_district_block
+      left join tagelement_9730 t2 on t2.id=t1.parent
+      left join tagelement_9730 t3 on t3.id=t2.parent
+      left join tagelement_9730 t7 on t7.id=p.pmsby
+      left join tagelement_9730 t8 on t8.id=p.pmjjb
+      left join tagelement_9730 t9 on t9.id=p.atal_pension_yojana),
+	  
+with temp as (
+  select 'PMSBY' as col
+  union all
+  select 'PMJJY' as col
+  union all
+  select 'Atal Pension Yojna' as col
+  )
+
+select tab.fy_timerange, tab.projectid, tab.projectname,tab.partner,tab.district, temp.col as dimensions,
+sum(case col
+	when 'PMSBY' then tab.PMSBY
+	when 'PMJJY' then tab.PMJJY
+	when 'Atal Pension Yojna' then tab.Atal_Pension_Yojna
+	else Null
+	end) as Values
+from t1 tab
+cross join temp
+group by tab.fy_timerange, tab.projectid, tab.projectname,tab.partner,tab.district, temp.col
+
