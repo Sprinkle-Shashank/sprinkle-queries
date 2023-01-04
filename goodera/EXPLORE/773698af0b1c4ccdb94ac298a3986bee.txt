@@ -1,0 +1,52 @@
+with temp as ( select 'Total Innovations Evaluated' as c
+			   Union all
+			   select 'Innovations Under Scale Up' as c
+			   Union all 
+			   select 'No of challenges closed' as c
+			   Union all
+			   select 'No of arr exited' as c
+			   Union all
+			   select 'Avg NPS received' as c
+			   Union all
+			   select 'Total Agriculture Innovations' as c
+			   Union all 
+			   select 'No of challenges closed agriculture' as c
+			   Union all 
+			   select 'No of arr exited agriculture' as c
+			   Union all
+			   select 'Avg NPS received agriculture' as c
+			   Union all 
+			   select 'No of innovations evaluated sector' as c
+			   Union all
+			   select 'No of innovations supported' as c
+			   Union all 
+			   select 'Avg NPS received sectoral' as c
+			  )
+
+select pro.name as projectid,fy_timerange,sect.name as sector,financial_year,
+sum (case c when 'Total Innovations Evaluated'  then p.innovations_evaluated  
+       when 'Innovations Under Scale Up' then p.innovations_under_scale_up
+	   when 'No of challenges closed' then p.no_of_challenges_closed
+	   when 'No of arr exited' then p.no_of_arr_exited
+	   when 'Avg NPS received' then p.avg_nps_received
+	   when 'Total Agriculture Innovations' then p.total_agri_innovations
+	   when 'No of challenges closed agriculture' then p.no_of_challenges_closed_agri
+	   when 'No of arr exited agriculture' then p.no_of_arr_exited_agri
+	   when 'Avg NPS received agriculture' then p.avg_nps_received_agri
+	   when 'No of innovations evaluated sector' then p.no_of_innov_evaluated
+	   when 'No of innovations supported' then p.no_of_innov_supported
+	   when 'Avg NPS received sectoral' then p.avg_nps_received_sectoral
+	   else null
+	   end) as val, temp.c as dim 
+	  
+from profile_83243 p
+
+cross join temp 
+
+left join ds_mysql_prod_tagelement as sect
+  on p.sector = sect.id
+  
+left join ds_mysql_prod_project as pro
+  on p.projectid = pro.id
+
+group by pro.name, fy_timerange, sect.name, temp.c, financial_year
