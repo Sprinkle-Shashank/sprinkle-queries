@@ -1,8 +1,9 @@
-with table0 as (Select t.name as projectid,fy_timerange, extract(year from cast(startdate as DATETIME)) as year, datatablebase, questiontext
+--PadminiVNA_Emissions_Scope1_OwnVehicles
+with table0 as (Select t.name as projectid,fy_timerange, substring(finperiod,strpos(finperiod, ' ')+2,7) as year, datatable, questiontext
 
 from sus_78882
 				
-left join ds_mysql_prod_project t
+left join project_9166 t
 on xprojectid=t.id
 				
 where keyword='scope_1_own_vehicles'
@@ -11,17 +12,17 @@ where keyword='scope_1_own_vehicles'
 table1 as (
   Select projectid ,fy_timerange, year,  coun.vehicle_type_own_vehicles as vehicle_type, coun.vehicle_fuel_type_own_vehicles as fuel_type,
   coun.fuel_consumed_ownvehicles as fuel_consumed, coun.fuel_unit_ownvehicles as fuel_units, coun.distance_ownvehicles as distance_travelled, row_number() over (order by fy_timerange) as sno
-from table0 as p, unpivot p.datatablebase as coun at xyz
+from table0 as p, unpivot p.datatable as coun at xyz
   
   
 ), table2 as (
 select projectid ,fy_timerange, year, vt.name as vehicle_type, ft.name as fuel_type, fuel_consumed, fuel_units, distance_travelled, sno from table1
   
   
-  left join ds_mysql_prod_tagelement ft
+  left join tagElement_9166 ft
 on table1.fuel_type = ft.id
   
-   left join ds_mysql_prod_tagelement vt
+   left join tagElement_9166 vt
 on table1.vehicle_type = vt.id
   
 ),
@@ -46,4 +47,3 @@ left join emission_conversion on
 emission_conversion.emission_source = table2.fuel_type
 )
 select projectid ,table3.fy_timerange, year, vehicle_type, fuel_type, fuel_consumed, fuel_units, distance_travelled, fuel_consumed * litre_to_kg * kg_to_gg * calorific_value * emission_factor / 1000 as emission from table3
-
