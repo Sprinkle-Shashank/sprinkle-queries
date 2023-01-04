@@ -1,1 +1,27 @@
-select * from profile_77881
+
+
+with t1 as
+(SELECT * 
+FROM
+(Select  projectId, fy_timerange, school_name, percent_baseline_score, percent_endline_score, student_class from profile_65291
+
+)
+UNPIVOT (
+    val FOR dim IN (percent_baseline_score, percent_endline_score))
+
+)
+
+select pro.name as projectId, fy_timerange, pro1.name as school_name, pro2.name as student_class, avg(val) as val,dim  from t1 as p
+
+ left join ds_mysql_prod_project pro
+  on p.projectid = pro.id
+  
+    left join ds_mysql_prod_tagelement pro1
+  on p.school_name = pro1.id
+    left join ds_mysql_prod_tagelement pro2
+  on p.student_class = pro2.id
+
+Group By projectId, fy_timerange, school_name, student_class, dim, pro.name, pro1.name, pro2.name
+  
+
+
