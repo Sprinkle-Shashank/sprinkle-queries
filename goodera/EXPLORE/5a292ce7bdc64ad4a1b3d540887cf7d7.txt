@@ -1,0 +1,48 @@
+with t1 as (
+      select p3.name as projectId,p2.name as projectname,p1.name as partner,
+      p.fy_timerange,t1.name as block, t2.name as district, t3.name as state,
+      case when t7.name = 'Yes' then 1 else 0 end as bank_ac,
+      case when t8.name = 'Yes' then 1 else 0 end as au_bank_ac,
+      case when t9.name = 'Yes' then 1 else 0 end as upi,
+      case when t10.name = 'Yes' then 1 else 0 end as contri_to_ed
+      case when t11.name = 'Yes' then 1 else 0 end as udhyog_adhaar_reg
+	  from profile_83228 p
+
+      left join project_9730 p1 on p1.id = p.projectid
+      left join project_9730 p2 on p2.id = p1.parent
+      left join project_9730 p3 on p3.id=p2.parent
+
+      left join tagelement_9730 t1 on t1.id=p.state_district_block
+      left join tagelement_9730 t2 on t2.id=t1.parent
+      left join tagelement_9730 t3 on t3.id=t2.parent
+      left join tagelement_9730 t7 on t7.id=p.bank_ac
+      left join tagelement_9730 t8 on t8.id=p.au_bank_ac
+      left join tagelement_9730 t9 on t9.id=p.upi
+      left join tagelement_9730 t10 on t10.id=p.contri_to_ed
+      left join tagelement_9730 t11 on t11.id=p.udhyog_adhaar_reg ),
+	  
+  temp as (
+  select 'Having Bank A/C' as col
+  union all
+  select 'Having Bank A/C in AU Bank' as col
+  union all
+  select 'Using UPI' as col
+  union all
+  select 'Contribution to Education' as col
+  union all
+  select 'Udhyog Aadhaar Reg' as col	
+  )
+
+select tab.fy_timerange, tab.projectid, tab.projectname,tab.partner,tab.district, temp.col as dimensions,
+sum(case col
+	when 'Having Bank A/C' then tab.bank_ac
+	when 'Having Bank A/C in AU Bank' then tab.au_bank_ac
+	when 'Using UPI' then tab.upi
+	when 'Contribution to Education' then tab.contri_to_ed
+	when 'Udhyog Aadhaar Reg' then tab.udhyog_adhaar_reg
+	else Null
+	end) as Values
+from t1 tab
+cross join temp
+group by tab.fy_timerange, tab.projectid, tab.projectname,tab.partner,tab.district, temp.col
+
