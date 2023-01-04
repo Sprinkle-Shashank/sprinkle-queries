@@ -1,8 +1,14 @@
-select p3.name as projectId,p2.name as projectname,p1.name as partner,
---p.fy_timerange,
+select p3.name as projectId,p2.name as projectname,p1.name as partner,/*p.fy_timerange*/,
 concat(concat(concat(concat('{"start":"',(TO_CHAR(p.opening_date, 'YYYY-MM-DD"T"HH24":"MI:SS.000"Z"'))),'","end":"'),(TO_CHAR(p.opening_date, 'YYYY-MM-DD"T"HH24":"MI:SS.000"Z"'))),'"}') as fy_timerange,
 t1.name as block, t2.name as district, t3.name as state, p.village,p.bene_name,t4.name as Bene_Gender
-,t5.name as Ed_Qualification,t6.name as Economic_status, t7.name as Geography_type,count(*)
+,t5.name as Ed_Qualification,t6.name as Economic_status, t7.name as Geography_type,
+case 
+when amount_invested_at_so <= 10000 then 'Upto 10k'
+when amount_invested_at_so > 10000 and amount_invested_at_so <=15000  then '10k to 15k'
+when amount_invested_at_so > 15000 and amount_invested_at_so <=30000  then '15k to 30k'
+end as Amount_invested_Range,
+
+
 from profile_83228 p
 
 left join ds_mysql_prod_project p1 on p1.id = p.projectid
@@ -17,4 +23,4 @@ left join tagelement_9730 t5 on t5.id=p.ed_qualification
 left join tagelement_9730 t6 on t6.id=p.economic_status
 left join tagelement_9730 t7 on t7.id=p.geography_type
 where p.projectid like '%%' 
-group by p3.name,p2.name,p1.name,t1.name,t2.name,t3.name,p.village,p.bene_name,t4.name,t5.name,t6.name,t7.name,p.opening_date
+--group by p3.name,p2.name,p1.name,t1.name,t2.name,t3.name,p.village,p.bene_name,t4.name,t5.name,t6.name,t7.name,p.opening_date
