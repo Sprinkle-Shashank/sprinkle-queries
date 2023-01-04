@@ -1,23 +1,20 @@
---Test_Srimon
---Yuva_ST_donor filter
-with t1 as 
-(select a.projectid from profile_80582 a
-union
-select b.projectid from profile_80586 b
-union
-select c.projectid from profile_80587 c
-union 
-select d.projectid from profile_80589 d)
+--Trrain_Partner_Disbursement_Trrainher_New
+with sub1 as(
+select a._id, a.projectId, a.name as batch_info, a.center, a.start, a.end, a.fy_timerange, a.zone_db as zone, a.partner_db as partner_name, a.no_of_trainees, a.training_hrs, a.training_days, a.budget, a.amnt_install_1, a.amnt_install_2, a.amnt_install_3, a.donor, a.name as batch_id, b.placed, b.trainee_name,b.batch_id as id1 from profile_36904 a 
+left join profile_36901 b on b.batch_id=a._id
+),
+sub2 as(
+  select _id, projectId, center, a.start, a.end, batch_info, donor, fy_timerange, zone, partner_name, no_of_trainees, training_hrs, training_days, budget, amnt_install_1, amnt_install_2, amnt_install_3, batch_id, placed, id1, count(*) as benef from sub1 a group by _id, projectId, center, a.start, a.end, batch_info, donor, fy_timerange, zone, partner_name, no_of_trainees, training_hrs, training_days, budget, amnt_install_1, amnt_install_2, amnt_install_3, batch_id, placed,id1),
+  sub3 as(
+  select _id, projectId, center, a.start, a.end, batch_info, donor, fy_timerange, zone, partner_name, no_of_trainees, training_hrs, training_days, budget, case when amnt_install_1 is NOT null then amnt_install_1 else 0 end as amnt_install_1, case when amnt_install_2 is NOT null then amnt_install_2 else 0 end as amnt_install_2, case when amnt_install_3 is NOT null then amnt_install_3 else 0 end as amnt_install_3, batch_id, id1, placed,benef, t2.name as project from sub2 a
+  LEFT JOIN ds_mysql_prod_project t on a.projectId=t.id
+LEFT JOIN ds_mysql_prod_project t1 on t.parent=t1.id
+LEFT JOIN ds_mysql_prod_project t2 on t1.parent=t2.id	)
 
-select tag1.name as projectid from t1
-left join ds_mysql_prod_project tag1
-on t1.projectid = tag1.id
---select p2.name as donor from sub1
---left join ds_mysql_prod_project p1 on p1.id = sub1.projectid
---left join ds_mysql_prod_project p2 on p2.id = p1.parent
-
-
-
+select _id, projectId, center,  batch_info, donor, fy_timerange, zone, partner_name, no_of_trainees, training_hrs, training_days, budget, amnt_install_1, amnt_install_2, amnt_install_3, batch_id, placed,benef,  project, 
+case when amnt_install_1 is NULL and amnt_install_2 is NULL and amnt_install_3 is NULL then 0 else
+(amnt_install_1+amnt_install_2+amnt_install_3) end as disbursed, case when id1 is null then 'Upcoming' else 'Disbursement' end as disbursement, current_timestamp as today, case when a.end>=today then 'Active' else 'Inactive' end as status, substring(a.start,1,10) as start1, substring(a.end, 1, 10) as end1, case when placed=3608 then benef else 0 end as dropouts
+from sub3 a
 
 
  
