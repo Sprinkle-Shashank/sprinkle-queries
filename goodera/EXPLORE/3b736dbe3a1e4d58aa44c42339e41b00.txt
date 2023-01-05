@@ -27,44 +27,45 @@ Select tt.*,cgf from t2 as tt,tt.completedgrantflowtask cgf
 ,
 t4 as(
 Select t3.*,cast(t3.todo."action" as varchar) as action,
-  case
-	when cgf."status" = 'COMPLETED' and cgf."taskId"=47474 then grantproposalid
-	end as comp,
+  
 case
-	when action = 'PENDING' and t3.todo."taskId"=47474 then grantproposalid
-	end as pend,
+	when cgf."status" = 'COMPLETED' and cgf."taskId"= 47474 then grantproposalid
+	end as comp47474,
 case
-	when action = 'REJECTED' and todo."taskId"=47474 then grantproposalid
-	end as rej,
+	when action = 'PENDING' and t3.todo."taskId"= 47474 then grantproposalid
+	end as pend47474,
+case
+	when action = 'REJECTED' and todo."taskId"= 47474 then grantproposalid
+	end as rej47474,
 
 case
-	when cgf."status" = 'COMPLETED' and cgf."taskId"=47477 then grantproposalid
+	when cgf."status" = 'COMPLETED' and cgf."taskId" = 47477 then grantproposalid
 	end as comp47477,
 case
-	when action = 'PENDING' and t3.todo."taskId"=47477 then grantproposalid
+	when action = 'PENDING' and t3.todo."taskId" = 47477 then grantproposalid
 	end as pend47477,
 case
-	when action = 'REJECTED' and todo."taskId"=47477 then grantproposalid
-	end as rej47477,
+	when action = 'REJECTED' and todo."taskId" = 47477 then grantproposalid
+	end as rej47477 /*,
+  
 object(
 'In Progress', 
 ARRAY(JSON_PARSE(case
-	when action = 'PENDING' and t3.todo."taskId"=47474 then grantproposalid
+	when action = 'PENDING' and t3.todo."taskId" = 47474 then grantproposalid
 	end)),
-  'Completed', LISTAGG(comp,','),
- 'Rejected', jSON_PARSE(case
-	when action = 'REJECTED' and todo."taskId"=47474 then grantproposalid
-	end)
-
-) as Approval_by_CSR_team
- from t3
+'Completed', LISTAGG(comp,','),
+'Rejected', JSON_PARSE(case
+	when action = 'REJECTED' and todo."taskId" = 47474 then grantproposalid
+	end)) as Approval_by_CSR_team*/
+from t3
 group by 
 
-grantapplicationid	,grantpartnerid1	,grantproposalid1,	_id,	grantproposalid	,grantflowtaskid,	active,	completedgrantflowtask,	todo,	created,	creatorid,	modified,	modifierid,	grantpartnerid,	isactive,	activepartner,	activeproposal,	activeproposallog,	cgf
+grantapplicationid	,grantpartnerid1, grantproposalid1,	_id,	grantproposalid	,grantflowtaskid,	active,	completedgrantflowtask,	todo,	created,	creatorid,	modified,	modifierid,	grantpartnerid,	isactive,	activepartner,	activeproposal,	activeproposallog,	cgf
 --approval_by_csr_team
 )
-Select grantapplicationid  ,SPLIT_TO_ARRAY(listagg(distinct comp,', ')) as compp,get_array_length(compp),listagg(distinct pend,' ') as pend, listagg(distinct rej,' ') as rej,
+Select grantapplicationid  ,SPLIT_TO_ARRAY(listagg(distinct comp47474,', ')) as comp_47474, get_array_length(comp_47474),listagg(distinct pend47474,' ') as pend_47474, listagg(distinct rej47474,' ') as rej_47474,
 
-SPLIT_TO_ARRAY(listagg(distinct comp47477,', ')) as comp_47477,get_array_length(comp_47477),listagg(distinct pend47477,' ') as pend47477, listagg(distinct rej47477,' ') as rej47477
+SPLIT_TO_ARRAY(listagg(distinct comp47477,', ')) as comp_47477, get_array_length(comp_47477),listagg(distinct pend47477,' ') as pend_47477, listagg(distinct rej47477,' ') as rej_47477
+
 from t4
 group by 1
