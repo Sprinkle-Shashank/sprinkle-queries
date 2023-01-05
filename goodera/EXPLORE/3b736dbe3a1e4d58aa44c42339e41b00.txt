@@ -1,8 +1,8 @@
 --sakshi_API1
 --select * from ds_mysql_prod_grantproposal --where proposalinstanceid = '5d42c4025570e08c058b5410'
 with table1 as (
-select p.id as grantApplicationId,partner.id as grantPartnerId1, 
-proposal.id as grantProposalId1, proposallog.*,p.active as isactive, partner.active as activepartner, proposal.active as activeproposal, proposallog.active as activeproposallog
+  select p.id as grantApplicationId,partner.id as grantPartnerId1, 
+  proposal.id as grantProposalId1, proposallog.*,p.active as isactive, partner.active as activepartner, proposal.active as activeproposal, proposallog.active as activeproposallog
   
   from ds_mysql_prod_grantapplication p 
 			   
@@ -26,16 +26,16 @@ Select tt.*,cgf from t2 as tt,tt.completedgrantflowtask cgf
 )
 ,
 t4 as(
-Select t3.*, cast(t3.todo."action" as varchar) as action,
-case
+Select t3.*,cast(t3.todo."action" as varchar) as action,
+  case
 	when cgf."status" = 'COMPLETED' and cgf."taskId"=47474 then grantproposalid
-	end as comp47474,
+	end as comp,
 case
 	when action = 'PENDING' and t3.todo."taskId"=47474 then grantproposalid
-	end as pend47474,
+	end as pend,
 case
 	when action = 'REJECTED' and todo."taskId"=47474 then grantproposalid
-	end as rej47474,
+	end as rej,
 
 case
 	when cgf."status" = 'COMPLETED' and cgf."taskId"=47477 then grantproposalid
@@ -46,8 +46,6 @@ case
 case
 	when action = 'REJECTED' and todo."taskId"=47477 then grantproposalid
 	end as rej47477,
-  
-
 object(
 'In Progress', 
 ARRAY(JSON_PARSE(case
@@ -65,8 +63,8 @@ group by
 grantapplicationid	,grantpartnerid1	,grantproposalid1,	_id,	grantproposalid	,grantflowtaskid,	active,	completedgrantflowtask,	todo,	created,	creatorid,	modified,	modifierid,	grantpartnerid,	isactive,	activepartner,	activeproposal,	activeproposallog,	cgf
 --approval_by_csr_team
 )
-Select grantapplicationid  ,SPLIT_TO_ARRAY(listagg(distinct comp47474,', ')) as comp_47474,get_array_length(comp_47474),listagg(distinct pend47474,' ') as pend_47474, listagg(distinct rej47474,' ') as rej_47474,
+Select grantapplicationid  ,SPLIT_TO_ARRAY(listagg(distinct comp,', ')) as compp,get_array_length(compp),listagg(distinct pend,' ') as pend, listagg(distinct rej,' ') as rej,
 
-SPLIT_TO_ARRAY(listagg(distinct comp47477,', ')) as comp_47477,get_array_length(comp_47477),listagg(distinct pend47477,' ') as pend_47477, listagg(distinct rej47477,' ') as rej_47477
+SPLIT_TO_ARRAY(listagg(distinct comp47477,', ')) as comp_47477,get_array_length(comp_47477),listagg(distinct pend47477,' ') as pend47477, listagg(distinct rej47477,' ') as rej47477
 from t4
 group by 1
