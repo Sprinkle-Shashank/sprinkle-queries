@@ -26,9 +26,17 @@ Select tt.*,cgf from t2 as tt,tt.completedgrantflowtask cgf
 )
 ,
 t4 as(
-Select t3.*,cast(t3.todo."action" as varchar) as action,case
+Select t3.*,cast(t3.todo."action" as varchar) as action,
+  case
 	when cgf."status" = 'COMPLETED' and cgf."taskId"=47474 then grantproposalid
 	end as comp,
+case
+	when action = 'PENDING' and t3.todo."taskId"=47474 then grantproposalid
+	end as pend,
+case
+	when action = 'REJECTED' and todo."taskId"=47474 then grantproposalid
+	end as rej
+
 object(
 'In Progress', 
 ARRAY(JSON_PARSE(case
@@ -46,6 +54,6 @@ group by
 grantapplicationid	,grantpartnerid1	,grantproposalid1,	_id,	grantproposalid	,grantflowtaskid,	active,	completedgrantflowtask,	todo,	created,	creatorid,	modified,	modifierid,	grantpartnerid,	isactive,	activepartner,	activeproposal,	activeproposallog,	cgf
 --approval_by_csr_team
 )
-Select grantapplicationid  ,listagg(distinct comp,' ')
+Select grantapplicationid  ,listagg(distinct comp,' ') as comp,listagg(distinct pend,' ') as pend, listagg(distinct rej,' ') as rej
 from t4
 group by 1
