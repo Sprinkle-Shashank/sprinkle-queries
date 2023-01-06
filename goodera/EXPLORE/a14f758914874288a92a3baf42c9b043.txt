@@ -1,12 +1,23 @@
-SELECT prod.name AS projectId,t2.name AS year, t1.name AS quarter, timerange_timerange, SUM(amount_utilized) AS Utilized, SUM(amount_rvd) AS Approved,(Approved - Utilized) as To_be_Spent
+--Syntax Error for "YEAR" in main query (Working fine in sub-query)
 
-FROM profile_3537
-left join  ds_mysql_prod_tagelement t1  on
-t1.id=quarter
-left join  ds_mysql_prod_tagelement t2  on
-t2.id=year
-left join  ds_mysql_prod_project prod  on
-prod.id=projectid
-WHERE timerange_timerange is not null
-GROUP BY prod.name, t2.name, t1.name, timerange_timerange, amount_utilized, amount_rvd
-ORDER BY t1.name DESC
+with tab1 as (Select p1.month_2_timerange,p1.name as activity_2, t1.name as indicator, p1.value,
+CAST(p1.month_2_timerange.start AS date) AS start
+--EXTRACT(YEAR FROM start) AS year
+from profile_56633 p1
+left join profile_56634 p2
+on p1.activity_2 = p2._id
+left join ds_mysql_prod_tagelement t1
+on t1.id = p1.indicator
+where tagid = '45658'
+),
+
+tab2 as (Select EXTRACT(YEAR FROM start) AS Year1,activity_2,indicator,sum(value) as Revenue
+from tab1
+where indicator = 'Saplings Planted'
+group by 1,2,3)
+
+Select indicator, Year1, Revenue,
+LAG (Revenue)
+OVER (PARTITION BY indicator ORDER BY Year1) AS PrevYearRevenue 
+from tab2
+ORDER BY indicator, Year1;
