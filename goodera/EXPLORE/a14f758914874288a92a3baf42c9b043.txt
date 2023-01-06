@@ -1,26 +1,4 @@
-Select s1.timerange_timerange,  prod.name AS projectId,t2.name AS year, t1.name AS quarter,
-
-cast(timestamp 'epoch' + CAST(x1.created AS BIGINT)/1000 * interval '1 second' as date) as request_date,
-cast(timestamp 'epoch' + CAST(x1.modified AS BIGINT)/1000 * interval '1 second' as date) as modified
-
-from ds_mongo_taskresponse x1
-left join ds_mysql_prod_taskuser x2 on x2.id = x1.taskuserid
-left join ds_mysql_prod_task x3 on x3.id = x2.taskid
-left join ds_mysql_prod_flowtask x4 on x4.id = x3.flowtaskid
-left join ds_mysql_prod_section x6 on x6.id = x4.sectionid
-left join profile_3537 s1 on s1._id=x1.profileinstanceid
-
-left join  ds_mysql_prod_tagelement t1  on
-t1.id=s1.quarter
-left join  ds_mysql_prod_tagelement t2  on
-t2.id=s1.year
-left join  ds_mysql_prod_project prod  on
-prod.id=s1.projectid
-where x6.profileid=3537
-
-
-/*SELECT prod.name AS projectId,t2.name AS year, t1.name AS quarter, timerange_timerange, SUM(amount_utilized) AS Utilized, SUM(amount_rvd) AS Approved,(Approved - Utilized) as To_be_Spent,
-rank() over(partition by prod.name , t1.name order by timerange_timerange asc) as rnk
+SELECT prod.name AS projectId,t2.name AS year, t1.name AS quarter, timerange_timerange, SUM(amount_utilized) AS Utilized, SUM(amount_rvd) AS Approved,(Approved - Utilized) as To_be_Spent,
 
 FROM profile_3537
 left join  ds_mysql_prod_tagelement t1  on
@@ -31,4 +9,4 @@ left join  ds_mysql_prod_project prod  on
 prod.id=projectid
 WHERE timerange_timerange is not null
 GROUP BY prod.name, t2.name, t1.name, timerange_timerange, amount_utilized, amount_rvd
-ORDER BY t1.name DESC*/
+ORDER BY t1.name DESC
