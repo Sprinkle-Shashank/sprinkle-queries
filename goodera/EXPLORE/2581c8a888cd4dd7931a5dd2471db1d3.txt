@@ -6,13 +6,18 @@ WITH SUB1 AS(
 
 LEFT JOIN ds_mysql_prod_project AS project
 ON PR.projectid = project.id
-  )
+  ),
+ss as(
   
-  SELECT DISTINCT (projectid) AS pro
+  SELECT  projectid, reg_date,
+
+rank() over (partition by projectid order by reg_date) as rw
   
   
   FROM SUB1 AS S1
-
+)
+Select * from ss
+where rw=1
 /*
 CONCAT(CONCAT(CONCAT(SPLIT_PART(P.doc, ' ', 1),'T'),SPLIT_PART(P.doc, ' ', 2)),'.000Z')SUBSTRING(p.doc,1,10)||'T00:00:00.000Z' ||'|'|| SUBSTRING(sysdate,1,10)||'T'||SUBSTRING(sysdate,12,12)||'Z' AS fy_timerange
 */
