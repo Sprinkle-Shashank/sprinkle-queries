@@ -15,9 +15,13 @@ tab2 as (Select EXTRACT(YEAR FROM start) AS Year1,activity_2,indicator,sum(value
 from tab1
 where indicator = 'Saplings Planted'
 group by 1,2,3
-)
+),
 
-Select indicator, Year1, Revenue,
+with tab3 as (Select indicator, Year1, Revenue,
 LAG (Revenue, 1)
 OVER (PARTITION BY indicator ORDER BY Year1) AS PrevYearRevenue 
+from tab2)
+
+Select indicator,case
+when Year1 = '2019' then revenue-prevyearrevenue
 from tab2
