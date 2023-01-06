@@ -1,20 +1,18 @@
---Trrain_Partner_Disbursement_Trrainher_New
-select a._id, a.projectId, a.name as batch_info, a.center, a.start, a.end, a.fy_timerange, a.zone_db as zone, a.partner_db as partner_name, a.no_of_trainees, a.training_hrs, a.training_days, a.budget, a.amnt_install_1, a.amnt_install_2, a.amnt_install_3, a.donor, a.name as batch_id, b.placed, b.trainee_name,b.batch_id as id1, a.name as id2 from profile_36904 a 
-left join profile_36901 b on b.batch_id=a._id
+--Yuva_Vaccination_total_beneficiaries_vaccinated
+select p2.name as projectid,p1.fy_timerange,p4.name as donor,t3.name as state,t2.name as city,t4.name as is_vaccinated,count(*) as count
 
---sub2 as(
- -- select _id, projectId, center, a.start, a.end, batch_info, donor, fy_timerange, zone, partner_name, no_of_trainees, training_hrs, training_days, budget, amnt_install_1, amnt_install_2, amnt_install_3, batch_id, placed, id1, count(*) as benef from sub1 a group by _id, projectId, center, a.start, a.end, batch_info, donor, fy_timerange, zone, partner_name, no_of_trainees, training_hrs, training_days, budget, amnt_install_1, amnt_install_2, amnt_install_3, batch_id, placed,id1),
- -- sub3 as(
- -- select _id, projectId, center, a.start, a.end, batch_info, donor, fy_timerange, zone, partner_name, no_of_trainees, training_hrs, training_days, budget, case when amnt_install_1 is NOT null then amnt_install_1 else 0 end as amnt_install_1, case when amnt_install_2 is NOT null then amnt_install_2 else 0 end as amnt_install_2, case when amnt_install_3 is NOT null then amnt_install_3 else 0 end as amnt_install_3, batch_id, id1, placed,benef, t2.name as project from sub2 a
- -- LEFT JOIN ds_mysql_prod_project t on a.projectId=t.id
---LEFT JOIN ds_mysql_prod_project t1 on t.parent=t1.id
---LEFT JOIN ds_mysql_prod_project t2 on t1.parent=t2.id	)
+from profile_80476 p1
+left join ds_mysql_prod_project p2 on p2.id=p1.projectid
+left join ds_mysql_prod_project p4 on p4.id = p2.parent
 
---select _id, projectId, center,  batch_info, donor, fy_timerange, zone, partner_name, no_of_trainees, training_hrs, training_days, budget, amnt_install_1, amnt_install_2, amnt_install_3, batch_id, placed,benef,  project, 
---case when amnt_install_1 is NULL and amnt_install_2 is NULL and amnt_install_3 is NULL then 0 else
---(amnt_install_1+amnt_install_2+amnt_install_3) end as disbursed, case when id1 is null then 'Upcoming' else 'Disbursement' end as disbursement, -----current_timestamp as today, case when a.end>=today then 'Active' else 'Inactive' end as status, substring(a.start,1,10) as start1, substring(a.end, 1, 10) as end1, case when placed=3608 then benef else 0 end as dropouts, id1
---from sub3 a
---where batch_info = 'THMHPUNKMS0502210'
+left join profile_80475 p3 on p3._id= p1.vacc_centre
+left join ds_mysql_prod_tagelement t2 on t2.id=p3.centre_loc
+left join ds_mysql_prod_tagelement t3 on t3.id=t2.parent
+left join ds_mysql_prod_tagelement t4 on t4.id=p1.is_vacc
+--where p1.projectid like '%%'
+
+group by p2.name,p1._id,p1.fy_timerange,p4.name,t3.name,t2.name,t4.name
+where donor = 'GIVE FOUNDATION'
 
 
  
