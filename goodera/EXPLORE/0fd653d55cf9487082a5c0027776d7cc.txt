@@ -1,12 +1,12 @@
 with sub1  as(
   select b.*,unwind_loc, unwind_focus, unwind_sdg
   from profile_43729 b , b.geography10_1 as unwind_loc, b.focus4_1 as unwind_focus, b.sdg18_1 as unwind_sdg
-  )
+  ),
 /* sub2 as (
    select c.*, unwind_actors
    from profile_43742 c,unwind_actors)*/
  
-select person_name as actors, t1.name as focus_area, t2.name as loc, t3.name as sdg, p1.actor as actors_type,p2.name as continent,
+with sub2 as(select sub1.*, unwind_actor /*person_name as actors, t1.name as focus_area, t2.name as loc, t3.name as sdg, p1.actor as actors_type,p2.name as continent*/,
 case when p.date_of_entry is null then extract(year from p.createddate) else extract(year from p.date_of_entry) end as years,t4.code as map_code, count(*) from sub1 p
 left join tagElement_6205 t1 on t1.id=p.unwind_focus
 left join tagElement_6205 t2 on t2.id=p.unwind_loc
@@ -15,8 +15,9 @@ left join tagElement_6205 p2 on p2.id=t2.parent
 left join profile_43742 p1 on p1.grantproposalid = p.grantproposalid
 left join ds_mongo_reftagelementmetadata t4 on t4._id=t2.reftagelementmetadataid
 where map_code is not null
-group by t1.name, t2.name, t3.name, t4.code, years, actors, actors_type,p2.name
+group by t1.name, t2.name, t3.name, t4.code, years, actors, actors_type,p2.name)
 
-
-
+select sub2.actors as actors, sub2.focus_area as focus_area, sub2.loc as loc, sub2.sdg as sdg, t5.name as actors_type,sub2.continent as continent from sub2 
+left join tagElement_6205 t5 on t5.id=p.unwind_actors
+group by actors, focus_area, loc, sdg, t5.name,continent
 
