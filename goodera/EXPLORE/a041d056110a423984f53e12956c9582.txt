@@ -1,0 +1,22 @@
+with temp as ( select 'ARR during exit' as c
+			   Union all 
+			   select 'Growth Percent Achieved' as c
+			   Union all 
+			   select 'Revenue Percent Increase' as c
+			  )
+
+select pro.name as projectid,fy_timerange,financial_year,
+sum (case c when 'ARR during exit'  then p.arr_during_exit  
+       when 'Growth Percent Achieved' then p.growth_percent_achieved
+	   when 'Revenue Percent Increase' then p.revenue_percent_increase
+	   else null
+	   end) as val, temp.c as dim 
+	  
+from profile_83244 p
+
+cross join temp 
+
+left join ds_mysql_prod_project as pro
+  on p.projectid = pro.id
+
+group by pro.name, fy_timerange, temp.c, financial_year
