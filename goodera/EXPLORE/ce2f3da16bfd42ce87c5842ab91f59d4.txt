@@ -19,7 +19,12 @@ with temp as(
   ),
   
  t1 as(
-   Select t1.name fy_timerange, temp.col as dim,t.name select_quarter, split_part(split_part(prod.name,'|',1),'.',1) as ProjectCode, CONCAT(ProjectCode,fy_timerange) as CODE, benef_upload
+   Select t1.name fy_timerange, temp.col as dim,t.name select_quarter, split_part(split_part(prod.name,'|',1),'.',1) as ProjectCode, CONCAT(ProjectCode,fy_timerange) as CODE, sq.benef_upload,
+   split_part(prod.name,'|',1) as Region1,
+  case 
+      when Region1 like '%.%' then split_part(prod.name,'|',2)
+     else '-'
+ end as Region, 
 from profile_60787 sq
 cross join temp
 left join ds_mysql_prod_tagelement t
@@ -28,6 +33,7 @@ left join ds_mysql_prod_tagelement t1
 ON t1.id=sq.fy
 left join  ds_mysql_prod_project prod  on
 prod.id=projectid
+  
 group by temp.col, t.name, t1.name, prod.name
  )
  
