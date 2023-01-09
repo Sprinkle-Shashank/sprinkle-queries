@@ -1,31 +1,27 @@
---Yuva_Vaccination_beneficiaries_vaccinated_age_group_wise
+--Yuva_Vaccination_beneficiary_details_table
 with t1 as 
-(select p2.name as projectid,p1.fy_timerange,p4.name as donor,t3.name as state,t2.name as city,t4.name as is_vaccinated,count(*) as count,
-case
-	when bene_age < 15 then 'Below 15'
-	when bene_age > 14 and bene_age < 18 then '15-17'
-	when bene_age > 17 and bene_age < 46 then '18-45'
-	when bene_age > 46 and bene_age < 61 then '45-60'
-	when bene_age > 60 then 'Above 60'
-	else null
-end as age_group
+(select p2.name as projectid,p1.fy_timerange,p4.name as donor,t2.name as city, t3.name as state,t4.name as is_vaccinated,p1.bene_name,t5.name as gender,p1.bene_age,count(*) as count
 
 from profile_80476 p1
-left join ds_mysql_prod_project p2 on p2.id=p1.projectid
+left join ds_mysql_prod_project p2 on p2.id = p1.projectid
 left join ds_mysql_prod_project p4 on p4.id = p2.parent
 
-left join profile_80475 p3 on p3._id= p1.vacc_centre
-left join ds_mysql_prod_tagelement t2 on t2.id=p3.centre_loc
+
+left join profile_80475 p3 on p3._id=p1.vacc_centre
+left join ds_mysql_prod_tagelement t2 on t2.id=p3.centre_loc 
 left join ds_mysql_prod_tagelement t3 on t3.id=t2.parent
+
 left join ds_mysql_prod_tagelement t4 on t4.id=p1.is_vacc
+left join ds_mysql_prod_tagelement t5 on t5.id=p1.bene_gender
 --where p1.projectid like '%%'
 
-group by p2.name,p1._id,p1.fy_timerange,p4.name,t3.name,t2.name,t4.name,p1.bene_age)
+group by p2.name,p1.fy_timerange,p4.name,t2.name,t3.name,t4.name,p1.bene_name,t5.name,p1.bene_age)
 
-select projectid, fy_timerange, donor, state, city, is_vaccinated, sum(count) as sum, age_group
+select projectid, fy_timerange, donor, city, state, is_vaccinated, bene_name, gender, bene_age,sum(count) as sum
 from t1
+where donor = 'Bank of America'
 group by 
-projectid, fy_timerange, donor, state, city, is_vaccinated, t1.age_group
+projectid, fy_timerange, donor, city, state, is_vaccinated, bene_name, gender, bene_age
 
 
  
