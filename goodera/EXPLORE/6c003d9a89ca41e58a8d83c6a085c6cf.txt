@@ -1,3 +1,17 @@
-SELECT basic2_enrol
+SELECT BE.name, BE.goodera_id, BE.beneficiary_name,
+P.name AS projectname,
+E2.name AS basic2_enrol,
+CONCAT(CONCAT(CONCAT(SPLIT_PART(BE.basic2_date_enrol, ' ', 1),'T'),SPLIT_PART(BE.basic2_date_enrol, ' ', 2)),'.000Z') AS fy_timerange,
+COUNT(*) AS beneficiaries
 
 FROM profile_56533 AS BE
+
+LEFT JOIN ds_mysql_prod_project AS P
+ON BE.projectid = P.id
+
+LEFT JOIN ds_mysql_prod_tagelement AS E2
+ON BE.basic2_enrol = E2.id
+
+WHERE E2.name = 'Yes' 
+
+GROUP BY BE.name, BE.goodera_id, BE.beneficiary_name, P.name, E2.name, fy_timerange, BE.basic2_date_enrol
