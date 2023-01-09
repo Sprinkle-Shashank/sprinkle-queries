@@ -1,15 +1,16 @@
+--Target_RSAP_Workforce_Impacted
 
 with sub1 as (
 Select p1.name as projectid,p.timerange_timerange,p.num_female,p.num_male,t1.name as training_type,t2.name as year,t3.name as country, a.vendor,a.cycle,a.product_category,b.name as consultant
 from profile_61528 p 
-left join ds_mysql_prod_project p1 on p1.id = p.projectid
+left join project_7746 p1 on p1.id = p.projectid
 
 left join profile_64362 a on a.projectid = p.projectid
 left join profile_61583 b on b._id = a.consultant
 
-left join ds_mysql_prod_tagelement t1 on t1.id = p.training_type
-left join ds_mysql_prod_tagelement t2 on t2.id = p.year
-left join ds_mysql_prod_tagelement t3 on t3.id = a.country),
+left join tagElement_7746 t1 on t1.id = p.training_type
+left join tagElement_7746 t2 on t2.id = p.year
+left join tagElement_7746 t3 on t3.id = a.country),
 
 sub2 as ( Select c.*,unwind_cycle from sub1 c , c.cycle unwind_cycle ),
 
@@ -17,7 +18,7 @@ sub2 as ( Select c.*,unwind_cycle from sub1 c , c.cycle unwind_cycle ),
 sub3 as (Select d.projectid,d.timerange_timerange,d.num_female,d.num_male,d.training_type,d.year,d.country,d.vendor,d.consultant,d.product_category,
 t1.name as cycle, row_number() over (partition by d.projectid,t1.name,d.country,d.vendor,d.consultant order by cast (d.timerange_timerange.start as DATE) DESC ) as row
 from sub2 d
-left join ds_mysql_prod_tagelement t1 on t1.id = d.unwind_cycle),
+left join tagElement_7746 t1 on t1.id = d.unwind_cycle),
 
 sub4 as ( Select e.*,unwind_product_category from sub3 e , e.product_category unwind_product_category
 		 where row = 1 )
@@ -27,4 +28,4 @@ Select f.projectid,f.timerange_timerange,f.num_female, f.num_male,
 NVL(f.num_female,0)+ NVL(f.num_male,0) as workforce,
 f.training_type,f.cycle,f.year,f.country,f.vendor,f.consultant, t1.name as product_category 
 from sub4 f
-left join ds_mysql_prod_tagelement t1 on t1.id = f.unwind_product_category
+left join tagElement_7746 t1 on t1.id = f.unwind_product_category
