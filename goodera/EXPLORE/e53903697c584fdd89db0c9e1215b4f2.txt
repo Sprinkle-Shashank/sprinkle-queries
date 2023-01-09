@@ -1,5 +1,6 @@
-With main as(SELECT listagg(prod.name,',') AS projectId,listagg(t2.name,',') AS year,listagg(t1.name,',') AS quarter/*,timerange_timerange, SUM(amount_utilized) AS Utilized, SUM(amount_rvd) AS Approved,(Approved - Utilized) as To_be_Spent,
-rank() over(partition by prod.name , t1.name order by timerange_timerange asc) as rnk*/
+With main as(SELECT listagg(prod.name,',') AS projectId,listagg(t2.name,',') AS year,listagg(t1.name,',') AS quarter,timerange_timerange, listagg(SUM(amount_utilized),',') AS Utilized, listagg(SUM(amount_rvd),',') AS Approved,
+listagg((Approved - Utilized),',') as To_be_Spent,
+rank() over(partition by prod.name , t1.name order by timerange_timerange asc) as rnk
 
 FROM profile_3537
 left join  ds_mysql_prod_tagelement t1  on
@@ -11,7 +12,7 @@ prod.id=projectid
 /*WHERE timerange_timerange is not null
 GROUP BY prod.name, t2.name, t1.name, timerange_timerange, amount_utilized, amount_rvd
 ORDER BY t1.name DESC*/
-group by year
+group by year,projectId
 order by year desc)
 
 Select split_part(projectid,',',1)as id1,split_part(year,',',1)as id2,split_part(quarter,',',1)as id3
