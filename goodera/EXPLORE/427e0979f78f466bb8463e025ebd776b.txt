@@ -14,10 +14,19 @@ where tagid = '45658'
 tab2 as (Select EXTRACT(YEAR FROM start) AS Year1,activity_2,indicator,sum(value) as Revenue
 from tab1
 where indicator = 'Saplings Planted'
-group by 1,2,3)
+group by 1,2,3),
 
-Select indicator, [Year1], Revenue,
+tab3 as (Select indicator, [Year1], Revenue,
 LAG (Revenue,1)
 OVER (PARTITION BY indicator ORDER BY [Year1]) AS PrevYearRevenue 
 from tab2
-ORDER BY indicator, [Year1];
+ORDER BY indicator, [Year1]
+)
+
+Select indicator,year1,revenue,prevyearrevenue,
+case 
+when year1 = '2021' then (revenue - prevyearrevenue)/revenue
+when year1 = '2019' then (revenue - prevyearrevenue)/revenue
+when year1 = '2018' then (revenue - prevyearrevenue)/revenue
+end as value
+from tab3
