@@ -1,0 +1,48 @@
+--EIL_project_documentation_table3
+with table1 as
+(
+  select proj.name as projectid,p._id, p.fy_timerange,	projects	,quarter_report,	p.ngo	, impact,annual_report,	mou	,remarks,link, p.name , ng.name as ngo_update, 
+  
+ case when is_array(q1_file) = false or get_array_length(q1_file) = 0 then array(q1_file)
+else (q1_file) end as q1_file_n , 
+ case when is_array(q2_file) = false or get_array_length(q2_file) = 0 then array(q2_file)
+else (q2_file) end as q2_file_n ,
+case when is_array(q3_file) = false or get_array_length(q3_file) = 0 then array(q3_file)
+else (q3_file) end as q3_file_n ,
+case when is_array(q4_file) = false or get_array_length(q4_file) = 0 then array(q4_file)
+else (q4_file) end as q4_file_n ,
+case when is_array(annual_report) = false or get_array_length(annual_report) = 0 then array(annual_report)
+else (annual_report) end as annual_report_n ,
+case when is_array(mou) = false or get_array_length(mou) = 0 then array(mou)
+else (mou) end as mou_n ,
+case when is_array(quarter_report) = false or get_array_length(quarter_report) = 0 then array(quarter_report) else (quarter_report) end as quarter_report_n ,
+   q1_file , q2_file , q3_file, q4_file from profile_83043 as p
+  
+  left join ds_mysql_prod_tagelement ng
+  on p.ngo = ng.id
+  
+  left join ds_mysql_prod_project proj
+  on p.projectid = proj.id
+),
+
+table3 as
+( 
+  select projectid, p._id, fy_timerange, projects , ngo_update , remarks , link, impact , q1_file as q1_file_update , annual_report as d2_update_annual_file ,  quarter_report as quarter_report_update , q2_file as q2_file_update , q3_file as q3_file_update , q4_file as q4_file_update , mou as mou_update from table1 as p
+),
+
+table2 as
+(
+  select projectid, p._id, fy_timerange, projects , ngo_update , remarks , link, impact , cast(d1 as varchar) as q1_file_update , cast(d2 as varchar) as d2_update_annual_file ,  cast(d3 as varchar) as quarter_report_update , cast(d4 as varchar) as q2_file_update , cast(d5 as varchar) as q3_file_update , cast(d6 as varchar) as q4_file_update , cast(d7 as varchar) as mou_update
+  from table1 as p, p.q1_file_n as d1 , p.annual_report_n as d2, p.quarter_report_n as d3 , p.q2_file_n as d4 , p.q3_file_n as d5 , p.q4_file_n as d6 , p.mou_n as d7 
+),
+
+table12 as
+(
+  select p.* , qua_rep.name as quarter_report_update_new from table2 as p
+  
+  left join ds_mysql_prod_tagelement qua_rep
+  on p.quarter_report_update = qua_rep.id
+  )
+  
+
+select  projectid, p._id,  cast(p.fy_timerange.start as date) as fy_1 , extract(year from fy_1) as fy_timerange , projects , ngo_update , remarks , link, impact , q1_file_update , q2_file_update , q3_file_update , q4_file_update , d2_update_annual_file , quarter_report_update_new , mou_update , case when q1_file_update is null then 'NOT UPLOADED' else 'Download' end as q1_file_update_new ,  case when q2_file_update is null then 'NOT UPLOADED' else 'Download' end as q2_file_update_new ,  case when q3_file_update is null then 'NOT UPLOADED' else 'Download' end as q3_file_update_new  ,  case when q4_file_update is null then 'NOT UPLOADED' else 'Download' end as q4_file_update_new ,  case when d2_update_annual_file is null then 'NOT UPLOADED' else 'Download' end as d2_update_annual_file_new ,   case when mou_update is null then 'NOT UPLOADED' else 'Download' end as mou_update_new  from table12 as p
