@@ -4,6 +4,9 @@ with t1 as
 (select * from
  (select projectId, focus_area, volunteer, proj, hours, ngo_count, fy_timerange
   from profile_77251 as p
+  
+  left join ds_mysql_prod_project as projectid
+ on p.projectid = projectid.id
   )
  UNPIVOT (
    Val FOR Dim IN(volunteer, proj, hours, ngo_count))),
@@ -11,6 +14,7 @@ with t1 as
    t2 as
    (
 	 select projectid, fy_timerange, Dim, sum(Val) as val_sum from t1
+	 group by projectid, fy_timerange, Dim
 	 )
 	 
 	 select * from t2
