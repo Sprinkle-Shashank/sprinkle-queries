@@ -1,10 +1,13 @@
 --IDP_FFE_Academics
-select tag1.name as projectid, p1.fy_timerange, p2.benef_name, tag2.name as course_enrolled, p1.total_marks, p1.gpa, SPLIT_PART(p2.benef_name, ' ', 1) as first_name, SPLIT_PART(p2.benef_name, ' ', 2) as last_name, fy_timerange.start :: date
+with t1 as 
+(select tag1.name as projectid, p1.fy_timerange, p2.benef_name, tag2.name as course_enrolled, p1.total_marks, p1.gpa, SPLIT_PART(p2.benef_name, ' ', 1) as first_name, SPLIT_PART(p2.benef_name, ' ', 2) as last_name, p1.fy_timerange.start :: date as date
 from profile_83189 p1
 left join profile_83188 p2
 on p1.benef_name = p2._id
 left join ds_mysql_prod_project tag1
 on p1.projectid = tag1.id
 left join ds_mysql_prod_tagelement tag2
-on p1.course_enrolled = tag2.id
+on p1.course_enrolled = tag2.id)
+
+select projectid, fy_timerange, benef_name, course_enrolled, total_marks, gpa, first_name, last_name, extract( year from date) as curr_year
 
