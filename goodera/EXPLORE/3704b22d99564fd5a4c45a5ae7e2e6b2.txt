@@ -1,18 +1,51 @@
-with table1 as 
-( select  proj.name as projectid , p._id , fy_timerange  from profile_75441 as p
+
+with table111 as 
+( select  proj.name as projectid , p.projectid as projectid_new , p._id , fy_timerange  from profile_75441 as p
  
  left join ds_mysql_prod_project proj
  on p.projectid = proj.id
  ),
  
- table2 as
+ table112 as
  (
-   select proj.name as projectid , p._id , fy_timerange from profile_77463 as p
+   select proj.name as projectid , p.projectid as projectid_new  , p._id , fy_timerange from profile_77463 as p
   
   left join ds_mysql_prod_project proj
    on p.projectid = proj.id
-   )
+   ),
    
-   select * from table1 
+   table113 as
+   (
+   select * from table111 
    union all
- select * from table2
+ select * from table112
+	 ),
+	 
+	 
+table1 as
+(
+  select  t113.projectid , p._id, p.fy_timerange,	projects	,quarter_report,	p.ngo	, impact,annual_report,	mou	,remarks,link, p.name , ng.name as ngo_update, 
+  
+ case when is_array(q1_file) = false or get_array_length(q1_file) = 0 then array(q1_file)
+else (q1_file) end as q1_file_n , 
+ case when is_array(q2_file) = false or get_array_length(q2_file) = 0 then array(q2_file)
+else (q2_file) end as q2_file_n ,
+case when is_array(q3_file) = false or get_array_length(q3_file) = 0 then array(q3_file)
+else (q3_file) end as q3_file_n ,
+case when is_array(q4_file) = false or get_array_length(q4_file) = 0 then array(q4_file)
+else (q4_file) end as q4_file_n ,
+case when is_array(annual_report) = false or get_array_length(annual_report) = 0 then array(annual_report)
+else (annual_report) end as annual_report_n ,
+case when is_array(mou) = false or get_array_length(mou) = 0 then array(mou)
+else (mou) end as mou_n ,
+case when is_array(quarter_report) = false or get_array_length(quarter_report) = 0 then array(quarter_report) else (quarter_report) end as quarter_report_n ,
+   q1_file , q2_file , q3_file, q4_file from profile_83043 as p
+  
+  left join ds_mysql_prod_tagelement ng
+  on p.ngo = ng.id
+  
+  left join table113 t113
+  on p.projectid = t113.projectid_new
+)
+
+select * from table1 
