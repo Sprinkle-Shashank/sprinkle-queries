@@ -2,7 +2,7 @@ with x as (select datatablebase,fy_timerange,name From sus_83132 as p where keyw
 table1 as (select fy_timerange,name,cast(coun.supplier_name as varchar),coun.material_type ,coun.category,coun.volume,coun.spend,coun.local_supplier,coun.local_material,coun.vulnerable_supplier From x as p, unpivot p.datatablebase as coun ),
 
 table2 as (
-select fy_timerange,t1.name,supplier_name,mat.name as material_type,cat.name as category,loc.name as local_supplier,vul.name as vulnerable,loc_mat.name as local_material from table1 t1
+select fy_timerange,t1.name,supplier_name,mat.name as material_type,cat.name as category,loc.name as local_supplier,vul.name as vulnerable,loc_mat.name as local_material,spend from table1 t1
 
 left join tagElement_9427 mat on 
 t1.material_type = mat.id
@@ -17,29 +17,25 @@ left join tagElement_9427 vul on
 t1.vulnerable_supplier = vul.id
 
 left join tagElement_9427 loc_mat on 
-t1.local_material = loc_mat.id),
+t1.local_material = loc_mat.id
 
-temp1 as ( select 'vulnerable_supplier' as c
-		   union all
-		   select 'local_supplier'  as c
-		   union all
-		   select 'local_material' as c
-		 
+),
+
+temp1 as ( select 'spend' as c
+		   
 		  
 		  )
 
-/*select fy_timerange,name,supplier_name,material_type,category,
+select fy_timerange,name,supplier_name,material_type,category,local_supplier,vulnerable,local_material,
 
-sum(case c when 'vulnerable_supplier' then t2.vulnerable
-           when 'local_supplier' then t2.local_supplier
-           when 'local_material' then t2.local_material
-	       
+sum(case c when 'spend' then t2.spend
+           	       
 	end)  as val,temp1.c as dim from table2 t2
 
 cross join temp1 
 
-group by fy_timerange,name,supplier_name,material_type,category,temp1.c*/
+group by fy_timerange,name,supplier_name,material_type,category,temp1.c,local_supplier,vulnerable,local_material
 
-select * from table2
+
 
 
