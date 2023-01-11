@@ -1,0 +1,53 @@
+with x as (select datatablebase,fy_timerange,name From sus_83132 as p where keyword='keyword_1'),
+table1 as (select fy_timerange,name,cast(coun.supplier_name as varchar),coun.material_type ,coun.category,coun.volume,coun.spend,coun.spend_trace_tier1,coun.spend_trace_tier2,coun.spend_trace_tier3,coun.spend_defores_free,coun.spend_cruel_free,coun.local_supplier,coun.local_material,coun.vulnerable_supplier,coun.volume_sustainable,coun.spend_sustainable,cast(coun.certified_material_details as varchar) From x as p, unpivot p.datatablebase as coun ),
+
+table2 as (
+select fy_timerange,t1.name,supplier_name,mat.name as material_type,cat.name as category,loc.name as local_supplier,vul.name as vulnerable,loc_mat.name as local_material,spend_trace_tier1,spend_trace_tier2,spend_trace_tier3,spend_defores_free,spend_cruel_free,volume_sustainable,spend_sustainable from table1 t1
+
+left join tagElement_9427 mat on 
+t1.material_type = mat.id
+
+left join tagElement_9427 cat on 
+t1.category = cat.id
+
+left join tagElement_9427 loc on 
+t1.local_supplier = loc.id
+
+left join tagElement_9427 vul on 
+t1.vulnerable_supplier = vul.id
+
+left join tagElement_9427 loc_mat on 
+t1.local_material = loc_mat.id),
+
+temp1 as ( select 'spend_trace_tier1' as c
+		   union all
+		   select 'spend_trace_tier2'  as c
+		   union all
+		   select 'spend_trace_tier3' as c
+		  union all
+		  select 'spend_defores_free' as c
+		  union all
+		  select 'spend_cruel_free' as c
+		  union all
+		  select 'volume_sustainable' as c
+		  union all
+		  select 'spend_sustainable' as c
+		  
+		  )
+
+select fy_timerange,name,supplier_name,material_type,category,local_supplier,vulnerable,local_material,
+
+sum(case c when 'spend_trace_tier1' then t2.spend_trace_tier1
+           when 'spend_trace_tier2' then t2.spend_trace_tier2
+           when 'spend_trace_tier3' then t2.spend_trace_tier3
+	       when 'spend_defores_free' then t2.spend_defores_free
+	       when 'spend_cruel_free' then t2.spend_cruel_free
+	       when 'volume_sustainable' then t2.volume_sustainable
+	       when 'spend_sustainable' then t2.spend_sustainable
+	end)  as val,temp1.c as dim from table2 t2
+
+cross join temp1 
+
+group by fy_timerange,name,supplier_name,material_type,category,local_supplier,vulnerable,local_material,temp1.c
+
+
