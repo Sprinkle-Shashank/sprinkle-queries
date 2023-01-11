@@ -31,17 +31,21 @@ temp1 as ( select 'spend_trace_tier1' as c
 		  
 		  )
 
-select fy_timerange,name,supplier_name,material_type,category,/*local_supplier,vulnerable,local_material,*/
+select fy_timerange,name,count(supplier_name),material_type,category,/*local_supplier,vulnerable,local_material,*/
 
 sum(case c when 'spend_trace_tier1' then t2.spend_trace_tier1
            when 'spend_trace_tier2' then t2.spend_trace_tier2
            when 'spend_trace_tier3' then t2.spend_trace_tier3
 	       
-	end)  as val,temp1.c as dim from table2 t2
+	end)  as val,temp1.c as dim,
+	case when temp1.c ilike '%tier1%' then 'Tier1'
+	     when temp1.c ilike '%tier2%' then 'Tier2'
+		 else 'Tier3' end as tier
+	                        from table2 t2
 
 cross join temp1 
 
-group by fy_timerange,name,supplier_name,material_type,category,/*local_supplier,vulnerable,local_material,*/temp1.c
+group by fy_timerange,name,material_type,category,/*local_supplier,vulnerable,local_material,*/temp1.c
 
 
 
