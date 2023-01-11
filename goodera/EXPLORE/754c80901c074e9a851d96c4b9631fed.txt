@@ -1,0 +1,14 @@
+select p3.name as projectId,p2.name as projectname,p1.name as partner,/*p.fy_timerange*/
+concat(concat(concat(concat('{"start":"',(TO_CHAR(p.opening_date, 'YYYY-MM-DD"T"HH24":"MI:SS.000"Z"'))),'","end":"'),(TO_CHAR(p.opening_date, 'YYYY-MM-DD"T"HH24":"MI:SS.000"Z"'))),'"}') as fy_timerange,p.amount_invested_at_so,
+t1.name as block, t2.name as district, t3.name as state
+from profile_83228 p
+cross join temp
+left join ds_mysql_prod_project p1 on p1.id = p.projectid
+left join ds_mysql_prod_project p2 on p2.id = p1.parent
+left join ds_mysql_prod_project p3 on p3.id=p2.parent
+
+left join tagelement_9730 t1 on t1.id=p.state_district_block
+left join tagelement_9730 t2 on t2.id=t1.parent
+left join tagelement_9730 t3 on t3.id=t2.parent
+where p.projectid like '%%' 
+
