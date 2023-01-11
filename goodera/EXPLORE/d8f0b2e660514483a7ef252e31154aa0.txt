@@ -2,33 +2,26 @@ with x as (select datatablebase,fy_timerange,name From sus_83132 as p where keyw
 table1 as (select fy_timerange,name,cast(coun.supplier_name as varchar),coun.material_type ,coun.category,coun.volume,coun.spend From x as p, unpivot p.datatablebase as coun ),
 
 table2 as (
-select fy_timerange,t1.name,supplier_name, mat.name as material_type,cat.name as category ,volume,spend,loc.name as local_supplier,vul.name as vulnerable,loc_mat.name as local_material from table1 t1
+select fy_timerange,t1.name,supplier_name, mat.name as material_type,cat.name as category ,volume,spend from table1 t1
 
 left join tagElement_9427 mat on 
 t1.material_type = mat.id
 
 left join tagElement_9427 cat on 
 t1.category = cat.id
-left join tagElement_9427 loc on 
-t1.local_supplier = loc.id
 
-left join tagElement_9427 vul on 
-t1.vulnerable_supplier = vul.id
-
-left join tagElement_9427 loc_mat on 
-t1.local_material = loc_mat.id
 ),
 
 temp1 as (select 'volume' as c
 		  union all
 		  select 'spend' as c)
 		  
-select fy_timerange,name,supplier_name, material_type,category,local_supplier,vulnerable,local_material, 
+select fy_timerange,name,supplier_name, material_type,category, 
 sum(case c when 'volume' then t2.volume
 	       when 'spend' then t2.spend end) as val, temp1.c as dim from table2 t2
 cross join temp1
 
-group by fy_timerange,name,supplier_name,material_type,category,temp1.c,local_supplier,vulnerable,local_material
+group by fy_timerange,name,supplier_name,material_type,category,temp1.c
 
 
 
