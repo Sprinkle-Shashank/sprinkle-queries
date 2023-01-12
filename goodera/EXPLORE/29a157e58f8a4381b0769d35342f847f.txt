@@ -30,6 +30,120 @@ table6 as
 union all
 select * from table5),
 
+t1 as (select p1._id , tag4.name as projectId, tag5.name as evident, tag6.name as status, tag7.name as training_type,tag8.name as country, p8.vendor, tag13.name as consultant,tag3.name as year,start_date_2,
+	   substring(start_date_2, 6,2) as month
+,tag14.name as cycle, tag15.name as product_category ,
+	   case when  month='01' then  'Jan'
+when  month='02' then 'Feb'
+when  month='03' then 'Mar'
+when  month='04' then 'Apr'
+when  month='05' then 'May'
+when  month='06' then 'Jun'
+when  month='07' then 'Jul'
+when  month='08' then 'Aug'
+when  month='09' then 'Sep'
+when  month='10' then 'Oct'
+when  month='11' then 'Nov'
+else  'Dec'
+end as monthstring
+from profile_64816 p1 
+
+left join table6 p8
+on p1.projectId = p8.projectId 
+
+--left join profile_64362 p5
+--on p1.projectId=p5.projectId
+
+
+left join tagElement_7746 tag3
+on p1.year = tag3.id
+left join project_7746 tag4
+on p1.projectId = tag4.id
+left join tagElement_7746 tag5
+on p1.evident = tag5.id
+left join tagElement_7746 tag6
+on p1.status = tag6.id
+left join tagElement_7746 tag7
+on p1.training_type = tag7.id
+left join tagElement_7746 tag8
+on p8.country = tag8.id
+left join tagElement_7746 tag13
+on p8.consultant_tag = tag13.id
+left join tagElement_7746 tag15
+on p8.unwind_product_category = tag15.id
+left join tagElement_7746 tag14
+on p8.unwind_cycle = tag14.id
+)
+, t2 as (
+select _id,projectId,evident,start_date_2,status,training_type,country,vendor,consultant,cycle,product_category ,year,month, _id as id2,  monthstring   || ' (' || year || ')' as month_new from t1 
+  )
+  , t3 as (
+  select projectId, evident, status, training_type, country, vendor, consultant, cycle, product_category, year, month_new as month, id2
+  from t2
+  group by projectId, evident, status, training_type, country, vendor, consultant, cycle, product_category, year, t2.month_new, id2
+  )
+	select projectId, evident, status, training_type, country, vendor, consultant, cycle, product_category, year, month, id2,
+	cast( 1 as varchar) as count
+	from t3 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/*--RSAP Workshop Outcomes NEW 1
+with table1 as
+(select _id , projectId,country, vendor,unwind_cycle, product_category, consultant_tag from profile_64362 as p ,p.cycle as unwind_cycle),
+
+ table2 as
+(select _id, projectId,country, vendor,cycle,product_category,consultant_tag from profile_64362
+  where _id not in (select _id from table1))
+  ,
+  
+table3 as
+ (
+	select * from table1
+  Union all
+  select * from table2
+ )
+ ,
+
+  
+table4 as  
+(
+ select _id,  projectId,country,vendor,unwind_cycle, unwind_product_category,consultant_tag from table3 t3, t3.product_category  as unwind_product_category
+ ),
+
+table5 as
+(select _id, projectId,country,vendor,unwind_cycle,  null as product_category,consultant_tag from table3 
+ where _id not in (select _id from table4)),
+ 
+table6 as
+(select * from table4
+union all
+select * from table5),
+
 t1 as (select  tag4.name as projectId, tag5.name as evident, tag6.name as status, tag7.name as training_type,tag8.name as country, p5.vendor, tag13.name as consultant,tag3.name as year, to_char(start_date_2, 'Month') || '(' || to_char(start_date_2,'YYYY') || ')' as month , p1._id as id2, count(id2) as count
 ,tag14.name as cycle, tag15.name as product_category 
 from profile_64816 p1 
@@ -74,3 +188,4 @@ group by projectId, evident, status, training_type, country, vendor, consultant,
 
 	   --group by p1.projectId, evident, status, training_type, p5.country, p5.vendor, consultant, cycle, product_category, year, month, id2,p1.start_date_2,tag1.name,tag2.name,tag3.name,tag4.name,tag5.name,tag6.name,tag7.name,tag8.name,tag13.name
 --,tag14.name,tag15.name
+*/
