@@ -2,7 +2,7 @@
 with table1 as (
 select substring(p1.start_date, 9,2) as date1,substring(p1.start_date, 6,2) as month1 ,substring(p1.start_date, 1,4) as year1, p1.start_date,
 substring(p1.end_date, 9,2) as date2,substring(p1.end_date, 6,2) as month2 ,substring(p1.end_date, 1,4) as year2, p1.end_date,
-  actual_end_date ,p1.projectId ,p1.remarks, p1.microbenefits_milestone,p1.consultant_milestone,p1.other_milestone,p1.milestone_name,p1.program_level_milestone
+  actual_end_date ,p1.projectId ,p1.remarks, p1.microbenefits_milestone,p1.consultant_milestone,p1.other_milestone,p1.milestone_name,p1.program_level_milestone ,p1.cycle_select
 from profile_64141 as p1)
 ,t2 as
 
@@ -17,7 +17,7 @@ case
 when actual_end_date1 <= end_date1 then 'Completed'
 when current_date <end_date1 then 'On-Track' 
 else 'Delayed, but Completed' 
-end as status
+end as status ,cycle_select
 from table1 as t1
 left join profile_64362 p2
 on t1.projectId=p2.projectId
@@ -32,7 +32,7 @@ on p2.consultant_tag = tag5.id
  
 )
 ,t3 as (
-select   projectId1,r.projectId,remarks, microbenefits_milestone, r.product_category,r.factory,r.consultant_milestone,other_milestone,milestone_name,program_level_milestone,r.start_date1 ,end_date1  ,actual_end_date1 ,r.vendor,r.consultant,r.country,current_date,status ,
+select   projectId1,r.projectId,remarks, microbenefits_milestone, r.product_category,r.factory,r.consultant_milestone,other_milestone,milestone_name,program_level_milestone,r.start_date1 ,end_date1  ,actual_end_date1 ,r.vendor,r.consultant,r.country,current_date,status ,cycle_select,
 case when
 is_array(p9.cycle) = false or get_array_length(p9.cycle) = 0 then array(p9.cycle)
 else (p9.cycle)
@@ -44,19 +44,21 @@ from t2	 as r
 
   )
 , t5 as (
-select projectId1, p.projectId,remarks, microbenefits_milestone, product_category,factory,consultant_milestone,other_milestone,milestone_name,program_level_milestone, start_date1,end_date1 , actual_end_date1,vendor,consultant,country,current_date,status ,
+select projectId1, p.projectId,remarks, microbenefits_milestone, product_category,factory,consultant_milestone,other_milestone,milestone_name,program_level_milestone, start_date1,end_date1 , actual_end_date1,vendor,consultant,country,current_date,status ,cycle_select,
  unwind_cycle from t3 as p, p.cycle_new  as unwind_cycle
 ) , t6 as (
-select projectId1,p.projectId, remarks, microbenefits_milestone, product_category,factory,consultant_milestone,other_milestone,milestone_name,program_level_milestone, start_date1,end_date1 , actual_end_date1,vendor,consultant,country,current_date,status , tag6.name as cycle from t5 as p
+select projectId1,p.projectId, remarks, microbenefits_milestone, product_category,factory,consultant_milestone,other_milestone,milestone_name,program_level_milestone, start_date1,end_date1 , actual_end_date1,vendor,consultant,country,current_date,status , tag6.name as cycle ,ty.name as cycle_1 from t5 as p
 left join tagElement_7746 tag6
 on unwind_cycle = tag6.id
+  left join  tagElement_7746 ty
+  on cycle_select = ty.id
   
   
   
   )
-  select projectId1, remarks, microbenefits_milestone, other_milestone, milestone_name, program_level_milestone,start_date1,end_date1 , actual_end_date1 , factory, vendor, product_category, consultant, country, current_date, status, cycle, consultant_milestone
+  select projectId1, remarks, microbenefits_milestone, other_milestone, milestone_name, program_level_milestone,start_date1,end_date1 , actual_end_date1 , factory, vendor, product_category, consultant, country, current_date, status, cycle_1, consultant_milestone
  from t6
-group by projectId1, remarks, microbenefits_milestone, other_milestone, milestone_name, program_level_milestone,start_date1,end_date1 , actual_end_date1 , factory, vendor, product_category, consultant, country, current_date, status, cycle, consultant_milestone
+group by projectId1, remarks, microbenefits_milestone, other_milestone, milestone_name, program_level_milestone,start_date1,end_date1 , actual_end_date1 , factory, vendor, product_category, consultant, country, current_date, status, cycle_1, consultant_milestone
 
 
 	
