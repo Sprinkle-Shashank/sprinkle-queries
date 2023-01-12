@@ -1,0 +1,64 @@
+--Scope_3_intensity
+with table1 as (SELECT *
+FROM (
+select cou.name as country,p.name,p.fy_timerange,keyword,datanum,startdate/*,datanumbase
+lag(datanum,1) over (order by  p.fy_timerange) as prev_qty,
+(prev_qty-datanum)*100.0/prev_qty as per */
+
+from sus_80478 p
+
+left join project_9427 pro on 
+p.xprojectid = pro.id
+
+left join project_9427 cou on 
+pro.parent = cou.id
+
+where keyword in ( 'scope3_intensity','s3_cat1','turnover') 
+
+order by fy_timerange asc
+  
+) PIVOT (
+   sum(datanum) FOR keyword IN ('scope3_intensity','s3_cat1','turnover')
+) 
+				),
+table2 as (
+select country,name,fy_timerange,s3_cat1 as scope3_emission,turnover,EXTRACT(MONTH FROM cast (startdate as datetime))AS month1,
+EXTRACT(YEAR FROM cast (startdate as datetime))AS year1,
+CASE
+WHEN MONTH1 <= 3
+THEN YEAR1-1
+ELSE
+YEAR1
+END AS start,start+1 as end1,
+concat(start,'-04-01T00:00:00.000Z') as start1,
+concat(end1,'-03-31T00:00:00.000Z') as end2,
+concat(concat(concat(concat('{"start":"',start1),'","end":"'),end2),'"}') as fy_1  
+  ,
+concat('FY',concat(start,concat('-',right(end1,2)))) as fy_2  
+  
+  from table1
+where start >= 2018
+),				
+turnover as (
+select fy_2 , sum(turnover) as turnover from table2 
+group by fy_2
+),
+table3 as (
+select country,name,fy_1 as fy_timerange,scope3_emission,scope3_emission/turn.turnover as intensity,t2.fy_2
+/*
+(select scope3_intensity from table1
+	order by fy_timerange asc limit 1) as base_value, 
+
+(base_value-scope3_intensity)*100.0/base_value as base_perc*/ from table2	t2
+
+left join turnover turn
+on t2.fy_2 = turn.fy_2
+)
+
+select country,name,fy_timerange,scope3_emission,intensity,
+(select intensity from table3
+    where intensity is not null 
+	order by fy_timerange asc limit 1) as base_value, 
+
+(base_value-intensity)*100.0/base_value as base_perc,fy_2 from table3
+--select * from turnover
