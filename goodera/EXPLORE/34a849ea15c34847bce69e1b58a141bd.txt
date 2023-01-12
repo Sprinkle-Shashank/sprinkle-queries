@@ -1,86 +1,79 @@
-with table1 as (
-select substring(p1.start_date, 9,2) as date1,substring(p1.start_date, 6,2) as month1 ,substring(p1.start_date, 1,4) as year1, p1.start_date,
-substring(p1.end_date, 9,2) as date2,substring(p1.end_date, 6,2) as month2 ,substring(p1.end_date, 1,4) as year2, p1.end_date,
-  actual_end_date ,p1.projectId ,p1.remarks, p1.cycle_select,p1.microbenefits_milestone,p1.consultant_milestone,p1.other_milestone,p1.milestone_name,p1.program_level_milestone
-from profile_64141 as p1)
-,t1 as
+--RSAP Workshop Outcomes NEW 1
+with table1 as
+(select _id , projectId,country, vendor,unwind_cycle, product_category, consultant_tag from profile_64362 as p ,p.cycle as unwind_cycle),
 
-(select t1.projectId, 
-substring(actual_end_date,9,2) as date3 , substring(actual_end_date, 6,2) as month3 ,substring(actual_end_date, 1,4) as year3,
-date1 ||'-'|| month1||'-' ||year1 as start_date1 ,
-date2 ||'-'|| month2||'-' ||year2 as end_date1,
-date3 ||'-'|| month3||'-' ||year3 as actual_end_date1,
-tag4.name as country, p7.factory, p2.vendor, p2.product_category, tag5.name as consultant, current_date as current_date,p2.cycle,
- remarks, microbenefits_milestone,consultant_milestone,other_milestone,milestone_name,program_level_milestone,
-case 
-when actual_end_date1 <= end_date1 then 'Completed'
-when current_date <end_date1 then 'On-Track' 
-else 'Delayed, but Completed' 
-end as status ,cycle_select
-from table1 as t1
-left join profile_64362 p2
-on t1.projectId=p2.projectId
- 
-left join tagElement_7746 tag4
-on p2.country = tag4.id
-left join profile_64170 as p7
-on p2.factory = p7._id
-left join tagElement_7746 tag5
-on p2.consultant_tag = tag5.id
- 
-)
-,t3 as (
-select  pro.name as projectId, remarks, microbenefits_milestone, r.product_category,r.factory,r.consultant_milestone,other_milestone,milestone_name,program_level_milestone,r.start_date1 as start_date,end_date1 as end_date ,actual_end_date1 as actual_end_date,r.vendor,r.consultant,r.country,current_date,status ,
-case when
-is_array(p9.cycle) = false or get_array_length(p9.cycle) = 0 then array(p9.cycle)
-else (p9.cycle)
-end as cycle_new ,cycle_select
-from t1	 as r
-left join profile_64362 as p9
-on r.projectId=p9.projectId
+ table2 as
+(select _id, projectId,country, vendor,cycle,product_category,consultant_tag from profile_64362
+  where _id not in (select _id from table1))
+  ,
   
- left join project_7746 pro
-on r.projectId = pro.id 
+table3 as
+ (
+	select * from table1
+  Union all
+  select * from table2
+ )
+ ,
+
+  
+table4 as  
+(
+ select _id,  projectId,country,vendor,unwind_cycle, unwind_product_category,consultant_tag from table3 t3, t3.product_category  as unwind_product_category
+ ),
+
+table5 as
+(select _id, projectId,country,vendor,unwind_cycle,  null as product_category,consultant_tag from table3 
+ where _id not in (select _id from table4)),
  
-)
-, t5 as (
-select projectId, remarks, microbenefits_milestone, product_category,factory,consultant_milestone,other_milestone,milestone_name,program_level_milestone, start_date,end_date , actual_end_date,vendor,consultant,country,current_date,status ,cycle_select,
- unwind_cycle from t3 as p, p.cycle_new  as unwind_cycle
-) , t6 as (
-select projectId, remarks, microbenefits_milestone, product_category,factory,consultant_milestone,other_milestone,milestone_name,program_level_milestone, start_date,end_date , actual_end_date,vendor,consultant,country,current_date,status , tag6.name as cycle1 ,cycle_select as cycle from t5
+table6 as
+(select * from table4
+union all
+select * from table5),
+
+t1 as (select  tag4.name as projectId, tag5.name as evident, tag6.name as status, tag7.name as training_type,tag8.name as country, p5.vendor, tag13.name as consultant,tag3.name as year,  substring(start_date, 6,2) as month
+,tag14.name as cycle, tag15.name as product_category 
+from profile_64816 p1 
+
+left join table6 p8
+on p1.projectId = p8.projectId 
+left join project_7746 p2
+on p2.id = p1.projectId
+left join project_7746 p3
+on p3.id = p2.parent
+left join project_7746 p4
+on p4.id = p3.parent
+left join profile_64362 p5
+on p1.projectId=p5.projectId
+left join tagElement_7746 tag1
+on p5.cycle = tag1.id
+left join tagElement_7746 tag2
+on p5.product_category = tag2.id
+left join tagElement_7746 tag3
+on p1.year = tag3.id
+left join project_7746 tag4
+on p1.projectId = tag4.id
+left join tagElement_7746 tag5
+on p1.evident = tag5.id
 left join tagElement_7746 tag6
-on unwind_cycle = tag6.id 
-  )
-  select projectId, remarks, microbenefits_milestone, other_milestone, milestone_name, program_level_milestone,start_date,end_date , actual_end_date , factory, vendor, product_category, consultant, country, current_date, status, cycle, consultant_milestone
- from t6
-group by projectId, remarks, microbenefits_milestone, other_milestone, milestone_name, program_level_milestone,start_date,end_date , actual_end_date , factory, vendor, product_category, consultant, country, current_date, status, cycle, consultant_milestone
+on p1.status = tag6.id
+left join tagElement_7746 tag7
+on p1.training_type = tag7.id
+left join tagElement_7746 tag8
+on p5.country = tag8.id
+left join tagElement_7746 tag13
+on p5.consultant_tag = tag13.id
+left join tagElement_7746 tag15
+on p8.unwind_product_category = tag15.id
+left join tagElement_7746 tag14
+on p8.unwind_cycle = tag14.id
+)
+
+select * from t1 
+--group by projectId, evident, status, training_type, country, vendor, consultant,  year, month, id2,t1.count,t1.cycle,t1.product_category
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+	   --group by p1.projectId, evident, status, training_type, p5.country, p5.vendor, consultant, cycle, product_category, year, month, id2,p1.start_date_2,tag1.name,tag2.name,tag3.name,tag4.name,tag5.name,tag6.name,tag7.name,tag8.name,tag13.name
+--,tag14.name,tag15.name
 
 
 
