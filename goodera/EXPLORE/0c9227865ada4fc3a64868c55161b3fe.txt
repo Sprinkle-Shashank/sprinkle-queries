@@ -18,17 +18,24 @@ group by 1,2,3),
 
 tab3 as (Select indicator, [Year1], Revenue,
 LAG (Revenue,1)
-OVER (PARTITION BY indicator ORDER BY [Year1]) AS PrevYearRevenue, 
+OVER (PARTITION BY indicator ORDER BY [Year1]) AS PrevYearRevenue1, 
 LAG (year1,1)
 OVER (PARTITION BY indicator ORDER BY [Year1]) AS PrevYear 
 from tab2
 ORDER BY indicator, [Year1]
 )
 
-Select indicator,year1,revenue,prevyearrevenue,
+tab4 as (select indicator,year1,revenue,prevyearrevenue1,prevyear,
+		 case
+	when year1 - prevyear = 1 then PrevYearRevenue1
+	else 0
+end as PrevYearRevenue,
+)
+
+Select indicator,year1,revenue,prevyearrevenue,prevyear,
 case 
 when year1 = '2021' then (revenue - prevyearrevenue)/revenue
 when year1 = '2019' then (revenue - prevyearrevenue)/revenue
 when year1 = '2018' then (revenue - prevyearrevenue)/revenue
 end as value
-from tab3
+from tab4
