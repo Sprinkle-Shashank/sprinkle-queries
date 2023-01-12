@@ -9,7 +9,12 @@ left join  ds_mysql_prod_project prod  on
 prod.id=projectid
 WHERE timerange_timerange is not null
 GROUP BY prod.name, t2.name, t1.name, timerange_timerange, amount_utilized, amount_rvd
-ORDER BY t1.name desc,year DESC)
+ORDER BY t1.name desc,year DESC),
 
-Select * from main
-where timerange_timerange is not null
+tab1 as (SELECT listagg(projectId,' , ') as projectId,listagg(year,' , ') as year,listagg(quarter,' , ') as quarter/*,timerange_timerange, listagg(amount_utilized,',') AS Utilized, listagg(amount_rvd,',') AS Approved,
+listagg((Approved - Utilized),',') as To_be_Spent*/
+FROM main)
+
+Select split_part(projectid,',',1)as id1,split_part(year,',',1)as id2,split_part(quarter,',',1)as id3
+from tab1
+group by id1,id2,id3
