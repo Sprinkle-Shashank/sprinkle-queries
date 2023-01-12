@@ -1,7 +1,7 @@
 with table1 as (
 select pro.name as projectid,fy_timerange,financial_year,association_date,date_sign_contract,end_date,
 org_name,website_link,nature_of_partnership,project_revenue,org_logo,sect.name as sector_impacted,start.name as startup_category,
-clause.name as clause_schedule,sdg_logo,founder_name,company_desc,social_impact_desc,arr_during_exit,growth_percent_achieved,revenue_percent_increase,challenge_closed_impact,
+clause.name as clause_schedule,sdg_logo,founder_name,company_desc,social_impact_desc,arr_during_exit,growth_percent_achieved,revenue_percent_increase,challenge_closed_impact,type.name as type_of_impact,
   
 case when is_array(sdg_logo)= false or get_array_length(sdg_logo)=0 then array(sdg_logo)
 else sdg_logo
@@ -19,21 +19,24 @@ left join ds_mysql_prod_tagelement as clause
   on p.clause_schedule = clause.id
   
 left join ds_mysql_prod_tagelement as sect
-  on p.sector_impacted = sect.id),
+  on p.sector_impacted = sect.id
+  
+left join ds_mysql_prod_tagelement as type
+  on p.type_of_impact = type.id),
   
 table2 as (
 select projectid,fy_timerange,financial_year,association_date,date_sign_contract,end_date,
 org_name,website_link,nature_of_partnership_unwind,project_revenue,org_logo,sector_impacted,startup_category,
-clause_schedule,founder_name,company_desc,social_impact_desc,arr_during_exit,growth_percent_achieved,revenue_percent_increase,challenge_closed_impact,cast(sdg_logo as varchar)
+clause_schedule,type_of_impact,founder_name,company_desc,social_impact_desc,arr_during_exit,growth_percent_achieved,revenue_percent_increase,challenge_closed_impact,cast(sdg_logo as varchar)
   
 from table1 t1, t1.photo sdg_logo, t1.nature_of_partnership as nature_of_partnership_unwind)
 
 select s2.projectid,s2.fy_timerange,s2.financial_year,s2.association_date,s2.date_sign_contract,s2.end_date,
 s2.org_name,s2.website_link,s2.project_revenue,s2.org_logo,s2.sector_impacted,s2.startup_category,
-s2.clause_schedule,s2.founder_name,s2.company_desc,s2.social_impact_desc,s2.arr_during_exit,s2.growth_percent_achieved,s2.revenue_percent_increase,s2.challenge_closed_impact,LISTAGG( DISTINCT s2.sdg_logo, ', ' ) as sdgs, LISTAGG( DISTINCT t1.name, ', ' ) as nature_of_partnership from table2 s2
+s2.clause_schedule,s2.founder_name,s2.type_of_impact,s2.company_desc,s2.social_impact_desc,s2.arr_during_exit,s2.growth_percent_achieved,s2.revenue_percent_increase,s2.challenge_closed_impact,LISTAGG( DISTINCT s2.sdg_logo, ', ' ) as sdgs, LISTAGG( DISTINCT t1.name, ', ' ) as nature_of_partnership from table2 s2
 
 left join ds_mysql_prod_tagelement t1 on t1.id = nature_of_partnership_unwind
   
 group by s2.projectid,s2.fy_timerange,s2.financial_year,s2.association_date,s2.date_sign_contract,s2.end_date,
 s2.org_name,s2.website_link,s2.project_revenue,s2.org_logo,s2.sector_impacted,s2.startup_category,
-s2.clause_schedule,s2.founder_name,s2.company_desc,s2.social_impact_desc,s2.arr_during_exit,s2.growth_percent_achieved,s2.revenue_percent_increase,s2.challenge_closed_impact
+s2.clause_schedule,s2.founder_name,s2.company_desc,s2.social_impact_desc,s2.arr_during_exit,s2.growth_percent_achieved,s2.revenue_percent_increase,s2.challenge_closed_impact,s2.type_of_impact
