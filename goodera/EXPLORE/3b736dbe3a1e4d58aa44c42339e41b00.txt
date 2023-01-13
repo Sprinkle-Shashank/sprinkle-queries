@@ -1,4 +1,32 @@
-with table1 as (
+with temp as(
+  select 'Partner | Due Dilligence' as col 
+  UNION ALL
+  select 'Partner | Background Information' as col 
+  UNION ALL
+  select 'Partner | Proposal' as col 
+  UNION ALL
+  select 'Approval by CSR team' as col 
+  UNION ALL
+  select 'Due Diligence Task' as col 
+  UNION ALL
+  select 'Post Due Diligence Approval by CSR Team' as col 
+  UNION ALL
+  select 'Approval by Vertical Head' as col 
+  UNION ALL
+  select 'Approval by Compliance Team' as col 
+  UNION ALL
+  select 'Approval by Legal Team' as col 
+  UNION ALL
+  select 'Approval by Finance Team' as col 
+  UNION ALL
+  select 'Approval by CSR functional head' as col 
+  UNION ALL
+  select 'Approval by Board' as col 
+  UNION ALL
+  select 'Proposal Approval Document' as col 
+ ),
+ 
+table1 as (
   select p.id as grantApplicationId,partner.id as grantPartnerId1, 
   proposal.id as grantProposalId1, proposallog.*,p.active as isactive, partner.active as activepartner, proposal.active as activeproposal, proposallog.active as activeproposallog
   
@@ -170,9 +198,10 @@ ARRAY(JSON_PARSE(case
 from t3
 group by 
 
-grantapplicationid	,grantpartnerid1, grantproposalid1,	_id,	grantproposalid	,grantflowtaskid,	active,	completedgrantflowtask,	todo,	created,	creatorid,	modified,	modifierid,	grantpartnerid,	isactive,	activepartner,	activeproposal,	activeproposallog,	cgf)
+grantapplicationid	,grantpartnerid1, grantproposalid1,	_id,	grantproposalid	,grantflowtaskid,	active,	completedgrantflowtask,	todo,	created,	creatorid,	modified,	modifierid,	grantpartnerid,	isactive,	activepartner,	activeproposal,	activeproposallog,	cgf),
 
-Select grantapplicationid, 
+t5 as
+(Select grantapplicationid, 
 
 SPLIT_TO_ARRAY(listagg(distinct comp28730,', ')) as comp_28730, get_array_length(comp_28730) as final_comp_28730, SPLIT_TO_ARRAY(listagg(distinct pend28730,', ')) as pend_28730, get_array_length(pend_28730) as final_pend_28730, SPLIT_TO_ARRAY(listagg(distinct rej28730,', ')) as rej_28730, get_array_length(rej_28730) as final_rej_28730,
 
@@ -201,4 +230,91 @@ SPLIT_TO_ARRAY(listagg(distinct comp47487,', ')) as comp_47487, get_array_length
 SPLIT_TO_ARRAY(listagg(distinct comp28722,', ')) as comp_28722, get_array_length(comp_28722) as final_comp_28722, SPLIT_TO_ARRAY(listagg(distinct pend28722,', ')) as pend_28722, get_array_length(pend_28722) as final_pend_28722, SPLIT_TO_ARRAY(listagg(distinct rej28722,', ')) as rej_28722, get_array_length(rej_28722) as final_rej_28722
 
 from t4
-group by 1
+group by 1)
+select grantapplicationid, temp.col as task,
+case col 
+	when 'Partner | Due Dilligence' then final_pend_28730
+	when 'Partner | Background Information' then final_pend_47474
+	when 'Partner | Proposal' then final_pend_47477
+  
+  when 'Approval by CSR team' then final_pend_28720
+  
+  when 'Due Diligence Task' then final_pend_82013
+  
+  when 'Post Due Diligence Approval by CSR Team' then final_pend_82014
+  
+  when 'Approval by Vertical Head' then final_pend_28723
+  
+  when 'Approval by Compliance Team' then final_pend_28726
+  
+  when 'Approval by Legal Team' then final_pend_28724
+  
+  when 'Approval by Finance Team' then final_pend_28718
+  
+  when 'Approval by CSR functional head' then final_pend_28721
+  
+  when 'Approval by Board' then final_pend_47487
+  
+  when 'Proposal Approval Document' then final_pend_28722
+  
+  else 0 
+  end as pending,
+
+case col
+	when 'Partner | Due Dilligence' then final_comp_28730
+	when 'Partner | Background Information' then final_comp_47474
+	when 'Partner | Proposal' then final_comp_47477
+  
+  when 'Approval by CSR team' then final_comp_28720
+  
+  when 'Due Diligence Task' then final_comp_82013
+  
+  when 'Post Due Diligence Approval by CSR Team' then final_comp_82014
+  
+  when 'Approval by Vertical Head' then final_comp_28723
+  
+  when 'Approval by Compliance Team' then final_comp_28726
+  
+  when 'Approval by Legal Team' then final_comp_28724
+  
+  when 'Approval by Finance Team' then final_comp_28718
+  
+  when 'Approval by CSR functional head' then final_comp_28721
+  
+  when 'Approval by Board' then final_comp_47487
+  
+  when 'Proposal Approval Document' then final_comp_28722
+
+else 0 
+  end as completed,
+case col
+	when 'Partner | Due Dilligence' then final_rej_28730
+	when 'Partner | Background Information' then final_rej_47474
+	when 'Partner | Proposal' then final_rej_47477
+  
+  when 'Approval by CSR team' then final_rej_28720
+  
+  when 'Due Diligence Task' then final_rej_82013
+  
+  when 'Post Due Diligence Approval by CSR Team' then final_rej_82014
+  
+  when 'Approval by Vertical Head' then final_rej_28723
+  
+  when 'Approval by rejliance Team' then final_rej_28726
+  
+  when 'Approval by Legal Team' then final_rej_28724
+  
+  when 'Approval by Finance Team' then final_rej_28718
+  
+  when 'Approval by CSR functional head' then final_rej_28721
+  
+  when 'Approval by Board' then final_rej_47487
+  
+  when 'Proposal Approval Document' then final_rej_28722
+else 0 
+  end as rejected
+  
+ from t5
+ cross join temp
+  
+  
