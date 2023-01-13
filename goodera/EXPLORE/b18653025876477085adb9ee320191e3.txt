@@ -1,4 +1,31 @@
-with table1 as (
+with temp as(
+  select 'Proposal submission' as col 
+  UNION ALL
+  select 'Approval by Site HR Lead' as col 
+  UNION ALL
+  select 'Approval by Vertical HR Head' as col 
+  UNION ALL
+  select 'Review by CSR Team (Due Diligence)' as col 
+  UNION ALL
+  select 'Approval by Compliance Team' as col 
+  UNION ALL
+  select 'Approval by Legal Team' as col 
+  UNION ALL
+  select 'Approval by Finance' as col 
+  UNION ALL
+  select 'India Executive/ Board' as col 
+  UNION ALL
+  select 'Proposal Approval Document' as col
+ ),
+ 
+ temp2 as
+(select 'Pending' as col
+ UNION ALL
+ select 'Completed' as col
+ UNION ALL
+ select 'Rejected' as col),
+ 
+table1 as (
   select p.id as grantApplicationId,partner.id as grantPartnerId1, 
   proposal.id as grantProposalId1, proposallog.*,p.active as isactive, partner.active as activepartner, proposal.active as activeproposal, proposallog.active as activeproposallog
   
@@ -130,9 +157,10 @@ ARRAY(JSON_PARSE(case
 from t3
 group by 
 
-grantapplicationid	,grantpartnerid1, grantproposalid1,	_id,	grantproposalid	,grantflowtaskid,	active,	completedgrantflowtask,	todo,	created,	creatorid,	modified,	modifierid,	grantpartnerid,	isactive,	activepartner,	activeproposal,	activeproposallog,	cgf)
+grantapplicationid	,grantpartnerid1, grantproposalid1,	_id,	grantproposalid	,grantflowtaskid,	active,	completedgrantflowtask,	todo,	created,	creatorid,	modified,	modifierid,	grantpartnerid,	isactive,	activepartner,	activeproposal,	activeproposallog,	cgf),
 
-Select grantapplicationid, 
+t5 as
+(Select grantapplicationid, 
 
 SPLIT_TO_ARRAY(listagg(distinct comp28709,', ')) as comp_28709, get_array_length(comp_28709) as final_comp_28709, SPLIT_TO_ARRAY(listagg(distinct pend28709,', ')) as pend_28709, get_array_length(pend_28709) as final_pend_28709, SPLIT_TO_ARRAY(listagg(distinct rej28709,', ')) as rej_28709, get_array_length(rej_28709) as final_rej_28709,
 
@@ -153,4 +181,75 @@ SPLIT_TO_ARRAY(listagg(distinct comp28717,', ')) as comp_28717, get_array_length
 SPLIT_TO_ARRAY(listagg(distinct comp28706,', ')) as comp_28706, get_array_length(comp_28706) as final_comp_28706, SPLIT_TO_ARRAY(listagg(distinct pend28706,', ')) as pend_28706, get_array_length(pend_28706) as final_pend_28706, SPLIT_TO_ARRAY(listagg(distinct rej28706,', ')) as rej_28706, get_array_length(rej_28706) as final_rej_28706
 
 from t4
-group by 1
+group by 1),
+
+t6 as
+(select grantapplicationid, temp.col as task,
+ case
+	when 'Proposal submission' then 1 
+	when 'Approval by Site HR Lead' then 2
+	when 'Approval by Vertical HR Head' then 3 
+	when 'Review by CSR Team (Due Diligence)' then 4 
+	when 'Approval by Compliance Team' then 5
+	when 'Approval by Legal Team' then 6
+	when 'Approval by Finance' then 7
+	when 'India Executive/ Board' then 8 
+	when 'Proposal Approval Document' then 9
+else 0
+end as sort_order,
+
+case col
+	when 'Proposal submission' then final_pend_28709
+	when 'Approval by Site HR Lead' then final_pend_28707
+ 	when 'Approval by Vertical HR Head' then final_pend_28712
+	when 'Review by CSR Team (Due Diligence)' then final_pend_28714
+ 	when 'Approval by Compliance Team' then final_pend_29760
+ 	when 'Approval by Legal Team' then final_pend_28715
+ 	when 'Approval by Finance' then final_pend_29234
+  	when 'India Executive/ Board' then final_pend_28717
+ 	when 'Proposal Approval Document' then final_pend_28706
+else 0
+end as pending,
+ 
+case col
+	when 'Proposal submission' then final_comp_28709
+	when 'Approval by Site HR Lead' then final_comp_28707
+ 	when 'Approval by Vertical HR Head' then final_comp_28712
+	when 'Review by CSR Team (Due Diligence)' then final_comp_28714
+ 	when 'Approval by Compliance Team' then final_comp_29760
+ 	when 'Approval by Legal Team' then final_comp_28715
+ 	when 'Approval by Finance' then final_comp_29234
+  	when 'India Executive/ Board' then final_comp_28717
+ 	when 'Proposal Approval Document' then final_comp_28706
+else 0
+end as completed,
+
+case col
+	when 'Proposal submission' then final_rej_28709
+	when 'Approval by Site HR Lead' then final_rej_28707
+ 	when 'Approval by Vertical HR Head' then final_rej_28712
+	when 'Review by CSR Team (Due Diligence)' then final_rej_28714
+ 	when 'Approval by reliance Team' then final_rej_29760
+ 	when 'Approval by Legal Team' then final_rej_28715
+ 	when 'Approval by Finance' then final_rej_29234
+  	when 'India Executive/ Board' then final_rej_28717
+ 	when 'Proposal Approval Document' then final_rej_28706
+else 0
+end as rejected,
+ 
+1 as count
+ 
+from t5
+cross join temp)
+
+select grantapplicationid, task, sort_order, count, temp2.col as status,
+case col 
+  when 'Pending' then t6.pending
+  when 'Completed' then t6.completed
+  when 'Rejected' then t6.rejected
+else 0
+end as task_values
+from t6
+  
+cross join temp2
+
