@@ -1,0 +1,43 @@
+--Syntax Error for "YEAR" in main query (Working fine in sub-query)
+
+with tab1 as (Select p1.month_2_timerange,p1.name as activity_2, t1.name as indicator, p1.value,
+CAST(p1.month_2_timerange.start AS date) AS start,
+CAST(p1.month_2_timerange.end AS date) AS end1
+--EXTRACT(YEAR FROM start) AS year
+from profile_56633 p1
+left join profile_56634 p2
+on p1.activity_2 = p2._id
+left join ds_mysql_prod_tagelement t1
+on t1.id = p1.indicator
+where tagid = '45658'
+),
+
+tab2 as (Select EXTRACT(YEAR FROM start) AS Year1,EXTRACT(YEAR FROM end1) AS Year2,activity_2,indicator,sum(value) as Revenue
+from tab1
+where indicator = 'Volunteers  Reached'
+group by 1,2,3,4),
+
+tab3 as (Select indicator, [Year1], Revenue,Year2,
+LAG (Revenue,1)
+OVER (PARTITION BY indicator ORDER BY [Year1]) AS PrevYearRevenue1, 
+LAG (year1,1)
+OVER (PARTITION BY indicator ORDER BY [Year1]) AS PrevYear 
+from tab2
+ORDER BY indicator, [Year1]
+),
+
+tab4 as (select indicator,year1,revenue,prevyearrevenue1,prevyear,Year2,
+		 case
+	when year1 - prevyear = 1 then PrevYearRevenue1
+	else 0
+end as PrevYearRevenue
+		 from tab3
+)
+
+Select indicator,year1,year2,revenue,prevyearrevenue,prevyear,year1 || ' - ' || year2 as year,
+case 
+when year1 = '2021' then (revenue - prevyearrevenue)/revenue
+when year1 = '2019' then (revenue - prevyearrevenue)/revenue
+when year1 = '2018' then (revenue - prevyearrevenue)/revenue
+end as value
+from tab4
