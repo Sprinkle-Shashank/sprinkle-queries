@@ -26,6 +26,13 @@ with temp as(
   select 'Proposal Approval Document' as col 
  ),
  
+ temp2 as
+(select 'Pending' as col
+ UNION ALL
+ select 'Completed' as col
+ UNION ALL
+ select 'Rejected' as col),
+ 
 table1 as (
   select p.id as grantApplicationId,partner.id as grantPartnerId1, 
   proposal.id as grantProposalId1, proposallog.*,p.active as isactive, partner.active as activepartner, proposal.active as activeproposal, proposallog.active as activeproposallog
@@ -230,8 +237,9 @@ SPLIT_TO_ARRAY(listagg(distinct comp47487,', ')) as comp_47487, get_array_length
 SPLIT_TO_ARRAY(listagg(distinct comp28722,', ')) as comp_28722, get_array_length(comp_28722) as final_comp_28722, SPLIT_TO_ARRAY(listagg(distinct pend28722,', ')) as pend_28722, get_array_length(pend_28722) as final_pend_28722, SPLIT_TO_ARRAY(listagg(distinct rej28722,', ')) as rej_28722, get_array_length(rej_28722) as final_rej_28722
 
 from t4
-group by 1)
-select grantapplicationid, temp.col as task,
+group by 1),
+t6 as
+(select grantapplicationid, temp.col as task,
 case 
 when temp.col = 'Partner | Due Dilligence' then 1
 	when temp.col = 'Partner | Background Information' then 2
@@ -346,6 +354,16 @@ else 0
   1 as count
   
  from t5
- cross join temp
+ cross join temp)
   
+  select grantapplicationid, task, sort_order, count
+  case col 
+  when 'Pending' then t6.pending
+  when 'Completed' then t6.completed
+  when 'Rejected' then t6.rejected
+  else 0
+  end as status
+  from t6
+  
+  cross join temp2
   
