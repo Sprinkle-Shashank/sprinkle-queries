@@ -1,37 +1,9 @@
---Test Genpact Vaibhav
-WITH SUB1 AS (
-  SELECT SC.date, SC.title, SC.description, SC.file, SC.photo,
-  
-  CASE
-  	WHEN is_array(SC.file) = false OR get_array_length(SC.file) = 0
-  	THEN array(SC.file)
-  	ELSE SC.file
-  	END AS file_new
-  
-  FROM profile_75923 AS SC
-),
-  
-SUB2 AS (
-  SELECT S1.*,
-  CAST(photos AS VARCHAR),
-  CAST(files AS VARCHAR)
-  
-  FROM SUB1 AS S1,
-  
-  S1.photo AS photos,
-  S1.file_new AS files
-)
+SELECT FA.allocation, FA.fy_timerange,
+P.name AS projectname,
 
-SELECT S2.date, S2.title, S2.description,
-ANY_VALUE(S2.photos) AS photos_upload,
-LISTAGG(S2.files, ', ') AS doc_upload,
+FROM profile_55702 AS FA
 
-CASE
-	WHEN doc_upload IS NULL
-	THEN '-'
-	ELSE 'Download'
-	END AS download
-	
-	FROM SUB2 AS S2
-	
-GROUP BY S2.date, S2.title, S2.description
+LEFT JOIN ds_mysql_prod_project AS P
+ON FA.projectid = P.id
+
+GROUP BY 1,2,3
