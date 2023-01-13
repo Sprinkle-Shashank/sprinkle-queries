@@ -1,20 +1,9 @@
-With main as(SELECT prod.name AS projectId,t2.name AS year,t1.name AS quarter,timerange_timerange,amount_utilized AS Utilized, amount_rvd AS Approved,(Approved - Utilized) as To_be_Spent
-
+Select prod.name AS projectId, timerange_timerange, t2.name quarter
 FROM profile_3537
-left join  ds_mysql_prod_tagelement t1  on
-t1.id=quarter
-left join  ds_mysql_prod_tagelement t2  on
-t2.id=year
 left join  ds_mysql_prod_project prod  on
 prod.id=projectid
+left join  ds_mysql_prod_tagelement t2  on
+t2.id=quarter
 WHERE timerange_timerange is not null
-GROUP BY prod.name, t2.name, t1.name, timerange_timerange, amount_utilized, amount_rvd
-ORDER BY t1.name desc,year DESC),
-
-tab1 as (SELECT listagg(projectId,' , ') as projectId,listagg(year,' , ') as year,listagg(quarter,' , ') as quarter/*,timerange_timerange, listagg(amount_utilized,',') AS Utilized, listagg(amount_rvd,',') AS Approved,
-listagg((Approved - Utilized),',') as To_be_Spent*/
-FROM main)
-
-Select split_part(projectid,',',1)as id1,split_part(year,',',1)as id2,split_part(quarter,',',1)as id3
-from tab1
-group by id1,id2,id3
+GROUP BY prod.name, timerange_timerange
+ORDER BY timerange_timerange DESC, projectId DESC
