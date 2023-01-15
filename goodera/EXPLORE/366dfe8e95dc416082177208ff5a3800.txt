@@ -1,3 +1,4 @@
+with main as(
 Select prod.name AS projectId, timerange_timerange,
   case
   	when t2.name='Q1' then 1
@@ -11,4 +12,48 @@ prod.id=projectid
 left join  ds_mysql_prod_tagelement t2  on
 t2.id=quarter
 WHERE timerange_timerange is not null
-ORDER BY projectId asc, timerange_timerange asc, quarter desc
+ORDER BY projectId asc, timerange_timerange asc, quarter desc),
+
+final as(
+Select projectId, timerange_timerange,
+cast(timerange_timerange.start as date) start, cast(timerange_timerange.end as date) end1,
+concat(concat(projectId,start), end1) as CODE,
+case 
+	when max(quarter)=1 then 'Q1'
+	when max(quarter)=2 then 'Q2'
+	when max(quarter)=3 then 'Q3'
+	when max(quarter)=4 then 'Q4'
+	end as quarter
+from main
+group by projectId, timerange_timerange
+order by projectId desc, timerange_timerange desc),
+
+main1 as(
+SELECT prod.name AS projectId, timerange_timerange,sum(amount_utilized) AS Utilized,
+SUM(case
+	when amount_rvd is NULL then 0
+	else amount_rvd
+	end) as Approved, 
+  (Approved-Utilized) to_be_spent
+
+FROM profile_3537
+
+left join  ds_mysql_prod_tagelement t2  on
+t2.id=year
+left join  ds_mysql_prod_project prod  on
+prod.id=projectid
+WHERE timerange_timerange is not null
+GROUP BY prod.name, timerange_timerange
+ORDER BY timerange_timerange DESC, projectId DESC),
+
+final1 as(
+Select *,
+	cast(timerange_timerange.start as date) start, cast(timerange_timerange.end as date) end1,
+concat(concat(projectId,start), end1) as CODE
+from main1
+  )
+  
+  Select final1.projectId, final1.timerange_timerange, quarter, Utilized, Approved, to_be_spent
+  from final1
+  left join final 
+  On final1.CODE=final.CODE
