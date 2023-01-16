@@ -1,12 +1,15 @@
-select p3.name as projectId,p2.name as projectname,p1.name as partner,p.fy_timerange,
+with table1 as (
+  select p3.name as projectId,p2.name as projectname,p1.name as partner,p.fy_timerange,
 p.uid as Unique_ID,p.bene_name as Beneficiary_Name,p.contact_no,datediff(year,p.dob,getdate()) as age,p.aadhar_id,
 t1.name as block, t2.name as district, t3.name as state, p.village,t4.name as Bene_Gender
-,t5.name as Ed_Qualification,t10.name as Literacy,t6.name as Disability_status, t7.name as maritial_status,t8.name as business, t9.name as enterprise,p.amount_invested_at_so
+,t5.name as Ed_Qualification,t10.name as Literacy,t6.name as Disability_status, t7.name as maritial_status, p4.name as Centre, p5.name as SHG
 from profile_83275 p
 
 left join ds_mysql_prod_project p1 on p1.id = p.projectid
 left join ds_mysql_prod_project p2 on p2.id = p1.parent
 left join ds_mysql_prod_project p3 on p3.id=p2.parent
+left join profile_83274 p4 on p4._id=p.centre
+left join profile_83273 p5 on p5._id=p.shg
 
 left join tagelement_9730 t1 on t1.id=p.state_district_block
 left join tagelement_9730 t2 on t2.id=t1.parent
@@ -16,7 +19,6 @@ left join tagelement_9730 t5 on t5.id=p.ed_qualification
 left join tagelement_9730 t10 on t10.id=t5.parent
 left join tagelement_9730 t6 on t6.id=p.disability
 left join tagelement_9730 t7 on t7.id=p.maritial_status
-left join tagelement_9730 t8 on t8.id=p.enterprise_type
-left join tagelement_9730 t9 on t9.id=t8.parent
 where p.projectid like '%%' 
---group by p3.name,p2.name,p1.name,p.fy_timerange,t1.name,t2.name,t3.name,p.village,p.bene_name,t4.name,t5.name,t6.name,t7.name,t8.name
+--group by p3.name,p2.name,p1.name,p.fy_timerange,t1.name,t2.name,t3.name,p.village,p.bene_name,t4.name,t5.name,t6.name,t7.name,t8.name)
+   Select * from table1 t
