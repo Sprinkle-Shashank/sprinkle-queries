@@ -1,6 +1,6 @@
 --Syntax Error for "YEAR" in main query (Working fine in sub-query)
 
-with tab1 as (Select P.name AS projectname,p1.month_2_timerange as fy_timerange,p1.name as activity_2, t1.name as indicator, p1.value,
+with tab1 as (Select P.name AS projectname,p1.month_2_timerange as fy_timerange,p1.name as activity_2, t1.name as indicator, p1.value ,
 CAST(p1.month_2_timerange.start AS date) AS start
 --EXTRACT(YEAR FROM start) AS year
 from profile_56633 p1
@@ -12,11 +12,11 @@ left join ds_mysql_prod_tagelement t1
 on t1.id = p1.indicator
 ),
 
-tab2 as (Select projectname,EXTRACT(YEAR FROM start) AS Year1,fy_timerange,activity_2,indicator,value as Revenue
+tab2 as (Select projectname,EXTRACT(YEAR FROM start) AS Year1,fy_timerange,activity_2,indicator,value
 from tab1
 group by 1,2,3,4,5,6),
 
-tab3 as (Select indicator, [Year1], Revenue,fy_timerange,
+tab3 as (Select indicator, [Year1], value,fy_timerange,
 LAG (Revenue,1)
 OVER (PARTITION BY indicator ORDER BY [Year1]) AS PrevYearRevenue1, 
 LAG (year1,1)
@@ -25,7 +25,7 @@ from tab2
 ORDER BY indicator, [Year1]
 ),
 
-tab4 as (select indicator,year1,revenue,prevyearrevenue1,prevyear,fy_timerange,
+tab4 as (select indicator,year1,value,prevyearrevenue1,prevyear,fy_timerange,
 		 case
 	when year1 - prevyear = 1 then PrevYearRevenue1
 	else 0
@@ -33,12 +33,12 @@ end as PrevYearRevenue
 		 from tab3
 )
 
-Select indicator,year1,revenue,prevyearrevenue,prevyear,fy_timerange,
+Select indicator,year1,value,prevyearrevenue,prevyear,fy_timerange,
 case 
-when year1 = '2021' then (revenue - prevyearrevenue)/revenue
-when year1 = '2019' then (revenue - prevyearrevenue)/revenue
-when year1 = '2018' then (revenue - prevyearrevenue)/revenue
-end as value
+when year1 = '2021' then (value - prevyearrevenue)/value
+when year1 = '2019' then (value - prevyearrevenue)/value
+when year1 = '2018' then (value - prevyearrevenue)/value
+end as revenue
 from tab4
 /*SELECT S.value,
 P.name AS projectname,
