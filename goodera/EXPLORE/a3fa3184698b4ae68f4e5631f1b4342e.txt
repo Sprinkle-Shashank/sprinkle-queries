@@ -1,4 +1,52 @@
-SELECT S.value,
+with tab1 as (Select P.name AS projectname,p1.month_2_timerange as fy_timerange,p1.name as activity_2, t1.name as indicator, p1.value ,I2.name AS indicator_parent
+CAST(p1.month_2_timerange.start AS date) AS start
+--EXTRACT(YEAR FROM start) AS year
+from profile_56633 p1
+LEFT JOIN ds_mysql_prod_project AS P
+ON p1.projectid = P.id
+left join profile_56634 p2
+on p1.activity_2 = p2._id
+left join ds_mysql_prod_tagelement t1
+on t1.id = p1.indicator
+LEFT JOIN ds_mysql_prod_tagelement AS I2
+ON t1.parent = I2.id			  
+),
+
+tab2 as (Select projectname,EXTRACT(YEAR FROM start) AS Year1,fy_timerange,activity_2,indicator,indicator_parent,value
+from tab1
+group by 1,2,3,4,5,6,7),
+
+tab3 as (Select indicator,indicator_parent, [Year1], value,fy_timerange,
+LAG (value,1)
+OVER (PARTITION BY indicator ORDER BY [Year1]) AS PrevYearRevenue1, 
+LAG (year1,1)
+OVER (PARTITION BY indicator ORDER BY [Year1]) AS PrevYear 
+from tab2
+ORDER BY indicator, [Year1]
+),
+
+tab4 as (select indicator,indicator_parent,year1,value,prevyearrevenue1,prevyear,fy_timerange,
+		 case
+	when year1 - prevyear = 1 then PrevYearRevenue1
+	else 0
+end as PrevYearRevenue
+		 from tab3
+)
+/*CASE
+WHEN prevyearrevenue = 0 THEN NULL 
+ELSE
+SUM1/SUM2
+END as SUM3,*/
+Select indicator,indicator_parent,year1,value,prevyearrevenue,prevyear,fy_timerange,
+case 
+WHEN prevyearrevenue = 0 THEN NULL
+ 
+when year1 = '2021' then ((value - prevyearrevenue)/prevyearrevenue) * 100
+when year1 = '2019' then ((value - prevyearrevenue)/prevyearrevenue) * 100
+when year1 = '2018' then ((value - prevyearrevenue)/prevyearrevenue) * 100
+end as revenue
+from tab4
+/*SELECT S.value,
 P.name AS projectname,
 S.month_2_timerange AS fy_timerange,
 A.name AS activity_2,
@@ -19,7 +67,7 @@ ON S.indicator = I1.id
 LEFT JOIN ds_mysql_prod_tagelement AS I2
 ON I1.parent = I2.id
 
-GROUP BY S.value, P.name, month_2_timerange, A.name, I1.name, I2.name
+GROUP BY S.value, P.name, S.month_2_timerange, A.name, I1.name, I2.name*/
 
 
 
