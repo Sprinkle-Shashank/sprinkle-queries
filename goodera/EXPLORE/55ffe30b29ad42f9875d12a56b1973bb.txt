@@ -1,5 +1,39 @@
 --Target_RSAP_Factory Filter_Consultant Trained
-with sub1 as(
+with t1 as(select p1.projectId,tag4.name as country,vendor, tag2.name as consultant,p1.training_type, tag3.name as cycle ,p3.name as parent 
+		   
+from profile_73974 p1
+left join project_7746 p2
+on p2.id = p1.projectId		   
+left join project_7746 p3
+on p3.id = p2.parent
+left join project_7746 p4
+on p4.id = p3.parent
+left join tagElement_7746 tag2
+on p1.consultant_tag = tag2.id
+--left join ds_mysql_prod_tagelement tag1
+--on p1.training_type = tag1.id
+left join tagElement_7746 tag3
+on p1.cycle  = tag3.id
+left join tagElement_7746 tag4
+on p1.country = tag4.id
+		   
+where p2.parent != 47036
+		   and p1.training_type = 1411055
+		   
+
+--and  p1.projectId not in(53270, 54160, 53288, 54109)
+--		   and training_type = 1411055
+		   )
+
+select tag5.name as projectId,country,vendor,consultant,cycle
+from t1 t
+left join project_7746 tag5
+on t.projectId = tag5.id
+where projectId not in (53270, 54160, 53288, 54109)
+
+group by projectId,country,vendor,consultant,cycle,tag5.name
+
+/*with sub1 as(
   select p.name as projectid, t1.name as country, p1.vendor, t2.name as consultant, t3.name as cycle, t4.name as training_type, split_part(p2.name, '-' ,1) as split
 from profile_73974 p1
 left join project_7746 p on p.id = p1.projectid
@@ -13,4 +47,4 @@ where t4.name = 'Target Led')
 select s1.projectid, s1.country, s1.vendor, s1.consultant, s1.cycle
 from sub1 s1
 where split != 'NA'
-group by s1.projectid, s1.country, s1.vendor, s1.consultant, s1.cycle
+group by s1.projectid, s1.country, s1.vendor, s1.consultant, s1.cycle*/
