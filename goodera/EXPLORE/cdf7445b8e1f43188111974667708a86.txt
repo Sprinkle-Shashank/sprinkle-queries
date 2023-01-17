@@ -2,14 +2,33 @@
 
 with t1 as
 (
-  select projectId, phase_milestone, subact, p_s, p_e, a_s, a_e, status
+  select projectId, t4.name as phase_milestone, subact, p_s, p_e, a_s, a_e, status
   from profile_76421 as p
   ),
   t2 as
   (
-	select concat(day(p_s),concat('-',concat(p.month(p_s),concat('-',concat(year(p_s),concat('to',concat(day(p_e),concat('-',concat(month(p_e),concat('-',concat(year(p_e)))))))))))) as proposed_duration from t1
-											 )
-								  select proposed_duration from t2
-								  
+	select projectId, cast(p_s as date) as d1,cast(p_e as date) as d2, cast(a_s as date) as d3, 
+	cast(a_e as date) as d4, concat(day(d1),'-') as Proposed_Duration
+	from t1
+	)
+	select Proposed_Duration from t2
+
+
+
+/*
+with t1 as
+(
+select projectId, t4.name as phase_milestone, subact, to_timestamp(p_s, 'YYYY-MM-DD HH24:MI:SS') as p_s1, p_e, a_s, a_e, status
+  from profile_76421 as p
+  
 left join ds_mysql_prod_tagelement t3 on t3.id=phase_milestone
 left join ds_mysql_prod_tagelement t4 on t4.id=t3.parent
+)
+t2 as
+(
+  select concat(day(p_s),concat('-',concat(month(p_s),concat('-',concat(year(p_s),concat('to',concat(day(p_e),concat('-',concat(month(p_e),concat('-',concat(year(p_e)))))))))))) as proposed_duration from t1
+  */
+	
+	/*
+	select cast(p_s as date) as d1,cast(p_e as date) as d2,concat(d1,' to ') as p1 , concat(p1,d2) as p2 from t1
+	*/
