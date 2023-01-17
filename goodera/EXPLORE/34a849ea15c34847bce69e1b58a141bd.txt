@@ -1,3 +1,4 @@
+--RSAP HS Management_Factories NEW 1
 with tt1 as (select case
 when is_array(p1.cycle) = false or get_array_length(p1.cycle) = 0 then array(p1.cycle)
 else (p1.cycle)
@@ -6,11 +7,60 @@ from profile_64362 p1),
 
 sub1 as (select a.*, unwind_cycle from tt1 as a, a.cycle1 as unwind_cycle),
 
-table6 as ( select p1.unwind_cycle,p1.country,p1.vendor,p1.consultant_tag,p1.projectId
+tt2 as (select case
+when is_array(p1.product_category) = false or get_array_length(p1.product_category) = 0 then array(p1.product_category)
+else (p1.product_category)
+end as product_category1, p1.*
+from tt1 p1),
+
+sub2 as (select a.*, unwind_product_category from tt2 as a, a.product_category1 as unwind_product_category),
+
+table6 as ( select p1.unwind_cycle,p2.unwind_product_category,p1.country,p1.vendor,p1.consultant_tag,p1.projectId
 		  from sub1 p1
-		  ),
+		  left join sub2 p2 
+		  on p1.projectId= p2.projectId),
   
-t1 as (select p1._id, tag3.name as projectId,   tag1.name as select_factory_msa,  tag4.name as country, p5.vendor, p3.name as consultant, tag2.name as cycle,
+ -- select * from table6
+/*with table1 as
+(select _id , projectId,country, vendor,unwind_cycle, product_category, consultant_tag from profile_64362 as p ,p.cycle as unwind_cycle),
+
+ table2 as
+(select _id, projectId,country, vendor,cycle,product_category,consultant_tag from profile_64362
+  where _id not in (select _id from table1))
+  ,
+  
+table3 as
+ (
+	select * from table1
+  Union all
+  select * from table2
+ )
+ ,
+
+  
+table4 as  
+(
+ select _id,  projectId,country,vendor,unwind_cycle, unwind_product_category,consultant_tag from table3 t3, t3.product_category  as unwind_product_category
+ ),
+
+table5 as
+(select _id, projectId,country,vendor,unwind_cycle,  null as product_category,consultant_tag from table3 
+ where _id not in (select _id from table4)),
+ 
+table6 as
+(select * from table4
+union all
+select * from table5),
+*/
+
+t2 as (select projectId, vendor,consultant_tag,country,unwind_cycle,tag2.name as cycle2
+	   from table6
+	   left join tagElement_7746 tag2
+on unwind_cycle = tag2.id),
+
+--select * from t2
+	   
+t1 as (select p1._id, tag6.name as projectId, tag1.name as select_factory_msa,  tag3.name as country, gg.vendor, tag13.name as consultant, gg.cycle2,
 
 case 
 when p1.resources = 1105585 then 1
@@ -18,7 +68,7 @@ when p1.resources = 1105584 then 2
 when p1.resources = 1105583 then 3
 when p1.resources = 1105582 then 4
 when p1.resources = 1105581 then 5
-end as resources1,
+end as resources,
 
 case 
 when p1.policies  = 1105585 then 1
@@ -26,7 +76,7 @@ when p1.policies  = 1105584 then 2
 when p1.policies  = 1105583 then 3
 when p1.policies  = 1105582 then 4
 when p1.policies  = 1105581 then 5
-end as policies1,
+end as policies,
 
 case 
 when p1.hs_risk  = 1105585 then 1
@@ -42,7 +92,7 @@ when p1.risk  = 1105584 then 2
 when p1.risk  = 1105583 then 3
 when p1.risk  = 1105582 then 4
 when p1.risk  = 1105581 then 5
-end as risk1,
+end as risk,
 
 case 
 when p1.procedure  = 1105585 then 1
@@ -50,7 +100,7 @@ when p1.procedure  = 1105584 then 2
 when p1.procedure  = 1105583 then 3
 when p1.procedure  = 1105582 then 4
 when p1.procedure  = 1105581 then 5
-end as procedure1,
+end as procedure,
 
 case 
 when p1.grievance  = 1105585 then 1
@@ -58,7 +108,7 @@ when p1.grievance  = 1105584 then 2
 when p1.grievance  = 1105583 then 3
 when p1.grievance  = 1105582 then 4
 when p1.grievance  = 1105581 then 5
-end as grievance1,
+end as grievance,
 
 case 
 when p1.training  = 1105585 then 1
@@ -66,7 +116,7 @@ when p1.training  = 1105584 then 2
 when p1.training  = 1105583 then 3
 when p1.training  = 1105582 then 4
 when p1.training  = 1105581 then 5
-end as training1,
+end as training,
 
 case 
 when p1.monitoring  = 1105585 then 1
@@ -90,7 +140,7 @@ when p1.communication  = 1105584 then 2
 when p1.communication  = 1105583 then 3
 when p1.communication  = 1105582 then 4
 when p1.communication  = 1105581 then 5
-end as communication1,
+end as communication,
 
 case 
 when p1.hs_training  = 1105585 then 1
@@ -106,7 +156,7 @@ when p1.act_adjust  = 1105584 then 2
 when p1.act_adjust  = 1105583 then 3
 when p1.act_adjust  = 1105582 then 4
 when p1.act_adjust  = 1105581 then 5
-end as act_adjust1,
+end as act_adjust,
 
 case 
 when p1.hs_act  = 1105585 then 1
@@ -114,28 +164,27 @@ when p1.hs_act  = 1105584 then 2
 when p1.hs_act  = 1105583 then 3
 when p1.hs_act  = 1105582 then 4
 when p1.hs_act  = 1105581 then 5
-end as hs_act1,
+end as hs_act1
+
+from profile_62477 p1
+	   
+--left join profile_64362 p2
+--on p1.projectId = p2.projectId
+
+left join t2 gg
+on p1.projectId = gg.projectId
+	   
+left join tagElement_7746 tag1
+on p1.select_factory_msa = tag1.id 
+left join project_7746 tag6
+on p1.projectId = tag6.id
+left join tagElement_7746 tag3
+on gg.country = tag3.id
+left join tagElement_7746 tag13
+on gg.consultant_tag = tag13.id
 (hs_risk1 + incident1 + hs_training1 + hs_act1) as hs_mgmt
 
 
-
-from profile_62477 p1
-	  
-
-left join table6 p5
-	   on p1.projectId=p5.projectId
-	left join project_7746 tag3
-on p1.projectId = tag3.id   
-	   left join tagElement_7746 p3
-on p5.consultant_tag = p3.id
-
-left join tagElement_7746 tag2
-on p5.unwind_cycle = tag2.id
-	   
-	   left join tagElement_7746 tag4
-on p5.country = tag4.id
-	   left join tagElement_7746 tag1
-on p1.select_factory_msa = tag1.id
 	  ),
 
 t2 as (select projectId, country,vendor,consultant,cycle,select_factory_msa,
