@@ -1,40 +1,91 @@
 with temp as(
-  Select 'Villages' as col
+  Select 'total_villages' as col
   union all
-  Select 'Schools' as col
+  Select 'new_villages' as col
   union all
-  Select 'Youth' as col
-    union all
-  Select 'Students' as col
+    Select 'new_schools' as col
   union all
-  Select 'Teachers' as col
-    union all
-  Select 'Fellows' as col
+    Select 'total_schools' as col
   union all
-  Select 'Farmers' as col
-    union all
-  Select 'Women' as col
+    Select 'new_students' as col
   union all
-  Select 'Others' as col
-  ),
+  Select 'total_students' as col
+  union all
+    Select 'new_youth' as col
+  union all
+    Select 'total_youth' as col
+  union all
+    Select 'new_fellows' as col
+  union all
+  Select 'total_fellows' as col
+  union all
+    Select 'new_farmers' as col
+  union all
+    Select 'total_farmers' as col
+  union all
+    Select 'new_women' as col
+  union all
+  Select 'total_women' as col
+  union all
+    Select 'new_other' as col
+  union all
+    Select 'total_other' as col
+),
   
  t1 as(
-   Select t1.name fy_timerange, temp.col as dim,t.name select_quarter, split_part(split_part(prod.name,'|',1),'.',1) as ProjectCode, CONCAT(ProjectCode,fy_timerange) as CODE, sq.benef_upload,
+Select t1.name fy_timerange, split_part(split_part(prod.name,'|',1),'.',1) as ProjectCode, t.name select_quarter, sq.benef_upload, CONCAT(ProjectCode,fy_timerange) as CODE,
    split_part(prod.name,'|',1) as Region1,
   case 
       when Region1 like '%.%' then split_part(prod.name,'|',2)
      else '-'
- end as Region
+ end as Region, temp.col as dim,
+sum(case col
+	when 'total_villages' then sq.total_villages
+	when 'new_villages' then sq.new_villages
+	when 'new_schools' then sq.new_schools
+	when 'total_schools' then sq.total_schools
+	when 'new_students' then sq.new_students
+	when 'total_students' then sq.total_students
+	when 'new_youth' then sq.new_youth
+	when 'total_youth' then sq.total_youth
+	when 'new_fellows' then sq.new_fellows
+	when 'total_fellows' then sq.total_fellows
+	when 'new_farmers' then sq.new_farmers
+	when 'total_farmers' then sq.total_farmers
+	when 'new_women' then sq.new_women
+	when 'total_women' then sq.total_women
+	when 'new_other' then sq.new_other
+	when 'total_other' then sq.total_other
+end) as totl,
+
+case col
+  when 'total_villages' then 'total'
+	when 'new_villages' then 'new'
+	when 'new_schools' then 'new'
+	when 'total_schools' then 'total'
+	when 'new_students' then 'new'
+	when 'total_students' then 'total'
+	when 'new_youth' then 'new'
+	when 'total_youth' then 'total'
+	when 'new_fellows' then 'new'
+	when 'total_fellows' then 'total'
+	when 'new_farmers' then 'new'
+	when 'total_farmers' then 'total'
+	when 'new_women' then 'new'
+	when 'total_women' then 'total'
+	when 'new_other' then 'new'
+	when 'total_other' then 'total'
+  end as filter
+	
 from profile_60787 sq
 cross join temp
 left join ds_mysql_prod_tagelement t
-on t.id=sq.select_quarter
+  ON t.id=sq.select_quarter
 left join ds_mysql_prod_tagelement t1
 ON t1.id=sq.fy
 left join  ds_mysql_prod_project prod  on
 prod.id=projectid
-  
-group by temp.col, t.name, t1.name, prod.name, Region1, Region, benef_upload
+group by t1.name, ProjectCode, dim, benef_upload, Region1, Region, t.name
  ),
  
  t2 as(
@@ -56,7 +107,8 @@ c.project_manager=m.id
  )
  
  
- Select t2.ProjectCode, t2.Project_Manager, t1.Region, t1.dim, t1.benef_upload, t2.fy_timerange, select_quarter
+ Select t2.fy_timerange,  t2.ProjectCode, t2.Project_Manager, t1.Region, t1.dim, t1.benef_upload, select_quarter, t1.totl, t1.filter 
  from t1
  left join t2
  ON t1.CODE=t2.CODE
+ where totl is not null
