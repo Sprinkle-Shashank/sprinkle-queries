@@ -7,8 +7,6 @@ with t1 as
   
   left join ds_mysql_prod_tagelement t3 on t3.id=phase_milestone
   left join ds_mysql_prod_tagelement t4 on t4.id=t3.parent
-  
- 
   ),
   t2 as
   (
@@ -16,13 +14,24 @@ with t1 as
 	extract(day from p_e) as d2, extract(month from p_e) as m2, extract(year from p_e) as y2, 
 	extract(day from a_s) as d3, extract(month from a_s) as m3, extract(year from a_s) as y3,
 	extract(day from a_e) as d4, extract(month from a_e) as m4, extract(year from a_e) as y4,
-	concat(d1,concat('-',concat(m1,concat('-',concat(y1,concat(' to ',concat(d2,concat('-',concat(m2,concat('-',y2)))))))))) as Proposed_Duration, projectId, phase_milestone, 
-	subact, p_s, p_e, a_s, a_e, status, phase 
+	
+	concat(d1,concat('-',concat(m1,concat('-',concat(y1,concat(' to ',concat(d2,concat('-',concat(m2,concat('-',y2)))))))))) as Proposed_Duration, 
+	
+	concat(d3,concat('-',concat(m3,concat('-',y3)))) as Actual_Start_Date,
+	
+	concat(d4,concat('-',concat(m4,concat('-',y4)))) as Actual_End_Date,
+	
+	projectId, phase_milestone, subact, p_s, p_e, a_s, a_e, status, phase,
+	
+	CASE when actual_start_date IS NULL
+	then 'Yet to begin'
+	else actual_start_date
+	end as actual_start_date_up
 	 
 	from t1
 	)
-	select Proposed_Duration, phase_milestone as milestone, subact, p_s, p_e, a_s, a_e, status,
-	phase from t2
+	select Proposed_Duration, Actual_Start_Date_up,Actual_End_Date, phase_milestone as milestone, 
+	subact, p_s, p_e, a_s, a_e, status, phase from t2
 
 
 
