@@ -1,3 +1,41 @@
+SELECT p.location, p.shg, p.member_text,
+proj.name AS projectid,
+SUBSTRING(CAST(p.date AS varchar),1,10)||'T00:00:00.000Z'||'|'||SUBSTRING(CAST(p.date AS varchar),1,10)||'T00:00:00.000Z' AS fy_timerange,
+EXTRACT(YEAR FROM p.date) AS fy,
+COUNT(p.member_text) AS count
+
+FROM profile_58858 AS p
+
+LEFT JOIN ds_mysql_prod_project AS proj
+ON p.projectId = proj.id
+
+WHERE p.date IS NOT NULL AND proj.name = 'Livelihood Baroda'
+
+GROUP BY 1,2,3,4,5,6
+
+UNION ALL
+
+SELECT N.location, N.shg,
+J.name AS member_text,
+proj.name AS projectid,
+SUBSTRING(CAST(N.date AS varchar),1,10)||'T00:00:00.000Z'||'|'||SUBSTRING(CAST(N.date AS varchar),1,10)||'T00:00:00.000Z' AS fy_timerange,
+EXTRACT(YEAR FROM N.date) AS fy,
+COUNT(J.name) AS count
+
+FROM profile_79872 AS N
+
+LEFT JOIN ds_mysql_prod_project AS proj
+ON N.projectId = proj.id
+
+LEFT JOIN profile_58858 AS J
+ON N.shg_member = J._id
+
+WHERE N.date IS NOT NULL AND proj.name = 'Livelihood Baroda'
+
+GROUP BY 1,2,3,4,5,6
+
+
+/*	OLD QUERY
 SELECT p.location, p.shg, p.scheme_beneficiary,
 proj.name AS projectid,
 SUBSTRING(CAST(p.date AS varchar),1,10)||'T00:00:00.000Z'||'|'||SUBSTRING(CAST(p.date AS varchar),1,10)||'T00:00:00.000Z' AS fy_timerange,
@@ -12,12 +50,4 @@ ON p.projectId = proj.id
 WHERE p.date IS NOT NULL AND proj.name = 'Livelihood Baroda'
 
 GROUP BY 1,2,3,4,5,6
-
-
-/*
-SELECT *
-
-FROM profile_58858
-
-WHERE date IS NOT NULL
 */
