@@ -1,14 +1,25 @@
+with temp as(
+  Select 'total_villages' as col
+  union all
+  Select 'new_villages' as col
+  union all
+    Select 'new_schools' as col
+  union all
+    Select 'total_schools' as col
+)
 
-Select t1.name fy_timerange, split_part(split_part(prod.name,'|',1),'.',1) as ProjectCode, sum(total_villages) total_villages, sum(new_villages) new_villages, sum(new_schools) new_schools, sum(total_schools) total_schools,
-case
-	 when sq.new_villages then 'new'
-	 when sq.new_schools then 'new'
-	 when sq.total_villages then 'total'
-	 when sq.total_schools then 'total'
-end as total
+Select t1.name fy_timerange, split_part(split_part(prod.name,'|',1),'.',1) as ProjectCode, temp.col as dim,
+sum(case col
+	when total_villages then sq.total_villages
+	when new_villages then sq.new_villages
+	when new_schools then sq.new_schools
+	when total_schools then sq.total_schools
+end) as totl
+	
 from profile_60787 sq
+cross join temp
 left join ds_mysql_prod_tagelement t1
 ON t1.id=sq.fy
 left join  ds_mysql_prod_project prod  on
 prod.id=projectid
-group by t1.name, ProjectCode, total_villages, new_villages, new_schools, total_schools
+group by t1.name, ProjectCode, dim
