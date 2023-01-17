@@ -1,0 +1,28 @@
+--Yuva_wash_school_details
+with temp as(
+  select 'Female toilets before' as col
+  union all
+  select 'Female toilets after' as col
+  union all
+  select 'Male toilets before' as col
+  union all
+  select 'Male toilets after' as col
+  )
+  
+select p1.name as projectid,p2.name as donor, a.fy_timerange,a.school_name,t1.name as school_location, temp.col as dim,
+   
+sum(case col
+  when 'Female toilets before' then a.no_of_female_toilets
+  when 'Female toilets after' then  a.new_female_toilets
+  when 'Male toilets before' then a.no_of_male_toilets
+  when 'Male toilets after' then a.new_male_toilets
+  else NULL end) as val
+  
+from profile_80587 a
+cross join temp
+left join ds_mysql_prod_project p1 on p1.id = a.projectid
+left join ds_mysql_prod_project p2 on p2.id = p1.parent
+left join ds_mysql_prod_tagelement t1 on t1.id = a.school_location
+--where a.projectid like '%%'
+  
+group by p1.name,p2.name, a.fy_timerange,a.school_name,t1.name, dim
