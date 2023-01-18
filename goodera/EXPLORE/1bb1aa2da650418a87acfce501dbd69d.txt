@@ -13,9 +13,13 @@ ON t2.parent = I2.id
 tab2 as (Select program,child,status,fy_timerange,count(*) as count1,count(*) as count2
 from tab1
 where program = 'NIOS' or program = 'ASSP'
-group by 1,2,3,4)
+group by 1,2,3,4),
 
-Select  program,child,status,fy_timerange,count1,count2,sum(count1+count2) as count3,count(*) as count4
+tab3 as (Select  program,child,status,fy_timerange,count1,count2,sum(count1+count2) as count3
 from tab2
+group by 1,2,3,4,5,6)
+
+Select program,child,status,fy_timerange,count1,count2,count3,count(*) as count4,(count4/count3)*100 as count5
+from tab3
 where status = 'Cleared the exam'
-group by 1,2,3,4,5,6
+group by 1,2,3,4,5,6,7
