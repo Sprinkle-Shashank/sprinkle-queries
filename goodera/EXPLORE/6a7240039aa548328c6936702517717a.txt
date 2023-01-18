@@ -1,29 +1,7 @@
-with Table1 as
-(select _id, projectId.name as projectId, fy_timerange, photo, remarks, proj1.name as project_name,
-/*CASE 
-when photo = NULL
-				then array(0)
-				ELSE 
-				photo
-				end as photo_new,*/
-
-			COALESCE(photo,array(0))  as new_photo,
-				
-				CAST(new_photo as SUPER) as t_photo 
- from profile_74731 as m
+select _id, projectId.name as projectId, fy_timerange, photo, remarks, projs.name as project_name from profile_74731 as m
 
 left join ds_mysql_prod_project as projectId
 on m.projectId = projectId.id
-left join ds_mysql_prod_tagelement as proj1
-on m.project_name = proj1.id
- 
-WHERE photo IS not NULL
-order by fy_timerange desc),
-
-Table2 as (
-  Select t1.*, photo_unwind from table1 t1 , t1.new_photo as photo_unwind
-)
- Select projectId, fy_timerange,photo, remarks, project_name, photo1.name as photo from table2
-  
- left join ds_mysql_prod_tagelement as photo1
- on Table2.photo_unwind = photo1.id 
+left join ds_mysql_prod_tagelement as projs
+on m.project_name = projs.id
+order by fy_timerange desc
