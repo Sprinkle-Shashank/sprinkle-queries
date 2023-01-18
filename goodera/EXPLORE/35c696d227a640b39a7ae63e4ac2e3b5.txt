@@ -1,18 +1,50 @@
---Yuva_WASH_gallery
-with sub1 as(select a.fy_timerange, p.name as projectid, p2.name as donor, a.school_name, a.photos_before_intervention, a.photos_after_intervention
-from profile_80587 a
+--Yuva_Program_Details_common
+with sub1  as(
+  select b.*,unwind_schedule_vii,unwind_sdg, unwind_city,unwind_focus_area
+  from profile_80499 b,  b.schedule_vii as unwind_schedule_vii,
+  b.sdg as unwind_sdg, b.state as unwind_city
+  , b.focus_area as unwind_focus_area
+)
+
+Select a.fy_timerange, p.name as projectid,a.project_name as project_name, p1.name as donor, a.photo,a.duration,
+to_char(a.start_date, 'DD-MM-YYYY') as start_date,
+to_char(a.end_date, 'DD-MM-YYYY') as end_date,
+a.project_desc as Project_description,
+--t1.name as focus_area,
+listagg(distinct t2.name, ', ') as schedule_vii,
+listagg(distinct d1.name, ', ') as sdg,
+listagg(distinct t3.name, ', ') as city,
+listagg(distinct t4.name, ', ') as state,
+listagg(distinct t5.name, ', ') as focus_area,
+
+case
+	when (p.name) like '%School Transformation' then 'School Transformation'
+	when (p.name) like '%Random act of kindness' then 'Random act of kindness'
+	when (p.name) like '%Health & Nutrition' then 'Health & Nutrition'
+	when (p.name) like '%Unstoppable Vaccination Drive' then 'Unstoppable Vaccination Drive'
+	when (p.name) like '%Remote Learning' then 'Remote Learning'
+	when (p.name) like '%Educational Scholarships' then 'Educational Scholarships'
+	when (p.name) like '%Education%' then 'Educational Scholarships'
+	
+	else NULL
+	end as project_type
+
+from  sub1 a
 
 left join ds_mysql_prod_project p on p.id = a.projectid
-left join ds_mysql_prod_project p2 on p2.id = p.parent),
+left join ds_mysql_prod_project p1 on p1.id = p.parent
 
-t1 as 
-(select projectid, donor, school_name, cast(before_pic as varchar), cast(after_pic as varchar) from sub1 as s1, s1.photos_before_intervention as before_pic, s1.photos_after_intervention as after_pic
-order by fy_timerange desc)
+--left join ds_mysql_prod_tagelement t1 on t1.id=a.focus_area
+left join ds_mysql_prod_tagelement t2 on t2.id=a.unwind_schedule_vii
+left join ds_mysql_prod_tagelement t3 on t3.id=a.unwind_city
+left join ds_mysql_prod_tagelement t4 on t4.id=t3.parent
+left join ds_mysql_prod_tagelement t5 on t5.id=a.unwind_focus_area
 
-select projectid, donor, count(*)
-from t1 
-group by projectid, donor
-order by count desc
+left join  profile_80500 d1 on d1._id = a.unwind_sdg
+
+--where a.projectid like '%%'
+
+group by a.fy_timerange,a.project_name,p.name,a.photo,p1.name,a.start_date,a.end_date,a.project_desc,a.duration
 
 
 
