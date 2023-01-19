@@ -1,49 +1,26 @@
-SELECT
-P.name AS projectId,
-SH.quarter_timerange AS fy_timerange,
-AVG(SH.attendance) AS attendance,
-COUNT(SH.shalini) AS shalinis,
-
-CASE
-	WHEN SH.attendance < 60 THEN 'Below 60%'
-	WHEN SH.attendance >= 60 AND SH.attendance <= 80 THEN '60-80%'
-	WHEN SH.attendance > 80 THEN 'Above 80%'
-END AS attendance_type 
-
-FROM profile_55296 AS SH
-
-LEFT JOIN ds_mysql_prod_project AS P
-ON SH.projectId = P.id
-
---LEFT JOIN profile_55294 AS B
---ON SH.shalini = B._id
-
-GROUP BY P.name, SH.quarter_timerange, SH.attendance
-
-
-
-/*
 WITH tab1 as(Select p1.quarter_timerange,p1.attendance as attendance1,p2.name as shalini,
 CASE
 	WHEN EXTRACT (Month from cast(p1.quarter_timerange.start as date))=01 then 'Q1'
 	WHEN EXTRACT (Month from cast(p1.quarter_timerange.start as date))=04 then 'Q2'
 	WHEN EXTRACT (Month from cast(p1.quarter_timerange.start as date))=07 then 'Q3'
 	WHEN EXTRACT (Month from cast(p1.quarter_timerange.start as date))=10 then 'Q4'
-END AS Quarter
+END AS Quarter,p2.name as location
 from profile_55296 p1
 left join profile_55294 p2
 on p1.shalini=p2._id
-group by p1.quarter_timerange,p2.name,Quarter,p1.attendance)
+left join ds_mysql_prod_tagelement t1
+on t1.id=p2.location
+group by p1.quarter_timerange,p2.name,Quarter,p1.attendance,p2.name)
 
 Select Quarter,shalini,count(shalini),
 CASE
 	WHEN attendance1<60 then 'Below 60%'
 	WHEN attendance1>=60 and  attendance1<=80 then '60-80%'
 	WHEN attendance1>80 then 'Above 80%'
-END AS types
+END AS types,location
 From tab1
-group by types,Quarter,shalini
-*/
+group by types,Quarter,shalini,location
+
 
 
 
