@@ -1,3 +1,4 @@
+--HDFC_FRD_Financial_Total_Budget_Donut1
 with tab1 as(SELECT p1.name as projectcode,t.name as fy_timerange,concat(projectcode,fy_timerange) as CODE,
        sum(CASE 
              WHEN p.budget_head = 'Admin Cost' THEN p.cost_yearly 
@@ -44,11 +45,7 @@ left join ds_mysql_prod_tagelement f on
 p.fy=f.id
 left join ds_mysql_prod_tagelement tf on
 p.focus_area=tf.id
-where Core_Area in ('Focused Rural Development- Skills Training and Livelihood Enhancement',
-					  'Focused Rural Development- Environmental Sustainability',
-					  'Focused Rural Development- Promoting Education',
-					  'Focused Rural Development- Promoting Healthcare',
-					  'Focused Rural Development- Sanitation')
+where Core_Area in ('Eradicating Poverty')
 union all
 select split_part(l.name,'[',1) as projectcode,f.name as fy_timerange,concat(projectcode,fy_timerange) as CODE,m.name as project_manager,p.focus_area as Core_Area
 from profile_27420 p
@@ -58,11 +55,7 @@ left join ds_mysql_prod_tagelement m on
 p.project_manager=m.id
 left join ds_mysql_prod_tagelement f on
 p.fy=f.id
-where Core_Area in ('Focused Rural Development- Skills Training and Livelihood Enhancement',
-					  'Focused Rural Development- Environmental Sustainability',
-					  'Focused Rural Development- Promoting Education',
-					  'Focused Rural Development- Promoting Healthcare',
-					  'Focused Rural Development- Sanitation')
+where Core_Area in ('Eradicating Poverty')
 ),
 
 tab5 as(select t2.projectcode,t2.fy_timerange,t2.project_manager,t2.Core_Area,(t3.Admin_cost/t3.number_of_villages) as AC,(t3.Human_resource/t3.number_of_villages) as HRC,(t3.NGO_Management_Cost/t3.number_of_villages) as NMC,t3.Admin_cost,t3.Human_resource,t3.NGO_Management_Cost,t3.number_of_villages,t2.CODE from tab4 t2
@@ -74,11 +67,73 @@ tab6 as(select distinct(t1.village),t.projectcode,t.project_manager,t.Core_Area,
 from tab5 t
 left join tab2 t1 on
 t.CODE=t1.CODE),
+
+
+tab11 as(select p1.name as projectcode,f.name as fy_timerange,concat(projectcode,fy_timerange) as CODE,split_part(prod.name,'|',3) as census, sum(hdfc_cost_yearly) hdfc_cost_yearly,sum(gov_cost_yearly) as gov_cost_yearly,sum(comm_cost_yearly) comm_cost_yearly
+from profile_29973 p
+left join profile_27396 p1
+on p.prj_code=p1._id
+left join ds_mysql_prod_project prod on
+prod.id=p.projectid
+left join ds_mysql_prod_tagelement f on
+p.fy=f.id
+group by  1,f.name,split_part(prod.name,'|',3)),
+
+Base1 as
+(select p.name as projectcode,f.name as fy_timerange,concat(projectcode,fy_timerange) as CODE,m.name  as project_manager,
+tf.name as Core_Area
+from profile_27396 p
+left join ds_mysql_prod_tagelement m on
+p.project_manager=m.id
+left join ds_mysql_prod_tagelement f on
+p.fy=f.id
+left join ds_mysql_prod_tagelement tf on
+p.focus_area=tf.id
+where Core_Area in ('Eradicating Poverty')
+union all
+select split_part(l.name,'[',1) as projectcode,f.name as fy_timerange,concat(projectcode,fy_timerange) as CODE,m.name as project_manager,p.focus_area as Core_Area
+from profile_27420 p
+left join profile_27396 l on
+p.project_code=l._id
+left join ds_mysql_prod_tagelement m on
+p.project_manager=m.id
+left join ds_mysql_prod_tagelement f on
+p.fy=f.id
+where Core_Area in ('Eradicating Poverty')
+),
+
+Base2 as(select p.projectcode,p.fy_timerange,l.project_manager,l.Core_Area,p.hdfc_cost_yearly,p.gov_cost_yearly,p.comm_cost_yearly,
+		 (p.hdfc_cost_yearly+p.gov_cost_yearly+p.comm_cost_yearly) as Direct
+from tab11 p 
+left join Base1 l 
+on p.CODE=l.CODE
+where l.Core_Area is not null),
+
+
+
+
 temp as(
+Select 'Total Direct Budget' as col
+union all
 Select 'Total Indirect Budget' as col
 )
 
-Select s.fy_timerange, s.Indirect,s.HRC,s.NMC,s.AC,
+Select s.fy_timerange, 
+case col
+when 'Total Indirect Budget' then s.Indirect
+when 'Total Direct Budget' then 0
+end as values,
 temp.col as contri_types,s.projectcode, s.project_manager,s.Core_Area
 from tab6 s
+cross join temp
+
+union all
+
+Select s.fy_timerange, 
+case col
+when 'Total Direct Budget' then s.direct
+when 'Total Indirect Budget' then 0
+end as values,
+temp.col as contri_types,s.projectcode, s.project_manager,s.Core_Area
+from base2 s
 cross join temp
