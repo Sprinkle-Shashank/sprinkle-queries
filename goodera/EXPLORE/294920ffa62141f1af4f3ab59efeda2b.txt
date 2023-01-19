@@ -1,0 +1,81 @@
+--HDFC_FRD_Financial_Total_Indirect_Budget
+with tab1 as(SELECT p1.name as projectcode,t.name as fy_timerange,concat(projectcode,fy_timerange) as CODE,
+       sum(CASE 
+             WHEN p.budget_head = 'Admin Cost' THEN p.cost_yearly 
+             ELSE 0 
+           END) AS Admin_cost,
+       sum(CASE 
+             WHEN p.budget_head = 'Human Resource' THEN p.cost_yearly
+             ELSE 0 
+           END) AS Human_resource,
+		sum(CASE 
+             WHEN p.budget_head = 'NGO Management Cost' THEN p.cost_yearly
+             ELSE 0 
+           END) AS NGO_Management_Cost 
+FROM   profile_29976 p
+left join profile_27396 p1
+on p.prj_code=p1._id
+left join ds_mysql_prod_project prod on
+prod.id=p.projectid	
+left join ds_mysql_prod_tagelement t on
+p.fy=t.id
+
+GROUP  BY 1,2,3),
+
+tab2 as(select q.village,split_part(split_part(prod.name,'|',1),'.',1) as projectcode,f.name as fy_timerange,concat(projectcode,fy_timerange) as CODE,split_part(prod.name,'|',3) as census from profile_29973 p 
+left join ds_mysql_prod_project prod on
+prod.id=p.projectid	
+left join ds_mysql_prod_tagelement f on
+p.fy=f.id
+left join profile_27489 q on
+split_part(prod.name,'|',3)=q.name),
+		  
+		  
+tab3 as(select count(distinct(t1.census))as number_of_villages,t.Admin_cost,t.Human_resource,t.NGO_Management_Cost,t.fy_timerange,t.CODE from tab1 t
+left join tab2 t1 on
+t.CODE=t1.CODE
+group by t.Admin_cost,t.Human_resource,t.NGO_Management_Cost,t.fy_timerange,t.CODE),
+
+tab4 as
+(select p.name as projectcode,f.name as fy_timerange,concat(projectcode,fy_timerange) as CODE,m.name  as project_manager,
+tf.name as Core_Area
+from profile_27396 p
+left join ds_mysql_prod_tagelement m on
+p.project_manager=m.id
+left join ds_mysql_prod_tagelement f on
+p.fy=f.id
+left join ds_mysql_prod_tagelement tf on
+p.focus_area=tf.id
+where Core_Area in ('Focused Rural Development- Skills Training and Livelihood Enhancement',
+					  'Focused Rural Development- Environmental Sustainability',
+					  'Focused Rural Development- Promoting Education',
+					  'Focused Rural Development- Promoting Healthcare',
+					  'Focused Rural Development- Sanitation')
+union all
+select split_part(l.name,'[',1) as projectcode,f.name as fy_timerange,concat(projectcode,fy_timerange) as CODE,m.name as project_manager,p.focus_area as Core_Area
+from profile_27420 p
+left join profile_27396 l on
+p.project_code=l._id
+left join ds_mysql_prod_tagelement m on
+p.project_manager=m.id
+left join ds_mysql_prod_tagelement f on
+p.fy=f.id
+where Core_Area in ('Focused Rural Development- Skills Training and Livelihood Enhancement',
+					  'Focused Rural Development- Environmental Sustainability',
+					  'Focused Rural Development- Promoting Education',
+					  'Focused Rural Development- Promoting Healthcare',
+					  'Focused Rural Development- Sanitation')
+),
+
+tab5 as(select t2.projectcode,t2.fy_timerange,t2.project_manager,t2.Core_Area,(t3.Admin_cost) as AC,(t3.Human_resource) as HRC,(t3.NGO_Management_Cost) as NMC,t3.Admin_cost,t3.Human_resource,t3.NGO_Management_Cost,t3.number_of_villages,t2.CODE from tab4 t2
+left join tab3 t3 on
+t3.CODE=t2.CODE
+where t3.number_of_villages!=0),
+
+tab6 as(select distinct(t1.village),t.projectcode,t.project_manager,t.Core_Area,t.fy_timerange,t.HRC,t.NMC,t.AC,(t.HRC+t.NMC+t.AC ) as Indirect
+from tab5 t
+left join tab2 t1 on
+t.CODE=t1.CODE)
+
+Select distinct(s.project_manager),s.fy_timerange,s.HRC,s.NMC,s.AC,s.projectcode,s.Core_Area
+from tab6 s
