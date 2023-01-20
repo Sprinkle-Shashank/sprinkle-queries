@@ -1,220 +1,104 @@
+--RSAP_worker_statistics_and_human_resources_worker_demo_1
+--with sub1 as (select a.*, unwind_product_category from profile_64362 as a, a.product_category as unwind_product_category)
+
 with table1 as
-(
-select  projectId,country, vendor,unwind_cycle,consultant_tag from profile_64362 as p ,p.cycle as unwind_cycle
-)
-,t2 as (
+(select _id , projectId,country, vendor,factory,unwind_cycle, product_category, consultant_tag from profile_64362 as p ,p.cycle as unwind_cycle),
 
-select _id, tag3.name as projectId, resources, policies, risk, procedure, grievance, training, monitoring, incident, communication,  act_adjust, hs_act, hs_training, hs_risk , p3.name as consultant, tag2.name as cycle ,tag4.name as country,tag1.name as select_factory_msa , t1.vendor,
+ table2 as
+(select _id, projectId,country,vendor,factory,cycle,product_category,consultant_tag from profile_64362
+  where _id not in (select _id from table1))
+  ,
+  
+table3 as
+ (
+	select * from table1
+  Union all
+  select * from table2
+ )
+ ,
 
-case 
-when p1.resources = 1105585 then 1
-when p1.resources = 1105584 then 2
-when p1.resources = 1105583 then 3
-when p1.resources = 1105582 then 4
-when p1.resources = 1105581 then 5
-end as resources1,
+  
+table4 as  
+( select _id,  projectId,country, vendor,factory,unwind_cycle, unwind_product_category,consultant_tag from table3 t3, t3.product_category  as unwind_product_category
+ ),
 
-case 
-when p1.policies  = 1105585 then 1
-when p1.policies  = 1105584 then 2
-when p1.policies  = 1105583 then 3
-when p1.policies  = 1105582 then 4
-when p1.policies  = 1105581 then 5
-end as policies1,
-
-case 
-when p1.hs_risk  = 1105585 then 1
-when p1.hs_risk  = 1105584 then 2
-when p1.hs_risk  = 1105583 then 3
-when p1.hs_risk  = 1105582 then 4
-when p1.hs_risk  = 1105581 then 5
-end as hs_risk1,
-
-case 
-when p1.risk  = 1105585 then 1
-when p1.risk  = 1105584 then 2
-when p1.risk  = 1105583 then 3
-when p1.risk  = 1105582 then 4
-when p1.risk  = 1105581 then 5
-end as risk1,
-
-case 
-when p1.procedure  = 1105585 then 1
-when p1.procedure  = 1105584 then 2
-when p1.procedure  = 1105583 then 3
-when p1.procedure  = 1105582 then 4
-when p1.procedure  = 1105581 then 5
-end as procedure1,
-
-case 
-when p1.grievance  = 1105585 then 1
-when p1.grievance  = 1105584 then 2
-when p1.grievance  = 1105583 then 3
-when p1.grievance  = 1105582 then 4
-when p1.grievance  = 1105581 then 5
-end as grievance1,
-
-case 
-when p1.training  = 1105585 then 1
-when p1.training  = 1105584 then 2
-when p1.training  = 1105583 then 3
-when p1.training  = 1105582 then 4
-when p1.training  = 1105581 then 5
-end as training1,
-
-case 
-when p1.monitoring  = 1105585 then 1
-when p1.monitoring  = 1105584 then 2
-when p1.monitoring  = 1105583 then 3
-when p1.monitoring  = 1105582 then 4
-when p1.monitoring  = 1105581 then 5
-end as monitoring1,
-
-case 
-when p1.incident  = 1105585 then 1
-when p1.incident  = 1105584 then 2
-when p1.incident  = 1105583 then 3
-when p1.incident  = 1105582 then 4
-when p1.incident  = 1105581 then 5
-end as incident1,
-
-case 
-when p1.communication  = 1105585 then 1
-when p1.communication  = 1105584 then 2
-when p1.communication  = 1105583 then 3
-when p1.communication  = 1105582 then 4
-when p1.communication  = 1105581 then 5
-end as communication1,
-
-case 
-when p1.hs_training  = 1105585 then 1
-when p1.hs_training  = 1105584 then 2
-when p1.hs_training  = 1105583 then 3
-when p1.hs_training  = 1105582 then 4
-when p1.hs_training  = 1105581 then 5
-end as hs_training1,
-
-case 
-when p1.act_adjust  = 1105585 then 1
-when p1.act_adjust  = 1105584 then 2
-when p1.act_adjust  = 1105583 then 3
-when p1.act_adjust  = 1105582 then 4
-when p1.act_adjust  = 1105581 then 5
-end as act_adjust1,
-
-case 
-when p1.hs_act  = 1105585 then 1
-when p1.hs_act  = 1105584 then 2
-when p1.hs_act  = 1105583 then 3
-when p1.hs_act  = 1105582 then 4
-when p1.hs_act  = 1105581 then 5
-end as hs_act1
-
-	   
-
-
-from profile_62477 as p1
-
-left join table1 as t1
-on p1.projectId = t1.projectId
+table5 as
+(select _id, projectId,country,vendor,factory,unwind_cycle,  null as product_category,consultant_tag from table3 
+ where _id not in (select _id from table4)),
  
-left join project_7746 tag3
-on p1.projectId = tag3.id   
-left join tagElement_7746 p3
-on t1.consultant_tag = p3.id
+table6 as
+(select * from table4
+union all
+select * from table5),
 
-left join tagElement_7746 tag2
-on t1.unwind_cycle = tag2.id
-	   
+, t1 as 
+(select p1._id,p1.year, p3.name as projectId, p1.projectId as projectID1,p1.name,p1.timerange_timerange,p1.workers,p1.filter_key, tag7.name as training_type, p1.num_female, p1.num_male, p1.num_18, p1.num_29, p1.num_39, p1.num_49, p1.num_50, p1.num_permanent, p1.num_contract, p1.num_temporary, p1.num_home, p1.num_other_contract, p1.num_migrant, p1.num_foreign, p1.num_local, p1.num_age, p1.num_begin, p1.num_end, p1.num_voluntarily, p1.turnover, p1.num_new, p1.num_social, p1.num_less_3, p1.num_3_6, p1.num_6_12, p1.num_1_3, p1.num_3_5, p1.num_more_5, p1.num_less_2, p1.num_less_1, p1.num_available, p1.num_absenteeism, p1.absenteeism_rate,
+ tag3.name as country, p2.vendor,p4.factory, tag4.name as consultant, tag6.name as new_product_category 
+ from profile_61528 as p1
+ left join profile_64362 as p2
+on p1.projectId = p2.projectId
+left join project_7746 p3
+on p1.projectId= p3.id
+left join tagElement_7746 tag3
+on p2.country = tag3.id
 left join tagElement_7746 tag4
-on t1.country = tag4.id
-left join tagElement_7746 tag1
-on p1.select_factory_msa = tag1.id
+on p2.consultant_tag = tag4.id
 
+left join tagElement_7746 tag6 
+ on tag6.id = p2.product_category
 
-),
-t3 as
-select  _id, projectId,  consultant,  cycle , country, r.select_factory_msa , 
-vendor,
-case 
-when resources1 is null then 0
-else resources1
-end as resources_new,
-case
-when policies1 is null then 0
-else policies1
-end as policies_new,
-case 
-when hs_risk1 is null then 0
-else hs_risk1
-end as hs_risk_new,
-case
-when risk1 is null then 0
-else risk1
-end as risk_new,
-case
-when procedure1 is null then 0
-else procedure1
-end as procedure_new,
-case
-when  grievance1 is null then 0
-else grievance1
-end as grievance_new,
-case
-when training1 is null then 0
-else training1
-end as training_new,
-case
-when  monitoring1  is null then 0
-else  monitoring1
-end as monitoring_new,
-case
-when  incident1 is null then 0
-else  incident1
-end as  incident_new,
-case
-when communication1 is null then 0
-else communication1
-end as communication_new,
-case
-when hs_training1  is null then 0
-else  hs_training1
-end as hs_training_new,
-case
-when  act_adjust1 is null then 0
-else  act_adjust1
-end as act_adjust_new,
-case
-when  hs_act1 is null then 0
-else  hs_act1
-end as hs_act_new,
-  (hs_risk_new + incident_new + hs_training_new + hs_act_new) as hs_mgmt
+ left join tagElement_7746 tagkk 
+ on tagkk.id = p2.cycle
+left join profile_64170 as p4
+on p2.factory = p4._id
+left join tagElement_7746 tag7
+on p1.training_type = tag7.id
+ 
+),t2 as(
+select projectId,projectID1, name,timerange_timerange, workers, filter_key, training_type, num_female, num_male, num_18, num_29, num_39, num_49, num_50, num_permanent, num_contract, num_temporary, num_home, num_other_contract, num_migrant, num_foreign, num_local, num_age, num_begin, num_end, num_voluntarily, turnover, num_new, num_social, num_less_3, num_3_6, num_6_12, num_1_3, num_3_5, num_more_5, num_less_2, num_less_1, num_available, num_absenteeism, absenteeism_rate, factory,year, vendor, consultant, country, new_product_category, cycle, timerange_timerange.start as monthnum_start,timerange_timerange.end as monthnum_end,Cast(monthnum_start as varchar) as Time_Start,Cast(monthnum_end  as varchar) as time_end,substring(Time_Start, 6,2) as month , substring(Time_Start, 1,4) as  new_year ,
+case when  month='01' then  'Jan'
+when  month='02' then 'Feb'
+when   month='03' then 'Mar'
+when month='04' then 'Apr'
+when  month='05' then 'May'
+when  month='06' then 'Jun'
+when  month='07' then 'Jul'
+when  month='08' then 'Aug'
+when  month='09' then 'Sep'
+when  month='10' then 'Oct'
+when  month='11' then 'Nov'
+else  'Dec'
+end as monthstring from t1 )
+,t3 as 
+(select r.projectId,r.projectID1,r.name, r.timerange_timerange, r.workers, r.filter_key, r.training_type, r.num_female, r.num_male, r.num_18, r.num_29, r.num_39, r.num_49, r.num_50, r.num_permanent, r.num_contract, r.num_temporary, r.num_home, r.num_other_contract, r.num_migrant, r.num_foreign, r.num_local, r.num_age, r.num_begin, r.num_end, r.num_voluntarily, r.turnover, r.num_new, r.num_social, r.num_less_3, r.num_3_6, r.num_6_12, r.num_1_3, r. num_3_5, r.num_more_5, r.num_less_2, r.num_less_1, r.num_available, r.num_absenteeism, r.absenteeism_rate, r.factory,r.year, r.new_year, r.vendor, r.consultant, r.country, r.new_product_category, r.cycle, r.month as monthnum,  r.monthstring , monthstring   || ' (' || new_year || ')' as month 
+from t2 as r)
 
-from t2 as r
-),
-t4 as (select projectId, country,vendor,consultant, cycle,select_factory_msa,
-	  case 
-	  when hs_mgmt >= 12 then 1 
-	  else 0
-	  end as filter 
-	  from t3 ),
-	  t5 as
-	  
-	  (select projectId, country,vendor,consultant,cycle,select_factory_msa
-	  from t4
-	  where filter = 1
-	  )
-	  
-	  select projectId, country,vendor,consultant,cycle,select_factory_msa,cast('1' as VARCHAR) as count
-	  from t5
-	  
+,t4 as
+(
+select p.projectId,p.projectID1, p.name, p.timerange_timerange, p.workers, p.filter_key, p.training_type, p.num_female, p.num_male, p.num_18, p.num_29, p.num_39, p.num_49, p.num_50, p.num_permanent, p.num_contract, p.num_temporary, p.num_home, p.num_other_contract, p.num_migrant, p.num_foreign, p.num_local, p.num_age, p.num_begin, p.num_end, p.num_voluntarily, p.turnover, p.num_new, p.num_social, p.num_less_3, p.num_3_6, p.num_6_12, p.num_1_3, p.num_3_5, p.num_more_5, p.num_less_2, p.num_less_1, p.num_available, p.num_absenteeism, p.absenteeism_rate, p.factory, p.vendor, p.consultant, p.country, p.new_product_category, p.cycle, p.monthnum, p.new_year, p.monthstring, p.month from t3 as p
+group by 
 
+p.projectId,p.projectID1, p.name, p.timerange_timerange, workers, filter_key, training_type, num_female, num_male, num_18, num_29, num_39, num_49, num_50, num_permanent, num_contract, num_temporary, num_home, num_other_contract, num_migrant, num_foreign, num_local, num_age, num_begin, num_end, num_voluntarily, turnover, num_new, num_social, num_less_3, num_3_6, num_6_12, num_1_3, num_3_5, num_more_5, num_less_2, num_less_1, num_available, num_absenteeism, absenteeism_rate, factory, vendor, consultant, country, new_product_category, cycle, monthnum, new_year, monthstring,month
+)
+,t5 as 
+(
+select t.projectId,t.projectID1,t.name,t.timerange_timerange,t.workers,t.filter_key,t.training_type,t.num_female,t.num_male,t.num_18,t.num_29,t.num_39,t.num_49,t.num_50, t.num_permanent, t.num_contract, t.num_temporary, t.num_home, t.num_other_contract, t.num_migrant, t.num_foreign, t.num_local,t.num_age, t.num_begin, t.num_end, t.num_voluntarily, t.turnover, t.num_new, t.num_social, t.num_less_3, t.num_3_6, t.num_6_12, t.num_1_3, t.num_3_5, t.num_more_5, t.num_less_2, t.num_less_1, t.num_available, t.num_absenteeism, t.absenteeism_rate, t.factory, t.vendor, t.consultant, t.country,  t.cycle, t.monthnum,t.new_year as year1,t.monthstring,t.month , p9.year 
+from t4 as t
+left join profile_61528 as p9
+on  t.name = p9.name
+--left join profile_64362 as ab on
+--t.projectId = ab.projectId
+)
 
+select  tv.projectId,tv.name,tv.timerange_timerange,tv.workers,tv.filter_key,tv.training_type,tv.num_female,tv.num_male,tv.num_18,tv.num_29,tv.num_39,tv.num_49,tv.num_50, tv.num_permanent, tv.num_contract, tv.num_temporary, tv.num_home, tv.num_other_contract, tv.num_migrant, tv.num_foreign, tv.num_local,tv.num_age, tv.num_begin, tv.num_end, tv.num_voluntarily, tv.turnover, tv.num_new, tv.num_social, tv.num_less_3, tv.num_3_6, tv.num_6_12, tv.num_1_3, tv.num_3_5, tv.num_more_5, tv.num_less_2, tv.num_less_1, tv.num_available, tv.num_absenteeism, tv.absenteeism_rate, tv.factory, tv.vendor, tv.consultant, tv.country,  tv.cycle, tv.monthnum, tv.year1,tv.monthstring,tv.month , tag8.name as year ,tag9.name as product_category
+from t5 as tv
 
-
-
-
-
+left join table3 as tr on
+tv.projectID1 =  tr.projectId
+left join tagElement_7746 tag9 
+on tag9.id = tr.unwind_product_category
+ left join tagElement_7746 tag8
+on year = tag8.id
 
 
 
