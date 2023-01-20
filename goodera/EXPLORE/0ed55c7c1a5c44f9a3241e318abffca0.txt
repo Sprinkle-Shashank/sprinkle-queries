@@ -1,27 +1,40 @@
 --RSAP_worker_statistics_and_human_resources_worker_demo_1
+--RSAP_worker_statistics_and_human_resources_worker_demo_1
 --with sub1 as (select a.*, unwind_product_category from profile_64362 as a, a.product_category as unwind_product_category)
+
 with table1 as
-(select _id , projectId,country,factory, vendor,unwind_product_category, consultant_tag from profile_64362 as p ,p.product_category as unwind_product_category),
+(select _id , projectId,country, vendor,factory,unwind_cycle, product_category, consultant_tag from profile_64362 as p ,p.cycle as unwind_cycle),
 
  table2 as
-(select _id, projectId,country,factory ,vendor, null as product_category,consultant_tag from profile_64362
-  where _id not in (select _id from table1)),
+(select _id, projectId,country,vendor,factory,cycle,product_category,consultant_tag from profile_64362
+  where _id not in (select _id from table1))
+  ,
   
-  table3 as
+table3 as
  (
 	select * from table1
   Union all
   select * from table2
  )
+ ,
+
+  
+table4 as  
+( select _id,  projectId,country, vendor,factory,unwind_cycle, unwind_product_category,consultant_tag from table3 t3, t3.product_category  as unwind_product_category
+ ),
+
+table5 as
+(select _id, projectId,country,vendor,factory,unwind_cycle,  null as product_category,consultant_tag from table3 
+ where _id not in (select _id from table4)),
+ 
+table6 as
+(select * from table4
+union all
+select * from table5)
+
 , t1 as 
 (select p1._id,p1.year, p3.name as projectId, p1.projectId as projectID1,p1.name,p1.timerange_timerange,p1.workers,p1.filter_key, tag7.name as training_type, p1.num_female, p1.num_male, p1.num_18, p1.num_29, p1.num_39, p1.num_49, p1.num_50, p1.num_permanent, p1.num_contract, p1.num_temporary, p1.num_home, p1.num_other_contract, p1.num_migrant, p1.num_foreign, p1.num_local, p1.num_age, p1.num_begin, p1.num_end, p1.num_voluntarily, p1.turnover, p1.num_new, p1.num_social, p1.num_less_3, p1.num_3_6, p1.num_6_12, p1.num_1_3, p1.num_3_5, p1.num_more_5, p1.num_less_2, p1.num_less_1, p1.num_available, p1.num_absenteeism, p1.absenteeism_rate,
- tag3.name as country, p2.vendor,p4.factory, tag4.name as consultant, tag6.name as new_product_category ,
- case
- when year=1433762 then 'Cycle 1'
- when year=1433763 then 'Cycle 1'
-  when year=1433764 then 'Cycle 1'
- else 'Cycle 2'
- end as cycle
+ tag3.name as country, p2.vendor,p4.factory, tag4.name as consultant, tag6.name as new_product_category ,tagkk.name as cycle
  from profile_61528 as p1
  left join profile_64362 as p2
 on p1.projectId = p2.projectId
@@ -35,6 +48,8 @@ on p2.consultant_tag = tag4.id
 left join tagElement_7746 tag6 
  on tag6.id = p2.product_category
 
+ left join tagElement_7746 tagkk 
+ on tagkk.id = p2.cycle
 left join profile_64170 as p4
 on p2.factory = p4._id
 left join tagElement_7746 tag7
@@ -76,15 +91,18 @@ on  t.name = p9.name
 --t.projectId = ab.projectId
 )
 
-select  tv.projectId,tv.name,tv.timerange_timerange,tv.workers,tv.filter_key,tv.training_type,tv.num_female,tv.num_male,tv.num_18,tv.num_29,tv.num_39,tv.num_49,tv.num_50, tv.num_permanent, tv.num_contract, tv.num_temporary, tv.num_home, tv.num_other_contract, tv.num_migrant, tv.num_foreign, tv.num_local,tv.num_age, tv.num_begin, tv.num_end, tv.num_voluntarily, tv.turnover, tv.num_new, tv.num_social, tv.num_less_3, tv.num_3_6, tv.num_6_12, tv.num_1_3, tv.num_3_5, tv.num_more_5, tv.num_less_2, tv.num_less_1, tv.num_available, tv.num_absenteeism, tv.absenteeism_rate, tv.factory, tv.vendor, tv.consultant, tv.country,  tv.cycle, tv.monthnum, tv.year1,tv.monthstring,tv.month , tag8.name as year ,tag9.name as product_category
+select  tv.projectId,tv.name,tv.timerange_timerange,tv.workers,tv.filter_key,tv.training_type,tv.num_female,tv.num_male,tv.num_18,tv.num_29,tv.num_39,tv.num_49,tv.num_50, tv.num_permanent, tv.num_contract, tv.num_temporary, tv.num_home, tv.num_other_contract, tv.num_migrant, tv.num_foreign, tv.num_local,tv.num_age, tv.num_begin, tv.num_end, tv.num_voluntarily, tv.turnover, tv.num_new, tv.num_social, tv.num_less_3, tv.num_3_6, tv.num_6_12, tv.num_1_3, tv.num_3_5, tv.num_more_5, tv.num_less_2, tv.num_less_1, tv.num_available, tv.num_absenteeism, tv.absenteeism_rate, tv.factory, tv.vendor, tv.consultant, tv.country,  tv.monthnum, tv.year1,tv.monthstring,tv.month , tag8.name as year ,tag9.name as product_category , tag19.name as cycle
 from t5 as tv
 
-left join table3 as tr on
+left join table6 as tr on
 tv.projectID1 =  tr.projectId
 left join tagElement_7746 tag9 
 on tag9.id = tr.unwind_product_category
+left join tagElement_7746 tag19
+on tag19.id = tr.unwind_cycle
  left join tagElement_7746 tag8
 on year = tag8.id
+
 
 
 
