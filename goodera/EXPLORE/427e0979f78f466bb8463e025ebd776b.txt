@@ -1,8 +1,7 @@
---Syntax Error for "YEAR" in main query (Working fine in sub-query)
 
 with tab1 as (Select P.name AS projectname,p1.month_2_timerange as fy_timerange,p1.name as activity_2, t1.name as indicator, p1.value ,
 CAST(p1.month_2_timerange.start AS date) AS start
---EXTRACT(YEAR FROM start) AS year
+			  
 from profile_56633 p1
 LEFT JOIN ds_mysql_prod_project AS P
 ON p1.projectid = P.id
@@ -31,13 +30,9 @@ tab4 as (select indicator,year1,value,prevyearrevenue1,prevyear,fy_timerange,
 	else 0
 end as PrevYearRevenue
 		 from tab3
-)
-/*CASE
-WHEN prevyearrevenue = 0 THEN NULL 
-ELSE
-SUM1/SUM2
-END as SUM3,*/
-Select indicator,year1,value,prevyearrevenue,prevyear,fy_timerange,
+),
+
+tab5 as (Select indicator,year1,value,prevyearrevenue,prevyear,fy_timerange,
 case 
 WHEN prevyearrevenue = 0 THEN NULL
  
@@ -48,27 +43,9 @@ when year1 = '2018' then ((value - prevyearrevenue)/prevyearrevenue) * 100
 end as revenue,
 case when revenue is null then 0  else revenue
 end as revenue1
-from tab4
+from tab4)
 
-/*SELECT S.value,
-P.name AS projectname,
-S.month_2_timerange AS fy_timerange,
-A.name AS activity_2,
-I.name AS indicator
+Select indicator,fy_timerange,revenue1,value
+from tab5
 
-FROM profile_56633 AS S
-
-LEFT JOIN ds_mysql_prod_project AS P
-ON S.projectid = P.id
-
-LEFT JOIN profile_56634 AS A
-ON S.activity_2 = A._id
-
-LEFT JOIN ds_mysql_prod_tagelement AS I
-ON S.indicator = I.id
-
-
-GROUP BY S.value, P.name, month_2_timerange, A.name, I.name*/
-
---Syntax Error for "YEAR" in main query (Working fine in sub-query)
 
