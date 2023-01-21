@@ -1,5 +1,5 @@
 with Table1 as
-(select  projectId.name as projectId ,projs.name as projects, state, theme1.name as theme,fy_1s.name as fy_1, start_date , end_date :: date, budget_allocation :: float, budget_utilized, to_char(end_date, 'yyyy') as end_date1, count(*) from profile_51028 as m,
+(select  projectId.name as projectId ,projs.name as projects, state, theme1.name as theme,fy_1s.name as fy_1, start_date , end_date :: date, budget_allocation :: float, budget_utilized, to_char(end_date, 'yyyy') as end_date1, count(*) ,
 		CASE when state = NULL
 				then array(0)
 				ELSE 
@@ -9,6 +9,7 @@ with Table1 as
 			COALESCE(state,array(0))  as new_state,
 				
 				CAST(new_state as SUPER) as t_state
+ from profile_51028 as m
  
 left join ds_mysql_prod_project as projectId
 on m.projectId = projectId.id
@@ -26,11 +27,11 @@ Table2 as
 (select *,start_date ||'|'|| end_date1 as fy_timerange from temp1
 order by fy_timerange),
 Table3 as (
-  Select t1.*, sdg_unwind from table1 t1 , t1.new_sdg as sdg_unwind
+  Select t1.*, state_unwind from table1 t1 , t1.new_state as state_unwind
 
 )
   
-  Select projectId, fy_timerange,1 as count, sdg1.name as sdg from table3
+  Select projectId, fy_timerange,1 as count, state1.name as state from table3
   
-  left join ds_mysql_prod_tagelement as sdg1
- on Table3.sdg_unwind = sdg1.id 
+  left join ds_mysql_prod_tagelement as state1
+ on Table3.state_unwind = state1.id 
