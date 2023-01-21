@@ -1,5 +1,14 @@
-with temp1 as
-(select  projectId.name as projectId ,projs.name as projects, state1.name as state, theme1.name as theme,fy_1s.name as fy_1, start_date , end_date :: date, budget_allocation :: float, budget_utilized, to_char(end_date, 'yyyy') as end_date1, count(*) from profile_51028 as m
+with Table1 as
+(select  projectId.name as projectId ,projs.name as projects, state, theme1.name as theme,fy_1s.name as fy_1, start_date , end_date :: date, budget_allocation :: float, budget_utilized, to_char(end_date, 'yyyy') as end_date1, count(*) from profile_51028 as m,
+		CASE when state = NULL
+				then array(0)
+				ELSE 
+				state
+				end as state_new,
+
+			COALESCE(state,array(0))  as new_state,
+				
+				CAST(new_state as SUPER) as t_state
  
 left join ds_mysql_prod_project as projectId
 on m.projectId = projectId.id
@@ -9,13 +18,19 @@ left join ds_mysql_prod_tagelement as projs
 on m.projects = projs.id
 left join ds_mysql_prod_tagelement as fy_1s
 on m.fy_1 = fy_1s.id
-left join ds_mysql_prod_tagelement as state1
-on m.state = state1.id
  
 where theme = '794576'
-group by  projectId.name, projs.name,fy_1s.name, state1.name, theme1.name, start_date , end_date :: date, budget_allocation :: float,budget_utilized,end_date1
+group by  projectId.name, projs.name,fy_1s.name, state, theme1.name, start_date , end_date :: date, budget_allocation :: float,budget_utilized,end_date1
 ),
-temp2 as
+Table2 as
 (select *,start_date ||'|'|| end_date1 as fy_timerange from temp1
-order by fy_timerange)
-select * from temp2
+order by fy_timerange),
+Table3 as (
+  Select t1.*, sdg_unwind from table1 t1 , t1.new_sdg as sdg_unwind
+
+)
+  
+  Select projectId, fy_timerange,1 as count, sdg1.name as sdg from table3
+  
+  left join ds_mysql_prod_tagelement as sdg1
+ on Table3.sdg_unwind = sdg1.id 
