@@ -1,7 +1,21 @@
-select _id, projectId.name as projectId, fy_timerange, photo, remarks, projs.name as project_name from profile_74731 as m
-
-left join ds_mysql_prod_project as projectId
-on m.projectId = projectId.id
-left join ds_mysql_prod_tagelement as projs
-on m.project_name = projs.id
-order by fy_timerange desc
+with t1 as
+(
+  select _id, projectId, fy_timerange, photo, remarks from profile_74731 as m
+  ),
+  t as
+  (
+	select t.*, pho from t1 t, t.photo as pho
+	),
+	t2 as
+	(select _id, fy_timerange, remarks, phot.name as photo_updated
+	 proj.name as proj_up from t
+	
+	left join ds_mysql_prod_project as proj
+	on projectid = proj.id
+	
+	left join ds_mysql_prod_tagelement as phot
+	on t.pho = phot.id
+	 
+	 order by fy_timerange DESC
+	 )
+	 select _id, proj_up, phot_updated, fy_timerange, remarks from t2
