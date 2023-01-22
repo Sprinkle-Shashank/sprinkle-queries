@@ -1,3 +1,9 @@
+WITH temp AS (
+  SELECT 'Total ASSP' AS col
+  UNION ALL
+  SELECT 'Total NIOS' AS col
+  )
+
 SELECT A.total_assp, CD.fy_timerange, A.total_nios,
 P.name AS projectId,
 T1.name AS program,
@@ -5,9 +11,18 @@ T2.name AS frequency,
 CD.name AS student_assp,
 T3.name AS program_2,
 T4.name AS frequency_2,
-CD2.name AS student_nios
+CD2.name AS student_nios,
+
+CASE col
+	WHEN 'Total ASSP' THEN A.total_assp
+	WHEN 'Total NIOS' THEN A.total_nios
+	ELSE 0
+	END AS percentage_marks,
+	temp.col AS marks
 
 FROM profile_56185 AS A
+
+CROSS JOIN temp
 
 LEFT JOIN ds_mysql_prod_project AS P
 ON A.projectId = P.id
@@ -30,22 +45,4 @@ ON A.program_2 = T3.id
 LEFT JOIN ds_mysql_prod_tagelement T4
 ON A.frequency_2 = T3.id
 
-
-
-
-/*
-Select P.name as projectname,t1.name as program,t2.name as frequency,p1.name as student_assp,p1.total_assp,t3.name as program_2,t4.name as frequency_2,p1.name as student_nios,p1.total_nios
-from profile_56185 p1
-LEFT JOIN ds_mysql_prod_project AS P
-ON p1.projectid = P.id
-left join profile_56184 p2
-on p2._id = p1.student_assp
-left join ds_mysql_prod_tagelement t1
-on t1.id = p1.program
-left join ds_mysql_prod_tagelement t2
-on t2.id = p1.frequency
-left join ds_mysql_prod_tagelement t3
-on t3.id = p1.program_2
-left join ds_mysql_prod_tagelement t4
-on t4.id = p1.frequency_2
-*/
+GROUP BY A.total_assp, CD.fy_timerange, A.total_nios, P.name, T1.name, T2.name, CD.name, T3.name, T4.name, CD2.name,
