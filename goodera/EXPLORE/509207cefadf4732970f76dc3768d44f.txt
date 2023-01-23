@@ -1,36 +1,33 @@
-with table1 as (Select p3.name as projectId,p1.name as projectpartner,p2.name as partner,p.name,p.fy_timerange,
-substring(cast(fy_timerange.start as varchar),1,4) as year1,
-				--substring(cast(fy_timerange.start as varchar),6,2) as month,
-				extract(month from cast(fy_timerange.start as datetime)) as month,
+WITH SUB1 AS (
+  SELECT P.fy_timerange,
+  EXTRACT(YEAR FROM CAST(fy_timerange.start AS DATETIME)) AS year,
+  EXTRACT(MONTH FROM CAST(fy_timerange.start AS DATETIME)) AS month,
+  
+  FROM profile_81314 AS P
+  )
 
-p.file, t.name as type_doc,p.remarks,
-case
-when p.file IS NOT NULL then 'Download'
-else 'NA'
-end as download
-from profile_81314 p
-
-left join project_9730 p1 on p1.id = p.projectid
-left join project_9730 p2 on p2.id = p1.parent
-left join project_9730 p3 on p3.id=p2.parent
-left join tagelement_9730 t on t.id = p.type),
-
-table2 as (Select t.year1,
-		   case 
-when month = 01 then 'January'
-when month = 02 then 'February'
-when month = 03 then 'March'
-when month = 04 then 'April'
-when month = 05 then 'May'
-when month = 06 then 'June'
-when month = 07 then 'July'
-when month = 08 then 'August'
-when month = 09 then 'September'
-when month = 10 then 'October'
-when month = 11 then 'November'
-when month = 12 then 'December'
-else null
-end as abcd , concat(month,year1) as moi from table1 t)
-
-Select t2.abcd||t2.year1 as y1,t2.moi from table2 t2
---group by  p3.name,p1.name,p2.name,p.name,p.fy_timerange,p.file,t.name,p.remarks
+SUB2 AS (
+  SELECT SUB1.year,
+  CASE 
+  WHEN month = 01 THEN 'January'
+  WHEN month = 02 THEN 'February'
+  WHEN month = 03 THEN 'March'
+  WHEN month = 04 THEN 'April'
+  WHEN month = 05 THEN 'May'
+  WHEN month = 06 THEN 'June'
+  WHEN month = 07 THEN 'July'
+  WHEN month = 08 THEN 'August'
+  WHEN month = 09 THEN 'September'
+  WHEN month = 10 THEN 'October'
+  WHEN month = 11 THEN 'November'
+  WHEN month = 12 THEN 'December'
+  ELSE NULL
+  END AS months,
+  CONCAT(months,year1) AS time
+  
+  FROM SUB1
+  )
+  
+  SELECT SUB1.year, SUB2.months
+  
+  FROM SUB2
