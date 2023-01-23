@@ -1,4 +1,43 @@
 with table1 as (Select p3.name as projectId,p1.name as projectpartner,p2.name as partner,p.name,p.fy_timerange,
+CAST(fy_timerange.start AS DATE) AS startt,
+				extract(month from CAST(fy_timerange.start AS DATE) ) as month,
+--to_char(cast(fy_timerange.start as datetime), 'MONTH') as mm,
+
+extract(year from startt) as year,
+CASE
+	WHEN month = 1 THEN 'January'
+	WHEN month = 2 THEN 'February'
+	WHEN month = 3 THEN 'March'
+	WHEN month = 4 THEN 'April'
+	WHEN month = 5 THEN 'May'
+	WHEN month = 6 THEN 'June'
+	WHEN month = 7 THEN 'July'
+	WHEN month = 8 THEN 'August'
+	WHEN month = 9 THEN 'September'
+	WHEN month = 10 THEN 'October'
+	WHEN month = 11 THEN 'November'
+	WHEN month = 12 THEN 'December'
+	END AS month_name,
+
+p.file, 
+t.name as type_doc,p.remarks,
+case
+when p.file IS NOT NULL then 'Download'
+else 'NA'
+end as download
+from profile_81314 p
+
+left join project_9730 p1 on p1.id = p.projectid
+left join project_9730 p2 on p2.id = p1.parent
+left join project_9730 p3 on p3.id=p2.parent
+left join tagelement_9730 t on t.id = p.type),
+
+table2 as (Select projectId, projectpartner,year,month_name from table1)
+Select  (month_name ||"'"|| year) as myy from table2
+
+
+
+/*with table1 as (Select p3.name as projectId,p1.name as projectpartner,p2.name as partner,p.name,p.fy_timerange,
 substring(cast(fy_timerange.start as varchar),1,4) as year1,
 				--substring(cast(fy_timerange.start as varchar),6,2) as month,
 				extract(month from cast(fy_timerange.start as datetime)) as month,
