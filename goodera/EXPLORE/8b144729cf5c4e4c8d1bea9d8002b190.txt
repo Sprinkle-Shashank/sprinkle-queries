@@ -1,10 +1,33 @@
-select p3.name as projectId,p2.name as partner,p1.name as projectname,p.fy_timerange,p4.school_name,p.jor_sessions,p.dict_sessions,p.books_issued_to_library as Book_Issued_to_Library,p.iambond_pp,p.students_iro, count(*) 
-from profile_83173 p
+with temp as (
+  select 'Joy of Reading Sessions' as col
+  union all
+  select 'Dictionary Sessions' as col
+  union all
+  select 'Books Issued To Library' as col
+  union all
+  select 'Iambond Passport' as col
+  union all
+  select 'Students in India Reading Olympiad' as col),
 
+
+table1 as (select p3.name as projectId,p2.name as partner,p1.name as projectname,p.fy_timerange,p4.school_name,
+temp.col as dimensions,
+  sum(case col
+	when 'Joy of Reading Sessions' then p.jor_sessions
+	when 'Dictionary Sessions' then p.dict_sessions 
+	when 'Books Issued To Library' then p.books_issued_to_library    
+	when 'Iambond Passport' then p.iambond_pp 
+	when 'Students in India Reading Olympiad' then p.students_iro
+    else Null
+	end) as Values
+from profile_83173 p
+cross join temp
 left join profile_83172 p4 on p4._id=p.school
 left join ds_mysql_prod_project p1 on p1.id = p.projectid
 left join ds_mysql_prod_project p2 on p2.id = p1.parent
 left join ds_mysql_prod_project p3 on p3.id=p2.parent
 
 group by p3.name,p2.name,p1.name,p.fy_timerange,
-p4.school_name,p.jor_sessions,p.dict_sessions,p.books_issued_to_library,p.iambond_pp,p.students_iro
+p4.school_name,temp.col )
+
+Select * from table1
