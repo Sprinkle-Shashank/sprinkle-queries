@@ -1,134 +1,36 @@
-with s as(
+with table1 as (Select p3.name as projectId,p1.name as projectpartner,p2.name as partner,p.name,p.fy_timerange,
+substring(cast(fy_timerange.start as varchar),1,4) as year1,
+				--substring(cast(fy_timerange.start as varchar),6,2) as month,
+				extract(month from cast(fy_timerange.start as datetime)) as month,
 
-  select x1._id as id, x1.profileinstanceid, x1.status, x1.active, x1.data, x1.taskuserid, x2.taskid, x5.projectid, x6.profileid, x4.sectionid, x6.name as section, x7.name as profile, x8.name as project, x1.created, x1.modified,
-  
+p.file, t.name as type_doc,p.remarks,
 case
-  when is_array(x1.submissionlog) = false or get_array_length(x1.submissionlog) = 0 then 
-  	   array(x1.submissionlog)
-  else x1.submissionlog
-end as submissionlog_new,
-case
-  when is_array(x1.approvallog) = false or get_array_length(x1.approvallog) = 0 then 
-  	   array(x1.approvallog)
-  else x1.approvallog
-end as approvallog_new,data.name as pc
-  
-from ds_mongo_taskresponse x1 
+when p.file IS NOT NULL then 'Download'
+else 'NA'
+end as download
+from profile_81314 p
 
-left join ds_mysql_prod_taskuser x2 on x2.id = x1.taskuserid
-left join ds_mysql_prod_task x3 on x3.id = x2.taskid
-left join ds_mysql_prod_flowtask x4 on x4.id = x3.flowtaskid
-left join ds_mysql_prod_projectflow x5 on x5.id = x3.projectflowid
-left join ds_mysql_prod_section x6 on x6.id = x4.sectionid
-left join ds_mysql_prod_profile x7 on x7.id = x6.profileid
-left join ds_mysql_prod_project x8 on x8.id = x5.projectid
+left join project_9730 p1 on p1.id = p.projectid
+left join project_9730 p2 on p2.id = p1.parent
+left join project_9730 p3 on p3.id=p2.parent
+left join tagelement_9730 t on t.id = p.type),
 
-where x6.profileid in (27396,27420) and x1.active = 't'
-and x1.status in ('REJECTED', 'PENDING_APPROVAL', 'SUBMITTED')
+table2 as (Select t.year1,
+		   case 
+when month = 01 then 'January'
+when month = 02 then 'February'
+when month = 03 then 'March'
+when month = 04 then 'April'
+when month = 05 then 'May'
+when month = 06 then 'June'
+when month = 07 then 'July'
+when month = 08 then 'August'
+when month = 09 then 'September'
+when month = 10 then 'October'
+when month = 11 then 'November'
+when month = 12 then 'December'
+else null
+end as abcd , concat(month,year1) as moi from table1 t)
 
-group by x1._id, x1.profileinstanceid, x1.status, x1.active, x1.data, x1.taskuserid, x2.taskid, x5.projectid, x6.profileid, x4.sectionid, x6.name, x7.name, x8.name, x1.submissionlog, x1.approvallog, x1.created, x1.modified),
-s2 as (
-Select id,profileid, status,created, modified,data,sln,cast(sln."timestamp" as datetime) as tst,pc,
-approvallog_new,submissionlog_new
-from s as q, q.submissionlog_new as sln
-)
-,
-s3 as(
-Select id,pc,profileid, status,
-  cast(timestamp 'epoch' + CAST(created AS BIGINT)/1000 * interval '1 second' as date) as created,
-  cast(timestamp 'epoch' + CAST(modified AS BIGINT)/1000 * interval '1 second' as date) as modified
-  , data, data."name" as project_code,
-  case
-	when profileid = 27396 and data.end_date is not null then 'NA'
-    when profileid = 27420 and data.end_date is not null and data.end_date > CURRENT_DATE||'T00:00:00.000Z' then 'Yes'
-    when profileid = 27420 and data.end_date is not null and data.end_date < CURRENT_DATE||'T00:00:00.000Z' then 'No'
-    else '-'
-	end as renewed,
-  data.fy as fy,
-  case 
-  when profileid=27396 then data.intervention_type
-  when profileid=27420 then data.int_type_calc2 
-  end as intervention_type,
-   case 
-  when profileid=27396 then data.focus_area
-  when profileid=27420 then data.focus_area 
-  end as core_area,data.start_date as start_date,data.end_date as end_date,
-  data.project_manager, data.ngo_partner as implementation_agency,sln,tst as ts1, approvallog_new, submissionlog_new,
-   case 
-  when profileid=27396 then ss.monitoring_live
-  when profileid=27420 then st.monitoring_live 
-  end as project_live,
-  row_number() over (partition by id order by tst asc) as row_1
-from s2
-  left join profile_27396 ss
-on ss.name=pc
-    left join profile_27420 st
-on st.name=pc
-
-),
-
-s33 as (
-Select ss3.*,sll,cast(sll."timestamp" as datetime) as iest from s3 as ss3, ss3.submissionlog_new as sll
- 
-)
-,
-sss3 as (
-Select *,row_number() over (partition by id order by iest desc) as row_2
-  from s33
-  where row_1=1
-
-
-)
-,
-s4 as (
-Select *,cast(aln."timestamp" as datetime) tstt , aln."approvalStatus" as status1,cast(aln."approverEmail" as varchar) as approveremail from sss3 as ss,ss.approvallog_new aln
- where row_2=1 --earliest
-  ),
-  
-  s5 as (
-Select *,
-case 
-  when approverEmail = 'hdfcbank@goodera.com' then tstt
-  end as Date_of_Action_by_Goodera,
-	case 
-  when approverEmail = 'hdfcbank@goodera.com' then status1
-  end as Status_at_Goodera,
-	case 
-  when approverEmail = 'nusrat.pathan@hdfcbank.com' then tstt
-  end as Date_of_Action_by_CSR_Head,
-  
-  case 
-  when approverEmail = 'nusrat.pathan@hdfcbank.com' then status1
-  end as Status_at_csr_head,
-	
-	row_number() over (partition by id,approveremail order by tstt desc) as roww
-from s4
-	),
-  
-	ll as(
-	Select *,t.name as fyy from s5
-	left join ds_mysql_prod_tagelement t on 
-	t.id=fy
-where roww=1  --latest
-)
-/*Select project_code,renewed,iest as Latest_date_of_submission_by_proj_man,
-Date_of_Action_by_Goodera,
-	Status_at_Goodera,
-	Date_of_Action_by_CSR_Head,
-	Status_at_csr_head,
-	t.name as project_manager,implementation_Agency,t1.name as project_live,core_Area,ss.name as intervention_type,start_date,end_date,
-ts1 as Initial_submission_Date,fyy
-from ll
-left join ds_mysql_prod_tagelement t
-on t.id=project_manager
-left join ds_mysql_prod_tagelement t1
-on t1.id=project_live
-left join profile_28235 ss
-on ss._id=intervention_type
-group by project_code,renewed,iest ,
-Date_of_Action_by_Goodera,Status_at_Goodera,
-	Date_of_Action_by_CSR_Head,
-	Status_at_csr_head,
-	t.name ,implementation_Agency,t1.name,core_Area,ss.name,start_date,end_date,
-ts1 ,fyy
-*/
+Select t2.abcd||t2.year1 as y1,t2.moi from table2 t2
+--group by  p3.name,p1.name,p2.name,p.name,p.fy_timerange,p.file,t.name,p.remarks
