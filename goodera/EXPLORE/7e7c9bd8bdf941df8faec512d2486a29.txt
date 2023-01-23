@@ -1,22 +1,29 @@
 with table1 as (Select p3.name as projectId,p1.name as projectpartner,p2.name as partner,p.name,p.fy_timerange,
-substring(cast(fy_timerange.start as varchar),1,4) as year1,substring(cast(fy_timerange.start as varchar),6,2) as month,
-case 
-when month = '01' then 'January'
-when month = '02' then 'February'
-when month = '03' then 'March'
-when month = '04' then 'April'
-when month = '05' then 'May'
-when month = '06' then 'June'
-when month = '07' then 'July'
-when month = '08' then 'August'
-when month = '09' then 'September'
-when month = '10' then 'October'
-when month = '11' then 'November'
-when month = '12' then 'December'
-else null
-end as abcd,
+--substring(cast(fy_timerange.start as varchar),1,4) as year1,
+				--substring(cast(fy_timerange.start as varchar),6,2) as month,
+CAST(fy_timerange.start AS DATE) AS startt,
+				extract(month from CAST(fy_timerange.start AS DATE) ) as month,
+--to_char(cast(fy_timerange.start as datetime), 'MONTH') as mm,
 
-p.file, t.name as type_doc,p.remarks,
+extract(year from startt) as year,
+CASE
+	WHEN month = 1 THEN 'January'
+	WHEN month = 2 THEN 'February'
+	WHEN month = 3 THEN 'Mar'
+	WHEN month = 4 THEN 'April'
+	WHEN month = 5 THEN 'May'
+	WHEN month = 6 THEN 'June'
+	WHEN month = 7 THEN 'July'
+	WHEN month = 8 THEN 'August'
+	WHEN month = 9 THEN 'September'
+	WHEN month = 10 THEN 'October'
+	WHEN month = 11 THEN 'November'
+	WHEN month = 12 THEN 'December'
+	ELSE 'No Data Entry'
+	END AS quarter,
+
+p.file, 
+t.name as type_doc,p.remarks,
 case
 when p.file IS NOT NULL then 'Download'
 else 'NA'
@@ -28,7 +35,5 @@ left join project_9730 p2 on p2.id = p1.parent
 left join project_9730 p3 on p3.id=p2.parent
 left join tagelement_9730 t on t.id = p.type),
 
-table2 as (Select t.abcd,t.year1 from table1 t)
-
-Select concat(t2.abcd,t2.year1) as y1 from table2 t2
---group by  p3.name,p1.name,p2.name,p.name,p.fy_timerange,p.file,t.name,p.remarks
+table2 as (Select projectId, projectpartner,year,quarter from table1)
+Select  (quarter ||'-'|| year) as myy from table2
