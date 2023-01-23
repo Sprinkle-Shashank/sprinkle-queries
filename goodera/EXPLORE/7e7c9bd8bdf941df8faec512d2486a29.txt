@@ -1,4 +1,4 @@
-Select p3.name as projectId,p1.name as projectpartner,p2.name as partner,p.name,p.fy_timerange,
+with table1 as (Select p3.name as projectId,p1.name as projectpartner,p2.name as partner,p.name,p.fy_timerange,
 substring(cast(fy_timerange.start as varchar),1,4) as year1,substring(cast(fy_timerange.start as varchar),6,2) as month,
 case 
 when month = '01' then 'January'
@@ -15,7 +15,7 @@ when month = '11' then 'November'
 when month = '12' then 'December'
 else null
 end as month_name,
-month_name||'-'||year1 as y1,
+
 p.file, t.name as type_doc,p.remarks,
 case
 when p.file IS NOT NULL then 'Download'
@@ -26,6 +26,7 @@ from profile_81314 p
 left join project_9730 p1 on p1.id = p.projectid
 left join project_9730 p2 on p2.id = p1.parent
 left join project_9730 p3 on p3.id=p2.parent
-left join tagelement_9730 t on t.id = p.type
+left join tagelement_9730 t on t.id = p.type)
 
+Select t.month_name||'-'||t.year1 as y1 from table1 t
 --group by  p3.name,p1.name,p2.name,p.name,p.fy_timerange,p.file,t.name,p.remarks
