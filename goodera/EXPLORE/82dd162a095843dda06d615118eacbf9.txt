@@ -1,6 +1,46 @@
 --sakshi_API1
 --select * from ds_mysql_prod_grantproposal --where proposalinstanceid = '5d42c4025570e08c058b5410'
-with table1 as (
+with table1 as (Select p3.name as projectId,p1.name as projectpartner,p2.name as partner,p.name,p.fy_timerange,
+--substring(cast(fy_timerange.start as varchar),1,4) as year1,
+				--substring(cast(fy_timerange.start as varchar),6,2) as month,
+				extract(month from cast(fy_timerange.start as datetime)) as month,
+extract(year from cast(fy_timerange.start as datetime)) as year,
+
+p.file, 
+t.name as type_doc,p.remarks,
+case
+when p.file IS NOT NULL then 'Download'
+else 'NA'
+end as download
+from profile_81314 p
+
+left join project_9730 p1 on p1.id = p.projectid
+left join project_9730 p2 on p2.id = p1.parent
+left join project_9730 p3 on p3.id=p2.parent
+left join tagelement_9730 t on t.id = p.type),
+
+table2 as (Select t.year1,
+		   case 
+when month = 1 then 'January'
+when month = 2 then 'February'
+when month = 3 then 'March'
+when month = 4 then 'April'
+when month = 5 then 'May'
+when month = 6 then 'June'
+when month = 7 then 'July'
+when month = 8 then 'August'
+when month = 9 then 'September'
+when month = 10 then 'October'
+when month = 11 then 'November'
+when month = 12 then 'December'
+end as abcd , concat(month,year1) as moi from table1 t)
+Select  * from table1
+
+--Select t2.abcd||t2.year1 as y1,t2.moi from table2 t2
+--group by  p3.name,p1.name,p2.name,p.name,p.fy_timerange,p.file,t.name,p.remarks
+
+
+/*with table1 as (
   select p.id as grantApplicationId,partner.id as grantPartnerId1, 
   proposal.id as grantProposalId1, proposallog.*,p.active as isactive, partner.active as activepartner, proposal.active as activeproposal, proposallog.active as activeproposallog
   
@@ -68,3 +108,4 @@ Select grantapplicationid  ,SPLIT_TO_ARRAY(listagg(distinct comp,', ')) as compp
 SPLIT_TO_ARRAY(listagg(distinct comp47477,', ')) as comp_47477,get_array_length(comp_47477),listagg(distinct pend47477,' ') as pend47477, listagg(distinct rej47477,' ') as rej47477
 from t4
 group by 1
+*/
