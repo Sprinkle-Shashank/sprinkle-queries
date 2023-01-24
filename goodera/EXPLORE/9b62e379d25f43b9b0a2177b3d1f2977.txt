@@ -1,16 +1,20 @@
 --AU_Bank_Beneficiary_dropout_details
-select p3.name as projectId,p1.name as projectname,p2.name as partner, p.fy_timerange,t3.name as district, t4.name as state, t8.name as domain,
+select p3.name as projectId,p1.name as projectname,p2.name as partner, 
+--p.fy_timerange,
+concat(concat(concat(concat('{"start":"',(TO_CHAR(p4.start_date, 'YYYY-MM-DD"T"HH24":"MI:SS.000"Z"'))),'","end":"'),(TO_CHAR(p4.proposed_end_date, 'YYYY-MM-DD"T"HH24":"MI:SS.000"Z"'))),'"}') as fy_timerange,
+t3.name as district, t4.name as state, t9.name as domain,
 case when t1.name = 'No' then 1 else 0 end as bene_dropout,t2.name as reason
 
 from profile_81359 p
-
+left join profile_81360 p4 on p4._id=p.batch
 left join project_9730 p1 on p1.id = p.projectid
 left join project_9730 p2 on p2.id = p1.parent
 left join project_9730 p3 on p3.id=p2.parent
 left join tagelement_9730 t1 on t1.id=p.bene_training
-left join tagelement_9730 t3 on t3.id=p.state_district
+left join tagelement_9730 t3 on t3.id=p4.state_district
 left join tagelement_9730 t4 on t4.id=t3.parent
-left join tagelement_9730 t8 on t8.id=p.domain
+left join tagelement_9730 t8 on t8.id=p4.domain_trade
+left join tagelement_9730 t9 on t9.id=t8.parent
 left join tagelement_9730 t2 on t2.id=p.reason
 
 where p.projectid like '%%'
