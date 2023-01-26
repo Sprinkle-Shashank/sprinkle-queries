@@ -1,8 +1,7 @@
 --TKM_Water_Purification_Institutional_Water_table
 
 with table1 as
-( select p.projectid , p._id , fy_timerange ,  the.name as theme_update , mon.name as month_update , sta.name as state_update , dis.name as district_update , p1.name as gram_name_update , villages , beneficiaries , unit_capacity , water_units , report ,photo ,impact_assessment , case_study , case when is_array(report) = false or get_array_length(report) = 0 then array(report)
-else (report) end as report_update from profile_83129 as p
+( select p.projectid , p._id , fy_timerange ,  the.name as theme_update , mon.name as month_update , sta.name as state_update , dis.name as district_update , p1.name as gram_name_update , villages , beneficiaries , unit_capacity , water_units , report ,photo ,impact_assessment , case_study , cast(report as varchar) as report_link, case when report is null then '-' else 'Download' end as report_update from profile_83129 as p
  
 left join ds_mysql_prod_tagelement the 
 on p.theme = the.id
@@ -18,11 +17,7 @@ on p.district = dis.id
  
 left join profile_83287 p1 
 on p.location = p1._id
- ),
+ )
  
- table2 as
- (
-   select p.* , cast(d1 as varchar)  as d1_update from table1 as p, p.report_update as d1)
- 
- select * from table2
+ select * from table1
 
