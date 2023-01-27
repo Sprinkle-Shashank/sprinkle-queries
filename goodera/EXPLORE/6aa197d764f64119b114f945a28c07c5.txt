@@ -1,4 +1,7 @@
-with tab1 as ( SELECT p1.fy_timerange,p1.total_assp, p1.total_nios,
+
+
+
+with s as ( SELECT p1.fy_timerange,p1.total_assp, p1.total_nios,
 P.name AS projectname,
 t1.name AS program,
 t2.name AS frequency,
@@ -25,12 +28,32 @@ LEFT JOIN ds_mysql_prod_tagelement t3
 ON t3.id = p1.program_2
 
 LEFT JOIN ds_mysql_prod_tagelement t4
-ON t4.id = p1.frequency_2)
+ON t4.id = p1.frequency_2),
 
-Select fy_timerange,total_assp,total_nios,frequency,frequency_2,student_assp,student_nios,count(*) as totalMid
+temp as (
+	Select 'total_assp' as col
+  union all
+	Select 'total_nios' as col
+)
+
+Select fy_timerange,frequency,frequency_2,student_assp,student_nios,
+case col
+	when 'total_assp' then s.total_assp
+	when 'total_nios' then s.total_nios
+	
+	else null
+	end as pivotdata,temp.col as "Type"
+from s
+cross join temp
+--where links !=' '
+
+
+
+
+/*Select fy_timerange,total_assp,total_nios,frequency,frequency_2,student_assp,student_nios,count(*) as totalAnnual
 from tab1
 where frequency = 'Annual' or frequency_2 = 'Annual' 
-group by 1,2,3,4,5,6,7
+group by 1,2,3,4,5,6,7*/
 
 /*Select fy_timerange,total_assp,total_nios,frequency,frequency_2,totalMid,count(*) as totalFinal
 from tab2
