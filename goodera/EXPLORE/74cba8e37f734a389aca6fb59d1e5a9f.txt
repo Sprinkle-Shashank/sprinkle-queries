@@ -1,17 +1,17 @@
 with table1 as
-(select month_timerange, conductedby, events,
+(select month_timerange, conductedby, events, cond.name as conductedby_update ,
 case
 when events = 'true' then 1 else 0
-end as Event_count , listagg(conductedby,',') as conductedby_update
+end as Event_count
 from profile_60433 as m
  
- group by  month_timerange, conductedby, events, event_count
- 
- ),
+ left join ds_mysql_prod_tagelememt cond
+ on p.conductedby = cond.id
+),
  
  table2 as
  ( 
-   select month_timerange, conductedby, events, event_count , d1 from table1 as p,p.conductedby_update as d1
+   select * from table1 as p
    )
  
  select * from table2 as p
