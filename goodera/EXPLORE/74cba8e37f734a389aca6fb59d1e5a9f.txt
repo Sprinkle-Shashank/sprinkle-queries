@@ -2,10 +2,26 @@ with table1 as
 (select month_timerange, conductedby, events,
 case
 when events = 'true' then 1 else 0
-end as Event_count
+end as Event_count , listagg(conductedby,',') as conductedby_update
 from profile_60433 as m
+ 
+ group by  month_timerange, conductedby, events, event_count
+ 
+ ),
+ 
+ table2 as
+ ( 
+   select *, d1 from table1 as p,p.conductedby_update as d1
+   ),
+   
+   table3 as
+   ( 
+	 select  month_timerange, conductedby, events, event_count , d1_new.name as conductedby_update_new from table2 as p
+	 
+	 left join ds_mysql_prod_tagelement d1_new
+	 on p.d1 = d1_new.id
  )
  
- select * from table1 as p
+ select * from table3 as p
  
  
