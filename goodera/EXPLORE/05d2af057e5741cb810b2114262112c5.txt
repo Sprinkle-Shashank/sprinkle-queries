@@ -19,30 +19,30 @@ group by 1,2,3,4,5,6),
 tab3 as (Select indicator, [Year1], value,fy_timerange,
 LAG (value,1)
 OVER (PARTITION BY indicator ORDER BY [Year1]) AS PrevYearRevenue1, 
-LAG (year1,1)
-OVER (PARTITION BY indicator ORDER BY [Year1]) AS PrevYear ,
-		 year1-1 as previous
+--LAG (year1,1)
+--OVER (PARTITION BY indicator ORDER BY [Year1]) AS PrevYear ,
+case when year1 is not null then (year1-1) else null as PrevYear
 from tab2
 ORDER BY indicator, [Year1]
 ),
 
-tab4 as (select indicator,year1,value,prevyearrevenue1,prevyear,fy_timerange,previous,
+tab4 as (select indicator,year1,value,prevyearrevenue1,prevyear,fy_timerange,
 		 case
 	when year1 - prevyear = 1 then PrevYearRevenue1
 	else 0
 end as PrevYearRevenue
 		 from tab3
 )
-Select indicator,year1,value,prevyearrevenue,prevyear,fy_timerange,previous,
+Select indicator,year1,value,prevyearrevenue,prevyear,fy_timerange,
 case 
 WHEN prevyearrevenue = 0 THEN NULL
  
-when year1 = '2021' then ((value - prevyearrevenue)/prevyearrevenue) * 100
-when year1 = '2019' then ((value - prevyearrevenue)/prevyearrevenue) * 100
-when year1 = '2018' then ((value - prevyearrevenue)/prevyearrevenue) * 100
+--when year1 = '2021' then ((value - prevyearrevenue)/prevyearrevenue) * 100
+--when year1 = '2019' then ((value - prevyearrevenue)/prevyearrevenue) * 100
+--when year1 = '2018' then ((value - prevyearrevenue)/prevyearrevenue) * 100
 
-end as revenue
-
+--end as revenue
+case when year1 is not null then ((value - prevyearrevenue)/prevyearrevenue) * 100 else null end as revenue
 /*case when revenue is null then 0  else revenue
 end as revenue1*/
 from tab4
