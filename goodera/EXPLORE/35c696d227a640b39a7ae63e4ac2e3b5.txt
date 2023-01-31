@@ -1,11 +1,15 @@
-select tag1.name as projectid, tag2.name as donor, fy_timerange, count(distinct school_name) as school_count, fy_timerange.start, fy_timerange.end
+with t1 as 
+(select tag1.name as projectid, tag2.name as donor, fy_timerange, count(distinct school_name) as school_count, fy_timerange.start as start_date, fy_timerange.end as end_date
 from profile_80587 p1
 left join ds_mysql_prod_project tag1
 on tag1.id = p1.projectid
 left join ds_mysql_prod_project tag2
 on tag2.id = tag1.parent
 group by 
-tag1.name, tag2.name, fy_timerange, school_name
+tag1.name, tag2.name, fy_timerange, school_name)
+
+select projectid, donor, fy_timerange, school_count, extract( Year from start_date) as star_year, extract( Year from end_date) as end_year
+from t1
 
 
 
