@@ -1,28 +1,19 @@
-with t1 as 
-(select projectId, district, fy_timerange from profile_46325 as m,
+--Yuva_gfc_heatmap
+Select a.fy_timerange as fy_timerange, p.name as projectid, p1.name as donor,t.name as city,t2.name as state,
+--t1.code as map_code
+count(*)
 
-m.state_district district),
+from profile_80582 a 
 
-temp2 as 
+left join ds_mysql_prod_project p on p.id = a.projectid
+left join ds_mysql_prod_project p1 on p1.id = p.parent
+--left join ds_mysql_prod_tagelement t on t.id=a.school_loc
+left join ds_mysql_prod_tagelement t2 on t2.id=t.parent
 
-(select tag1.name as projectid, fy_timerange, district, state1.name as state, state1_parent.name as district1, codes.name as map_codes1
-from t1
-left join ds_mysql_prod_project as tag1
-on t1.projectId = tag1.id 
+left join ds_mongo_reftagelementmetadata t1 on t1._id=t2.reftagelementmetadataid
 
-left join ds_mysql_prod_tagelement as state1
-on t1.district = state1.id
- 
-left join ds_mysql_prod_tagelement as state1_parent
-on state1.parent = state1_parent.id
 
-left join ds_mongo_reftagelementmetadata codes
-on district.name = codes.name)
-
-select projectid, fy_timerange, district, state, district1, map_codes1, reftag.code as map_codes
-from temp2
-LEFT JOIN ds_mongo_reftagelementmetadata reftag
-on temp2.state = reftag.name 
+group by a.fy_timerange, p.name,p1.name,t.name,t1.code,t2.name
 
  
 
