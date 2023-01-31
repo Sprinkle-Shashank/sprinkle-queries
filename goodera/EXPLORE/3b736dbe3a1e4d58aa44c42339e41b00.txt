@@ -208,7 +208,7 @@ group by
 grantapplicationid	,grantpartnerid1, grantproposalid1,	_id,	grantproposalid	,grantflowtaskid,	active,	completedgrantflowtask,	todo,	created,	creatorid,	modified,	modifierid,	grantpartnerid,	isactive,	activepartner,	activeproposal,	activeproposallog,	cgf),
 
 t5 as
-(Select grantapplicationid, 
+(Select grantapplicationid, created,
 
 SPLIT_TO_ARRAY(listagg(distinct comp28730,', ')) as comp_28730, get_array_length(comp_28730) as final_comp_28730, SPLIT_TO_ARRAY(listagg(distinct pend28730,', ')) as pend_28730, get_array_length(pend_28730) as final_pend_28730, SPLIT_TO_ARRAY(listagg(distinct rej28730,', ')) as rej_28730, get_array_length(rej_28730) as final_rej_28730,
 
@@ -237,133 +237,91 @@ SPLIT_TO_ARRAY(listagg(distinct comp47487,', ')) as comp_47487, get_array_length
 SPLIT_TO_ARRAY(listagg(distinct comp28722,', ')) as comp_28722, get_array_length(comp_28722) as final_comp_28722, SPLIT_TO_ARRAY(listagg(distinct pend28722,', ')) as pend_28722, get_array_length(pend_28722) as final_pend_28722, SPLIT_TO_ARRAY(listagg(distinct rej28722,', ')) as rej_28722, get_array_length(rej_28722) as final_rej_28722
 
 from t4
-group by 1),
+group by 1,2),
 t6 as
-(select grantapplicationid, temp.col as task,
+(select grantapplicationid, created, temp.col as task,
 case 
 when temp.col = 'Partner | Due Dilligence' then 1
 	when temp.col = 'Partner | Background Information' then 2
 	when temp.col = 'Partner | Proposal' then 3
-  
-  when temp.col = 'Approval by CSR team' then 4
-  
-  when temp.col = 'Due Diligence Task' then 5
-  
-  when temp.col = 'Post Due Diligence Approval by CSR Team' then 6
-  
-  when temp.col = 'Approval by Vertical Head' then 7
-  
-  when temp.col = 'Approval by reliance Team' then 8
-  
-  when temp.col = 'Approval by Legal Team' then 9
-  
-  when temp.col = 'Approval by Finance Team' then 10
-  
-  when temp.col = 'Approval by CSR functional head' then 11
-  
-  when temp.col = 'Approval by Board' then 12
-  
-  when temp.col = 'Proposal Approval Document' then 13
-  
-  else 0
-  end as sort_order,
+	when temp.col = 'Approval by CSR team' then 4
+	when temp.col = 'Due Diligence Task' then 5
+	when temp.col = 'Post Due Diligence Approval by CSR Team' then 6
+	when temp.col = 'Approval by Vertical Head' then 7
+	when temp.col = 'Approval by reliance Team' then 8
+	when temp.col = 'Approval by Legal Team' then 9
+	when temp.col = 'Approval by Finance Team' then 10
+	when temp.col = 'Approval by CSR functional head' then 11
+	when temp.col = 'Approval by Board' then 12
+	when temp.col = 'Proposal Approval Document' then 13
+else 0
+end as sort_order,
 
 
 case col 
 	when 'Partner | Due Dilligence' then final_pend_28730
 	when 'Partner | Background Information' then final_pend_47474
 	when 'Partner | Proposal' then final_pend_47477
-  
-  when 'Approval by CSR team' then final_pend_28720
-  
-  when 'Due Diligence Task' then final_pend_82013
-  
-  when 'Post Due Diligence Approval by CSR Team' then final_pend_82014
-  
-  when 'Approval by Vertical Head' then final_pend_28723
-  
-  when 'Approval by Compliance Team' then final_pend_28726
-  
-  when 'Approval by Legal Team' then final_pend_28724
-  
-  when 'Approval by Finance Team' then final_pend_28718
-  
-  when 'Approval by CSR functional head' then final_pend_28721
-  
-  when 'Approval by Board' then final_pend_47487
-  
-  when 'Proposal Approval Document' then final_pend_28722
-  
-  else 0 
-  end as pending,
+  	when 'Approval by CSR team' then final_pend_28720
+	when 'Due Diligence Task' then final_pend_82013
+	when 'Post Due Diligence Approval by CSR Team' then final_pend_82014
+	when 'Approval by Vertical Head' then final_pend_28723
+	when 'Approval by Compliance Team' then final_pend_28726
+	when 'Approval by Legal Team' then final_pend_28724
+	when 'Approval by Finance Team' then final_pend_28718
+	when 'Approval by CSR functional head' then final_pend_28721
+	when 'Approval by Board' then final_pend_47487
+	when 'Proposal Approval Document' then final_pend_28722
+else 0 
+end as pending,
 
 case col
 	when 'Partner | Due Dilligence' then final_comp_28730
 	when 'Partner | Background Information' then final_comp_47474
 	when 'Partner | Proposal' then final_comp_47477
-  
-  when 'Approval by CSR team' then final_comp_28720
-  
-  when 'Due Diligence Task' then final_comp_82013
-  
-  when 'Post Due Diligence Approval by CSR Team' then final_comp_82014
-  
-  when 'Approval by Vertical Head' then final_comp_28723
-  
-  when 'Approval by Compliance Team' then final_comp_28726
-  
-  when 'Approval by Legal Team' then final_comp_28724
-  
-  when 'Approval by Finance Team' then final_comp_28718
-  
-  when 'Approval by CSR functional head' then final_comp_28721
-  
-  when 'Approval by Board' then final_comp_47487
-  
-  when 'Proposal Approval Document' then final_comp_28722
-
+	when 'Approval by CSR team' then final_comp_28720
+	when 'Due Diligence Task' then final_comp_82013
+	when 'Post Due Diligence Approval by CSR Team' then final_comp_82014
+	when 'Approval by Vertical Head' then final_comp_28723
+	when 'Approval by Compliance Team' then final_comp_28726
+	when 'Approval by Legal Team' then final_comp_28724
+	when 'Approval by Finance Team' then final_comp_28718
+	when 'Approval by CSR functional head' then final_comp_28721
+	when 'Approval by Board' then final_comp_47487
+	when 'Proposal Approval Document' then final_comp_28722
 else 0 
-  end as completed,
+end as completed,
+ 
 case col
 	when 'Partner | Due Dilligence' then final_rej_28730
 	when 'Partner | Background Information' then final_rej_47474
 	when 'Partner | Proposal' then final_rej_47477
-  
-  when 'Approval by CSR team' then final_rej_28720
-  
-  when 'Due Diligence Task' then final_rej_82013
-  
-  when 'Post Due Diligence Approval by CSR Team' then final_rej_82014
-  
-  when 'Approval by Vertical Head' then final_rej_28723
-  
-  when 'Approval by reliance Team' then final_rej_28726
-  
-  when 'Approval by Legal Team' then final_rej_28724
-  
-  when 'Approval by Finance Team' then final_rej_28718
-  
-  when 'Approval by CSR functional head' then final_rej_28721
-  
-  when 'Approval by Board' then final_rej_47487
-  
-  when 'Proposal Approval Document' then final_rej_28722
+	when 'Approval by CSR team' then final_rej_28720
+	when 'Due Diligence Task' then final_rej_82013
+	when 'Post Due Diligence Approval by CSR Team' then final_rej_82014
+	when 'Approval by Vertical Head' then final_rej_28723
+	when 'Approval by reliance Team' then final_rej_28726
+	when 'Approval by Legal Team' then final_rej_28724
+	when 'Approval by Finance Team' then final_rej_28718
+	when 'Approval by CSR functional head' then final_rej_28721
+	when 'Approval by Board' then final_rej_47487
+	when 'Proposal Approval Document' then final_rej_28722
 else 0 
-  end as rejected,
+end as rejected,
   
-  1 as count
+1 as count
   
- from t5
- cross join temp)
+from t5
+cross join temp)
   
-  select grantapplicationid, task, sort_order, count, temp2.col as status,
-  case col 
+select grantapplicationid, created, task, sort_order, count, temp2.col as status,
+case col 
   when 'Pending' then t6.pending
   when 'Completed' then t6.completed
   when 'Rejected' then t6.rejected
-  else 0
-  end as task_values
-  from t6
+else 0
+end as task_values
+from t6
   
-  cross join temp2
+cross join temp2
   
