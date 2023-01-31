@@ -1,0 +1,31 @@
+with temp as(
+  select 'Number of schools' as col
+  union all
+  select 'Total tablets given to school' as col
+  union all
+  select 'Number of students benefiting' as col
+  union all
+  select 'Indirect beneficiaries' as col
+  union all
+  select 'Number of digital classrooms' as col)
+    
+select p1.name as projectid, p2.name as donor, a.fy_timerange,
+
+sum(
+  case col
+  when 'Number of schools' then a.no_of_schools
+  when 'Total tablets given to school' then a.total_tablet_given_school
+  when 'Indirect beneficiaries' then a.indirect_bene
+  when 'Number of students benefiting' then a.no_of_benefiting_students
+  when 'Number of digital classrooms' then a.no_of_digital_classrooms
+  else NULL
+  end) as val, temp.col as dim
+  
+from profile_80608 a
+cross join temp
+
+left join ds_mysql_prod_project p1 on p1.id = a.projectid
+left join ds_mysql_prod_project p2 on p2.id = p1.parent
+where dim = 'Number of schools'
+
+group by p1.name , p2.name , a.fy_timerange, dim
