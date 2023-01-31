@@ -1,5 +1,52 @@
 --Target_RSAP_Factory_MSA_Total_Factories
-with sub1 as(
+
+with table1 as
+(select _id , projectId,country, vendor,unwind_cycle, product_category, consultant_tag from profile_64362 as p ,p.cycle as unwind_cycle),
+
+ table2 as
+(select _id, projectId,country, vendor,cycle,product_category,consultant_tag from profile_64362
+  where _id not in (select _id from table1))
+  ,
+  
+table3 as
+ (
+	select * from table1
+  Union all
+  select * from table2
+ )
+ ,
+
+
+
+
+t2 as (
+select p3.name as projectId , tag3.name as country, p2.vendor,tag5.name as cycle,tag4.name as consultant from profile_62477 as p1
+  
+  left join table3 as p2
+on p1.projectId = p2.projectId
+left join project_7746 p3
+on p1.projectId= p3.id
+  left join tagElement_7746 tag3
+on p2.country = tag3.id
+left join  tagElement_7746 tag4
+on p2.consultant_tag = tag4.id
+left join tagElement_7746 tag5
+on p2.unwind_cycle = tag5.id 
+
+)
+
+select projectId,country,vendor,consultant,cycle ,1 as count from t2
+group by projectId,country,vendor,consultant,cycle
+
+
+
+  
+
+ 
+
+
+
+/*with sub1 as(
   select p2.name as projectid, t1.name as country, p3.vendor, p4.name as consultant, p3.cycle
 
 from profile_62477 p1
@@ -16,3 +63,4 @@ select s2.projectid, s2.country, s2.vendor, s2.consultant, t2.name as cycle, 1 a
 from sub2 s2
 left join tagElement_7746 t2 on t2.id = s2.cycle_new
 group by s2.projectid, s2.country, s2.vendor, s2.consultant, t2.name
+*/
