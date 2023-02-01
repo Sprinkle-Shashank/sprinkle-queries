@@ -33,7 +33,7 @@ temp as (
 	Select 'total_nios' as col
 )
 
-Select fy_timerange,frequency,frequency_2,student_assp,student_nios,count(*) as totalMid,
+Select fy_timerange,program,program_2,frequency,frequency_2,student_assp,student_nios,count(*) as totalMid,
 case col
 	when 'total_assp' then s.total_assp
 	when 'total_nios' then s.total_nios
@@ -43,9 +43,15 @@ case col
 	CASE
 	WHEN pivotdata>=33 and pivotdata<60  then '33-60%'
 	WHEN pivotdata>=0 and pivotdata<33  then '0-33%'
-	WHEN pivotdata>=60 and pivotdata<80  then '60-80%'
 	WHEN pivotdata>=80 then '80% and Above'
-END AS types
+	WHEN pivotdata>=60 and pivotdata<80  then '60-80%'
+END AS types,
+CASE
+	WHEN types='33-60%' then 1
+	WHEN types='0-33%' then 2
+	WHEN types='80% and Above' then 3
+	WHEN types='60-80%' then 4
+END AS types_order
 from s
 cross join temp
 where frequency = 'Half-Yearly' or frequency_2 = 'Half-Yearly' 
