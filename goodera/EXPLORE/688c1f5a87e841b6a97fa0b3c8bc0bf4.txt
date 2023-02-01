@@ -152,43 +152,56 @@ on p2.unwind_cycle = tag5.id
 
 left join tagElement_7746 t1 on t1.id = p1.select_factory_msa
 ),
-
-sub3 as(
-  select s2.id, s2.projectid, s2.select_factory_msa, s2.country, s2.vendor, s2.consultant, cycle, 
-
-LEAST(s2.resources, s2.policies, s2.hs_risk, s2.risk) as plan, 
-LEAST(s2.procedure, s2.communication, s2.grievance, s2.training, s2.hs_training) as do, 
-LEAST(s2.incident, s2.monitoring) as check,
-LEAST(s2.act_adjust, s2.hs_act) as act
+item as(
+  select 'resources' as col
+  union all
+  select 'policies' as col
+  union all
+  select 'hs_risk' as col
+  union all
+  select 'risk' as col
+  union all
+  select 'procedure' as col
+  union all
+  select 'grievance' as col
+  union all
+  select 'training' as col
+  union all
+  select 'monitoring' as col
+  union all
+  select 'incident' as col
+  union all
+  select 'communication' as col
+  union all
+  select 'hs_training' as col
+  union all
+  select 'act_adjust' as col
+  union all
+  select 'hs_act' as col),
   
-from sub1 s2
-),
-
-sub4 as(
-  select s3.id, s3.projectid, s3.select_factory_msa, s3.country, s3.vendor, s3.consultant, s3.cycle,
-
-LEAST(s3.plan, s3.do, s3.check, s3.act) as overall
-
-from sub3 s3
-where s3.select_factory_msa = 'Endline'),
-
-sub5 as(
-  select s4.projectid, s4.country, s4.vendor, s4.consultant, s4.cycle, 
-avg(cast(s4.overall as FLOAT)) as score
-from sub4 s4
-group by s4.projectid, s4.country, s4.vendor, s4.consultant, s4.cycle)
-
-select projectid, country, vendor, consultant, cycle, score, 1 as count,
-case
-	when score = 1 then 'Basic'
-	when score = 2 then 'Reactive'
-	when score = 3 then 'Compliant'
-	when score = 4 then 'Proactive'
-	when score = 5 then 'Resilient'
+sub3 as(
+  select s2.projectid, s2.country, s2.vendor, s2.consultant, s2.select_factory_msa, table1.col as dimensions, cycle,
+case table1.col
+	when 'resources' then s2.resources
+	when 'policies' then s2.policies
+	when 'hs_risk' then s2.hs_risk
+	when 'risk' then s2.risk
+	when 'procedure' then s2.procedure
+	when 'grievance' then s2.grievance
+	when 'training' then s2.training
+	when 'monitoring' then s2.monitoring
+	when 'incident' then s2.incident
+	when 'communication' then s2.communication
+	when 'hs_training' then s2.hs_training
+	when 'act_adjust' then s2.act_adjust
+	when 'hs_act' then s2.hs_act
 	else NULL
-end as x_axis
-from sub5
- 
+end as score
+from sub2 s2
+cross join item
+)
 
-
-
+select projectid, country, vendor, consultant, select_factory_msa, dimensions, cycle, 1 as count
+from sub3
+where score >= 3
+group by projectid, country, vendor, consultant, select_factory_msa, dimensions, cycle
