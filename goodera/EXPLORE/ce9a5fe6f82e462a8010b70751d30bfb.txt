@@ -1,0 +1,53 @@
+with t1 as (
+select * from profile_80587),
+
+
+b as(
+  select 'Male' as col
+  union all
+  select 'Female' as col
+  union all
+  select 'Other' as col),
+
+t2 as 
+(Select a.fy_timerange, p.name as projectid,p1.name as donor,b.col as gender,t3.name as city, t4.name as state, m1.code as map_code,
+case
+	when (p.name) like '%School Transformation' then 'School Transformation'
+	when (p.name) like '%Random act of kindness' then 'Random act of kindness'
+	when (p.name) like '%Health & Nutrition' then 'Health & Nutrition'
+	when (p.name) like '%Unstoppable Vaccination Drive' then 'Unstoppable Vaccination Drive'
+	when (p.name) like '%Remote Learning' then 'Remote Learning'
+	when (p.name) like '%Educational Scholarships' then 'Educational Scholarships'
+	else NULL
+	end as project_type,
+	
+sum(case col
+	when 'Male' then a.male_student
+	when 'Female' then a.female_student	
+	when 'Other' then a.other_gender_student	
+	else NULL
+	end )as students
+	
+from t1 a
+cross join b
+left join ds_mysql_prod_project p on p.id = a.projectid
+left join ds_mysql_prod_project p1 on p1.id = p.parent
+left join ds_mysql_prod_tagelement t3 on t3.id = a.school_location	
+left join ds_mysql_prod_tagelement t4 on t4.id = t3.parent
+left join ds_mongo_reftagelementmetadata m1 on m1._id=t4.reftagelementmetadataid
+
+where a.projectid like '%%'
+group by a.fy_timerange, p.name,p1.name,gender,city, state, m1.code),
+
+t3 as 
+(select fy_timerange, projectid, donor, gender, city, state, map_code, project_type, students,
+case when state is null then city else state end as state_new
+from t2),
+
+t4 as
+(select t3.*, tag4.code as map_code_final from t3
+left join ds_mongo_reftagelementmetadata tag4
+on t3.state_new = tag4.name)
+
+select * from t4
+where map_code is null
