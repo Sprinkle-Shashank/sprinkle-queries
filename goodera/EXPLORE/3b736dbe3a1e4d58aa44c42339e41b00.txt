@@ -208,7 +208,7 @@ group by
 grantapplicationid	,grantpartnerid1, grantproposalid1,	_id,	grantproposalid	,grantflowtaskid,	active,	completedgrantflowtask,	todo,	created,	creatorid,	modified,	modifierid,	grantpartnerid,	isactive,	activepartner,	activeproposal,	activeproposallog,	cgf),
 
 t5 as
-(Select grantapplicationid, created,
+(Select grantapplicationid, grantpartnerid, concat(concat(substring(cast(timestamp 'epoch' + CAST(created AS BIGINT)/1000 * interval '1 second' as varchar), 1, 10),'T'), concat(split_part(cast(timestamp 'epoch' + CAST(created AS BIGINT)/1000 * interval '1 second' as varchar), ' ',2),'.000Z')) as startdate ,
 
 SPLIT_TO_ARRAY(listagg(distinct comp28730,', ')) as comp_28730, get_array_length(comp_28730) as final_comp_28730, SPLIT_TO_ARRAY(listagg(distinct pend28730,', ')) as pend_28730, get_array_length(pend_28730) as final_pend_28730, SPLIT_TO_ARRAY(listagg(distinct rej28730,', ')) as rej_28730, get_array_length(rej_28730) as final_rej_28730,
 
@@ -239,7 +239,7 @@ SPLIT_TO_ARRAY(listagg(distinct comp28722,', ')) as comp_28722, get_array_length
 from t4
 group by 1,2),
 t6 as
-(select grantapplicationid, created, temp.col as task,
+(select grantapplicationid, grantpartnerid, startdate, temp.col as task,
 case 
 when temp.col = 'Partner | Due Dilligence' then 1
 	when temp.col = 'Partner | Background Information' then 2
@@ -312,9 +312,13 @@ end as rejected,
 1 as count
   
 from t5
-cross join temp)
+cross join temp),
+
+vert as
+(select vertical, grantpartnerid from profile_56574)
+
   
-select grantapplicationid, created, task, sort_order, count, temp2.col as status,
+select grantapplicationid, grantpartnerid, vertical, startdate, task, sort_order, count, temp2.col as status,
 case col 
   when 'Pending' then t6.pending
   when 'Completed' then t6.completed
@@ -324,4 +328,7 @@ end as task_values
 from t6
   
 cross join temp2
+
+left join vert v 
+on v.grantpartnerid = grantpartnerid
   
