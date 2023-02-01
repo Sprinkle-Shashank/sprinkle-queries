@@ -80,18 +80,19 @@ case when year1-PreviousYear >1 then 0 else revenue1 end as revenuefin,
   
   -- if year does not exist then create a record with null as value and -100 will be the revenue
 case when value is null then -100 else revenuefin end as revenue
-from tab5), 
-seq AS (
-  SELECT min_year + ROW_NUMBER() OVER (ORDER BY 1) - 1 AS year
-  FROM years,
-  LATERAL (SELECT 1 UNION ALL SELECT 2 UNION ALL SELECT 3 UNION ALL SELECT 4 UNION ALL SELECT 5 UNION ALL SELECT 6 UNION ALL SELECT 7 UNION ALL SELECT 8) AS x(n)
+from tab5),
+Recursive CTE AS (
+    SELECT 2018 AS year
+    UNION ALL
+    SELECT year + 1 FROM CTE WHERE year < 2030
+),
+tab7 AS (
+    SELECT year, indicator, fy_timerange, PreviousYear, value, revenue, min_year, max_year
+    FROM CTE LEFT JOIN tab6
+    ON CTE.year = tab6.year1
 )
-SELECT seq.year
-FROM seq
-LEFT JOIN your_table
-ON seq.year = tab6.year1
-WHERE tab6.year1 IS NULL
-ORDER BY seq.year
+SELECT indicator, fy_timerange, year, PreviousYear, value, revenue, min_year, max_year
+FROM tab7
 --select indicator,fy_timerange,year1 as year,PreviousYear, value,revenue,min_year,max_year from tab6
 --UNION
 --select null,null,2020,2019,null,null,null,null
