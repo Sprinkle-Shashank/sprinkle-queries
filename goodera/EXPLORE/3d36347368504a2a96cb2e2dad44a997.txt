@@ -1,11 +1,17 @@
+--Yuva_Summary_GFC_beneficiaries
+with t1 as (
+select * from profile_80582),
+
+
+
 with b as(
   select 'Male' as col
   union all
   select 'Female' as col
   union all
   select 'Other' as col)
-
-Select a.fy_timerange, p.name as projectid,p1.name as donor,b.col as gender,t3.name as city, t4.name as state, m1.code as map_code,
+t2 as 
+(Select a.fy_timerange, p.name as projectid,p1.name as donor,b.col as gender,t3.name as city, t4.name as state
 case
 	when (p.name) like '%School Transformation' then 'School Transformation'
 	when (p.name) like '%Random act of kindness' then 'Random act of kindness'
@@ -23,13 +29,26 @@ sum(case col
 	else NULL
 	end )as students
 	
-from profile_80582 a
+from t1 a
 cross join b
 left join ds_mysql_prod_project p on p.id = a.projectid
 left join ds_mysql_prod_project p1 on p1.id = p.parent
 left join ds_mysql_prod_tagelement t3 on t3.id = a.school_loc	
 left join ds_mysql_prod_tagelement t4 on t4.id = t3.parent
-left join ds_mongo_reftagelementmetadata m1 on m1._id=t4.reftagelementmetadataid
 
 where a.projectid like '%%'
-group by a.fy_timerange, p.name,p1.name,gender,city, state, m1.code
+group by a.fy_timerange, p.name,p1.name,gender,city, state, m1.code),
+
+t3 as 
+(select fy_timerange, projectid, donor, gender, city, state, project_type, students :: INT,
+case when state is null then city else state end as state_new
+from t2), 
+
+t4 as
+(select fy_timerange, projectid, donor, gender, city, state, state_new, project_type, students :: INT, tag4.code as map_code from t3
+left join ds_mongo_reftagelementmetadata tag4
+on t3.state_new = tag4.name)
+
+select fy_timerange, projectid, donor, gender, city, state, state_new, project_type, students :: INT, map_code, len(map_code) as len
+from t4
+where len <= 5
