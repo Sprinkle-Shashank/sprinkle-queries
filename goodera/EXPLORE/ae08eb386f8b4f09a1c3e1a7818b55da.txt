@@ -1,0 +1,29 @@
+--Yuva_Summary_vaccination_beneficiary
+select p2.name as projectid,p1.fy_timerange,p4.name as donor,t2.name as city, t3.name as state,t4.name as is_vaccinated,t5.name as gender,count(*) as count,m1.code as map_code,
+case
+	when (p2.name) like '%School Transformation' then 'School Transformation'
+	when (p2.name) like '%Random act of kindness' then 'Random act of kindness'
+	when (p2.name) like '%Health & Nutrition' then 'Health & Nutrition'
+	when (p2.name) like '%Unstoppable Vaccination Drive' then 'Unstoppable Vaccination Drive'
+	when (p2.name) like '%Remote Learning' then 'Remote Learning'
+	when (p2.name) like '%Educational Scholarships' then 'Educational Scholarships'
+	else NULL
+	end as project_type
+
+from profile_80476 p1
+left join ds_mysql_prod_project p2 on p2.id = p1.projectid
+left join ds_mysql_prod_project p4 on p4.id = p2.parent
+
+
+left join profile_80475 p3 on p3._id=p1.vacc_centre
+left join ds_mysql_prod_tagelement t2 on t2.id=p3.centre_loc 
+left join ds_mysql_prod_tagelement t3 on t3.id=t2.parent
+left join ds_mysql_prod_tagelement t4 on t4.id=p1.is_vacc
+left join ds_mysql_prod_tagelement t5 on t5.id=p1.bene_gender
+left join ds_mongo_reftagelementmetadata m1 on m1._id=t3.reftagelementmetadataid
+
+--where p1.projectid like '%%'
+where is_vaccinated = 'Yes'
+and m1.code is not null
+
+group by p2.name,p1.fy_timerange,p4.name,t2.name,t3.name,t4.name,t5.name,m1.code
