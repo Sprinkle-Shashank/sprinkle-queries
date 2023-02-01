@@ -1,0 +1,125 @@
+with s as ( SELECT p1.fy_timerange,p1.total_assp, p1.total_nios,
+P.name AS projectname,
+t1.name AS program,
+t2.name AS frequency,
+p1.name AS student_assp,
+t3.name AS program_2,
+t4.name AS frequency_2,
+p1.name AS student_nios
+
+FROM profile_56185 AS p1
+
+LEFT JOIN ds_mysql_prod_project AS P
+ON p1.projectid = P.id
+
+LEFT JOIN profile_56184 AS p2
+ON p2._id = p1.student_assp
+
+LEFT JOIN ds_mysql_prod_tagelement t1
+ON t1.id = p1.program
+
+LEFT JOIN ds_mysql_prod_tagelement t2
+ON t2.id = p1.frequency
+
+LEFT JOIN ds_mysql_prod_tagelement t3
+ON t3.id = p1.program_2
+
+LEFT JOIN ds_mysql_prod_tagelement t4
+ON t4.id = p1.frequency_2),
+
+temp as (
+	Select 'total_assp' as col
+  union all
+	Select 'total_nios' as col
+)
+
+Select fy_timerange,frequency,frequency_2,student_assp,student_nios,count(*) as totalFinal,
+case col
+	when 'total_assp' then s.total_assp
+	when 'total_nios' then s.total_nios
+	else null
+	end as pivotdata,temp.col as "Type",
+	
+	CASE
+	WHEN pivotdata>=33 and pivotdata<60  then '33-60%'
+	WHEN pivotdata>=0 and pivotdata<33  then '0-33%'
+	WHEN pivotdata>=60 and pivotdata<80  then '60-80%'
+	WHEN pivotdata>=80 then '80% and Above'
+END AS types
+from s
+cross join temp
+where frequency = 'Annual' or frequency_2 = 'Annual' 
+group by 1,2,3,4,5,7,8
+
+/*CASE
+	WHEN proforma<60 then 'Below 60%'
+	WHEN proforma>=60 and  proforma<=80 then '60-80%'
+	WHEN proforma>80 then 'Above 80%'
+END AS types,location,
+CASE
+	WHEN types='Below 60%' then 1
+	WHEN types='60-80%' then 2
+	WHEN types='Above 80%' then 3
+END AS types_order*/
+
+
+/*with s as ( SELECT p1.fy_timerange,p1.total_assp, p1.total_nios,
+P.name AS projectname,
+t1.name AS program,
+t2.name AS frequency,
+p1.name AS student_assp,
+t3.name AS program_2,
+t4.name AS frequency_2,
+p1.name AS student_nios
+
+FROM profile_56185 AS p1
+
+LEFT JOIN ds_mysql_prod_project AS P
+ON p1.projectid = P.id
+
+LEFT JOIN profile_56184 AS p2
+ON p2._id = p1.student_assp
+
+LEFT JOIN ds_mysql_prod_tagelement t1
+ON t1.id = p1.program
+
+LEFT JOIN ds_mysql_prod_tagelement t2
+ON t2.id = p1.frequency
+
+LEFT JOIN ds_mysql_prod_tagelement t3
+ON t3.id = p1.program_2
+
+LEFT JOIN ds_mysql_prod_tagelement t4
+ON t4.id = p1.frequency_2),
+
+temp as (
+	Select 'total_assp' as col
+  union all
+	Select 'total_nios' as col
+)
+
+Select fy_timerange,frequency,frequency_2,student_assp,student_nios,count(*) as totalMid,
+case col
+	when 'total_assp' then s.total_assp
+	when 'total_nios' then s.total_nios
+	
+	else null
+	end as pivotdata,temp.col as "Type"
+from s
+cross join temp
+where frequency = 'Half-Yearly' or frequency_2 = 'Half-Yearly' 
+group by 1,2,3,4,5,7,8
+--where links !=' '*/
+
+
+
+
+/*Select fy_timerange,total_assp,total_nios,frequency,frequency_2,student_assp,student_nios,count(*) as totalAnnual
+from tab1
+where frequency = 'Annual' or frequency_2 = 'Annual' 
+group by 1,2,3,4,5,6,7*/
+
+/*Select fy_timerange,total_assp,total_nios,frequency,frequency_2,totalMid,count(*) as totalFinal
+from tab2
+where frequency = 'Annual' or frequency_2 = 'Annual' 
+group by 1,2,3,4,5,6*/
