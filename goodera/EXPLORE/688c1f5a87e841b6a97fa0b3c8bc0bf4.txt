@@ -1,3 +1,4 @@
+--Target_RSAP_Factory_MSA_Graph
 with table1 as
 (select _id , projectId,country, vendor,unwind_cycle, product_category, consultant_tag from profile_64362 as p ,p.cycle as unwind_cycle),
 
@@ -152,64 +153,60 @@ left join tagElement_7746 t1 on t1.id = p1.select_factory_msa
 ),
 
 
- 
+item as(
+  select 'PLAN - Resources' as col
+  union all
+  select 'PLAN - Policies, Objective, Targets, Metrics & KPIs' as col
+  union all
+  select 'PLAN - Risk Assessment' as col
+  union all
+  select 'PLAN - H&S Risk Assessment' as col
+  union all
+  select 'DO - Procedure & Implementation' as col
+  union all
+  select 'DO - Communication' as col
+  union all
+  select 'DO - Grievance' as col
+  union all
+  select 'DO - Training' as col
+  union all
+  select 'DO - H&S Training & Implementation' as col
+  union all
+  select 'CHECK - Monitoring' as col
+  union all
+  select 'CHECK - Incident' as col
+  union all
+  select 'ACT - H&S Act/Adjust' as col
+  union all
+  select 'ACT - Act/Adjust' as col),
+  
 sub3 as(
-  select s2.id, s2.projectid, s2.select_factory_msa, s2.country, s2.vendor, s2.consultant,s2.cycle, 
-
-LEAST(s2.resources, s2.policies, s2.hs_risk, s2.risk) as plan, 
-LEAST(s2.procedure, s2.communication, s2.grievance, s2.training, s2.hs_training) as do, 
-LEAST(s2.incident, s2.monitoring) as check,
-LEAST(s2.act_adjust, s2.hs_act) as act
+  select s2.id, s2.projectid, s2.country, s2.vendor, s2.consultant, s2.select_factory_msa, table1.col as dimensions, t3.name as cycle,
+  
+sum(
+  case item.col
+	when 'PLAN - Resources' then s2.resources
+	when 'PLAN - Policies, Objective, Targets, Metrics & KPIs' then s2.policies
+	when 'PLAN - Risk Assessment' then s2.risk
+	when 'PLAN - H&S Risk Assessment' then s2.hs_risk
+	when 'DO - Procedure & Implementation' then s2.procedure
+	when 'DO - Communication' then s2.communication
+	when 'DO - Grievance' then s2.grievance
+	when 'DO - Training' then s2.training
+	when 'DO - H&S Training & Implementation' then s2.hs_training
+	when 'CHECK - Monitoring' then s2.monitoring
+	when 'CHECK - Incident' then s2.incident
+	when 'ACT - H&S Act/Adjust' then s2.hs_act
+	when 'ACT - Act/Adjust' then s2.act_adjust
+	else NULL
+end) as score
   
 from sub1 s2
-),
+cross join item
 
-sub4 as(
-  select s3.id, s3.projectid, s3.select_factory_msa, s3.country, s3.vendor, s3.consultant, s3.cycle,
+group by s2.id, s2.projectid, s2.country, s2.vendor, s2.consultant, s2.select_factory_msa, item.col, t3.name)
 
-LEAST(s3.plan, s3.do, s3.check, s3.act) as overall
-
-from sub3 s3),
-
-sub5 as(
-  select s4.projectid, s4.country, s4.vendor, s4.consultant, s4.cycle, s4.select_factory_msa,
-avg(cast(s4.overall as FLOAT)) as overall
-from sub4 s4
-group by s4.projectid, s4.country, s4.vendor, s4.consultant, s4.cycle, s4.select_factory_msa),
-
-sub6 as(
-  select s5.projectid, s5.country, s5.vendor, s5.consultant, s5.cycle, s5.select_factory_msa, 
-
-case
-	when s5.select_factory_msa = 'Baseline' then s5.overall
-	else 0
-end as overall_b,
-
-case
-	when s5.select_factory_msa = 'Endline' then s5.overall
-	else 0
-end as overall_e
-
-from sub5 s5),
-
-sub7 as(
-  select s6.projectid, s6.country, s6.vendor, s6.consultant, s6.cycle, 
-sum(s6.overall_b) as overall_b, sum(s6.overall_e) as overall_e
-
-from sub6 s6
-group by s6.projectid, s6.country, s6.vendor, s6.consultant, s6.cycle)
-
-
-select projectid, country, vendor, consultant, cycle, overall_e,overall_b, (overall_e - overall_b) as improvement,
-case
-	when improvement < 0 then 1
-	else 0
-end as filter
-from sub7
-where filter = 1
-
-
-
+select projectid,country,vendor,consultant,cycle,select_factory_msa,dimensions,id as id2,score from sub3
 
 /*
 
