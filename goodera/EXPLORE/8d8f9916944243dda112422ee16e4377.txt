@@ -1,30 +1,3 @@
---with Lookup as (Select b.name as ProjectCode1,d.name as fy_timerange1,p.bennum,as --No_of_Beneficiaries,d.name as CODE1
---from profile_27420 d
---left join ds_mysql_prod_tagelement b on
---d.fy=b.id
---union
---Select c.name as ProjectCode,a.name as --fy_timerange,CONCAT(c.name,CONCAT(CONCAT('[',a.name),']')) as CODE
---from profile_27396 c
---left join ds_mysql_prod_tagelement a on
---c.fy=a.id),No_of_Beneficiaries as(
---select ProjectCode, m.name as --Project_Manager,focusarea,fy_timerange,CONCAT(ProjectCode,CONCAT(CONCAT('[',fy_timerange),']--')) as CODE,Total_Beneficiaries  from
---(select split_part(ProjectCode,'.',1) as ProjectCode, --focusarea,fy_timerange,Total_Beneficiaries  from 
---(select  split_part(prod.name,'|',1) as ProjectCode,t.name as fy_timerange, p.focus_area as --focusarea,p.bennum as Total_Beneficiaries 
--- from profile_59426 p 
---left join ds_mysql_prod_project prod on
---prod.id=p.projectid
---left join ds_mysql_prod_tagelement t on
---p.fy=t.id) )
---left join profile_27396 n on
---ProjectCode=n.name
---left join ds_mysql_prod_tagelement m on
---n.project_manager=m.id),Base as(select --l.ProjectCode,l.Project_Manager,l.focusarea,l.fy_timerange,sum(l.Total_Beneficiaries) as Sum --from No_of_Beneficiaries l left join Lookup p on
---l.CODE=p.CODE1
---group by l.ProjectCode,l.Project_Manager,l.focusarea,l.fy_timerange)
---select * from Base
---group by
- --ProjectCode,m.name,focusarea,fy_timerange,Total_Beneficiaries
------------------------------------------------------------------------------------
 with Lookup as
 (select cast((split_part(split_part(prod.name,'|',1),'.',1)) as varchar) as ProjectCode,f.name as fy_timerange,p.focus_area as Focusarea,p.bennum as No_of_Beneficiaries,CONCAT(ProjectCode,fy_timerange) as CODE
 from profile_59426 p 
@@ -61,6 +34,4 @@ group by p.fy_timerange,l.Project_Manager,p.ProjectCode,p.Focusarea )
  
 select fy_timerange,case when len(Project_Manager)>0 then Project_Manager
 when Project_Manager is NULL then 'N/A' end as Project_Manager ,ProjectCode,Focusarea,No_of_Beneficiaries from Base2
---select * from Lookup
---select * from Lookup
 
