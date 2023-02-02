@@ -1,39 +1,15 @@
-with Lookup as
-(select cast((split_part(split_part(prod.name,'|',1),'.',1)) as varchar) as ProjectCode,f.name as fy_timerange,split_part(prod.name,'|',3) as CensusCode,p.focus_area as Focusarea,CONCAT(ProjectCode,fy_timerange) as CODE
- from profile_59426 p 
-left join project_4188 prod on
-prod.id=p.projectid
-left join tagelement_4188 f on
-p.fy=f.id
-)
-
-,Base1 as
-(select cast(q.name as varchar) as ProjectCode,f.name as fy_timerange,m.name as Project_Manager,CONCAT(ProjectCode,fy_timerange) as CODE
+select cast(q.name as varchar) as ProjectCode,f.name as fy_timerange,m.name as Project_Manager,CONCAT(ProjectCode,fy_timerange) as CODE
 from profile_27420 d
-left join tagelement_4188 f on
+left join ds_mysql_prod_tagelement f on
 d.fy=f.id
-left join tagelement_4188 m on
+left join ds_mysql_prod_tagelement m on
 d.project_manager=m.id
 left join profile_27396 q on
 d.project_code=q._id
 union
 select cast(c.name as varchar)as ProjectCode,f.name as fy_timerange,m.name as Project_Manager,CONCAT(ProjectCode,fy_timerange) as CODE 
 from profile_27396 c	
-left join tagelement_4188 f on
+left join ds_mysql_prod_tagelement f on
 c.fy=f.id
-left join tagelement_4188 m on
-c.project_manager=m.id)
-
-,Base2 as
-(select p.CensusCode,p.fy_timerange,l.Project_Manager,p.ProjectCode,p.Focusarea
-from Lookup p
-left join Base1 l
-on p.CODE=l.CODE group by p.CensusCode,p.fy_timerange,l.Project_Manager,p.ProjectCode,p.Focusarea )
-
-,Base3 as
-(select p.fy_timerange,p.Project_Manager,p.ProjectCode,p.Focusarea,upper(l.state) as State		from Base2 p left join 
-profile_27489 l on p.CensusCode=l.name
- group by p.fy_timerange,p.Project_Manager,p.ProjectCode,p.Focusarea,l.state),Base4 as(
- select fy_timerange,Project_Manager,ProjectCode,Focusarea,State,count(*) as statecount  from Base3  group by fy_timerange,Project_Manager,ProjectCode,Focusarea,State)
-select fy_timerange,case when len(Project_Manager)>0 then Project_Manager
-when Project_Manager is NULL then 'N/A' end as Project_Manager ,ProjectCode,Focusarea,State,statecount,count(*) as COUNT  from Base4 where State is not NULL group by fy_timerange,Project_Manager,ProjectCode,Focusarea,State,statecount 
+left join ds_mysql_prod_tagelement m on
+c.project_manager=m.id
