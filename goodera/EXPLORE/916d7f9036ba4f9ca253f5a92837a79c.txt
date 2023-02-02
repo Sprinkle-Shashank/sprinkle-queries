@@ -1,9 +1,9 @@
 with Lookup as
 (select cast((split_part(split_part(prod.name,'|',1),'.',1)) as varchar) as ProjectCode,f.name as fy_timerange,p.focus_area as Focusarea,CONCAT(ProjectCode,fy_timerange) as CODE
 from profile_59426 p 
-left join ds_mysql_prod_project prod on
+left join project_4188 prod on
 prod.id=p.projectid
-left join ds_mysql_prod_tagelement f on
+left join tagelement_4188 f on
 p.fy=f.id
 )
 
@@ -11,9 +11,9 @@ p.fy=f.id
 (select cast(q.name as varchar) as ProjectCode,f.name as fy_timerange,
 m.name as Project_Manager,CONCAT(ProjectCode,fy_timerange) as CODE
 from profile_27420 d
-left join ds_mysql_prod_tagelement f on
+left join tagelement_4188 f on
 d.fy=f.id
-left join ds_mysql_prod_tagelement m on
+left join tagelement_4188 m on
 d.project_manager=m.id
 left join profile_27396 q on
 d.project_code=q._id
@@ -21,9 +21,9 @@ union
 select cast(c.name as varchar)as ProjectCode,f.name as fy_timerange,m.name as Project_Manager
 ,CONCAT(ProjectCode,fy_timerange) as CODE 
 from profile_27396 c	
-left join ds_mysql_prod_tagelement f on
+left join tagelement_4188 f on
 c.fy=f.id
-left join ds_mysql_prod_tagelement m on
+left join tagelement_4188 m on
 c.project_manager=m.id)
 
 ,Base2 as
@@ -31,9 +31,6 @@ c.project_manager=m.id)
 from Lookup p
 left join Base1 l
 on p.CODE=l.CODE)
- --group by p.fy_timerange,l.Project_Manager,p.ProjectCode,p.Focusarea )
-
- 
  
 select fy_timerange,case
 when len(Project_Manager)>0 then Project_Manager
@@ -41,6 +38,4 @@ when Project_Manager is NULL then 'N/A'
 end as Project_Manager
 ,ProjectCode,Focusarea,
 count(*) as Number  from Base2 
---where len(Project_Manager)>0
---where fy_timerange='2017-2018' and ProjectCode='P0118' 
 group by fy_timerange,Project_Manager,ProjectCode,Focusarea
