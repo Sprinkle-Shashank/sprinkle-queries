@@ -160,8 +160,7 @@ group by
 grantapplicationid	,grantpartnerid1, grantproposalid1,	_id,	grantproposalid	,grantflowtaskid,	active,	completedgrantflowtask,	todo,	created,	creatorid,	modified,	modifierid,	grantpartnerid,	isactive,	activepartner,	activeproposal,	activeproposallog,	cgf),
 
 t5 as
-(Select grantapplicationid, 
- --grantpartnerid, 
+(Select grantapplicationid, grantpartnerid, 
  concat(concat(substring(cast(timestamp 'epoch' + CAST(created AS BIGINT)/1000 * interval '1 second' as varchar), 1, 10),'T'), concat(split_part(cast(timestamp 'epoch' + CAST(created AS BIGINT)/1000 * interval '1 second' as varchar), ' ',2),'.000Z')) as startdate,
 
 SPLIT_TO_ARRAY(listagg(distinct comp28709,', ')) as comp_28709, get_array_length(comp_28709) as final_comp_28709, SPLIT_TO_ARRAY(listagg(distinct pend28709,', ')) as pend_28709, get_array_length(pend_28709) as final_pend_28709, SPLIT_TO_ARRAY(listagg(distinct rej28709,', ')) as rej_28709, get_array_length(rej_28709) as final_rej_28709,
@@ -183,11 +182,10 @@ SPLIT_TO_ARRAY(listagg(distinct comp28717,', ')) as comp_28717, get_array_length
 SPLIT_TO_ARRAY(listagg(distinct comp28706,', ')) as comp_28706, get_array_length(comp_28706) as final_comp_28706, SPLIT_TO_ARRAY(listagg(distinct pend28706,', ')) as pend_28706, get_array_length(pend_28706) as final_pend_28706, SPLIT_TO_ARRAY(listagg(distinct rej28706,', ')) as rej_28706, get_array_length(rej_28706) as final_rej_28706
 
 from t4
-group by 1,2),
+group by 1,2,3),
 
 t6 as
-(select grantapplicationid 
- --, grantpartnerid
+(select grantapplicationid , grantpartnerid
  , startdate
  , temp.col as task,
  case
@@ -251,8 +249,7 @@ vert as
 (select vertical, grantpartnerid from profile_43653)
 
 
-select grantapplicationid, 
---t6.grantpartnerid, t.name as vertical
+select grantapplicationid, t6.grantpartnerid, t.name as vertical,
 left (startdate, 4) as year, 
 task, sort_order, count, temp2.col as status,
 case col 
@@ -265,9 +262,9 @@ from t6
   
 cross join temp2
 
-/*left join vert v 
+left join vert v 
 on v.grantpartnerid = t6.grantpartnerid
 
 left join ds_mysql_prod_tagelement t
-on t.id = v.vertical*/
+on t.id = v.vertical
   
