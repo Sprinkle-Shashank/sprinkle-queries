@@ -1,15 +1,18 @@
+--HDFC_Filter_fy_timerange
 with Base1 as(select split_part(split_part(prod.name,'|',1),'.',1) as ProjectCode,f.name as fy_timerange from profile_59426 p 
-left join ds_mysql_prod_project prod on
+left join project_4188 prod on
 prod.id=p.projectid
-left join 	ds_mysql_prod_tagelement f on
+left join 	tagelement_4188 f on
 p.fy=f.id
 ),Base2 as(select split_part(c.name,'.',1) as ProjectCode,m.name as Project_Manager,f.name as fy_timerange from profile_27396 c 
-left join 	ds_mysql_prod_tagelement m on
+left join 	tagelement_4188 m on
 c.project_manager=m.id
-left join 	ds_mysql_prod_tagelement f on
+left join 	tagelement_4188 f on
 c.fy=f.id
 union
 select split_part(split_part(b.name,'[',1),'.',1) as ProjectCode,m.name as Project_Manager,split_part(split_part(b.name,'[',2),']',1) as fy_timerange from profile_27420 b
-left join ds_mysql_prod_tagelement m on
-b.project_manager=m.id),Base3 as(select  l.fy_timerange from Base1 p left join Base2 l on p.ProjectCode=l.ProjectCode group by l.fy_timerange)
+left join tagelement_4188 m on
+b.project_manager=m.id),
+
+Base3 as(select  l.fy_timerange from Base1 p left join Base2 l on p.ProjectCode=l.ProjectCode group by l.fy_timerange)
 select * from Base3 union select fy_timerange from Base1 order by fy_timerange
