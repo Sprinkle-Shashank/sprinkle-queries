@@ -1,0 +1,30 @@
+with sub1 as(
+  select p1.xprojectid, p1.fy_timerange, 'Leased Fleet' as dim, table1.fuel_consump_leased as val
+from sus_9539 p1, UNPIVOT p1.datatablebase table1 
+where p1.keyword = 'leased_fleet'
+
+union all
+
+select p1.xprojectid, p1.fy_timerange, 'Third Party' as dim, table2.fuel_consump_third as val
+from sus_9539 p1, UNPIVOT p1.datatablebase table2
+where p1.keyword = 'third_party_fleet'
+
+union all
+
+select p1.xprojectid, p1.fy_timerange, 'Own Fleet' as dim, table3.fuel_consump_own as val
+from sus_9539 p1, UNPIVOT p1.datatablebase table3 
+where p1.keyword = 'own_fleet')
+
+select p4.name as country, p3.name as projectid, t1.name as company_category, s1.dim, s1.fy_timerange, sum(s1.val) as total 
+from sub1 s1
+
+left join sus_46830 p2 on p2.xprojectid = s1.xprojectid
+
+left join tagElement_6664 t1 on t1.id = p2.dataselect 
+
+left join project_6664 p3 on p3.id = s1.xprojectid
+left join project_6664 p4 on p4.id = p3.parent
+
+where s1.val is not null and t1.name is not null
+
+group by p4.name, p3.name, t1.name, s1.dim, s1.fy_timerange
