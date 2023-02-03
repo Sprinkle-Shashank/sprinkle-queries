@@ -1,13 +1,15 @@
-select p3.name as projectId,p2.name as projectname,p1.name as partner,/*p.fy_timerange*/
+with table1 as(
+  select p3.name as projectId,p2.name as projectname,p1.name as partner,/*p.fy_timerange*/
 concat(concat(concat(concat('{"start":"',(TO_CHAR(p.opening_date, 'YYYY-MM-DD"T"HH24":"MI:SS.000"Z"'))),'","end":"'),(TO_CHAR(p.opening_date, 'YYYY-MM-DD"T"HH24":"MI:SS.000"Z"'))),'"}') as fy_timerange,
 t1.name as block, t2.name as district, t3.name as state,p.bene_name,t5.name as Enterprise,t4.name as Business,p.amount_invested_at_so,
 case 
-when (amount_invested_at_so + amt_invested_next_6) <= 10000 then 'Upto 10k'
-when (amount_invested_at_so + amt_invested_next_6) > 10000 and (amount_invested_at_so + amt_invested_next_6) <=15000  then '10k to 15k'
-when (amount_invested_at_so + amt_invested_next_6) > 15000 and (amount_invested_at_so + amt_invested_next_6) <=30000  then '15k to 30k'
+when p.amt_invested_next_6 IS NULL then p.amount_invested_at_so else (p.amount_invested_at_so + p.amt_invested_next_6) end  as amount_invested,
+case 
+when amount_invested > 0 and amount_invested <= 10000 then 'Upto 10k'
+when amount_invested > 10000 and amount_invested <=15000  then '10k to 15k'
+when amount_invested > 15000 and amount_invested <=30000  then '15k to 30k'
+else 'No Amount Invested'
 end as Amount_invested_Range, 1 as Count
-
-
 from profile_83228 p
 
 left join ds_mysql_prod_project p1 on p1.id = p.projectid
@@ -21,3 +23,8 @@ left join tagelement_9730 t4 on t4.id=p.enterprise_type
 left join tagelement_9730 t5 on t5.id=t4.parent
 where p.projectid like '%%' 
 --group by p3.name,p2.name,p1.name,t1.name,t2.name,t3.name,p.village,p.bene_name,t4.name,t5.name,t6.name,t7.name,p.opening_date
+)
+  
+Select projectId,projectname,partner,fy_timerange,
+block,district,state,bene_name,Enterprise,Business,amount_invested_at_so,
+Amount_invested_Range,Count from table1
