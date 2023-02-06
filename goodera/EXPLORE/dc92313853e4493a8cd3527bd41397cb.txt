@@ -1,7 +1,7 @@
-select _id, projectid, ngo, proj, tag1.name as proposed, tag2.name as approved, tag3.name as ongoing, tag4.name as completed, tag5.name as disqualify, 
+with t1 as 
+(select _id, projectid, ngo, proj, tag1.name as proposed, tag2.name as approved, tag3.name as ongoing, tag4.name as completed, tag5.name as disqualify, 
 case 
 when tag1.name = 'Yes' or tag2.name = 'Yes' or tag3.name = 'Yes' or tag4.name = 'Yes' or  tag5.name = 'Yes' then 'Completed'
-when tag1.name = 'Yes' then 'Approved'
 else 'NA'
 end as Status 
 from profile_70244 p1
@@ -14,7 +14,11 @@ on p1.ongoing = tag3.id
 left join ds_mysql_prod_tagelement tag4
 on p1.completed = tag4.id 
 left join ds_mysql_prod_tagelement tag5
-on p1.disqualify = tag5.id
+on p1.disqualify = tag5.id)
+
+select _id, projectid, ngo, proj, proposed, approved, ongoing, completed, disqualify,
+case when 
+proposed = 'Yes' then proposed else status end as status
 
 
  
