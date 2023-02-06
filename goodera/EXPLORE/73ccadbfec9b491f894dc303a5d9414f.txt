@@ -1,4 +1,4 @@
-WITH tab1 as(Select p1.quarter_timerange as fy_timerange,p1.social_hrs as social_hrs,p2.name as shalini,
+WITH tab1 as(Select p1.quarter_timerange as fy_timerange,p1.social_percentage as social_percentage,p2.name as shalini,
 CASE
 	WHEN EXTRACT (Month from cast(p1.quarter_timerange.start as date))=01 then 'Q4'
 	WHEN EXTRACT (Month from cast(p1.quarter_timerange.start as date))=04 then 'Q1'
@@ -10,13 +10,13 @@ left join profile_55294 p2
 on p1.shalini=p2._id
 left join ds_mysql_prod_tagelement t1
 on t1.id=p2.location
-group by p1.quarter_timerange,p2.name,Quarter,p1.social_hrs,t1.name)
+group by p1.quarter_timerange,p2.name,Quarter,p1.social_percentage,t1.name)
 
 Select fy_timerange,Quarter,shalini,count(shalini),
 CASE
-	WHEN social_hrs<60 then 'Below 60%'
-	WHEN social_hrs>=60 and  social_hrs<=80 then '60-80%'
-	WHEN social_hrs>80 then 'Above 80%'
+	WHEN social_percentage<60 then 'Below 60%'
+	WHEN social_percentage>=60 and  social_hrs<=80 then '60-80%'
+	WHEN social_percentage>80 then 'Above 80%'
 END AS types,location,
 CASE
 	WHEN types='Below 60%' then 1
