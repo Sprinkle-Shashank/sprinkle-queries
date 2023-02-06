@@ -29,18 +29,21 @@ left join ds_mysql_prod_project tag1
 on t1.projectid = tag1.id
 left join ds_mysql_prod_project tag2
 on tag1.parent = tag2.id
-where upload is not null)
+where upload is not null),
 
-select t2.*, 
+t3 as 
+(select t2.*, 
 case
 when status = 'Completed' then 1
 when status = 'Approved' then 2
 when status = 'Proposed' then 3
 when status = 'Ongoing' then 4
 else 5 end as sort, extract ( YEAR from t2.date) as year, extract ( MONTH from t2.date) as month,
-case when month <= 3 then (year-1) else year end as Year_new
-from t2
-where month < 3
+case when month <= 3 then (year-1) else year end as start
+from t2)
+
+select t3.*, start+1 as end
+from t3
 
 
 
