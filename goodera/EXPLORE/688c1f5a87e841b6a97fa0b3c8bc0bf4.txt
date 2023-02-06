@@ -1,167 +1,49 @@
+--WCP_NON_BC_decision_total_respondents_baseline
+with table1 as(select p.projectId from profile_16619 p
+
+			   
+left join profile_18299 p2
+on p.projectId = p2.projectId
+			   
+group by p.projectId
+),	
+
+table2 as(Select p.projectId as project,fac.name as factory,ven.name as vendor1,nvl2(SUBSTRING(vendor1, 1, POSITION(' (' in vendor1)), SUBSTRING(vendor1, 1, POSITION(' (' in vendor1)), vendor1) as vendor_name, case when vendor_name='' then vendor1 else vendor_name end as vendor,cou.name as country,case when country in ('India', 'Bangladesh', 'Sri Lanka')
+then 'South Asia'
+when country in ('China')
+then 'North Asia'
+when country in ('Guatemala', 'El Salvador', 'Dominican Republic')
+then 'Americas'
+when country in ('Philippines', 'Cambodia',  'Vietnam',  'Indonesia', 'Myanmar')
+then 'South East Asia'
+end as region,p.decisions , case when p2.name_subunit is null or p2.name_subunit=' ' then 'N/A' else p2.name_subunit end  as unit,decode(DATEPART(YEAR,p2.date_enrollment),null,0,DATEPART(YEAR,p2.date_enrollment)) as year_new,p2.status,t1.projectId
+from profile_18299 p
 
 
-with table1 as
-(select _id , projectId,country, vendor,unwind_cycle, product_category, consultant_tag from profile_64362 as p ,p.cycle as unwind_cycle),
 
- table2 as
-(select _id, projectId,country, vendor,cycle,product_category,consultant_tag from profile_64362
-  where _id not in (select _id from table1))
-  ,
-  
-table3 as
- (
-	select * from table1
-  Union all
-  select * from table2
- )
- ,
+left join profile_16619 p2
+on p.sub_unit = p2._id
 
-sub1 as(
-  select p1._id as id, p3.name as projectid, t1.name as select_factory_msa, tag5.name as cycle, tag3.name  as country, p2.vendor, tag4.name as consultant,
+left join table1 t1 on
+p.projectId = t1.projectId
 
-case
-	when p1.resources = 1105585 then 1
-	when p1.resources = 1105584 then 2
-	when p1.resources = 1105583 then 3
-	when p1.resources = 1105582 then 4
-	when p1.resources = 1105581 then 5
-	else NULL
-end as resources,
+left join project_1137 fac
+on p.projectid = fac.id
+left join project_1137 ven
+on fac.parent = ven.id
+left join project_1137 cou
+on ven.parent = cou.id
 
-case
-	when p1.policies = 1105585 then 1
-	when p1.policies = 1105584 then 2
-	when p1.policies = 1105583 then 3
-	when p1.policies = 1105582 then 4
-	when p1.policies = 1105581 then 5
-	else NULL
-end as policies,
-
-case
-	when p1.risk = 1105585 then 1
-	when p1.risk = 1105584 then 2
-	when p1.risk = 1105583 then 3
-	when p1.risk = 1105582 then 4
-	when p1.risk = 1105581 then 5
-	else NULL
-end as risk,
-
-case
-	when p1.procedure = 1105585 then 1
-	when p1.procedure = 1105584 then 2
-	when p1.procedure = 1105583 then 3
-	when p1.procedure = 1105582 then 4
-	when p1.procedure = 1105581 then 5
-	else NULL
-end as procedure,
-
-case
-	when p1.grievance = 1105585 then 1
-	when p1.grievance = 1105584 then 2
-	when p1.grievance = 1105583 then 3
-	when p1.grievance = 1105582 then 4
-	when p1.grievance = 1105581 then 5
-	else NULL
-end as grievance,
-
-case
-	when p1.training = 1105585 then 1
-	when p1.training = 1105584 then 2
-	when p1.training = 1105583 then 3
-	when p1.training = 1105582 then 4
-	when p1.training = 1105581 then 5
-	else NULL
-end as training,
-
-case
-	when p1.monitoring = 1105585 then 1
-	when p1.monitoring = 1105584 then 2
-	when p1.monitoring = 1105583 then 3
-	when p1.monitoring = 1105582 then 4
-	when p1.monitoring = 1105581 then 5
-	else NULL
-end as monitoring,
-
-case
-	when p1.incident = 1105585 then 1
-	when p1.incident = 1105584 then 2
-	when p1.incident = 1105583 then 3
-	when p1.incident = 1105582 then 4
-	when p1.incident = 1105581 then 5
-	else NULL
-end as incident,
-
-case
-	when p1.communication = 1105585 then 1
-	when p1.communication = 1105584 then 2
-	when p1.communication = 1105583 then 3
-	when p1.communication = 1105582 then 4
-	when p1.communication = 1105581 then 5
-	else NULL
-end as communication,
-
-case
-	when p1.act_adjust = 1105585 then 1
-	when p1.act_adjust = 1105584 then 2
-	when p1.act_adjust = 1105583 then 3
-	when p1.act_adjust = 1105582 then 4
-	when p1.act_adjust = 1105581 then 5
-	else NULL
-end as act_adjust,
-
-case
-	when p1.hs_act = 1105585 then 1
-	when p1.hs_act = 1105584 then 2
-	when p1.hs_act = 1105583 then 3
-	when p1.hs_act = 1105582 then 4
-	when p1.hs_act = 1105581 then 5
-	else NULL
-end as hs_act,
-
-case
-	when p1.hs_training = 1105585 then 1
-	when p1.hs_training = 1105584 then 2
-	when p1.hs_training = 1105583 then 3
-	when p1.hs_training = 1105582 then 4
-	when p1.hs_training = 1105581 then 5
-	else NULL
-end as hs_training,
-
-case
-	when p1.hs_risk = 1105585 then 1
-	when p1.hs_risk = 1105584 then 2
-	when p1.hs_risk = 1105583 then 3
-	when p1.hs_risk = 1105582 then 4
-	when p1.hs_risk = 1105581 then 5
-	else NULL
-end as hs_risk
-
-from profile_62477 p1
-
-  left join table3 as p2
-on p1.projectId = p2.projectId
-  left join project_7746 p3
-on p1.projectId= p3.id
-left join tagElement_7746 tag3
-on p2.country = tag3.id
-left join  tagElement_7746 tag4
-on p2.consultant_tag = tag4.id
-left join tagElement_7746 tag5
-on p2.unwind_cycle = tag5.id 
+			
 
 
-left join tagElement_7746 t1 on t1.id = p1.select_factory_msa
-),
 
-sub3 as(
-  select s2.id, s2.projectid, s2.select_factory_msa, s2.country, s2.vendor, s2.consultant,  cycle, 
+where  (cou.name <> 'Test Country' and cou.name <> 'GAP Inc.') and (p2.status = 1400365 or p2.status is null) and
+t1.projectId is not null
+	    and   project like '%%' and decisions is not NULL and  decisoins=""""
+group by  p.projectId,fac.name ,ven.name,vendor,cou.name,p.decisions,region,unit,year_new,p2.status,t1.projectId
 
-LEAST(s2.act_adjust, s2.hs_act) as act
-  
-from sub1 s2
 
-where s2.select_factory_msa = 'Endline')
+)
+select * from table2
 
-select projectid, country, vendor, consultant, cycle, avg(cast(act as FLOAT)) as act
-from sub3
-group by projectid, country, vendor, consultant, cycle
