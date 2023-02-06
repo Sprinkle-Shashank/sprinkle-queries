@@ -16,11 +16,17 @@ on p1.completed = tag4.id
 left join ds_mysql_prod_tagelement tag5
 on p1.disqualify = tag5.id)
 
-select _id, projectid, ngo, proj, proposed, approved, ongoing, completed, disqualify,
+select _id, projectid, ngo, proj, proposed, approved, ongoing, completed, disqualify, status
 case 
-when proposed = 'Yes' then 'Proposed' 
+when proposed = 'Yes' and approved is null and ongoing is null and completed is null and disqualify is null then 'Proposed'
+when approved = 'Yes' and proposed is null or proposed = 'Yes' and completed is null and disqualify is null then 'Approved'
+when ongoing = 'Yes' and proposed = 'Yes' and approved = 'Yes' and completed is null and disqualify is null then 'Ongoing'
+when completed = 'Yes' and proposed ='Yes' and approved = 'Yes' and ongoing = 'Yes' and disqualify is null then 'Completed'
 when disqualify = 'Yes' then 'Disqualified'
-else 'NA' end as status_new
+when proposed = 'Yes' and approved = 'No' then null
+else 'NA'
+end as status_new
+
 from t1
 
 
