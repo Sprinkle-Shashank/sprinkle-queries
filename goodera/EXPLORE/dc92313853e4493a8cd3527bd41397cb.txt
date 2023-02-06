@@ -10,9 +10,10 @@ on p1.ongoing = tag3.id
 left join ds_mysql_prod_tagelement tag4
 on p1.completed = tag4.id 
 left join ds_mysql_prod_tagelement tag5
-on p1.disqualify = tag5.id)
+on p1.disqualify = tag5.id),
 
-select t1._id, t1.projectid, t1.ngo, t1.proj,
+t2 as 
+(select t1._id, t1.projectid, t1.ngo, t1.proj,
 case 
 when disqualify = 'Yes' or approved = 'No' or ongoing = 'No' or completed = 'No' or proposed = 'No' then 'Disqualified'
 when completed = 'Yes' then 'completed'
@@ -28,7 +29,15 @@ left join ds_mysql_prod_project tag1
 on t1.projectid = tag1.id
 left join ds_mysql_prod_project tag2
 on tag1.parent = tag2.id
-where upload is not null
+where upload is not null)
+
+select t2.*, 
+case
+when status = 'Completed' then 1
+when status = 'Approved' then 2
+when status = 'Proposed' then 3
+when status = 'Ongoing' then 4
+else 5 end as sort
 
 
 
