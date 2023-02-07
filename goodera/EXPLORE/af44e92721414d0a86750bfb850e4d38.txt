@@ -46,67 +46,76 @@ table41 as
    
    left join ds_mysql_prod_tagelement d1_new
    on p.d1 = d1_new.id
-  )
+  ),
   
-  
-  select * from table51
-  
-  /*
+ 
 table3 as(SELECT * 
-FROM (SELECT projectId,factory,vendor,country,region,year_new,unit,useful,count(useful) as total 
+FROM (SELECT projectId,factory,vendor,country,region,year_new,unit,decision_update,count(decision_update) as total 
 	  
-	  from table2 
+	  from table51
 	  
 	  
 
-	 group by projectId,useful,factory,vendor,country,region,year_new,unit)
+	 group by projectId,decision_update,factory,vendor,country,region,year_new,unit)
 
 PIVOT (
-    SUM(total) FOR useful IN ('Not at all useful' as not_all,'Somewhat useful' as some_what,'Very useful' as very,'Not answered' as n_a)
+    SUM(total) FOR decision_update IN ('I do not hear about the decisions made' as d_n_h_d,'Our department Bi-Partite Committee representative tells me' as bi_d,'Decisions are posted on a notice board' as d_notice,'Decisions are announced through public address system (PA system)
+' as d_pa ,'Not answered' as n_a , 'Other' as other)
 )
 ),
-table4 as(select projectId,factory,vendor,country,region,year_new,unit,case when not_all is null then 0 else not_all end as not_all_count,
-		  case when some_what is null then 0 else some_what end as some_what_count,
-		  case when very is null then 0 else very end as very_count,
+table4 as(select projectId,factory,vendor,country,region,year_new,unit,case when d_n_h_d is null then 0 else d_n_h_d end as d_n_h_d_count,
+		  case when bi_d is null then 0 else bi_d end as bi_d_count,
+		  case when d_notice is null then 0 else d_notice end as d_notice_count,
+		  case when d_pa is null then 0 else d_pa end as d_pa_count,
 		  case when n_a is null then 0 else n_a end as n_a_count,
-		 (not_all_count+some_what_count+very_count+n_a_count) as total,
-(not_all_count*100.0)/total as not_all_percent,
-		(some_what_count*100.0)/total as some_what_percent,
-	(very_count*100.0)/total as very_percent ,
-		  (n_a_count*100.0)/total as n_a_percent 
+		  case when other is null then 0 else other end as other_count,
+		 (d_n_h_d_count+bi_d_count+d_notice_count+d_pa_count+n_a_count+other_count) as total,
+(d_n_h_d_count*100.0)/total as d_n_h_d_count_percent,
+		(bi_d_count*100.0)/total as bi_d_count_percent,
+	(d_notice_count*100.0)/total as d_notice_count_percent ,
+		  (d_pa_count*100.0)/total as d_pa_count_percent,
+		  (n_a_count*100.0)/total as n_a_count_percent,
+		  (other_count*100.0)/total as other_count_percent
 		  from table3
 		  
 ),
 temp as (
-  select 'Not at all useful' as dim
+  select 'I do not hear about the decisions made' as dim
   union all
-  select 'Somewhat useful' as dim
+  select 'Our department Bi-Partite Committee representative tells me' as dim
   union all
-  select 'Very useful' as dim
+  select 'Decisions are posted on a notice board' as dim
+  union all
+  select 'Decisions are announced through public address system (PA system)' as dim
+  union all
+  select 'Other' as dim
   union all
   select 'Not answered' as dim
 )
-select  projectId,factory,vendor,country,region,year_new,unit,not_all_count,some_what_count,very_count,n_a_count,total,not_all_percent,some_what_percent,very_percent,n_a_percent,temp.dim,case dim
-	when 'Not at all useful' then not_all_percent
-	when 'Somewhat useful' then some_what_percent  
-	when 'Very useful' then very_percent
-	when 'Not answered' then n_a_percent
+
+select  projectId,factory,vendor,country,region,year_new,unit,d_n_h_d_count,bi_d_count,d_notice_count,d_pa_count,n_a_count,other_count,total, d_n_h_d_count_percent , bi_d_count_percent, d_notice_count_percent , d_pa_count_percent, n_a_count_percent, other_count_percent
+	,temp.dim,case dim
+	when 'I do not hear about the decisions made' then d_n_h_d_count_percent
+	when 'Our department Bi-Partite Committee representative tells me' then bi_d_count_percent  
+	when 'Decisions are posted on a notice board' then d_notice_count_percent
+	when 'Decisions are announced through public address system (PA system)' then d_pa_count_percent
+	when 'Not answered' then n_a_count_percent
+	when 'Other' then other_count_percent
 
 	Else Null
 	End as value1
 	,case dim
-	when 'Not at all useful' then 1
-	when 'Somewhat useful' then 2 
-	when 'Very useful' then 3
-	when 'Not answered' then 4
+	when 'I do not hear about the decisions made' then 1
+	when 'Our department Bi-Partite Committee representative tells me' then 2  
+	when 'Decisions are posted on a notice board' then 3
+	when 'Decisions are announced through public address system (PA system)' then 4
+	when 'Not answered' then 5
+	when 'Other' then 6
 
 	Else Null
 	End as sequence
 	from table4
 	cross join temp
 
-group by projectId,factory,vendor,country,region,year_new,unit,not_all_count,some_what_count,very_count,n_a_count,total,temp.dim,not_all_percent,some_what_percent,very_percent,n_a_percent
-
-
-
-*/
+group by projectId,factory,vendor,country,region,year_new,unit,d_n_h_d_count,bi_d_count,d_notice_count,d_pa_count,n_a_count,other_count,total, d_n_h_d_count_percent , bi_d_count_percent, d_notice_count_percent , d_pa_count_percent, n_a_count_percent, other_count_percent
+	,temp.dim
