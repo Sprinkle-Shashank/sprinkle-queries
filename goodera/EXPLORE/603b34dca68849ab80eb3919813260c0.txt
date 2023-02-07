@@ -1,0 +1,125 @@
+--WCP_NON_BC_useful_total_respondents_endline_percent
+with table1 as(select p.projectId from profile_16619 p
+
+			   
+left join profile_20704 p2
+on p.projectId = p2.projectId
+			   
+group by p.projectId
+),
+table2 as(select p.projectId,fac.name as factory,nvl2(SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), ven.name) as vendor_name, case when vendor_name='' then ven.name else vendor_name end as vendor,cou.name as country,case when country in ('India', 'Bangladesh', 'Sri Lanka')
+then 'South Asia'
+when country in ('China')
+then 'North Asia'
+when country in ('Guatemala', 'El Salvador', 'Dominican Republic')
+then 'Americas'
+when country in ('Philippines', 'Cambodia',  'Vietnam',  'Indonesia', 'Myanmar')
+then 'South East Asia'
+end as region,case when p2.name_subunit is null or p2.name_subunit=' ' then 'N/A' else p2.name_subunit end  as unit,decode(DATEPART(YEAR,p2.date_enrollment),null,0,DATEPART(YEAR,p2.date_enrollment)) as year_new,use.name as useful, p.decisions from profile_20704 p
+
+left join project_1137 fac
+on p.projectid = fac.id
+left join project_1137 ven
+on fac.parent = ven.id
+left join project_1137 cou
+on ven.parent = cou.id
+
+left join profile_16619 p2
+on p.sub_unit = p2._id
+
+left join table1 t1 on
+p.projectId = t1.projectId
+			   
+left join tagelement_1137 use
+on p.useful = use.id
+
+where  (cou.name <> 'Test Country' and cou.name <> 'GAP Inc.') and (p.projectId like '%%') and (t1.projectId is not null) and (p2.status = 1400365 or p2.status is null)
+),
+
+table41 as
+(
+  select p.projectId, factory, vendor_name, vendor, country, region, unit, year_new, useful, d1 from table2 as p,p.decisions as d1
+  ),
+  
+  table51 as 
+  ( select  p.projectId, factory, vendor_name, vendor, country, region, unit, year_new, d1_new.name as decision_update  from table41 as p
+   
+   left join ds_mysql_prod_tagelement d1_new
+   on p.d1 = d1_new.id
+  ),
+  
+  
+table3 as(SELECT * 
+FROM (SELECT projectId,factory,vendor,country,region,year_new,unit,decision_update,count(decision_update) as total 
+	  
+	  from table51
+	  
+	  
+
+	 group by projectId,decision_update,factory,vendor,country,region,year_new,unit)
+
+PIVOT (
+    SUM(total) FOR decision_update IN ('I do not hear about the decisions made' as d_n_h_d,'Our department Bi-Partite Committee representative tells me' as bi_d,'Decisions are posted on a notice board' as d_notice,'Decisions are announced through public address system (PA system)
+' as d_pa ,'Not answered' as n_a , 'Other' as other)
+)
+),
+
+table4 as(select projectId,factory,vendor,country,region,year_new,unit,
+		  
+		 case when d_n_h_d is null then 0 else d_n_h_d end as d_n_h_d_count,
+		  case when bi_d is null then 0 else bi_d end as bi_d_count,
+		  case when d_notice is null then 0 else d_notice end as d_notice_count,
+		  case when d_pa is null then 0 else d_pa end as d_pa_count,
+		  case when n_a is null then 0 else n_a end as n_a_count,
+		  case when other is null then 0 else other end as other_count,
+		 (d_n_h_d_count+bi_d_count+d_notice_count+d_pa_count+n_a_count+other_count) as total,
+(d_n_h_d_count*100.0)/total as d_n_h_d_count_percent,
+		(bi_d_count*100.0)/total as bi_d_count_percent,
+	(d_notice_count*100.0)/total as d_notice_count_percent ,
+		  (d_pa_count*100.0)/total as d_pa_count_percent,
+		  (n_a_count*100.0)/total as n_a_count_percent,
+		  (other_count*100.0)/total as other_count_percent from table3
+		  
+),
+temp as (
+   select 'I do not hear about the decisions made' as dim
+  union all
+  select 'Our department Bi-Partite Committee representative tells me' as dim
+  union all
+  select 'Decisions are posted on a notice board' as dim
+  union all
+  select 'Decisions are announced through public address system (PA system)' as dim
+  union all
+  select 'Other' as dim
+  union all
+  select 'Not answered' as dim
+)
+
+
+select projectId,factory,vendor,country,region,year_new,unit,d_n_h_d_count,bi_d_count,d_notice_count,d_pa_count,n_a_count,other_count,total, d_n_h_d_count_percent , bi_d_count_percent, d_notice_count_percent , d_pa_count_percent, n_a_count_percent, other_count_percent
+	,temp.dim,case dim
+	when 'I do not hear about the decisions made' then d_n_h_d_count_percent
+	when 'Our department Bi-Partite Committee representative tells me' then bi_d_count_percent  
+	when 'Decisions are posted on a notice board' then d_notice_count_percent
+	when 'Decisions are announced through public address system (PA system)' then d_pa_count_percent
+	when 'Not answered' then n_a_count_percent
+	when 'Other' then other_count_percent
+
+	Else Null
+	End as value1
+	,case dim
+	when 'I do not hear about the decisions made' then 1
+	when 'Our department Bi-Partite Committee representative tells me' then 2  
+	when 'Decisions are posted on a notice board' then 3
+	when 'Decisions are announced through public address system (PA system)' then 4
+	when 'Not answered' then 5
+	when 'Other' then 6
+
+	Else Null
+	End as sequence
+	
+	from table4
+	cross join temp
+
+group by projectId,factory,vendor,country,region,year_new,unit,d_n_h_d_count,bi_d_count,d_notice_count,d_pa_count,n_a_count,other_count,total, d_n_h_d_count_percent , bi_d_count_percent, d_notice_count_percent , d_pa_count_percent, n_a_count_percent, other_count_percent
+	,temp.dim
