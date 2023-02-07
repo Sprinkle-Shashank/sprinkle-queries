@@ -1,5 +1,46 @@
 --gap_inc_wcp_overview_TOTAL WORKFORCE REPRESENTED
 with table1 as (
+  select sum(p1.total_workers) as total_worker , p.status,
+DATEPART(YEAR,p.date_enrollment) as year_new ,
+fac.name as factory , cou.name as country ,
+ven.name as vendor1 , nvl2(SUBSTRING(vendor1, 1, POSITION(' (' in vendor1)), SUBSTRING(vendor1, 1, POSITION(' (' in vendor1)), vendor1) as vendor_name, case when vendor_name='' then vendor1 else vendor_name end as vendor ,
+decode(p.name_subunit,' ','N/A',p.name_subunit) as unit,
+ row_number() over 
+(partition by p1.projectid order by p1._id desc) as row 
+
+from profile_16619 p
+--from profile_17526 p
+left join profile_17526 p1
+--LEFT JOIN profile_16619 p1  
+on p.projectId = p1.projectId
+left join project_1137 fac
+on  p1.projectId = fac.id
+left join project_1137 ven
+on fac.parent = ven.id
+left join project_1137 cou
+on ven.parent = cou.id
+
+
+  
+  where  cou.name <> 'Test Country' and (p.status = 1400365 or p.status is null) and p1.projectId like '%%'-- and country <> 'GAP Inc.'
+  
+  group by p1.projectId , p1.total_workers ,year_new, cou.name , ven.name, fac.name  , unit , p.date_enrollment , p.status , p1._id
+  )
+   select * from table1
+  where row = 1 
+
+
+
+
+
+
+
+
+
+
+
+
+/*with table1 as (
   select sum(p.total_workers) as total_worker , p1.status,
 DATEPART(YEAR,p1.date_enrollment) as year_new ,
 fac.name as factory , cou.name as country ,
@@ -28,3 +69,5 @@ on ven.parent = cou.id
   )
    select * from table1
   --where row = 1 
+  
+  */
