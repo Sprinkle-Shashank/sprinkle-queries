@@ -1,2 +1,25 @@
-SELECT id, projectId, state, phc, val as pic_1_before, cap_1_before, fy_timerange
-FROM profile_76555, unnest(pic_1_before) as val
+WITH table1 AS (
+SELECT _id, projectId, state, phc, pic_1_before, cap_1_before, fy_timerange
+FROM profile_76555
+),
+table2 AS (
+SELECT t1._id, t1.projectId, t1.state, t1.phc, t1.cap_1_before, t1.fy_timerange, val.pic_1_befor
+FROM table1 t1
+JOIN (
+SELECT _id, pic_1_before
+FROM table1
+) val
+ON t1._id = val._id
+)
+SELECT
+table2._id,
+reg2.name AS state,
+p2.name AS phc,
+table2.cap_1_before,
+table2.fy_timerange,
+CAST(pic_1_befor AS varchar) AS pic_1_befor
+FROM table2
+JOIN reg2
+ON table2.state = reg2.id
+JOIN p2
+ON table2.phc = p2.id;
