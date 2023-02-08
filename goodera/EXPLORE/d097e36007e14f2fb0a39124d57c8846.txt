@@ -1,1 +1,20 @@
-select * from profile_78414
+
+with t1 as
+(SELECT * 
+FROM
+(Select   projectId, fy_timerange, location, COALESCE(kits_daily_workers,0) as kits_daily_workers, COALESCE(total_families,0) as total_families ,COALESCE(kits_agricultaral_laborer,0) as kits_agricultaral_laborer,
+ kits_daily_workers+ kits_agricultaral_laborer as total_kits
+ from profile_78411
+ 
+)
+UNPIVOT (
+    val FOR dim IN (kits_daily_workers, total_families, kits_agricultaral_laborer,total_kits))
+
+)
+
+select projectId, fy_timerange, t.name as locatio,val,dim  from t1 as p
+
+left join ds_mysql_prod_tagelement t on t.id=p.location
+
+Group By p.projectId, p.fy_timerange,val,dim,t.name
+  
