@@ -1,9 +1,21 @@
-Select t1.name as ProjectId,t1.fy_timerange as fy_timerange ,t4.name as country,t1.keyword as dim ,sum(t1.datanum) as val  from sus_9539 t1
-left join sus_46830 t2
-on t1.xprojectid = t2.xprojectid
-left join project_6664 t3
-on t1.xprojectid = t3.id
-left join project_6664 t4 
-on t3.parent=t4.id
-where t1.keyword in ('co2_refilled','dry_powder_refilled','refrigerant_gas','company_category')
-group by 1,2,3,4
+select p4.name as country, p3.name as projectid, p1.fy_timerange, sum(p1.datanumbase) as total, t1.name as company_category,
+
+case
+	when p1.keyword = 'co2_refilled' then 'CO2 Refilled'
+	when p1.keyword = 'refrigerant_gas' then 'Refrigerant Gas'
+	when p1.keyword = 'dry_powder_refilled' then 'Dry Powder Refilled'
+end as dim
+
+from sus_9539 p1
+
+left join sus_46830 p2 on p2.xprojectid = p1.xprojectid
+
+left join tagElement_6664 t1 on t1.id = p2.dataselect 
+
+left join project_6664 p3 on p3.id = p1.xprojectid
+left join project_6664 p4 on p4.id = p3.parent
+
+where p1.keyword in ('co2_refilled', 'refrigerant_gas', 'dry_powder_refilled') 
+and p2.keyword = 'company_category' and p1.datanumbase is not null
+
+group by p4.name, p3.name, p1.fy_timerange, p1.keyword, t1.name
