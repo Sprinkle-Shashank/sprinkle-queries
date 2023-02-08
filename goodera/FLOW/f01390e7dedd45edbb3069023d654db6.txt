@@ -1,4 +1,4 @@
-select p4.name as country, p3.name as projectid, p1.fy_timerange, p1.keyword as dim, t1.name as company_category 
+select p4.name as country, p3.name as projectid, p1.fy_timerange, p1.keyword as dim,p1.datanum,t1.name as company_category, 
 case  p3.parent when '10253' then 0.00041725
 	  when '30461' then 0.0009383
 	  when '30462' then 0.000466848
@@ -13,13 +13,13 @@ case  p3.parent when '10253' then 0.00041725
 	  when '30458' then 0.00097258
 	  when '39155' then 0.00074884
 	  when '9888' then 0.00133317
-	  else 0 end as Multiplicationfactor,
-sum('electric_consumption_1','electric_consumption_2','electric_consumption_3') as TotalElectricity
-sum(TotalElectricity*Multiplicationfactor) as Elec
+	  else 0 end as Multiplicationfactor
+--sum('electric_consumption_1','electric_consumption_2','electric_consumption_3') --as TotalElectricity,
+sum(datanum*Multiplicationfactor) as Elec
 from sus_9539 p1
 left join sus_46830 p2 on p2.xprojectid = p1.xprojectid
 left join tagElement_6664 t1 on t1.id = p2.dataselect 
 left join project_6664 p3 on p3.id = p1.xprojectid
 left join project_6664 p4 on p4.id = p3.parent
-where keyword in ('electric_consumption_1','electric_consumption_2','electric_consumption_3')
-group by 1,2,3,4,5
+where p1.keyword in ('electric_consumption_1','electric_consumption_2','electric_consumption_3')
+group by 1,2,3,4,5,6
