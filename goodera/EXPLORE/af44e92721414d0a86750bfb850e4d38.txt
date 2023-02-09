@@ -1,125 +1,85 @@
---WCP_NON_BC_useful_total_respondents_endline_percent
-with table1 as(select p.projectId from profile_16619 p
+--GSKConsumer_Project_Description
 
-			   
-left join profile_20704 p2
-on p.projectId = p2.projectId
-			   
-group by p.projectId
-),
-table2 as(select p.projectId,fac.name as factory,nvl2(SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), ven.name) as vendor_name, case when vendor_name='' then ven.name else vendor_name end as vendor,cou.name as country,case when country in ('India', 'Bangladesh', 'Sri Lanka')
-then 'South Asia'
-when country in ('China')
-then 'North Asia'
-when country in ('Guatemala', 'El Salvador', 'Dominican Republic')
-then 'Americas'
-when country in ('Philippines', 'Cambodia',  'Vietnam',  'Indonesia', 'Myanmar')
-then 'South East Asia'
-end as region,case when p2.name_subunit is null or p2.name_subunit=' ' then 'N/A' else p2.name_subunit end  as unit,decode(DATEPART(YEAR,p2.date_enrollment),null,0,DATEPART(YEAR,p2.date_enrollment)) as year_new,use.name as useful, p.decisions from profile_20704 p
-
-left join project_1137 fac
-on p.projectid = fac.id
-left join project_1137 ven
-on fac.parent = ven.id
-left join project_1137 cou
-on ven.parent = cou.id
-
-left join profile_16619 p2
-on p.sub_unit = p2._id
-
-left join table1 t1 on
-p.projectId = t1.projectId
-			   
-left join tagelement_1137 use
-on p.useful = use.id
-
-where  (cou.name <> 'Test Country' and cou.name <> 'GAP Inc.') and (p.projectId like '%%') and (t1.projectId is not null) and (p2.status = 1400365 or p2.status is null)
-),
-
-table41 as
-(
-  select p.projectId, factory, vendor_name, vendor, country, region, unit, year_new, useful, d1 from table2 as p,p.decisions as d1
-  ),
+With table1 as (
   
-  table51 as 
-  ( select  p.projectId, factory, vendor_name, vendor, country, region, unit, year_new, d1_new.name as decision_update  from table41 as p
+  Select p1.* , schedule_7_unwind , sdg_unwind , sdg_icon_unwind , location_unwind
+  
+  from profile_80433 as p1,
+  
+  p1.schedule_7 as schedule_7_unwind,
+  p1.sdg as sdg_unwind,
+  p1.sdg_icon as sdg_icon_unwind,
+  p1.location as location_unwind
+  ),
+
+
+ table2 as ( 
+  Select table1._id, table1.name , table1.projectid , proj.name AS projectname, table1.fy_timerange , table1.status ,table1.location, table1.title , table1.type , ng.name as ngo , table1.proj_img, table1.s_date, table1.e_date,table1.desc,table1.spoc_name,table1.spoc_email,table1.spoc_contact,table1.budget , table1.outcome,to_char(table1.s_date, 'MM-YYYY') as start_final , to_char(table1.e_date, 'MM-YYYY') as end_final , concat(concat(start_final,' to  '),end_final) as new_dur,  INITCAP(ent.name) as entity ,
+  
+ listagg(distinct cast(foc.name as varchar),',') AS schedule_7_unwind,	
+ listagg(distinct cast(sg.name as varchar),',') AS sdg_unwind,
+ listagg(distinct cast(st.name as varchar),',') AS locationdistrict_unwind,
+ listagg(distinct cast(st1.name as varchar),',') AS locationstate_unwind ,
+ listagg(DISTINCT CAST(table1.sdg_icon_unwind AS VARCHAR),',') AS sdg_photo_unwind2,
+  sta.name as status_update , st.name as district_update_new , st1.name as state_update_new
+ 
+from table1
+  
+LEFT JOIN ds_mysql_prod_tagelement AS foc
+ON foc.id = table1.schedule_7_unwind
+  
+LEFT JOIN ds_mysql_prod_tagelement AS sg
+ON sg.id = table1.sdg_unwind
+  
+LEFT JOIN ds_mysql_prod_tagelement AS st
+ON st.id = table1.location_unwind
    
-   left join ds_mysql_prod_tagelement d1_new
-   on p.d1 = d1_new.id
-  ),
+LEFT JOIN ds_mysql_prod_tagelement AS st1
+ON st.parent = st1.id
+   
+LEFT JOIN ds_mysql_prod_tagelement AS ng
+ON ng.id = table1.ngo
+   
+LEFT JOIN ds_mysql_prod_project AS proj
+ON table1.projectid = proj.id
+   
+Left join ds_mysql_prod_tagelement ent 
+ON table1.entity = ent.id
+  
+Left join ds_mysql_prod_tagelement sta 
+ON table1.status = sta.id
+  
+  GROUP BY 
+   table1._id,
+  table1.name , table1.projectid , table1.fy_timerange , table1.status , table1.title , table1.type , table1.ngo , table1.proj_img, table1.s_date, table1.e_date,table1.desc,table1.spoc_name,table1.spoc_email,table1.spoc_contact,table1.budget , table1.outcome , ng.name , proj.name, table1.location , table1.entity , ent.name , sta.name , st.name , st1.name  ), 
   
   
-table3 as(SELECT * 
-FROM (SELECT projectId,factory,vendor,country,region,year_new,unit,decision_update,count(decision_update) as total 
-	  
-	  from table51
-	  
-	  
-
-	 group by projectId,decision_update,factory,vendor,country,region,year_new,unit)
-
-PIVOT (
-    SUM(total) FOR decision_update IN ('I do not hear about the decisions made' as d_n_h_d,'Our department Bi-Partite Committee representative tells me' as bi_d,'Decisions are posted on a notice board' as d_notice,'Decisions are announced through public address system (PA system)
-' as d_pa ,'Not answered' as n_a , 'Other' as other)
-)
+  
+ table3 as ( Select _id, district_update_new  , state_update_new , 
+			
+case when state_update_new is not null then state_update_new else district_update_new end as total_location_covered , projectname
+			
+from table2 as p
 ),
 
-table4 as(select projectId,factory,vendor,country,region,year_new,unit,
-		  
-		 case when d_n_h_d is null then 0 else d_n_h_d end as d_n_h_d_count,
-		  case when bi_d is null then 0 else bi_d end as bi_d_count,
-		  case when d_notice is null then 0 else d_notice end as d_notice_count,
-		  case when d_pa is null then 0 else d_pa end as d_pa_count,
-		  case when n_a is null then 0 else n_a end as n_a_count,
-		  case when other is null then 0 else other end as other_count,
-		 (d_n_h_d_count+bi_d_count+d_notice_count+d_pa_count+n_a_count+other_count) as total,
-(d_n_h_d_count*100.0)/total as d_n_h_d_count_percent,
-		(bi_d_count*100.0)/total as bi_d_count_percent,
-	(d_notice_count*100.0)/total as d_notice_count_percent ,
-		  (d_pa_count*100.0)/total as d_pa_count_percent,
-		  (n_a_count*100.0)/total as n_a_count_percent,
-		  (other_count*100.0)/total as other_count_percent from table3
-		  
-),
-temp as (
-   select 'I do not hear about the decisions made' as dim
-  union all
-  select 'Our department Bi-Partite Committee representative tells me' as dim
-  union all
-  select 'Decisions are posted on a notice board' as dim
-  union all
-  select 'Decisions are announced through public address system (PA system)' as dim
-  union all
-  select 'Other' as dim
-  union all
-  select 'Not answered' as dim
-)
+table4 as
+( select _id , count( distinct total_location_covered) as count_state , projectname  from table3 as p
+ 
+ group by _id , projectname 
+
+order by count_state desc),
 
 
-select projectId,factory,vendor,country,region,year_new,unit,d_n_h_d_count,bi_d_count,d_notice_count,d_pa_count,n_a_count,other_count,total, d_n_h_d_count_percent , bi_d_count_percent, d_notice_count_percent , d_pa_count_percent, n_a_count_percent, other_count_percent
-	,temp.dim,case dim
-	when 'I do not hear about the decisions made' then d_n_h_d_count_percent
-	when 'Our department Bi-Partite Committee representative tells me' then bi_d_count_percent  
-	when 'Decisions are posted on a notice board' then d_notice_count_percent
-	when 'Decisions are announced through public address system (PA system)' then d_pa_count_percent
-	when 'Not answered' then n_a_count_percent
-	when 'Other' then other_count_percent
-
-	Else Null
-	End as value1
-	,case dim
-	when 'I do not hear about the decisions made' then 1
-	when 'Our department Bi-Partite Committee representative tells me' then 2  
-	when 'Decisions are posted on a notice board' then 3
-	when 'Decisions are announced through public address system (PA system)' then 4
-	when 'Not answered' then 5
-	when 'Other' then 6
-
-	Else Null
-	End as sequence
+table5 as
+( Select p.*, t4.count_state , t4.total_location_covered from table2 as p
 	
-	from table4
-	cross join temp
+LEFT JOIN table4 t4
+on p._id = t4._id
+)
 
-group by projectId,factory,vendor,country,region,year_new,unit,d_n_h_d_count,bi_d_count,d_notice_count,d_pa_count,n_a_count,other_count,total, d_n_h_d_count_percent , bi_d_count_percent, d_notice_count_percent , d_pa_count_percent, n_a_count_percent, other_count_percent
-	,temp.dim
+select p.desc , proj_img , sdg_photo_unwind2 , ngo , new_dur , status_update , count_state , count(*) as count_check , projectname , _id , entity , fy_timerange , total_location_covered from table5 as p
+
+group by  p.desc , proj_img , sdg_photo_unwind2 , ngo , new_dur , status_update , count_state  , _id , entity , fy_timerange , projectname
+
+order by count_state desc
+
