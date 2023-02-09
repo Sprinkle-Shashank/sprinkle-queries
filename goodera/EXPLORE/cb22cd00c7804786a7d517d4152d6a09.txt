@@ -1,9 +1,10 @@
-Select p.tfimonth_timerange, p.tfi_fattendactual,p.tfi_sattendactual,p.usf_pgraduate,p.usf_alumnaepconduct,p.usf_dashboard,p.kef_mdmadopt
+With tab1 as(Select p.tfimonth_timerange, p.tfi_fattendactual,p.tfi_sattendactual,p.usf_pgraduate,p.usf_alumnaepconduct,p.usf_dashboard,p.kef_mdmadopt
 From profile_55986 p
 where tfi_fattendactual is not null 
 order by tfimonth_timerange asc
-limit 1
-/*wITH TAB1 AS (
+limit 1),
+
+TAB2 AS (
 SELECT 'Fellow Attendance % Actual (Delhi)' AS COL
 UNION ALL
 SELECT 'Student Attendance % Actual (Delhi, schools where Fellows used the solution)' AS COL
@@ -16,20 +17,20 @@ SELECT 'Financial Dashboard (National)' AS COL
 UNION ALL
 SELECT 'KEF MDM Adopted % (JhunJhunu District)' AS COL
 ),
-tab2 as(Select p.tfimonth_timerange,t.col AS Indicator,
+tab3 as(Select t.col AS Indicator,
 CASE COL
-	WHEN 'Fellow Attendance % Actual (Delhi)'THEN p.tfi_fattendactual
-	WHEN 'Student Attendance % Actual (Delhi, schools where Fellows used the solution)' THEN p.tfi_sattendactual
-	WHEN '% of graduated Shalini’s who are part of Alumnae (National)' THEN p.usf_pgraduate
-	WHEN '% of Programs conducted for Alumnae (National)' THEN p.usf_alumnae
-	WHEN 'Financial Dashboard (National)' THEN p.usf_dashboard
-	WHEN 'KEF MDM Adopted % (JhunJhunu District)' THEN p.kef_mdmadopt
+	WHEN 'Fellow Attendance % Actual (Delhi)'THEN tab1.tfi_fattendactual
+	WHEN 'Student Attendance % Actual (Delhi, schools where Fellows used the solution)' THEN tab1.tfi_sattendactual
+	WHEN '% of graduated Shalini’s who are part of Alumnae (National)' THEN tab1.usf_pgraduate
+	WHEN '% of Programs conducted for Alumnae (National)' THEN tab1.usf_alumnae
+	WHEN 'Financial Dashboard (National)' THEN tab1.usf_dashboard
+	WHEN 'KEF MDM Adopted % (JhunJhunu District)' THEN tab1.kef_mdmadopt
 END AS Base
-From profile_55986 p
-CROSS JOIN TAB1 t
-where tfi_fattendactual is not null 
-order by tfimonth_timerange asc),
-
+From tab1
+CROSS JOIN TAB2)
+Select *
+from tab3
+/*
 tab3 as(
 Select p.tfimonth_timerange,t.col AS Indicator,
 CASE COL
