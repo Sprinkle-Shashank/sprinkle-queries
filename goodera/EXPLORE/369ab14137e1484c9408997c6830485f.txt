@@ -1,3 +1,18 @@
-select projectId, fy_1, projects, state, theme, fy_timerange, budget_allocation, budget_utilized from profile_51028 as m
-where theme = '1255863'
+with t1 as
+(select projectId.name as projectId, fy_11.name as fy_1, projects1.name as projects, state, theme1.name as theme, fy_timerange, budget_allocation, budget_utilized from profile_51028 as p
 
+left join ds_mysql_prod_project as projectId
+on p.projectId = projectId.id
+left join ds_mysql_prod_tagelement fy_11
+ on p.fy_1 = fy_11.id
+left join ds_mysql_prod_tagelement theme1
+ on p.theme = theme1.id
+left join ds_mysql_prod_tagelement projects1
+ on p.projects = projects1.id
+where theme = '1255863'
+ ),
+t as
+  (
+	select projectId, fy_1, projects, theme, fy_timerange, budget_allocation, budget_utilized, cast(sta as varchar) as state_updated from t1 t, t.state as sta
+	)
+	select * from t
