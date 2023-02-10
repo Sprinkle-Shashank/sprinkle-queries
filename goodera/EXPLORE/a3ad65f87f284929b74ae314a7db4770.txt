@@ -1,1 +1,10 @@
-select state, sdg_goal, projects, project_status, ngo, description, fy_timerange, year_of_inception, project_pic from profile_51331 as m
+with t1 as
+(select state, sdg_goal, projects,project_status1.name as project_status, ngo, description, fy_timerange, year_of_inception, project_pic from profile_51331 as p
+left join ds_mysql_prod_tagelement project_status1
+ on p.project_status = project_status1.id),
+t as
+  (
+	select sdg_goal, projects,project_status,ngo, description, fy_timerange, year_of_inception, project_pic, cast(sta as varchar) as state1 from t1 t, t.state as sta)
+	select projectId, fy_1, projects, theme, fy_timerange, budget_allocation, budget_utilized,state1.name as state from t
+	left join ds_mysql_prod_tagelement state1
+   on t.state1 = state1.id
