@@ -28,7 +28,7 @@ left join  ds_mysql_prod_tagelement as t11
 on p.hplc_yes_no  = t11.id
 ), 
 table2 as (
-select projectId, ben_id, date, state, district, block, village, age_unit, gender, caste, pregnancy_status, anaemia, solubility, hplc_yes_no, hplc_result, action,/*age,tallquist,hb_reading,*/
+select projectId, ben_id, date as fy_timerange, state, district, block, village, age_unit, gender, caste, pregnancy_status, anaemia, solubility, hplc_yes_no, hplc_result, action,/*age,tallquist,hb_reading,*/
   
 case 
 when age_unit=1517597
@@ -43,6 +43,15 @@ when hb_reading is null
 then 0 else 1 end 
    as hb_reading,
 no_fam_mem, count(*) as count  from table1
-group by projectId, ben_id, date, state, district, block, village, age_unit, gender, caste, pregnancy_status, anaemia, solubility, hplc_yes_no, hplc_result, action, age, tallquist, hb_reading, no_fam_mem)
+group by projectId, ben_id, date as fy_timerange, state, district, block, village, age_unit, gender, caste, pregnancy_status, anaemia, solubility, hplc_yes_no, hplc_result, action, age, tallquist, hb_reading, no_fam_mem)
 
-select * from table2
+select *, 
+case 
+when age<5 then Under 5
+when age<10 then 6-10
+when age<19 then 11-19
+when age<29 then 20-29
+when age<39 then 30-39
+else Above 40 
+end as age_range
+from table2
