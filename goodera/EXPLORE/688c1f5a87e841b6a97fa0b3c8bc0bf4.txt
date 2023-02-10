@@ -1,101 +1,31 @@
---expo_carbon_emission_sf_per_unit
-with s as (
-Select ss.projectId, ss.carrier, ss.fy_timerange, ss.shipment_id,ss.client, ss.origin_port, ss.dest_port, ss.units, ss.shipment_type, (ss.origin_port || ss.dest_port) as ports_lookup,ss.teu
-from profile_79048 ss
-),
-s2 as (
-Select s.projectId, s.carrier, s.fy_timerange,s.client, s.shipment_id, s.origin_port, s.dest_port, s.units, s.shipment_type, s.ports_lookup, tt.start_country, tt.dest_country, tt.start_tradelane, tt.dest_tradelane, tt.km,(tt.start_tradelane || tt.dest_tradelane || s.carrier) tradelane_carrier_lookup,s.teu
-  from s
-  left join profile_79053 tt
-on tt.lookup_port=s.ports_lookup
-),
+--Target_RSAP_Workforce_Impacted
 
-s3 as (
-Select  t.name as projectid,  s2.projectId as pid,t5.name as client, t1.name as carrier, s2.fy_timerange,extract(MONTH from cast(fy_timerange.start as date)) as month, s2.shipment_id, t2.name as origin_port, t3.name dest_port, s2.units, t4.name as shipment_type, s2.ports_lookup, s2.start_country, s2.dest_country, s2.start_tradelane, s2.dest_tradelane, s2.km, mm.co2_dry, mm.co2_ref, (mm.co2_dry*(s2.km*1.15)*s2.teu)/1000000 CO2_eff_dry,(mm.co2_ref*(s2.km*1.15)*s2.teu)/1000000 CO2_eff_ref,
-  case 
-  when month=01 then '10'
-  when month=02 then '11'
-  when month=03 then '12'
-  when month=04 then '1'
-  when month=05 then '2'
-  when month=06 then '3'
-  when month=07 then '4'
-  when month=08 then '5'
-  when month=09 then '6'
-  when month=10 then '7'
-  when month=11 then '8'
-  when month=12 then '9'
-  end as sort_able_month,
-  
-  case
-  when month=01 then 'January'
-  when month=02 then 'February'
-  when month=03 then 'March'
-  when month=04 then 'April'
-  when month=05 then 'May'
-  when month=06 then 'June'
-  when month=07 then 'July'
-  when month=08 then 'August'
-  when month=09 then 'September'
-  when month=10 then 'October'
-  when month=11 then 'November'
-  when month=12 then 'December'
-  end as monthh,
-  case 
-  when monthh='January' then  10
-  when monthh='February' then  11
-  when monthh='March' then  12
-  when monthh='April' then  1
-  when monthh='May' then  2
-  when monthh='June' then  3
-  when monthh='July' then  4
-  when monthh='August' then  5
-  when monthh='September' then  6
-  when monthh='October' then  7
-  when monthh='November' then  8
-  when monthh='December' then  9
-  end as sort_order,
-case
-	When s2.shipment_type=1623028 then CO2_eff_dry
-	else CO2_eff_ref
-	end 
-	as CO2_eff
-from s2
-left join  project_6664 t
-on t.id=s2.projectid
-left join tagElement_6664 t1
-on t1.id=s2.carrier
-left join profile_79164 t2
-on t2._id=s2.origin_port
-left join profile_79164 t3
-on t3._id=s2.dest_port
-left join tagElement_6664 t4
-on t4.id=s2.shipment_type
-left join tagElement_6664 t5
-on t5.id=s2.client
-left join profile_79060 mm
-on mm.lookup_tradelane_carrier=s2.tradelane_carrier_lookup
-where s2.km is not null
-),
-s4 as (
-Select projectId, pid, units, fy_timerange ,(EXTRACT(YEAR FROM(CAST(s3.fy_timerange.start AS datetime)))) as year,client ,sort_order,monthh as month,month as month1, sort_able_month , origin_port , dest_port ,  sum(CO2_eff) co2_eff
-from s3
-  group by 1,2,3,4,5,6,7,8,9,10, origin_port , dest_port
-  order by sort_able_month
-),
-s5 as (
-Select projectId, pid, units,client,sort_order, 
-  case 
-         when (year=2018 and month1>3) or (year=2019 and month1<4) then 'FY 2018-19' 
-        when (year=2019 and month1>3) or (year=2020 and month1<4) then 'FY 2019-20' 
-	 when (year=2020 and month1>3) or (year=2021 and month1<4) then 'FY 2020-21' 
-        when (year=2021 and month1>3) or (year=2022 and month1<4) then 'FY 2021-22' 
-	 when (year=2022 and month1>3) or (year=2023 and month1<4) then 'FY 2022-23'
-	 when (year=2023 and month1>3) or (year=2024 and month1<4) then 'FY 2023-24'
-	 end as year
-  , month, origin_port ||'-'|| dest_port  as Source_dest, (co2_eff/nullif(units,0)) as  Emission_per_unit
-from s4
-where pid like '%%'
-)
-Select projectId,client, year , month,Source_dest ,sort_order,  (Emission_per_unit) as Emission_per_unit
-from s5
+with sub1 as (
+Select p1.name as projectid,p.timerange_timerange,p.num_female,p.num_male,t1.name as training_type,t2.name as year,t3.name as country, a.vendor,a.cycle,a.product_category,tag13.name as consultant
+from profile_61528 p 
+left join project_7746 p1 on p1.id = p.projectid
+
+left join profile_64362 a on a.projectid = p.projectid
+left join tagElement_7746 tag13
+on p.consultant_tag = tag13.id
+left join tagElement_7746 t1 on t1.id = p.training_type
+left join tagElement_7746 t2 on t2.id = p.year
+left join tagElement_7746 t3 on t3.id = a.country),
+
+sub2 as ( Select c.*,unwind_cycle from sub1 c , c.cycle unwind_cycle ),
+
+
+sub3 as (Select d.projectid,d.timerange_timerange,d.num_female,d.num_male,d.training_type,d.year,d.country,d.vendor,d.consultant,d.product_category,
+t1.name as cycle, row_number() over (partition by d.projectid,t1.name,d.country,d.vendor,d.consultant order by cast (d.timerange_timerange.start as DATE) DESC ) as row
+from sub2 d
+left join tagElement_7746 t1 on t1.id = d.unwind_cycle),
+
+sub4 as ( Select e.*,unwind_product_category from sub3 e , e.product_category unwind_product_category
+		 where row = 1 )
+
+
+Select f.projectid,f.timerange_timerange,f.num_female, f.num_male,
+NVL(f.num_female,0)+ NVL(f.num_male,0) as workforce,
+f.training_type,f.cycle,f.year,f.country,f.vendor,f.consultant, t1.name as product_category 
+from sub4 f
+left join tagElement_7746 t1 on t1.id = f.unwind_product_category
