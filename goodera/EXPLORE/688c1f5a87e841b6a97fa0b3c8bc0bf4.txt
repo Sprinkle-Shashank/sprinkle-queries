@@ -1,24 +1,44 @@
 --Target_RSAP_Workforce_Impacted
+with table1 as
+(select _id , projectId,country, vendor,unwind_cycle, product_category, consultant_tag from profile_64362 as p ,p.cycle as unwind_cycle),
 
-with sub1 as (
-Select p1.name as projectid,p.timerange_timerange,p.num_female,p.num_male,t1.name as training_type,t2.name as year,t3.name as country, a.vendor,a.cycle,a.product_category,tag13.name as consultant
+ table2 as
+(select _id, projectId,country, vendor,cycle,product_category,consultant_tag from profile_64362
+  where _id not in (select _id from table1))
+  ,
+  
+table3 as
+ (
+	select * from table1
+  Union all
+  select * from table2
+ )
+ ,
+sub1 as (
+Select p1.name as projectid,p.timerange_timerange,p.num_female,p.num_male,t1.name as training_type,t2.name as year,t3.name as country, a.vendor,a.cycle,a.product_category,tag13.name as consultant , t4.name as cycle
 from profile_61528 p 
-left join project_7746 p1 on p1.id = p.projectid
 
-left join profile_64362 a on a.projectid = p.projectid
+
+left join table3 as a
+on a.projectId = p.projectId
+left join project_7746 p1 on p1.id = p.projectid
+  
+  
+
 left join tagElement_7746 tag13
 on a.consultant_tag = tag13.id
 left join tagElement_7746 t1 on t1.id = p.training_type
 left join tagElement_7746 t2 on t2.id = p.year
-left join tagElement_7746 t3 on t3.id = a.country),
+left join tagElement_7746 t3 on t3.id = a.country
+left join tagElement_7746 t4 on t1.id = d.unwind_cycle),
 
-sub2 as ( Select c.*,unwind_cycle from sub1 c , c.cycle unwind_cycle ),
+
 
 
 sub3 as (Select d.projectid,d.timerange_timerange,d.num_female,d.num_male,d.training_type,d.year,d.country,d.vendor,d.consultant,d.product_category,
-t1.name as cycle, row_number() over (partition by d.projectid,t1.name,d.country,d.vendor,d.consultant order by cast (d.timerange_timerange.start as DATE) DESC ) as row
-from sub2 d
-left join tagElement_7746 t1 on t1.id = d.unwind_cycle),
+d.cycle, row_number() over (partition by d.projectid,t1.name,d.country,d.vendor,d.consultant order by cast (d.timerange_timerange.start as DATE) DESC ) as row
+from sub1 d
+),
 
 sub4 as ( Select e.*,unwind_product_category from sub3 e , e.product_category unwind_product_category
 		 where row = 1 )
