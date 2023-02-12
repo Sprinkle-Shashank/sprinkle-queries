@@ -1,5 +1,6 @@
 --Tally_Amount_Disbursed_Rainbow Homes
-select fy_timerange, sum(disbursed) as disbursed, p.name as projectid, fy_timerange.start as start_date,
+with t1 as 
+(select fy_timerange, sum(disbursed) as disbursed, p.name as projectid, fy_timerange.start as start_date, fy_timerange.end as end_date
 
 case
 	when p.name like '%ANC%' then 'Rainbow Homes (ANC Rainbow Homes)'
@@ -16,7 +17,10 @@ on p.id=projectid
 where disbursed is not null and 
 (p.name like '%ANC%' or p.name like '%Bosco%' or p.name like '%Sanrakshan%') 
 
-group by fy_timerange, p.name
+group by fy_timerange, p.name)
+
+select fy_timerange, disbursed, projectid, start_date :: date, end_date :: date, project_old
+from t1
 
 
 
