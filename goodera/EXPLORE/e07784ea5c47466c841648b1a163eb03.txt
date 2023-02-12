@@ -1,12 +1,22 @@
-with t1 as 
-(select p1.*, fy_timerange.start :: date as start_date  
-from profile_83263 p1)
+--Tally_Amount_Disbursed_Rainbow Homes
+select fy_timerange, sum(disbursed) as disbursed, p.name as projectid,
 
-select tag1.name as social_work, to_char(start_date, 'MONTH') as start_month
-from t1
-left join ds_mysql_prod_tagelement tag1
-on t1.social_work = tag1.id
-where start_month = 'APRIL'
+case
+	when p.name like '%ANC%' then 'Rainbow Homes (ANC Rainbow Homes)'
+	when p.name like '%Bosco%' then 'Rainbow Homes (Bosco Rainbow Homes)'
+	when p.name like '%Sanrakshan%' then 'Rainbow Homes (Sanrakshan Rainbow Homes)'
+	else NULL
+end as projectid_old
+
+from profile_79979
+
+left join ds_mysql_prod_project p
+on p.id=projectid
+
+where disbursed is not NULL and 
+(p.name like '%ANC%' or p.name like '%Bosco%' or p.name like '%Sanrakshan%')
+
+group by fy_timerange, p.name
 
 
 
