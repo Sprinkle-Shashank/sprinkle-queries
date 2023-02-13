@@ -1,3 +1,19 @@
+SELECT N.location, N.scheme_name,
+proj.name AS projectid,
+SUBSTRING(CAST(N.date AS varchar),1,10)||'T00:00:00.000Z'||'|'||SUBSTRING(CAST(N.date AS varchar),1,10)||'T00:00:00.000Z' AS fy_timerange,
+EXTRACT(YEAR FROM N.date) AS fy,
+COUNT(*) AS count
+
+FROM profile_79871 AS N
+
+LEFT JOIN ds_mysql_prod_project AS proj
+ON N.projectId = proj.id
+
+WHERE N.date IS NOT NULL
+
+GROUP BY 1,2,3,4,5
+
+/* OLD UNION Query
 SELECT P.location, P.scheme_name,
 proj.name AS projectid,
 SUBSTRING(CAST(P.date_2 AS varchar),1,10)||'T00:00:00.000Z'||'|'||SUBSTRING(CAST(P.date_2 AS varchar),1,10)||'T00:00:00.000Z' AS fy_timerange,
@@ -29,6 +45,7 @@ ON N.projectId = proj.id
 WHERE N.date IS NOT NULL
 
 GROUP BY 1,2,3,4,5
+*/
 
 /* OLD QUERY
 SELECT P.location, P.scheme_name, P.scheme_beneficiary,
