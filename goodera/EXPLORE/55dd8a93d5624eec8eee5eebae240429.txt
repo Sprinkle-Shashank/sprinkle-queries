@@ -1,7 +1,8 @@
+--Expolanka_Data_Reports_Consumption_Summary_Part2
 with sub1 as(
   select p1.xprojectid, p1.fy_timerange, p1.keyword, p1.datatablebase, table1.fuel_company as col
 from sus_9539 as p1, unpivot p1.datatablebase as table1
-where p1.keyword = 'company_vehicles'),
+where p1.keyword = 'company_vehicles' and p1.xprojectid ilike '%%'),
 
 sub2 as(
   select p1.xprojectid, p1.fy_timerange, p1.keyword, p1.datatablebase, table2.fuel_consump_own as col
@@ -38,9 +39,9 @@ select p2.name as projectid, p3.name as country, s6.fy_timerange, s6.keyword,
 sum(cast(s6.col as FLOAT)) as total
 from sub6 s6
 
-left join ds_mysql_prod_project p2 on p2.id = s6.xprojectid
-left join ds_mysql_prod_project p3 on p3.id = p2.parent
+left join project_6664 p2 on p2.id = s6.xprojectid
+left join project_6664 p3 on p3.id = p2.parent
 
-where s6.col is not null and s6.col > 0
+where s6.col is not null and s6.col > 0 and s6.xprojectid ilike '%%'
 
 group by p2.name, p3.name, s6.fy_timerange, s6.keyword
