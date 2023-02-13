@@ -1,52 +1,16 @@
---Target_RSAP_Workforce_Impacted
-with table1 as
-(select _id , projectId,country, vendor,unwind_cycle, product_category, consultant_tag from profile_64362 as p ,p.cycle as unwind_cycle),
-
- table2 as
-(select _id, projectId,country, vendor,cycle,product_category,consultant_tag from profile_64362
-  where _id not in (select _id from table1))
-  ,
-  
-table3 as
- (
-	select * from table1
-  Union all
-  select * from table2
- )
- ,
+--ExpolankaCarbon Emission_table
+ Select p2.name, t3.name as destination, t2.name as source, t1.name as financial_year , t4.name as month, t5.name as client,Sum((equivalent+equivalent_2)/1000) as emission, final_geography, units, (emission/units) as emission_per_unit,
+ concat(concat(t2.name, '-' ), t3.name ) as source_Dest, mawb, weight,distance,distance_2,tkm,tkm_2,glec,glec_2,ef,ef_2,equivalent,equivalent_2, t6.name AS intermediate
+ from profile_48725 p1
+left join project_6664 p2 on p2.id=projectid
+left join tagElement_6664 t1 on t1.id = financial_year
+left join tagElement_6664 t4 on t4.id = month
+left join tagElement_6664 t5 on t5.id = client
+left join profile_48724 t2 on t2._id=p1.source
+left join profile_48724 t3 on t3._id=p1.destination
+left join profile_48724 t6 on t6._id=p1.inter_dest
+ where month is not null and p1.projectid like '%%'
+ group by p2.name, t3.name, t2.name,t1.name , t4.name, t5.name, final_geography, source_Dest, units, t6.name,mawb, weight,distance,distance_2,tkm,tkm_2,glec,glec_2,ef,ef_2,equivalent,equivalent_2 
+ order by t1.name desc
  
-sub1 as (
-Select p1.name as projectid,p.timerange_timerange,p.num_female,p.num_male,t1.name as training_type,t2.name as year,t3.name as country, a.vendor,a.product_category,tag13.name as consultant , t4.name as cycle
-from profile_61528 p 
-
-
-left join table3 as a
-on a.projectId = p.projectId
-left join project_7746 p1 on p1.id = p.projectid
-  
-  
-
-left join tagElement_7746 tag13
-on a.consultant_tag = tag13.id
-left join tagElement_7746 t1 on t1.id = p.training_type
-left join tagElement_7746 t2 on t2.id = p.year
-left join tagElement_7746 t3 on t3.id = a.country
-left join tagElement_7746 t4 on t4.id = a.unwind_cycle),
-
-
-
-
-sub3 as (Select d.projectid,d.timerange_timerange,d.num_female,d.num_male,d.training_type,d.year,d.country,d.vendor,d.consultant,d.product_category,
-d.cycle, row_number() over (partition by d.projectid,d.country,d.vendor,d.consultant order by cast (d.timerange_timerange.start as DATE) DESC ) as row
-from sub1 d
-),
-
-sub4 as ( Select e.*,unwind_product_category from sub3 e , e.product_category unwind_product_category
-		 where row = 1 )
-
-
-Select f.projectid,f.timerange_timerange,f.num_female, f.num_male,
-NVL(f.num_female,0)+ NVL(f.num_male,0) as workforce,
-f.training_type,f.cycle,f.year,f.country,f.vendor,f.consultant, t1.name as product_category 
-from sub4 f
-left join tagElement_7746 t1 on t1.id = f.unwind_product_category
+ 
