@@ -137,11 +137,27 @@ CASE COL
 END AS Goal
 From tab5
 CROSS JOIN TABpivot
-)
-Select t2.*,t4.current,t6.goal
+),
+tab7 as(Select t2.*,t4.current,t6.goal
 from tab2 t2
 left join tab4 t4
 on t2.Indicator=t4.Indicator
 left join tab6 t6
 on t2.Indicator=t6.Indicator
-where indicator='Average'
+where t2.indicator='Average')
+
+tab8 as(
+Select 'Base' as Col
+UNION ALL
+SELECT 'Current' as Col
+Union all
+Select 'Goal' as Col
+)
+
+Select *,t7.col
+CASE COL
+	WHEN 'Base' then t7.base
+	WHEN 'Current' then t7.current
+	WHEN 'Goal' then t7.goal
+From tab7 t7
+cross join tab8
