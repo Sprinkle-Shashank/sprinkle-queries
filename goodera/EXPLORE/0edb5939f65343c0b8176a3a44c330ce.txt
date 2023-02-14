@@ -1,0 +1,110 @@
+With tab1 as(Select p.tfimonth_timerange,
+CASE
+	WHEN SUM(p.tfi_hrsactual,p.tfi_ohrsactual) is null then 0
+	ELSE SUM(p.tfi_hrsactual,p.tfi_ohrsactual)
+END AS one,
+CASE
+	WHEN p.usf_newchapter is null then 0
+	ELSE p.usf_newchapter
+END AS two,
+CASE
+	WHEN p.usf_dashboard is null then 0
+	ELSE p.usf_dashboard
+END AS three,
+CASE
+	WHEN p.kef_mdmih is null then 0
+	ELSE p.kef_mdmih
+END AS four
+From profile_55986 p
+where usf_newchapter is not null 
+order by tfimonth_timerange asc
+limit 1),
+
+TABpivot AS (
+SELECT 'Inside + Outside school Instructional Hrs.' AS COL
+UNION ALL
+SELECT 'New Chapters per year' AS COL
+UNION ALL
+SELECT 'Financial Dashboard Usage' AS COL
+UNION ALL
+SELECT '% Increase in Instructional Hrs. (MDM)' AS COL
+UNION ALL
+SELECT 'Total' AS COL
+),
+tab2 as(Select 
+CASE COL
+	WHEN 'Inside + Outside school Instructional Hrs.'THEN 'TFI'
+	WHEN 'New Chapters per year' THEN 'USF'
+	WHEN 'Financial Dashboard Usage' THEN 'USF'
+	WHEN '% Increase in Instructional Hrs. (MDM)' THEN 'KEF'
+END AS NPO,
+TABpivot.col AS Indicator,
+CASE COL
+	WHEN 'Inside + Outside school Instructional Hrs.'THEN tab1.one
+	WHEN 'New Chapters per year' THEN tab1.two
+	WHEN 'Financial Dashboard Usage' THEN tab1.three
+	WHEN '% Increase in Instructional Hrs. (MDM)' THEN tab1.four
+	WHEN 'Total' THEN ((tab1.one+tab1.two+tab1.three+tab1.four)/4)
+END AS Base
+From tab1
+CROSS JOIN TABpivot),
+
+tab3 as(
+CASE
+	WHEN SUM(p.tfi_hrsactual,p.tfi_ohrsactual) is null then 0
+	ELSE SUM(p.tfi_hrsactual,p.tfi_ohrsactual)
+END AS one,
+CASE
+	WHEN p.usf_newchapter is null then 0
+	ELSE p.usf_newchapter
+END AS two,
+CASE
+	WHEN p.usf_dashboard is null then 0
+	ELSE p.usf_dashboard
+END AS three,
+CASE
+	WHEN p.kef_mdmih is null then 0
+	ELSE p.kef_mdmih
+END AS four
+From profile_55986 p
+where usf_newchapter is not null 
+order by tfimonth_timerange.start asc
+limit 1
+),
+tab4 as(
+Select TABpivot.col AS Indicator,
+CASE COL
+	WHEN 'Inside + Outside school Instructional Hrs.'THEN tab3.one
+	WHEN 'New Chapters per year' THEN tab3.two
+	WHEN 'Financial Dashboard Usage' THEN tab3.three
+	WHEN '% Increase in Instructional Hrs. (MDM)' THEN tab3.four
+	WHEN 'Total' THEN ((tab3.one+tab3.two+tab3.three+tab3.four)/4)
+END AS Current
+From tab3
+CROSS JOIN TABpivot
+),
+
+tab5 as(
+Select SUM(tfi_hrsgoal,tfi_ohrsgoal) as one, usf_newchaptergoal, usf_dashboardgoal, kef_mdmihgoal
+From profile_56837
+where usf_newchaptergoal is not null
+),
+
+tab6 as(
+Select TABpivot.col AS Indicator,
+CASE COL
+	WHEN 'Inside + Outside school Instructional Hrs.'THEN tab5.one
+	WHEN 'New Chapters per year' THEN tab5.usf_newchaptergoal
+	WHEN 'Financial Dashboard Usage' THEN tab5.usf_dashboardgoal
+	WHEN '% Increase in Instructional Hrs. (MDM)' THEN tab5.kef_mdmihgoal
+	WHEN 'Total' THEN ((tab5.one+tab5.usf_newchaptergoal+tab5.usf_dashboardgoal+tab5.kef_mdmihgoal)/4)
+END AS Goal
+From tab5
+CROSS JOIN TABpivot
+)
+Select t2.*,t4.current,t6.goal
+from tab2 t2
+left join tab4 t4
+on t2.Indicator=t4.Indicator
+left join tab6 t6
+on t2.Indicator=t6.Indicator
