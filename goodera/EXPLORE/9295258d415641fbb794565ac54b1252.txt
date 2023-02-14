@@ -1,0 +1,96 @@
+With tab1 as(Select p.tfimonth_timerange,
+CASE
+	WHEN p.tfi_impact is null then 0
+	ELSE p.tfi_impact
+END AS one,
+CASE
+	WHEN p.usf_impact is null then 0
+	ELSE p.usf_impact
+END AS two,
+CASE
+	WHEN p.kef_mdmsimpact is null then 0
+	ELSE p.kef_mdmsimpact
+END AS three
+From profile_55986 p
+where tfi_impact is not null 
+order by tfimonth_timerange asc
+limit 1),
+
+TABpivot AS (
+SELECT '# Students (Fellow Attendance % * Total TFI students in TFI Delhi (10,000))' AS COL
+UNION ALL
+SELECT '# Shalinis (National)' AS COL
+UNION ALL
+SELECT 'MDM # Students (JhunJhunu)' AS COL
+UNION ALL
+SELECT 'Total' AS COL
+),
+tab2 as(Select 
+CASE COL
+	WHEN '# Students (Fellow Attendance % * Total TFI students in TFI Delhi (10,000))' THEN 'TFI'
+	WHEN '# Shalinis (National)' THEN 'USF'
+	WHEN 'MDM # Students (JhunJhunu)' THEN 'KEF'
+END AS NPO,
+TABpivot.col AS Indicator,
+CASE COL
+	WHEN '# Students (Fellow Attendance % * Total TFI students in TFI Delhi (10,000))'THEN tab1.one
+	WHEN '# Shalinis (National)' THEN tab1.two
+	WHEN 'MDM # Students (JhunJhunu)' THEN tab1.three
+	WHEN 'Total' THEN (tab1.one+tab1.two+tab1.three)
+END AS Base
+From tab1
+CROSS JOIN TABpivot),
+
+tab3 as(Select p.tfimonth_timerange,
+CASE
+	WHEN p.tfi_impact is null then 0
+	ELSE p.tfi_impact
+END AS one,
+CASE
+	WHEN p.usf_impact is null then 0
+	ELSE p.usf_impact
+END AS two,
+CASE
+	WHEN p.kef_mdmsimpact is null then 0
+	ELSE p.kef_mdmsimpact
+END AS three
+From profile_55986 p
+where tfi_impact is not null 
+order by tfimonth_timerange.start asc
+limit 1
+),
+tab4 as(
+Select TABpivot.col AS Indicator,
+CASE COL
+	WHEN '# Students (Fellow Attendance % * Total TFI students in TFI Delhi (10,000))'THEN tab3.one
+	WHEN '# Shalinis (National)' THEN tab3.two
+	WHEN 'MDM # Students (JhunJhunu)' THEN tab3.three
+	WHEN 'Total' THEN (tab3.one+tab3.two+tab3.three)
+END AS Current
+From tab3
+CROSS JOIN TABpivot
+),
+
+tab5 as(
+Select tfi_impactgoal, usf_impactgoal, kef_mdmsimpactgoal
+From profile_56837
+where tfi_impactgoal is not null
+),
+
+tab6 as(
+Select TABpivot.col AS Indicator,
+CASE COL
+	WHEN '# Students (Fellow Attendance % * Total TFI students in TFI Delhi (10,000))'THEN tab5.tfi_impactgoal
+	WHEN '# Shalinis (National)' THEN tab5.usf_impactgoal
+	WHEN 'MDM # Students (JhunJhunu)' THEN tab5.kef_mdmsimpactgoal
+	WHEN 'Total' THEN (tab5.tfi_impactgoal+tab5.usf_impactgoal+tab5.kef_mdmsimpactgoal)
+END AS Goal
+From tab5
+CROSS JOIN TABpivot
+)
+Select t2.*,t4.current,t6.goal
+from tab2 t2
+left join tab4 t4
+on t2.Indicator=t4.Indicator
+left join tab6 t6
+on t2.Indicator=t6.Indicator
