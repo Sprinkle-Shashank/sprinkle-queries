@@ -1,6 +1,17 @@
-Select p1.tfimonth_timerange,avg(p1.tfi_hrsactual),sum(p2.tfi_hrsgoal)
+With main as(
+Select 'Goal' as col
+UNION ALL
+Select 'All Quarters' as col
+)
+
+Select p1.tfimonth_timerange,main.col as dim
+Case col
+	When 'Goal' then sum(p2.tfi_hrsgoal)
+	When 'All Quarters' then avg(p1.tfi_hrsactual) 
+END AS Val
 From profile_55986 p1
 left join profile_56837 p2
 on p1.projectid=p2.projectid
+cross join main
 where tfi_hrsactual is not null
 group by tfimonth_timerange
