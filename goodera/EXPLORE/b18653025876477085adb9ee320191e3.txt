@@ -184,6 +184,46 @@ SPLIT_TO_ARRAY(listagg(distinct comp28706,', ')) as comp_28706, get_array_length
 from t4
 group by 1,2,3),
 
+tt as
+(select *,
+  case when final_pend_28709 is not null or final_rej_28709 is not null then 0
+    else final_comp_28709
+    end as final_completed_28709,
+
+ case when final_pend_28707 is not null or final_rej_28707 is not null then 0
+     else final_comp_28707
+     end as final_completed_28707,
+
+case when final_pend_28712 is not null or final_rej_28712 is not null then 0
+    else final_comp_28712
+    end as final_completed_28712,
+
+case when final_pend_28714 is not null or final_rej_28714 is not null then 0
+    else final_comp_28714
+    end as final_completed_28714,
+
+case when final_pend_29760 is not null or final_rej_29760 is not null then 0
+    else final_comp_29760
+    end as final_completed_29760,
+
+case when final_pend_28715 is not null or final_rej_28715 is not null then 0
+    else final_comp_28715
+    end as final_completed_28715,
+
+case when final_pend_29234 is not null or final_rej_29234 is not null then 0
+    else final_comp_29234
+    end as final_completed_29234,
+
+case when final_pend_28717 is not null or final_rej_28717 is not null then 0
+    else final_comp_28717
+    end as final_completed_28717,
+
+case when final_pend_28706 is not null or final_rej_28706 is not null then 0
+    else final_comp_28706
+    end as final_completed_28706
+ 
+from t5),
+
 t6 as
 (select grantapplicationid , grantpartnerid
  , startdate
@@ -215,15 +255,15 @@ else 0
 end as pending,
  
 case col
-	when 'Proposal submission' then final_comp_28709
-	when 'Approval by Site HR Lead' then final_comp_28707
- 	when 'Approval by Vertical HR Head' then final_comp_28712
-	when 'Review by CSR Team (Due Diligence)' then final_comp_28714
- 	when 'Approval by Compliance Team' then final_comp_29760
- 	when 'Approval by Legal Team' then final_comp_28715
- 	when 'Approval by Finance' then final_comp_29234
-  	when 'India Executive/ Board' then final_comp_28717
- 	when 'Proposal Approval Document' then final_comp_28706
+	when 'Proposal submission' then final_completed_28709
+	when 'Approval by Site HR Lead' then final_completed_28707
+ 	when 'Approval by Vertical HR Head' then final_completed_28712
+	when 'Review by CSR Team (Due Diligence)' then final_completed_28714
+ 	when 'Approval by Compliance Team' then final_completed_29760
+ 	when 'Approval by Legal Team' then final_completed_28715
+ 	when 'Approval by Finance' then final_completed_29234
+  	when 'India Executive/ Board' then final_completed_28717
+ 	when 'Proposal Approval Document' then final_completed_28706
 else 0
 end as completed,
 
@@ -248,7 +288,6 @@ cross join temp),
 vert as
 (select vertical, grantpartnerid from profile_43653)
 
-
 select grantapplicationid, t6.grantpartnerid, t.name as vertical,
 left (startdate, 4) as year, 
 task, sort_order, count, temp2.col as status,
@@ -267,4 +306,4 @@ on v.grantpartnerid = t6.grantpartnerid
 
 left join ds_mysql_prod_tagelement t
 on t.id = v.vertical
-group by grantapplicationid, t6.grantpartnerid, t.name,startdate,task_values,task, sort_order, count, temp2.col 
+  
