@@ -1,4 +1,6 @@
-select p1.fy_timerange, p1.shelter_home_text, p1.name, p1.fy_timerange.start as start_date, p1.medium, tag1.name as school_type, tag2.name as child_status, p1.school_name, tag3.name as class, tag4.name as projectid, tag5.name as location, tag6.name as shelter_home_type,
+
+with t1 as 
+(select p1.fy_timerange, p1.shelter_home_text, p1.name as benef_name, p1.fy_timerange.start :: date as start_date, p1.medium, tag1.name as school_type, tag2.name as child_status, p1.school_name, tag3.name as class, tag4.name as projectid, tag5.name as location, tag6.name as shelter_home_type,
 case when tag6.name = 'Sneh Ghar' then 'Male' else 'Female' end as gender
 
 from profile_52387 p1
@@ -15,7 +17,15 @@ on p1.projectid = tag4.id
 left join ds_mysql_prod_tagelement tag5
 on p2.location = tag5.id
 left join ds_mysql_prod_tagelement tag6
-on p2.shelter_home_type= tag6.id
+on p2.shelter_home_type= tag6.id)
+
+select projectid, fy_timerange, shelter_home_text, benef_name, start_date, medium, school_type, child_status, school_name, class, location, shelter_home_type, gender,
+first_value(start_date)
+over(partition by shelter_home_text, benef_name, location, gender
+order by start_date desc
+rows between unbounded preceding and unbounded following)
+
+from t1
 
 
 
