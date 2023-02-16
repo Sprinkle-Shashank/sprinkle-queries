@@ -26,6 +26,12 @@ group by factory, factory_vms_id, vendor, vendor_vms_id, year, region),
 
 sub4 as(
   select s2.id, s2.factory, s2.factory_cdms_id, s2.vendor, s2.vendor_vms_id, p4.source_div, p4.timeperiod_timerange, s2.factory_vms_id,
+  
+case
+  	when IS_ARRAY(p4.source_div) = FALSE or GET_ARRAY_Length(p4.source_div) = 0 then ARRAY (p4.source_div)
+  	else p4.source_div
+end as source_div_new,  
+  
 row_number() over(partition by s2.id order by cast(p4.timeperiod_timerange.start as date) desc) as row
 
 from sub2 s2
@@ -35,7 +41,7 @@ sub5 as(
   select * from sub4 where row = 1),
   
 sub6 as(
-  select s5.*, source_div_unwind from sub5 s5, s5.source_div source_div_unwind),
+  select s5.*, source_div_unwind from sub5 s5, s5.source_div_new source_div_unwind),
   
 sub7 as(
   select s6.factory, s6.factory_cdms_id, s6.vendor, s6.vendor_vms_id, t1.name as source_div, 
@@ -55,4 +61,4 @@ group by s7.factory, s7.factory_cdms_id, s7.business_div, p5.brand_text, s7.fact
 select s3.factory, s3.factory_vms_id, s3.year, s3.region, s8.business_div, s8.brand, s3.count
 from sub3 s3
 left join sub8 s8 on s8.factory_vms_id = s3.factory_vms_id
-where s3.year = 2022 and s8.brand != 'Heritage Brands'
+where s3.year = 2022 and nvl(s8.brand, 'NA') != 'Heritage Brands'
