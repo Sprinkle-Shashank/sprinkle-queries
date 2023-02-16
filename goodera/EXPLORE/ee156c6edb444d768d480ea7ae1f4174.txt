@@ -1,0 +1,21 @@
+/*id, projectId, ben_id, date, state, district, block, village, follow_up_date, remarks_follow_up*/
+with table1 as
+(
+select _id, p1.name as projectId, ben_id, date,t.name as state, t1.name as district,t2.name as block,t3.name as village,follow_up_date, remarks_follow_up from profile_76885 as p
+left join  ds_mysql_prod_project as p1 
+on p.projectid  = p1.id
+left join  ds_mysql_prod_tagelement as t 
+on p.state  = t.id
+left join  ds_mysql_prod_tagelement as t1 
+on p.district  = t1.id
+left join  ds_mysql_prod_tagelement as t2 
+on p.block  = t2.id  
+left join  ds_mysql_prod_tagelement as t3
+on p.village  = t3.id 		
+where follow_up_date is not null ),
+table2 as 
+  (
+select projectId, ben_id, state, district, block, village,follow_up_date as fy_timerange , remarks_follow_up,count(*) as count  from table1
+group by projectId, ben_id, state, district, block, village,fy_timerange, remarks_follow_up)
+
+select * from table2
