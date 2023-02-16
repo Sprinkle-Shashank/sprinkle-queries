@@ -1,31 +1,44 @@
 with table1 as ( 
-select _id, p1.name as projectId, ben_id, date,t.name as state, t1.name as district,t2.name as block,t3.name as village,t4.name as age_unit, t5.name as gender,t6.name as caste,t7.name as pregnancy_status,t8.name as anaemia,t9.name as solubility,t10.name as hplc_result, action, age, tallquist, hb_reading, no_fam_mem, t11.name as hplc_yes_no from profile_76885 as p 
+select p._id, p1.name as projectId, ben_id, p.date,t.name as state, t1.name as district,t2.name as block,t3.name as village,t4.name as age_unit, t5.name as gender,t6.name as caste,t7.name as pregnancy_status,t8.name as anaemia,t9.name as solubility,t10.name as hplc_result, action, age, tallquist, hb_reading, no_fam_mem, t11.name as hplc_yes_no from profile_76885 as p 
 left join  ds_mysql_prod_project as p1 
 on p.projectid  = p1.id
+  
 left join  ds_mysql_prod_tagelement as t 
 on p.state  = t.id
+  
 left join  ds_mysql_prod_tagelement as t1 
 on p.district  = t1.id
+  
 left join  ds_mysql_prod_tagelement as t2 
 on p.block  = t2.id  
+  
 left join  ds_mysql_prod_tagelement as t3
-on p.village  = t3.id 		
+on p.village  = t3.id 	
+  
 left join  ds_mysql_prod_tagelement as t4 
 on p.age_unit  = t4.id
+  
 left join  ds_mysql_prod_tagelement as t5 
 on p.gender  = t5.id
+  
 left join  ds_mysql_prod_tagelement as t6
 on p.caste  = t6.id
+  
 left join  ds_mysql_prod_tagelement as t7 
 on p.pregnancy_status  = t7.id  
+  
 left join  ds_mysql_prod_tagelement as t8
 on p.anaemia  = t8.id 
+  
 left join  ds_mysql_prod_tagelement as t9
 on p.solubility  = t9.id
+  
 left join  ds_mysql_prod_tagelement as t10
 on p.hplc_result  = t10.id
+  
 left join  ds_mysql_prod_tagelement as t11
 on p.hplc_yes_no  = t11.id
+  
 ), 
 table2 as (
 select projectId, ben_id, date as fy_timerange, state, district, block, village, age_unit, gender, caste, pregnancy_status, anaemia, solubility, hplc_yes_no, hplc_result, action,/*age,tallquist,hb_reading,*/
@@ -44,10 +57,11 @@ when hb_reading is null then 0
 when hb_reading = 0 then 0 
 else 1 end 
    as hb_reading,
-no_fam_mem, count(*) as count  from table1
+no_fam_mem, count(*) as count_new  from table1
+  
 group by projectId, ben_id, fy_timerange, state, district, block, village, age_unit, gender, caste, pregnancy_status, anaemia, solubility, hplc_yes_no, hplc_result, action, age, tallquist, hb_reading, no_fam_mem)
 
-select *, 
+select  projectId, ben_id, date as fy_timerange, state, district, block, village, age_unit, gender, caste, pregnancy_status, anaemia, solubility, hplc_yes_no, hplc_result, action, age ,  tallquist , hb_reading , no_fam_mem , count_new , 
 case 
 when age<=5 then 'Under 5'
 when age<=10 then '6-10'
