@@ -1,10 +1,11 @@
 with y as (select xprojectid,finperiod,fy_timerange,keyword,name,datatablebase From sus_21557 as p where keyword ='recruitments'),
 
-z as (select xprojectid,keyword,fy_timerange,finperiod,cast(coun.name_employee_recruit as varchar),case when is_array (coun.title_recruit) = false or get_array_length(coun.title_recruit) = 0 then array(coun.title_recruit) else coun.title_recruit end as title_new From y as p, unpivot p.datatablebase as coun at abc)
+z as (select xprojectid,keyword,fy_timerange,finperiod,cast(coun.name_employee_recruit as varchar),case when is_array (coun.title_recruit) = false or get_array_length(coun.title_recruit) = 0 then array(coun.title_recruit) else coun.title_recruit end as title_new From y as p, unpivot p.datatablebase as coun at abc),
 
+s as (select t2.*,t from z as t2 ,t2.title_new as t)
 
 select t.xprojectid,t.fy_timerange,t.finperiod,t2.keyword as company_category,t.title_new,t.name_employee_recruit,t5.name as country
-from z as t,t.title_new as p 
+from s as t
 left join sus_46830 t2
 on t.xprojectid = t2.xprojectid
 left join tagElement_6664 t3 on t3.id = t2.dataselect 
