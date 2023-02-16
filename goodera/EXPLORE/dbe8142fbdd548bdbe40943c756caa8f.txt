@@ -1,0 +1,22 @@
+SELECT SA.fy_timerange,
+T1.name AS type,
+COUNT(SE.unique_id) AS students,
+((SA.marks_obtained * 100) / (SA.marks_max)) AS score,
+
+	CASE
+		WHEN score > 60
+		THEN 'Students scoring above 60% marks'
+		ELSE 'Students scoring less than or equal to 60% '
+	END AS status
+
+FROM profile_79041 AS SA
+
+LEFT JOIN ds_mysql_prod_tagelement AS T1
+ON T1.id = SA.type
+
+LEFT JOIN profile_79039 AS SE
+ON SE._id = SA.student
+
+T1.name = 'Term 3' and t3.name not in( 'Grade 10' ,'Grade 12' )
+
+GROUP BY SA.fy_timerange, SA.marks_obtained, SA.marks_max, T1.name
