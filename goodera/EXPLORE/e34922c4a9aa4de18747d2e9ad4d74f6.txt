@@ -14,8 +14,11 @@ p1.country_7__migrant_workers_reported_paying_fees, p1.country_7_number_of_worke
 
 (migrant_workers_reported_paying_fees - workers_received_payment) as migrant_workers_not_reimbursed
 
-from profile_74372 p1)
+from profile_74372 p1),
 
-select p2.factory_id, p2.factory_name, p2.source_div, p2.cr_tier, p2.region, p2.curr_cr_rating, p2.timeperiod_timerange,
+sub2 as(
+  select p2.factory_id, p2.factory_name, p2.source_div, p2.cr_tier, p2.region, p2.curr_cr_rating, p2.timeperiod_timerange,
 dense_rank() over(order by cast(p2.timeperiod_timerange.start as DATE) DESC) as row
-from profile_60928 p2
+from profile_60928 p2)
+
+select * from sub2 where row = 1 and timeperiod_timerange is not null
