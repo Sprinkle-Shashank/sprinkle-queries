@@ -7,8 +7,16 @@ SELECT
   actual_start, 
   actual_end,
   JSON_OBJECT(
-    'start', MIN(CAST(start_date AS timestamp), CAST(actual_start AS timestamp)),
-    'end', MAX(end_date::date, actual_end::date)
+    'start', CASE 
+                WHEN CAST(start_date AS timestamp) < CAST(actual_start AS timestamp) 
+                THEN start_date 
+                ELSE actual_start 
+             END,
+    'end', CASE 
+              WHEN end_date::date > actual_end::date 
+              THEN end_date::date 
+              ELSE actual_end::date 
+            END
   ) AS fy_timerangeExpression
 FROM 
   profile_75841
