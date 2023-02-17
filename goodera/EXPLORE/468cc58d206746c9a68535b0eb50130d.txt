@@ -1,0 +1,24 @@
+with table1 as
+(
+select _id, p1.name as projectId,t.name as state, t1.name as district,t2.name as block,t3.name as village,location_sess, no_sess, no_male, no_female, fy_timerange
+from profile_76893 as p
+left join  ds_mysql_prod_project as p1 
+on p.projectid  = p1.id
+left join  tagElement_3161 as t 
+on p.state  = t.id
+left join  tagElement_3161 as t1 
+on p.district  = t1.id
+left join  tagElement_3161 as t2 
+on p.block  = t2.id  
+left join  tagElement_3161 as t3
+on p.village  = t3.id),
+
+/*_id, projectId, state, district, block, village, pre_post_sol, type_sess, no_sess, no_male, no_female, fy_timerange*/
+tab2 as (
+select projectId, fy_timerange, state, district, block, village, location_sess,sum(no_male) as Male,sum(no_male) as Female
+from table1
+group by projectId, fy_timerange, district, block, village, state, location_sess)
+
+select * from tab2 UNPIVOT (
+    Attendees FOR gender IN (Male,Female)
+)
