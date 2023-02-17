@@ -1,11 +1,31 @@
 with table1 as
-( select p.projectid , p._id , fy_timerange , ent.name as entity from profile_83204 as p
+( select p.projectid , p._id , p.fy_timerange , ent.name as entity , loc.name as state_update , ci.name as city_update from profile_83204 as p
  
  left join ds_mysql_prod_project proj
  on p.projectid = proj.id 
  
  left join ds_mysql_prod_tagelement ent
  on p.entity = ent.id 
- )
  
- select * from table1 
+ left join profile_83199 p1 
+ on p.beneficiary = p1._id
+ 
+ left join ds_mysql_prod_tagelement ci
+ on p1.ben_location = ci.id
+ 
+ left join ds_mysql_prod_tagelement loc
+ on ci.parent = loc.id
+ 
+ 
+ ),
+ 
+ 
+ table2 as
+ ( select p.projectid , p._id , p.fy_timerange ,  entity ,  state_update ,  city_update , count(p._id) as cout_new from table1 as p
+  
+  group by 
+  p.projectid , p._id , p.fy_timerange , entity , state_update , city_update
+  )
+  
+ 
+ select * from table2
