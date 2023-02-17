@@ -1,30 +1,14 @@
---Tally_Rainbow_Homes_Child_Status_Table
+--Tally_Rainbow_Homes_Beneficiary_Age_Groups
 with sub1 as(
-select a.fy_timerange, fy_timerange as fy, shelter_home_text, name as benef_name, substring(cast(a.fy_timerange.start as date),1,10) as admission_date, a.fy_timerange.start as start_date, a.medium, a.school_type, a.child_status, a.school_name, a.class, a.projectid from profile_52387 a ),
+select a.name, p.name as projectId, a.fy_timerange, a.child_status, t2.name as age_group, a.shelter_home_text,  t1.name as location
+from profile_52387 a 
+left join profile_79953 c on c.name=a.shelter_home_text
+--left join ds_mysql_prod_tagelement t on t.id=c.shelter_home
+left join ds_mysql_prod_tagelement t1 on t1.id=c.location
+left join ds_mysql_prod_tagelement t2 on t2.id=a.age
+left join ds_mysql_prod_project p on p.id=a.projectid),
 sub2 as(
-select  a.shelter_home_text,  a.fy,a.benef_name, a.admission_date, a.start_date, b.location, a.fy_timerange, a.school_name, a.class, a.medium, a.school_type, t.name as child_status, p.name as projectid from sub1 a
-  left join profile_79953 b on a.shelter_home_text=b.shelter_home
-  --left join profile_79955 c on c.benef_id_text=a.benef_name
-  left join ds_mysql_prod_tagelement t on t.id=a.child_status
-  left join ds_mysql_prod_project p
-on p.id=a.projectid
-), 
-sub3 as(
-select a.shelter_home_text, a.fy, a.benef_name, a.admission_date, a.location, a.start_date, json_serialize(b.fy_timerange) as fy_timerange, a.class, a.child_status, t.name as shelter_home_type, a.projectid from sub2 a
-left join profile_79953 b on b.name=a.shelter_home_text
-left join ds_mysql_prod_tagelement t on t.id=b.shelter_home_type),
-sub4 as(
-  select shelter_home_text, benef_name, projectid, admission_date, location, fy_timerange, child_status, start_date,fy,
-  case when shelter_home_type='Sneh Ghar' then 'Male' else 'Female' end as gender from sub3 order by fy_timerange desc), 
-  sub5 as(
-  select shelter_home_text, fy,benef_name,  admission_date, t.name as location, gender, projectid,
-  first_value(fy_timerange) over(partition by shelter_home_text, benef_name, admission_date, location, gender order by cast(start_date as date) desc
-rows between unbounded preceding and unbounded following) as fy_timerange,
-  first_value(child_status) over(partition by shelter_home_text, benef_name, admission_date, location, gender
-rows between unbounded preceding and unbounded following) as child_status
-  from sub4
-  left join ds_mysql_prod_tagelement t
-  on t.id=location)
-  
-  select distinct shelter_home_text, benef_name, projectid, admission_date, location, gender, fy_timerange, fy,child_status from sub5
-  group by shelter_home_text, benef_name, admission_date, location, gender, fy_timerange, child_status, projectid,fy
+  select a.name, a.projectId, a.fy_timerange, a.child_status, a.shelter_home_text,  a.location, age_group, case when age_group='4-7 years' then 1 when age_group='8-12 years' then 2 when age_group='13-18 years' then 3 else 4 end as age_order  from sub1 a),
+  sub3 as(
+  select projectId, fy_timerange, location, age_group, count(name) as count, age_order from sub2 group by projectId, fy_timerange,  location, age_group, age_order)
+  select projectId, fy_timerange, location, age_group, count, age_order from sub3 a order by age_group asc
