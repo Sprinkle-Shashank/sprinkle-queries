@@ -1,22 +1,4 @@
-with y as (select xprojectid,finperiod,fy_timerange,keyword,name,datatablebase From sus_21557 as p where keyword ='recruitments'),
-
-z as (select xprojectid,keyword,fy_timerange,finperiod,cast(coun.name_employee_recruit as varchar),case when is_array (coun.title_recruit) = false or get_array_length(coun.title_recruit) = 0 then array(coun.title_recruit) else coun.title_recruit end as title_new From y as p, unpivot p.datatablebase as coun at abc),
-
-s as (select t2.*,t from z as t2 ,t2.title_new as t)
-
-select t.xprojectid,t.fy_timerange,t.finperiod,t2.keyword as company_category,t6.name as gender,count(t.name_employee_recruit) as Total,t5.name as country
-from s as t
-left join sus_46830 t2
-on t.xprojectid = t2.xprojectid
---left join tagElement_6664 t3 on t3.id = t2.dataselect 
-left join project_6664 t4 on t4.id = t.xprojectid
-left join project_6664 t5 on t5.id = t4.parent
-left join tagElement_6664 t6 on t6.id = t.t
-where t2.keyword = 'company_category'
-group by 1,2,3,4,5,7 
-
-
-/*with t1 as (select xprojectid, finperiod , fy_timerange,keyword,name,	datatablebase from sus_21557 as p  where keyword = 'recruitments')
+with t1 as (select xprojectid, finperiod , fy_timerange,keyword,name,	datatablebase from sus_21557 as p  where keyword = 'recruitments')
 
 , t2 as(
  select xprojectid, finperiod , fy_timerange,keyword,cast(co.name_employee_recruit as varchar),
@@ -28,7 +10,7 @@ group by 1,2,3,4,5,7
 
   u as (select p.*,z from t2 as p ,p.title_new as z)
  -- , h as(
-  select p1.xprojectid,p1.fy_timerange,p1.finperiod, t2.keyword, t6.name as gender,t5.name as country ,count(p1.name_employee_recruit) as total
+  select p1.xprojectid,p1.fy_timerange,p1.finperiod, t2.keyword as company_category, t6.name as gender,t5.name as country ,count(p1.name_employee_recruit) as total
   from u p1
   left join sus_46830 t2
   on p1.xprojectid = t2.xprojectid
@@ -39,6 +21,6 @@ left join tagElement_6664 t6 on t6.id = p1.z
 where t2.keyword = 'company_category' 
 group by 1,2,3,4,5,6 
   --)
-*/
+
 
 
