@@ -8,19 +8,34 @@ left join tagElement_6664 t1 on t1.id = p2.dataselect
 left join project_6664 p3 on p3.id = p1.xprojectid
 left join project_6664 p4 on p4.id = p3.parent
 where p1.keyword in ('recruitments','resignations')
-and p2.keyword = 'company_category' and p1.datatablebase is not null and p1.xprojectid ilike '%%' )
-,
-temp as (select 'Resignation'  as c 
-union all 
-		select  'Recruitment' as c),
-		
+and p2.keyword = 'company_category' and p1.xprojectid ilike '%%' )
+
+,		
 sub2 as 
+(select s1.country, s1.projectid, s1.fy_timerange,s1.keyword, s1.company_category, table1.name_employee_recruit,datatablebase,
+from sub1 s1, UNPIVOT s1.datatablebase table1 at rec)
+,
 
-(select s1.country, s1.projectid, s1.fy_timerange,s1.keyword, s1.company_category, table1.Resignation,table1.Recruitments,s1.datanumbase
-from sub1 s1, UNPIVOT s1.datatablebase table1 at row)
+sub3 as (select s1.country, s1.projectid, s1.fy_timerange,s1.keyword, s1.company_category, table2.name_employee_resig ,datatablebase,
+from sub2 s1, UNPIVOT s1.datatablebase table2 at res)
+  )
+  
+z as (select projectid,fy_timerange,datatablebase,company_category,country,name_employee_recruit ,name_employee_resig 
+	  from sub3 ),
+		
+temp as (select 'Resignation'  as col 
+union all 
+		select  'Recruitment' as col),
+		
+		
+		
+select projectid,z.fy_timerange,z.company_category,z.country,
+sum(case 
+	when t.col='Resignation'  then z.name_employee_recruit
+	when t.col='Recruitment'  then z.name_employee_resig 
+		else 0												
+	end ) as Total,
+ t.col as dim
+from z cross join temp
+group by z.projectid,z.fy_timerange,z.company_category,z.country
 
-select projectid,fy_timerange,country, temp.c as dim,company_category, sum(datanumbase) as val
---,sum(case when c = 'Resignation' then sub2.Resignation,else sub2 end) as val 
-from sub2
-cross join temp
- group by projectid, company_category, fy_timerange, country, dim
