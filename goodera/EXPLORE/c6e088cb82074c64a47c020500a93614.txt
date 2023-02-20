@@ -43,16 +43,20 @@ sub4 as(
   from sub3 s3 where s3.facility_filter > 0),
   
 sub5 as(
-  select s4.id, s4.factory_name, nvl(t5.name, t4.name) as region, nvl(t7.name, t6.name) as business_div
-from sub4 s4
-
-left join tagElement_7200 t4 on t4.id = s4.region_new
-left join tagElement_7200 t5 on t5.id = t4.parent
-
-left join tagElement_7200 t6 on t6.id = s4.source_div_new
-left join tagElement_7200 t7 on t7.id = t6.parent)
-
-select s5.id, s5.factory_name, s5.region, s5.business_div, p2.brand_text as brand, 1 as count	
+  select s5.*, source_div_unwind, region_unwind
+  from sub5 s5, s5.source_div_new source_div_unwind, s5.region_new region_unwind
+  
+sub6 as(
+  select s5.id, s5.factory_name, nvl(t5.name, t4.name) as region, nvl(t7.name, t6.name) as business_div
 from sub5 s5
 
-left join profile_81437 p2 on p2.business_division_text = s5.business_div
+left join tagElement_7200 t4 on t4.id = s5.region_new
+left join tagElement_7200 t5 on t5.id = t4.parent
+
+left join tagElement_7200 t6 on t6.id = s5.source_div_new
+left join tagElement_7200 t7 on t7.id = t6.parent)
+
+select s6.id, s6.factory_name, s6.region, s6.business_div, p2.brand_text as brand, 1 as count	
+from sub6 s6
+
+left join profile_81437 p2 on p2.business_division_text = s6.business_div
