@@ -1,18 +1,42 @@
-WITH table1 AS (SELECT xprojectid,financialperiod,keyword,name,datatablebase FROM sus_21557 AS p WHERE keyword = 'internal_training_programs'),
+WITH table1 AS (SELECT xprojectid,t1.name as financialperiod,keyword,name,datatablebase FROM sus_21557 AS p
+left join tagElement_6664 t1 on p.financialperiod = t1.id				
+				WHERE keyword = 'internal_training_programs'
+		   ),
 
 table2 AS (SELECT xprojectid,financialperiod,name, coun.tech_skills, coun.soft_skills,coun.health_safety,coun.other FROM table1 AS p, UNPIVOT p.datatablebase AS coun ),
 
-table3 AS (SELECT xprojectid,financialperiod,keyword,name,datatablebase FROM sus_21557 AS p WHERE keyword = 'external_training_programs'),
+table3 AS (SELECT xprojectid,t1.name as financialperiod,keyword,name,datatablebase FROM sus_21557 AS p
+left join tagElement_6664 t1 on p.financialperiod = t1.id		   
+		   WHERE keyword = 'external_training_programs'),
 
 table4 AS (SELECT xprojectid,financialperiod,name, coun.tech_skills, coun.soft_skills,coun.health_safety,coun.other FROM table3 AS p, UNPIVOT p.datatablebase AS coun )
 
-select * from table4
-/*SELECT t2.xprojectid,t2.financialperiod,t2.name,t1.name as company_category,'internal' as dim,tech_skills+soft_skills+health_safety+other as val FROM table2	t2
+
+SELECT pro.name as projectid,cou.name as country,t2.financialperiod,t2.name,t1.name as company_category,'internal' as dim,tech_skills+soft_skills+health_safety+other as val FROM table2	t2
 
 left join sus_46830 p
 on t2.xprojectid = p.xprojectid
+left join project_6664 pro on pro.id = t2.xprojectid
+--left join tagElement_6664 t1 on t1.id = t2.dataselect 
+left join project_6664 cou on cou.id = pro.parent
 
- left join tagElement_6664 t1 on t1.id = p.dataselect*/
+ left join tagElement_6664 t1 on t1.id = p.dataselect
+ 
+union all
+
+SELECT pro2.name as projectid,t5.name as country,t4.financialperiod,t4.name,q.name as company_category,'external' as dim,tech_skills+soft_skills+health_safety+other as val FROM table4	t4
+
+left join sus_46830 p
+on t4.xprojectid = p.xprojectid
+
+left join project_6664 pro2 on pro2.id = t4.xprojectid
+--left join tagElement_6664 t1 on t1.id = t2.dataselect 
+left join project_6664 t5 on t5.id = pro2.parent
+
+ left join tagElement_6664 q on q.id = p.dataselect
+
+
+
  
  
  
