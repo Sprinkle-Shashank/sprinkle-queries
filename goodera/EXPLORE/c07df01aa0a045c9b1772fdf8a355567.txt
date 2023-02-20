@@ -1,4 +1,4 @@
-select p3.name as projectId,p1.fy_timerange, p1.keyword, p1.datatablebase, t1.name as company_category 
+ with sub1 as (select p3.name as projectId,p4.name as country ,p1.fy_timerange, p1.keyword, p1.datatablebase, t1.name as company_category 
 from sus_21557 p1
 
 left join sus_46830 p2 on p2.xprojectid = p1.xprojectid
@@ -8,4 +8,11 @@ left join tagElement_6664 t1 on t1.id = p2.dataselect
 left join project_6664 p3 on p3.id = p1.xprojectid
 left join project_6664 p4 on p4.id = p3.parent
 where p1.keyword in ('recruitments','resignations')
-and p2.keyword = 'company_category' and p1.datatablebase is not null and p1.xprojectid ilike '%%' 
+and p2.keyword = 'company_category' and p1.datatablebase is not null and p1.xprojectid ilike '%%' )
+,
+temp as (select 'Resignation'  as c 
+union all 
+		select  'Recruitment' as c)
+
+select s1.country, s1.projectid, s1.fy_timerange, s1.company_category, table1.name_employee_recruit,table1.name_employee_resig
+from sub1 s1, UNPIVOT s1.datatablebase table1 at row
