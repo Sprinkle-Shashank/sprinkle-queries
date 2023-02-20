@@ -1,4 +1,4 @@
- with sub1 as (select p3.name as projectId,p4.name as country ,p1.fy_timerange, p1.keyword, p1.datatablebase, t1.name as company_category 
+ with sub1 as (select p3.name as projectId,p4.name as country ,p1.fy_timerange, p1.keyword, p1.datatablebase, p1.datanumbase,t1.name as company_category 
 from sus_21557 p1
 
 left join sus_46830 p2 on p2.xprojectid = p1.xprojectid
@@ -12,7 +12,12 @@ and p2.keyword = 'company_category' and p1.datatablebase is not null and p1.xpro
 ,
 temp as (select 'Resignation'  as c 
 union all 
-		select  'Recruitment' as c)
+		select  'Recruitment' as c),
+		
+sub2 as 
 
-select s1.country, s1.projectid, s1.fy_timerange, s1.company_category, table1.name_employee_recruit,table1.name_employee_resig
-from sub1 s1, UNPIVOT s1.datatablebase table1 at row
+(select s1.country, s1.projectid, s1.fy_timerange,s1.keyword, s1.company_category, table1.Resignation,table1.Recruitments,s1.datanumbase
+from sub1 s1, UNPIVOT s1.datatablebase table1 at row)
+
+select projectid,keyword,fy_timerange,country, temp.c as dim,company_category,sum(datanumbase) as val from sub2
+cross join temp
