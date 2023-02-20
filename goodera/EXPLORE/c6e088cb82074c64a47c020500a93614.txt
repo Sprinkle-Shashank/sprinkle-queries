@@ -25,6 +25,28 @@ from sub2 s2
 
 left join tagElement_7200 t3 on t3.id = s2.facility_type_unwind
 
-group by s2.id, s2.factory_name, s2.source_div, s2.cr_tier, s2.region, s2.curr_cr_rating)
+group by s2.id, s2.factory_name, s2.source_div, s2.cr_tier, s2.region, s2.curr_cr_rating),
 
-select * from sub3 where facility_filter > 0 --('Blue','Gray', 'Gold', 'Green', 'Yellow')
+sub4 as(
+  select s3.id, s3.factory_name, 
+  
+  case
+  	when IS_ARRAY(s3.source_div) = FALSE or GET_ARRAY_LENGTH(s3.source_div) = 0 then ARRAY(s3.source_div)
+  	else s3.source_div
+  end as source_div_new,
+  
+  case
+  	when IS_ARRAY(s3.region) = FALSE or GET_ARRAY_LENGTH(s3.region) = 0 then ARRAY(s3.region)
+  	else s3.region
+  end as region_new
+  
+  from sub3 where facility_filter > 0)
+  
+select s4.id, s4.factory_name, (t5.name, t4.name) as region, (t7.name, t6.name) as business_div
+from sub4 s4
+
+left join tagElement_7200 t4 on t4.id = s4.region_new
+left join tagElement_7200 t5 on t5.id = t4.parent
+
+left join tagElement_7200 t6 on t6.id = s4.source_div_new
+left join tagElement_7200 t7 on t7.id = t6.parent
