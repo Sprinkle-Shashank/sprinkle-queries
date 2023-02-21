@@ -1,0 +1,32 @@
+with x as (select xprojectid,finperiod,fy_timerange,keyword,name,datatablebase From sus_21557 as p where keyword ='age_analysis_2'),
+
+with y as (select xprojectid,finperiod,fy_timerange,keyword,name,datatablebase From sus_21557 as p where keyword ='service_analysis'),
+
+temp as (select '18_25' as c 
+union all 
+select '26_35' as c
+union all
+select '36_45' as c
+union all
+select '46_above' as c),
+
+t1 as (select xprojectid,keyword,fy_timerange,finperiod,coun.18_25,coun.26_35,coun.36_45,coun.46_above From x as p, unpivot p.datatablebase as coun at abc
+union all 
+select xprojectid,keyword,fy_timerange,finperiod,coun.0_5,coun.6_10,coun.11_20,coun.21_ From y as p, unpivot p.datatablebase as coun at abc)
+
+select t1.xprojectid,t1.keyword,t1.fy_timerange,t1.finperiod,t5.name as country,temp.c as age,t3.name as company_category from t1
+cross join temp
+left join sus_46830 t2
+on t1.xprojectid = t2.xprojectid
+left join tagElement_6664 t3 on t3.id = t2.dataselect 
+left join project_6664 t4 on t4.id = t1.xprojectid
+left join project_6664 t5 on t5.id = t4.parent
+left join tagElement_6664 t6 on t6.id = t2.datanum
+where t1.xprojectid ilike '%%'
+--where t2.keyword = 'company_category'
+group by 1,2,3,4,5,7
+
+
+
+
+
