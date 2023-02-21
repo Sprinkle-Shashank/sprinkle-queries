@@ -1,0 +1,28 @@
+select p3.name as projectId,p1.name as projectname,p2.name as partner,p.bene_name,p.fy_timerange,t3.name as locations, t4.name as zones,p.dob, datediff(year,p.dob,getdate()) as age, 1 as count,
+case
+	when age < 18 then 'Below 18'
+	when age >=18 and age <25 then '18 - 25'
+	when age >=25 and age <=30 then '25 - 30'
+	when age > 30 then 'Above 30'
+	else null end as age_bucket,
+case
+	when age_bucket='Below 18' then 1
+	when age_bucket='18 - 25' then 2
+	when age_bucket='25 - 30' then 3
+	when age_bucket='Above 30' then 4
+	else null end as age_sort
+	
+from profile_83106 p
+
+left join ds_mysql_prod_project p1 
+on p1.id = p.projectid
+left join ds_mysql_prod_project p2 
+on p2.id = p1.parent
+left join ds_mysql_prod_project p3
+on p3.id=p2.parent  
+left join ds_mysql_prod_tagelement t3
+on p.location = t3.id
+left join ds_mysql_prod_tagelement t4
+on p.zone = t4.id
+
+where p.projectid like '%%'
