@@ -1,5 +1,8 @@
-with table1 as (
-  select p3.name as projectId,p2.name as projectname,p1.name as partner, p.fy_timerange,a.name as locations, b.name as zones, c.beneficiary_onboarded_as_coach, 1 as count  from profile_83106 p
+select p3.name as projectId,p1.name as projectname,p2.name as partner, 
+p.fy_timerange, a.name as locations, b.name as zones,
+case when t1.name = 'Yes' then 1 else 0 end as trained_as_youth_coach
+from profile_83106 p
+
 left join ds_mysql_prod_project p1 
 on p1.id = p.projectid
 left join ds_mysql_prod_project p2 
@@ -10,6 +13,8 @@ left join ds_mysql_prod_tagelement a
 on p.location = a.id
 left join ds_mysql_prod_tagelement b
 on p.zone = b.id
-left join ds_mysql_prod_tagelement c
-on p.beneficiary_onboarded_as_coach = c.id
-group by 1,2,3,4,5,6,7
+left join ds_mysql_prod_tagelement t1 
+on t1.id=p.trained_as_youth_coach
+
+where p.projectid like '%%'
+
