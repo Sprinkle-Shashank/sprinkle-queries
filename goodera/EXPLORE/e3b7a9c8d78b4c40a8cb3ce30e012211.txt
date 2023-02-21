@@ -1,21 +1,8 @@
+--Honeywell_Executive_Summary_ICT_Beneficiary
 with table1 as (SELECT pro.name as projectid,detail.schedule_7,S.name,
-t.name AS gender,
+
 CONCAT(CONCAT(CONCAT(SPLIT_PART(S.date, ' ', 1),'T'),SPLIT_PART(S.date, ' ', 2)),'.000Z') AS fy_timerange,
 COUNT(S.registration),
-
-CASE
-	WHEN S.completion_status = 'true'
-	THEN 'Yes'
-	
-	ELSE 'No'
-END AS trained,
-
-CASE
-	WHEN S.voucher = 'true'
-	THEN 'Yes'
-	
-	ELSE 'No'
-END AS certified,
 
 CASE 
 	WHEN t4.name IS NOT NULL
@@ -42,9 +29,6 @@ END AS district
 
 FROM profile_77915 AS S
 
-LEFT JOIN ds_mysql_prod_tagelement AS t
-ON S.gender = t.id
-
 LEFT JOIN ds_mysql_prod_tagelement AS t1
 ON S.location = t1.id
 
@@ -66,11 +50,12 @@ s.projectid = detail.projectid
 
 GROUP BY pro.name, t.name, S.name, S.date, trained, certified, state, district,detail.schedule_7),
 table2 as (
-select projectid, gender, name, fy_timerange,count, trained, certified, state, district,schedule  from table1 tab1, tab1.schedule_7 schedule )
+select projectid, fy_timerange,count,state, district,schedule  from table1 tab1, tab1.schedule_7 schedule )
 
-select projectid, gender, tab2.name, fy_timerange,count, trained, certified, state, district,sche.name as schedule_7,reftag.code  from table2 tab2
+select projectid, tab2.name, fy_timerange,count, state, district,sche.name as schedule_7,reftag.code  from table2 tab2
 LEFT JOIN ds_mysql_prod_tagelement AS sche
 ON tab2.schedule = sche.id
 
 left join ds_mongo_reftagelementmetadata reftag on
 tab2.state = reftag.name
+where state is not null
