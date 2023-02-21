@@ -1,0 +1,49 @@
+--Honeywell_Americares_PHC_wise_beneficiary
+WITH table1 AS (
+ SELECT 
+  proj.name AS projectid, 
+  s.fy_timerange, 
+  SUM(beneficiary) AS count,
+  phc_detail.state,
+  detail.schedule_7 
+	  
+FROM  profile_80544 s
+
+
+LEFT JOIN ds_mysql_prod_project proj
+ON s.projectid = proj.id
+
+LEFT JOIN profile_79423 phc_detail
+ON s.phc = phc_detail._id	
+
+left join profile_79279 detail
+on s.projectid= detail.projectid
+
+GROUP BY proj.name,s.fy_timerange,phc_detail.name,phc_detail.state,detail.schedule_7
+),
+
+table2 AS (
+SELECT 
+  projectid,
+  fy_timerange,
+  count,
+  schedule,
+  state,
+  FROM table1 tab1, 
+  tab1.schedule_7 schedule)
+
+	SELECT projectid, fy_timerange,count,sche.name as schedule_7,dist.name as district,sta.name as state,reftag.code 
+from table2 tab2
+
+LEFT JOIN ds_mysql_prod_tagelement AS sche
+ON tab2.schedule = sche.id
+
+LEFT JOIN ds_mysql_prod_tagelement AS dist
+ON tab2.state = dist.id
+
+LEFT JOIN ds_mysql_prod_tagelement AS sta
+ON dist.parent = sta.id
+
+left join ds_mongo_reftagelementmetadata reftag on
+sta.name = reftag.name
+
