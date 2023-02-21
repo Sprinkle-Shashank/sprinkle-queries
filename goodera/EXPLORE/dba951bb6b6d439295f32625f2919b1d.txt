@@ -1,0 +1,36 @@
+
+with Lookup as
+(select 
+ cast((split_part(split_part(prod.name,'|',1),'.',1)) as varchar) as ProjectCode,
+ p.sub_cat_out_plan as Planned,p.subcat_output as Actual,f.name as fy_timerange,CONCAT(ProjectCode,fy_timerange) as CODE
+ from profile_54963 p 
+ left join ds_mysql_prod_project prod on
+prod.id=p.projectid
+ 
+left join tagelement_4188 f on
+p.fy=f.id
+)
+
+,Base1 as
+(select cast(q.name as varchar) as ProjectCode,f.name as fy_timerange,m.name as Project_Manager,CONCAT(ProjectCode,fy_timerange) as CODE
+from profile_27420 d 
+left join tagelement_4188 f on
+d.fy=f.id
+left join tagelement_4188 m on
+d.project_manager=m.id
+left join profile_27396 q on
+d.project_code=q._id
+union
+select cast(c.name as varchar)as ProjectCode,f.name as fy_timerange,m.name as Project_Manager,CONCAT(ProjectCode,fy_timerange) as CODE 
+from profile_27396 c	
+left join tagelement_4188 f on
+c.fy=f.id
+left join tagelement_4188 m on
+c.project_manager=m.id)
+
+,Base2 as
+(select l.Project_Manager,sum(p.Planned) as Planned,sum(p.Actual) as Actual,p.fy_timerange as fy_timerange from lookup p left join Base1 l on p.CODE=l.CODE group by l.Project_Manager , p.fy_timerange
+ )
+
+
+select case when p.Project_manager is NULL then 'N/A' else p.Project_Manager end as Project_Manager,p.fy_timerange as fy_timerange from Base2 p
