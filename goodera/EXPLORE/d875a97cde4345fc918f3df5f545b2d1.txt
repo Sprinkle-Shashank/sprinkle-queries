@@ -1,0 +1,32 @@
+with tab1 as 
+(select p1.name as projectId, fy_timerange, planned_parti_exp_visit,actual_parti_exp_visit, t.name as month
+from profile_55313 p
+left join  ds_mysql_prod_project as p1 
+on p.projectid  = p1.id
+left join  tagElement_3161 as t 
+on p.month = t.id),
+tab2 as (
+select 
+projectId,month, fy_timerange,sum(num_comm_aw_session) as num_comm_aw_session
+/*DATE_PART(month, cast(month-01-2000 as date)) as mno*/
+  /*projectId, month, fy_timerange, planned_parti_exp_visit, actual_parti_exp_visit*/
+from tab1
+group by projectId,month, fy_timerange)
+
+select *, 
+case
+when month = 'January' then 1 
+when month = 'February' then 2 
+when month = 'March' then 3
+when month = 'April' then 4 
+when month = 'May' then 5 
+when month = 'June' then 6
+when month = 'July' then 7 
+when month = 'August' then 8 
+when month = 'September' then 9 
+when month = 'October' then 10 
+when month = 'November' then 11
+when month = 'December' then 12
+else 0
+end as sort 
+from tab2
