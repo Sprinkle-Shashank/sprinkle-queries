@@ -12,15 +12,15 @@ and p2.keyword = 'company_category' and company_category is not null and p1.xpro
 
 ,		
 sub2 as 
-(select s1.country, s1.projectid, s1.fy_timerange,s1.keyword, s1.company_category, table1.name_employee_recruit ,datatablebase
+(select s1.country, s1.projectid, s1.fy_timerange,s1.keyword, s1.company_category, cast(table1.name_employee_recruit as varchar) as em,datatablebase
 from sub1 s1, UNPIVOT s1.datatablebase table1 at rec)
 ,
 
-sub3 as (select s1.country, s1.projectid, s1.fy_timerange,s1.keyword, s1.company_category,name_employee_recruit, table2.name_employee_resig ,datatablebase
+sub3 as (select s1.country, s1.projectid, s1.fy_timerange,s1.keyword, s1.company_category,em, cast(table2.name_employee_resig as varvhar) as er ,datatablebase
 from sub2 s1, UNPIVOT s1.datatablebase table2 at res
   ),
   
-z as (select projectid,fy_timerange,datatablebase,company_category,country,name_employee_recruit ,name_employee_resig 
+z as (select projectid,fy_timerange,datatablebase,company_category,country,em ,er 
 	  from sub3 ),
 		
 temp as (select 'Resignation'  as col 
@@ -31,8 +31,8 @@ union all
 		
 select projectid,z.fy_timerange,z.company_category,z.country,
 sum(case 
-	when temp.col='Resignation'  then z.name_employee_recruit
-	when temp.col='Recruitment'  then z.name_employee_resig 
+	when temp.col='Resignation'  then z.er
+	when temp.col='Recruitment'  then z.em
 		else 0												
 	end ) as Total,
  temp.col as dim
