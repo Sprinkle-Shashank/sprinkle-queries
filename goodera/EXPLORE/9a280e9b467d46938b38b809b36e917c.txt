@@ -1,5 +1,6 @@
+--Honeywell_Executive_Summary_Avasara_Students_Enrolled
 with table1 as (SELECT pro.name as projectid,detail.schedule_7,detail.location,S.fy_timerange,
-COUNT(unique_id)
+COUNT(unique_id),extract(YEAR FROM cast (fy_timerange.start as datetime))AS year1
 
 FROM profile_79039 S
 LEFT JOIN ds_mysql_prod_project AS pro
@@ -8,15 +9,15 @@ ON S.projectid = pro.id
 left join profile_79279 detail
 on s.projectid = detail.projectid
 
-GROUP BY pro.name ,S.fy_timerange, unique_id, detail.schedule_7,detail.location
+GROUP BY pro.name ,S.fy_timerange, unique_id, detail.schedule_7,detail.location,year1
 
 ),
 table2 as (
-select projectid,schedule,locate,fy_timerange,count from table1 tab1, tab1.location locate,tab1.schedule_7 schedule)
+select projectid,schedule,locate,fy_timerange,count,year1 from table1 tab1, tab1.location locate,tab1.schedule_7 schedule)
 select projectid, sche.name as schedule_7,dist.name as district,
 case when sta.name is null then dist.name 
      else sta.name end as state,reftag.code as code,
-fy_timerange,count from table2 tab2
+fy_timerange,count,year1 from table2 tab2
 
 LEFT JOIN ds_mysql_prod_tagelement AS sche
 ON tab2.schedule = sche.id
