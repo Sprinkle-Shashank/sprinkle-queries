@@ -1,11 +1,11 @@
-WITH table1 AS (SELECT xprojectid,t1.name as financialperiod,keyword,p.name,datatablebase FROM sus_21557 AS p
+WITH table1 AS (SELECT xprojectid,t1.name as financialperiod,fy_timerange,keyword,p.name,datatablebase FROM sus_21557 AS p
 left join tagElement_6664 t1 on p.financialperiod = t1.id				
 				WHERE keyword = 'internal_training_programs'
 		   ),
 
-table2 AS (SELECT xprojectid,financialperiod,name, coun.tech_skills, coun.soft_skills,coun.health_safety,coun.other FROM table1 AS p, UNPIVOT p.datatablebase AS coun ),
+table2 AS (SELECT xprojectid,financialperiod,fy_timerange,name, coun.tech_skills, coun.soft_skills,coun.health_safety,coun.other FROM table1 AS p, UNPIVOT p.datatablebase AS coun ),
 
-table3 AS (SELECT xprojectid,t1.name as financialperiod,keyword,p.name,datatablebase FROM sus_21557 AS p
+table3 AS (SELECT xprojectid,t1.name as financialperiod,fy_timerange,keyword,p.name,datatablebase FROM sus_21557 AS p
 left join tagElement_6664 t1 on p.financialperiod = t1.id		   
 		   WHERE keyword = 'external_training_programs'),
 
@@ -13,7 +13,7 @@ table4 AS (SELECT xprojectid,financialperiod,name, coun.tech_skills, coun.soft_s
 
 
 
-SELECT pro.name as projectid,cou.name as country,t2.financialperiod,t2.name,t1.name as company_category,'internal' as dim,coalesce(cast(tech_skills as int),0)+coalesce(cast(soft_skills as int),0)+coalesce(cast(health_safety as int),0)+coalesce(cast(other as int),0) as val FROM table2	t2
+SELECT pro.name as projectid,cou.name as country,t2.financialperiod ,t2.fy_timerange,t2.name,t1.name as company_category,'internal' as dim,coalesce(cast(tech_skills as int),0)+coalesce(cast(soft_skills as int),0)+coalesce(cast(health_safety as int),0)+coalesce(cast(other as int),0) as val FROM table2	t2
 
 left join sus_46830 p
 on t2.xprojectid = p.xprojectid
@@ -25,7 +25,7 @@ left join project_6664 cou on cou.id = pro.parent
  
 union all
 
-SELECT pro2.name as projectid,t5.name as country,t4.financialperiod,t4.name,q.name as company_category,'external' as dim,tech_skills+soft_skills+health_safety+other as val FROM table4	t4
+SELECT pro2.name as projectid,t5.name as country,t4.financialperiod,t2.fy_timerange,t4.name,q.name as company_category,'external' as dim,coalesce(cast(tech_skills as int),0)+coalesce(cast(soft_skills as int),0)+coalesce(cast(health_safety as int ),0)+coalesce(cast(other as int),0) as val FROM table4	t4
 
 left join sus_46830 p
 on t4.xprojectid = p.xprojectid
