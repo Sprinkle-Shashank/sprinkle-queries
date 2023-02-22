@@ -1,88 +1,51 @@
 
-with sub1 as (select p3.name as projectId,p4.name as country ,p1.fy_timerange, p1.keyword, p1.datatablebase, p1.datanumbase,t1.name as company_category 
-from sus_21557 p1
+WITH table1 AS (SELECT xprojectid,fy_timerange,keyword,p.name,datatablebase FROM sus_21557 AS p	WHERE keyword = 'recruitments'
+		   ),
 
-left join sus_46830 p2 on p2.xprojectid = p1.xprojectid
+table2 AS (SELECT xprojectid,fy_timerange,name, temp.name_employee_recruit FROM table1 AS p, UNPIVOT p.datatablebase AS temp ),
 
-left join tagElement_6664 t1 on t1.id = p2.dataselect 
+table3 AS (SELECT xprojectid,fy_timerange,keyword,p.name,datatablebase FROM sus_21557 AS p	   WHERE keyword = 'resignations'),
 
-left join project_6664 p3 on p3.id = p1.xprojectid
-left join project_6664 p4 on p4.id = p3.parent
-where p1.keyword in ('recruitments','resignations')
-and p2.keyword = 'company_category' and company_category is not null and p1.xprojectid ilike '%%' )
+table4 AS (SELECT xprojectid,fy_timerange,name,temp.name_employee_resig FROM table3 AS p, UNPIVOT p.datatablebase AS temp )
 
-,		
-sub2 as 
-(select s1.country, s1.projectid, s1.fy_timerange,s1.keyword, s1.company_category, table1.name_employee_recruit ,datatablebase
-from sub1 s1, UNPIVOT s1.datatablebase table1 at rec)
-,
+, sub2 as(
 
-sub3 as (select s1.country, s1.projectid, s1.fy_timerange,s1.keyword, s1.company_category,name_employee_recruit, table2.name_employee_resig,datatablebase
-from sub2 s1, UNPIVOT s1.datatablebase table2 at res
-  ),
-  
-z as (select projectid,fy_timerange,datatablebase,company_category,country, cast(name_employee_recruit as varchar ),cast(name_employee_resig  as varchar)
-	  from sub3 ),
-		
-d as ( select projectid,fy_timerange,datatablebase,company_category,country, name_employee_recruit  as e_recruit,name_employee_resig  as  e_resig from z),
+SELECT pro.name as projectid,cou.name as country ,t2.fy_timerange,t1.name as company_category,'Recruitment' as dim,coalesce(cast(name_employee_recruit as int),0) as val FROM table2	t2
 
-temp as (select 'Resignation'  as col 
-union all 
-		select  'Recruitment' as col)
-		
-	, g as(
-		
-select projectid,d.fy_timerange,d.company_category,d.country,
- sum(case 
-	when temp.col='Recruitment'  then d.e_recruit
-	when temp.col='Resignation'  then d.e_resig
-		else null												
-	end ) as Total,
- temp.col as dim
-from d cross join temp
-where country not in ('Sri Lanka','India','Bangladesh','EFL India')
-group by d.projectid,d.fy_timerange,d.company_category,d.country,temp.col,d.e_recruit,d.e_resig
+left join sus_46830 p
+on t2.xprojectid = p.xprojectid
+left join project_6664 pro on pro.id = t2.xprojectid
+--left join tagElement_6664 t1 on t1.id = t2.dataselect 
+left join project_6664 cou on cou.id = pro.parent
+
+ left join tagElement_6664 t1 on t1.id = p.dataselect
+ group by 1,2,3,4,5,name_employee_recruit
+union all
+
+SELECT pro2.name as projectid,t5.name as country,t4.fy_timerange,q.name as company_category,'Resignation' as dim,coalesce(cast(name_employee_resig as int),0) as val FROM table4	t4
+
+left join sus_46830 p
+on t4.xprojectid = p.xprojectid
+
+left join project_6664 pro2 on pro2.id = t4.xprojectid
+--left join tagElement_6664 t1 on t1.id = t2.dataselect 
+left join project_6664 t5 on t5.id = pro2.parent
+
+ left join tagElement_6664 q on q.id = p.dataselect 
+ group by 1,2,3,4,5,name_employee_resig
 
 )
+select projectId, company_category, fy_timerange, country, dim , val
+
+from sub2
+where company_category is not null and country not  in('Sri Lanka','India','Bangladesh','EFL India')
 
 
-select * from g
-
-
-
-
-
-
-
-
-
-
-
-
-/*select t4.parent,t5.name as parent
-from sus_21557 as p1
-left join project_6664 t4 on t4.id = p1.xprojectid
-left join project_6664 t5 on t5.id = t4.parent
-where t4.parent='10253'
-
-
-*/
-
-
-
-/*select t4.name as projectId, 
-t5.name as country, p1.fy_timerange,p1.keyword,p1.datatablebase ,t2.keyword
-from sus_21557  as p1
-left join sus_46830 t2
-on p1.xprojectid = t2.xprojectid
-left join project_6664 t4 on t4.id = p1.xprojectid
---left join tagElement_6664 t1 on t1.id = t2.dataselect 
-left join project_6664 t5 on t5.id = t4.parent
-where p1.keyword in ('recruitments', 'recruitments_during_month', 'resignations_during_month', 'staff_begining_month', 'staff_end_month', 'resignations')   and t2.keyword = 'company_category'
-*/
-
-
-
+ 
+ 
+ 
+ 
+ 
 
 
 
