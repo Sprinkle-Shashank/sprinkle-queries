@@ -1,0 +1,48 @@
+ with p as (
+   select t4.name as projectId, 
+t5.name as country, p1.fy_timerange,p1.keyword,t1.name as company_category,p1.datanum
+from sus_21557  as p1
+left join sus_46830 t2
+on p1.xprojectid = t2.xprojectid
+left join project_6664 t4 on t4.id = p1.xprojectid
+--left join tagElement_6664 t1 on t1.id = t2.dataselect 
+left join project_6664 t5 on t5.id = t4.parent
+ left join tagElement_6664 t1 on t1.id = t2.dataselect 
+where p1.keyword in (
+  'staff_begining_month',
+ 'staff_end_month'
+)  
+   and t2.keyword = 'company_category'),
+    table1 as
+   (select  projectId, 
+ country, fy_timerange,'average' as keyword , company_category ,sum(datanum)/2  as  val
+ from p
+group by 1,2,3,4,5
+	 )
+	 ,
+	 table2 as (
+ select  t7.name as xprojectid, 
+  t5.name as country, p1.fy_timerange,p1.keyword, t1.name as company_category,p1.datatablebase 
+		from sus_21557 as p1
+		left join sus_46830 t2
+        on p1.xprojectid = t2.xprojectid
+		
+		left join project_6664 t7 on t7.id = p1.xprojectid
+		left join project_6664 t5 on t5.id = t7.parent
+		left join tagElement_6664 t1 on t1.id = t2.dataselect 
+		
+		where p1.keyword in ('resignations','recruitments')
+		),
+		table3 as(
+	      select  xprojectid,country,fy_timerange,keyword,temp1.name_employee_resig,company_category,datatablebase from table2 as temp,
+		  unpivot temp.datatablebase as temp1 at res
+		  )
+		  ,
+		  table4 as (select s1.country, s1.xprojectid, s1.fy_timerange,s1.keyword, s1.company_category,cast(sub2.name_employee_recruit as varchar),name_employee_resig ,datatablebase
+from table3 s1, UNPIVOT s1.datatablebase sub2 at recr
+  )
+  select xprojectid,fy_timerange,company_category,country,name_employee_recruit , count(*) as total
+	  from table4 
+	where company_category is not null  and  name_employee_recruit is not null 
+	  group by 1,2,3,4,5
+	 
