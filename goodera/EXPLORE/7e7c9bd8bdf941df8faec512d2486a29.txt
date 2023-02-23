@@ -1,4 +1,5 @@
-with table1 as (Select p3.name as projectId,p1.name as projectpartner,p2.name as partner,p.name,p.fy_timerange,
+with table1 as (
+  Select p3.name as projectId,p1.name as projectpartner,p2.name as partner,p.name,p.fy_timerange,
 --substring(cast(fy_timerange.start as varchar),1,4) as year1,
 				--substring(cast(fy_timerange.start as varchar),6,2) as month,
 CAST(fy_timerange.start AS DATE) AS startt,
@@ -26,14 +27,25 @@ p.file, t.name as type_doc,t1.name as doc_name,p.remarks,
 case
 when p.file IS NOT NULL then 'Download'
 else 'NA'
-end as download
-from profile_81314 p
+end as download,
+x1.approvallog[0].["approvalStatus"] as status,x1.approvallog[0].["approverEmail"] as email,substring(CAST(x1.approvallog[0].["timestamp"] as VARCHAR), 1, 10) as approverdate, substring(CAST(x1.approvallog[0].["timestamp"] as VARCHAR), 12, 5) as time
+from ds_mongo_taskresponse x1
+left join ds_mysql_prod_taskuser x2 on x2.id = x1.taskuserid
+left join ds_mysql_prod_task x3 on x3.id = x2.taskid
+left join ds_mysql_prod_flowtask x4 on x4.id = x3.flowtaskid
+left join ds_mysql_prod_projectflow x5 on x5.id = x3.projectflowid
+left join ds_mysql_prod_section x6 on x6.id = x4.sectionid
+left join ds_mysql_prod_profile x7 on x7.id = x6.profileid
+left join ds_mysql_prod_project x8 on x8.id = x5.projectid
+left join profile_81314 p on p._id = x1.profileinstanceid
 
 left join project_9730 p1 on p1.id = p.projectid
 left join project_9730 p2 on p2.id = p1.parent
 left join project_9730 p3 on p3.id=p2.parent
 left join tagelement_9730 t on t.id = p.type
-left join tagelement_9730 t1 on t1.id = t.parent			   ),
+left join tagelement_9730 t1 on t1.id = t.parent
 
-table2 as (Select projectId, projectpartner,partner,name,fy_timerange,year,quarter,file,type_doc,doc_name,remarks,download from table1)
-Select  projectId,partner,(projectId||'-'||partner) as project, projectpartner,fy_timerange,year,quarter,file,type_doc,doc_name,remarks,download,(quarter ||'-'|| year) as myy from table2
+where x1.profileid = '81314' and x1.active = 't'
+			   )
+
+Select  projectId,partner,(projectId||'-'||partner) as project, projectpartner,fy_timerange,year,quarter,file,type_doc,doc_name,remarks,download,(quarter ||'-'|| year) as myy,email,approverdate,time from table1
