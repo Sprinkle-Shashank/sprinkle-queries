@@ -2,7 +2,7 @@
 with table1 as (SELECT pro.name as projectid,detail.schedule_7,S.name,
 t.name AS gender,
 CONCAT(CONCAT(CONCAT(SPLIT_PART(S.date, ' ', 1),'T'),SPLIT_PART(S.date, ' ', 2)),'.000Z') AS fy_timerange,
-COUNT(S.registration), extract(YEAR FROM cast (fy_timerange.start as datetime))AS year1,
+COUNT(S.registration), --extract(YEAR FROM cast (fy_timerange.start as datetime))AS year1,
 
 CASE
 	WHEN S.completion_status = 'true'
@@ -67,9 +67,9 @@ s.projectid = detail.projectid
 
 GROUP BY pro.name, t.name, S.name, S.date, trained, certified, state, district,detail.schedule_7, year1),
 table2 as (
-select projectid, gender, name, fy_timerange,count, trained, certified, state, district,schedule  from table1 tab1, tab1.schedule_7 schedule )
+select projectid, gender, name, fy_timerange,count, trained, certified, state, district,schedule , year1 from table1 tab1, tab1.schedule_7 schedule )
 
-select projectid, gender, tab2.name, fy_timerange,count, trained, certified, state, district,sche.name as schedule_7,reftag.code,extract(YEAR FROM cast (fy_timerange.start as datetime))AS year1  from table2 tab2
+select projectid, gender, tab2.name, fy_timerange,count, trained, certified, state, district,sche.name as schedule_7,reftag.code, year1  from table2 tab2
 LEFT JOIN ds_mysql_prod_tagelement AS sche
 ON tab2.schedule = sche.id
 
