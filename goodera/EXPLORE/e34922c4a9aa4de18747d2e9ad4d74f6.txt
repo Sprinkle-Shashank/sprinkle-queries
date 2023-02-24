@@ -27,7 +27,18 @@ where p2.timeperiod_timerange is not null),
 sub3 as (select * from sub2 where row = 1),
 
 sub4 as(
-  select s1.id, s1.cdms_factory_id, s1.timeperiod_timerange, s1.migrant_workers_not_reimbursed, s3.factory_name, s3.source_div, t1.name as cr_tier, s3.region, t2.name as cr_rating, t3.name as type_of_workers
+  select s1.id, s1.cdms_factory_id, s1.timeperiod_timerange, s1.migrant_workers_not_reimbursed, s3.factory_name, t1.name as cr_tier, t2.name as cr_rating, t3.name as type_of_workers,
+  
+case
+  	when IS_ARRAY(s3.source_div) = FALSE OR GET_ARRAY_LENGTH(s3.source_div) = 0 then ARRAY(s3.source_div)
+  	else s3.source_div
+end as source_div_new,
+  
+case
+  	when IS_ARRAY(s3.region) = FALSE OR GET_ARRAY_LENGTH(s3.region) = 0 then ARRAY(s3.region)
+  	else s3.region
+end as region_new
+  
 from sub1 s1
 
 left join sub3 s3 on s3.factory_id = s1.cdms_factory_id
@@ -36,6 +47,25 @@ left join tagElement_7200 t1 on t1.id = s3.cr_tier
 left join tagElement_7200 t2 on t2.id = s3.curr_cr_rating
 left join tagElement_7200 t3 on t3.id = s1.type_of_workers  
 
-where s3.factory_name is not null and t1.name not in ('Exit', 'Deactivated') and t2.name not in ('Gray', 'White', 'Red', 'No Rating', 'Pending Rating', 'Deactivated') and t3.name in ('Foreign Migrant Workers', 'Domestic Migrant Workers') and s1.migrant_workers_not_reimbursed > 0)
+where s3.factory_name is not null and t1.name not in ('Exit', 'Deactivated') and t2.name not in ('Gray', 'White', 'Red', 'No Rating', 'Pending Rating', 'Deactivated') and t3.name in ('Foreign Migrant Workers', 'Domestic Migrant Workers') and s1.migrant_workers_not_reimbursed > 0),
 
-select * from sub4
+sub5 as(
+  select s4.*, source_div_unwind, region_unwind 
+  from sub4 s4, s4.source_div_new source_div_unwind, s4.region_new region_unwind),
+  
+sub6 as(
+  select s5.id, s5.cdms_factory_id, s5.factory_name, nvl(t5.name, t4.name) as region, nvl(t7.name, t6.name) as business_div, s5.migrant_workers_not_reimbursed
+from sub5 s5
+
+left join tagelement_7200 t4 on t4.id = s5.region_unwind
+left join tagelement_7200 t5 on t5.id = t4.parent
+
+left join tagelement_7200 t6 on t6.id = s5.source_div_unwind
+left join tagelement_7200 t7 on t7.id = t6.parent)
+
+select s6.id, s6.cdms_factory_id, s6.factory_name, s6.region, s6.business_div, p3.brand_text as brand, s6.migrant_workers_not_reimbursed
+from sub6 s6
+
+left join profile_81437 p3 on p3.business_division_text = s6.business_div
+
+where nvl(p2.brand_text, 'NA') != 'Heritage Brands'
