@@ -1,0 +1,27 @@
+drop table if exists sus_83620;
+ create table sus_83620 as
+				select st.xprojectid, p.name, st.financialperiod, t.name as finPeriod,
+				concat(concat(substring(cast(timestamp 'epoch' + CAST(t.start AS BIGINT)/1000 * interval '1 second' as varchar), 1, 10),'T'), concat(split_part(cast(timestamp 'epoch' + CAST(t.start AS BIGINT)/1000 * interval '1 second' as varchar), ' ',2),'.000Z')) as startdate,
+				concat(concat(substring(cast(timestamp 'epoch' + CAST(t.end AS BIGINT)/1000 * interval '1 second' as varchar), 1, 10),'T'), concat(split_part(cast(timestamp 'epoch' + CAST(t.end AS BIGINT)/1000 * interval '1 second' as varchar), ' ',2),'.000Z')) as enddate,
+				concat(concat(startdate,'|'),enddate) as fy_timerange,
+				-- concat(concat(t.start,'|'),t.end) as fy_timerange,
+				st.xquestionid,
+				q.questiontype,
+				q.keyword,
+				q.questiontext,
+				cast(st.datanum as float),
+				cast(st.dataNumBase as float),
+				st.datatext,
+				st.datatagref as dataselect,
+				st.datatable,
+				st.dataTableBase,
+				st.measureunit,
+				st.measureunitBase,
+				st.tableSettings
+				from ds_mongo_sustainabilityTask st
+				left join ds_mysql_prod_question q on st.xquestionid = q.id
+				left join ds_mysql_prod_project p on st.xprojectid = p.id
+				left join ds_mysql_prod_tagelement t on st.financialperiod = t.id
+				where xprofileId='83620' and status = 'APPROVED' and st.active='t'
+				and keyword in ('total_water_discharge','non_haz_scrap_oil','water_recycled','non_haz_sone','non_haz_scrap_cake','total_water_insity','non_haz_gunny','total_haz','total_non_haz','turnover','total_e_waste','e_waste_batteries','e_waste_computer','e_waste_mobile','hazardous_chemical','hazardous_spent_oil','hazardous_oil_soaked','hazardous_ink_sludge','hazardous_sewage','medical_waste','name','consumption_diesel','non_haz_combustible','non_haz_sewage','diesel_emission','non_haz_food','non_haz_metal','scope2_emission','emission_intensity','total_water_withdrawal','non_haz_paper','total_water_consumption','non_haz_plastic','fresh_water_consumption','non_haz_plastic_recycle','non_haz_s_o_recycle','recycled_non_core','non_haz_sone_recycle','non_haz_sc_recycle','non_haz_gunny_recycle','total_haz_recycle','total_non_haz_recycling','disp_recycle','e_waste_batteries_recycling','e_waste_computer_recycling','e_waste_mobile_recycling','hazardous_chemical_recycling','hazardous_spent_recycle','hazardous_oil_soaked_recycle','hazardous_ink_sludge_recycle','hazardous_sewage_recycling','medical_landfill','total_diesel','consumption_lpg','non_haz_combustible_recycling','non_haz_sewage_recycling','lpg_emission','non_haz_food_recycling','non_haz_metal_recycling','total_rainwater_withdrawal','non_haz_paper_recycling','water_cons_product_manu','non_haz_plastic_landfill','non_haz_s_o_landfill','non_haz_sone_landfill','recycled_core','non_haz_sc_landfill','non_haz_gunny_landfill','total_haz_landfill','total_non_haz_landfill','disp_landfill','e_waste_batteries_landfill','e_waste_computer_landfill','e_waste_mobile_landfill','hazardous_chemical_landfill','hazardous_spent_landfil','hazardous_oil_soaked_landil','hazardous_ink_sludge_landfill','hazardous_sewage_landfill','medical_incineration','total_lpg','consumption_bio','non_haz_combustible_landfill','non_haz_sewage_landfill','ods_emission','non_haz_food_landfill','non_haz_metal_landfill','groundwater_withdrawal','non_haz_paper_landfill','percentage_recycledwater','total_haz_incineration','hazardous_chemical_site','hazardous_spent_incineration','hazardous_oil_soaked_incineration','hazardous_ink_sludge_incineration','hazardous_sewage_incineration','r22_consumption','consumption_total_thermal','scope1_emission','total_haz_site','hazardous_spent_site_storage','hazardous_oil_soaked_site_storage','hazardous_ink_sludge_site_storage','hazardous_sewage_site','r32_consumption','pur_electricity_nr','biogenic_emission','r134_consumption','pur_electricity_r','r404_consumption','total_electrical_consumption','r410_consumption','total_energy_consumption','co2_consumption','total_renewable_elec','total_biofuel','total_non_renewable_elec')
+				
