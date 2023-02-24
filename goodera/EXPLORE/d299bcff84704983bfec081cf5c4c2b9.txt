@@ -1,28 +1,27 @@
 with table1 as
 (
-  select p.projectid as projectid , p._id , p.fy_timerange as fy_timerange, /*sta.name as state_update , dis.name as district_update ,*/ /*dig_hb.name*/  rapid.name as rapid_t from profile_82798 as p
+  select p.projectid as projectid , p._id , p.fy_timerange as fy_timerange, rapid_test/*sta.name as state_update ,*/ dis.name as district_update /*dig_hb.name rapid.name as rapid_t*/ from profile_82798 as p
   
 left join profile_82797 p1
 on p.benef = p1._id
 
-/*left join ds_mysql_prod_tagelement dis
+left join ds_mysql_prod_tagelement dis
 on p1.state_dist = dis.id
-
+/*
 left join ds_mysql_prod_tagelement sta
-on dis.parent = sta.id*/
+on dis.parent = sta.id
   
 left join ds_mysql_prod_tagelement rapid
-on p.rapid_test = rapid.id
+on p.rapid_test = rapid.id*/
   ),
   tab2 as (
-  select projectid,fy_timerange,rapid_t 
+  select projectid,fy_timerange,district_update,rapid_test 
 	/*case when glass_binary is null then '0'
     else glass_binary end as glass_issued*/
-	from table1
-  where rapid_t is not null)
-  
-  select projectid,fy_timerange,count(rapid_t)
+  from table1
+  where cast(rapid_test as varchar) ~ '[[:alpha:]]')
+  select projectid,fy_timerange,district_update,count(rapid_test)
   from tab2
-  group by projectid,fy_timerange
+  group by projectid,fy_timerange,district_update
   
-/*  select * from table1*/
+ /* select * from tab2*/
