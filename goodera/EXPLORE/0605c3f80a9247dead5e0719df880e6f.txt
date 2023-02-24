@@ -1,19 +1,11 @@
---Tally_Parikrama_Distribution_of_percent_of_parents_attendance_in_PTM
-select financial_year_timerange as fy_timerange, avg(pta_term_1) as pta_term_1, avg(pta_term_2) as pta_term_2, 
-case
-when class=6 then '6'
-when class=7 then '7'
-when class=8 then '8'
-when class=9 then '9'
-when class=10 then '10'
-when class=11 then '11'
-when class=12 then '12'
-end as class, 
-case when class=6 then 1 else
-(case when class=7 then 2 else 
- ( case when class=8 then 3 else
-  ( case when class=9 then 4 else
-   ( case when class=10 then 5 else
-  (case when class=11 then 6 else
-   ( case when class=12 then 7 else 8 end) end) end) end) end)end) end as class_rank
-from profile_63493 group by financial_year_timerange, class
+--Tally_Parikrama_Distribution_of_Students_taking_part_in_extracurricular_activities
+with sub1 as(
+select extract(month from cast(month_timerange.start as date)) as month, roll_number, t.name as participation_in_extracurricular_activities from profile_63445
+left join ds_mysql_prod_tagelement t
+on t.id=participation_in_extracurricular_activities)
+select case when month=4 or month=5 or month=6 then 'Quarter 1'
+when month=7 or month=8 or month=9 then 'Quarter 2'
+when month=10 or month=11 or month=12 then 'Quarter 3'
+when month=1 or month=2 or month=3 then 'Quarter 4'
+end as quarter, fy_timerange, roll_number, participation_in_extracurricular_activities, count(distinct roll_number) as count from sub1
+group by quarter, fy_timerange, roll_number, participation_in_extracurricular_activities
