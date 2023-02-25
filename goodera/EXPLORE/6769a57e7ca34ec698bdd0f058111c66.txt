@@ -1,5 +1,5 @@
 with t1 as 
-(select tag1.name as projectid, p1.date as fy_timerange, p1.number_ben_child, 
+(select tag1.name as projectid, p1.date as fy_timerange, p2.name as shelter_home_text, p1.number_ben_child, 
 
 case 
 when p1.external_ben_number is null 
@@ -7,11 +7,13 @@ then 0 else p1.external_ben_number
 end as external_ben_number, count(*) as count
 
 from profile_79959 p1
+left join profile_79953 p2
+on p1.shelter_home = p2._id
 left join ds_mysql_prod_project tag1
 on p1.projectid = tag1.id
 
 group by 
-tag1.name, p1.date, p1.number_ben_child, p1.external_ben_number)
+tag1.name, p1.date, p2.name, p1.number_ben_child, p1.external_ben_number)
 
-select projectid, fy_timerange, number_ben_child, external_ben_number, (number_ben_child + external_ben_number) as total_benef, count
+select projectid, fy_timerange, shelter_home_text, number_ben_child, external_ben_number, (number_ben_child + external_ben_number) as total_benef, count
 from t1
