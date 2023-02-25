@@ -1,5 +1,15 @@
-select month_timerange as fy_timerange, participation_in_extracurricular_activities, roll_number, row_number() over(partition by roll_number) as d_rnk
-from profile_63445
+with t1 as 
+(select extract(month from cast(month_timerange.start as date)) as month, month_timerange as fy_timerange, participation_in_extracurricular_activities, roll_number,
+case when month=4 or month=5 or month=6 then 'Quarter 1'
+when month=7 or month=8 or month=9 then 'Quarter 2'
+when month=10 or month=11 or month=12 then 'Quarter 3'
+when month=1 or month=2 or month=3 then 'Quarter 4'
+end as quarter
+row_number() over(partition by roll_number) as d_rnk
+from profile_63445)
+
+select t1.*, row_number() over(partition by month) as d_rnk
+from t1
 
 
 
