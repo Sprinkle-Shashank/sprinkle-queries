@@ -1,3 +1,4 @@
+--WCP_suggestions_total_respondents_midline_percent
 with table1 as(select p.projectId,p.status,decode(DATEPART(YEAR,p.date_enrollment),null,0,DATEPART(YEAR,p.date_enrollment)) as year_new from profile_16619 p
 
 			   
@@ -14,13 +15,15 @@ when country in ('Guatemala', 'El Salvador', 'Dominican Republic')
 then 'Americas'
 when country in ('Philippines', 'Cambodia',  'Vietnam',  'Indonesia', 'Myanmar')
 then 'South East Asia'
-end as region,case when p2.name_subunit is null or p2.name_subunit=' ' then 'N/A' else p2.name_subunit end  as unit,t1.year_new,suggest.name as suggestions from profile_20701 p
+end as region,
+case when p2.name_subunit is null or p2.name_subunit=' ' then 'N/A' when country='Bangladesh' then p2.name_subunit else 'N/A' end as unit,
+t1.year_new,suggest.name as suggestions from profile_20701 p
 
-left join ds_mysql_prod_project fac
+left join project_1137 fac
 on p.projectid = fac.id
-left join ds_mysql_prod_project ven
+left join project_1137 ven
 on fac.parent = ven.id
-left join ds_mysql_prod_project cou
+left join project_1137 cou
 on ven.parent = cou.id
 
 left join profile_16619 p2
@@ -29,7 +32,7 @@ on p.sub_unit = p2._id
 left join table1 t1 on
 p.projectId = t1.projectId
 			   
-left join ds_mysql_prod_tagelement suggest
+left join tagelement_1137 suggest
 on p.suggestions = suggest.id
 
 where  (cou.name <> 'Test Country' and cou.name <> 'GAP Inc.') and (p.projectId ilike '%%') and (t1.projectId is not null) and (t1.status = 1400365 or t1.status is null)
