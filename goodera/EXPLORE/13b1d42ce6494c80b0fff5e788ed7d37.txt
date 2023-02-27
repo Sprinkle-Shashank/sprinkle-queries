@@ -1,1 +1,41 @@
-select * from profile_60928 where migrant_workers is not null
+with sub1 as(
+	select p1._id as id, p1.factory_name, p1.timeperiod_timerange, p1.migrant_workers,
+
+case
+	 when IS_ARRAY(p1.source_div) = FALSE or GET_ARRAY_LENGTH(p1.source_div) = 0 then ARRAY(p1.source_div)
+	 else p1.source_div
+end as source_div_new,
+
+case
+	 when IS_ARRAY(p1.region) = FALSE or GET_ARRAY_LENGTH(p1.region) = 0 then ARRAY(p1.region)
+	 else p1.region
+end as region_new,
+
+dense_rank() over(order by cast(p1.timeperiod_timerange.start as DATE)) as row
+
+from profile_60928 p1
+
+where p1.migrant_workers is not null),
+
+sub2 as(
+  select s1.*, source_div_unwind, region_unwind
+from sub1 s1, s1.source_div_new source_div_unwind, s1.region_new region_unwind
+
+where row = 1),
+
+sub3 as(
+  select s2.id, s2.factory_name, nvl(t2.name, t1.name) as region, nvl(t3.name, t4.name) as business_div, s2.migrant_workers
+from sub2 s2
+
+left join tagelement_7200 t1 on t1.id = s2.region_unwind
+left join tagelement_7200 t2 on t2.id = t1.parent
+
+left join tagelement_7200 t3 on t3.id = s2.source_div_unwind
+left join tagelement_7200 t4 on t4.id = t3.parent)
+
+select s3.id, s3.factory_name, s3.region, s3.business_div, p2.brand_text as brand, s3.migrant_workers
+from sub3 s3
+
+left join profile_81437 p3 on p3.business_division_text = s6.business_div
+
+where nvl(p3.brand_text, 'NA') != 'Heritage Brands' and s3.migrant_workers > 0
