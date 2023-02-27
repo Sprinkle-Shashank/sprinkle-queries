@@ -1,5 +1,32 @@
-Select *, t.name
-
-from profile_27424 p
-left join tagelement_4188 t
-on p.pm_name=t.id
+with t1 as(
+Select fy fy_timerange, level1, months, x_axis, subcat_not_null t_count
+  from hdfc_HDFC_NGO_Partner_Reporting_Activities_Reported_flow
+union all
+Select fy fy_timerange, level1, months, x_axis, total_count t_count
+  from HDFC_NGO_Partner_Reporting_Total_Activities_flow
+union all
+Select fy fy_timerange, level1, months, x_axis, approved_first t_count
+  from HDFC_NGO_PR_Approved_1st_Manager_flow
+union all
+Select fy fy_timerange, level1, months, x_axis, approved_second t_count
+  from HDFC_NGO_PR_Approved_2nd_Manager_flow
+ )
+ 
+Select fy_timerange,
+case 
+	when months='April' then 'Quarter 1'
+	when months='May' then 'Quarter 1'
+	when months='June' then 'Quarter 1'
+	when months='July' then 'Quarter 2'
+	when months='August' then 'Quarter 2'
+	when months='September' then 'Quarter 2'	
+	when months='October' then 'Quarter 3'
+	when months='November' then 'Quarter 3'
+	when months='December' then 'Quarter 3'
+	when months='January' then 'Quarter 4'
+	when months='February' then 'Quarter 4'
+	when months='March' then 'Quarter 4'	
+	end as Quarter , 
+	level1, x_axis, t_count
+from t1
+group by 1,2,3,4,5
