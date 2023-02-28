@@ -1,1 +1,14 @@
-select * from profile_83369
+select tag1.name as projectid, extract(month from cast(month_timerange.start as date)) as month, tag2.name as participation_in_extracurricular_activities, roll_number,
+case when month=4 or month=5 or month=6 then 'Quarter 1'
+when month=7 or month=8 or month=9 then 'Quarter 2'
+when month=10 or month=11 or month=12 then 'Quarter 3'
+when month=1 or month=2 or month=3 then 'Quarter 4'
+end as quarter, to_char(month_timerange.start :: date, 'YYYY') as year, count(*)
+from profile_63445 p1
+left join ds_mysql_prod_project tag1
+on p1.projectid = tag1.id
+left join ds_mysql_prod_tagelement tag2
+on p1.participation_in_extracurricular_activities = tag2.id
+group by 
+tag1.name, month_timerange, tag2.name, roll_number
+ 
