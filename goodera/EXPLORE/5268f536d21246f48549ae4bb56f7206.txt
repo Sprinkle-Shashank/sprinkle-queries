@@ -6,7 +6,7 @@ m.state_district district
  ),
 
 temp2 as
-(select projectId.name as projectId, count(*), description, pic, ngo, sdg, sdg_pic, temp1.name, project_start_date,project_end_date, district, fy_timerange, SUBSTRING(s_date, 1, 10) AS sdatess,
+(select projectId.name as projectId, count(*), description, pic, ngo, sdg, sdg_pic, temp1.name, project_start_date,project_end_date, district, fy_timerange, SUBSTRING(project_start_date, 1, 10) AS sdatess,
 
 
 case
@@ -29,5 +29,10 @@ group by projectId.name, fy_timerange, location, description, pic, ngo, sdg, sdg
  
 )
 
- select  projectId, name, description, pic, fy_timerange, ngo, sdg_pic, sdg, project_start_date,project_end_date, LISTAGG(location,',') as location from temp2
+ select  projectId, name, description, pic, fy_timerange, ngo, sdg_pic, sdg, project_start_date,project_end_date,
+case
+	when project_end_date is null then 'In Progress'
+	else project_end_date
+end as end_date_project
+ LISTAGG(location,',') as location from temp2
  group by projectId, fy_timerange, description, pic, ngo, sdg_pic,sdg,  name, project_start_date,project_end_date
