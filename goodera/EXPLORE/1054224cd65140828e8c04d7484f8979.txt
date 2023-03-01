@@ -3,11 +3,13 @@ with s1 as
 from profile_83305 as a,
 a.topics as unwind_topics)
 
-select p2.name as van, p3.name as partner, fy_timerange, awareness_sessions, listagg(distinct cast(T1.name as varchar),',') AS Topics_Unwind
+select p2.name as van, p3.name as partner, fy_timerange, p1.assoc_impl_partner, awareness_sessions, listagg(distinct cast(T1.name as varchar),',') AS Topics_Unwind
 from s1 
 left join ds_mysql_prod_project p2 on p2.id = s1.projectid 
 left join ds_mysql_prod_project p3 on p3.id = p2.parent
-LEFT JOIN ds_mysql_prod_tagelement AS T1
+Left join ds_mysql_prod_tagelement AS T1
 ON T1.id = S1.unwind_topics
+left join profile_83303 p1
+on s1.assoc_impl_partner = p1._id
 group by 
 p2.name, p3.name, fy_timerange, awareness_sessions
