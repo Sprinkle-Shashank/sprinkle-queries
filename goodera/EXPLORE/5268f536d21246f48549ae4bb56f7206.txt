@@ -1,0 +1,33 @@
+--Eil_Common_Project_Details
+with temp1 as
+(select projectId, m.desc as description , pic, ngo, sdg, sdg_pic, name, project_start_date,project_end_date, district, fy_timerange from profile_46325 as m,
+
+m.state_district district
+ ),
+
+temp2 as
+(select projectId.name as projectId, count(*), description, pic, ngo, sdg, sdg_pic, temp1.name, project_start_date,project_end_date, district, fy_timerange, SUBSTRING(s_date, 1, 10) AS sdatess,
+
+
+case
+WHEN state1_parent.name IS NULL THEN state1.name else state1_parent.name END as location
+ 
+ 
+from temp1
+
+left join ds_mysql_prod_project as projectId
+  on temp1.projectId = projectId.id 
+ 
+left join ds_mysql_prod_tagelement as state1
+on temp1.district = state1.id
+ 
+left join ds_mysql_prod_tagelement as state1_parent
+on state1.parent = state1_parent.id
+ 
+
+group by projectId.name, fy_timerange, location, description, pic, ngo, sdg, sdg_pic, temp1.name, temp1.project_start_date,temp1.project_end_date, temp1.district
+ 
+)
+
+ select  projectId, name, description, pic, fy_timerange, ngo, sdg_pic, sdg, project_start_date,project_end_date, LISTAGG(location,',') as location from temp2
+ group by projectId, fy_timerange, description, pic, ngo, sdg_pic,sdg,  name, project_start_date,project_end_date
