@@ -38,7 +38,7 @@ left join ds_mysql_prod_tagelement t3 on t3.id = p5.fy
 left join ds_mysql_prod_tagelement t4 on t4.id = p5.project_manager),
 
 sub3 as(
-  select s2.id, s2.fy, s2.month, s2.fy_27396, s2.project_manager_27396, s2.fy_27420_new, s2.project_manager_27420_new, s2.fy_27420,
+  select s2.id, s2.fy, s2.month months, s2.fy_27396, s2.project_manager_27396, s2.fy_27420_new, s2.project_manager_27420_new, s2.fy_27420,
   
 case
   	when (split_part(s2.fy_27420_new, '-', 1) <= split_part(s2.fy, '-', 1)) or 
@@ -51,29 +51,15 @@ row_number() over(partition by s2.id order by split_part(s2.fy_27420_new, '-', 1
 from sub2 s2),
 
 sub4 as(
-  select s3.id, s3.fy, s3.month, s3.fy_27396, s3.project_manager_27396, s3.fy_27420_new, s3.project_manager_27420_new,
+  select s3.id, s3.fy, months, s3.fy_27396, s3.project_manager_27396, s3.fy_27420_new, s3.project_manager_27420_new
 
-case s3.month
-	when 'January' then 'Quarter 4'
-	when 'February' then 'Quarter 4'
-	when 'March' then 'Quarter 4'
-	when 'April' then 'Quarter 1'
-	when 'May' then 'Quarter 1'
-	when 'June' then 'Quarter 1'
-	when 'July' then 'Quarter 2'
-	when 'August' then 'Quarter 2'
-	when 'September' then 'Quarter 2'
-	when 'October' then 'Quarter 3'
-	when 'November' then 'Quarter 3'
-	else 'Quarter 3'
-end as month_sort
   
 from sub3 s3
 
 where s3.row = 1 and s3.flag = 1),
 
 sub5 as(
-  select s4.fy, s4.fy_27420_new, s4.fy_27396, s4.month, s4.month_sort, 1 as total_count, s4.project_manager_27420_new, s4.project_manager_27396,
+  select s4.fy, s4.fy_27420_new, s4.fy_27396, months, 1 as total_count, s4.project_manager_27420_new, s4.project_manager_27396,
   
 case
   when (split_part(s4.fy_27420_new, '-', 1) <= split_part(s4.fy, '-', 1)) 
@@ -85,11 +71,11 @@ from sub4 s4),
 
 sub6 as(
   select s5.fy as fy_timerange, s5.project_manager,
-month_sort as quarter, 
+months,
 sum(s5.total_count) as total_count, 'Total No. of Activities' x_axis
   
 from sub5 s5
 
-group by s5.fy, s5.project_manager, month_sort)
+group by s5.fy, s5.project_manager, months)
 
 select * from sub6
