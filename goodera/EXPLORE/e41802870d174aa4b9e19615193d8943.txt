@@ -1,0 +1,34 @@
+with table1 as (select cou.name as country,p.name,p.fy_timerange,keyword,datanum,datanumbase,startdate,
+EXTRACT(MONTH FROM cast (startdate as datetime))AS month1,
+EXTRACT(YEAR FROM cast (startdate as datetime))AS year1,
+CASE
+WHEN MONTH1 <= 3
+THEN YEAR1-1
+ELSE
+YEAR1
+END AS start,
+concat(start,'-04-01T00:00:00.000Z') as start1,
+concat(end1,'-03-31T00:00:00.000Z') as end2,
+concat(concat(concat(concat('{"start":"',start1),'","end":"'),end2),'"}') as fy_1,
+concat('FY',concat(start,concat('-',right(end1,2)))) as fy_2,
+				
+case when keyword in ('consumption_diesel','consumption_lpg','pur_electricity_nr' )then 'Non-Renewable'
+	else 'Renewable' end as ren_and_non,
+case when keyword in ('consumption_diesel','consumption_fo','consumption_bio') then 'Thermal Energy' 				 
+else 'Electrical Energy' end as energy_type
+
+from sus_83620 p
+
+left join project_9427 pro on 
+p.xprojectid = pro.id
+
+left join project_9427 cou on 
+pro.parent = cou.id
+
+where keyword in ('consumption_diesel','consumption_fo','consumption_bio','pur_electricity_r','pur_electricity_nr') 
+
+order by fy_timerange asc
+
+)
+
+select country,name,fy_timerange,keyword,datanum,datanumbase,ren_and_non,energy_type from table1
