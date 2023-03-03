@@ -1,4 +1,20 @@
-select p2.name as van, p3.name as partner, fy_timerange
-from profile_83305 p 
+with sub1 as(select a.*, unwind_topics from profile_83305 a, a.topics as unwind_topics)
+
+select p2.name as van, p3.name as partner, fy_timerange, tag2.name as unwind_topics, count(*)
+from sub1 p
 left join ds_mysql_prod_project p2 on p2.id=p.projectid 
 left join ds_mysql_prod_project p3 on p3.id=p2.parent
+left join ds_mysql_prod_tagelement tag2
+on p.unwind_topics = tag2.id
+
+where p.projectid like '%%'
+group by 
+p2.name, p3.name , fy_timerange, tag2.name
+
+
+
+
+--select p2.name as van, p3.name as partner, fy_timerange, topics
+--from profile_83305 p 
+--left join ds_mysql_prod_project p2 on p2.id=p.projectid 
+--left join ds_mysql_prod_project p3 on p3.id=p2.parent
