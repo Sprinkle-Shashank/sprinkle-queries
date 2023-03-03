@@ -1,0 +1,37 @@
+with table1 as (select cou.name as country,p.name,fy_timerange,keyword, datanum,datanumbase,
+CASE WHEN keyword = 'hazardous_chemical' THEN 'Chemical Container'
+     WHEN keyword = 'hazardous_sewage' THEN 'Sewage Sludge'
+	 WHEN keyword = 'non_haz_combustible' THEN 'Non Combustible Wastes'
+	 WHEN keyword = 'non_haz_sewage' THEN 'Non Hazardous Sewage'
+	 WHEN keyword = 'non_haz_food' THEN 'Food Wastes(Municipal Solid Wastes)'
+	 WHEN keyword = 'non_haz_metal' THEN 'Metals'
+	 WHEN keyword = 'non_haz_paper' THEN 'Paper, Cardboard and Wood'
+	 END AS type,
+CASE WHEN keyword IN ('total_haz_recycle','total_non_haz_recycling') THEN 'Disposed through Recycling(MT)'
+     WHEN keyword IN ('total_haz_landfill','total_non_haz_landfill') THEN 'Disposed through Landfill(MT)'
+	 WHEN keyword = 'total_haz_incineration' THEN 'Disposed through Incineration(MT)'
+	 WHEN keyword = 'total_haz_site' THEN 'On-site storage(MT)' END AS disposal_method,
+	 
+EXTRACT(MONTH FROM cast (startdate as datetime))AS month1,
+EXTRACT(YEAR FROM cast (startdate as datetime))AS year1,
+CASE
+WHEN MONTH1 <= 3
+THEN YEAR1-1
+ELSE
+YEAR1
+END AS start,
+start+1 AS end1,
+CONCAT(start,'-04-01T00:00:00.000Z') AS start1,
+CONCAT(end1,'-04-01T00:00:00.000Z') AS end2,
+concat(concat(concat(concat('{"start":"',start1),'","end":"'),end2),'"}') as fy_1,
+concat('FY',concat(start,concat('-',right(end1,2)))) AS fy_2
+
+from sus_83620 p
+
+left join project_9427 pro on 
+p.xprojectid = pro.id
+
+left join project_9427 cou on 
+pro.parent = cou.id)
+
+SELECT country,name,fy_1 as fy_timerange,keyword, datanum,datanumbase, fy_2,disposal_method,type FROM TABLE1
