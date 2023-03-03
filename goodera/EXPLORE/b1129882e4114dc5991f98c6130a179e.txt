@@ -1,6 +1,5 @@
 --Sparsha_Center
-with t1 as(
-  Select tag1.name as projectId, tag2.name as location ,  center_name, vendors as Vendors_finalized, no_of_supervisors as Program_supervisors_appointed, no_of_center_in_charge as Centre_in_charge_appointed, no_of_caretaker_app as Caretaker_appointed, no_of_helper as Helper_appointed, no_of_resources as Resources_or_modules_prepared, tag3.name as year ,substring(tag3.name,5,4) as start, substring(tag3.name,11,5) as end ,fy_timerange.start as end_date,fy_timerange.end as start_date , object('start' ,start_date , 'end' ,  end_date) as fy_timerange
+Select tag1.name as projectId, tag2.name as location ,  center_name, vendors as Vendors_finalized, no_of_supervisors as Program_supervisors_appointed, no_of_center_in_charge as Centre_in_charge_appointed, no_of_caretaker_app as Caretaker_appointed, no_of_helper as Helper_appointed, no_of_resources as Resources_or_modules_prepared, tag3.name as year ,substring(tag3.name,5,4) as start, substring(tag3.name,11,5) as end ,fy_timerange.start as end_date,fy_timerange.end as start_date , object('start' ,start_date , 'end' ,  end_date) as fy_timerange
 from profile_77340 as p1	
 
 left join ds_mysql_prod_project tag1
@@ -9,36 +8,5 @@ left join ds_mysql_prod_tagelement tag2
 on p1.location  = tag2.id
 left join ds_mysql_prod_tagelement tag3
 on p1.year  = tag3.id
-		  ),
 		  
-item as 
-(
-select 'Vendors_finalized' as c
-union all
-select 'Program_supervisors_appointed' as c
-union all
-select 'Centre_in_charge_appointed' as c
-union all
-select 'Caretaker_appointed' as c
-union all
-select 'Helper_appointed' as c
-union all
-select 'Resources_or_modules_prepared' as c
-  
-)	,	  
-
-
-t2 as (select  projectId,location,center_name,year,start,t1.end,start_date,end_date,t1.fy_timerange,
-case c
-when 'Vendors_finalized' then t1.Vendors_finalized
-when 'Program_supervisors_appointed' then t1.Program_supervisors_appointed
-when 'Centre_in_charge_appointed' then t1.Centre_in_charge_appointed
-when 'Caretaker_appointed' then t1.Caretaker_appointed
-when 'Helper_appointed' then t1.Helper_appointed
-when 'Resources_or_modules_prepared' then t1.Resources_or_modules_prepared
-else null
-end as value,item.c as dimension
-from t1 cross join item)
-select projectId,location,center_name,fy_timerange,Dimension,sum(value) :: Int as Value, to_char(fy_timerange.start :: date, 'YYYY') as start_date
-from t2
-group by projectId,location,center_name,fy_timerange,Dimension
+		  
