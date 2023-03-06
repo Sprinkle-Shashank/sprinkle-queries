@@ -1,16 +1,15 @@
-Select fy_timerange,CAST(fy_timerange.start AS DATE) AS start,
+With tab1 as (Select fy_timerange,CAST(fy_timerange.start AS DATE) AS start,
 EXTRACT(YEAR FROM start) AS year,
-'FY '||year || ' - '||year+1 AS Curr,
 CASE
-	WHEN Curr='FY 2015 - 2016' THEN 'FY 2014 - 2015'
-	WHEN Curr='FY 2016 - 2017' THEN 'FY 2015 - 2016'
-	WHEN Curr='FY 2017 - 2018' THEN 'FY 2016 - 2017'
-	WHEN Curr='FY 2018 - 2019' THEN 'FY 2017 - 2018'
-	WHEN Curr='FY 2019 - 2020' THEN 'FY 2018 - 2019'
-	WHEN Curr='FY 2020 - 2021' THEN 'FY 2019 - 2020'
-	WHEN Curr='FY 2021 - 2022' THEN 'FY 2020 - 2021'
-	WHEN Curr='FY 2022 - 2023' THEN 'FY 2021 - 2022'
-	WHEN Curr='FY 2023 - 2024' THEN 'FY 2022 - 2023'
+	WHEN ('FY '||year || ' - '||year+1)='FY 2015 - 2016' THEN 'FY 2014 - 2015'
+	WHEN ('FY '||year || ' - '||year+1)='FY 2016 - 2017' THEN 'FY 2015 - 2016'
+	WHEN ('FY '||year || ' - '||year+1)='FY 2017 - 2018' THEN 'FY 2016 - 2017'
+	WHEN ('FY '||year || ' - '||year+1)='FY 2018 - 2019' THEN 'FY 2017 - 2018'
+	WHEN ('FY '||year || ' - '||year+1)='FY 2019 - 2020' THEN 'FY 2018 - 2019'
+	WHEN ('FY '||year || ' - '||year+1)='FY 2020 - 2021' THEN 'FY 2019 - 2020'
+	WHEN ('FY '||year || ' - '||year+1)='FY 2021 - 2022' THEN 'FY 2020 - 2021'
+	WHEN ('FY '||year || ' - '||year+1)='FY 2022 - 2023' THEN 'FY 2021 - 2022'
+	WHEN ('FY '||year || ' - '||year+1)='FY 2023 - 2024' THEN 'FY 2022 - 2023'
 END as Current,count(shalini),
 Case 
 	WHEN achievement < 60 THEN 'Below 60%'
@@ -18,4 +17,8 @@ Case
 	WHEN achievement>80 THEN 'Above 80%'
 END AS types
 From profile_55295
-group by fy_timerange,shalini,start,year,types,current
+group by fy_timerange,shalini,start,year,types,current)
+
+Select *,'Previous FY' as x_axis
+From tab1
+where types is not null
