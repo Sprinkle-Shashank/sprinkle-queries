@@ -19,6 +19,24 @@ sub3 as(
   select factory, factory_vms_id, vendor, vendor_vms_id, start_year, region, 1 as count
 from sub2
 where meet_target = 'Yes'
-group by factory, factory_vms_id, vendor, vendor_vms_id, start_year, region)
+group by factory, factory_vms_id, vendor, vendor_vms_id, start_year, region),
 
+---x---
+
+sub4 as(
+  select s2.id, s2.factory, s2.vendor, s2.vendor_vms_id, p4.source_div, p4.timeperiod_timerange, s2.factory_vms_id,
+  
+case
+  	when IS_ARRAY(p4.source_div) = FALSE or GET_ARRAY_Length(p4.source_div) = 0 then ARRAY (p4.source_div)
+  	else p4.source_div
+end as source_div_new,  
+  
+row_number() over(partition by s2.id order by cast(p4.timeperiod_timerange.start as date) desc) as row
+
+from sub2 s2
+left join profile_60928 p4 on p4.factory_vms_id = s2.factory_vms_id),
+
+sub5 as(
+  select * from sub4 where row = 1)
+  
 select * from sub3
