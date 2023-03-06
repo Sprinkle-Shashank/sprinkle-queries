@@ -1,14 +1,14 @@
-with tab1 as(Select p1.fy_timerange, p1.shalini, (p1.academic_weight+p1.achievement_weight+avg(p2.social_hrs_weight)+ avg(p2.proforma_weight)+avg(p2.attendance_weight)) as y,
-Case 
-	WHEN y < 60 THEN 'Below 60%'
-	WHEN y>=60 and y<=80 THEN '60-80%'
-	WHEN y>80 THEN 'Above 80%'
-END AS types
+with tab1 as(Select p1.fy_timerange, p1.shalini,p1.academic_weight as s1,p1.achievement_weight as s2,avg(p2.social_hrs_weight) as s3, avg(p2.proforma_weight) as s4,avg(p2.attendance_weight) as s5
 from profile_55295 p1
 left join profile_55296 p2
 on p1.shalini=p2.shalini
-group by p1.fy_timerange,p1.academic_weight,p1.achievement_weight,p1.shalini)
+group by p1.fy_timerange,p1.shalini,p1.academic_weight,p1.achievement_weight)
 
-Select count(shalini),fy_timerange,types
+Select count(shalini),fy_timerange,
+Case 
+	WHEN s1+s2+s3+s4+s5 < 60 THEN 'Below 60%'
+	WHEN s1+s2+s3+s4+s5>=60 and s1+s2+s3+s4+s5<=80 THEN '60-80%'
+	WHEN s1+s2+s3+s4+s5>80 THEN 'Above 80%'
+END AS types
 from tab1
 group by fy_timerange,types
