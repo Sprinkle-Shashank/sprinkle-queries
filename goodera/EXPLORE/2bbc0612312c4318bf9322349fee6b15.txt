@@ -1,16 +1,16 @@
-select p.fy_timerange,p2.name as van,p3.name as partner,p.name,p.bene_age,p.bene_gender as gender, count(*), 1 as unique_count,p4.name as patient,
+select p.fy_timerange,p2.name as van,p3.name as partner,p.name,p.bene_age,p.bene_gender as gender,t1.name as patient_yn, count(*), 1 as unique_count,p4.name as patient,
 case 
-  		when count(patient) = 1
+  		when count(p4.name) = 1
   			then 'Once'
-		when count(patient) = 2
+		when count(p4.name) = 2
 			  then 'Twice'
-  		when (count(patient) > 2 and count(patient)< 6)
+  		when (count(p4.name) > 2 and count(p4.name)< 6)
   			then '3-5'
-  		when (count(patient)> 5 and count(patient)< 11)
+  		when (count(p4.name)> 5 and count(p4.name)< 11)
   			then '6-10'
-		when (count(patient)> 10 and count(patient)< 51)
+		when (count(p4.name)> 10 and count(p4.name)< 51)
   			then '11-50'
-  		else '0'
+  		else 'New'
   	end as pcount
 
 --case when 
@@ -20,6 +20,7 @@ from profile_83301 p
 left join ds_mysql_prod_project p2 on p2.id=p.projectid 
 left join ds_mysql_prod_project p3 on p3.id=p2.parent
 left join profile_83300 p4 on p4._id = p.patient
+left join tagElement_10099 t1 on p.patient_yn = t1.id
 
 where p.projectid like '%%'
 
