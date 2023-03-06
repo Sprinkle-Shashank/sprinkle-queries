@@ -1,0 +1,24 @@
+With tab1 as (Select fy_timerange,CAST(fy_timerange.start AS DATE) AS start,
+EXTRACT(YEAR FROM start) AS year,
+CASE
+	WHEN ('FY '||year || ' - '||year+1)='FY 2015 - 2016' THEN 'FY 2014 - 2015'
+	WHEN ('FY '||year || ' - '||year+1)='FY 2016 - 2017' THEN 'FY 2015 - 2016'
+	WHEN ('FY '||year || ' - '||year+1)='FY 2017 - 2018' THEN 'FY 2016 - 2017'
+	WHEN ('FY '||year || ' - '||year+1)='FY 2018 - 2019' THEN 'FY 2017 - 2018'
+	WHEN ('FY '||year || ' - '||year+1)='FY 2019 - 2020' THEN 'FY 2018 - 2019'
+	WHEN ('FY '||year || ' - '||year+1)='FY 2020 - 2021' THEN 'FY 2019 - 2020'
+	WHEN ('FY '||year || ' - '||year+1)='FY 2021 - 2022' THEN 'FY 2020 - 2021'
+	WHEN ('FY '||year || ' - '||year+1)='FY 2022 - 2023' THEN 'FY 2021 - 2022'
+	WHEN ('FY '||year || ' - '||year+1)='FY 2023 - 2024' THEN 'FY 2022 - 2023'
+END as financial_year,count(shalini),
+Case 
+	WHEN academic<60 THEN 'Below 60%'
+	WHEN academic>=60 and academic<=80 THEN '60-80%'
+	WHEN academic>80 THEN 'Above 80%'
+END AS types
+From profile_55295
+group by fy_timerange,shalini,start,year,types,financial_year)
+
+Select *,'Previous FY' as x_axis
+From tab1
+where types is not null
