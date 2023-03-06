@@ -1,3 +1,37 @@
-select * from ds_mysql_prod_user
-where id = 1513871
---limit 10;
+select p.fy_timerange,p2.name as van,p3.name as partner,p.name,p.bene_age,p.bene_gender as gender,t1.name as referral, t2.name as institutions,t3.name as diseases, count(*), 1 as unique_count,
+'Consultations' as ben,
+case
+when t1.name is null then 0
+else 1
+end as referral_count,
+
+CASE 
+		when p.bene_age > 0 and p.bene_age <= 5 then '0-5 Yrs'
+		when p.bene_age >= 6 and p.bene_age <=18 then '6-18 Yrs'
+		when p.bene_age >= 19 and p.bene_age <=40 then '19-40 Yrs'
+		when p.bene_age >= 41 and p.bene_age <=50 then '41-50 Yrs'
+		when p.bene_age >= 51 and p.bene_age <=60 then '51-60 Yrs'		
+		else 'Above 60 Yrs'
+	end as age_group,
+case
+when age_group = '0-5 Yrs' then 1
+when age_group = '6-18 Yrs' then 2
+when age_group = '19-40 Yrs' then 3
+when age_group = '41-50 Yrs' then 4
+when age_group = '51-60 Yrs' then 5
+else 6
+end as age_sort
+--case when 
+
+from profile_83301 p
+left join tagElement_10099 t1 on p.ref_type = t1.id
+left join tagElement_10099 t2 on p.referral_destination = t2.id
+left join ds_mysql_prod_project p2 on p2.id=p.projectid 
+left join ds_mysql_prod_project p3 on p3.id=p2.parent
+left join tagElement_10099 t3 on p.sys_affected1 = t3.id
+
+where p.projectid like '%%' 
+--and p2.name <> 'Chennai - TN 10 AS 5135'
+--and t2.name <> 'No Referral'
+
+group by p.fy_timerange,p2.name, p3.name, p.name,p.bene_age,p.bene_gender,t1.name, t2.name,t3.name
