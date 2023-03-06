@@ -1,2 +1,93 @@
-Select add_months(cast(fy_timerange as timestamp),-1) as year,fy_timerange
-From profile_55295
+with s1 as (
+Select p.name, t4.name fy, reg_number, brief as description, vision_and_mission as mission, t2.name org_type, substring(registration_date,1,10) registration_date, pan, t3.name tax_exemption_2, t1.name spriritual_agenda, monitoring participate_board, individual_donors, corporate_funders, government_funding, other_funding, budget, target_beneficiary, socioeconomic, org_objective, outreach_lastfy, cost_beneficiary, full_term, NULL perc,
+case 
+  when p._id is not null then 'New Project' 
+end as Type_of_Project,
+NULL sum_basic, NULL sum_financial, NULL sum_programmatic, NULL overall_score, NULL grade
+
+from profile_27395 p
+left join ds_mysql_prod_tagelement t1
+ON t1.id=p.spriritual_agenda
+left join ds_mysql_prod_tagelement t2
+ON t2.id=p.org_type
+left join ds_mysql_prod_tagelement t3
+ON t3.id=p.tax_exemption_2
+left join ds_mysql_prod_tagelement t4
+ON t4.id=p.fy 
+
+union all
+
+Select p.name, t3.name fy, registration_number as reg_number, description, mission,t2.name org_type, substring(registration_date,1,10) registration_date, pan_card pan, NULL tax_exemption_2, 
+t1.name spriritual_agenda
+, Cast(Case 
+            When participate_board='Yes' Then 'Yes' 
+            ELse 'No' END 
+        AS Varchar(256))
+as participate_board
+,percentage_donors individual_donors, total_donations corporate_funders, percentage_funding government_funding, percentage_agencies other_funding, organization_budget budget, target_beneficiary, percentage_socio_economic socioeconomic, objective org_objective , direct_beneficiaries outreach_lastfy, cost_per_beneficiary cost_beneficiary, on_role_employees full_term, percentage_5_years perc,
+case when p._id is not null then 'New Project' 
+end as Type_of_Project, sum_basic, sum_financial, sum_programmatic, overall_score,grade
+
+from profile_80183 p
+left join ds_mysql_prod_tagelement t2
+ON t2.id=p.org_type
+left join ds_mysql_prod_tagelement t1
+ON t1.id=p.spiritual_affliation_2
+left join ds_mysql_prod_tagelement t3
+ON t3.id=p.fy 
+  
+union all
+
+Select p.sink name, t3.name fy, registration_number as reg_number, description, mission,t2.name org_type,substring(registration_date,1,10) registration_date, pan_card pan, NULL tax_exemption_2, 
+t1.name spriritual_agenda
+, Cast(Case 
+            When participate_board='Yes' Then 'Yes' 
+            ELse 'No'end
+        AS Varchar(256))
+  as participate_board,
+percentage_donors individual_donors, total_donations corporate_funders, percentage_funding government_funding, percentage_agencies other_funding, organization_budget budget, target_beneficiary, percentage_socio_economic socioeconomic, objective org_objective , direct_beneficiaries outreach_lastfy, cost_per_beneficiary cost_beneficiary, on_role_employees full_term, percentage_5_years perc,
+ case when p._id is not null then 'Renewal Project' 
+end as Type_of_Project, sum_basic, sum_financial, sum_programmatic, overall_score, grade
+
+from profile_80188 p
+left join ds_mysql_prod_tagelement t2
+ON t2.id=p.org_type
+left join ds_mysql_prod_tagelement t1
+ON t1.id=p.spiritual_affliation_2
+left join ds_mysql_prod_tagelement t3
+ON t3.id=p.fy 
+  ),
+  
+s2 as(
+  Select name, fy, reg_number, description, mission, org_type, registration_date, pan, tax_exemption_2, spriritual_agenda
+,participate_board,individual_donors, corporate_funders, government_funding, other_funding, budget, tar_bene, socioeconomic, org_objective , outreach_lastfy, cost_beneficiary, full_term, perc, Type_of_Project, sum_basic, sum_financial, sum_programmatic, overall_score, grade
+  
+from s1 s3,s3.target_beneficiary tar_bene
+  ),
+ 
+ s3 as (
+Select sub4.name as ia, fy, reg_number, description, mission, org_type, registration_date, pan, tax_exemption_2, spriritual_agenda, participate_board,individual_donors, corporate_funders, government_funding, other_funding, budget, listagg(distinct t.name,', ') as target_beneficiary ,socioeconomic, org_objective , outreach_lastfy, cost_beneficiary, full_term, perc, Type_of_Project, CONCAT(sum_basic ,'/44') sum_basic, CONCAT( sum_financial,'/35.2') sum_financial, CONCAT(sum_programmatic,'/19.8') sum_programmatic, overall_score, CONCAT(grade, '/Excellent') grade
+   
+from s2 sub4
+left join ds_mysql_prod_tagelement t on t.id=sub4.tar_bene
+GROUP BY sub4.name, fy, reg_number, description, mission, org_type, registration_date, pan, tax_exemption_2,spriritual_agenda, sum_basic,sum_financial, sum_programmatic, overall_score, grade,participate_board,individual_donors, corporate_funders, government_funding, other_funding, budget, socioeconomic, org_objective , outreach_lastfy, cost_beneficiary, full_term, perc, Type_of_Project)
+ 
+ 
+Select *
+from s3
+ 
+ union all
+ 
+Select p2.name as ia, t4.name fy, p.reg_number,NULL as description,NULL as mission,NULL as org_type,NULL as registration_date, p.pan, t3.name tax_exemption_2, t1.name spriritual_agenda, p.monitoring participate_board, p.individual_donors, p.corporate_funders, p.government_funding, p.other_funding, p.budget, NULL target_beneficiary, NULL socioeconomic_2, NULL org_objective, p.outreach_lastfy, p.cost_beneficiary, p.full_term, NULL perc,
+case when p._id is not null then 'Renewal Project' 
+end as Type_of_Project,NULL sum_basic, NULL sum_financial,NULL sum_programmatic, NULL overall_score, NULL grade
+
+from profile_27405 p
+left join ds_mysql_prod_tagelement t1
+ON t1.id=p.spriritual_agenda
+left join ds_mysql_prod_tagelement t3
+ON t3.id=p.tax_exemption_2
+left join ds_mysql_prod_tagelement t4
+ON t4.id=p.fy 
+left join profile_27395 p2 
+on p2._id = p.ia
