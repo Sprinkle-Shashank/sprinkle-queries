@@ -1,95 +1,43 @@
---HDFC_NGO_Task_Status_Activites Done
-with sub1 as(
-  select p1._id as id, t1.name as fy, t2.name as month,
-
-case
-	when p2.parent = 18943 then split_part(p2.name, '|', 1)
-	else split_part(p3.name, '|', 1)
-end as parentcode
-
-from profile_54963 p1
-
-left join ds_mysql_prod_project p2 on p2.id = p1.projectid
-left join ds_mysql_prod_project p3 on p3.id = p2.parent
-
-left join ds_mysql_prod_tagelement t1 on t1.id = p1.fy
-left join ds_mysql_prod_tagelement t2 on t2.id = p1.month),
-
-sub2 as(
-  select s1.id, s1.fy, s1.month, s1.parentcode, t1.name as fy_27396, t2.name as project_manager_27396, t3.name as fy_27420, t4.name as project_manager_27420,
+with tab1 as(
+  Select cast((split_part(split_part(prod.name,'|',1),'.',1)) as varchar) as prj_code,
+  split_to_array(listagg(distinct split_part(prod.name,'|',2),','),',') as c,
+  get_array_length(c) as village_count
+from profile_29974 r
+left join ds_mysql_prod_project prod
+on r.projectid=prod.id
+group by 1
   
-case
-  	when t3.name is null or (split_part(s1.fy, '-', 1) < split_part(t3.name, '-', 1))
-  		 then t1.name
-  	else t3.name
-end as fy_27420_new,
+  ),
+  t2 as(
+	Select  fy, name, curr_yr_budget, State, ngo_partner, Project_Manager, name_project
+	from profile_27396 sq, sq.state State
+ ),
+ t3 as (
+Select f.name as fy, sq.name project_code, curr_yr_budget, m1.name state, l.name as implementing_agency, m.name  as Project_Manager,p.village_count, m.name as level1, m.name as level2, name_project project_name
+from t2 sq 
+left join tab1 p
+on p.prj_code=sq.name
+
+left join ds_mysql_prod_tagelement f on
+sq.fy=f.id 
+left join profile_27395 l on
+l._id=sq.ngo_partner
+left join ds_mysql_prod_tagelement m on
+sq.project_manager=m.id
+left join ds_mysql_prod_tagelement m1 on
+ sq.State=m1.id
  
-nvl(t4.name, t2.name) as project_manager_27420_new
-  
-from sub1 s1
-  
-left join profile_27396 p4 on p4.name = s1.parentcode
-left join profile_27420 p5 on p5.project_code = p4._id
+union all
 
-left join ds_mysql_prod_tagelement t1 on t1.id = p4.fy
-left join ds_mysql_prod_tagelement t2 on t2.id = p4.project_manager
-
-left join ds_mysql_prod_tagelement t3 on t3.id = p5.fy
-left join ds_mysql_prod_tagelement t4 on t4.id = p5.project_manager),
-
-sub3 as(
-  select s2.id, s2.fy, s2.month, s2.fy_27396, s2.project_manager_27396, s2.fy_27420_new, s2.project_manager_27420_new, s2.fy_27420,
-  
-case
-  	when (split_part(s2.fy_27420_new, '-', 1) <= split_part(s2.fy, '-', 1)) or 
-  		 (split_part(s2.fy_27396, '-', 1) <= split_part(s2.fy, '-', 1)) then 1
-    else 0
-end as flag,
-
-row_number() over(partition by s2.id order by split_part(s2.fy_27420_new, '-', 1) desc) as row
-  
-from sub2 s2),
-
-sub4 as(
-  select s3.id, s3.fy, s3.month, s3.fy_27396, s3.project_manager_27396, s3.fy_27420_new, s3.project_manager_27420_new,
-
-case s3.month
-	when 'January' then 'Quarter 4'
-	when 'February' then 'Quarter 4'
-	when 'March' then 'Quarter 4'
-	when 'April' then 'Quarter 1'
-	when 'May' then 'Quarter 1'
-	when 'June' then 'Quarter 1'
-	when 'July' then 'Quarter 2'
-	when 'August' then 'Quarter 2'
-	when 'September' then 'Quarter 2'
-	when 'October' then 'Quarter 3'
-	when 'November' then 'Quarter 3'
-	else 'Quarter 3'
-end as month_sort
-  
-from sub3 s3
-
-where s3.row = 1 and s3.flag = 1),
-
-sub5 as(
-  select s4.fy, s4.fy_27420_new, s4.fy_27396, s4.month, s4.month_sort, 1 as total_count, s4.project_manager_27420_new, s4.project_manager_27396,
-  
-case
-  when (split_part(s4.fy_27420_new, '-', 1) <= split_part(s4.fy, '-', 1)) 
-  		then s4.project_manager_27420_new
-  else s4.project_manager_27396
-end as project_manager
-  
-from sub4 s4),
-
-sub6 as(
-  select s5.fy as fy_timerange, s5.project_manager,
-month_sort as quarter, 
-sum(s5.total_count) as total_count, 'Total No. of Activities' x_axis
-  
-from sub5 s5
-
-group by s5.fy, s5.project_manager, month_sort)
-
-select * from sub6
+Select f.name as fy, split_part(sq.name,' ',1) project_code, curr_yr_budget, ' ' state, name_project as implementing_agency, m.name  as Project_Manager,p.village_count, m.name as level1,m.name as level2, name_project project_name
+from profile_27420 sq
+left join tab1 p
+on p.prj_code=(split_part(sq.name,'[',1))
+left join ds_mysql_prod_tagelement f on
+sq.fy=f.id 
+left join ds_mysql_prod_tagelement m on
+sq.project_manager=m.id
+ )
+	
+Select distinct(project_code),fy, curr_yr_budget,state, implementing_agency, Project_Manager, level1, level2, village_count,project_name
+from t3
