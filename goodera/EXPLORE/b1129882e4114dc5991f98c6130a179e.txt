@@ -1,12 +1,40 @@
---Sparsha_Center
-Select tag1.name as projectId, tag2.name as location ,  center_name, vendors as Vendors_finalized, no_of_supervisors as Program_supervisors_appointed, no_of_center_in_charge as Centre_in_charge_appointed, no_of_caretaker_app as Caretaker_appointed, no_of_helper as Helper_appointed, no_of_resources as Resources_or_modules_prepared, tag3.name as year ,substring(tag3.name,5,4) as start, substring(tag3.name,11,5) as end ,fy_timerange.start as end_date,fy_timerange.end as start_date , object('start' ,start_date , 'end' ,  end_date) as fy_timerange
-from profile_77340 as p1	
-
+--Sparsha_Monthly
+ with t1 as(select tag1.name as projectId,p1.fy_timerange ,p2.center_name,  no_of_children_exp_hrtge as Children_exposed_to_rich_heritage_of_arts_and_craft, no_of_children_idf_talents as
+Children_identified_for_artistic_talents
+			,
+			case 
+			when p1.nat_festival = 'FALSE' then null
+			when p1.nat_festival is null then null
+			else p1.nat_festival
+			end as nat_festival
+			
+			
+from profile_77346 p1
+left join profile_77340 p2
+on p1.center_name = p2._id
 left join ds_mysql_prod_project tag1
 on p1.projectId = tag1.id
-left join ds_mysql_prod_tagelement tag2
-on p1.location  = tag2.id
-left join ds_mysql_prod_tagelement tag3
-on p1.year  = tag3.id
+),
+ 
+item as 
+(
+select 'Children_exposed_to_rich_heritage_of_arts_and_craft' as c
+union all
+select 'Children_identified_for_artistic_talents' as c
+),
+
+t2 as(
+select  projectId,t1.fy_timerange,nat_festival,center_name ,
+case c
+when 'Children_exposed_to_rich_heritage_of_arts_and_craft' then t1.Children_exposed_to_rich_heritage_of_arts_and_craft
+when 'Children_identified_for_artistic_talents' then t1.Children_identified_for_artistic_talents
+else null
+end as value1,item.c as dimension
+from t1 cross join item)
+
+
+select  projectId,fy_timerange,nat_festival,dimension,center_name ,sum(value1) :: Int as value, fy_timerange.start as start_date, fy_timerange.end as end_date
+from t2
+group by t2.projectId,t2.fy_timerange,t2.nat_festival,t2.center_name ,dimension
 		  
 		  
