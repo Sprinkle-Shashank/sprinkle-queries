@@ -1,3 +1,34 @@
 Select quarter_timerange as fy_timerange, sum(social_hrs), shalini
 from profile_55296
 group by quarter_timerange,shalini
+/*WITH tab1 as(Select p1.quarter_timerange as fy_timerange,p1.social_percentage as social_percentage,p2.name as shalini,
+CASE
+	WHEN EXTRACT (Month from cast(p1.quarter_timerange.start as date))=01 then 'Q4'
+	WHEN EXTRACT (Month from cast(p1.quarter_timerange.start as date))=04 then 'Q1'
+	WHEN EXTRACT (Month from cast(p1.quarter_timerange.start as date))=07 then 'Q2'
+	WHEN EXTRACT (Month from cast(p1.quarter_timerange.start as date))=10 then 'Q3'
+END AS Quarter,t1.name as location
+from profile_55296 p1
+left join profile_55294 p2
+on p1.shalini=p2._id
+left join ds_mysql_prod_tagelement t1
+on t1.id=p2.location
+group by p1.quarter_timerange,p2.name,Quarter,p1.social_percentage,t1.name),
+
+tab2 as(Select fy_timerange,Quarter,shalini,count(shalini),
+CASE
+	WHEN social_percentage<60 then 'Below 60%'
+	WHEN social_percentage>=60 and  social_percentage<=80 then '60-80%'
+	WHEN social_percentage>80 then 'Above 80%'
+END AS types,location,
+CASE
+	WHEN types='Below 60%' then 1
+	WHEN types='60-80%' then 2
+	WHEN types='Above 80%' then 3
+END AS types_order
+From tab1
+group by fy_timerange,types,Quarter,shalini,location,types_order)
+
+Select *
+From tab2
+where types is not null*/
