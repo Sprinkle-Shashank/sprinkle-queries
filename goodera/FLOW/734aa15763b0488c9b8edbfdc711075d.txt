@@ -1,0 +1,314 @@
+drop table if exists HDFC_FinSum_main_PrjFin_flow;
+create table HDFC_FinSum_main_PrjFin_flow as
+--HDFC_FinSum_main_PrjFin
+with q2 as( select q.village,q.state,q.district,q.name  as censuscode from profile_27489 q ),
+
+q as(
+  select split_part(split_part(p1.name,'|',1),'.',1) as projectcode,
+f.name as fy_timerange,p1.name_project,
+concat(projectcode,fy_timerange) as CODE,p7.name as ImplementingAgency,p8.name as interventiontype,p10.name as CoreArea , concat(concat(split_part(p1.start_date,' ',1),' to '), split_part(p1.end_date,' ',1)) as duration,m.name as project_manager, p1.state,
+sum(case
+   when interventiontype='Indirect - Others' then curr_yr_budget
+   when interventiontype='Direct' then curr_yr_budget
+   end)
+as curr_yr_budget
+from profile_27396 p1
+left join tagelement_4188 f on
+p1.fy=f.id
+left join profile_27395 p7
+on p7._id=p1.ngo_partner
+left join profile_28235 p8
+on p8._id=p1.intervention_type
+left join tagelement_4188 p10
+on p10.id=p1.focus_area
+left join tagelement_4188 m on
+p1.project_manager=m.id
+
+	group by 1,2,3,4,5,6,7,8,9,10
+union all
+  
+select split_part(split_part(split_part(p3.name,'|',1),'.',1),' ',1 ) as projectcode,
+f.name as fy_timerange, p3.name_project,
+concat(projectcode,fy_timerange) as CODE,p3.ngo as ImplementingAgency,p3.int_type_calc2 as interventiontype,p3.focus_area as CoreArea ,
+concat(concat(split_part(p3.start_date,' ',1),' to '), split_part(p3.end_date,' ',1)) as duration,m.name as project_manager,' 'as state,
+sum(case
+   when interventiontype='Indirect - Others' then curr_yr_budget
+   when interventiontype='Direct' then curr_yr_budget
+   end)
+as curr_yr_budget
+from profile_27420 p3
+left join tagelement_4188 f on
+p3.fy=f.id 
+left join tagelement_4188 m on
+p3.project_manager=m.id
+group by 1,2,3,4,5,6,7,8,9,10), /*data req from 27396 and 27420*/
+
+q1 as (select qq.projectcode,qq.fy_timerange,qq.name_project,qq.curr_yr_budget,qq.CODE,qq.ImplementingAgency,qq.interventiontype,qq.CoreArea , qq.duration,qq.project_manager, st 
+	   from q as qq,qq.state as st),
+	
+newtab1 as ( Select qq.projectcode, qq.fy_timerange ,qq.name_project, qq.curr_yr_budget total_allocated_amnt, (qq.curr_yr_budget/4) allocated_amnt_Q1, (qq.curr_yr_budget/4) allocated_amnt_Q2,(qq.curr_yr_budget/4) allocated_amnt_Q3, (qq.curr_yr_budget/4) allocated_amnt_Q4, qq.CODE, qq.ImplementingAgency, qq.interventiontype intervention_type,qq.CoreArea , qq.duration,qq.project_manager, t1.name state
+from q1 qq
+left join tagelement_4188 t1
+ON t1.id=qq.st),
+
+new1 as (Select  split_part(split_part(prod.name,'|',1),'.',1) as projectcode,t.name as fy_timerange,concat(projectcode,fy_timerange) as CODE, split_part(prod.name,'|',3) as censuscode,p.month,
+		 
+case 
+when len(split_part(prod.name,'|',3))=5 then concat('0',censuscode)
+       when len(split_part(prod.name,'|',3))=4 then concat('00',censuscode)
+       when len(split_part(prod.name,'|',3))=3 then concat('000',censuscode)
+       when len(split_part(prod.name,'|',3))=2 then concat('0000',censuscode)
+       when len(split_part(prod.name,'|',3))=1 then concat('00000',censuscode)
+       else split_part(prod.name,'|',3)
+end as newcensuscode,	
+
+sum(case
+	when p.hdfc_cost_monthly is null then 0 
+	else p.hdfc_cost_monthly 
+	end) 
+as hdfc_cost_monthly
+from profile_29974 p
+left join project_4188 prod on
+prod.id=p.projectid
+left join tagelement_4188 t
+on p.fy=t.id
+group by 1,2,3,4,p.month),
+
+/*new11 as (
+  Select projectcode, fy_timerange, CODE, censuscode
+  from new1
+),*/
+
+new2 as (
+  select split_part(split_part(prod.name,'|',1),'.',1) as projectcode,t.name as fy_timerange,concat(projectcode,fy_timerange) as CODE,p.month,
+  sum(case 
+	when p.monthly_cost is null then 0 
+	  else p.monthly_cost  
+	  end) 
+ as monthly_cost 
+  		 from profile_30171 p
+left join project_4188 prod on
+prod.id=p.projectid
+left join tagelement_4188 t
+on p.fy=t.id
+left join tagelement_4188 t1
+on p.month=t1.id
+group by 1,2,3,4),
+
+new3 as (Select p.projectcode,  p.fy_timerange, (p.hdfc_cost_monthly+new2.monthly_cost) as allocated_amount,p.CODE, p.month,p.newcensuscode as censuscode
+from new1 p
+left join new2
+on p.CODE=new2.CODE),
+
+new31 as (Select p.projectcode,  p.fy_timerange, p.CODE, 'Indirect' intervention_type, censuscode,
+		 
+sum(case 
+when p.month='432748' then allocated_amount 
+when p.month='432749' then allocated_amount
+when p.month='432750' then allocated_amount
+else '0'
+end) as allocated_Q1,		 
+
+sum(case
+when p.month='432751' then allocated_amount
+when p.month='432752' then allocated_amount
+when p.month='432753' then allocated_amount
+	else '0'
+end) as allocated_Q2,
+
+sum(case		 
+when p.month='432754' then allocated_amount 
+when p.month='432755' then allocated_amount
+when p.month='432756' then allocated_amount
+	else '0'
+end) as allocated_Q3,
+
+sum(case
+when p.month='432745' then allocated_amount
+when p.month='432746' then allocated_amount
+when p.month='432747' then allocated_amount
+	else '0'
+end) as allocated_Q4
+		 
+from new3 p
+group by 1,2,3,4,5),
+
+
+/*27398*/
+tabn1 as (select substring(p.submission_date,6,2) as months,t5.name as fy_timerange,(t.name) as response,
+case 
+	when response='Yes' then split_part(t2.name,'[',1)  
+	when response is null then t3.name
+	when response ='No' then t3.name 
+	end as projectcode,
+case 
+	when response='Yes' then m.name 
+	when response is null then n.name
+	when response ='No' then n.name 
+end as project_manager,
+case 
+	when p.payment_amount is null then 0 
+	else p.payment_amount  
+end as Amount_Disbursed,
+case 
+	when p.amnt_nt_utlzd is null then 0 
+	else p.amnt_nt_utlzd  
+end as Amount_not_Utilised,
+RTRIM(projectcode)||fy_timerange as CODE from profile_27398 p
+left join tagelement_4188 t
+on p.renewal=t.id
+left join profile_27396 t3 on
+p.project_name=t3._id
+left join profile_27420 t2 on
+p.project_renew=t2._id
+left join tagelement_4188 n on
+t3.project_manager=n.id
+left join tagelement_4188 m on
+t2.project_manager=m.id
+left join tagelement_4188 t4
+on p.tranche=t4.id
+left join tagelement_4188 t5
+on p.fy=t5.id), 
+
+tabn2 as (Select fy_timerange, response, projectcode, project_manager, sum(Amount_Disbursed) Amount_Disbursed, sum(Amount_not_Utilised) Amount_not_Utilised, CODE,
+case 
+when t2.months='01' then 'Quarter 4' 
+when t2.months='02' then 'Quarter 4' 
+when t2.months='03' then 'Quarter 4' 
+when t2.months='04' then 'Quarter 1' 
+when t2.months='05' then 'Quarter 1' 
+when t2.months='06' then 'Quarter 1' 
+when t2.months='07' then 'Quarter 2' 
+when t2.months='08' then 'Quarter 2' 
+when t2.months='09' then 'Quarter 2' 
+when t2.months='10' then 'Quarter 3' 
+when t2.months='11' then 'Quarter 3' 
+when t2.months='12' then 'Quarter 3' 
+end as quarters
+
+from tabn1 t2
+group by 1,2,3,4,7,8),
+
+
+tabn3 as (
+  Select fy_timerange, response, projectcode, project_manager, Amount_Disbursed, Amount_not_Utilised, CODE, 
+  
+ 
+
+case when tab3.quarters= 'Quarter 1' then tab3.Amount_Disbursed
+
+    end as DisbursedAmountforQ1,
+case when tab3.quarters='Quarter 2' then (tab3.Amount_Disbursed)
+
+    end as DisbursedAmountforQ2,
+case when tab3.quarters='Quarter 3' then (tab3.Amount_Disbursed)
+
+    end as DisbursedAmountforQ3,
+case when tab3.quarters='Quarter 4' then (tab3.Amount_Disbursed)
+
+    end as DisbursedAmountforQ4
+	from tabn2 tab3
+group by 1,2,3,4,5,6,7, quarters
+),
+
+tabn4 as (Select fy_timerange, response, projectcode, project_manager, CODE, Amount_not_Utilised, 
+		  
+		  (DisbursedAmountforQ1+DisbursedAmountforQ2+DisbursedAmountforQ3+DisbursedAmountforQ4) as total_disbursement,DisbursedAmountforQ1,DisbursedAmountforQ2,DisbursedAmountforQ3,DisbursedAmountforQ4
+from tabn3),
+
+tabn5 as (
+  Select  fy_timerange, response,project_manager, projectcode, CODE, sum(total_disbursement) total_disbursement
+  from tabn4
+  group by 1,2,3,4,5
+),
+
+tabn6 as(
+  Select t1.fy_timerange, t1.response, t1.projectcode, t1.CODE,t1.total_disbursement, t2.Amount_not_Utilised, t1.project_manager,
+  
+  coalesce(t2.DisbursedAmountforQ1, 0) as DisbursedAmountforQ11,
+  coalesce(t2.DisbursedAmountforQ2, 0) as DisbursedAmountforQ21,
+  coalesce(t2.DisbursedAmountforQ3, 0) as DisbursedAmountforQ31,
+  coalesce(t2.DisbursedAmountforQ4, 0) as DisbursedAmountforQ41
+  
+  from tabn5 t1
+  left join tabn4 t2
+  on t1.CODE=t2.CODE
+  
+),
+
+tabn7 as (Select fy_timerange, projectcode, project_manager, sum(Amount_not_Utilised) Amount_not_Utilised, CODE, --(DisbursedAmountforQ11 + DisbursedAmountforQ21 + DisbursedAmountforQ31 + DisbursedAmountforQ41) total, 
+
+max(DisbursedAmountforQ11) DisbursedAmountforQ1,
+max(DisbursedAmountforQ21) DisbursedAmountforQ2, max(DisbursedAmountforQ31) DisbursedAmountforQ3, max(DisbursedAmountforQ41) DisbursedAmountforQ4,
+		  
+(DisbursedAmountforQ1 + DisbursedAmountforQ2 + DisbursedAmountforQ3 + DisbursedAmountforQ4) total_disbursement 
+
+from tabn6
+group by 1,2,3,5),
+/*Disbursed from 27398*/
+
+lookup as (select cast(q.name as varchar) as ProjectCode,f.name as fy_timerange,m.name as Project_Manager,CONCAT(ProjectCode,fy_timerange) as code
+from profile_27420 d
+left join tagelement_4188 f on
+d.fy=f.id
+left join tagelement_4188 m on
+d.project_manager=m.id
+left join profile_27396 q on
+d.project_code=q._id
+		   
+union all
+		   
+select cast(c.name as varchar)as ProjectCode,f.name as fy_timerange,m.name as Project_Manager,CONCAT(ProjectCode,fy_timerange) as code 
+from profile_27396 c	
+left join tagelement_4188 f on
+c.fy=f.id
+left join tagelement_4188 m on
+c.project_manager=m.id),
+
+main2 as (
+select q.fy_timerange as fy,q.Project_Manager as level1, code
+  from lookup q
+),
+
+level1tab as (select m.name as level1 ,p.approver as level2,p.name as level1email from profile_27424 p
+left join tagelement_4188 m on
+m.id = p.pm_name),
+
+level2tab as (select m.name as level1 , z.level1 as level2 from profile_27424 p
+left join tagelement_4188 m on
+m.id = p.pm_name
+left join level1tab z on
+z.level1email = p.approver),
+
+new11 as (select p.*,d.level2 from main2 p
+left join level2tab d on
+d.level1 = p.level1)/*fetches level1manager and level2manager*/
+
+
+
+
+Select newtab1.projectcode, newtab1.fy_timerange fy,new11.level1 as level1,new11.level2 as level2, name_project, newtab1.project_manager, CoreArea, duration, newtab1.CODE, ImplementingAgency,  newtab1.intervention_type, 
+(n1.allocated_Q1+n1.allocated_Q2+n1.allocated_Q3+n1.allocated_Q4) as Total_allocated_amount, n1.allocated_Q1, n1.allocated_Q2, n1.allocated_Q3, n1.allocated_Q4, t2.total_disbursement, t2.DisbursedAmountforQ1, t2.DisbursedAmountforQ2,t2.DisbursedAmountforQ3, t2.DisbursedAmountforQ4,  count(distinct(q2.censuscode)) as number_of_villages, count(distinct(q2.district)) as districtcount, newtab1.state
+from newtab1
+left join new31 n1
+on n1.CODE=newtab1.CODE
+left join tabn7 t2
+ON t2.CODE=newtab1.CODE
+left join q2
+ON q2.censuscode=n1.censuscode
+left join new11
+on new11.CODE=newtab1.CODE
+group by newtab1.projectcode, newtab1.fy_timerange,name_project, newtab1.project_manager, CoreArea, duration, newtab1.CODE, ImplementingAgency,  newtab1.intervention_type, Total_allocated_amount, n1.allocated_Q1, n1.allocated_Q2, n1.allocated_Q3, n1.allocated_Q4, t2.total_disbursement, t2.DisbursedAmountforQ1, t2.DisbursedAmountforQ2,t2.DisbursedAmountforQ3, t2.DisbursedAmountforQ4, newtab1.state,level1, level2
+union all
+
+Select n2.projectcode, n2.fy_timerange fy, new11.level1 as level1,new11.level2 as level2, name_project, n2.project_manager, CoreArea, duration, n2.CODE, ImplementingAgency,  n2.intervention_type, total_allocated_amnt, allocated_amnt_Q1, allocated_amnt_Q2, allocated_amnt_Q3, allocated_amnt_Q4, t2.total_disbursement, t2.DisbursedAmountforQ1, t2.DisbursedAmountforQ2,t2.DisbursedAmountforQ3, t2.DisbursedAmountforQ4, count(distinct(q2.censuscode)) as number_of_villages, count(distinct(q2.district)) as districtcount, n2.state
+from newtab1 n2
+left join new31 n1
+on n1.CODE=n2.CODE
+left join tabn7 t2
+ON t2.CODE=n2.CODE
+left join q2
+ON q2.censuscode=n1.censuscode
+left join new11
+on new11.CODE=n2.CODE
+group by n2.projectcode, n2.fy_timerange,name_project, n2.project_manager, CoreArea, duration, n2.CODE, ImplementingAgency,  n2.intervention_type, total_allocated_amnt, allocated_amnt_Q1, allocated_amnt_Q2, allocated_amnt_Q3, allocated_amnt_Q4, t2.total_disbursement, t2.DisbursedAmountforQ1, t2.DisbursedAmountforQ2,t2.DisbursedAmountforQ3, t2.DisbursedAmountforQ4, n2.state, level1, level2
