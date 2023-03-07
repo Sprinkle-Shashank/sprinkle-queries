@@ -1,0 +1,44 @@
+--HDFC_ProjectDocument
+with temp as (
+Select 'Project Proposal' as col
+union all
+Select 'Budget' as col
+union all
+Select 'Project Monitoring Plan' as col
+union all
+Select 'RRA Report' as col
+union all
+Select 'Impact Report' as col
+union all
+Select 'Project Activities Details' as col
+)
+, s as (
+Select t1.name as financial_year, split_part(p.name,'|',1) as Project_Code,p.project_proposal,p.budget ,p.monitoring_plan , p.rra_file,p.impact_file,p.pad_file ,'Click Here' as Click
+from profile_27396 p
+left join profile_27420 q 
+on q.project_code=p.name
+left join tagelement_4188 t1
+on p.fy = t1.id
+where p.focus_area='430789'
+  union all
+Select f.name as financial_year, cast(q.name as varchar) as Project_Code, p.project_proposal, p.budget, p.monitoring_plan, p.rra_file,p.impact_file,p.pad_file ,'Click Here' as Click
+  from profile_27420 p
+left join tagelement_4188 f on
+p.fy=f.id
+left join profile_27396 q on
+p.project_code=q._id
+ where p.focus_area='Eradicating Poverty'
+)
+Select financial_year fy, Click, 1 as count,Project_Code ProjectCode,
+case col
+	when 'Project Proposal' then s.project_proposal
+	when 'Budget' then s.budget
+	when 'Project Monitoring Plan' then s.monitoring_plan
+	when 'RRA Report' then s.rra_file
+	when 'Impact Report' then s.impact_file
+	when 'Project Activities Details' then s.pad_file
+	else null
+	end as links,temp.col as "Document Type"
+from s
+cross join temp
+where links !=' '
