@@ -1,0 +1,198 @@
+drop table if exists Projectwisefinances1_hdfc_flow;
+create table Projectwisefinances1_hdfc_flow as
+--Projectwisefinances1_hdfc
+with tab1 as(select split_part(split_part(p1.name,'|',1),'.',1) as projectcode,
+f.name as fy_timerange,p1.name_project, 
+concat(projectcode,fy_timerange) as CODE,p7.name as ImplementingAgency,p8.name as interventiontype,p10.name as CoreArea , concat(concat(split_part(p1.start_date,' ',1),' to '), split_part(p1.end_date,' ',1)) as duration,m.name as project_managerfromtab1
+from profile_27396 p1
+left join project_4188 f on
+p1.fy=f.id
+left join profile_27395 p7
+on p7._id=p1.ngo_partner
+left join profile_28235 p8
+on p8._id=p1.intervention_type
+left join tagelement_4188 p10
+on p10.id=p1.focus_area
+left join tagelement_4188 m on
+p1.project_manager=m.id
+	
+union all
+select split_part(split_part(split_part(p3.name,'|',1),'.',1),' ',1 ) as projectcode,
+f.name as fy_timerange, p3.name_project,
+concat(projectcode,fy_timerange) as CODE,p3.ngo as ImplementingAgency,p3.int_type_calc2 as interventiontype,p3.focus_area as CoreArea ,
+concat(concat(split_part(p3.start_date,' ',1),' to '), split_part(p3.end_date,' ',1)) as duration,m.name as project_managerfromtab1
+from profile_27420 p3
+left join tagelement_4188 f on
+p3.fy=f.id 
+left join tagelement_4188 m on
+p3.project_manager=m.id
+), /*data req from 27396 and 27420*/
+
+tab2 as (select p.submission_date , t4.name as tranche,substring(p.submission_date,6,2) as months,t5.name as fy_timerange,(t.name) as response,case when response='Yes' then split_part(t2.name,'[',1)  when response ='No' then t3.name end as projectcode,case when response='Yes' then m.name when response ='No' then n.name end as project_manager,case when p.payment_amount is null then 0 else p.payment_amount  end as Amount_Disbursed,case when p.amnt_nt_utlzd is null then 0 else p.amnt_nt_utlzd  end as Amount_not_Utilised,RTRIM(projectcode)||fy_timerange as CODE from profile_27398 p
+left join tagelement_4188 t
+on p.renewal=t.id
+left join profile_27396 t3 on
+p.project_name=t3._id
+left join profile_27420 t2 on
+p.project_renew=t2._id
+left join tagelement_4188 n on
+t3.project_manager=n.id
+left join tagelement_4188 m on
+t2.project_manager=m.id
+left join tagelement_4188 t4
+on p.tranche=t4.id
+left join tagelement_4188 t5
+on p.fy=t5.id
+where response is not null),
+
+tab3 as (select t.fy_timerange,t.projectcode,t.name_project,
+t.CODE,t.ImplementingAgency,t.interventiontype,t.CoreArea ,t.duration,
+t2.project_manager,t2.submission_date ,t2.tranche,t2.Amount_Disbursed,t2.Amount_not_Utilised,
+case 
+when t2.months='01' then 'Quarter 4' 
+when t2.months='02' then 'Quarter 4' 
+when t2.months='03' then 'Quarter 4' 
+when t2.months='04' then 'Quarter 1' 
+when t2.months='05' then 'Quarter 1' 
+when t2.months='06' then 'Quarter 1' 
+when t2.months='07' then 'Quarter 2' 
+when t2.months='08' then 'Quarter 2' 
+when t2.months='09' then 'Quarter 2' 
+when t2.months=10 then 'Quarter 3' 
+when t2.months=11 then 'Quarter 3' 
+when t2.months=12 then 'Quarter 3' 
+
+end as Quarters
+
+from tab1 t
+left join tab2 t2 on
+t.CODE=t2.CODE),/*amount disbursed quarterwise*/
+
+ temp as(
+  Select 'Q1' as col
+  union all
+    Select 'Q2' as col
+  union all
+    Select 'Q3' as col
+  union all
+    Select 'Q4' as col
+),
+s as(
+select tab3.fy_timerange,tab3.projectcode,tab3.name_project,
+tab3.CODE,tab3.ImplementingAgency,tab3.interventiontype,tab3.CoreArea ,tab3.duration,
+tab3.project_manager,tab3.submission_date ,tab3.tranche,tab3.Amount_not_Utilised,
+
+case when tab3.quarters= 'Quarter 1' then tab3.Amount_Disbursed
+else 0
+    end as DisbursedAmountforQ1,
+case when tab3.quarters='Quarter 2' then (tab3.Amount_Disbursed)
+else '0'
+    end as DisbursedAmountforQ2,
+case when tab3.quarters='Quarter 3' then (tab3.Amount_Disbursed)
+else '0'
+    end as DisbursedAmountforQ3,
+case when tab3.quarters='Quarter 4' then (tab3.Amount_Disbursed)
+else '0'
+    end as DisbursedAmountforQ4
+    
+from tab3 
+
+
+),
+s2 as (
+Select s.fy_timerange,s.projectcode,s.name_project,
+s.CODE,s.ImplementingAgency,s.interventiontype,s.CoreArea ,s.duration,
+s.project_manager,s.submission_date ,s.tranche,s.Amount_not_Utilised ,temp.col as quarter,
+sum(case col 
+    when 'Q1' then s.DisbursedAmountforQ1
+    when 'Q2' then s.DisbursedAmountforQ2
+    when 'Q3' then s.DisbursedAmountforQ3
+    when 'Q4' then s.DisbursedAmountforQ4
+    else 0
+    end) as DisbursedAmount
+from s
+cross join temp
+group by s.fy_timerange,s.projectcode,s.name_project,
+s.CODE,s.ImplementingAgency,s.interventiontype,s.CoreArea ,s.duration,
+s.project_manager,s.submission_date ,s.tranche,s.Amount_not_Utilised ,temp.col
+),
+ s1 as (
+  Select s2.fy_timerange,s2.projectcode,s2.name_project,
+s2.CODE,s2.ImplementingAgency,s2.interventiontype,s2.CoreArea ,s2.duration,
+s2.project_manager,s2.submission_date ,s2.tranche,s2.Amount_not_Utilised, 
+Sum(CASE 
+             WHEN quarter = 'Q1' THEN DisbursedAmount
+             ELSE 0 
+           END) AS DisbursedAmountforQ1,
+Sum(CASE 
+             WHEN quarter = 'Q2' THEN DisbursedAmount
+             ELSE 0 
+           END) AS DisbursedAmountforQ2,
+           Sum(CASE 
+             WHEN quarter = 'Q3' THEN DisbursedAmount
+             ELSE 0 
+           END) AS DisbursedAmountforQ3,
+           Sum(CASE 
+             WHEN quarter = 'Q4' THEN DisbursedAmount
+             ELSE 0 
+           END) AS DisbursedAmountforQ4
+           from s2
+group by s2.fy_timerange,s2.projectcode,s2.name_project,
+s2.CODE,s2.ImplementingAgency,s2.interventiontype,s2.CoreArea ,s2.duration,
+s2.project_manager,s2.submission_date ,s2.tranche,s2.Amount_not_Utilised
+) ,      
+
+
+
+/*tab4 as (Select tab3.fy_timerange,tab3.projectcode,
+tab3.CODE,sum (tab3.Amount_Disbursed) as Amount_DisbursedforCurrentFY_total from tab3
+group by tab3.fy_timerange,tab3.projectcode,
+tab3.CODE		),*//*total amount disbursed for all quarters*/
+
+lookup as (select cast(q.name as varchar) as ProjectCode,f.name as fy_timerange,m.name as Project_Manager,CONCAT(ProjectCode,fy_timerange) as code
+from profile_27420 d
+left join tagelement_4188 f on
+d.fy=f.id
+left join tagelement_4188 m on
+d.project_manager=m.id
+left join profile_27396 q on
+d.project_code=q._id
+		   
+union all
+		   
+select cast(c.name as varchar)as ProjectCode,f.name as fy_timerange,m.name as Project_Manager,CONCAT(ProjectCode,fy_timerange) as code 
+from profile_27396 c	
+left join tagelement_4188 f on
+c.fy=f.id
+left join tagelement_4188 m on
+c.project_manager=m.id),
+
+main2 as (
+select q.fy_timerange as fy,q.Project_Manager as level1, code
+  from lookup q
+),
+
+level1tab as (select m.name as level1 ,p.approver as level2,p.name as level1email from profile_27424 p
+left join tagelement_4188 m on
+m.id = p.pm_name),
+
+level2tab as (select m.name as level1 , z.level1 as level2 from profile_27424 p
+left join tagelement_4188 m on
+m.id = p.pm_name
+left join level1tab z on
+z.level1email = p.approver),
+
+new11 as (select p.*,d.level2 from main2 p
+left join level2tab d on
+d.level1 = p.level1)/*fetches level1manager and level2manager*/
+
+
+Select s1.fy_timerange fy,s1.projectcode,s1.name_project,
+s1.CODE,s1.ImplementingAgency,s1.interventiontype,s1.CoreArea ,s1.duration,
+s1.project_manager,s1.submission_date ,s1.tranche,/*tab3.tranche,*/s1.Amount_not_Utilised,(DisbursedAmountforQ1+DisbursedAmountforQ2+DisbursedAmountforQ3+DisbursedAmountforQ4) as total_d,new1.level1 as level1,new1.level2 as level2
+from s1
+left join new11 new1 on new1.CODE=s1.CODE
+left join tab3 on tab3.CODE=s1.CODE
+group by s1.fy_timerange,s1.projectcode,s1.name_project,
+s1.CODE,s1.ImplementingAgency,s1.interventiontype,s1.CoreArea ,s1.duration,
+s1.project_manager,s1.submission_date ,s1.tranche,/*tab3.tranche,*/s1.Amount_not_Utilised, total_d,level1, level2
