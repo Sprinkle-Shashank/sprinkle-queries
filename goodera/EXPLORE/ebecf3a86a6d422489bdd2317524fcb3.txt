@@ -1,0 +1,38 @@
+--MylanIndia_Progress_Overall_Indicator_Tracker_Sites
+with temp1 AS
+(select m.projectId, m.indicator, m.proj, m.project_name, m.target_actual, m.description, r.name AS project_code_new, r.vertical, r.focus, r.state, r.start_date, r.direct_or_partner, r.district, r.project_code, r.entity, q.completed, q.fy_timerange, vert.name AS vertical2, vert_1.name AS vertical1,
+
+case when vert.name IS NULL AND vert_1.name IS NOT NULL THEN vert.name 
+when vert_1.name IS NULL AND vert.name IS NOT NULL THEN vert_1.name
+else 'Admin'
+END AS verticals
+
+from profile_61044 AS m
+
+left join profile_62881 AS r 
+ on m.proj = r._id
+
+left join profile_55471 AS q 
+ on r.project_code = q.project_code
+ 
+left join tagElement_6575 as vert
+  on r.vertical = vert.id
+
+left join tagElement_6575 as vert_1
+  on vert.parent = vert_1.id
+ 
+where r.direct_or_partner = 1132990 AND q.completed = 939857),
+
+temp2 as
+(select p.*, q1 from temp1 as p, p.vertical as q1)
+
+select p.projectId, p.indicator, p.proj, p.project_name, SUM(p.target_actual) AS target_actual, p.description, p.project_code_new, p.vertical, p.focus, p.state, p.district, p.project_code, p.entity, p.fy_timerange, new_2.name AS verticals from temp2 AS p
+
+left join tagElement_6575 as new_1
+  on p.q1 = new_1.id
+  
+left join tagElement_6575 as new_2
+  on new_1.parent = new_2.id
+  
+group by p.projectId, p.description, p.indicator, p.proj, p.project_name, p.target_actual, p.project_code_new, p.vertical, p.focus, p.state, p.district, p.project_code, p.entity, p.fy_timerange, new_2.name
+
