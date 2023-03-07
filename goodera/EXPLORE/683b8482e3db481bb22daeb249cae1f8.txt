@@ -1,0 +1,27 @@
+with table1 as 
+( select p.projectid , p._id  , dis.name as district_update , sta.name as state_update , p.fy_timerange , refer.name as patient_refer_update , referral.name as patient_referal_update
+ from profile_83201 as p 
+
+ left join profile_83199 p1
+ on p.beneficiary = p1._id
+ 
+left join ds_mysql_prod_tagelement dis
+on p1.ben_location = dis.id
+ 
+left join ds_mysql_prod_tagelement sta
+on dis.parent = sta.id
+ 
+left join ds_mysql_prod_tagelement refer
+on p.patient_refer = refer.id
+ 
+left join ds_mysql_prod_tagelement referral
+on p.patient_referal = referral.id
+ 
+ group by p.projectid , p._id  , dis.name , sta.name , p.fy_timerange , referral.name, refer.name
+order by state_update asc
+)
+
+select *, 
+case when patient_refer_update ='Yes' then 1 else 0 end as c_refer,
+case when patient_referal_update ='Yes' then 1 else 0 end as c_followed
+from table1 as p
