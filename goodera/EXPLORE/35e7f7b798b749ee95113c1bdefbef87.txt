@@ -1,3 +1,4 @@
+--HDFC_FinSum_main_PrjFin
 with q2 as( select q.village,q.state,q.district,q.name  as censuscode from profile_27489 q ),
 
 q as(
@@ -10,15 +11,15 @@ sum(case
    end)
 as curr_yr_budget
 from profile_27396 p1
-left join ds_mysql_prod_tagelement f on
+left join tagelement_4188 f on
 p1.fy=f.id
 left join profile_27395 p7
 on p7._id=p1.ngo_partner
 left join profile_28235 p8
 on p8._id=p1.intervention_type
-left join ds_mysql_prod_tagelement p10
+left join tagelement_4188 p10
 on p10.id=p1.focus_area
-left join ds_mysql_prod_tagelement m on
+left join tagelement_4188 m on
 p1.project_manager=m.id
 
 	group by 1,2,3,4,5,6,7,8,9,10
@@ -34,9 +35,9 @@ sum(case
    end)
 as curr_yr_budget
 from profile_27420 p3
-left join ds_mysql_prod_tagelement f on
+left join tagelement_4188 f on
 p3.fy=f.id 
-left join ds_mysql_prod_tagelement m on
+left join tagelement_4188 m on
 p3.project_manager=m.id
 group by 1,2,3,4,5,6,7,8,9,10), /*data req from 27396 and 27420*/
 
@@ -45,7 +46,7 @@ q1 as (select qq.projectcode,qq.fy_timerange,qq.name_project,qq.curr_yr_budget,q
 	
 newtab1 as ( Select qq.projectcode, qq.fy_timerange ,qq.name_project, qq.curr_yr_budget total_allocated_amnt, (qq.curr_yr_budget/4) allocated_amnt_Q1, (qq.curr_yr_budget/4) allocated_amnt_Q2,(qq.curr_yr_budget/4) allocated_amnt_Q3, (qq.curr_yr_budget/4) allocated_amnt_Q4, qq.CODE, qq.ImplementingAgency, qq.interventiontype intervention_type,qq.CoreArea , qq.duration,qq.project_manager, t1.name state
 from q1 qq
-left join ds_mysql_prod_tagelement t1
+left join tagelement_4188 t1
 ON t1.id=qq.st),
 
 new1 as (Select  split_part(split_part(prod.name,'|',1),'.',1) as projectcode,t.name as fy_timerange,concat(projectcode,fy_timerange) as CODE, split_part(prod.name,'|',3) as censuscode,p.month,
@@ -65,9 +66,9 @@ sum(case
 	end) 
 as hdfc_cost_monthly
 from profile_29974 p
-left join ds_mysql_prod_project prod on
+left join project_4188 prod on
 prod.id=p.projectid
-left join ds_mysql_prod_tagelement t
+left join tagelement_4188 t
 on p.fy=t.id
 group by 1,2,3,4,p.month),
 
@@ -84,11 +85,11 @@ new2 as (
 	  end) 
  as monthly_cost 
   		 from profile_30171 p
-left join ds_mysql_prod_project prod on
+left join project_4188 prod on
 prod.id=p.projectid
-left join ds_mysql_prod_tagelement t
+left join tagelement_4188 t
 on p.fy=t.id
-left join ds_mysql_prod_tagelement t1
+left join tagelement_4188 t1
 on p.month=t1.id
 group by 1,2,3,4),
 
@@ -152,19 +153,19 @@ case
 	else p.amnt_nt_utlzd  
 end as Amount_not_Utilised,
 RTRIM(projectcode)||fy_timerange as CODE from profile_27398 p
-left join ds_mysql_prod_tagelement t
+left join tagelement_4188 t
 on p.renewal=t.id
 left join profile_27396 t3 on
 p.project_name=t3._id
 left join profile_27420 t2 on
 p.project_renew=t2._id
-left join ds_mysql_prod_tagelement n on
+left join tagelement_4188 n on
 t3.project_manager=n.id
-left join ds_mysql_prod_tagelement m on
+left join tagelement_4188 m on
 t2.project_manager=m.id
-left join ds_mysql_prod_tagelement t4
+left join tagelement_4188 t4
 on p.tranche=t4.id
-left join ds_mysql_prod_tagelement t5
+left join tagelement_4188 t5
 on p.fy=t5.id), 
 
 tabn2 as (Select fy_timerange, response, projectcode, project_manager, sum(Amount_Disbursed) Amount_Disbursed, sum(Amount_not_Utilised) Amount_not_Utilised, CODE,
@@ -246,9 +247,9 @@ group by 1,2,3,5),
 
 lookup as (select cast(q.name as varchar) as ProjectCode,f.name as fy_timerange,m.name as Project_Manager,CONCAT(ProjectCode,fy_timerange) as code
 from profile_27420 d
-left join ds_mysql_prod_tagelement f on
+left join tagelement_4188 f on
 d.fy=f.id
-left join ds_mysql_prod_tagelement m on
+left join tagelement_4188 m on
 d.project_manager=m.id
 left join profile_27396 q on
 d.project_code=q._id
@@ -257,9 +258,9 @@ union all
 		   
 select cast(c.name as varchar)as ProjectCode,f.name as fy_timerange,m.name as Project_Manager,CONCAT(ProjectCode,fy_timerange) as code 
 from profile_27396 c	
-left join ds_mysql_prod_tagelement f on
+left join tagelement_4188 f on
 c.fy=f.id
-left join ds_mysql_prod_tagelement m on
+left join tagelement_4188 m on
 c.project_manager=m.id),
 
 main2 as (
@@ -268,11 +269,11 @@ select q.fy_timerange as fy,q.Project_Manager as level1, code
 ),
 
 level1tab as (select m.name as level1 ,p.approver as level2,p.name as level1email from profile_27424 p
-left join ds_mysql_prod_tagelement m on
+left join tagelement_4188 m on
 m.id = p.pm_name),
 
 level2tab as (select m.name as level1 , z.level1 as level2 from profile_27424 p
-left join ds_mysql_prod_tagelement m on
+left join tagelement_4188 m on
 m.id = p.pm_name
 left join level1tab z on
 z.level1email = p.approver),
