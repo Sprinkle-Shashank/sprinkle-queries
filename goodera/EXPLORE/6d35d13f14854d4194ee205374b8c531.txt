@@ -9,9 +9,9 @@ when len(split_part(prod.name,'|',3))=5 then concat('0',censuscode)
        else split_part(prod.name,'|',3)
 end as newcensuscode,len(split_part(prod.name,'|',3)) as length , len(newcensuscode) as l1
 from profile_29974 p 
-    left join ds_mysql_prod_project prod on
+    left join project_4188 prod on
 prod.id=p.projectid
-left join ds_mysql_prod_tagelement t
+left join tagelement_4188 t
 on p.fy=t.id
 group by 1,2,3,4,6,7),
 q2 as( select q.village,q.state,q.district,q.name  as censuscode from profile_27489 q ),
@@ -20,29 +20,11 @@ tab1 as (select q2.village,q2.state,q2.district , q1.projectcode,q1.fy_timerange
 from q1 
 left join q2 on q1.newcensuscode=q2.censuscode),/*sum of HDFC_cost_monthly from 29974*/
 
-/*with tab1 as(select split_part(split_part(prod.name,'|',1),'.',1) as projectcode,t.name as fy_timerange,concat(projectcode,fy_timerange) as CODE,split_part(prod.name,'|',3) as censuscode,q.village,q.state,q.district,sum(case p.hdfc_cost_monthly when null then 0 else p.hdfc_cost_monthly end) as hdfc_cost from profile_29974 p
-left join ds_mysql_prod_project prod on
-prod.id=p.projectid
-left join ds_mysql_prod_tagelement t
-on p.fy=t.id
-/*left join ds_mysql_prod_tagelement t1
-on p.month_number=t1.id
-left join ds_mysql_prod_tagelement t2
-on t1.parent=t2.id*/
-left join profile_27489 q on
-split_part(prod.name,'|',3)=q.name
-group by 1,2,3,4,5,6,7),*//*sum of HDFC_cost_monthly from 29974*/
-
-
 tab2 as(select split_part(split_part(prod.name,'|',1),'.',1) as projectcode,t.name as fy_timerange,concat(projectcode,fy_timerange) as CODE,sum( case p.monthly_cost when null then 0 else p.monthly_cost end) as monthlycost  from profile_30171 p
-left join ds_mysql_prod_project prod on
+left join project_4188 prod on
 prod.id=p.projectid
-left join ds_mysql_prod_tagelement t
+left join tagelement_4188 t
 on p.fy=t.id
-/*left join ds_mysql_prod_tagelement t1
-on p.month_number=t1.id
-left join ds_mysql_prod_tagelement t2
-on t1.parent=t2.id*/
 group by 1,2,3),/* sum of monthly_cost from 30171*/
 tab3 as(select t.projectcode,t.fy_timerange,t.hdfc_cost a,t1.monthlycost b,t.CODE,t.censuscode,t.village,t.state,t.district from tab1 t
 left join tab2 t1 on
@@ -59,23 +41,23 @@ from tab4*/
 tab6 as ( select split_part(split_part(p1.name,'|',1),'.',1) as projectcode,
 f.name as fy_timerange, concat(projectcode,fy_timerange) as CODE, count(distinct p1.name) as no_of_projects, count(distinct p1.ngo_partner) as no_of_implementing_agencies
 from profile_27396 p1
-left join ds_mysql_prod_tagelement f on
+left join tagelement_4188 f on
 p1.fy=f.id
 	group by p1.name,2
 		union all
 select split_part(split_part(split_part(p3.name,'|',1),'.',1),' ',1 ) as projectcode,
 f.name as fy_timerange,concat(projectcode,fy_timerange) as CODE,count(distinct p3.name) as no_of_projects, count(distinct p3.ngo) as no_of_implementing_agencies
 from profile_27420 p3
-left join ds_mysql_prod_tagelement f on
+left join tagelement_4188 f on
 p3.fy=f.id 
 group by p3.name,2),
 
 
 lookup as (select cast(q.name as varchar) as ProjectCode,f.name as fy_timerange,m.name as Project_Manager,CONCAT(ProjectCode,fy_timerange) as code
 from profile_27420 d
-left join ds_mysql_prod_tagelement f on
+left join tagelement_4188 f on
 d.fy=f.id
-left join ds_mysql_prod_tagelement m on
+left join tagelement_4188 m on
 d.project_manager=m.id
 left join profile_27396 q on
 d.project_code=q._id
@@ -84,9 +66,9 @@ union all
 		   
 select cast(c.name as varchar)as ProjectCode,f.name as fy_timerange,m.name as Project_Manager,CONCAT(ProjectCode,fy_timerange) as code 
 from profile_27396 c	
-left join ds_mysql_prod_tagelement f on
+left join tagelement_4188 f on
 c.fy=f.id
-left join ds_mysql_prod_tagelement m on
+left join tagelement_4188 m on
 c.project_manager=m.id),
 
 main2 as (
@@ -95,11 +77,11 @@ select q.fy_timerange as fy,q.Project_Manager as level1, code
 ),
 
 level1tab as (select m.name as level1 ,p.approver as level2,p.name as level1email from profile_27424 p
-left join ds_mysql_prod_tagelement m on
+left join tagelement_4188 m on
 m.id = p.pm_name),
 
 level2tab as (select m.name as level1 , z.level1 as level2 from profile_27424 p
-left join ds_mysql_prod_tagelement m on
+left join tagelement_4188 m on
 m.id = p.pm_name
 left join level1tab z on
 z.level1email = p.approver),
@@ -108,13 +90,8 @@ new11 as (select p.*,d.level2 from main2 p
 left join level2tab d on
 d.level1 = p.level1)/*fetches level1manager and level2manager*/
 
-
-
 select  t.village,t.state,t.district,t.number_of_villages,t.c indirect,
 t.d as direct,t.CODE,new1.level1 as level1, new1.level2 as level2, t.fy_timerange fy,t.projectcode,tab6.no_of_projects,tab6.no_of_implementing_agencies,t.total as Allocated_amount
 from tab5 t
 left join tab6 on t.CODE=tab6.CODE
-left join new11 new1 on t.CODE=new1.CODE
-
-
-
+left join new11 new1 on t.CODE=new1.CODE;
