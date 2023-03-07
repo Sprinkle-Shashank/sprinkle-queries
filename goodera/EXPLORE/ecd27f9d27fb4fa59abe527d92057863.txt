@@ -1,0 +1,34 @@
+with temp as ( 
+select 'saplings_planted' as c
+  Union all 
+select 'saplings_surviving' as c
+  Union all 
+select 'rhw_structures_created' as c 
+  Union all 
+select 'solar_street_lights_installed' as c
+  Union all 
+select 'households_benefitting' as c 
+  Union all 
+select 'increased_green_cover' as c
+  Union all 
+select 'increased_water_availability' as c )
+  
+select pro.name as projectid,fy_timerange,t.name gram_panchayat,
+sum( case c when 'saplings_planted' then p.saplings_planted
+	        when 'saplings_surviving' then p.saplings_surviving
+	        when 'rhw_structures_created' then p.rhw_structures_created  
+	        when 'solar_street_lights_installed' then p.solar_street_lights_installed
+	        when 'households_benefitting' then p.households_benefitting 
+	        when 'increased_green_cover' then p.increased_green_cover
+	        when 'increased_water_availability' then p.increased_water_availability 
+	
+	
+	        else null end ) as val, temp.c as dim from profile_83679 p
+			
+			left join ds_mysql_prod_project pro
+             on p.projectid = pro.id
+			 left join ds_mysql_prod_tagelement t
+             on p.gram_panchayat = t.id
+			cross join temp
+			
+group by projectid,fy_timerange,temp.c,pro.name,t.name		
