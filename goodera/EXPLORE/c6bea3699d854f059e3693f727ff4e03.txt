@@ -1,0 +1,22 @@
+--GSK_Consumer_SF_Care_Test
+with table1 as 
+( select p.projectid ,/* p._id  ,*/ dis.name as district_update , sta.name as state_update , count(*) as count_check , p.fy_timerange , c_test.name as care_test_update
+ from profile_83204 as p 
+
+ left join profile_83200 p1
+ on p.beneficiary = p1._id
+ 
+left join ds_mysql_prod_tagelement dis
+on p1.ben_location = dis.id
+ 
+left join ds_mysql_prod_tagelement sta
+on dis.parent = sta.id
+ 
+left join ds_mysql_prod_tagelement c_test
+on p.care_test = c_test.id
+ 
+ group by p.projectid ,/* p._id  ,*/ dis.name , sta.name , p.fy_timerange , c_test.name
+order by state_update asc
+)
+
+select * from table1 as p
