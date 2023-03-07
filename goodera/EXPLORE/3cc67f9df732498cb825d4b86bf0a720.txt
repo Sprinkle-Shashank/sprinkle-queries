@@ -1,0 +1,12 @@
+with Base1 as(select split_part(split_part(prod.name,'|',1),'.',1) as ProjectCode,f.name as fy_timerange,split_part(prod.name,'|',3) as census,p.bene as benef_type,case when b.name is not null then 1 else 0 end as Count from profile_32571 p
+left join ds_mysql_prod_project prod on
+prod.id=p.projectid
+left join ds_mysql_prod_tagelement b on
+p.bene=b.id
+left join ds_mysql_prod_tagelement f on
+p.fy=f.id),Base2 as(
+select p.ProjectCode,p.fy_timerange,p.benef_type,p.count,l.village as Village from Base1 p
+left join profile_27489 l on
+  p.census=l.name),Base3 as(
+select trim(ProjectCode) as ProjectCode,fy_timerange,case when Village is null then 'N/A' else Village end as Village,benef_type,sum(count) as Count from Base2 group by fy_timerange,benef_type,Village,trim(ProjectCode))
+select * from Base3;
