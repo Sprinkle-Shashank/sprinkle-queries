@@ -1,0 +1,21 @@
+with temp as ( 
+select 'awareness_sessions' as c
+  Union all 
+select 'girls_attended' as c
+  Union all 
+select 'hygiene_kits_distributed' as c  )
+  
+select pro.name as projectid,fy_timerange,t.name gram_panchayat,
+sum( case c when 'awareness_sessions' then p.awareness_sessions
+	        when 'girls_attended' then p.girls_attended
+	        when 'hygiene_kits_distributed' then p.hygiene_kits_distributed    
+	
+	        else null end ) as val, temp.c as dim from profile_83677 p
+			
+			left join ds_mysql_prod_project pro
+             on p.projectid = pro.id
+			 left join ds_mysql_prod_tagelement t
+             on p.gram_panchayat = t.id
+			cross join temp
+			
+group by projectid,fy_timerange,temp.c,pro.name,t.name		
