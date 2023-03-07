@@ -1,6 +1,6 @@
 --MylanIndia_Overall_Project_Details
 with temp1 AS
-(select m.projectId, m.project_name, m.vertical, m.focus, cast(m.start_date as date) as start_date1, m.project_code, m.entity, CAST(r.fy_timerange.end as date) as update_date, compl.name as completed, prog.name as progress, 
+(select m.projectId, m.project_name, m.vertical, m.focus, cast(m.start_date as date) as start_date1, m.project_code, m.entity, CAST(r.fy_timerange.end as date) as update_date, compl.name as completed, prog.name as progress, t.name as state,
 concat(start_date1,'T00:00:00.000Z') as start1,
 concat(update_date,'T00:00:00.000Z') as end2,
 concat(concat(concat(concat('{"start":"',start1),'","end":"'),end2),'"}') as fy_1,
@@ -11,11 +11,13 @@ from profile_62881 as m
 left join profile_55471 AS r
  on m.project_code = r.project_code
 
-left join ds_mysql_prod_tagelement as prog
+left join tagElement_6575 as prog
   on r.progress = prog.id  
  
-left join ds_mysql_prod_tagelement as compl
+left join tagElement_6575 as compl
   on r.completed = compl.id
+left join tagElement_6575 t
+on t.id=m.state
 ),
   
 temp2 as
@@ -23,7 +25,7 @@ temp2 as
 
 table3 as
 (
-select m.project_name, focus.name AS focus, m.start_date1, m.project_code, entity.name AS entity, m.update_date, m.progress, m.completed, m.fy_1 AS fy_timerange, m.description, CAST(EXTRACT (MONTH from update_date) AS INT) AS month_1 , EXTRACT(YEAR from update_date) AS year,
+select m.project_name,state, focus.name AS focus, m.start_date1, m.project_code, entity.name AS entity, m.update_date, m.progress, m.completed, m.fy_1 AS fy_timerange, m.description, CAST(EXTRACT (MONTH from update_date) AS INT) AS month_1 , EXTRACT(YEAR from update_date) AS year,
 
 case when month_1 = 1 then 'Jan'
 when month_1 = 2 then 'Feb'
@@ -46,33 +48,35 @@ END AS vertical , m._id
 
 from temp2 as m
 
-left join ds_mysql_prod_tagelement as vert
+left join tagElement_6575 as vert
   on m.vertical_new = vert.id
   
-left join ds_mysql_prod_tagelement as vert1
+left join tagElement_6575 as vert1
   on vert.parent = vert1.id
   
-left join ds_mysql_prod_tagelement as focus
+left join tagElement_6575 as focus
   on m.focus = focus.id
 
-left join ds_mysql_prod_tagelement as entity
+left join tagElement_6575 as entity
   on m.entity = entity.id
 
-group by m.project_name, m.projectId, focus.name, m.project_code, entity.name, m.progress, m.completed, m.start_date1, m.update_date, m.fy_1,m.description , vertical , vert1.name , vert.name , m._id , update_month
+group by m.project_name, m.projectId, focus.name, m.project_code, entity.name, m.progress, m.completed, m.start_date1, m.update_date, m.fy_1,m.description , vertical , vert1.name , vert.name , m._id , update_month,state
 
 order by m.project_code asc, update_date desc
  ),
 
 table4 as
 (
-select m.project_name, focus, m.project_code, entity, progress , completed , update_date , m.start_date1, fy_timerange ,m.description , vertical , _id , update_month from table3 as m
+select m.project_name, focus,state, m.project_code, entity, progress , completed , update_date , m.start_date1, fy_timerange ,m.description , vertical , _id , update_month from table3 as m
 ),
 
 table5 as (
-select m._id , m.project_code , m.fy_timerange , m.description , update_month, m.vertical , m.entity , start_date1 , listagg(distinct m.completed, ' , ') as complete_update , listagg(distinct m.update_date, ' , ') as update_date_new , listagg(distinct m.progress, ' , ') as progress_update from table4 as m 
+select m._id ,m.state,m.focus, m.project_code , m.fy_timerange , m.description , update_month, m.vertical , m.entity , start_date1 , listagg(distinct m.completed, ' , ') as complete_update , listagg(distinct m.update_date, ' , ') as update_date_new , listagg(distinct m.progress, ' , ') as progress_update,pp.amount from table4 as m 
+left join profile_55194 pp
+on pp.project_code_new=m._id
 
 
-group by  m._id , m.project_code , m.fy_timerange , m.description , update_month, m.vertical , m.entity , start_date1 
+group by  m._id , m.project_code , m.fy_timerange , m.description , update_month, m.vertical , m.entity , start_date1 ,m.state,m.focus,pp.amount
 )
 
 select * from table5 
