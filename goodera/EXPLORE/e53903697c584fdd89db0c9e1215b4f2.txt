@@ -38,6 +38,47 @@ sq.project_manager=m.id
 	
 Select distinct(project_code),fy, curr_yr_budget,state, implementing_agency, Project_Manager, level1, level2, village_count,project_name
 from t3
+ 
+/*with tab1 as(
+  Select cast((split_part(split_part(prod.name,'|',1),'.',1)) as varchar) as prj_code,split_to_array(listagg(distinct split_part(prod.name,'|',2),','),',') as c,get_array_length(c) as village_count
+from profile_29974 r
+left join ds_mysql_prod_project prod
+on r.projectid=prod.id
+group by 1
+  
+  ),
+  t2 as(
+	Select  fy, name, curr_yr_budget, State, ngo_partner, Project_Manager, name_project
+	from profile_27396 sq, sq.state State
+ ),
+ t3 as (
+Select f.name as fy, sq.name project_code, curr_yr_budget, m1.name state, l.name as implementing_agency, m.name  as Project_Manager,p.village_count, m.name as level1, m.name as level2, name_project project_name
+from t2 sq 
+left join tab1 p
+on p.prj_code=sq.name
+left join ds_mysql_prod_tagelement f on
+sq.fy=f.id 
+left join profile_27395 l on
+l._id=sq.ngo_partner
+left join ds_mysql_prod_tagelement m on
+sq.project_manager=m.id
+left join ds_mysql_prod_tagelement m1 on
+ sq.State=m1.id
+ 
+union all
+
+Select f.name as fy, split_part(sq.name,' ',1) project_code, curr_yr_budget, ' ' state, name_project as implementing_agency, m.name  as Project_Manager,p.village_count, m.name as level1,m.name as level2, name_project project_name
+from profile_27420 sq
+left join tab1 p
+on p.prj_code=(split_part(sq.name,'[',1))
+left join ds_mysql_prod_tagelement f on
+sq.fy=f.id 
+left join ds_mysql_prod_tagelement m on
+sq.project_manager=m.id
+ )
+	
+Select distinct(project_code),fy, curr_yr_budget,state, implementing_agency, Project_Manager, level1, level2, village_count,project_name
+from t3
 /*select saajhamonth_timerange, saajha_sabha
 from profile_56812
-where saajhamonth_timerange is not null*/
+where saajhamonth_timerange is not null*/*/
