@@ -1,0 +1,27 @@
+with temp as ( 
+select 'adolescent_girls_identified' as c
+  Union all 
+select 'sanitary_pad_vending_machines_incinerators' as c
+  Union all 
+select 'water_atmsro_units' as c 
+  Union all 
+select 'families_consuming_safe_drinking_water' as c
+  Union all 
+select 'students_consuming_safe_drinking_water' as c  )
+  
+select pro.name as projectid,fy_timerange,t.name gram_panchayat,
+sum( case c when 'adolescent_girls_identified' then p.adolescent_girls_identified
+	        when 'sanitary_pad_vending_machines_incinerators' then p.sanitary_pad_vending_machines_incinerators
+	        when 'water_atmsro_units' then p.water_atmsro_units  
+	        when 'families_consuming_safe_drinking_water' then p.families_consuming_safe_drinking_water
+	        when 'students_consuming_safe_drinking_water' then p.students_consuming_safe_drinking_water 
+	
+	        else null end ) as val, temp.c as dim from profile_83678 p
+			
+			left join ds_mysql_prod_project pro
+             on p.projectid = pro.id
+			 left join ds_mysql_prod_tagelement t
+             on p.gram_panchayat = t.id
+			cross join temp
+			
+group by projectid,fy_timerange,temp.c,pro.name,t.name		
