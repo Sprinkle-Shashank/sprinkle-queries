@@ -1,0 +1,112 @@
+--MylanIndia_LS_Site_Beneficiaries
+with temp1 as
+(select projectId.name as projectId, indicator_1.name as indicator, sdgs.name as sdgs, schedule_vii.name as schedule_vii, m.project_name, m.ben_type, m.baseline, m.target_actual, m.proj, r._id, r.project_name, r.vertical, focus.name as focus, state_1.name as state, r.direct_or_partner, r.project_code, r.start_date, site.name as site, q.completed, q.fy_timerange, complete.name as complete, ben_type.name as ben_type, entity.name as entity, int_indi.name as int_indi
+ --, l.name 
+ 
+ from profile_61044 as m
+ --, m.indicator int_indi
+
+ left join profile_62881 AS r 
+ on m.proj = r._id
+ 
+ left join profile_55471 AS q 
+ on r.project_code = q.project_code
+ 
+/*left join profile_64961 AS l 
+ on l.state = r.state*/
+ 
+ left join tagElement_6575 as site
+  on r.direct_or_partner = site.id
+ 
+ left join tagElement_6575 as complete
+  on q.completed = complete.id
+ 
+ left join tagElement_6575 as ben_type
+  on m.ben_type = ben_type.id
+ 
+ left join tagElement_6575 as indicator_1
+  on m.indicator = indicator_1.id 
+ 
+ left join tagElement_6575 as int_indi
+  on indicator_1.parent = int_indi.id
+ 
+ left join prod_project_6575 as projectId
+  on m.projectId = projectId.id 
+ 
+ left join tagElement_6575 as schedule_vii
+  on m.schedule_vii = schedule_vii.id 
+ 
+ left join tagElement_6575 as focus
+  on r.focus = focus.id 
+ 
+ left join tagElement_6575 as entity
+  on r.entity = entity.id 
+ 
+ left join tagElement_6575 as state_1
+  on r.state = state_1.id 
+ 
+ left join tagElement_6575 as sdgs
+  on m.sdgs = sdgs.id 
+ 
+ where r.direct_or_partner = 1132990 AND q.completed = 939857 AND m.ben_type = 939857 AND m.sdgs IS NOT NULL),
+ 
+ temp2 as
+(select m.projectId, m.indicator, m.schedule_vii, m.focus, m.fy_timerange, m.entity, m.vertical,  m.state, l.name, m.target_actual, m.sdgs, m._id, m.int_indi from temp1 as m
+  
+  left join profile_64961 AS l 
+ on m.state = l.state
+ ),
+ 
+ temp3 as
+ (select m.projectId, m.indicator, m.schedule_vii, m.focus, m.fy_timerange, m.entity, m.vertical,  m.state, m.name,m.target_actual, m.sdgs, vertical_new, m._id, m.int_indi 
+ from temp2 as m, m.vertical vertical_new),
+ 
+ temp4 as
+ (select m.projectId, m.indicator, m.schedule_vii, m.focus, m.fy_timerange, m.entity, m.state, m.name, m.sdgs, m.target_actual, m.int_indi, m._id ,
+  
+   case 
+when vert1.name IS NULL AND vert.name IS NOT NULL THEN vert.name
+else vert1.name 
+END AS vertical
+
+from temp3 AS m
+
+left join tagElement_6575 as vert
+  on m.vertical_new = vert.id
+  
+left join tagElement_6575 as vert1
+  on vert.parent = vert1.id),
+  
+  temp5 as
+ (select m.projectId, m.indicator, m.schedule_vii, m.focus, m.fy_timerange, m.entity, m.state, m.name, m.sdgs, m.vertical, m._id, SUM(m.target_actual) as target_beneficiary, m.int_indi
+  from temp2 as m
+  where _id NOT IN (select _id from temp3)
+  group by m.projectId, m.indicator, m.schedule_vii, m.focus, m.fy_timerange, m.entity, m.state, m.name, m.sdgs, m.vertical, m._id, m.int_indi),
+  
+  
+  table6 as
+  (
+  select projectId, indicator, schedule_vii, focus, fy_timerange, entity, SUM(m.target_actual) as target_beneficiary, vertical, int_indi, state, name, sdgs , _id 
+  from temp4 as m
+  group by projectId, indicator, schedule_vii, focus, fy_timerange, entity, vertical, int_indi, state, name, sdgs , _id
+  ),
+  
+  table7 as
+  (
+  select projectId, indicator, schedule_vii, focus, fy_timerange, entity, beneficiary, vertical, int_indi, state, name, sdgs , _id , q
+  from temp5 as m, m.vertical as q
+   ),
+   
+   table8 as
+   (
+	 select projectId, indicator, schedule_vii, focus, fy_timerange, entity, beneficiary, q , int_indi, state, name, sdgs , _id
+  from table7 as m
+	 ),
+	 
+	 table9 as
+	 ( select  projectId, indicator, schedule_vii, focus, fy_timerange, entity, beneficiary , int_indi, state, name, sdgs , _id , q as vertical from table8 as p
+	  )
+   
+   select * from table6
+   UNION ALL
+   select * from table9
