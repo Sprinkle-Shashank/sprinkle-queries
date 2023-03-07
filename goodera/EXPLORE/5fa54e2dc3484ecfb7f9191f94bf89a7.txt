@@ -1,0 +1,27 @@
+with tab1 as(select saajhamonth_timerange as fy_timerange, saajha_sabha,saajha_std_grie,saajha_sch_grie, saajha_prt_grie, saajha_atr, saajha_resolve, usf_chapter,usf_shalini,usf_workshop,milaan_sop,milaan_itaround, usf_mentor,usf_didi, usf_mentorgroup,usf_mtrain, usf_mgoal,usf_mconnect,usf_rdeploy,usf_shaliniwork,usf_shaliniplaced,usf_corpcollab,
+CAST(saajhamonth_timerange.start AS DATE) AS start,
+EXTRACT(MONTH FROM start) AS month,
+EXTRACT(YEAR FROM start) AS year,
+
+CASE
+	WHEN month = 1 THEN 'Q4'
+	WHEN month = 2 THEN 'Q4'
+	WHEN month = 3 THEN 'Q4'
+	WHEN month = 4 THEN 'Q1'
+	WHEN month = 5 THEN 'Q1'
+	WHEN month = 6 THEN 'Q1'
+	WHEN month = 7 THEN 'Q2'
+	WHEN month = 8 THEN 'Q2'
+	WHEN month = 9 THEN 'Q2'
+	WHEN month = 10 THEN 'Q3'
+	WHEN month = 11 THEN 'Q3'
+	WHEN month = 12 THEN 'Q3'
+	ELSE 'No Data Entry'
+	END AS quarter,
+rank() over(partition by quarter order by saajhamonth_timerange asc) as rnk
+from profile_56812
+where saajhamonth_timerange is not null
+order by quarter asc)
+select *
+from tab1
+where rnk=1
