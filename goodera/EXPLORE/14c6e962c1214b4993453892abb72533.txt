@@ -1,0 +1,21 @@
+with temp as ( 
+select 'shg_women_trained' as c
+  Union all 
+select 'trades_training' as c
+  Union all 
+select 'women_employed' as c  )
+  
+select pro.name as projectid,fy_timerange,t.name gram_panchayat,
+sum( case c when 'shg_women_trained' then p.shg_women_trained
+	        when 'trades_training' then p.trades_training
+	        when 'women_employed' then p.women_employed   
+	
+	        else null end ) as val, temp.c as dim from profile_83681 p
+			
+			left join ds_mysql_prod_project pro
+             on p.projectid = pro.id
+			 left join ds_mysql_prod_tagelement t
+             on p.gram_panchayat = t.id
+			cross join temp
+			
+group by projectid,fy_timerange,temp.c,pro.name,t.name		
