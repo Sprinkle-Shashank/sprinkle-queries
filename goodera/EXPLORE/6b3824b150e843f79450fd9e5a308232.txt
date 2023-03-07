@@ -1,3 +1,4 @@
+--MylanIndia_Common_Reporting_Status_of_Project _New
 with temp1 AS
 (select m._id AS old_id, progress, completed, m.project_code, fy_year_timerange , Extract(month from CAST(m.fy_timerange.start AS date)) AS month_1, r._id, r.name, project_name, vertical, focus, state, start_date, EXTRACT(year from start_date) AS start_year, EXTRACT(month from start_date) AS start_month, direct_or_partner, entity, completed_text.name as completed_text, concat(CAST(month_1 AS VARCHAR), concat('-', completed_text)) as month_2,
 
@@ -21,7 +22,7 @@ from profile_55471 as m
 left join profile_62881 AS r
  on m.project_code = r.project_code
  
-left join ds_mysql_prod_tagelement as completed_text
+left join tagElement_6575 as completed_text
   on m.completed = completed_text.id),
 
   
@@ -45,26 +46,26 @@ END AS start_month_1 , m.fy_timerange
  
  from temp1 AS m
 
-left join ds_mysql_prod_tagelement as progress_update
+left join tagElement_6575 as progress_update
   on m.progress = progress_update.id
   
-left join ds_mysql_prod_tagelement as completed_update
+left join tagElement_6575 as completed_update
   on m.completed = completed_update.id
   
-left join ds_mysql_prod_tagelement as focus_update
+left join tagElement_6575 as focus_update
   on m.focus = focus_update.id
 
-left join ds_mysql_prod_tagelement as direct_or_partner_update
+left join tagElement_6575 as direct_or_partner_update
   on m.direct_or_partner = direct_or_partner_update.id
   
-left join ds_mysql_prod_tagelement as entity_update
+left join tagElement_6575 as entity_update
   on m.entity = entity_update.id
 
-left join ds_mysql_prod_tagelement as state_update
+left join tagElement_6575 as state_update
   on m.state = state_update.id),
   
 temp3 as(
-select project_code,old_id, project_name , focus_new , state_new , direct_or_partner_new , entity_new , vertical , report_year, month_1, start_month, start_year, start_month_1 , fy_timerange , 
+select project_code,old_id, project_name , focus_new , state_new , direct_or_partner_new , entity_new , vertical , report_year, month_1, start_month, start_year, start_month_1 , fy_timerange , month_2,
   
   case when month_1 = 1 and start_month = 1 and report_year = start_year and completed_new = 'Yes' then 'Started, Reported & Completed'
   when start_month = 1 then 'Started'
@@ -150,14 +151,14 @@ else vert1.name
 END AS vertical_new_update
  from temp3 as m
 	
-left join ds_mysql_prod_tagelement as vert
+left join tagElement_6575 as vert
 on m.vertical_new = vert.id
   
-left join ds_mysql_prod_tagelement as vert1
+left join tagElement_6575 as vert1
 on vert.parent = vert1.id),
 
 temp5 as
-( select  project_code,old_id, project_name , focus_new as focus , state_new as state , direct_or_partner_new as direct_or_partner  , entity_new as entity, vertical_new_update as vertical , report_year, month_1, start_month, start_year, January , February , March , April , May , June , July , August , September , October , November , December , start_month_1 , concat(start_month_1,concat(' - ',report_year)) as project_start , fy_timerange,
+( select  project_code,old_id, month_2,project_name , focus_new as focus , state_new as state , direct_or_partner_new as direct_or_partner  , entity_new as entity, vertical_new_update as vertical , report_year, month_1, start_month, start_year, January , February , March , April , May , June , July , August , September , October , November , December , start_month_1 , concat(start_month_1,concat(' - ',report_year)) as project_start , fy_timerange,
  row_number () over(partition by project_code order by old_id asc) as row,count(*) over (partition by project_code) as total_count 
  from temp4 as m
  
@@ -165,4 +166,4 @@ temp5 as
  )
  
  select * from temp5
-where row = 1 or row = total_count   
+where row = 1 or row = total_count or month_2 ilike '%Yes%'  
