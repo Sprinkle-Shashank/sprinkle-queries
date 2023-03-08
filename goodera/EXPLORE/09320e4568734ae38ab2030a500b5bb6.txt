@@ -1,23 +1,14 @@
-select p.fy_timerange,p2.name as van,p3.name as partner,p.name, t1.name as gender,p.age,SUM(1) as count, 1 as unique_count,'Once' as pcount
-/*case 
-  		when count = 1
-  			then '2 Times'
-  		when (count > 1 and count < 6)
-  			then '3-5 Times'
-  		when (count > 5 and count < 11)
-  			then '6-10 Times'
-		when (count > 10 and count < 51)
-  			then '11-50 Times'
-  		else 'Once'
-  	end as pcount*/
+select p.fy_timerange,p2.name as van,p3.name as partner,p.name,p.bene_age,p.bene_gender as gender,t1.name as patient_yn, count(*) as count, 1 as unique_count,'Once' as pcount
 
 
-from profile_83300 p
+from profile_83301 p
 
-left join tagElement_10099 t1 on p.gender=t1.id
 left join ds_mysql_prod_project p2 on p2.id=p.projectid 
 left join ds_mysql_prod_project p3 on p3.id=p2.parent
+left join profile_83300 p4 on p4._id = p.patient
+left join tagElement_10099 t1 on p.patient_yn = t1.id
 
 where p.projectid like '%%'
+--and pcount like '%0%'
 
-group by p.name,p.fy_timerange,p2.name,p3.name, t1.name,p.age
+group by p.fy_timerange,p2.name, p3.name, p.name,p.bene_age,p.bene_gender,p4.name,t1.name
