@@ -1,37 +1,44 @@
-select p.fy_timerange,p2.name as van,p3.name as partner,p.name,p.bene_age,p.bene_gender as gender,t1.name as referral, t2.name as institutions,t3.name as diseases, count(*), 1 as unique_count,
-'Consultations' as ben,
-case
-when t1.name is null then 0
-else 1
-end as referral_count,
+with Lookup as
+(select cast((split_part(split_part(prod.name,'|',1),'.',1)) as varchar) as ProjectCode,f.name as fy_timerange,split_part(prod.name,'|',2) as Village,o.name as Focusarea,CONCAT(ProjectCode,fy_timerange) as CODE,p.sub_cat_out_plan as Planned,p.subcat_output as Actual,m.name as Month,a.name as Activity_Category,s.name as Activity_Sub_Category
+ from profile_54963 p 
+left join ds_mysql_prod_project prod on
+prod.id=p.projectid
+left join tagelement_4188 f on
+p.fy=f.id
+left join tagelement_4188 a on
+p.act_cat=a.id
+left join tagelement_4188 s on
+p.subcat=s.id
+left join tagelement_4188 m on
+p.month=m.id
+left join tagelement_4188 o on
+p.focus_area=o.id
+)
 
-CASE 
-		when p.bene_age > 0 and p.bene_age <= 5 then '0-5 Yrs'
-		when p.bene_age >= 6 and p.bene_age <=18 then '6-18 Yrs'
-		when p.bene_age >= 19 and p.bene_age <=40 then '19-40 Yrs'
-		when p.bene_age >= 41 and p.bene_age <=50 then '41-50 Yrs'
-		when p.bene_age >= 51 and p.bene_age <=60 then '51-60 Yrs'		
-		else 'Above 60 Yrs'
-	end as age_group,
-case
-when age_group = '0-5 Yrs' then 1
-when age_group = '6-18 Yrs' then 2
-when age_group = '19-40 Yrs' then 3
-when age_group = '41-50 Yrs' then 4
-when age_group = '51-60 Yrs' then 5
-else 6
-end as age_sort
---case when 
+,Base1 as
+(select cast(q.name as varchar) as ProjectCode,f.name as fy_timerange,m.name as Project_Manager,CONCAT(ProjectCode,fy_timerange) as CODE
+from profile_27420 d
+left join tagelement_4188 f on
+d.fy=f.id
+left join tagelement_4188 m on
+d.project_manager=m.id
+left join profile_27396 q on
+d.project_code=q._id
+ where m.name is not NULL
+union
+select cast(c.name as varchar)as ProjectCode,f.name as fy_timerange,m.name as Project_Manager,CONCAT(ProjectCode,fy_timerange) as CODE 
+from profile_27396 c	
+left join tagelement_4188 f on
+c.fy=f.id
+left join tagelement_4188 m on
+c.project_manager=m.id
+where Project_Manager is not NULL)
 
-from profile_83301 p
-left join tagElement_10099 t1 on p.ref_type = t1.id
-left join tagElement_10099 t2 on p.referral_destination = t2.id
-left join ds_mysql_prod_project p2 on p2.id=p.projectid 
-left join ds_mysql_prod_project p3 on p3.id=p2.parent
-left join tagElement_10099 t3 on p.sys_affected1 = t3.id
+,Base2 as
+(select p.fy_timerange,l.Project_Manager,p.ProjectCode,p.Village,p.Focusarea,p.Month,p.Activity_Category,p.Activity_Sub_Category,sum(p.Planned) as Planned,sum(p.Actual) as Actual from lookup p left join Base1 l on p.CODE=l.CODE group by p.fy_timerange,l.Project_Manager,p.ProjectCode,p.Village,p.Focusarea,p.Month,p.Activity_Category,p.Activity_Sub_Category 
+ )
 
-where p.projectid like '%%' 
---and p2.name <> 'Chennai - TN 10 AS 5135'
---and t2.name <> 'No Referral'
 
-group by p.fy_timerange,p2.name, p3.name, p.name,p.bene_age,p.bene_gender,t1.name, t2.name,t3.name
+select  p.fy_timerange,p.Project_Manager as Project_Manager, p.ProjectCode, p.Village, 
+p.Focusarea, p.Month, p.Activity_Category,p.Activity_Sub_Category,p.Planned,p.Actual from Base2 p
+where Project_Manager != 'Test PM1';
