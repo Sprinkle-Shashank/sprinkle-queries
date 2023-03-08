@@ -1,0 +1,25 @@
+select p.fy_timerange,p2.name as van,p3.name as partner,p.name, t1.name as gender,p.age,SUM(1) as count, 1 as unique_count,
+case 
+  		when count(*) = 1
+  			then 'Once'
+		when count(*) = 2
+			  then 'Twice'
+  		when (count(*) > 2 and count(*)< 6)
+  			then '3-5'
+  		when (count(*)> 5 and count(*)< 11)
+  			then '6-10'
+		when (count(*)> 10 and count(*)< 51)
+  			then '11-50'
+  		else 'Others'
+  	end as pcount
+
+
+from profile_83300 p
+
+left join tagElement_10099 t1 on p.gender=t1.id
+left join ds_mysql_prod_project p2 on p2.id=p.projectid 
+left join ds_mysql_prod_project p3 on p3.id=p2.parent
+
+where p.projectid like '%%'
+
+group by p.name,p.fy_timerange,p2.name,p3.name, t1.name,age_group,p.age,p2.name,p3.name
