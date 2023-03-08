@@ -1,0 +1,58 @@
+with temp as ( select 'Students Impacted' as c
+			   Union all
+			   select 'Students Registered' as c
+			   Union all 
+			   select 'Students Active' as c
+			   Union all
+			   select 'Students Attended Live Sessions' as c
+			   Union all
+			   select 'Students Accessing the Content' as c
+			   Union all
+			   select 'Students Read Simple' as c
+			   Union all
+			   select 'Students Read Diff' as c
+			   Union all
+			   select 'Students Read Multi' as c
+			   Union all 
+			   select 'Students Spell Multi' as c
+			   Union all
+			   select 'Students Five' as c
+			   Union all
+			   select 'Students Six' as c
+			   Union all
+			   select 'Students Seven' as c
+			   Union all
+			   select 'Students Eight' as c
+			   Union all
+			   select 'Students Nine' as c
+			   Union all
+			   select 'Students Ten' as c)
+			   
+select proj.name as projectid, p.fy_timerange, p.financial_year, p.state_district, stat.name as state, dist.name as district, p.school_name,
+sum (case c when 'Students Impacted'  then p.students_impacted  
+       when 'Students Registered' then p.students_registered
+	   when 'Students Active' then p.students_active
+	   when 'Students Attended Live Sessions' then p.students_live_sessions
+	   when 'Students Accessing the Content' then p.students_access_content
+	   when 'Students Read Simple' then p.students_read_simple
+	   when 'Students Read Diff' then p.students_read_diff
+	   when 'Students Read Multi' then p.students_read_multi
+	   when 'Students Spell Multi' then p.students_spell_multi
+	   when 'Students Five' then p.students_five
+	   when 'Students Six' then p.students_six
+	   when 'Students Seven' then p.students_seven
+	   when 'Students Eight' then p.students_eight
+	   when 'Students Nine' then p.students_nine
+	   when 'Students Ten' then p.students_ten
+	   else null
+	   end) as val, temp.c as dim 
+	   
+from profile_83695 p
+
+cross join temp
+
+left join ds_mysql_prod_project as proj on p.projectid = proj.id
+left join ds_mysql_prod_tagelement as dist on p.state_district = dist.id
+left join ds_mysql_prod_tagelement as stat on dist.parent = stat.id  
+
+group by proj.name, p.fy_timerange,dist.name,stat.name,,p.state_district,p.school_name,temp.c, p.financial_year
