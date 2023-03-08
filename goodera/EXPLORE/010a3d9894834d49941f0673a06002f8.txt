@@ -1,0 +1,31 @@
+with temp as ( select 'Government Schools Reached' as c
+			   Union all
+			   select 'Youtube Viewership' as c
+			   Union all 
+			   select 'Zoom Calls' as c
+			   Union all
+			   select 'Feedback Calls' as c
+			   Union all
+			   select 'Topics Under Leadership' as c
+			   Union all
+			   select 'Content Videos Created' as c)
+			   
+select proj.name as projectid, p.fy_timerange, p.financial_year,
+
+sum (case c when 'Government Schools Reached'  then p.gov_school_reached  
+       when 'Youtube Viewership' then p.youtube_view
+	   when 'Zoom Calls' then p.no_of_zoom_calls
+	   when 'Feedback Calls' then p.no_of_feed_calls
+	   when 'Topics Under Leadership' then p.topic_leadership
+	   when 'Content Videos Created' then p.no_of_videos
+	   else null
+	   end) as val, temp.c as dim 
+	   
+from profile_83696 p
+
+cross join temp
+
+left join ds_mysql_prod_project as proj on p.projectid = proj.id
+
+
+group by proj.name, p.fy_timerange,temp.c, p.financial_year
