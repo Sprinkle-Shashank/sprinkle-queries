@@ -1,2 +1,12 @@
-Select substring(cast(usfmonth_timerange as varchar),5,10)
+with tab1 as(Select usfmonth_timerange,usf_donorscontinue,usf_funds,usf_expense,usf_variance,
+rank() over(partition by usfmonth_timerange order by usf_donorscontinue asc) as rnk
 From profile_55986
+where usfmonth_timerange is not null)
+
+Select usfmonth_timerange as fy_timerange,usf_donorscontinue,usf_funds,usf_expense,usf_variance,rnk,
+CAST(usfmonth_timerange.start AS DATE) AS start,
+EXTRACT(YEAR FROM start) AS year,
+'FY '||year || ' - '||year+1 AS financial_year
+from tab1
+where rnk=1
+and usf_donorscontinue is not null
