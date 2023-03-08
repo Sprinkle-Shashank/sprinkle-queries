@@ -1,4 +1,9 @@
-Select tfimonth_timerange,tfi_g_score girls,tfi_b_score boys,
+With main as(
+Select 'Boys' as col
+union all
+Select 'Girls' as col),
+
+tab1 as(Select tfimonth_timerange,tfi_g_score,tfi_b_score,
 CAST(tfimonth_timerange.start AS DATE) AS start,
 EXTRACT(MONTH FROM start) AS month,
 EXTRACT(YEAR FROM start) AS year,
@@ -19,4 +24,12 @@ CASE
 	ELSE 'No Data Entry'
 	END AS quarter
 from profile_56812
-where tfimonth_timerange is not null
+where tfimonth_timerange is not null)
+
+select t.tfimonth_timerange as fy_timerange,t.quarter,main.col as dim,
+case col
+	when 'Boys' then t.tfi_b_score
+	when 'Girls' then t.tfi_g_score
+end as val
+from tab1 t
+cross join main
