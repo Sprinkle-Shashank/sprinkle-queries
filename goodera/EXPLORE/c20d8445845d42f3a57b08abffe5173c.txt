@@ -1,0 +1,43 @@
+with tab1 as(Select usfmonth_timerange,usf_impact,usf_newchapter,
+rank() over(partition by usfmonth_timerange order by usf_donorscontinue asc) as rnk
+From profile_55986
+where usfmonth_timerange is not null),
+
+tab2 as (Select usfmonth_timerange as fy_timerange,usf_impact,usf_newchapter,rnk,
+CAST(usfmonth_timerange.start AS DATE) AS start,
+EXTRACT(MONTH FROM start) AS month,
+EXTRACT(YEAR FROM start) AS year,
+case 
+when month in (4,5,6,7,8,9,10,11,12) and year =2017 then 'FY 2017-2018'
+when month in (1,2,3) and year= 2018 then  'FY 2017-2018'
+
+when month in (4,5,6,7,8,9,10,11,12) and year =2018 then 'FY 2018-2019'
+when month in (1,2,3) and year= 2019 then  'FY 2018-2019'
+
+when month in (4,5,6,7,8,9,10,11,12) and year =2019 then 'FY 2019-2020'
+when month in (1,2,3) and year= 2020 then  'FY 2019-2020'
+
+when month in (4,5,6,7,8,9,10,11,12) and year =2020 then 'FY 2020-2021'
+when month in (1,2,3) and year= 2021 then  'FY 2020-2021'
+
+when month in (4,5,6,7,8,9,10,11,12) and year =2021 then 'FY 2021-2022'
+when month in (1,2,3) and year= 2022 then  'FY 2021-2022'
+  
+when month in (4,5,6,7,8,9,10,11,12) and year =2022 then 'FY 2022-2023'
+when month in (1,2,3) and year= 2023 then  'FY 2022-2023'
+
+end as year_1
+from tab1
+where rnk=1
+and usf_donorscontinue is not null)
+
+Select usf_impact,usf_newchapter,
+Case
+	WHEN year_1= 'FY 2017-2018' THEN 'FY '||'2018'||' - ' ||'2019'
+	WHEN year_1= 'FY 2018-2019' THEN 'FY '||'2019'||' - ' ||'2020'
+	WHEN year_1= 'FY 2019-2020' THEN 'FY '||'2020'||' - ' ||'2021'
+	WHEN year_1= 'FY 2020-2021' THEN 'FY '||'2021'||' - ' ||'2022'
+	WHEN year_1= 'FY 2021-2022' THEN 'FY '||'2022'||' - ' ||'2023'
+	WHEN year_1= 'FY 2022-2023' THEN 'FY '||'2023'||' - ' ||'2024'
+END AS financial_year
+from tab2
