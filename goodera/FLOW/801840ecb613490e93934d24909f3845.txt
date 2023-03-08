@@ -1,0 +1,137 @@
+drop table if exists hdfc_hrd_overview_ngo_task_status_2nd_pending;
+create table hdfc_hrd_overview_ngo_task_status_2nd_pending as
+with sub1 as(
+  select x1._id as id, x1.profileinstanceid, x1.status, x1.active, x1.data, x1.taskuserid, x2.taskid, x5.projectid, x6.profileid, x4.sectionid, x6.name as section, x7.name as profile, x8.name as project, cast(x1.data.subcat_output as VARCHAR) as subcat_output,
+  
+case
+  when is_array(x1.submissionlog) = false or get_array_length(x1.submissionlog) = 0 then 
+  	   array(x1.submissionlog)
+  else x1.submissionlog
+end as submissionlog_new,
+case
+  when is_array(x1.approvallog) = false or get_array_length(x1.approvallog) = 0 then 
+  	   array(x1.approvallog)
+  else x1.approvallog
+end as approvallog_new,
+  
+case
+  when x1.status = 'SUBMITTED' then
+  	   case 
+  			when x1.profileinstanceid is not null or x1.profileinstanceid != ' ' then 1
+  	   		else 0
+  	   end
+  else 1
+end as flag
+  
+from ds_mongo_taskresponse x1 
+
+left join ds_mysql_prod_taskuser x2 on x2.id = x1.taskuserid
+left join ds_mysql_prod_task x3 on x3.id = x2.taskid
+left join ds_mysql_prod_flowtask x4 on x4.id = x3.flowtaskid
+left join ds_mysql_prod_projectflow x5 on x5.id = x3.projectflowid
+left join ds_mysql_prod_section x6 on x6.id = x4.sectionid
+left join ds_mysql_prod_profile x7 on x7.id = x6.profileid
+left join ds_mysql_prod_project x8 on x8.id = x5.projectid
+
+where x6.profileid = 54963 and x1.active = 't' and flag = 1
+and x1.status in ('PENDING_APPROVAL', 'SUBMITTED')
+
+group by x1._id, x1.profileinstanceid, x1.status, x1.active, x1.data, x1.taskuserid, x2.taskid, x5.projectid, x6.profileid, x4.sectionid, x6.name, x7.name, x8.name, x1.submissionlog, x1.approvallog), 
+
+sub2 as(
+  select s1.id, split_part(p2.name, '|', 1) as projectcode, s1.approvallog_new, t1.name as fy, t2.name as month, s1.status, p2.parent as project_parent, s1.subcat_output
+  
+case
+	when p2.parent = 18943 then split_part(p2.name, '|', 1)
+	else split_part(p3.name, '|', 1)
+end as parentcode
+
+from sub1 s1
+
+left join profile_54963 p1 on p1._id = s1.profileinstanceid
+left join ds_mysql_prod_project p2 on p2.id = s1.projectid 
+left join ds_mysql_prod_project p3 on p3.id = p2.parent
+
+left join ds_mysql_prod_tagelement t1 on t1.id = p1.fy
+left join ds_mysql_prod_tagelement t2 on t2.id = p1.month),
+
+sub3 as(
+  select s2.id, s2.projectcode, s2.approvallog_new, s2.fy, s2.month months, s2.status, s2.project_parent, s2.parentcode, t1.name as fy_27396, t2.name as project_manager_27396, t3.name as fy_27420, t4.name as project_manager_27420, s2.subcat_output,
+  
+case
+  	when t3.name is null or (split_part(s2.fy, '-', 1) < split_part(t3.name, '-', 1))
+  		 then t1.name
+  	else t3.name
+end as fy_27420_new,
+ 
+nvl(t4.name, t2.name) as project_manager_27420_new
+  
+from sub2 s2
+  
+left join profile_27396 p4 on p4.name = s2.parentcode
+left join profile_27420 p5 on p5.project_code = p4._id
+
+left join ds_mysql_prod_tagelement t1 on t1.id = p4.fy
+left join ds_mysql_prod_tagelement t2 on t2.id = p4.project_manager
+
+left join ds_mysql_prod_tagelement t3 on t3.id = p5.fy
+left join ds_mysql_prod_tagelement t4 on t4.id = p5.project_manager),
+
+sub4 as(
+  select s3.id, s3.projectcode, s3.approvallog_new, s3.fy, months, s3.fy_27396, s3.project_manager_27396, s3.fy_27420_new, s3.project_manager_27420_new, s3.fy_27420, s3.status, s3.subcat_output,
+  
+case
+  	when (split_part(s3.fy_27420_new, '-', 1) <= split_part(s3.fy, '-', 1)) or 
+  		 (split_part(s3.fy_27396, '-', 1) <= split_part(s3.fy, '-', 1)) then 1
+    else 0
+end as flag,
+
+row_number() over(partition by s3.id order by split_part(s3.fy_27420_new, '-', 1) desc) as row
+  
+from sub3 s3),
+
+sub5 as(
+  select s4.id, s4.projectcode, s4.approvallog_new, s4.fy, months, s4.fy_27396, s4.project_manager_27396, s4.fy_27420_new, s4.project_manager_27420_new, s4.status, s4.subcat_output
+  
+from sub4 s4 
+
+where s4.row = 1 and s4.flag = 1),
+
+sub6 as(
+  select s5.projectcode, s5.fy, s5.fy_27420_new, s5.fy_27396, months, s5.project_manager_27420_new, s5.project_manager_27396, s5.status, s5.approvallog_new, s5.subcat_output,
+  
+case
+  when (split_part(s5.fy_27420_new, '-', 1) <= split_part(s5.fy, '-', 1)) 
+  		then s5.project_manager_27420_new
+  else s5.project_manager_27396
+end as project_manager,
+  
+case 
+  when s5.subcat_output is not null or s5.subcat_output != ' ' then
+  	case
+  			when s5.status = 'PENDING_APPROVAL' and 
+       		 	  json_serialize(s5.approvallog_new) like '%APPROVED%' then 1
+  			else 0
+  	end
+  else 0
+end as pending_second,
+  
+case
+  when s5.subcat_output is not null or s5.subcat_output != ' ' then 
+  	case
+  			when s5.status = 'SUBMITTED' then 1
+  			else 0
+  	end
+  else 0
+end as approved_second
+  
+from sub5 s5),
+
+sub7 as(
+  select s6.projectcode, months, s6.fy as fy_timerange, s6.project_manager, sum(s6.pending_second) as pending_second, sum(s6.approved_second) as approved_second, "No. of Activities approved by the 1st Manager" x_axis
+
+from sub6 s6
+
+group by s6.projectcode,months, s6.fy, s6.project_manager)
+
+select * from sub7
