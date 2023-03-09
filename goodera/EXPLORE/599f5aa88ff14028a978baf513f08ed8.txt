@@ -1,14 +1,36 @@
 With main as(
-Select 'Student' as col
+Select 'Adopted %' as col
 UNION ALL
-Select 'Fellow' as col
+Select 'Instrcutional Hours  % increase' as col
+),
+tab2 as(
+Select 'FY ' ||'2017'||' - '||'2018' as col2
+Union All
+Select 'FY ' ||'2018'||' - '||'2019' as col2
+Union All
+Select 'FY ' ||'2019'||' - '||'2020' as col2
+UNION ALL
+SELECT 'FY ' ||'2020'||' - '||'2021' AS COL2
+UNION ALL
+SELECT 'FY ' ||'2021'||' - '||'2022' AS COL2
+UNION ALL
+SELECT 'FY ' ||'2022'||' - '||'2023' AS COL2
 )
 
-Select OBJECT('start','2017-04-01T00:00:00.000Z','end','2025-04-01T00:00:00.000Z') AS fy_timerange,main.col as dim,'Goal' as x_axis,
+Select main.col as dim,'Goal' as x_axis,
 Case col
-	When 'Student' then sum(p2.kef_mdmadoptgoal)
-	When 'Fellow' then sum(p2.kef_mdmihgoal)
-END AS Val
+	When 'Adopted %' then sum(p2.kef_mdmadoptgoal)
+	When 'Instrcutional Hours  % increase' then sum(p2.kef_mdmihgoal)
+END AS Val,
+Case col2
+WHEN 'FY ' ||'2017'||' - '||'2018' THEN 'FY ' ||'2017'||' - '||'2018'
+WHEN 'FY ' ||'2018'||' - '||'2019' THEN 'FY ' ||'2018'||' - '||'2019'
+WHEN 'FY ' ||'2019'||' - '||'2020' THEN 'FY ' ||'2019'||' - '||'2020'
+WHEN 'FY ' ||'2020'||' - '||'2021' THEN 'FY ' ||'2020'||' - '||'2021'
+WHEN 'FY ' ||'2021'||' - '||'2022' THEN 'FY ' ||'2021'||' - '||'2022'
+WHEN 'FY ' ||'2022'||' - '||'2023' THEN 'FY ' ||'2022'||' - '||'2023'
+END AS financial_year
 From profile_56837 p2
 cross join main
-group by main.col
+cross join tab2
+group by main.col,financial_year
