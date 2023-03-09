@@ -1,4 +1,3 @@
-
 with Lookup as
 (select cast((split_part(split_part(prod.name,'|',1),'.',1)) as varchar) as ProjectCode,split_part(prod.name,'|',3) as censuscode,f.name as fy_timerange,CONCAT(ProjectCode,fy_timerange) as CODE
 from profile_54963 p 
@@ -29,7 +28,14 @@ c.project_manager=m.id)
 (select p.fy_timerange,p.Project_Manager,p.ProjectCode,l.censuscode
 from Base1 p
 left join lookup l
-on p.CODE=l.CODE),Base3 as(select p.fy_timerange,p.Project_Manager,p.ProjectCode,l.village  as Village from Base2 p left join profile_27489 l on p.censuscode=l.name) 
+on p.CODE=l.CODE)
+
+,Base3 as(select p.fy_timerange,p.Project_Manager,p.ProjectCode,l.village  as Village from Base2 p left join profile_27489 l on p.censuscode=l.name
+		 group by 1,2,3,4
+		 ) 
+
+
+
 select fy_timerange,case when Project_Manager is null then 'N/A' else Project_Manager end as Project_Manager,ProjectCode,case when Village is null then 'N/A' else Village end as Village from Base3  order by fy_timerange
 
 
