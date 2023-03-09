@@ -1,0 +1,32 @@
+WITH TABLE1 AS (SELECT cou.name as country,p.name,fy_timerange,keyword,datanum,datanumbase,
+case 
+     when keyword ='total_rainwater_withdrawal' then 'Rain water'
+	 when keyword = 'groundwater_withdrawal' then 'Ground water'
+	 end as water_type,
+	 
+	 EXTRACT(MONTH FROM cast (startdate as datetime))AS month1,
+		EXTRACT(YEAR FROM cast (startdate as datetime))AS year1,
+		CASE
+		WHEN MONTH1 <= 3
+		THEN YEAR1-1
+		ELSE
+		YEAR1
+		END AS start,
+		start+1 AS end1,
+CONCAT('FY',CONCAT(start,CONCAT('-',RIGHT(end1,2)))) AS fy_2,
+concat(start,'-04-01T00:00:00.000Z') as start1,
+concat(end1,'-03-31T00:00:00.000Z') as end2,
+concat(concat(concat(concat('{"start":"',start1),'","end":"'),end2),'"}') as fy_1
+     
+
+from sus_83620 p
+
+left join project_9427 pro on
+p.xprojectid = pro.id
+
+left join project_9427 cou on
+pro.parent = cou.id
+
+where keyword in ('total_rainwater_withdrawal','groundwater_withdrawal'))
+
+SELECT country,name,fy_timerange,keyword,datanum,datanumbase,fy_2, water_type FROM TABLE1
