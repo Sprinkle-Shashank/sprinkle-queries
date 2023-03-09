@@ -1,142 +1,172 @@
-with sub1 as(
-  select x1._id as id, x1.profileinstanceid, x1.status, x1.active, x1.data, x1.taskuserid, x2.taskid, x5.projectid, x6.profileid, x4.sectionid, x6.name as section, x7.name as profile, x8.name as project, cast(x1.data.subcat_output as VARCHAR) as subcat_output,
+With Base1 as(
+ select p._id, p.profileinstanceid, 'New Project' as type_of_project,p.name as implementing_agency,p.fy as fy_timerange,p.contact_person,p.email,p.mobile_number,decode(p.status,'SUBMITTED','APPROVED',p.status) as status,cast(approval."timestamp" as varchar) as timestamp,p.core_area from taskresp_27395 p , p.approvallog approval, p.submissionlog sub_details
+  union all
+  select p._id, p.profileinstanceid, 'New Project' as type_of_project,p.name as implementing_agency,p.fy as fy_timerange,p.contact_person,p.email,p.mobile_number,decode(p.status,'SUBMITTED','APPROVED',p.status) as status,null as timestamp,p.core_area from taskresp_27395 p where status = 'SAVED'
+)
+
+,Base2 as(
+select p._id, p.profileinstanceid, 'Renewal Project' as type_of_project,p.ia,p.fy as fy_timerange, decode(p.status,'SUBMITTED','APPROVED',p.status) as status,cast(approval."timestamp" as varchar) as timestamp ,p.contact_person,p.email,p.mobile_number from taskresp_27405 p , p.approvallog approval, p.submissionlog sub_details
+  union all
+select p._id, p.profileinstanceid, 'Renewal Project'  as type_of_project,p.ia,p.fy as fy_timerange, decode(p.status,'SUBMITTED','APPROVED',p.status) as status,null as timestamp ,p.contact_person,p.email,p.mobile_number from taskresp_27405 p where status = 'SAVED'
+)
+
+,Base3 as(
+  select p._id, p.profileinstanceid, p.type_of_project,p.implementing_agency,p.fy_timerange,p.contact_person,p.email,p.mobile_number,p.status, p.timestamp,p.core_area from Base1 p
+union all
+select p._id, p.profileinstanceid,p.type_of_project,l.name as implementing_agency,p.fy_timerange,p.contact_person,p.email,p.mobile_number,p.status,p.timestamp,l.core_area from Base2 p left join
+profile_27395 l 
+on p.ia=l._id
+)
+
+,Base4 as(
+  select p._id, p.profileinstanceid, p.type_of_project,p.implementing_agency,p.fy_timerange,p.contact_person,p.email,p.mobile_number,p.status, p.timestamp,p.core_area from Base3 p
+union all
+  select p._id, p._id as profileinstanceid, 'New Project' as type_of_project,p.name as implementing_agency,p.fy as fy_timerange,p.contact_person,p.email,p.mobile_number,'APPROVED' as status, cast(p.createddate as varchar) as timestamp,p.core_area from profile_27395 p
+union all
+select p._id, p._id as profileinstanceid,'Renewal Project' as type_of_project,l.name as implementing_agency,p.fy as fy_timerange, p.contact_person, p.email, p.mobile_number, 'APPROVED' as status, cast(p.date_renewal as varchar) as timestamp, l.core_area from profile_27405 p left join
+profile_27395 l 
+on p.ia=l._id
+)
+
+
+,Base5 as(
+ select p._id, p.profileinstanceid,p.type_of_project,f.name as fy_timerange,p.Implementing_agency,p.mobile_number,p.contact_person,p.email,p.status,cast(split_part(cast(p.timestamp as varchar),'T',1) as date) as timestamp,p.core_area from Base4 p 
+ left join  ds_mysql_prod_tagelement f on
+p.fy_timerange=f.id
+)
+
+,Base6 as(
+select p._id,p.profileinstanceid,p.mobile_number,p.type_of_project,p.fy_timerange,dateadd(year,1,p.timestamp) as Date_of_renewal,p.Implementing_agency,p.contact_person,
+	extract(year from current_date)-cast(split_part(p.fy_timerange,'-',2) as int) as years_of_engagement,p.email,p.status,p.timestamp,p.core_area from Base5 p
+)
+
+
+,Base7 as(
+  select p._id,p.profileinstanceid,p.mobile_number,p.type_of_project,
+  case when current_date>=p.Date_of_renewal then 'Pending Renewal' 
+  when current_date<p.Date_of_renewal and p.type_of_project='Renewal Project' and p.Implementing_agency is not null  then 'Renewed' 
+  when current_date<p.Date_of_renewal and p.type_of_project!='Renewal Project' then 'New' 
+  end as Empanelment_type,p.fy_timerange, p.Date_of_renewal,p.Implementing_agency,p.contact_person,p.years_of_engagement,p.email,p.status,cast(p.timestamp as date),p.core_area from Base6 p 
+)
+
+,Base8 as(
+select p._id,p.profileinstanceid,p.Implementing_agency,p.status,p.fy_timerange,
+p.years_of_engagement as years_of_Engagement,p.contact_person,p.email, p.mobile_number, p.Empanelment_type, p.timestamp, p.Date_of_renewal, p.type_of_project,p.core_area from Base7 p
+
+  )
   
-case
-  when is_array(x1.submissionlog) = false or get_array_length(x1.submissionlog) = 0 then 
-  	   array(x1.submissionlog)
-  else x1.submissionlog
-end as submissionlog_new,
-case
-  when is_array(x1.approvallog) = false or get_array_length(x1.approvallog) = 0 then 
-  	   array(x1.approvallog)
-  else x1.approvallog
-end as approvallog_new,
+,Base9 as(
+  SELECT
+   p.*, 
+   row_number() OVER (PARTITION BY p.Implementing_agency ORDER BY p.fy_timerange desc) AS row_number
+  FROM Base8 p
+)
+
+,Base10 as(
+SELECT * FROM Base9 WHERE row_number = 1 
+  )
   
-case
-  when x1.status = 'SUBMITTED' then
-  	   case 
-  			when x1.profileinstanceid is not null or x1.profileinstanceid != ' ' then 1
-  	   		else 0
-  	   end
-  else 1
-end as flag
-  
-from ds_mongo_taskresponse x1 
+,Base11 as(
+select p._id, core_areas from Base10 p, p.core_area core_areas
+)
 
-left join ds_mysql_prod_taskuser x2 on x2.id = x1.taskuserid
-left join ds_mysql_prod_task x3 on x3.id = x2.taskid
-left join ds_mysql_prod_flowtask x4 on x4.id = x3.flowtaskid
-left join ds_mysql_prod_projectflow x5 on x5.id = x3.projectflowid
-left join ds_mysql_prod_section x6 on x6.id = x4.sectionid
-left join ds_mysql_prod_profile x7 on x7.id = x6.profileid
-left join ds_mysql_prod_project x8 on x8.id = x5.projectid
+,Base12 as (
+  select p._id, listagg(distinct t.name,' | ') as core_area from Base11 p left join ds_mysql_prod_tagelement t on p.core_areas=t.id  group by p._id
+)
 
-where x6.profileid = 54963 and x1.active = 't' and flag = 1
-and x1.status in ('PENDING_APPROVAL', 'SUBMITTED')
-
-group by x1._id, x1.profileinstanceid, x1.status, x1.active, x1.data, x1.taskuserid, x2.taskid, x5.projectid, x6.profileid, x4.sectionid, x6.name, x7.name, x8.name, x1.submissionlog, x1.approvallog), 
-
-sub2 as(
-  select s1.id, split_part(p2.name, '|', 1) as projectcode, s1.approvallog_new, t1.name as fy, t2.name as month, s1.subcat_output, p2.parent as project_parent,
-  
-case
-	when p2.parent = 18943 then split_part(p2.name, '|', 2)
-	else split_part(p2.name, '|', 4)
-end as project_name,
-  
-case
-	when p2.parent = 18943 then split_part(p2.name, '|', 1)
-	else split_part(p3.name, '|', 1)
-end as parentcode
-
-from sub1 s1
-
-left join profile_54963 p1 on p1._id = s1.profileinstanceid
-left join ds_mysql_prod_project p2 on p2.id = s1.projectid 
-left join ds_mysql_prod_project p3 on p3.id = p2.parent
-
-left join ds_mysql_prod_tagelement t1 on t1.id = p1.fy
-left join ds_mysql_prod_tagelement t2 on t2.id = p1.month),
-
-sub3 as(
-  select s2.id, s2.projectcode, s2.approvallog_new, s2.fy, s2.month, s2.subcat_output, s2.project_parent, s2.project_name, s2.parentcode, t1.name as fy_27396, t2.name as project_manager_27396, t3.name as fy_27420, t4.name as project_manager_27420,
-  
-case
-  	when t3.name is null or (split_part(s2.fy, '-', 1) < split_part(t3.name, '-', 1))
-  		 then t1.name
-  	else t3.name
-end as fy_27420_new,
+,Base13 as(
+select p._id,p.profileinstanceid,p.Implementing_agency,p.status,p.fy_timerange,
+p.years_of_engagement as years_of_Engagement,p.contact_person,p.email, p.mobile_number, p.Empanelment_type, decode(p.status,'APPROVED',p.timestamp) as timestamp, decode(p.status,'APPROVED',p.Date_of_renewal) as Date_of_renewal, p.type_of_project,l.core_area from Base10 p
+left join Base12 l on p._id=l._id 
+)
  
-nvl(t4.name, t2.name) as project_manager_27420_new
+,Base1_ as(
+ select p._id, p.profileinstanceid, 'New Project' as type_of_project,p.name as implementing_agency,(concat(concat(substring(p.registration_date,1,4),'-'),cast(substring(p.registration_date,1,4) as int)+1)) as fy_timerange,p.name_org
+,p.email_org,p.contact_org,decode(p.status,'SUBMITTED','APPROVED',p.status) as status,cast(approval."timestamp" as varchar) as timestamp,p.area_intervention from taskresp_80183 p , p.approvallog approval, p.submissionlog sub_details
+  union all
+  select p._id, p.profileinstanceid, 'New Project' as type_of_project,p.name as implementing_agency,(concat(concat(substring(p.registration_date,1,4),'-'),cast(substring(p.registration_date,1,4) as int)+1)) as fy_timerange,p.name_org,p.email_org,p.contact_org,decode(p.status,'SUBMITTED','APPROVED',p.status) as status,null as timestamp,p.area_intervention from taskresp_80183 p where status = 'SAVED'
+)
+
+,Base2_ as(
+select p._id, p.profileinstanceid, 'Renewal Project' as type_of_project,p.ia,(concat(concat(substring(p.registration_date,1,4),'-'),cast(substring(p.registration_date,1,4) as int)+1)) as fy_timerange, decode(p.status,'SUBMITTED','APPROVED',p.status) as status,cast(approval."timestamp" as varchar) as timestamp ,p.name_org,p.email_org,p.contact_org from taskresp_80188 p , p.approvallog approval, p.submissionlog sub_details
+  union all
+select p._id, p.profileinstanceid, 'Renewal Project'  as type_of_project,p.ia,(concat(concat(substring(p.registration_date,1,4),'-'),cast(substring(p.registration_date,1,4) as int)+1)) as fy_timerange, decode(p.status,'SUBMITTED','APPROVED',p.status) as status,null as timestamp ,p.name_org,p.email_org,p.contact_org from taskresp_80188 p where status = 'SAVED'
+)
+
+,Base3_ as(
+  select p._id, p.profileinstanceid, p.type_of_project,p.implementing_agency,p.fy_timerange,p.name_org,p.email_org,p.contact_org,p.status, p.timestamp,p.area_intervention from Base1_ p
+union all
+select p._id, p.profileinstanceid,p.type_of_project,l.name as implementing_agency,p.fy_timerange,p.name_org,p.email_org,p.contact_org,p.status,p.timestamp,l.area_intervention from Base2_ p left join
+profile_80183 l 
+on p.ia=l._id
+)
+
+,Base4_ as(
+  select p._id, p.profileinstanceid, p.type_of_project,p.implementing_agency,p.fy_timerange,p.name_org,p.email_org,p.contact_org,p.status, p.timestamp,p.area_intervention from Base3_ p
+union all
+  select p._id, p._id as profileinstanceid, 'New Project' as type_of_project,p.name as implementing_agency,(concat(concat(substring(p.registration_date,1,4),'-'),cast(substring(p.registration_date,1,4) as int)+1)) as fy_timerange,p.name_org,p.email_org,p.contact_org,'APPROVED' as status, 
+  cast(p.registration_date as varchar) as timestamp,
+  p.area_intervention from profile_80183 p
+union all
+select p._id, p._id as profileinstanceid,'Renewal Project' as type_of_project,l.name as implementing_agency,(concat(concat(substring(p.registration_date,1,4),'-'),cast(substring(p.registration_date,1,4) as int)+1)) as fy_timerange, p.name_org, p.email_org, p.contact_org, 'APPROVED' as status, 
+  cast(p.registration_date as varchar) as timestamp, 
+  l.area_intervention from profile_80188 p left join
+profile_80183 l 
+on p.ia=l._id
+)
+
+
+,Base5_ as(
+ select p._id, p.profileinstanceid,p.type_of_project,f.name as fy_timerange1,p.Implementing_agency,p.contact_org,p.name_org,p.email_org,p.status,cast(split_part(cast(p.timestamp as varchar),'T',1) as date) as timestamp,p.area_intervention,p.fy_timerange as fy_timerange from Base4_ p 
+ left join  ds_mysql_prod_tagelement f on
+p.fy_timerange=f.id
+)
+
+,Base6_ as(
+select p._id,p.profileinstanceid,p.contact_org,p.type_of_project,p.fy_timerange,dateadd(year,1,p.timestamp) as Date_of_renewal,p.Implementing_agency,p.name_org,
+	case when split_part(p.fy_timerange,'-',2) >  extract(year from current_date) then extract(year from current_date)-cast(split_part(p.fy_timerange,'-',1) as int) else extract(year from current_date)-cast(split_part(p.fy_timerange,'-',2) as int) end as years_of_engagement,p.email_org,p.status,p.timestamp,p.area_intervention from Base5_ p
+)
+
+
+,Base7_ as(
+  select p._id,p.profileinstanceid,p.contact_org,p.type_of_project,
+  case when current_date>=p.Date_of_renewal then 'Pending Renewal' 
+  when current_date<p.Date_of_renewal and p.type_of_project='Renewal Project' and p.Implementing_agency is not null  then 'Renewed' 
+  when current_date<p.Date_of_renewal and p.type_of_project!='Renewal Project' then 'New' 
+  end as Empanelment_type,p.fy_timerange, p.Date_of_renewal,p.Implementing_agency,p.name_org,p.years_of_engagement,p.email_org,p.status,cast(p.timestamp as date),p.area_intervention from Base6_ p 
+)
+
+,Base8_ as(
+select p._id,p.profileinstanceid,p.Implementing_agency,p.status,p.fy_timerange,
+p.years_of_engagement as years_of_Engagement,p.name_org,p.email_org, p.contact_org, p.Empanelment_type, p.timestamp, p.Date_of_renewal, p.type_of_project,p.area_intervention from Base7_ p
+
+  )
   
-from sub2 s2
+,Base9_ as(
+  SELECT
+   p.*, 
+   row_number() OVER (PARTITION BY p.Implementing_agency ORDER BY p.fy_timerange desc) AS row_number
+  FROM Base8_ p
+)
+
+,Base10_ as(
+SELECT * FROM Base9_ WHERE row_number = 1 
+  )
   
-left join profile_27396 p4 on p4.name = s2.parentcode
-left join profile_27420 p5 on p5.project_code = p4._id
+,Base11_ as(
+select p._id, area_interventions from Base10_ p, p.area_intervention area_interventions
+)
 
-left join ds_mysql_prod_tagelement t1 on t1.id = p4.fy
-left join ds_mysql_prod_tagelement t2 on t2.id = p4.project_manager
+,Base12_ as (
+  select p._id, listagg(distinct t.name,' | ') as area_intervention from Base11_ p left join ds_mysql_prod_tagelement t on p.area_interventions=t.id  group by p._id
+)
 
-left join ds_mysql_prod_tagelement t3 on t3.id = p5.fy
-left join ds_mysql_prod_tagelement t4 on t4.id = p5.project_manager),
+,Base13_ as(
+select p._id,p.profileinstanceid,p.Implementing_agency,p.status,p.fy_timerange,
+p.years_of_engagement as years_of_Engagement,p.name_org,p.email_org, p.contact_org, p.Empanelment_type, decode(p.status,'APPROVED',p.timestamp) as timestamp, decode(p.status,'APPROVED',p.Date_of_renewal) as Date_of_renewal, p.type_of_project,p.area_intervention from Base10_ p
+left join Base12_ l on p._id=l._id 
+)
 
-sub4 as(
-  select s3.id, s3.projectcode, s3.approvallog_new, s3.fy, s3.month, s3.project_name, s3.fy_27396, s3.project_manager_27396, s3.fy_27420_new, s3.project_manager_27420_new, s3.fy_27420, s3.subcat_output,
-  
-case
-  	when (split_part(s3.fy_27420_new, '-', 1) <= split_part(s3.fy, '-', 1)) or 
-  		 (split_part(s3.fy_27396, '-', 1) <= split_part(s3.fy, '-', 1)) then 1
-    else 0
-end as flag,
-
-row_number() over(partition by s3.id order by split_part(s3.fy_27420_new, '-', 1) desc) as row
-  
-from sub3 s3),
-
-sub5 as(
-  select s4.id, s4.projectcode, s4.approvallog_new, s4.fy, s4.month, s4.project_name, s4.fy_27396, s4.project_manager_27396, s4.fy_27420_new, s4.project_manager_27420_new, s4.subcat_output,
-
-case s4.month
-	when 'January' then 1
-	when 'February' then 2
-	when 'March' then 3
-	when 'April' then 4
-	when 'May' then 5
-	when 'June' then 6
-	when 'July' then 7
-	when 'August' then 8
-	when 'September' then 9
-	when 'October' then 10
-	when 'November' then 11
-	else 12
-end as month_sort
-  
-from sub4 s4 
-
-where s4.row = 1 and s4.flag = 1),
-
-sub6 as(
-  select s5.projectcode, s5.fy, s5.fy_27420_new, s5.fy_27396, s5.project_name, s5.month, s5.month_sort, s5.project_manager_27420_new, s5.project_manager_27396, s5.subcat_output,
-  
-case
-  when (split_part(s5.fy_27420_new, '-', 1) <= split_part(s5.fy, '-', 1)) 
-  		then s5.project_manager_27420_new
-  else s5.project_manager_27396
-end as project_manager,
-  
-case 
-  when s5.subcat_output is not null or s5.subcat_output != ' ' then 1
-  else 0
-end as subcat_not_null
-  
-from sub5 s5),
-
-sub7 as(
-  select s6.projectcode, s6.fy as fy_timerange, s6.project_name, s6.project_manager,
-listagg(distinct s6.month, ', ') within group (order by s6.month_sort asc) as months,  sum(s6.subcat_not_null) as subcat_not_null
-
-from sub6 s6
-
-group by s6.projectcode, s6.fy, s6.project_name, s6.project_manager)
-
-select * from sub7
+select * from Base13
+union
+select * from Base13_
