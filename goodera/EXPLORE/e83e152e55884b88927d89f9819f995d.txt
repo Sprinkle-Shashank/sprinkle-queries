@@ -1,0 +1,43 @@
+WITH table1 AS (SELECT *
+FROM (
+SELECT cou.name AS country,p.name,fy_timerange,keyword,datanum,datanumbase,startdate
+FROM sus_83620 p
+
+LEFT JOIN project_9427 pro ON
+p.xprojectid = pro.id
+
+LEFT JOIN project_9427 cou ON
+pro.parent = cou.id
+
+WHERE keyword IN ('total_water_consumtion','water_cons_product_manu','total_rainwater_withdrawal','percentage_recycledwater','total_water_insity','fresh_water_consumption') 
+
+ORDER BY fy_timerange ASC
+  
+) PIVOT (
+   SUM(datanum) FOR keyword IN ('total_water_consumtion','water_cons_product_manu','total_rainwater_withdrawal','percentage_recycledwater','total_water_insity','fresh_water_consumption')
+) 
+	),
+
+table2 AS (
+		SELECT country,name,fy_timerange,total_water_consumtion,water_cons_product_manu,total_rainwater_withdrawal,percentage_recycledwater,total_water_insity,fresh_water_consumption,
+		EXTRACT(MONTH FROM cast (startdate as datetime))AS month1,
+		EXTRACT(YEAR FROM cast (startdate as datetime))AS year1,
+		CASE
+		WHEN MONTH1 <= 3
+		THEN YEAR1-1
+		ELSE
+		YEAR1
+		END AS start,
+		start+1 AS end1,
+CONCAT(start,'-04-01T00:00:00.000Z') AS start1,
+CONCAT(end1,'-04-01T00:00:00.000Z') AS end2,
+CONCAT(CONCAT(CONCAT(CONCAT('{"start":"',start1),'","end":"'),end2),'"}') AS fy_1,
+CONCAT('FY',CONCAT(start,CONCAT('-',RIGHT(end1,2)))) AS fy_2,
+  case when month1 in (4,5,6) then 'Q1'
+		   when month1 in (7,8,9) then 'Q2'
+		   when month1 in (10,11,12) then 'Q3'
+			else 'Q4' end as quarter
+  from table1 t1
+	)
+SELECT country,name,fy_1 as fy_timerange,total_water_consumtion,water_cons_product_manu,total_rainwater_withdrawal,percentage_recycledwater,fy_2,quarter,fresh_water_consumption FROM table2
+order by quarter desc
