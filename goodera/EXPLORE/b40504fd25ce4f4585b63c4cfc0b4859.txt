@@ -1,32 +1,156 @@
-with tab1 as(Select usfmonth_timerange,usf_donorscontinue,usf_funds,usf_expense,usf_variance,
-rank() over(partition by usfmonth_timerange order by usf_donorscontinue asc) as rnk
-From profile_55986
-where usfmonth_timerange is not null)
+With tab1 as(Select p.tfimonth_timerange,
+CASE
+	WHEN p.tfi_fattendactual is null then 0
+	ELSE p.tfi_fattendactual
+END AS tfi_fattendactual,
+CASE
+	WHEN p.tfi_sattendactual is null then 0
+	ELSE p.tfi_sattendactual
+END AS tfi_sattendactual,
+CASE
+	WHEN p.usf_pgraduate is null then 0
+	ELSE p.usf_pgraduate
+END AS usf_pgraduate,
+CASE
+	WHEN p.usf_alumnaepconduct is null then 0
+	ELSE p.usf_alumnaepconduct
+END AS usf_alumnaepconduct,
+CASE
+	WHEN p.usf_dashboard is null then 0
+	ELSE p.usf_dashboard
+END AS usf_dashboard,
+CASE
+	WHEN p.kef_mdmadopt is null then 0
+	ELSE p.kef_mdmadopt
+END AS kef_mdmadopt,
+CASE
+	WHEN p.usf_alumnae is null then 0
+	ELSE p.usf_alumnae
+END AS usf_alumnae
+From profile_55986 p
+where tfi_fattendactual is not null 
+order by tfimonth_timerange asc
+limit 1),
 
-Select usfmonth_timerange as fy_timerange,usf_donorscontinue,usf_funds,usf_expense,usf_variance,rnk,
-CAST(usfmonth_timerange.start AS DATE) AS start,
-EXTRACT(MONTH FROM start) AS month,
-EXTRACT(YEAR FROM start) AS year,
+TABpivot AS (
+SELECT 'Fellow Attendance % Actual (Delhi)' AS COL
+UNION ALL
+SELECT 'Student Attendance % Actual (Delhi, schools where Fellows used the solution)' AS COL
+UNION ALL
+SELECT '% of graduated Shalini’s who are part of Alumnae (National)' AS COL
+UNION ALL
+SELECT '% of Programs conducted for Alumnae (National)' AS COL
+UNION ALL
+SELECT 'Financial Dashboard (National)' AS COL
+UNION ALL
+SELECT 'KEF MDM Adopted % (JhunJhunu District)' AS COL
+UNION ALL
+SELECT 'Average' AS COL
+),
+tab2 as(Select 
+CASE COL
+	WHEN 'Fellow Attendance % Actual (Delhi)'THEN 'TFI'
+	WHEN 'Student Attendance % Actual (Delhi, schools where Fellows used the solution)' THEN 'TFI'
+	WHEN '% of graduated Shalini’s who are part of Alumnae (National)' THEN 'USF'
+	WHEN '% of Programs conducted for Alumnae (National)' THEN 'USF'
+	WHEN 'Financial Dashboard (National)' THEN 'USF'
+	WHEN 'KEF MDM Adopted % (JhunJhunu District)' THEN 'KEF'
+END AS NPO,
+TABpivot.col AS Indicator,
+CASE COL
+	WHEN 'Fellow Attendance % Actual (Delhi)'THEN tab1.tfi_fattendactual
+	WHEN 'Student Attendance % Actual (Delhi, schools where Fellows used the solution)' THEN tab1.tfi_sattendactual
+	WHEN '% of graduated Shalini’s who are part of Alumnae (National)' THEN tab1.usf_pgraduate
+	WHEN '% of Programs conducted for Alumnae (National)' THEN tab1.usf_alumnae
+	WHEN 'Financial Dashboard (National)' THEN tab1.usf_dashboard
+	WHEN 'KEF MDM Adopted % (JhunJhunu District)' THEN tab1.kef_mdmadopt
+	WHEN 'Average' THEN ((tab1.tfi_fattendactual+tab1.tfi_sattendactual+tab1.usf_pgraduate+tab1.usf_alumnaepconduct+tab1.usf_dashboard+tab1.kef_mdmadopt+tab1.usf_alumnae)/6)
+END AS Base
+From tab1
+CROSS JOIN TABpivot),
+
+tab3 as(
+Select p.tfimonth_timerange, CASE
+	WHEN p.tfi_fattendactual is null then 0
+	ELSE p.tfi_fattendactual
+END AS tfi_fattendactual,
+CASE
+	WHEN p.tfi_sattendactual is null then 0
+	ELSE p.tfi_sattendactual
+END AS tfi_sattendactual,
+CASE
+	WHEN p.usf_pgraduate is null then 0
+	ELSE p.usf_pgraduate
+END AS usf_pgraduate,
+CASE
+	WHEN p.usf_alumnaepconduct is null then 0
+	ELSE p.usf_alumnaepconduct
+END AS usf_alumnaepconduct,
+CASE
+	WHEN p.usf_dashboard is null then 0
+	ELSE p.usf_dashboard
+END AS usf_dashboard,
+CASE
+	WHEN p.kef_mdmadopt is null then 0
+	ELSE p.kef_mdmadopt
+END AS kef_mdmadopt,
+CASE
+	WHEN p.usf_alumnae is null then 0
+	ELSE p.usf_alumnae
+END AS usf_alumnae
+From profile_55986 p
+where tfi_fattendactual is not null 
+order by tfimonth_timerange.start asc
+limit 1
+),
+tab4 as(
+Select TABpivot.col AS Indicator,
+CASE COL
+	WHEN 'Fellow Attendance % Actual (Delhi)'THEN tab3.tfi_fattendactual
+	WHEN 'Student Attendance % Actual (Delhi, schools where Fellows used the solution)' THEN tab3.tfi_sattendactual
+	WHEN '% of graduated Shalini’s who are part of Alumnae (National)' THEN tab3.usf_pgraduate
+	WHEN '% of Programs conducted for Alumnae (National)' THEN tab3.usf_alumnae
+	WHEN 'Financial Dashboard (National)' THEN tab3.usf_dashboard
+	WHEN 'KEF MDM Adopted % (JhunJhunu District)' THEN tab3.kef_mdmadopt
+    WHEN 'Average' THEN ((tab3.tfi_fattendactual+tab3.tfi_sattendactual+tab3.usf_pgraduate+tab3.usf_alumnaepconduct+tab3.usf_dashboard+tab3.kef_mdmadopt+tab3.usf_alumnae)/6)
+END AS Current
+From tab3
+CROSS JOIN TABpivot
+),
+
+tab5 as(
+Select tfi_fattendgoal,tfi_sattendgoal,usf_pgraduategoal,usf_alumnaepconductgoal,usf_dashboardgoal,kef_mdmadoptgoal
+From profile_56837
+where tfi_fattendgoal is not null
+),
+
+tab6 as(
+Select TABpivot.col AS Indicator,
+CASE COL
+	WHEN 'Fellow Attendance % Actual (Delhi)'THEN tab5.tfi_fattendgoal
+	WHEN 'Student Attendance % Actual (Delhi, schools where Fellows used the solution)' THEN tab5.tfi_sattendgoal
+	WHEN '% of graduated Shalini’s who are part of Alumnae (National)' THEN tab5.usf_pgraduategoal
+	WHEN '% of Programs conducted for Alumnae (National)' THEN tab5.usf_alumnaepconductgoal
+	WHEN 'Financial Dashboard (National)' THEN tab5.usf_dashboardgoal
+	WHEN 'KEF MDM Adopted % (JhunJhunu District)' THEN tab5.kef_mdmadoptgoal
+    WHEN 'Average' THEN ((tab5.tfi_fattendgoal+tab5.tfi_sattendgoal+tab5.usf_pgraduategoal+tab5.usf_alumnaepconductgoal+tab5.usf_dashboardgoal+tab5.kef_mdmadoptgoal)/6)
+END AS Goal
+From tab5
+CROSS JOIN TABpivot
+)
+Select t2.*,t4.current,t6.goal,
 case 
-when month in (4,5,6,7,8,9,10,11,12) and year =2017 then 'FY 2017-2018'
-when month in (1,2,3) and year= 2018 then  'FY 2017-2018'
-
-when month in (4,5,6,7,8,9,10,11,12) and year =2018 then 'FY 2018-2019'
-when month in (1,2,3) and year= 2019 then  'FY 2018-2019'
-
-when month in (4,5,6,7,8,9,10,11,12) and year =2019 then 'FY 2019-2020'
-when month in (1,2,3) and year= 2020 then  'FY 2019-2020'
-
-when month in (4,5,6,7,8,9,10,11,12) and year =2020 then 'FY 2020-2021'
-when month in (1,2,3) and year= 2021 then  'FY 2020-2021'
-
-when month in (4,5,6,7,8,9,10,11,12) and year =2021 then 'FY 2021-2022'
-when month in (1,2,3) and year= 2022 then  'FY 2021-2022'
-  
-when month in (4,5,6,7,8,9,10,11,12) and year =2022 then 'FY 2022-2023'
-when month in (1,2,3) and year= 2023 then  'FY 2022-2023'
-
-end as year_1
-from tab1
-where rnk=1
-and usf_donorscontinue is not null
+	when t2.indicator='Fellow Attendance % Actual (Delhi)' then 1
+	when t2.indicator='Student Attendance % Actual (Delhi, schools where Fellows used the solution)' then 2
+	when t2.indicator='% of graduated Shalini’s who are part of Alumnae (National)' then 3
+	when t2.indicator='% of Programs conducted for Alumnae (National)' then 4
+	when t2.indicator='Financial Dashboard (National)' then 5
+	when t2.indicator='KEF MDM Adopted % (JhunJhunu District)' then 6
+	when t2.indicator='Average' then 7
+end as order1
+from tab2 t2
+left join tab4 t4
+on t2.Indicator=t4.Indicator
+left join tab6 t6
+on t2.Indicator=t6.Indicator
+order by order1 asc
