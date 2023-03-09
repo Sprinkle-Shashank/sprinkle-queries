@@ -1,5 +1,6 @@
 drop table if exists NGO_Task_Status_Activites_Done_flow;
 create table NGO_Task_Status_Activites_Done_flow as
+--HDFC_NGO_Task_Status_Activites Done
 with sub1 as(
   select p1._id as id, t1.name as fy, split_part(p2.name, '|', 1) as projectcode, t2.name as month,
 
@@ -57,29 +58,14 @@ row_number() over(partition by s2.id order by split_part(s2.fy_27420_new, '-', 1
 from sub2 s2),
 
 sub4 as(
-  select s3.id, s3.projectcode, s3.fy, s3.month, s3.project_name, s3.fy_27396, s3.project_manager_27396, s3.fy_27420_new, s3.project_manager_27420_new,
-
-case s3.month
-	when 'January' then 1
-	when 'February' then 2
-	when 'March' then 3
-	when 'April' then 4
-	when 'May' then 5
-	when 'June' then 6
-	when 'July' then 7
-	when 'August' then 8
-	when 'September' then 9
-	when 'October' then 10
-	when 'November' then 11
-	else 12
-end as month_sort
+  select s3.id, s3.projectcode, s3.fy, s3.month, s3.project_name, s3.fy_27396, s3.project_manager_27396, s3.fy_27420_new, s3.project_manager_27420_new
   
 from sub3 s3
 
 where s3.row = 1 and s3.flag = 1),
 
 sub5 as(
-  select s4.projectcode, s4.fy, s4.fy_27420_new, s4.fy_27396, s4.project_name, s4.month, s4.month_sort, 1 as total_count, s4.project_manager_27420_new, s4.project_manager_27396,
+  select s4.projectcode, s4.fy, s4.fy_27420_new, s4.fy_27396, s4.project_name, s4.month, 1 as total_count, s4.project_manager_27420_new, s4.project_manager_27396,
   
 case
   when (split_part(s4.fy_27420_new, '-', 1) <= split_part(s4.fy, '-', 1)) 
@@ -91,11 +77,11 @@ from sub4 s4),
 
 sub6 as(
   select s5.projectcode, s5.fy as fy_timerange, s5.project_name, s5.project_manager,
-listagg(distinct s5.month, ', ') within group (order by s5.month_sort asc) as months, 
+s5.month as months, 
 sum(s5.total_count) as total_count
   
 from sub5 s5
 
-group by s5.projectcode, s5.fy, s5.project_name, s5.project_manager)
+group by s5.projectcode, s5.fy, s5.project_name,s5.month, s5.project_manager)
 
 select * from sub6
