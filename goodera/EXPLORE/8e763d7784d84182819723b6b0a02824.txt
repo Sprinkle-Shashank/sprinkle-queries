@@ -1,0 +1,49 @@
+--Marico_Biogenic_Emission
+with table1 as (SELECT *
+FROM (
+select cou.name as country,p.name,p.fy_timerange,keyword,datanum,startdate
+
+from sus_83620 p
+
+left join project_9427 pro on 
+p.xprojectid = pro.id
+
+left join project_9427 cou on 
+pro.parent = cou.id
+
+where keyword in ('biogenic_emission') 
+
+order by fy_timerange asc
+  
+) PIVOT (
+   sum(datanum) FOR keyword IN ('biogenic_emission')
+) 
+				),
+				table2 as (
+select country,name,fy_timerange,biogenic_emission ,
+EXTRACT(MONTH FROM cast (startdate as datetime))AS month1,
+EXTRACT(YEAR FROM cast (startdate as datetime))AS year1,
+CASE
+WHEN MONTH1 <= 3
+THEN YEAR1-1
+ELSE
+YEAR1
+END AS start,
+start+1 as end1,
+concat(start,'-04-01T00:00:00.000Z') as start1,
+concat(end1,'-04-01T00:00:00.000Z') as end2,
+concat(concat(concat(concat('{"start":"',start1),'","end":"'),end2),'"}') as fy_1,
+				  concat('FY',concat(start,concat('-',right(end1,2)))) as fy_2
+				  
+
+from table1 t1
+				),
+table3 as (
+select country,name,fy_1 as fy_timerange,fy_2,biogenic_emission as total_emission from table2 t2
+
+group by country,name,fy_1,fy_2,biogenic_emission)
+
+select country,name,fy_timerange,total_emission,fy_2,lag(total_emission,1) over (partition by name order by  fy_timerange) as prev_emission from table3 
+
+
+
