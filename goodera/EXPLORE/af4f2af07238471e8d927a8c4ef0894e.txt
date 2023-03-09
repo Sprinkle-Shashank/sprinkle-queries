@@ -11,12 +11,12 @@ p.xprojectid = pro.id
 left join project_9427 cou on 
 pro.parent = cou.id
 
-where keyword in ('scope1_emission','scope2_emission','emission_intensity') 
+where keyword in ('scope1_emission','scope2_emission','turnover') 
 
 order by fy_timerange asc
   
 ) PIVOT (
-   sum(datanum) FOR keyword IN ('scope1_emission','scope2_emission','emission_intensity')
+   sum(datanum) FOR keyword IN ('scope1_emission','scope2_emission','turnover')
 ) 
 				),
 				table2 as (
@@ -33,13 +33,13 @@ END AS start,
 start+1 as end1,
 concat(start,'-04-01T00:00:00.000Z') as start1,
 concat(end1,'-03-31T00:00:00.000Z') as end2,
-concat(concat(concat(concat('{"start":"',start1),'","end":"'),end2),'"}') as fy_1,emission_intensity,concat('FY(',concat(start,concat('-',concat(end1,')')))) as fy_2,scope1_emission + scope2_emission as total_emission1	  
+concat(concat(concat(concat('{"start":"',start1),'","end":"'),end2),'"}') as fy_1,turnover,concat('FY(',concat(start,concat('-',concat(end1,')')))) as fy_2,scope1_emission + scope2_emission as total_emission1	  
 				  
 
 from table1 t1
 				),
-turnover as ( select fy_2 , sum(emission_intensity) as turnover from table2
-where emission_intensity is not null
+turnover as ( select fy_2 , sum(turnover) as turnover from table2
+where turnover is not null
 group by fy_2			 
 
 ),				
