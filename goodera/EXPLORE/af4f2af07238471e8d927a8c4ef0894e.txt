@@ -33,13 +33,13 @@ END AS start,
 start+1 as end1,
 concat(start,'-04-01T00:00:00.000Z') as start1,
 concat(end1,'-03-31T00:00:00.000Z') as end2,
-concat(concat(concat(concat('{"start":"',start1),'","end":"'),end2),'"}') as fy_1,emission_intensity,concat('FY(',concat(start,concat('-',concat(end1,')')))) as fy_2,scope1_emission + scope2_emission	end	 as total_emission1	  
+concat(concat(concat(concat('{"start":"',start1),'","end":"'),end2),'"}') as fy_1,emission_intensity,concat('FY(',concat(start,concat('-',concat(end1,')')))) as fy_2,scope1_emission + scope2_emission as total_emission1	  
 				  
 
 from table1 t1
 				),
 turnover as ( select fy_2 , sum(emission_intensity) as turnover from table2
-where turnover is not null
+where emission_intensity is not null
 group by fy_2			 
 
 ),				
@@ -56,7 +56,7 @@ where row = 1 )
 select country,t3.fy_timerange,t3.intensity,fy_2/*,lag(total_emission,1) over (order by  fy_timerange) as prev_emission*/,
 /*case when t4.base_value = 0 then null
      else t4.base_value end*/
-	 (select intensity from table3 order by fy_timerange asc limit 1) as base_value1,(base_value1-t3.intensity)*100.0/base_value1 as base_perc,turnover1 from table3 t3
+	 (select intensity from table3 order by fy_timerange asc limit ) as base_value1,(base_value1-t3.intensity)*100.0/base_value1 as base_perc,turnover1 from table3 t3
 	
 
 --select * from table4
