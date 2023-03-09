@@ -2,13 +2,24 @@ With main as(
 Select 'Inside School' as col
 UNION ALL
 Select 'Outside School' as col
+),
+tab2 as(
+Select 'FY ' ||'2017'||' - '||'2018' as col2
+Union All
+Select 'FY ' ||'2018'||' - '||'2019' as col2
+Union All
+Select 'FY ' ||'2019'||' - '||'2020' as col2
 )
 
-Select OBJECT('start','2017-04-01T00:00:00.000Z','end','2025-04-01T00:00:00.000Z') AS fy_timerange,main.col as dim,'Goal' as x_axis,
+Select main.col as dim,'Goal' as x_axis,
 Case col
 	When 'Inside School' then sum(p2.tfi_hrsgoal)
 	When 'Outside School' then sum(p2.tfi_ohrsgoal)
-END AS Val
+END AS Val,
+Case col2
+WHEN 'FY ' ||'2017'||' - '||'2018' THEN 'FY'
+END AS financial_year
 From profile_56837 p2
 cross join main
-group by main.col
+cross join tab2
+group by main.col,financial_year
