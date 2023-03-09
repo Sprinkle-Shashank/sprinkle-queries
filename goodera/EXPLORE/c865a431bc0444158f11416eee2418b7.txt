@@ -4,12 +4,35 @@ UNION ALL
 Select 'Fellow' as col
 )
 
-Select p1.tfimonth_timerange as fy_timerange,main.col as dim,'All Quarters' as x_axis,
+Select main.col as dim,'All Quarters' as x_axis,
 Case col
 	When 'Student' then avg(p1.tfi_sattendactual) 
 	When 'Fellow' then avg(p1.tfi_fattendactual) 
-END AS Val
+END AS Val,
+CAST(p1.tfimonth_timerange.start AS DATE) AS start,
+EXTRACT(MONTH FROM start) AS month,
+EXTRACT(YEAR FROM start) AS year,
+case 
+when month in (4,5,6,7,8,9,10,11,12) and year =2017 then 'FY ' ||'2017'||' - '||'2018'
+when month in (1,2,3) and year= 2018 then  'FY ' ||'2017'||' - '||'2018'
+
+when month in (4,5,6,7,8,9,10,11,12) and year =2018 then 'FY ' ||'2018'||' - '||'2019'
+when month in (1,2,3) and year= 2019 then  'FY ' ||'2018'||' - '||'2019'
+
+when month in (4,5,6,7,8,9,10,11,12) and year =2019 then 'FY ' ||'2019'||' - '||'2020'
+when month in (1,2,3) and year= 2020 then  'FY ' ||'2019'||' - '||'2020'
+
+when month in (4,5,6,7,8,9,10,11,12) and year =2020 then 'FY ' ||'2020'||' - '||'2021'
+when month in (1,2,3) and year= 2021 then  'FY ' ||'2020'||' - '||'2021'
+
+when month in (4,5,6,7,8,9,10,11,12) and year =2021 then 'FY ' ||'2021'||' - '||'2022'
+when month in (1,2,3) and year= 2022 then  'FY ' ||'2021'||' - '||'2022'
+  
+when month in (4,5,6,7,8,9,10,11,12) and year =2022 then 'FY ' ||'2022'||' - '||'2023'
+when month in (1,2,3) and year= 2023 then  'FY ' ||'2022'||' - '||'2023'
+
+end as financial_year
 From profile_55986 p1
 cross join main
 where tfi_sattendactual is not null
-group by tfimonth_timerange,main.col
+group by financial_year,main.col
