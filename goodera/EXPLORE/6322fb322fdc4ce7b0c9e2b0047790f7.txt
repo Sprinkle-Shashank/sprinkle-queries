@@ -1,0 +1,26 @@
+WITH TABLE1 AS(select cou.name as country,p.name,fy_timerange,keyword,datanum,datanumbase,
+ EXTRACT(MONTH FROM cast (startdate as datetime))AS month1,
+		EXTRACT(YEAR FROM cast (startdate as datetime))AS year1,
+		CASE
+		WHEN MONTH1 <= 3
+		THEN YEAR1-1
+		ELSE
+		YEAR1
+		END AS start,
+		start+1 AS end1,
+concat(start,'-04-01T00:00:00.000Z') as start1,
+concat(end1,'-03-31T00:00:00.000Z') as end2,
+concat(concat(concat(concat('{"start":"',start1),'","end":"'),end2),'"}') as fy_1,
+CONCAT('FY',CONCAT(start,CONCAT('-',RIGHT(end1,2)))) AS fy_2  
+
+from sus_83620 p
+
+left join project_9427 pro on
+p.xprojectid = pro.id
+
+left join project_9427 cou on
+pro.parent = cou.id
+
+where keyword in ('water_recycled'))
+
+SELECT country,name,fy_1 as fy_timerange,keyword,datanum,datanumbase,fy_2 FROM TABLE1
