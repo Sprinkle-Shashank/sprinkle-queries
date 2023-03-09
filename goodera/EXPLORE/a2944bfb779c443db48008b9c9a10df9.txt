@@ -8,17 +8,17 @@ with temp as ( select 'Teachers Completed Training and Certification' as c
 			   Union all
 			   select 'Teachers Active' as c
 			   Union all
-			   select 'Teachers who Attended Life Sessions' as c
+			   select 'Teachers who Attended Live Sessions' as c
 			   Union all
 			   select 'Teachers using WA 1-1 Platform' as c)
 			   
-select proj.name as projectid, p.fy_timerange, p.financial_year,stat.name as state, dist.name as district, p.school_name,
+select proj.name as projectid, p.fy_timerange, p.financial_year,stat.name as state, dist.name as district, school.name as school_name,
 sum (case c when 'Teachers Completed Training and Certification'  then p.teachers_tnc  
        when 'Teachers Registered' then p.teachers_registered
 	   when 'Teachers Trained' then p.teachers_trained
 	   when 'Teachers Certified' then p.teachers_certified
 	   when 'Teachers Active' then p.teachers_active
-	   when 'Teachers who Attended Life Sessions' then p.teachers_live_sessions
+	   when 'Teachers who Attended Live Sessions' then p.teachers_live_sessions
 	   when 'Teachers using WA 1-1 Platform' then p.teachers_platform
 	   else null
 	   end) as val, temp.c as dim 
@@ -30,5 +30,6 @@ cross join temp
 left join ds_mysql_prod_project as proj on p.projectid = proj.id
 left join ds_mysql_prod_tagelement as dist on p.state_district = dist.id
 left join ds_mysql_prod_tagelement as stat on dist.parent = stat.id  
+left join ds_mysql_prod_tagelement as school on p.school_name = school.id
 
-group by proj.name, p.fy_timerange,dist.name,stat.name,p.school_name,temp.c, p.financial_year
+group by proj.name, p.fy_timerange,dist.name,stat.name,school.name,temp.c, p.financial_year
