@@ -1,0 +1,57 @@
+
+with temp1 AS
+(select m._id AS old_id, m.projectId, m.month_timerange, m.project_code_new, m.amount, r.project_name, r.vertical, r.focus, r.state, r.direct_or_partner, r.project_code, r.entity
+ 
+from profile_55194 AS m
+ 
+left join profile_62881 AS r 
+ on r._id = m.project_code_new),
+   
+temp2 as
+(select m.month_timerange AS fy_timerange, m.project_code as project_code_new, m.amount, m.project_name, m.vertical, focus_update.name AS focus_new , state_update.name AS state_new, m.project_code, entity_update.name AS entity_new, q.name as name_new from temp1 AS m
+
+left join tagElement_6575 as state_update
+  on m.state = state_update.id
+  
+left join tagElement_6575 as entity_update
+  on m.entity = entity_update.id
+ 
+left join tagElement_6575 as focus_update
+  on m.focus = focus_update.id
+ 
+left join profile_64961 as q
+ on state_update.name = q.state
+),
+  
+temp3 as
+(select m.fy_timerange, m.project_code_new, m.amount, m.project_name, vertical_new, m.focus_new, m.state_new, m.project_code, m.entity_new, m.name_new from temp2 AS m, m.vertical vertical_new),
+
+
+temp4 as
+(
+select fy_timerange, project_code_new, project_name, focus_new, entity_new, SUM(amount) AS amount, m.name_new, state_new , count(*) ,
+  
+   case 
+when vert1.name IS NULL AND vert.name IS NOT NULL THEN vert.name
+else vert1.name 
+END AS vertical
+
+
+from temp3 AS m
+
+left join tagElement_6575 as vert
+  on m.vertical_new = vert.id
+  
+left join tagElement_6575 as vert1
+  on vert.parent = vert1.id  
+ 
+group by m.fy_timerange, m.project_code_new, m.project_name, m.focus_new, m.entity_new, m.name_new, vertical , vert1.name , vert.name , state_new
+
+order by m.project_code_new asc
+  ),
+  
+  temp5 as
+  ( select  fy_timerange, project_code_new, count(project_name) Project_Count, focus_new as focus, entity_new as entity , amount, m.name_new as name, state_new as state , count , vertical as verticals  from temp4 as m )
+  
+  
+ select * from temp5
