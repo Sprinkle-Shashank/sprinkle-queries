@@ -1,35 +1,12 @@
 with Lookup as
-(select cast((split_part(split_part(prod.name,'|',1),'.',1)) as varchar) as ProjectCode,split_part(prod.name,'|',3) as censuscode,f.name as fy_timerange,CONCAT(ProjectCode,fy_timerange) as CODE
+(selectf.name as fy_timerange
 from profile_54963 p 
-left join project_4188 prod on
-prod.id=p.projectid
+group by fy_timerange
 left join tagelement_4188 f on
 p.fy=f.id
 )
 
-,Base1 as
-(select cast(q.name as varchar) as ProjectCode,f.name as fy_timerange,m.name as Project_Manager,CONCAT(ProjectCode,fy_timerange) as CODE
-from profile_27420 d
-left join tagelement_4188 f on
-d.fy=f.id
-left join tagelement_4188 m on
-d.project_manager=m.id
-left join profile_27396 q on
-d.project_code=q._id
-union
-select cast(c.name as varchar)as ProjectCode,f.name as fy_timerange,m.name as Project_Manager,CONCAT(ProjectCode,fy_timerange) as CODE 
-from profile_27396 c	
-left join tagelement_4188 f on
-c.fy=f.id
-left join tagelement_4188 m on
-c.project_manager=m.id)
-
-,Base2 as
-(select p.fy_timerange,p.Project_Manager,p.ProjectCode,l.censuscode
-from Base1 p
-left join lookup l
-on p.CODE=l.CODE),Base3 as(select p.fy_timerange,p.Project_Manager,p.ProjectCode,l.village  as Village from Base2 p left join profile_27489 l on p.censuscode=l.name) 
-select fy_timerange,case when Project_Manager is null then 'N/A' else Project_Manager end as Project_Manager,ProjectCode,case when Village is null then 'N/A' else Village end as Village from Base3  order by fy_timerange
+select fy_timerange from lookup
 
 
  
