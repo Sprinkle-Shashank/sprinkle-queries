@@ -1,0 +1,62 @@
+--Marico_Scope1_2_Intensity
+with table1 as (SELECT *
+FROM (
+select cou.name as country,p.name,p.fy_timerange,keyword,datanum,startdate
+
+from sus_83620 p
+
+left join project_9427 pro on 
+p.xprojectid = pro.id
+
+left join project_9427 cou on 
+pro.parent = cou.id
+
+where keyword in ('scope1_emission','scope2_emission','emission_intensity') 
+
+order by fy_timerange asc
+  
+) PIVOT (
+   sum(datanum) FOR keyword IN ('scope1_emission','scope2_emission','emission_intensity')
+) 
+				),
+				table2 as (
+select country,name,fy_timerange,
+
+EXTRACT(MONTH FROM cast (startdate as datetime))AS month1,
+EXTRACT(YEAR FROM cast (startdate as datetime))AS year1,
+CASE
+WHEN MONTH1 <= 3
+THEN YEAR1-1
+ELSE
+YEAR1
+END AS start,
+start+1 as end1,
+concat(start,'-04-01T00:00:00.000Z') as start1,
+concat(end1,'-03-31T00:00:00.000Z') as end2,
+concat(concat(concat(concat('{"start":"',start1),'","end":"'),end2),'"}') as fy_1,emission_intensity,concat('FY(',concat(start,concat('-',concat(end1,')')))) as fy_2,scope1_emission + scope2_emission	end	 as total_emission1	  
+				  
+
+from table1 t1
+				),
+turnover as ( select fy_2 , sum(emission_intensity) as turnover from table2
+where turnover is not null
+group by fy_2			 
+
+),				
+				
+table3 as (
+select country,t2.fy_1 as fy_timerange,sum(t2.total_emission1) as total_emission,turn.turnover as turnover1,total_emission/turnover1 as intensity,t2.fy_2 from table2 t2
+left join turnover turn on 
+ t2.fy_2=turn.fy_2 
+group by country,fy_1,t2.fy_2,turn.turnover),
+
+table4 as (select intensity as base_value from(select intensity, row_number() over(order by fy_timerange asc) as row from table3)
+where row = 1 )
+
+select country,t3.fy_timerange,t3.intensity,fy_2/*,lag(total_emission,1) over (order by  fy_timerange) as prev_emission*/,
+/*case when t4.base_value = 0 then null
+     else t4.base_value end*/
+	 (select intensity from table3 order by fy_timerange asc limit 1) as base_value1,(base_value1-t3.intensity)*100.0/base_value1 as base_perc,turnover1 from table3 t3
+	
+
+--select * from table4
