@@ -1,0 +1,36 @@
+with temp as(
+  Select 'Percentage of students completing below 40% of the activity books' as col
+    union all
+  Select 'Percentage of students completing between 40%-80% of the activity books' as col
+    union all
+  Select 'Percentage of students completing above 80% of the activity books' as col
+  )
+
+
+Select  p3.name as projectId,p1.name as projectname,p2.name as Partner,a.fy_timerange, t1.name as Distribution_phase,t2.name as  Grade_group,t3.name as FLN_Book,temp.col as dimensions,
+--(t.name || '-' || t1.name) as grade_book,
+
+sum(case col
+	when 'Percentage of students completing below 40% of the activity books' then a.below_40
+	when 'Percentage of students completing between 40%-80% of the activity books' then a.between_40_and_80
+	when 'Percentage of students completing above 80% of the activity books' then a.above_80
+	else NULL
+end) as Values,
+case 
+when temp.col = 'Percentage of students completing below 40% of the activity books' then '1'
+when temp.col = 'Percentage of students completing between 40%-80% of the activity books' then '2'
+else '3'
+end as Sort
+  
+from profile_83705  a
+
+cross join temp
+
+left join ds_mysql_prod_project p1 on p1.id = p.projectid
+left join ds_mysql_prod_project p2 on p2.id = p1.parent
+left join ds_mysql_prod_project p3 on p3.id=p2.parent
+left join ds_mysql_prod_tagelement t1 on t1.id=a.dist_phase
+left join ds_mysql_prod_tagelement t2 on t2.id=a.grade_group
+left join ds_mysql_prod_tagelement t3 on t3.id=a.fln_book
+
+group by 1,2,3,4,5,6,7,8
