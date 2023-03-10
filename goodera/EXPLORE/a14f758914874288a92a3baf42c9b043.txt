@@ -1,34 +1,38 @@
-with Lookup as
-(select cast((split_part(split_part(prod.name,'|',1),'.',1)) as varchar) as ProjectCode,split_part(prod.name,'|',3) as censuscode,f.name as fy_timerange,CONCAT(ProjectCode,fy_timerange) as CODE
-from profile_29973 p 
-left join ds_mysql_prod_project prod on
-prod.id=p.projectid
+
+  select f.name as fy_timerange,case when p.renewal=430820 then split_part(m.name,'[',1) 
+when p.renewal=430822 then l.name
+end as ProjectCode,p.payment_amount as Total_Amount_Disbursted,p.amnt_utlzd as Amount_utilized,
+			  f1.name focus_area,f2.name as project_manager
+from profile_27398 p
+left join profile_27420 m on
+p.project_renew=m._id
+left join profile_27396 l on
+p.project_name=l._id
+left join profile_27396 l1 on
+p.project_name=l1._id
 left join ds_mysql_prod_tagelement f on
 p.fy=f.id
-)
-
-,Base1 as
-(select cast(q.name as varchar) as ProjectCode,f.name as fy_timerange,m.name as Project_Manager,CONCAT(ProjectCode,fy_timerange) as CODE, d.focus_area focus_area
-from profile_27420 d
+left join ds_mysql_prod_tagelement f1 on
+l1.focus_area=f1.id
+left join ds_mysql_prod_tagelement f2 on
+l1.project_manager=f2.id
+  
+  union all
+ 
+  select f.name as fy_timerange,case when p.renewal=430820 then split_part(m.name,'[',1) 
+when p.renewal=430822 then l.name
+end as ProjectCode,p.payment_amount as Total_Amount_Disbursted,p.amnt_utlzd as Amount_utilized,
+			  f1.name focus_area,f2.name as project_manager
+from profile_27398 p
+left join profile_27420 m on
+p.project_renew=m._id
+left join profile_27396 l on
+p.project_name=l._id
+left join profile_27396 l1 on
+p.project_name=l1._id
 left join ds_mysql_prod_tagelement f on
-d.fy=f.id
-left join ds_mysql_prod_tagelement m on
-d.project_manager=m.id
-left join profile_27396 q on
-d.project_code=q._id
-where d.focus_area='Holistic Rural Development'
-union
-select cast(c.name as varchar)as ProjectCode,f.name as fy_timerange,m.name as Project_Manager,CONCAT(ProjectCode,fy_timerange) as CODE,  t.name focus_area
-from profile_27396 c	
-left join ds_mysql_prod_tagelement f on
-c.fy=f.id
-left join ds_mysql_prod_tagelement m on
-c.project_manager=m.id
-left join ds_mysql_prod_tagelement t on
-t.id=c.focus_area
-where t.name='Holistic Rural Development')
-
-select p.fy_timerange,p.Project_Manager,l.ProjectCode,l.censuscode
-from Base1 p
-left join lookup l
-on p.CODE=l.CODE
+p.fy=f.id
+left join ds_mysql_prod_tagelement f1 on
+m.focus_area=f1.id
+left join ds_mysql_prod_tagelement f2 on
+m.project_manager=f2.id
