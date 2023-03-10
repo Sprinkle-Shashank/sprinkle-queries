@@ -1,8 +1,13 @@
-select tag1.name as projectid, tag2.name as partner_name, p2.fy_timerange, to_char(fy_timerange.start :: date, 'YYYY') as start_year, to_char(fy_timerange.end :: date, 'YYYY') as end_year, p2.name as project_name, p2.memo_of_association, p2.twelve_a, p2.eighty_g, p2.pan, p2.pan_number, p2.csr_form_1, p2.mou, p2.dd_report, p1.annual_fuc, p1.project_closure_report, p2.remarks
+with t1 as 
+(select tag1.name as projectid, tag2.name as partner_name, p2.fy_timerange, to_char(fy_timerange.start :: date, 'YYYY') as start_year, to_char(fy_timerange.end :: date, 'YYYY') as end_year, p2.name as project_name, p2.memo_of_association, p2.twelve_a, p2.eighty_g, p2.pan, p2.pan_number, p2.csr_form_1, p2.mou, p2.dd_report, p1.annual_fuc, p1.project_closure_report, p2.remarks
 from profile_83706 p1
 left join profile_83701 p2
 on p1.project_name = p2._id
 left join ds_mysql_prod_project tag1
 on p2.projectid = tag1.id
 left join ds_mysql_prod_tagelement tag2 
-on p2.project_name = tag2.id
+on p2.project_name = tag2.id)
+
+select projectid, partner_name, fy_timerange, start_year|| ' - ' || end_year as Financial, project_name, memo_of_association, twelve_a, eighty_g, pan, pan_number, csr_form_1, mou, dd_report, annual_fuc, project_closure_report, remarks
+
+from t1
