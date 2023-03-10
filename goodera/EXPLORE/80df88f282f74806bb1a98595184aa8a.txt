@@ -4,7 +4,7 @@ with Lookup as
  from profile_54963 p 
  
  
-left join ds_mysql_prod_project prod on
+left join project_4188 prod on
 prod.id=p.projectid
 left join tagelement_4188 f on
 p.fy=f.id
@@ -14,7 +14,7 @@ p.fy=f.id
 )
 
 ,Base1 as
-(select cast(q.name as varchar) as ProjectCode,f.name as fy_timerange,m.name as Project_Manager,CONCAT(ProjectCode,fy_timerange) as CODE
+(select cast(q.name as varchar) as ProjectCode,f.name as fy_timerange,m.name as Project_Manager,CONCAT(ProjectCode,fy_timerange) as CODE, d.focus_area focus_area
 from profile_27420 d
 left join tagelement_4188 f on
 d.fy=f.id
@@ -23,17 +23,21 @@ d.project_manager=m.id
 left join profile_27396 q on
 d.project_code=q._id
 union
-select cast(c.name as varchar)as ProjectCode,f.name as fy_timerange,m.name as Project_Manager,CONCAT(ProjectCode,fy_timerange) as CODE 
+select cast(c.name as varchar)as ProjectCode,f.name as fy_timerange,m.name as Project_Manager,CONCAT(ProjectCode,fy_timerange) as CODE , t.name focus_area
 from profile_27396 c	
 left join tagelement_4188 f on
 c.fy=f.id
 left join tagelement_4188 m on
-c.project_manager=m.id)
+c.project_manager=m.id
+left join tagelement_4188 t on
+t.id=c.focus_area
+)
 
 ,Base2 as
 (select p.fy_timerange,l.Project_Manager,p.ProjectCode from lookup p left join Base1 l on p.CODE=l.CODE group by p.fy_timerange,l.Project_Manager,p.ProjectCode 
  )
 
 
-select p.ProjectCode, p.fy_timerange,case when p.Project_manager is NULL then 'N/A' else p.Project_Manager end as Project_Manager from Base2 p group by 1,2,3
+select p.ProjectCode, p.fy_timerange,case when p.Project_manager is NULL then 'N/A' else p.Project_Manager end as Project_Manager from Base2 p 
+group by 1,2,3
 --select * from lookup p
