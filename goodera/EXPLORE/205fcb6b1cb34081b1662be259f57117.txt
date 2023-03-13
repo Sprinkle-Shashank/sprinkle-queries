@@ -6,10 +6,13 @@ from profile_83513 as p
 left join ds_mysql_prod_project projectid
 on p.projectid = projectid.id
   group by projectid.name, fy_timerange
-),
+)
+UNPIVOT
+ (Value FOR Dimension IN (num_students_pre_primary,num_students_primary,num_students_secondary,num_students_senior_secondary))
+   ),
 t2 as
 (
   select projectid, fy_timerange, num_students_pre_primary+num_students_primary+num_students_secondary+num_students_senior_secondary as total_students_classwise from t1
 
   )
-  select projectid, fy_timerange,total_students_classwise from t2
+  select projectid, fy_timerange, total_students_classwise from t2
