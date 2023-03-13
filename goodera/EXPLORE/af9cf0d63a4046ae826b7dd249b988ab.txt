@@ -1,3 +1,4 @@
+--MylanIndia_Overall_Project_Details_New
 with temp1 AS
 (select m.projectId, m.project_name, m.vertical, m.focus, cast(m.start_date as date) as start_date1, m.project_code, m.entity, CAST(r.fy_timerange.end as date) as update_date, compl.name as completed, prog.name as progress, direct_or_partner.name as direct_or_partner,
 concat(start_date1,'T00:00:00.000Z') as start1,
@@ -71,10 +72,13 @@ select m.project_name, focus, m.project_code, entity, progress , completed , upd
 ),
 
 table5 as (
-select m._id , m.project_code as project_code_new , m.fy_timerange , m.description , update_month, m.vertical as verticals, m.entity , start_date1 , listagg(distinct m.completed, ' , ') as complete_update , listagg(distinct m.update_date, ' , ') as update_date_new , listagg(distinct m.progress, ' , ') as progress_update, direct_or_partner from table4 as m 
+select m._id , m.project_code as project_code_new , m.fy_timerange , m.description , update_month, m.vertical as verticals, m.entity , start_date1 , listagg(distinct m.completed, ' , ') as complete_update , listagg(distinct m.update_date, ' , ') as update_date_new , listagg(distinct m.progress, ' , ') as progress_update, direct_or_partner,add_months(pd.date_manual, -1) as end_date, pp.amount from table4 as m 
 
-
-group by  m._id , m.project_code, m.fy_timerange , m.description , update_month, m.vertical , m.entity , start_date1, direct_or_partner 
+left join profile_55471 pd
+on pd.project_code=m.project_code
+  left join profile_55194 pp
+on pp.project_code_new=m._id
+group by  m._id , m.project_code, m.fy_timerange , m.description , update_month, m.vertical , m.entity , start_date1, direct_or_partner ,pd.date_manual,pp.amount
 )
 
 select * from table5
