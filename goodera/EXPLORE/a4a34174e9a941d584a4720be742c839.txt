@@ -1,12 +1,58 @@
 with t1 as 
-(select * from
-(select tag1.name as projectid, fy_timerange, hours_invested_class1 as Class1, hours_invested_class2 as Class2, hours_invested_class3 as Class3, hours_invested_class4 as Class4. hours_invested_class5 as Class5,
+(select tag1.name as projectid, fy_timerange, hours_invested_class1 as Class1, hours_invested_class2 as Class2, hours_invested_class3 as Class3, hours_invested_class4 as Class4, hours_invested_class5 as Class5,
  hours_invested_class6 as Class6, hours_invested_class7 as Class7, hours_invested_class8 as Class8, hours_invested_class9 as Class9, hours_invested_class10 as Class10, hours_invested_class11 as Class11, hours_invested_class12 as Class12
 from profile_83513 p1
 left join ds_mysql_prod_project tag1
-on p1.projectid = tag1.id)
- UNPIVOT
- (val FOR Dim IN(Class1,Class2,Class3,Class4,Class5,Class6,Class7,Class8,Class9,Class10,Class11,Class12)))
- select projectid, fy_timerange, val from t1
+on p1.projectid = tag1.id),
+
+items as (
+  select 'Class1' as c
+  union all
+  select 'Class2' as c
+  union all
+  select 'Class3' as c
+  union all 
+  select 'Class4' as c
+  union all
+  select 'Class5' as c
+  union all
+  select 'Class6' as c
+  union all 
+  select 'Class7' as c
+  union all
+  select 'Class8' as c
+  union all
+  select 'Class9' as c
+  union all 
+  select 'Class10' as c
+  union all
+  select 'Class11' as c
+  union all
+  select 'Class12' as c
+  ),
+
+t2 as 
+(select projectid, fy_timerange,
+case c 
+when 'Class1' then t1.Class1
+when 'Class2' then t1.Class2
+when 'Class3' then t1.Class3
+when 'Class4' then t1.Class4
+ when 'Class5' then t1.Class5
+when 'Class6' then t1.Class6
+when 'Class7' then t1.Class7
+when 'Class8' then t1.Class8
+ when 'Class9' then t1.Class9
+when 'Class10' then t1.Class10
+when 'Class11' then t1.Class11
+when 'Class12' then t1.Class12
+else null
+end as val, items.c as dim
+from t1 cross join items)
+
+select projectid, fy_timerange, dim, sum(val) as val
+from t2
+group by 
+projectid, fy_timerange, dim
 
   
