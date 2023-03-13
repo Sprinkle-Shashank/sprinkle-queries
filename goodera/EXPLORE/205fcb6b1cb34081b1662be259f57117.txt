@@ -1,19 +1,29 @@
-with t1 as
-(select * from
- (
-select projectid.name as projectid, fy_timerange, sum(num_students_pre_primary) as num_students_pre_primary, sum(num_students_primary) as num_students_primary, sum(num_students_secondary) as num_students_secondary, sum(num_students_senior_secondary) as num_students_senior_secondary
-from profile_83513 as p
+with t1 as 
+(select tag1.name as projectid, fy_timerange, num_students_pre_primary, num_students_primary, num_students_secondary, num_students_senior_secondary
+from profile_83513 p1
+left join ds_mysql_prod_project tag1
+on p1.projectid = tag1.id),
 
-left join ds_mysql_prod_project projectid
-on p.projectid = projectid.id
-  group by projectid.name, fy_timerange
-)
-UNPIVOT
- (Value FOR Dimension IN (num_students_pre_primary,num_students_primary,num_students_secondary,num_students_senior_secondary))
-   ),
-t2 as
-(
-  select projectid, fy_timerange, value, num_students_pre_primary+num_students_primary+num_students_secondary+num_students_senior_secondary as total_students_classwise from t1
+items as (
+  select 'num_students_pre_primary' as c
+  union all
+  select 'num_students_primary' as c
+  union all
+  select 'num_students_secondary' as c
+  union all 
+  select 'num_students_senior_secondary' as c
+  ),
 
-  )
-  select projectid, fy_timerange, total_students_classwise, value from t2
+t2 as 
+(select projectid, fy_timerange,
+case c 
+when 'num_students_pre_primary' then t1.num_students_pre_primary
+when 'num_students_primary' then t1.num_students_primary
+when 'num_students_secondary' then t1.num_students_secondary
+when 'num_students_senior_secondary' then t1.num_students_senior_secondary
+else null
+end as val, items.c as dim
+from t1 cross join items)
+
+select projectid, fy_timerange, val :: INT, dim
+from t2
