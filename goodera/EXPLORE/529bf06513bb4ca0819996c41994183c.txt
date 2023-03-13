@@ -1,5 +1,6 @@
+--Honywell_Americares_PHC_Details
 
-with table1 as (select pro.name as projectid,p.name,fy_timerange,new_equipment,installed,stat.name as state,old_equipment,replaced,cur_equipment,upgraded,phc_handover ,hfa,hfa_initiated,
+with table1 as (select pro.name as projectid,p.name,fy_timerange,new_equipment,installed,stat.name as state,old_equipment,replaced,cur_equipment,upgraded,phc_handover ,hfa,hfa_initiated,purchased,upgraded_repaired,
 				case when phc_handover = 1547274 then 1
 				 else 0 end as temp
 				from profile_79423 p
@@ -25,6 +26,10 @@ left join ds_mysql_prod_tagelement as stat
 		  select 'HFA Initiated' as c
 		  Union all
 		  select 'HFA Report' as c
+		  Union all
+		  select 'purchased' as c
+		  Union all
+		  select 'upgraded_repaired' as c
 )
 	
 select projectid ,name as phc, fy_timerange, state,
@@ -38,6 +43,8 @@ sum ( case c when 'new_equipment' then t1.new_equipment
 	         when  'phc_handover' then t1.temp
 	 		 when  'HFA Report' then t1.hfa	
 	 		 when  'HFA Initiated' then t1.hfa_initiated	
+	 		 when  'purchased' then t1.purchased
+	 		 when  'upgraded_repaired' then t1.upgraded_repaired
 	 			
 	         else null 
 	         end ) as values , temp.c as dimension from table1 t1
