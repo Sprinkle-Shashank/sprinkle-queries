@@ -1,5 +1,15 @@
 with t1 as
 (
-  select projectid, fy_timerange, students_enrolled_pre_intervention as Pre_Intervention, students_enrolled_post_intervention as Post_Intervention
+  select projectid.name as projectid, fy_timerange, students_enrolled_pre_intervention as Pre_Intervention, students_enrolled_post_intervention as Post_Intervention, p.months_of_enrollment, mon.name as month_updated
   from profile_83513 as p
-  group by projectid, fy_timerange
+  
+  left join ds_mysql_prod_project projectid
+  on p.projectid = projectid.id
+  
+  left join ds_mysql_prod_tagelement mon
+on p.months_of_enrollment = mon.id
+  
+  group by projectid.name, fy_timerange, students_enrolled_pre_intervention, students_enrolled_post_intervention
+)
+select projectid, fy_timerange, month_updated, Pre_Intervention, Post_Intervention from t1
+  
