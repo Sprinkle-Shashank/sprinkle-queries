@@ -1,7 +1,13 @@
-select 
- CONCAT(
-  CAST(extract(day from cast(feedback_date as date)) AS TEXT), '/',
-  CAST(extract(month from cast(feedback_date as date)) AS TEXT), '/',
-  CAST(extract(year from cast(feedback_date as date)) AS TEXT)
-) AS f_date from profile_75840
+SELECT 
+  EXTRACT(DAY FROM CAST(feedback_date AS DATE))::TEXT || '/' ||
+  EXTRACT(MONTH FROM CAST(feedback_date AS DATE))::TEXT || '/' ||
+  EXTRACT(YEAR FROM CAST(feedback_date AS DATE))::TEXT AS f_date ,
+   projectId, reg.name as vendor, product,reg2.name as  hospital, delivery_date, focal_name_text, fy_timerange, quality, feedback, feedback_date, quantity,concat('-',focal_name_text) as focal_name
 
+FROM profile_75840 
+left join ds_mysql_prod_tagelement reg2
+on profile_75840.hospital= reg2.id
+left join profile_75839 reg
+on profile_75840.vendor= reg._id
+ Group By projectId, vendor, product, hospital, delivery_date, focal_name_text, fy_timerange, quality, feedback, feedback_date, focal_name, f_date,quantity
+,reg2.name,reg.name
