@@ -1,8 +1,31 @@
-select p.name, p.fy_timerange, SUM(p.target) as target,pro.name as projectid
+SELECT pro.name as projectid,progress,
+ANY_VALUE(T.name) AS indicator,
+T.target AS target,
+T.fy_timerange AS month,
+CONCAT(CONCAT(CONCAT(SPLIT_PART(P.date, ' ', 1),'T'),SPLIT_PART(P.date, ' ', 2)),'.000Z') AS fy_timerange,
+
+CASE
+	WHEN p.projectid= 62279 THEN 50
+	when p.projectid = 67833  then 31
+	
+	when p.projectid = 67834 then 50
+	ELSE NULL
+END AS targets
+
+FROM profile_78875 AS P
+
+LEFT JOIN profile_78874 AS T
+ON P.indicator = T._id
+left join ds_mysql_prod_project pro on 
+p.projectid = pro.id
+
+GROUP BY pro.name,p.progress,t.target,T.fy_timerange,p.date,t.name, targets
+
+/*select p.name, p.fy_timerange, SUM(p.target) as target,pro.name as projectid
 from profile_78874 p
 left join ds_mysql_prod_project as pro
   on p.projectid = pro.id 
   
  where p.name like 'B%' 
  --and pro.name = ''
-group by p.name,p.fy_timerange,pro.name
+group by p.name,p.fy_timerange,pro.name*/
