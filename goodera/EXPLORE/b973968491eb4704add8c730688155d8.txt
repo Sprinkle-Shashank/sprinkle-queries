@@ -1,0 +1,56 @@
+SELECT
+pro.name as projectid,I.name AS institutions, 
+COUNT (B.name),
+CONCAT(CONCAT(CONCAT(SPLIT_PART(B.start_date, ' ', 1),'T'),SPLIT_PART(B.start_date, ' ', 2)),'.000Z') AS fy_timerange,B.projectid as b_projectid,
+
+CASE
+	WHEN B.projectId IS NOT NULL
+	THEN 100
+	
+	ELSE NULL
+END AS targets,
+
+CASE 
+	WHEN t4.name IS NOT NULL
+	THEN t3.name
+	
+	WHEN t4.name IS NULL AND t3.name IS NOT NULL
+	THEN t2.name
+	
+	WHEN t3.name IS NULL AND t2.name IS NOT NULL
+	THEN t1.name
+	
+	ELSE NULL
+END AS state,
+
+CASE 
+	WHEN t4.name IS NOT NULL
+	THEN t2.name
+	
+	WHEN t4.name IS NULL AND t3.name IS NOT NULL
+	THEN t1.name 
+	
+	ELSE NULL
+END AS district
+
+FROM profile_77914 AS B
+
+LEFT JOIN profile_77911 AS I
+ON B.institution = I._id
+
+LEFT JOIN ds_mysql_prod_tagelement AS t1
+ON i.location = t1.id
+
+LEFT JOIN ds_mysql_prod_tagelement AS t2
+ON t1.parent = t2.id
+
+LEFT JOIN ds_mysql_prod_tagelement AS t3
+ON t2.parent = t3.id
+
+LEFT JOIN ds_mysql_prod_tagelement AS t4
+ON t3.parent = t4.id
+
+left join ds_mysql_prod_project pro on 
+B.projectid = pro.id
+
+GROUP BY pro.name,institutions, B.name, start_date, targets, state, district
