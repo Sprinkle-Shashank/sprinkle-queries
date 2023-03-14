@@ -24,7 +24,7 @@ group by id, factory, factory_vms_id, vendor, vendor_vms_id, region, cdms_id),
 ---x---
 
 sub4 as(
-  select s3.id, s3.factory, s3.vendor, s3.vendor_vms_id, p4.source_div, p4.timeperiod_timerange, s3.factory_vms_id,
+  select s3.id, s3.factory, s3.vendor, s3.vendor_vms_id, p4.source_div, p4.timeperiod_timerange, s3.factory_vms_id, s3.region,
   
 case
   	when IS_ARRAY(p4.source_div) = FALSE or GET_ARRAY_Length(p4.source_div) = 0 then ARRAY (p4.source_div)
@@ -42,13 +42,13 @@ sub5 as(
   where s4.row = 1),
   
 sub6 as(
-  select s5.id, s5.factory, s5.factory_vms_id, s5.vendor, s5.vendor_vms_id, nvl(t4.name, t3.name) as business_div
+  select s5.id, s5.factory, s5.factory_vms_id, s5.vendor, s5.vendor_vms_id, nvl(t4.name, t3.name) as business_div, s5.region
 from sub5 s5
 
 left join tagElement_7200 t3 on t3.id = s5.source_div_unwind
 left join tagElement_7200 t4 on t4.id = t3.parent)
 
-select s6.id, s6.factory, s6.factory_vms_id, s6.vendor, s6.vendor_vms_id, s6.business_div, p5.brand_text as brand, 1 as count
+select s6.id, s6.factory, s6.factory_vms_id, s6.vendor, s6.vendor_vms_id, s6.business_div, s6.region, p5.brand_text as brand, 1 as count
 from sub6 s6
 
 left join profile_81437 p5 on p5.business_division_text = s6.business_div
