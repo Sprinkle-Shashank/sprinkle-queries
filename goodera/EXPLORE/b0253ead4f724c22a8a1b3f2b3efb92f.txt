@@ -1,7 +1,12 @@
 --mylan_environement_health_energy_map1
 with table1 as(select p.projectId,p.time_period_timerange, CAST(p.time_period_timerange.start as date) as timerange,SUBSTRING(timerange,1,4) as year_axis,
-reg.name as region,reg_parent.name as region_parent,case when reg_parent.name is null then reg.name else reg_parent.name end as region_global,ver.name as  vertical, category.name as category_ehs,act.name as act_category, site.name as site_region, scope.name as emission_scope, p.output_value , type.name as s_c_act_type, activity.name as activity_output, p.output_unit,'GHG' as Heat_Map 
+--reg.name as region,reg_parent.name as region_parent,case when reg_parent.name is null then reg.name else reg_parent.name end as region_global,
+			   p1.name as country,p1.region as  region_global,
+			   ver.name as  vertical, category.name as category_ehs,act.name as act_category, site.name as site_region, scope.name as emission_scope, p.output_value , type.name as s_c_act_type, activity.name as activity_output, p.output_unit,'GHG' as Heat_Map 
 		  from profile_58283 p
+			   
+			   left join profile_83347 p1
+on p.country = p1._id
 
 
 Left join ds_mysql_prod_tagelement ver
@@ -36,7 +41,7 @@ on reg.parent = reg_parent.id
 
 where category.name = 'Energy & Emission' and activity.name = 'GHG in CO2e'
 
-group by p.projectId,p.time_period_timerange,reg_parent.name, reg.name ,ver.name,category.name,act.name, site.name , scope.name,type.name, activity.name, p.output_unit,p.output_value,Heat_map,timerange,year_axis)
+group by p.projectId,p.time_period_timerange,p1.name , p1.region,ver.name,category.name,act.name, site.name , scope.name,type.name, activity.name, p.output_unit,p.output_value,Heat_map,timerange,year_axis)
 ,
 table2 as(select projectId,time_period_timerange,timerange,year_axis,region,region_global,vertical,sum(output_value) as ghg_tot ,Heat_Map,reftag.code from table1
 		  
