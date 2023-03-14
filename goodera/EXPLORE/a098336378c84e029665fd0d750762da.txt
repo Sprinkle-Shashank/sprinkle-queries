@@ -1,4 +1,5 @@
-select SUBSTRING(CAST(p.time_period_timerange.start as VARCHAR),1,4)  as time, reg.name as region,reg_parent.name as region_global, type.name as audit_type, auth.name as primary_health_auth, supplier.name as supplier_type, ver.name as vertical, purpose_of_audit,site,  count(site) as site_count from profile_59339 p
+--mylan_product_quality_Number of GMP Audits at Own Facility by vertical
+select SUBSTRING(CAST(p.time_period_timerange.start as VARCHAR),1,4)  as time, /*reg.name as region,reg_parent.name as region_global,*/p1.name as country,p1.region, type.name as audit_type,case when time<2020 then auth.name else auth_new.name end as primary_health_auth, case when time<2020 then  supplier.name else supplier_new.name end as supplier_type, ver.name as vertical, purpose_of_audit,site,  count(site) as site_count from profile_59339 p
 
 Left join ds_mysql_prod_tagelement reg
 on p.region = reg.id
@@ -6,18 +7,27 @@ on p.region = reg.id
 left join ds_mysql_prod_tagelement reg_parent
 on reg.parent = reg_parent.id
 
+left join profile_83347 p1
+on p.country = p1._id
+
 Left join ds_mysql_prod_tagelement type
 on p.audit_type = type.id
 
 Left join ds_mysql_prod_tagelement auth
 on p.primary_health_auth = auth.id
 
+left join ds_mysql_prod_tagelement auth_new
+on auth_new.id = p.primary_health_authority_new
+
 Left join ds_mysql_prod_tagelement supplier
 on p.supplier_type = supplier.id
+
+left join ds_mysql_prod_tagelement supplier_new
+on supplier_new.id = p.supplier_type_new
 
 Left join ds_mysql_prod_tagelement ver
 on p.vertical = ver.id
 
-where (type.name = 'Mylan Internal Audits') and (ver.name is not null) and (reg_parent.name is not null)
+where (type.name = 'Mylan Internal Audits') and (ver.name is not null) 
 
-group by p.time_period_timerange, reg.name ,reg_parent.name, type.name , auth.name , supplier.name , ver.name , purpose_of_audit,site
+group by p.time_period_timerange, p1.region,type.name , auth.name , supplier.name ,p1.name, ver.name , purpose_of_audit,auth_new.name,supplier_new.name,site
