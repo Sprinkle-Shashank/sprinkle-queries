@@ -1,0 +1,53 @@
+--GSKConsumer_summary_states_sdg_sch7
+
+With table1 as (
+  
+  Select * 
+  
+  from profile_80433 as p1,
+  
+  p1.schedule_7 as schedule_7_unwind,
+  p1.sdg as sdg_unwind,
+  p1.location as location_unwind
+  ),
+
+ table2 as ( 
+  Select table1.projectid , proj.name AS projectname, table1.fy_timerange, st1.name AS State, foc.name AS Schedule7, sg.name AS sdg , INITCAP(ent.name) as entity 
+   
+  from table1
+  
+  LEFT JOIN ds_mysql_prod_tagelement AS foc
+  ON foc.id = table1.schedule_7_unwind
+  
+   LEFT JOIN ds_mysql_prod_tagelement AS sg
+  ON sg.id = table1.sdg_unwind
+  
+     LEFT JOIN ds_mysql_prod_tagelement AS st
+  ON st.id = table1.location_unwind
+   
+    LEFT JOIN ds_mysql_prod_tagelement AS st1
+  ON st.parent = st1.id
+      
+  LEFT JOIN ds_mysql_prod_project AS proj
+   ON table1.projectid = proj.id
+   
+left join ds_mysql_prod_tagelement ent 
+on table1.entity = ent.id
+
+  
+  
+  GROUP BY 
+   table1.projectid , table1.fy_timerange ,proj.name, st1.name, foc.name, sg.name , ent.name)
+  
+ /*,table3 as ( Select _id, count (distinct  st1.name) as count_state from table1
+			  LEFT JOIN ds_mysql_prod_tagelement AS st
+  ON st.id = table1.location_unwind
+   
+    LEFT JOIN ds_mysql_prod_tagelement AS st1
+  ON st.parent = st1.id
+		GROUP BY _id )*/
+	Select projectid,fy_timerange, sdg , entity  from table2 
+	
+	--LEFT JOIN table3 as tob3
+	--on tob3._id = table2._id
+			
