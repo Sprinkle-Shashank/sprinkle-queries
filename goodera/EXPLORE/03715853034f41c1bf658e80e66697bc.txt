@@ -1,7 +1,7 @@
 --gap_inc_wcp_outcomes_greivances_chart
 with table1 as 
 (
-  select p.projectid ,p.sub_unit, p1.status,p._id,
+  select p.sub_unit, p1.status,p._id,
   --filters
 cou.name as country , 
 nvl2(SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)),ven.name) as vendor_name, case when vendor_name='' then ven.name else vendor_name end as vendor, fac.name as factory ,
@@ -78,14 +78,11 @@ on ven.parent = cou.id
  where p.sub_unit like '%%' and country <> 'Test Country'  and p1.projectid is not null and (p1.status = 1400365 or p1.status is null) and country <> 'GAP Inc.'
 
 group by p._id,p.sub_unit ,cou.name , fac.name , ven.name , quarter1.name , fy1.name , p1.name_subunit  , p1.status , p.total_raised , p.total_raised_2 , p.total_raised_3 , p.total_raised_4 , p.total_raised_5 , p.total_raised_6 , p.total_raised_7 , p.total_raised_8 , p.total_raised_9 , p.rights_based , p.rights_based_2 , p.rights_based_3 , p.rights_based_4 , p.rights_based_5 , p.rights_based_6 , p.rights_based_7 , p.rights_based_8 , p.rights_based_9,   
- p.interest_based , p.interest_based_2 , p.interest_based_3 , p.interest_based_4 , p.interest_based_5 , p.interest_based_6 , p.interest_based_7 , p.interest_based_8,   p.interest_based_9 , p.resolved , p.resolved_2 , p.resolved_3 , p.resolved_4 , p.resolved_5 , p.resolved_6 , p.resolved_7 , p.resolved_8 , p.resolved_9 ,p1.date_enrollment , p.projectid 
+ p.interest_based , p.interest_based_2 , p.interest_based_3 , p.interest_based_4 , p.interest_based_5 , p.interest_based_6 , p.interest_based_7 , p.interest_based_8,   p.interest_based_9 , p.resolved , p.resolved_2 , p.resolved_3 , p.resolved_4 , p.resolved_5 , p.resolved_6 , p.resolved_7 , p.resolved_8 , p.resolved_9 ,p1.date_enrollment
   
-  ),
-  --select * from table1
+  )
 
-table88 as
-(
- select projectid ,_id,sub_unit , country , factory , vendor , unit ,region , year_new ,quarter ,status,fy,
+ select _id,sub_unit , country , factory , vendor , unit ,region , year_new ,quarter ,status,fy,
  (quarter + (',' + fy)) as quarter_fy ,
 Sum(total_raised+total_raised_2+total_raised_3+total_raised_4+total_raised_5+total_raised_6+total_raised_7+total_raised_8+total_raised_9) as total_raised,     
 sum ( rights_based+rights_based_2+rights_based_3+rights_based_4+rights_based_5+rights_based_6+rights_based_7+rights_based_8+rights_based_9) as right_based, 
@@ -94,61 +91,5 @@ sum(resolved + resolved_2 + resolved_3 + resolved_4 + resolved_5 + resolved_6 + 
 
 from table1
 
-  where year_new <2022 and (year_new <> 2021 and quarter <> 'Q4')
-  
-group by sub_unit, country , factory , vendor , unit ,region ,year_new ,quarter  ,status ,fy ,_id,x_axis_sort , projectid 
+group by sub_unit, country , factory , vendor , unit ,region ,year_new ,quarter  ,status ,fy ,_id,x_axis_sort
 order by quarter_fy desc
-  ),
-
- table101 as
-( select p.projectid , p._id , year_timerange , cast(d1 as varchar) as d1_update  from profile_76755 as p, p.grievances_wcp_arr as d1
-),
-
-table201 as
-( 
-  select p.*, p1.rights_based as rights_based_cb, p1.interest_based as interest_based_cb, cast(year_timerange.start as date) as fy_1 , extract(year from fy_1) as fy_2 , extract(month from fy_1) as month1 , 
-case when month1 = 1 then 'January' 
-     when month1 = 2 then 'February'
-	 when month1 = 3 then 'March'
-	 when month1 = 4 then 'April'
-	 when month1 = 5 then 'May'
-	 when month1 = 6 then 'June'
-	 when month1 = 7 then 'July'
-	 when month1 = 8 then 'August'
-	 when month1 = 9 then 'September'
-	 when month1 = 10 then 'October'
-	 when month1 = 11 then 'November'
-	 when month1 = 12 then 'December'
-end as month 
-,case when month in ('February','March','April') then '1st(Feb-Apr)'
-                  when month in ('May','June','July') then  '2nd(May-Jul)'
-				  when month in ('August','September','October') then '3rd(Aug-Oct)'
-				  when month in ('November','December','January') then '4th(Nov-Jan)' end as quarter, Case when quarter = '1st(Feb-Apr)'then 'Q1'
-when quarter = '2nd(May-Jul)' then 'Q2'
-when quarter =  '3rd(Aug-Oct)' then 'Q3'
-when quarter = '4th(Nov-Jan)' then 'Q4' end as quarter_new from table101 as p
-
-left join profile_76927 p1
-on p.d1_update = p1._id
-  
-where (fy_2=2021 and quarter_new='Q4') or fy_2>2021
-),
-
-table202 as
-( 
-  select  p._id,sub_unit , country , factory , vendor , unit ,region , year_new ,p.quarter ,status,p.fy, quarter_fy ,     
- (right_based+ p1.rights_based_cb) as right_based_1, 
- (interest_based+ p1.interest_based_cb) as interest_based_1,  (right_based_1+interest_based_1) as total_raised_1 , 
- resolved, x_axis_sort from table88 as p
-  
-  left join table201 p1
-  on p.projectid = p1.projectid
-  ),
-  
-  table203 as
-  ( select  _id,sub_unit , country , factory , vendor , unit ,region , year_new ,quarter ,status,fy, quarter_fy ,     
-  right_based_1 as right_based, 
- interest_based_1 as interest_based, total_raised_1 as total_raised, 
- resolved, x_axis_sort  from table202 as p)
-
-select * from table203
