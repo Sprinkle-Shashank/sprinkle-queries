@@ -12,11 +12,46 @@ sub2 as(
   select * from sub1 where row = 1),
   
 sub3 as(
-  select s2.id, s2.vendor_name as vendor, s2.vendor_vms_id, s2.factory_name, s2.factory_vms_id, s2.region
+  select s2.id, s2.vendor_name as vendor, s2.vendor_vms_id, s2.factory_name as factory, s2.factory_vms_id, s2.region
 from sub2 s2
 group by s2.id, s2.vendor_name, s2.vendor_vms_id, s2.factory_name, s2.factory_vms_id, s2.region)
 
-select * from sub1 
+----x--
+
+sub4 as(
+  select s3.id, s3.factory, s3.vendor, s3.vendor_vms_id, p4.source_div, p4.timeperiod_timerange, s3.factory_vms_id, s3.region,
+  
+case
+  	when IS_ARRAY(p4.source_div) = FALSE or GET_ARRAY_Length(p4.source_div) = 0 then ARRAY (p4.source_div)
+  	else p4.source_div
+end as source_div_new,  
+  
+row_number() over(partition by s3.id order by cast(p4.timeperiod_timerange.start as date) desc) as row
+
+from sub3 s3
+left join profile_60928 p4 on p4.factory_vms_id = s3.factory_vms_id),
+
+sub5 as(
+  select s4.* , source_div_unwind
+  from sub4 s4, s4.source_div source_div_unwind
+  where s4.row = 1),
+  
+sub6 as(
+  select s5.id, s5.factory, s5.factory_vms_id, s5.vendor, s5.vendor_vms_id, nvl(t4.name, t3.name) as business_div, s5.region
+from sub5 s5
+
+left join tagElement_7200 t3 on t3.id = s5.source_div_unwind
+left join tagElement_7200 t4 on t4.id = t3.parent),
+
+sub7 as(
+  select s6.id, s6.factory, s6.factory_vms_id, s6.vendor, s6.vendor_vms_id, s6.business_div, s6.region, p5.brand_text as brand, 1 as count
+from sub6 s6
+
+left join profile_81437 p5 on p5.business_division_text = s6.business_div
+
+where nvl(p5.brand_text, 'NA') != 'Heritage Brands')
+
+select * from sub7
 
 
 
