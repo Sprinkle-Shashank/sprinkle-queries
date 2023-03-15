@@ -1,91 +1,117 @@
 --Gap_Data_Monitor_Batches_Ongoing
-with table1 as ( select _id ,projectid, pro.name as factory,pace_status as facility_status,row_number() over 
-(partition by projectid
- order by _id desc) as row from profile_54267 p
-		left join project_1137 as pro
+
+
+with table1 as ( select _id ,projectid, pro.name as factory,pace_status as facility_status,
+				row_number() over (partition by projectid order by _id desc) as row
+				from profile_54267 p
+				
+left join project_1137 as pro
 on p.projectid = pro.id	   ),
 
-table2 as ( select * from table1 
-		  where row = 1),
+
+table2 as ( select * from table1 where row = 1),
+
 
 module_completed as (  select class, count(*)as completed from profile_4228
+					 
 					 where end_date is not null
 					 group by class),
+			
+			
 module_ongoing as ( select class, count(*)as ongoing from profile_4228
-					 where end_date is  null
-					 group by class),
+					
+				   where end_date is  null
+				   group by class),
+				   
+				   
 table7 as ( SELECT _id,mon.creatorid, u.email as cemail, mon.modifierid, m.email as memail
 from ds_mongo_profileinstance mon
+		   
 left join ds_mysql_prod_user u on
 mon.creatorid = u.id
+		   
 left join ds_mysql_prod_user m  on
 mon.modifierid = m.id
-where mon.profileId='4227' and mon.active = 't' and mon.securitycontextid is not null
-			 ),		
-creationdate_table_for_batch as (	select p._id,p.projectid,p.name,/*substring(createddate,1,10)*/ modifieddate as batch_date,t7.cemail,t7.memail,p.end_date_2 from profile_4227 p   
- left join table7 t7 on
-	p._id = t7._id	
-	where end_date_2 is null),
+		   
+where mon.profileId='4227' and mon.active = 't' and mon.securitycontextid is not null),	
+
+
+creationdate_table_for_batch as (select p._id,p.projectid,p.name,modifieddate as batch_date,t7.cemail,t7.memail,p.end_date_2 from profile_4227 p   
+								 
+left join table7 t7 on
+p._id = t7._id	
+	
+where end_date_2 is null),
+	
 	
 table8 as ( SELECT _id,mon.creatorid, u.email as cemail, mon.modifierid, m.email as memail
 from ds_mongo_profileinstance mon
+		   
 left join ds_mysql_prod_user u on
 mon.creatorid = u.id
+		   
 left join ds_mysql_prod_user m  on
 mon.modifierid = m.id
-where mon.profileId='4228' and mon.active = 't' and mon.securitycontextid is not null
-			 ),	
+		   
+where mon.profileId='4228' and mon.active = 't' and mon.securitycontextid is not null),	
+
  
- creationdate_table_for_module as (	select p._id,p.class, p.projectid,/*substring(createddate,1,10)as*/modifieddate as module_date,row_number() over 
-(partition by class
- order by createddate desc) as row,t8.cemail,t8.memail from profile_4228 p
-			left join table8 t8 on
-			p._id = t8._id					  )	,
+creationdate_table_for_module as (	select p._id,p.class, p.projectid, modifieddate as module_date,
+			row_number() over (partition by class order by createddate desc) as row
+            ,t8.cemail,t8.memail from profile_4228 p
+
+left join table8 t8 on
+p._id = t8._id),
+
 	
-table5 as ( select * from creationdate_table_for_batch 
-			--where row = 1 
-		   ),
+table5 as ( select * from creationdate_table_for_batch ), --where row = 1 
 			
- table6 as ( select * from creationdate_table_for_module 
-			where row = 1 ),
+			
+table6 as ( select * from creationdate_table_for_module where row = 1 ),
   
- creation_date as ( select t5._id,t5.projectid,batch_date,t5.memail as batch_email,t6.module_date,t6.memail as module_email from table5 t5
   
-  left join table6 t6 on 
-  t5._id= t6.class ),	
+creation_date as ( select t5._id,t5.projectid,batch_date,t5.memail as batch_email,t6.module_date,t6.memail as module_email from table5 t5
+  
+left join table6 t6 on 
+t5._id= t6.class ),	
+
   
 test as (					 
-select p._id,p.projectid,
-case when add_factory.sourcing_yn =57472 and t2.facility_status = 845114 then   		  			mapping.name_factory
-     when add_factory.sourcing_yn = 57473 and (add_factory.pace_status_2 in (845114 )or           add_factory.pace_status_2 is null) then   mapping.name_factory 
+select p._id,p.projectid, 
+  case when add_factory.sourcing_yn =57472 and t2.facility_status = 845114 then	mapping.name_factory
+    when add_factory.sourcing_yn = 57473 and (add_factory.pace_status_2 in (845114 )or           add_factory.pace_status_2 is null) then mapping.name_factory 
 	when add_community.pace_status=182398 then mapping.name_factory end as name_factory,
+  
 	 add_factory.sourcing_yn,t2.facility_status,add_factory.pace_status_2,add_community.pace_status
 ,end_date_2,cast(add_factory.factory_vpid_1 as varchar(65535)) as vpid_1,
+  
 case when add_factory.sourcing_yn =57472 then vpid_1 
      when add_factory.sourcing_yn =57473 then add_factory.factory_vpid_2
 	 when add_community.pace_status = 182398 then add_community.cp_location_id  
-	 end as       community_id
+	 end as community_id
 ,mapping.name_vendor_filter,
-case when add_community.pace_status = 182398 then add_community.cp_id
-     else add_factory.child_vendor_vpid end as vp_id_and_cp_id
+
+  case when add_community.pace_status = 182398 then add_community.cp_id
+  else add_factory.child_vendor_vpid end as vp_id_and_cp_id
 
 ,mapping.name_country,mapping.name_vendor,mapping.name_rp,start_date,
 concat('FY ' ,to_char(start_date,'YYYY')) as start_year ,
 end_date,num_females,module_completed.completed, module_ongoing.ongoing,
+  
 case when t_cd.module_date > t_cd.batch_date then t_cd.module_date
      else t_cd.batch_date end as latest_date,
+  
 concat(split_part(current_date,' ',1),'T00:00:00.000Z') AS current_date1,
 cast(current_date1 as datetime) as current_date,
+  
 case when t_cd.module_date > t_cd.batch_date then t_cd.module_email
      else t_cd.batch_email end as email_id,
+  
 case when current_date-latest_date<= 30 then 'Updated in last 30 days'
 	when 30< current_date-latest_date<= 90 then 'No updates in the last 30 days'
-		  else 'No updates in the last 90 days' end as Date_range
-	 
+	else 'No updates in the last 90 days' end as Date_range
 	 
 	 from profile_4227 p
-
-
 
 left join module_completed  on 
 p._id = module_completed.class
@@ -107,37 +133,40 @@ p.projectid = add_community.projectid
 
 left join table2 t2 on
 p.projectid = t2.projectid
+  
 left join project_1137 as pro
 on p.projectid = pro.id
+  
 where end_date_2 is null ),
 
-/*select * from test
-
-where name_factory is not null */
-
-/* No Batches running*/
 
 no_batches_running as ( 
   
   select p.projectid,batch.projectid as batch_projectid,name_factory,name_vendor_filter, name_country,add_factory.sourcing_yn,add_factory.pace_status_2,add_community.pace_status as community_status,t2.facility_status ,
   cast(add_factory.factory_vpid_1 as varchar(65535)) as vpid_1,
+  
  case when add_factory.sourcing_yn =57472 then vpid_1 
      when add_factory.sourcing_yn =57473 then add_factory.factory_vpid_2
 	 when add_community.pace_status = 182398 then add_community.cp_location_id  
 	 end as       community_id ,
+  
   case when add_community.pace_status = 182398 then add_community.cp_id
-     else add_factory.child_vendor_vpid end as vp_id_and_cp_id
+       else add_factory.child_vendor_vpid end as vp_id_and_cp_id
 					   
-				from profile_54646 p
-  left join profile_52713 add_factory on 
-  p.projectid = add_factory.projectid
-	left join profile_4948 add_community on
+	from profile_54646 p
+  
+left join profile_52713 add_factory on 
+p.projectid = add_factory.projectid
+  
+left join profile_4948 add_community on
 p.projectid = add_community.projectid
-  left join table2 t2 on
+  
+left join table2 t2 on
 p.projectid = t2.projectid
- left join profile_4227 batch on
-  p.projectid = batch.projectid
-)
+  
+left join profile_4227 batch on
+p.projectid = batch.projectid)
+
 
 select projectid,name_factory,community_id,vp_id_and_cp_id,name_country,name_vendor_filter,
 null as start_date,null as start,null as end_date,null as num_females,null as completed,null as ongoing,
@@ -145,11 +174,4 @@ null as latest_date,null as email_id,null as date_range, 'No Current Batches' as
 from no_batches_running
 where batch_projectid is null and projectid like '%%'
 
-
-
-/*select projectid,name_factory,community_id,vp_id_and_cp_id,name_country,name_vendor_filter
-,start_date,start_year,
-end_date,num_females,completed, ongoing,latest_date,email_id,Date_range,'Ongoing Batches' as batch_status from test
-where name_factory is not null and projectid like '%%'
-union all*/
 
