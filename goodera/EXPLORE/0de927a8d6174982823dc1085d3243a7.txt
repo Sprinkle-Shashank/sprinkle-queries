@@ -1,0 +1,42 @@
+ with temp as (
+  select 'Turmeric' as col
+  union all
+  select 'Chilli' as col
+  union all
+  select 'Coriander' as col
+  union all
+  select 'Other Masala' as col
+  union all
+  select 'Oil' as col),
+
+
+
+table1 as (  
+  select p3.name as projectId,p2.name as projectname,p1.name as partner,
+  p.fy_timerange,t1.name as block, t2.name as district, t3.name as state,p.village as Village_Name,t4.name as Marketing_channel,p.shop_name,temp.col as dimensions,
+  sum(case col
+	when 'Turmeric' then p.turmeric_kg  
+	when 'Chilli' then p.chilli_kg 
+	when 'Coriander' then p.corianderkg 
+	when 'Other Masala' then p.other_masala_kg 
+	when 'Oil' then p.oil_kg 
+    else Null
+	end) as Values
+
+from profile_83278 p
+cross join temp
+left join project_9730 p1 on p1.id = p.projectid
+left join project_9730 p2 on p2.id = p1.parent
+left join project_9730 p3 on p3.id=p2.parent
+
+left join tagelement_9730 t1 on t1.id=p.state_district_block
+left join tagelement_9730 t2 on t2.id=t1.parent
+left join tagelement_9730 t3 on t3.id=t2.parent
+left join tagelement_9730 t4 on t4.id=p.marketing_channel
+
+where p.projectid like '%%' 
+group by p3.name,p2.name,p1.name,p.fy_timerange,t1.name,t2.name,t3.name,t4.name,temp.col,p.village,p.shop_name
+  )
+Select a.projectId,a.projectname,a.partner,
+a.fy_timerange,a.block,a.district,a.Marketing_channel,a.shop_name,a.dimensions,a.Values
+from table1 a  
