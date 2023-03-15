@@ -1,4 +1,23 @@
-with sub1 as (
+with sub1 as(
+  select p1._id as id, p1.vendor_name, p1.vendor_vms_id, p1.factory_name, p1.factory_vms_id, p1.factory_cdms_id, p1.fy_timerange, p1.factory_country
+  
+dense_rank() over(order by cast(p1.fy_timerange.start as DATE) desc) as row
+  
+from profile_81459 p1),
+
+sub2 as(
+  select * from sub1 where row = 1),
+  
+sub3 as(
+  select vendor_name as vendor, vendor_vms_id, factory_name, factory_vms_id,
+from sub2 s2
+group by vendor_name, vendor_vms_id, factory_name, factory_vms_id)
+
+select * from sub3
+
+
+
+/*with sub1 as (
   select p1._id as id, p1.quarter_timerange as fy_timerange, p2.name as factory, p1.factory_vms_id, nvl(t2.name, t1.name) as region, p3.name as vendor, p1.vendor_vms_id, p1.meet_target,  p1.cdms_id,
 extract(year from cast(p1.quarter_timerange.start as date)) as start_year,  
 
@@ -56,4 +75,4 @@ left join profile_81437 p5 on p5.business_division_text = s6.business_div
 
 where nvl(p5.brand_text, 'NA') != 'Heritage Brands')
 
-select * from sub7
+select * from sub7*/
