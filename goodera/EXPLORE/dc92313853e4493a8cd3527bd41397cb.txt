@@ -1,4 +1,5 @@
-select tag1.name as projectid, fy_timerange, state, district, p2.name as location, villages, beneficiaries, drinking_water_cans, water_units, unit_capacity, water_cans_sold, water_available, 'Health & Hygiene' as theme, 'Water Purification Units' as Program, (water_units*unit_capacity) as total_capacity, fy_timerange.start :: date as start_date, fy_timerange.start :: date as end_date
+with t1 as 
+(select tag1.name as projectid, fy_timerange, state, district, p2.name as location, villages, beneficiaries, drinking_water_cans, water_units, unit_capacity, water_cans_sold, water_available, 'Health & Hygiene' as theme, 'Water Purification Units' as Program, (water_units*unit_capacity) as total_capacity, fy_timerange.start :: date as start_date, fy_timerange.start :: date as end_date
 from profile_51091 p1
 
 left join ds_mysql_prod_project tag1
@@ -8,7 +9,14 @@ on p1.state = tag2.id
 left join ds_mysql_prod_tagelement tag3
 on p1.district = tag3.id
 left join profile_83287 p2
-on p1.location = p2._id 
+on p1.location = p2._id )
+
+select projectid, fy_timerange, state, district, location, villages, beneficiaries, drinking_water_cans, water_units, unit_capacity, water_cans_sold, water_available, theme, Program, total_capacity, extract(year from start_date) as start_year, extract(year from end_date) as end_year, 'FY ' || '(' || start_year || ' - ' || end_year || ')' as Financial_Year, count(*)
+
+from t1
+group by 
+projectid, fy_timerange, state, district, location, villages, beneficiaries, drinking_water_cans, water_units, unit_capacity, water_cans_sold, water_available, theme, Program, total_capacity, start_date, end_date, start_year, end_year
+order by start_year DESC
 
 
 
