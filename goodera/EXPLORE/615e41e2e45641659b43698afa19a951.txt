@@ -1,0 +1,15 @@
+--AU_Bank_Skills_Targets_meeting_high_management
+select p3.name as projectId,p1.name as projectname,p2.name as partner,t1.name as target,p.number,count(*),
+--concat(concat(concat(concat('{"start":"', p.start_date),'","end":"'),p.end_date),'"}') 
+p.fy_timerange
+from profile_81374 p
+
+left join ds_mysql_prod_project p1 on p1.id = p.projectid
+left join ds_mysql_prod_project p2 on p2.id = p1.parent
+left join ds_mysql_prod_project p3 on p3.id=p2.parent
+left join ds_mysql_prod_tagelement t1 on t1.id=p.target
+
+where t1.name = 'Meetings with Higher Management'
+and p.projectid like '%%'
+group by p3.name,p2.name,p1.name,t1.name,p.number,p.fy_timerange
+
