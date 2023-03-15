@@ -1,5 +1,5 @@
 with t1 as 
-(select tag1.name as projectid, tag2.name as fy_1, tag3.name as state, tag4.name as district, p2.name as location, fy_timerange, villages, beneficiaries, drinking_water_cans, water_units, water_cans_sold, water_available, 'Health & Hygiene' as theme, 'Water Purification Units' as Program, fy_timerange.start :: date as start_date, fy_timerange.start :: date as end_date, count(*)
+(select tag1.name as projectid, tag2.name as fy_1, tag3.name as state, tag4.name as district, p2.name as location, fy_timerange, villages, beneficiaries, drinking_water_cans, water_units, water_cans_sold, water_available, 'Health & Hygiene' as theme, 'Water Purification Units' as Program, fy_timerange.start :: date as start_date, fy_timerange.start :: date as end_date, (water_units*unit_capacity) as total_capacity, count(*)
 from profile_51091 p1
 
 left join ds_mysql_prod_project tag1
@@ -13,7 +13,7 @@ on p1.district = tag4.id
 left join profile_83287 p2
 on p1.location = p2._id 
 group by 
-tag1.name, tag2.name, tag3.name, tag4.name, p2.name, fy_timerange, villages, beneficiaries, drinking_water_cans, water_units, water_cans_sold, water_available, theme, Program, fy_timerange.start, fy_timerange.start)
+tag1.name, tag2.name, tag3.name, tag4.name, p2.name, fy_timerange, villages, beneficiaries, drinking_water_cans, water_units, water_cans_sold, water_available, theme, Program, fy_timerange.start, fy_timerange.start, unit_capacity)
 
 select *, extract(year from start_date) as start_year, extract(year from end_date) as end_year, 'FY ' || '(' || start_year || ' - ' || end_year || ')' as Financial_Year
 from t1
