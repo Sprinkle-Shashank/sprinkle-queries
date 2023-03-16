@@ -1,6 +1,78 @@
-select email from  ds_mongo_profileinstance mon
+--Gap_Data_Monitor_Button_2
+
+			
+ with table9 as 
+ (
+select p.projectid , p._id , p.name as Batch_ID ,pr_46.name_country , pr_46.name_vendor , pr_46.name_rp , pr_46.name_factory from profile_4227 p
+   
+   left join profile_54646 pr_46 on 
+   p.projectid = pr_46.projectid
+ ),
+ 
+ table2 as
+ (
+   select pr_28._id , pr_28.projectid , pr_28.class ,  mod_n.name as module_name , pr_28.start_date as start_date_update, to_char(pr_28.start_date,'YYYY-MM-DD') as start_date , pr_28.end_date as end_date_update, to_char(pr_28.end_date,'YYYY-MM-DD') as Module_End_Date ,pre_and_post.name as pre_and_post , pr_28.no_pre_assessment as pre_test , pr_28.score as score , pr_28.no_post_assessment as post_test , pr_28.score2 as score2 , pr_28.attendance as attendance from profile_4228 pr_28
+   
+left join tagelement_1137 mod_n 
+on pr_28.module_name = mod_n.id
+
+left join tagelement_1137 pre_and_post 
+on pr_28.pre_post_yn = pre_and_post.id
+
+ ),
+ 
+ /*table3 as ( SELECT _id,projectid,mon.creatorid, u.email as cemail, mon.modifierid, m.email as memail
+from ds_mongo_profileinstance mon
 left join ds_mysql_prod_user u on
 mon.creatorid = u.id
+left join ds_mysql_prod_user m  on
+mon.modifierid = m.id
+where mon.profileId='4228' and mon.active = 't' and mon.securitycontextid is not null
+			 ),
+			 */
+		
+/*table4 as 
+			 (
+			 select projectid ,
+			   listagg(distinct cemail,',') as creator_email
+			   from table3 
+
+group by projectid 
+*/
+			   )
+ 
+ 
+ select t2.projectid , t9.Batch_ID , t9.name_country , t9.name_vendor , t9.name_rp , t9.name_factory, substring(t2.start_date,0,5) as year ,t9.Batch_ID, t2.module_name, t2.start_date_update , t2.start_date, t2.end_date_update ,t2.Module_End_Date,t2.pre_and_post,t2.pre_test,t2.score,t2.post_test,t2.score2,t2.attendance from table2 t2
+ 
+left join table9 t9 on 
+t2.class = t9._id
+
+--left join table4 t4 on 
+--t2.projectid = t4.projectid
+
+where t2.start_date is not null 
+ 
+ /*
+ 
+ 
+ table3 as ( SELECT _id,projectid,mon.creatorid, u.email as cemail, mon.modifierid, m.email as memail
+from ds_mongo_profileinstance mon
+left join ds_mysql_prod_user u on
+mon.creatorid = u.id
+left join ds_mysql_prod_user m  on
+mon.modifierid = m.id
+where mon.profileId='4228' and mon.active = 't' and mon.securitycontextid is not null
+			 ),
+		
+table4 as 
+			 (
+			 select projectid, cemail , listagg(cemail,',') as creator_email from table3 
+
+group by projectid , cemail
+			   )
+			   
+			   select * from table4
+			 */
 
 
 /*--mylan_environement_health_energy_map1
