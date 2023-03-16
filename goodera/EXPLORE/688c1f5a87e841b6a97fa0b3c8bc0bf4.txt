@@ -1,27 +1,9 @@
---Gap_Data_Monitor_Button_2
+with sub1 as (select  _id , projectId, facility_name ,
+				fac_vpid ,parent_vendor_name,parent_vendor_vpid ,fy,month,facility_score ,pace_status,total_workers ,female_workers ,male_workers,country_name, primary_category,unwind_primary_category from profile_54267 as a, a.primary_category as unwind_primary_category)
 
-with table1 as
-(select  _id , projectId, facility_name ,
-				fac_vpid ,parent_vendor_name,parent_vendor_vpid ,fy,month,facility_score ,pace_status,total_workers ,female_workers ,male_workers,country_name,unwind_primary_category from profile_54267 as p ,p.primary_category as unwind_primary_category),
-
- table2 as
-(select  _id , projectId, facility_name ,
-				fac_vpid ,parent_vendor_name,parent_vendor_vpid ,fy,month,facility_score ,pace_status,total_workers ,female_workers ,male_workers,country_name,null as primary_category from profile_54267
-  where _id not in (select _id from table1))
-  ,
-  
-table3 as
- (
-	select * from table1
-  Union all
-  select * from table2
- )
-
-/*with sub1 as (select primary_category,unwind_primary_category from profile_54267 as a, a.primary_category as unwind_primary_category)
-*/
 
 select p.projectId,facility_name as name_factory,
-				fac_vpid as Factory_Id,ven.name as vendor_name,parent_vendor_vpid as vendor_id,f_y.name as year, cast(concat('FY ' ,year) as varchar) as start_year,mth.name as month,facility_score as factory_sustainability,status.name as factory_pace,total_workers as Total,female_workers as fem_workers,male_workers as mal_workers,con.name as name_country,cat.name as primary_category from table3 as p
+				fac_vpid as Factory_Id,ven.name as vendor_name,parent_vendor_vpid as vendor_id,f_y.name as year, cast(concat('FY ' ,year) as varchar) as start_year,mth.name as month,facility_score as factory_sustainability,status.name as factory_pace,total_workers as Total,female_workers as fem_workers,male_workers as mal_workers,con.name as name_country,cat.name as primary_category from sub1 as p
 
 left join tagelement_1137 ven
 on p.parent_vendor_name = ven.id
