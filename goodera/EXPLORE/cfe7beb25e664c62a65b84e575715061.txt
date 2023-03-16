@@ -1,6 +1,8 @@
 with t1 as 
 (select _id, tag1.name as projectid, fy_timerange, file, remarks, tag2.name as doc_type, tag3.name as projects, link, tag4.name as theme,
-case when file is null then '-' else 'Download' end as download_label, to_char(fy_timerange.start :: date, 'YYYY') as start_year, to_char(fy_timerange.end :: date, 'YYYY') as end_year, to_char(fy_timerange.start :: date, 'DD-MM-YYYY') as start_date
+case when file is null then '-' else 'Download' end as download_label, 
+case when link is null then '-' else 'Go to Link' end as external_link,
+to_char(fy_timerange.start :: date, 'YYYY') as start_year, to_char(fy_timerange.end :: date, 'YYYY') as end_year, to_char(fy_timerange.start :: date, 'DD-MM-YYYY') as start_date
 from profile_75323 p1
 left join ds_mysql_prod_project tag1
 on p1.projectid = tag1.id
@@ -11,7 +13,7 @@ on p1.projects = tag3.id
 left join ds_mysql_prod_tagelement tag4
 on p1.theme = tag4.id)
 
-select _id, projectid, fy_timerange, file, remarks, doc_type, projects, link, theme, download_label, 'FY' || '(' || start_year || ')' as financial_year
+select _id, projectid, fy_timerange, file, remarks, doc_type, projects, link, theme, download_label, external_link, 'FY' || '(' || start_year || ' - ' || end_year || ')' as financial_year
 from t1
 order by Start_year desc
 
