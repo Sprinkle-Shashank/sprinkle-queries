@@ -63,8 +63,9 @@ left join ds_mysql_prod_user m  on
 mon.modifierid = m.id
 where mon.profileId='4227' and mon.active = 't' and mon.securitycontextid is not null
 			 ), 
-factory_latest as (select *,row_number()over(partition by projectid order by _id desc) from profile_52713)			 
-			 ,
+factory as (select *,row_number()over(partition by projectid order by _id desc) from profile_52713),
+factory_latest as (select * from factory where row = 1),
+			 
   
 
 test as (					 
@@ -93,7 +94,7 @@ case when add_factory.sourcing_yn =57472 and add_factory.pace_status_2 = 845114 
 
 
 
-left join profile_52713 add_factory on
+left join factory_latest add_factory on
 p.projectid = add_factory.projectid
 
 left join profile_54646 mapping on
@@ -130,11 +131,11 @@ left join user_email u_t on
 --where end_date_2 is not null
 )
 
-/*select * from test
+select * from test
 where /*factory is not null and*/  projectid like '%%'
 order by _id desc 
-*/
-select * from factory_latest
+
+--select * from factory_latest
 
 
 
