@@ -1,7 +1,15 @@
-with sub1 as (select a.*, unwind_file from profile_75323 a, a.file as unwind_file)
-select _id, projectid, fy_timerange, cast(unwind_file as varchar) as unwind_file, remarks, doc_type, projects, link, theme,
-case when unwind_file is null then '-' else 'Download' end as download_label
-from sub1
-group by doc_type 
+select _id, tag1.name as projectid, fy_timerange, file, remarks, tag2.name as doc_type, tag3.name as projects, link, tag4.name as theme,
+case when file is null then '-' else 'Download' end as download_label
+from profile_75323 p1
+left join ds_mysql_prod_project tag1
+on p1.projectid = tag1.id
+left join ds_mysql_prod_tagelement tag2
+on p1.doc_type = tag2.id
+left join ds_mysql_prod_tagelement tag3
+on p1.projects = tag3.id
+left join ds_mysql_prod_tagelement tag4
+on p1.theme = tag4.id
+
+
 
 
