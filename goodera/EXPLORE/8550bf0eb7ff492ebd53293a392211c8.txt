@@ -52,7 +52,11 @@ table5 as ( select * from creationdate_table_for_batch
  creation_date as ( select t5._id,t5.projectid,batch_date,t5.memail as batch_email,t6.module_date,t6.memail as module_email from table5 t5
   
   left join table6 t6 on 
-  t5._id= t6.class ),	
+  t5._id= t6.class ),
+ factory 
+  factory as (select *,row_number()over(partition by projectid order by _id desc) as row from profile_52713),
+factory_latest as (select * from factory where row = 1),
+  
 test as (					 
 select p._id,p.projectid,
 case when add_factory.sourcing_yn =57472 and t2.facility_status = 845114 then   		  			mapping.name_factory
@@ -117,7 +121,7 @@ p._id = module_ongoing.class
 left join creation_date t_cd on
 p._id = t_cd._id
 
-left join profile_52713 add_factory on
+left join factory_latest add_factory on
 p.projectid = add_factory.projectid
 
 left join profile_54646 mapping on
@@ -135,4 +139,4 @@ where end_date_2 is not null )
 
 select * from test p
 
-where name_factory is not null and p.projectid like '%%'
+where /*name_factory is not null and*/ p.projectid like '%%'
