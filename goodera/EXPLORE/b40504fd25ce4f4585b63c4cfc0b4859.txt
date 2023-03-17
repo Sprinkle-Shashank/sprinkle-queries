@@ -67,6 +67,15 @@ order by m.project_code asc, update_date desc
 table4 as
 (
 select m.project_name, focus,state, m.project_code, entity, progress , completed , update_date , m.start_date1, fy_timerange ,m.description , vertical , _id , update_month from table3 as m
+),
+
+table5 as (
+select m._id ,m.state,m.focus, m.project_code , m.fy_timerange , m.description , update_month, m.vertical , m.entity , start_date1 , listagg(distinct m.completed, ' , ') as complete_update , listagg(distinct m.update_date, ' , ') as update_date_new , listagg(distinct m.progress, ' , ') as progress_update,pp.amount from table4 as m 
+left join profile_55194 pp
+on pp.project_code_new=m._id
+
+
+group by  m._id , m.project_code , m.fy_timerange , m.description , update_month, m.vertical , m.entity , start_date1 ,m.state,m.focus,pp.amount
 )
 
-select * from table4
+select * from table5 
