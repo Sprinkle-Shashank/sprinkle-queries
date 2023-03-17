@@ -1,16 +1,72 @@
-With main as(Select f.name as fy, sq.name project_code, sq.curr_yr_budget, sq.state state, sq.name_project as implementing_agency, m.name  as Project_Manager, m.name as level1,m.name as level2, sq.name_project project_name
-from profile_27396 sq
-left join profile_27420 p
-on sq._id=p.project_code
-left join ds_mysql_prod_tagelement f on
-sq.fy=f.id 
-left join ds_mysql_prod_tagelement m on
-sq.project_manager=m.id),
+with temp1 AS
+(select m.projectId, m.project_name, m.vertical, m.focus, cast(m.start_date as date) as start_date1, m.project_code, m.entity, CAST(r.fy_timerange.end as date) as update_date, compl.name as completed, prog.name as progress, t.name as state,
+concat(start_date1,'T00:00:00.000Z') as start1,
+concat(update_date,'T00:00:00.000Z') as end2,
+concat(concat(concat(concat('{"start":"',start1),'","end":"'),end2),'"}') as fy_1,
+ m.description, month,row_number() over (partition by m.project_code order by m._id desc) as row , m._id
+  
+from profile_62881 as m
 
-tab2 as(Select m.*,st
-From main as m,m.state as st)
+left join profile_55471 AS r
+ on m.project_code = r.project_code
 
-Select *,m1.name as state1
-From tab2
-left join ds_mysql_prod_tagelement m1 on
- tab2.st=m1.id
+left join tagElement_6575 as prog
+  on r.progress = prog.id  
+ 
+left join tagElement_6575 as compl
+  on r.completed = compl.id
+left join tagElement_6575 t
+on t.id=m.state
+),
+  
+temp2 as
+(select m.*, vertical_new from temp1 as m, m.vertical vertical_new),
+
+table3 as
+(
+select m.project_name,state, focus.name AS focus, m.start_date1, m.project_code, entity.name AS entity, m.update_date, m.progress, m.completed, m.fy_1 AS fy_timerange, m.description, CAST(EXTRACT (MONTH from update_date) AS INT) AS month_1 , EXTRACT(YEAR from update_date) AS year,
+
+case when month_1 = 1 then 'Jan'
+when month_1 = 2 then 'Feb'
+when month_1 = 3 then 'Mar'
+when month_1 = 4 then 'Apr'
+when month_1 = 5 then 'May'
+when month_1 = 6 then 'Jun'
+when month_1 = 7 then 'Jul'
+when month_1 = 8 then 'Aug'
+when month_1 = 9 then 'Sep'
+when month_1 = 10 then 'Oct'
+when month_1 = 11 then 'Nov'
+when month_1 = 12 then 'Dec'
+else NULL
+END AS month_name
+, concat(month_name,concat('-',year)) as update_month ,   case 
+when vert1.name IS NULL AND vert.name IS NOT NULL THEN vert.name
+else vert1.name 
+END AS vertical , m._id
+
+from temp2 as m
+
+left join tagElement_6575 as vert
+  on m.vertical_new = vert.id
+  
+left join tagElement_6575 as vert1
+  on vert.parent = vert1.id
+  
+left join tagElement_6575 as focus
+  on m.focus = focus.id
+
+left join tagElement_6575 as entity
+  on m.entity = entity.id
+
+group by m.project_name, m.projectId, focus.name, m.project_code, entity.name, m.progress, m.completed, m.start_date1, m.update_date, m.fy_1,m.description , vertical , vert1.name , vert.name , m._id , update_month,state
+
+order by m.project_code asc, update_date desc
+ ),
+
+table4 as
+(
+select m.project_name, focus,state, m.project_code, entity, progress , completed , update_date , m.start_date1, fy_timerange ,m.description , vertical , _id , update_month from table3 as m
+)
+
+select * from table4
