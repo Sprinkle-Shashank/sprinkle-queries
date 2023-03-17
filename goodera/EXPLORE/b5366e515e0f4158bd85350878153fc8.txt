@@ -15,9 +15,11 @@ group by p.projectid,type_program,end_date_2,start_year,t2.projectId,t2.factory,
 group by 1,2
 ),
 
-table2 as (select p.projectid,p.name_factory,t3.type_program,sum(t3.total_women) as total_woman,sum(t3.completed) as completed,sum(t3.ongoing) as ongoing,a.name as primary_category,name_vendor_filter,name_country,name_vendor,p2.sourcing_yn,p3.pace_status as status_community,case when p.name_rp isnull then 'NA' else p.name_rp end as name_rp,
-cast(p2.factory_vpid_1 as varchar(65535)) as vpid_1_id ,p2.factory_vpid_2 as vpid_2_id,p3.cp_id,case when status_community = 182398 then cp_id else (case when p2.sourcing_yn =57472 then vpid_1_id 
-    else vpid_2_id end) end as location_id, 
+table2 as (select p.projectid,p.name_factory,t3.type_program,sum(t3.total_women) as total_woman,sum(t3.completed) as completed,sum(t3.ongoing) as ongoing,a.name as primary_category,name_vendor_filter,name_country,name_vendor,p2.sourcing_yn,case when p.name_rp isnull then 'NA' else p.name_rp end as name_rp,
+cast(p2.factory_vpid_1 as varchar(65535)) as vpid_1_id ,p2.factory_vpid_2 as vpid_2_id,p3.cp_id,case when p3.pace_status = 182398 then cp_id else (case when p2.sourcing_yn =57472 then vpid_1_id 
+    else vpid_2_id end) end as factory_vpid,
+case when p5.pace_status = 182398 then p4.cp_id else (case when p5.sourcing_yn =57472 then vpid_1
+    else vpid_2 end) end as vendor_vpid,
  case when d.name isnull then e.name else d.name end as status,case when b.name isnull then c.name else b.name end as st_year from profile_54646 p
 
 left join profile_52713 p2  on
@@ -25,7 +27,13 @@ p.projectid = p2.projectid
 
 left join profile_4948 p3 on
 p.projectid = p3.projectid
+		   
+left join profile_5997 p4
+on p.projectid = p4.projectid
 
+left join profile_52162 p5
+on p.projectid = p5.projectid		   
+		   
 left join table3 t3
 on t3.projectid = p.projectid
 
@@ -48,7 +56,7 @@ left join tagelement_1137 e
 on e.id = p3.pace_status_2
 		   
 group by p.projectid,p.name_factory,p.name_vendor_filter,name_country,name_vendor, 
- location_id,status,st_year,status_community,p2.sourcing_yn,p2.factory_vpid_1,p2.factory_vpid_2,p3.cp_id,t3.type_program,p.name_rp,a.name
+ factory_vpid,vendor_vpid,status,st_year,p2.sourcing_yn,p2.factory_vpid_1,p2.factory_vpid_2,p3.cp_id,t3.type_program,p.name_rp,a.name
 )
 
 
