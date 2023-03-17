@@ -16,7 +16,7 @@ p.projectid = p3.projectid
  
 group by p.projectid, factory,community_partner,name_country,name_vendor, 
  location_id,status,st_year,status_community,p2.sourcing_yn,p2.factory_vpid_1,p2.factory_vpid_2,p3.cp_id
-)
+),
 /* table6 as (select projectId, case when sourcing_yn = 57472 then vpid_1_id
  when sourcing_yn =57473  then vpid_2_id when status_community = 182398 then cp_id  end as vpid_and_cpid
 
@@ -25,7 +25,7 @@ from table2 t2
 			
 group by projectId,vpid_and_cpid
 
-),
+),*/
 
 table4 as(
   select ROW_NUMBER() over (partition by p.projectid order by p._id desc),facility_score,female_workers,primary_category from profile_54267 p
@@ -33,10 +33,10 @@ table4 as(
 table5 as(Select t4.*, cast(category as int) from table4 t4, t4.primary_category category
 where ROW_NUMBER = 1),
 table3 as
-( select p.projectid ,t2.factory, t2.community_partner,t2.name_country,t2.location_id,sum(num_females) as total_women,type_program ,cast(concat('FY ' ,start_year) as varchar) as start_year,case when end_date_2 is not null then count(*)
- end as completed ,case when end_date_2 is null then count(*) end as ongoing,t5.facility_score,t5.female_workers,cat.name as category,pr_46.name_rp as name_rp,t6.vpid_and_cpid,t2.status,t2.st_year from profile_4227 p 
+( select p.projectid,sum(num_females) as total_women,type_program,case when end_date_2 is not null then count(*)
+ end as completed ,case when end_date_2 is null then count(*) end as ongoing/*t5.facility_score,t5.female_workers,cat.name as category,pr_46.name_rp as name_rp,t6.vpid_and_cpid,t2.status,t2.st_year*/ from profile_4227 p 
 
-left join table2 t2 on 
+/*left join table2 t2 on 
 p.projectid= t2.projectid
  left join table5 t5 on 
 p.projectid= t5.projectid
@@ -44,12 +44,14 @@ left join profile_54646 pr_46 on
 p.projectid= pr_46.projectid
 left join tagelement_1137 cat on
 t5.category = cat.id
-left join table6 t6 on 
-p.projectid = t6.projectid
+--left join table6 t6 on 
+--p.projectid = t6.projectid
 
 where t2.community_partner is not null and t2.factory is not null and t2.name_country is not null and t2.location_id is not null and t6.vpid_and_cpid is not null
 group by p.projectid,type_program,end_date_2,start_year,t2.projectId,t2.factory,t2.community_partner,t2.name_country,
  t2.location_id, t5.facility_score,t5.female_workers,cat.name,t2.status,t2.st_year,pr_46.name_rp,t6.vpid_and_cpid )*/
+ 
+group by 1)
 
 
-select * from table2
+select * from table3
