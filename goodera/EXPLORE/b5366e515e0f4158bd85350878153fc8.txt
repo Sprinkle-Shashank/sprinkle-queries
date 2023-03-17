@@ -1,25 +1,6 @@
 --GapInc_data_monitor_button6
 
-with table2 as (
-  select p.projectid,p.name_factory as factory,name_vendor_filter as community_partner,name_country,name_vendor,p2.sourcing_yn,p3.pace_status as status_community,
-cast(p2.factory_vpid_1 as varchar(65535)) as vpid_1_id ,p2.factory_vpid_2 as vpid_2_id,p3.cp_id,case when status_community = 182398 then cp_id else (case when p2.sourcing_yn =57472 then vpid_1_id 
-    else vpid_2_id end) end as location_id, 
- case when p2.pace_status_2 isnull then p3.pace_status_2 else p2.pace_status_2 end as status,case when p2.pace_start_year isnull then p3.pace_start_yr else p2.pace_start_year end as st_year from profile_54646 p
 
-left join profile_52713 p2  on
-p.projectid = p2.projectid 
-
-left join profile_4948 p3 on
-p.projectid = p3.projectid
-
-left join table3 t3
-on t3.projectid = p.projectid
-
- 
- 
-group by p.projectid, factory,community_partner,name_country,name_vendor, 
- location_id,status,st_year,status_community,p2.sourcing_yn,p2.factory_vpid_1,p2.factory_vpid_2,p3.cp_id
-),
 /* table6 as (select projectId, case when sourcing_yn = 57472 then vpid_1_id
  when sourcing_yn =57473  then vpid_2_id when status_community = 182398 then cp_id  end as vpid_and_cpid
 
@@ -30,7 +11,7 @@ group by projectId,vpid_and_cpid
 
 ),*/
 
-table4 as(
+with as table4 as(
   select ROW_NUMBER() over (partition by p.projectid order by p._id desc),facility_score,female_workers,primary_category from profile_54267 p
   ),
 table5 as(Select t4.*, cast(category as int) from table4 t4, t4.primary_category category
@@ -54,6 +35,26 @@ where t2.community_partner is not null and t2.factory is not null and t2.name_co
 group by p.projectid,type_program,end_date_2,start_year,t2.projectId,t2.factory,t2.community_partner,t2.name_country,
  t2.location_id, t5.facility_score,t5.female_workers,cat.name,t2.status,t2.st_year,pr_46.name_rp,t6.vpid_and_cpid )*/
 group by 1,2)
+  
+table2 as (  select p.projectid,p.name_factory as factory,name_vendor_filter as community_partner,name_country,name_vendor,p2.sourcing_yn,p3.pace_status as status_community,
+cast(p2.factory_vpid_1 as varchar(65535)) as vpid_1_id ,p2.factory_vpid_2 as vpid_2_id,p3.cp_id,case when status_community = 182398 then cp_id else (case when p2.sourcing_yn =57472 then vpid_1_id 
+    else vpid_2_id end) end as location_id, 
+ case when p2.pace_status_2 isnull then p3.pace_status_2 else p2.pace_status_2 end as status,case when p2.pace_start_year isnull then p3.pace_start_yr else p2.pace_start_year end as st_year from profile_54646 p
+
+left join profile_52713 p2  on
+p.projectid = p2.projectid 
+
+left join profile_4948 p3 on
+p.projectid = p3.projectid
+
+left join table3 t3
+on t3.projectid = p.projectid
+
+ 
+ 
+group by p.projectid, factory,community_partner,name_country,name_vendor, 
+ location_id,status,st_year,status_community,p2.sourcing_yn,p2.factory_vpid_1,p2.factory_vpid_2,p3.cp_id
+),
 
 
 select * from table3
