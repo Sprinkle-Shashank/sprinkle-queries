@@ -1,13 +1,27 @@
-SELECT projectId, fy_timerange,
-       MAX(CASE WHEN Dimension = 'num_sanitation_units' THEN Value END) AS num_sanitation_units,
-       MAX(CASE WHEN Dimension = 'num_incinerators' THEN Value END) AS num_incinerators,
-       MAX(CASE WHEN Dimension = 'num_children' THEN Value END) AS num_children,
-       MAX(CASE WHEN Dimension = 'num_girls' THEN Value END) AS num_girls,
-       MAX(CASE WHEN Dimension = 'num_public_sanitation' THEN Value END) AS num_public_sanitation,
-       MAX(CASE WHEN Dimension = 'num_schools' THEN Value END) AS num_schools
-FROM (
-    SELECT projectId, fy_timerange, Dimension, SUM(Value) AS Value
-    FROM profile_75488
-    GROUP BY projectId, fy_timerange, Dimension
-) AS t
-GROUP BY projectId, fy_timerange;
+
+
+
+with t1 as
+(SELECT * 
+FROM
+(Select   projectId, 
+       fy_timerange, 
+       SUM(num_sanitation_units) AS num_sanitation_units, 
+       SUM(num_incinerators) AS num_incinerators, 
+       SUM(num_children) AS num_children, 
+       SUM(num_girls) AS num_girls, 
+       SUM(num_public_sanitation) AS num_public_sanitation, 
+       SUM(num_schools) AS num_schools
+ from profile_78414
+ 
+)
+UNPIVOT (
+    val FOR dim IN (num_sanitation_units, num_incinerators, num_children, num_girls, num_public_sanitation, num_schools))
+
+)
+
+select projectId, fy_timerange, val,dim  from t1 as p
+
+
+Group By p.projectId, p.fy_timerange,val,dim
+  
