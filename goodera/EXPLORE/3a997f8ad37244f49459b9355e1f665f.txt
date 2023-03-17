@@ -1,1 +1,13 @@
-select * from profile_75488
+SELECT projectId, fy_timerange,
+       MAX(CASE WHEN Dimension = 'num_sanitation_units' THEN Value END) AS num_sanitation_units,
+       MAX(CASE WHEN Dimension = 'num_incinerators' THEN Value END) AS num_incinerators,
+       MAX(CASE WHEN Dimension = 'num_children' THEN Value END) AS num_children,
+       MAX(CASE WHEN Dimension = 'num_girls' THEN Value END) AS num_girls,
+       MAX(CASE WHEN Dimension = 'num_public_sanitation' THEN Value END) AS num_public_sanitation,
+       MAX(CASE WHEN Dimension = 'num_schools' THEN Value END) AS num_schools
+FROM (
+    SELECT projectId, fy_timerange, Dimension, SUM(Value) AS Value
+    FROM profile_75488
+    GROUP BY projectId, fy_timerange, Dimension
+) AS t
+GROUP BY projectId, fy_timerange;
