@@ -1,3 +1,4 @@
+--viatris_Global_heatmap
 
 
 select P.projectid,
@@ -12,10 +13,12 @@ timerange_timerange,
 cat.name as category,
 P.amt_rqst, 
 SUM(P.amt_apprvd) AS amt_given,
-reg.name as region, 
+/*reg.name as region, 
 eve.name as state,
-cou.name as country,
-reg_new.name as new_region,
+cou.name as country,*/
+p1.name as country,
+p1.region,
+/*reg_new.name as new_region,*/
 case when event_Type=960523 then 1 else 0 end as q,
 cast(timerange_timerange.start as varchar) as t1 ,
 LEFT(t1,4) as start_year ,
@@ -42,6 +45,9 @@ on P.approval_status= aprv.id
 left join ds_mysql_prod_tagelement reg
 on P.region= reg.id
 
+left join profile_83347 p1
+on p.country = p1._id
+
 left join ds_mysql_prod_tagelement cat
 on P.category= cat.id
 
@@ -62,7 +68,8 @@ on abc._id=reg_new.reftagelementmetadataid
 where start_year is not null /*and abc.code is not null */
 and map_code is not NULL
 
-GROUP BY P.projectid, P._id, p.amt_rqst,aprv.name, don_spon, purpose, event_type, request_type, eve_city, timerange_timerange, category, region, eve.name, cou.name , don.name , reg.name , cat.name,reg2.name,abc.code , cout.name ,reg_new.name
+GROUP BY P.projectid, P._id, p.amt_rqst,aprv.name, don_spon, purpose, event_type, request_type, eve_city, timerange_timerange, category, p1.name as country,
+p1.region,don.name , cat.name,reg2.name,abc.code , cout.name ,/*reg_new.name*/
 
 order by  category desc, amt_given desc, q desc
 
