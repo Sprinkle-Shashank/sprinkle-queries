@@ -1,8 +1,37 @@
-Select (q1+q2+q3+q4) as allocated,project_name,t1.name as year,t2.name as entity
+With query1 as (Select (q1+q2+q3+q4) as allocated,project_name,t1.name as year,t2.name as entity
 From profile_61799
 left join ds_mysql_prod_tagelement t1
 on year=t1.id
 left join ds_mysql_prod_tagelement t2
 on entity=t2.id
 where project_name = 1064011
-group by project_name,t1.name,t2.name,allocated
+group by project_name,t1.name,t2.name,allocated),
+
+query2 as(
+Select q1 as previous, (q2+q3+q4) as current,t1.name as year,t2.name as entity
+From profile_61799
+left join ds_mysql_prod_tagelement t1
+on year=t1.id
+left join ds_mysql_prod_tagelement t2
+on entity=t2.id
+where project_name = 1064011
+group by previous,current,t1.name,t2.name
+),
+
+query3 as( Select month_timerange as fy_timerange,sum(amount)
+From profile_55698
+Where projectId = 43294
+group by month_timerange),
+
+query4 as( Select 
+Case
+		  When category = 948972 then sum(amount) as employee
+		  When category = 929913 then sum(amount) as indirect
+          When category = 929912 then take sum(amount) as direct
+END AS Amount, category
+From profile_55699
+where projectId = 43294
+group by category
+)
+
+Select * from query4
