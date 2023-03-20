@@ -1,7 +1,7 @@
 --Mylan_Donations_YOY_trend
 
 
-Select _id,projectid,approval_status, don_spon, purpose, eve1.name as event_type, request_type, org_name, eve_city, p.timerange_timerange as fy_timerange, reg.name as  region , sum(1) as count , cast(timerange_timerange.start as varchar) as t1 , LEFT(t1,4) as start_year,  count(projectid) as project_counts, eve.name as category,amt_apprvd from profile_56375 p
+Select p._id,p.projectid,approval_status, don_spon, purpose, eve1.name as event_type, request_type, org_name, eve_city, p.timerange_timerange as fy_timerange, sum(1) as count , cast(timerange_timerange.start as varchar) as t1 , LEFT(t1,4) as start_year,  count(p.projectid) as project_counts, eve.name as category,amt_apprvd,p1.name as country,p1.region from profile_56375 p
 
 left join ds_mysql_prod_tagelement eve
 on p.category= eve.id
@@ -10,11 +10,15 @@ on p.category= eve.id
 left join ds_mysql_prod_tagelement reg
 on P.region= reg.id
 
+
 left join ds_mysql_prod_tagelement eve1
 on p.event_type= eve1.id
 
+left join profile_83347 p1
+on p.country = p1._id
+
 WHERE event_type is not NULL
-GROUP BY eve1.name, p.amt_apprvd,eve.name,projectid , approval_status ,don_spon, purpose, event_type, request_type, org_name, eve_city, timerange_timerange,  reg.name , _id
+GROUP BY eve1.name, p.amt_apprvd,eve.name,p.projectid , approval_status ,don_spon, purpose, event_type, request_type, org_name, eve_city, timerange_timerange,p._id
 
 
 
