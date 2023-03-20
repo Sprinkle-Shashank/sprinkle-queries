@@ -3,7 +3,7 @@
 select t1.name as approval_status,  purpose, event_type, case when org.name is null then org_name_new
 else org.name end as org_name
 ,
-p.timerange_timerange as fy_timerange, event_date, cat.name as category,   reg.name as region, amt_apprvd, prior_org_support,
+p.timerange_timerange as fy_timerange, event_date, cat.name as category,/*reg.name as region*/p1.name as country,p1.region, amt_apprvd, prior_org_support,
 case when prior_org_support=true then 1 else 0 end as  repeat_count 
 from profile_56375 p 
 
@@ -12,6 +12,9 @@ on p.approval_status=t1.id
 
  left join ds_mysql_prod_tagelement reg
 on P.region= reg.id
+
+left join profile_83347 p1
+on p.country = p1._id
 
 left join ds_mysql_prod_tagelement cat
 on P.category= cat.id
@@ -22,4 +25,4 @@ on P.org_name= org.id
 where approval_status=960515 and repeat_count=1
 
 
- Group by t1.name, P.event_type,P.purpose, p.org_name_new,org.name,org_name, timerange_timerange, region, prior_org_support, category,p.event_date,p.amt_apprvd,  reg.name , cat.name
+ Group by t1.name, P.event_type,P.purpose, p.org_name_new,org.name,org_name, timerange_timerange, region, prior_org_support, category,p.event_date,p.amt_apprvd,  p1.name as country,p1.region ,cat.name
