@@ -1,9 +1,10 @@
+--mylan_product_donation_value_time_period
 with table1 as(Select p.projectId,
 CAST(time_period_timerange.start as date) as time_period,
 Substring(CAST(time_period as CHAR(256)),1,4) as axis_value,
-x2.name as ship_city,x21.name as region,x22.name as region_global,x23.name as region_global_parent,
+x2.name as ship_city,/*x21.name as region,x22.name as region_global,*/x23.name as region_global_parent,
 x5.name as sales_org,
-p.shlf_life_buckt,p.shelf_life,p.doses_delivered,sum(total_cost) as donation_value,'VALUE' AS value_column,'Yearly' as time_period_level, CASE when axis_value is not NULL
+p.shlf_life_buckt,p.shelf_life,p.doses_delivered,p1.name as country,p1.region,sum(total_cost) as donation_value,'VALUE' AS value_column,'Yearly' as time_period_level, CASE when axis_value is not NULL
 then 
 axis_value
 else 
@@ -25,9 +26,12 @@ on x22.parent = x23.id
 
 Left join ds_mysql_prod_tagelement x5
 on p.sales_org = x5.id
+			   
+left join profile_83347 p1
+on p.country = p1._id
 
 group by p.projectId,
-time_period_timerange.start,x2.name,x21.name,x22.name, x23.name,
+time_period_timerange.start,x2.name,p1.name,p1.region, x23.name,
 x5.name,p.shlf_life_buckt,p.shelf_life,p.doses_delivered,time_period_level,temp
 
 order by donation_value desc),
@@ -52,9 +56,9 @@ else
 NULL
 end as time_axis,concat(month_name, concat (',' ,time_axis)) as temp,
 		 
-x2.name as ship_city,x21.name as region,x22.name as region_global,x23.name as region_global_parent,
+x2.name as ship_city,/*x21.name as region,x22.name as region_global,*/x23.name as region_global_parent,
 x5.name as sales_org,
-p.shlf_life_buckt,p.shelf_life,p.doses_delivered,sum(total_cost) as donation_value,'VALUE' AS value_column,'Monthly' as time_period_level from profile_56340 p
+p.shlf_life_buckt,p.shelf_life,p.doses_delivered,p1.name as country,p1.region,sum(total_cost) as donation_value,'VALUE' AS value_column,'Monthly' as time_period_level from profile_56340 p
 
 
 Left join ds_mysql_prod_tagelement x2
@@ -68,12 +72,15 @@ on x21.parent = x22.id
 
 Left join ds_mysql_prod_tagelement x23
 on x22.parent = x23.id
+		  
+left join profile_83347 p1
+on p.country = p1._id
 
 Left join ds_mysql_prod_tagelement x5
 on p.sales_org = x5.id
 
 group by p.projectId,
-time_period_timerange.start,x2.name,x21.name,x22.name, x23.name,
+time_period_timerange.start,x2.name,p1.name,p1.region, x23.name,
 x5.name,p.shlf_life_buckt,p.shelf_life,p.doses_delivered,month_value,month_name,time_period_level,axis_value
 
 order by donation_value desc),
@@ -104,9 +111,9 @@ end as time_axis,
 		       end as quarter,concat(quarter, concat (',' ,time_axis)) as temp,
 		  
 		  
-x2.name as ship_city,x21.name as region,x22.name as region_global,x23.name as region_global_parent,
+x2.name as ship_city,/*x21.name as region,x22.name as region_global,*/x23.name as region_global_parent,
 x5.name as sales_org,
-p.shlf_life_buckt,p.shelf_life,p.doses_delivered,sum(total_cost) as donation_value,'VALUE' AS value_column,'Quarterly' as time_period_level from profile_56340 p
+p.shlf_life_buckt,p.shelf_life,p.doses_delivered,p1.name as country,p1.region,sum(total_cost) as donation_value,'VALUE' AS value_column,'Quarterly' as time_period_level from profile_56340 p
 
 
 Left join ds_mysql_prod_tagelement x2
@@ -120,23 +127,26 @@ on x21.parent = x22.id
 
 Left join ds_mysql_prod_tagelement x23
 on x22.parent = x23.id
+		  
+left join profile_83347 p1
+on p.country = p1._id
 
 Left join ds_mysql_prod_tagelement x5
 on p.sales_org = x5.id
 
 group by p.projectId,
-time_period_timerange.start,x2.name,x21.name,x22.name, x23.name,
+time_period_timerange.start,x2.name,p1.name,p1.region, x23.name,
 x5.name,p.shlf_life_buckt,p.shelf_life,p.doses_delivered,month_value,month_name,time_period_level,axis_value,quarter
 
 order by donation_value desc)
 
-select projectId,time_period,temp,region_global,region_global_parent,sales_org,shlf_life_buckt,doses_delivered,donation_value,time_period_level from table1
+select projectId,time_period,temp,region,country,region_global_parent,sales_org,shlf_life_buckt,doses_delivered,donation_value,time_period_level from table1
 where temp is not null
 union all
 select
-projectId,time_period,temp,region_global,region_global_parent,sales_org,shlf_life_buckt,doses_delivered,donation_value,time_period_level from table2
+projectId,time_period,temp,region,country,region_global_parent,sales_org,shlf_life_buckt,doses_delivered,donation_value,time_period_level from table2
 where temp is not null
 union all
 select
-projectId,time_period,temp,region_global,region_global_parent,sales_org,shlf_life_buckt,doses_delivered,donation_value,time_period_level from table3
+projectId,time_period,temp,region,country,region_global_parent,sales_org,shlf_life_buckt,doses_delivered,donation_value,time_period_level from table3
 where temp is not null
