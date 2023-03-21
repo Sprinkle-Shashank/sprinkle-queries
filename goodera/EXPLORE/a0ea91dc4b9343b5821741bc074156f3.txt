@@ -1,7 +1,151 @@
-with table1 as
-( select p.projectid , p._id, p1.name as school_name from profile_83065 as p
+--Gap_Data_Monitor_Button_1
 
-left join profile_83284 p1
-on p.school_name = p1._id)
+with table1 as ( select _id ,projectid, pro.name as factory,pace_status as facility_status,row_number() over 
+(partition by projectid
+ order by _id desc) as row from profile_54267 p
+		left join project_1137 as pro
+on p.projectid = pro.id	   ),
 
-select * from table1
+table2 as ( select * from table1 
+		  where row = 1),
+/* table for factory_locationid */
+factory_locationid as (
+  with 
+table1 as ( select  p._id, p.projectid,q.factory_vpid as location_id,
+		   row_number() over 
+           (partition by p._id
+            order by p._id desc) as row,r.cp_location_id,q.pace_status_2 from  profile_4227 p
+				  left join profile_52713 q on
+                  p.projectid = q.projectid
+		          left join profile_4948 r on
+		          p.projectid = r.projectid
+		          left join project_1137 as pro
+                  on p.projectid = pro.id
+		          where  location_id is not null and cp_location_id is null
+  ),
+table2 as (select p._id,p.projectid,q.cp_location_id as location_id,q.pace_status_2 from profile_4227 p
+		   left join profile_4948 q on
+		   p.projectid = q.projectid
+		  where  location_id is not null
+		  ),
+ table3 as ( 
+select * from table1  
+ where row = 1)
+ select _id,projectid,location_id,pace_status_2 from table3
+ union all
+  select _id,projectid,location_id,pace_status_2 from table2
+  /* 99 factories are not there in add_factory*/
+),
+brand_table as ( select _id,projectid,brand_old,pace_brand,row_number()over(partition by projectid order by _id desc) as row from profile_52810 p , p.pace_brands pace_brand ),
+latest_brand as (select * from brand_table where row = 1)
+,
+
+table5 as ( select _id,select_module from profile_4227 p, p.select_modules select_module ),
+table6 as (select _id, listagg(module.name,',') as select_module from table5 t5
+left join tagelement_1137 module
+on t5.select_module = module.id
+		    
+		  group by _id 
+		   ),
+table7 as ( select _id, influencer from profile_4227 p, p.influencers influencer),		   
+table8 as (	select _id,listagg(influence.name,',') as influencer from table7 t7 
+  left join tagelement_1137 influence
+on t7.influencer = influence.id
+ group by _id		  ),
+table9 as ( select _id, time from profile_4227 p, p.cls_time time),
+table10 as ( select _id,listagg(time.name,',') as cls_time from table9 t9
+	left join tagelement_1137 time
+on t9.time = time.id		
+  group by _id),
+
+user_email as ( SELECT _id,mon.creatorid, u.email as cemail, mon.modifierid, m.email as memail
+from ds_mongo_profileinstance mon
+left join ds_mysql_prod_user u on
+mon.creatorid = u.id
+left join ds_mysql_prod_user m  on
+mon.modifierid = m.id
+where mon.profileId='4227' and mon.active = 't' and mon.securitycontextid is not null
+			 ), 
+factory as (select *,row_number()over(partition by projectid order by _id desc) as row from profile_52713),
+factory_latest as (select * from factory where row = 1),
+			 
+  
+
+test as (					 
+select p._id,p.projectid,
+case when add_factory.sourcing_yn =57472 and t2.facility_status = 845114 then   		  			mapping.name_factory
+     
+     when add_factory.sourcing_yn = 57473 and (add_factory.pace_status_2 in (845114 )or           add_factory.pace_status_2 is null) then   mapping.name_factory 
+	when add_community.pace_status=182398 then mapping.name_factory
+    else mapping.name_factory end  as name_factory,
+     f_id.location_id as factory_locationid,
+case when start_year >= 2020 and extract(month from start_date) >= 10 and   			   factory ilike '%CP%' then brand_pace.name
+	   when start_year >= 2020 and factory ilike '%Factory%' then brand_pace.name
+	   else brand_old.name end as brand,mapping.name_vendor_filter,
+  cast(add_factory.factory_vpid_1 as varchar(65535)) as vpid_1,	
+case when add_factory.sourcing_yn =57472 and add_factory.pace_status_2 = 845114 then vpid_1 
+     when add_factory.sourcing_yn =57473 and add_factory.pace_status_2 = 845114  then    		factory_vpid_2
+	 when add_community.pace_status = 182398 then add_community.cp_id  end as     			 vpid_and_cpid, 
+    mapping.name_country, concat('FY ',start_year) as start_year, status.name as
+     "PACE_STATUS",createddate,modifieddate,start_date,p.name as batch_id,type_program,
+   t6.select_module,hours,num_females,t10.cls_time,end_date,num_males,t8.influencer,other_influencer,end_date_2,num_females_graduated,reason_pregnancy,reason_left,reason_interest,reason_pressure,reason_other,reason_additional,num_females_dropout,num_males_graduated,num_males_dropout,absenteeism,absenteeism_1,efficiency,efficiency_1,turnover,turnover_1,promotions,promotions_1,u_t.cemail,
+ case when mapping.name_rp is null then 'NA'
+      else mapping.name_rp end as name_rp
+  
+ 	 
+	 from profile_4227 p
+
+
+
+left join factory_latest add_factory on
+p.projectid = add_factory.projectid
+
+left join profile_54646 mapping on
+p.projectid = mapping.projectid 
+
+left join profile_4948 add_community on
+p.projectid = add_community.projectid
+
+left join table2 t2 on
+p.projectid = t2.projectid
+left join project_1137 as pro
+on p.projectid = pro.id
+left join factory_locationid f_id on
+  p._id = f_id._id
+left join latest_brand as brand_table on 
+p.projectid = brand_table.projectid
+left join tagelement_1137 as brand_old
+on brand_table.brand_old = brand_old.id
+left join tagelement_1137 as brand_pace
+on brand_table.pace_brand = brand_pace.id  
+left join tagelement_1137 as status
+on f_id.pace_status_2 = status.id  
+left join table6 t6 on
+p._id=t6._id 
+left join table8 t8 on
+p._id=t8._id
+left join table10 t10 on
+p._id=t10._id 
+left join user_email u_t on
+  p._id = u_t._id
+  
+  
+  
+--where end_date_2 is not null
+)
+
+select * from test
+where /*factory is not null and*/  projectid like '%%'
+order by _id desc 
+
+/*select * from brand_table
+where projectid = 59697*/
+
+
+
+
+
+
+
+
+
