@@ -1,3 +1,4 @@
+--gap_inc_wcp_worker
 WITH table21 AS 
 (
 select p.projectid, p.facility_status , facility.name as facility_status_update , case when facility_status_update='Active' then 'Active' else 'Deactive' end as Active_Filter , goodera_facility_name_text from profile_68161 as p
@@ -5,19 +6,24 @@ select p.projectid, p.facility_status , facility.name as facility_status_update 
 left join tagelement_1137 facility 
 on p.facility_status = facility.id
 ),
+
 table1 as
 (
-  select p1.projectId , p1._id , p1.total_workers ,
- row_number() over 
-(partition by p1.projectid order by p1._id desc) as row  from profile_31726 p1
+  select p1.projectId , p1._id , p1.total_workers, 
+  row_number() over (partition by p1.projectid order by p1._id desc) as row , sta.name as status_update
+  
+  from profile_31726 p1
+  
+  left join ds_mysql_prod_tagelement sta
+  on p1.status = sta.id
+  
+  where status_update is null
  ),
  
  table2 as
  (
-   
-   select * from table1
-  where row = 1 
-   ),
+   select * from table1 where row=1
+  ),
    
    table4 as (
    select p2.projectId ,p2._id , 
@@ -53,14 +59,20 @@ where ((p2.status <> 437659 and p2.status <> 437658) or p2.status is null)
    table5 as (
       select * from table4
   where row1 = 1 
-   )
+   ),
    
+   
+   table100 as
+   (
    select 
     t5.projectId , t5.status ,t2.total_workers , t5.year_new, t5.country , t5.factory , t5.region , t5.vendor ,t5.unit , t5.status, t5.active_filter
     from table5 t5 
    
 left join table2 t2 
-on t5.projectid = t2.projectid
+on t5.projectid = t2.projectid 
   
   where  t5.country <> 'Test Country' and t5.country <> 'GAP Inc.' and t5.projectId like '%%'
+  )
   
+  
+  select * from table100
