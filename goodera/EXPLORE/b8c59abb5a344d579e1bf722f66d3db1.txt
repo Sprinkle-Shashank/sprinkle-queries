@@ -1,4 +1,4 @@
-with s as (Select prod.name,cast((split_part(split_part(prod.name,'|',1),'.',1)) as varchar) as prj_code,cast((split_part(split_part(prod.name,'|',1),'.',2)) as varchar) as prj_village,split_part(prod.name,'|',4),t.name as fy
+with s as (Select prod.name,cast((split_part(split_part(prod.name,'|',1),'.',1)) as varchar) as prj_code,cast((split_part(split_part(prod.name,'|',1),'.',2)) as varchar) as prj_village,split_part(prod.name,'|',4),t.name as fy,prj_code||'-'||t.name as join_c
 from profile_54963 r
 left join project_4188 prod
 on r.projectid=prod.id
@@ -6,7 +6,7 @@ left join tagElement_4188 t
 on t.id=r.fy
 ),
 s2 as (
-Select s.name as proj_code,t.name as fy,ngo_ref as ia,t1.name as project_manager,state
+Select s.name as proj_code,t.name as fy,ngo_ref as ia,t1.name as project_manager
 from profile_27396 s
 left join tagElement_4188 t
 on t.id=s.fy
@@ -19,7 +19,7 @@ Select proj_code,fy,ia,project_manager,st
 from s2 as sq,sq.state as st
 ),
 s4 as (
-Select proj_code,fy,ia,project_manager,listagg(t.name) as state
+Select proj_code,fy,ia,project_manager,listagg(t.name) as state,proj_code||'-'||fy as join_c
 from s3
 left join tagElement_4188 t
 on t.id=s3.st
@@ -27,7 +27,7 @@ group by proj_code,fy,ia,project_manager
 ),
 
 s5 as(
-Select sp.name as proj_code,t.name as fy,ngo_ref as ia,t1.name as project_manager,sp.state
+Select sp.name as proj_code,t.name as fy,ngo_ref as ia,t1.name as project_manager,sp.state,sp.name||'-'||t.name as join_c
 from profile_27420 sp
 left join tagElement_4188 t
 on t.id=sp.fy
@@ -35,7 +35,7 @@ left join tagElement_4188 t1
 on t1.id=sp.project_manager
 )
 
-Select * from s
+Select * from s5
 
 
 /*with s as(
