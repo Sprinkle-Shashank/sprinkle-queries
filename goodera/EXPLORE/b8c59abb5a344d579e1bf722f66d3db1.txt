@@ -1,7 +1,30 @@
-Select prod.name,cast((split_part(split_part(prod.name,'|',1),'.',1)) as varchar) as prj_code,cast((split_part(split_part(prod.name,'|',1),'.',2)) as varchar) as prj_village,split_part(prod.name,'|',4)
+with s as (Select prod.name,cast((split_part(split_part(prod.name,'|',1),'.',1)) as varchar) as prj_code,cast((split_part(split_part(prod.name,'|',1),'.',2)) as varchar) as prj_village,split_part(prod.name,'|',4)
 from profile_54963 r
 left join project_4188 prod
 on r.projectid=prod.id
+),
+s2 as (
+Select s.name as proj_code,t.name as fy,ngo_ref as ia,t1.name as project_manager,state
+from profile_27396 s
+left join tagElement_4188 t
+on t.id=s.fy
+left join tagElement_4188 t1
+on t.id=s.project_manager
+
+),
+s3 as (
+Select proj_code,fy,ia,project_manager,st
+from s2 as s,s.state as st
+),
+s4 as (
+Select proj_code,fy,ia,project_manager,t.name as state
+from s3
+left join tagElement_4188 t
+on t.id=st
+)
+
+Select * from s4
+
 
 /*with s as(
 Select prod.name,cast((split_part(split_part(prod.name,'|',1),'.',1)) as varchar) as prj_code,cast((split_part(split_part(prod.name,'|',1),'.',2)) as varchar) as prj_village,
