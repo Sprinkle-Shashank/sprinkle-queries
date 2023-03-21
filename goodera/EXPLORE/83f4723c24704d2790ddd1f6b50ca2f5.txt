@@ -1,0 +1,37 @@
+
+with Base1 as(select f.name as fy_timerange,split_part(split_part(prod.name,'|',1),'.',1) as ProjectCode from profile_60787
+left join  project_4188 prod  on
+prod.id=projectid
+left join tagelement_4188 f 
+on fy=f.id),
+
+Base2 as(select distinct(ProjectCode), fy_timerange,f.name as Core_area,m.name as Project_Manager 
+ from Base1 
+left join profile_27396 on
+ProjectCode=name
+left join tagelement_4188 f on 
+focus_area=f.id
+left join tagelement_4188 m on 
+project_manager=m.id
+left join profile_28235 p1
+on p1._id=p.intervention_type
+where Core_area='Eradicating Poverty' and p1.name='Indirect - Others'
+),
+
+Base3 as(select p.name as ProjectCode, k.focus_area as Core_area,m.name as Project_Manager
+		 from profile_27420 k
+left join profile_27396 p
+on k.project_code=p._id
+left join tagelement_4188 m on 
+k.project_manager=m.id 
+where k.focus_area='Eradicating Poverty' and k.int_type_calc2='Indirect - Others'
+),
+
+Base4 as(select distinct(p.ProjectCode), p.fy_timerange, k.Core_area,k.Project_Manager from Base1 p left join Base3 k on p.ProjectCode=k.ProjectCode
+where core_area='Eradicating Poverty'
+		)
+
+select * from Base4
+union all
+select * from Base2
+order by fy_timerange asc
