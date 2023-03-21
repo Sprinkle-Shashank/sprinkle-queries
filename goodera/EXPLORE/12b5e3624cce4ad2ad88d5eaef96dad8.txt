@@ -2,10 +2,10 @@
 Select p.projectId,x1.name as material,x11.name as material_description_parent,
 CAST(time_period_timerange.start as date) as time_period,
 Substring(time_period,1,4) as year_axis,
-x2.name as ship_city,x21.name as region,x22.name as region_global,x23.name as region_global_parent,x3.name as therap_cat,x31.name as therap_cat_parent,
+x2.name as ship_city,/*x21.name as region,x22.name as region_global,*/x23.name as region_global_parent,x3.name as therap_cat,x31.name as therap_cat_parent,
 x4.name as sold_ship_to,x43.name as partner_organization_parent,
 x5.name as sales_org,
-p.shlf_life_buckt,p.shelf_life,p.total_cost,sum(doses_delivered) as doses,'DOSES' as doses_column from profile_56340 p
+p.shlf_life_buckt,p.shelf_life,p.total_cost,p1.name as country,p1.region,sum(doses_delivered) as doses,'DOSES' as doses_column from profile_56340 p
 
 
 Left join ds_mysql_prod_tagelement x1
@@ -13,6 +13,9 @@ on p.material_descr = x1.id
 
 left join ds_mysql_prod_tagelement x11
 on x1.parent = x11.id
+
+left join profile_83347 p1
+on p.country = p1._id
 
 Left join ds_mysql_prod_tagelement x2
 on p.ship_city = x2.id
@@ -52,5 +55,5 @@ where time_period_timerange.start is not null
 
 
 group by p.projectId,x1.name,x11.name,
-time_period_timerange.start,x2.name,x21.name,x22.name, x23.name,x3.name,x31.name,x4.name,x43.name,
+time_period_timerange.start,x2.name,p1.name,p1.region, x23.name,x3.name,x31.name,x4.name,x43.name,
 x5.name,p.shlf_life_buckt,p.shelf_life,p.total_cost
