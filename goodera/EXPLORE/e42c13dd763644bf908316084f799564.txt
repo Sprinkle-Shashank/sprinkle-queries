@@ -1,17 +1,22 @@
 --mylan_oversight_compliance_training_table
-with table1 as (select cast(time_period_timerange.start as date) as x, extract(year from x) as year, t.name as region_global, t2.name as item ,p.name, assignment_profile, days_0_29, days_30_59, days_60_89, days_90, total_overdue, not_overdue
+with table1 as (select cast(time_period_timerange.start as date) as x, extract(year from x) as year,p1.name as country,p1.region as  region_global,
+			--	t.name as region_global,
+				t2.name as item ,p.name, assignment_profile, days_0_29, days_30_59, days_60_89, days_90, total_overdue, not_overdue
 from profile_61371 p
-left join ds_mysql_prod_tagelement t
-on p.region = t.id
+				
+--left join ds_mysql_prod_tagelement t
+--on p.region = t.id
+left join profile_83347 p1
+on p.country = p1._id
 left join ds_mysql_prod_tagelement t1
 on p.item = t1.id
 left join ds_mysql_prod_tagelement t2
 on t1.parent = t2.id
 )
 , table2 as(
-select item, year,region_global,assignment_profile,days_0_29, days_30_59, days_60_89, days_90, not_overdue,sum(total_overdue) as total_overdue
+select item, year,region_global,country,assignment_profile,days_0_29, days_30_59, days_60_89, days_90, not_overdue,sum(total_overdue) as total_overdue
 from table1
-group by item, year,region_global,assignment_profile,days_0_29, days_30_59, days_60_89, days_90, not_overdue
+group by item, year,region_global,country,assignment_profile,days_0_29, days_30_59, days_60_89, days_90, not_overdue
  )
  select *, 
 case 
