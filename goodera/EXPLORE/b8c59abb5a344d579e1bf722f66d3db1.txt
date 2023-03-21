@@ -4,20 +4,28 @@ case
 	when prj_village is not null then 1
 	else 0
 end as vill_count,
-ss.fy,ss.ngo_ref as Imp_agency,ss.project_manager ,ss.curr_yr_budget,ss.state
+t.name as fy,ss.ngo_ref as Imp_agency,ss.project_manager ,ss.curr_yr_budget,ss.state
 
 from profile_54963 r
 left join project_4188 prod
 on r.projectid=prod.id
 left join profile_27396 ss
 on prj_code=ss.name
+left join tagElement_4188 t
+on t.id=ss.fy
 group by 1,2,3,4,5,6,7,8,9
 --left join profile_27489 sss
 --on sss.name=prj_code
+),
+s2 as (
+Select prj_code, vill_count, fy, imp_agency, project_manager, curr_yr_budget, st from s as uw,uw.state st
 )
-, s2 as(
-Select prj_code, vill_count, fy, imp_agency, project_manager, curr_yr_budget, state,sum(vill_count) as count from s
-GROUP BY prj_code, vill_count, fy, imp_agency, project_manager, curr_yr_budget, state
+, 
+s3 as(
+Select prj_code, vill_count, fy, imp_agency, project_manager, curr_yr_budget, t.name as state,sum(vill_count) as count from s
+left join tagElement_4188 t
+on t.id=st
+GROUP BY prj_code, vill_count, fy, imp_agency, project_manager, curr_yr_budget, t.name
 
 )
-Select * from s2
+Select * from s3
