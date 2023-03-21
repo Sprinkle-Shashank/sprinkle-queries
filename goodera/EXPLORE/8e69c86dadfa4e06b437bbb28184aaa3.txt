@@ -1,18 +1,14 @@
-select cast(q.name as varchar) as ProjectCode, f.name as fy_timerange, m.name as Project_Manager, 
- CONCAT(ProjectCode,fy_timerange) as CODE
-from profile_27420 d
-left join ds_mysql_prod_tagelement f on
-d.fy=f.id
-left join ds_mysql_prod_tagelement m on
-d.project_manager=m.id
-left join profile_27396 q on
-d.project_code=q._id
- 
-union
 
-select cast(c.name as varchar)as ProjectCode,f.name as fy_timerange,m.name as Project_Manager,CONCAT(ProjectCode,fy_timerange) as CODE 
-from profile_27396 c	
-left join ds_mysql_prod_tagelement f on
-c.fy=f.id
-left join ds_mysql_prod_tagelement m on
-c.project_manager=m.id
+with Base1 as(select f.name as fy_timerange,split_part(split_part(prod.name,'|',1),'.',1) as ProjectCode from profile_60787
+left join  project_4188 prod  on
+prod.id=projectid
+left join tagelement_4188 f 
+on fy=f.id)
+
+select distinct(ProjectCode), fy_timerange,f.name as Core_area,m.name as Project_Manager from Base1 left join profile_27396 on
+ProjectCode=name
+left join tagelement_4188 f on 
+focus_area=f.id
+left join tagelement_4188 m on 
+project_manager=m.id
+where Core_area='Eradicating Poverty'
