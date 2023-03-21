@@ -1,4 +1,4 @@
-with s as (Select prod.name,cast((split_part(split_part(prod.name,'|',1),'.',1)) as varchar) as prj_code,cast((split_part(split_part(prod.name,'|',1),'.',2)) as varchar) as prj_village,split_part(prod.name,'|',4),t.name as fy,prj_code||'-'||t.name as join_c
+with s as (Select prod.name,cast((split_part(split_part(prod.name,'|',1),'.',1)) as varchar) as prj_code,cast((split_part(split_part(prod.name,'|',1),'.',2)) as varchar) as prj_village,split_part(prod.name,'|',4) as proj_name,t.name as fy,prj_code||'-'||t.name as join_c
 from profile_54963 r
 left join project_4188 prod
 on r.projectid=prod.id
@@ -6,7 +6,7 @@ left join tagElement_4188 t
 on t.id=r.fy
 ),
 s2 as (
-Select s.name as proj_code,t.name as fy,ngo_ref as ia,t1.name as project_manager,s.state
+Select s.name as proj_code,t.name as fy,ngo_ref as ia,t1.name as project_manager,s.state,s.curr_yr_budget
 from profile_27396 s
 left join tagElement_4188 t
 on t.id=s.fy
@@ -14,11 +14,11 @@ left join tagElement_4188 t1
 on t1.id=s.project_manager
 ),
 s3 as (
-Select proj_code,fy,ia,project_manager,st
+Select proj_code,fy,ia,project_manager,st,curr_yr_budget
 from s2 as sq,sq.state as st
 ),
 s4 as (
-Select proj_code,fy,ia,project_manager,listagg(t.name) as state,proj_code||'-'||fy as join_c
+Select proj_code,fy,ia,project_manager,listagg(t.name) as state,curr_yr_budget,proj_code||'-'||fy as join_c
 from s3
 left join tagElement_4188 t
 on t.id=s3.st
@@ -26,7 +26,7 @@ group by proj_code,fy,ia,project_manager
 ),
 
 s5 as(
-Select sp.name as proj_code,t.name as fy,ngo_ref as ia,t1.name as project_manager,t2.name as state,sp.name||'-'||t.name as join_c
+Select sp.name as proj_code,t.name as fy,ngo_ref as ia,t1.name as project_manager,t2.name as state,curr_yr_budget,sp.name||'-'||t.name as join_c
 from profile_27420 sp
 left join tagElement_4188 t
 on t.id=sp.fy
@@ -42,7 +42,11 @@ Select * from s4
 Union all
 Select * from s5
 )
-Select * from s
+Select prj_code,proj_name,s6.ia,s6.project_manager,s6.curr_yr_budget as allocated,s6.state
+
+from s
+left join s6 
+on s.join_c=s6.join_c
 
 
 
