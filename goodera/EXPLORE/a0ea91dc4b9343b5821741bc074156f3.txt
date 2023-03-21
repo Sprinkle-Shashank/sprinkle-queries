@@ -9,12 +9,12 @@ on p.facility_status = facility.id
 
 table1 as
 (
-  select p1.projectId , p1._id , p1.total_workers from profile_31726 p1
+  select p1.projectId , p1._id , p1.total_workers, row_number() over (partition by p1.projectid order by p1._id desc) as row from profile_31726 p1
  ),
  
  table2 as
  (
-   select * from table1
+   select * from table1 where row=1
   ),
    
    table4 as (
@@ -61,7 +61,7 @@ where ((p2.status <> 437659 and p2.status <> 437658) or p2.status is null)
     from table5 t5 
    
 left join table2 t2 
-on t5.projectid = t2.projectid
+on t5.projectid = t2.projectid 
   
   where  t5.country <> 'Test Country' and t5.country <> 'GAP Inc.' and t5.projectId like '%%'
   )
