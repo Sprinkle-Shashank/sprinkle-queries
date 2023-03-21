@@ -1,15 +1,22 @@
-with s1 as 
-(select *
-from profile_83767 as a,
-a.photo_before as unwind_photo_before, a.photo_after as unwind_photo_after)
+with t1 as 
+(select tag1.name as projectid, fy_timerange, tag2.name as state, tag3.name as district, p2.name as location, villages, beneficiaries, drinking_water_cans, water_units, unit_capacity, water_cans_sold, water_available, cast('Health & Hygiene' as VARCHAR) as theme, cast('Water Purification Units' as VARCHAR) as Program, (water_units*unit_capacity) as total_capacity, fy_timerange.start :: date as start_date, fy_timerange.end :: date as end_date
+from profile_51091 p1
 
-select projectid, fy_timerange, budget_approved, budget_spent, beneficiaries, location, listagg(cast(s1.unwind_photo_before as varchar),',') AS photo_before_Unwind, 
-listagg(cast(s1.unwind_photo_after as varchar),',') AS photo_after_Unwind, 
-to_char(fy_timerange.start :: date, 'YYYY') as start_year, to_char(fy_timerange.end :: date , 'YYYY') as end_year, remarks, 'FY' || '(' || start_year || ' - ' || end_year || ')' as Financial_year
-from s1
+left join ds_mysql_prod_project tag1
+on p1.projectid = tag1.id
+left join ds_mysql_prod_tagelement tag2
+on p1.state = tag2.id
+left join ds_mysql_prod_tagelement tag3
+on p1.district = tag3.id
+left join profile_83287 p2
+on p1.location = p2._id )
+
+select projectid, fy_timerange, state, district, location, villages, beneficiaries, drinking_water_cans, water_units, unit_capacity, water_cans_sold, water_available, program, theme, total_capacity, extract(year from start_date) as start_year, extract(year from end_date) as end_year,  'FY ' || '(' || start_year || ' - ' || end_year || ')' as Financial_Year, count(*)
+from t1
 group by 
-projectid, fy_timerange, budget_approved, budget_spent, beneficiaries, location, remarks
-
+projectid, fy_timerange, state, district, location, villages, beneficiaries, drinking_water_cans, water_units, unit_capacity, water_cans_sold, water_available, program, theme, total_capacity, start_date, end_date, start_year, end_year
+order by start_year DESC
+where start_year = '2022' and end_year = '2023'
 
 
 
