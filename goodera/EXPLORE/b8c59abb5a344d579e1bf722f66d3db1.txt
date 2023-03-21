@@ -1,11 +1,17 @@
 with s as(
-Select prod.name,cast((split_part(split_part(prod.name,'|',1),'.',1)) as varchar) as prj_code,cast((split_part(split_part(prod.name,'|',1),'.',2)) as varchar) as prj_village,ss.fy,ss.ngo_ref as Imp_agency,ss.project_manager ,ss.curr_yr_budget
+Select prod.name,cast((split_part(split_part(prod.name,'|',1),'.',1)) as varchar) as prj_code,cast((split_part(split_part(prod.name,'|',1),'.',2)) as varchar) as prj_village,
+case
+	when prj_village is not null then 1
+	else 0
+end as vill_count,
+ss.fy,ss.ngo_ref as Imp_agency,ss.project_manager ,ss.curr_yr_budget,ss.state,sum(vill_count)
 
 from profile_54963 r
 left join project_4188 prod
 on r.projectid=prod.id
 left join profile_27396 ss
 on prj_code=ss.name
+group by 1,2,3,4,5,6,7,8
 --left join profile_27489 sss
 --on sss.name=prj_code
 )
