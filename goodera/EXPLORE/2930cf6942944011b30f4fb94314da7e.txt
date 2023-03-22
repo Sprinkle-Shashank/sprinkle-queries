@@ -13,26 +13,29 @@ factory_locationid as (
 table1 as ( select  p._id, p.projectid,q.factory_vpid as location_id,
 		   row_number() over 
            (partition by p._id
-            order by p._id desc) as row,r.cp_location_id,q.pace_status_2 from  profile_4227 p
+            order by p._id desc) as row,r.cp_location_id,q.pace_status_2,q.facility_name as factory_name from  profile_4227 p
 				  left join profile_52713 q on
                   p.projectid = q.projectid
+		          left join profile_52644 fsr_factory 
+                  on q.factory_name_1 = fsr_factory._id
 		          left join profile_4948 r on
 		          p.projectid = r.projectid
 		          left join project_1137 as pro
                   on p.projectid = pro.id
 		          where  location_id is not null and cp_location_id is null
   ),
-table2 as (select p._id,p.projectid,q.cp_location_id as location_id,q.pace_status_2 from profile_4227 p
+table2 as (select p._id,p.projectid,q.cp_location_id as location_id,q.pace_status_2,q.location_name as factory_name from profile_4227 p
 		   left join profile_4948 q on
 		   p.projectid = q.projectid
+		   
 		  where  location_id is not null
 		  ),
  table3 as ( 
 select * from table1  
  where row = 1)
- select _id,projectid,location_id,pace_status_2 from table3
+ select _id,projectid,location_id,pace_status_2,factory_name from table3
  union all
-  select _id,projectid,location_id,pace_status_2 from table2
+  select _id,projectid,location_id,pace_status_2,factory_name from table2
   /* 99 factories are not there in add_factory*/
 ),
 brand_table as ( select _id,projectid,brand_old,pace_brand,row_number()over(partition by projectid order by _id desc) as row from profile_52810 p , p.pace_brands pace_brand ),
@@ -72,11 +75,11 @@ factory_latest as (select * from factory where row = 1),
 
 test as (					 
 select p._id,p.projectid,
-case when add_factory.sourcing_yn =57472 and t2.facility_status = 845114 then   		  			mapping.name_factory
+/*case when add_factory.sourcing_yn =57472 and t2.facility_status = 845114 then   		  			mapping.name_factory
      
      when add_factory.sourcing_yn = 57473 and (add_factory.pace_status_2 in (845114 )or           add_factory.pace_status_2 is null) then   mapping.name_factory 
 	when add_community.pace_status=182398 then mapping.name_factory
-    else mapping.name_factory end  as name_factory,
+    else mapping.name_factory end */ f_id.factory_name as name_factory,
      f_id.location_id as factory_locationid,
 case when start_year >= 2020 and extract(month from start_date) >= 10 and   			   name_factory like '%CP%' then brand_pace.name
 	   when start_year >= 2020 and name_factory like '%Factory%' then brand_pace.name
@@ -98,6 +101,9 @@ case when vendor_partner.sourcing_yn =57472 and add_factory.pace_status_2 in (84
 
 left join factory_latest add_factory on
 p.projectid = add_factory.projectid
+  
+/*left join profile_52644 fsr_factory 
+  on add_factory.factory_name_1 = fsr_factory._id*/
 
 left join profile_54646 mapping on
 p.projectid = mapping.projectid 
