@@ -1,9 +1,11 @@
 --mylan_medical_grants
 with table1 as(
-select  grant_status, requesting_organization, therapeutic_area, time_period_timerange,cast(time_period_timerange.start as date) as x, extract(year from x) as year, grant_type, /*country,*/ program_type,amount_requested,amount_approved from profile_61792 p1 /*p1.countries as country*/
+select  grant_status, requesting_organization, therapeutic_area, time_period_timerange,cast(time_period_timerange.start as date) as x, extract(year from x) as year, grant_type, /*country,*/ program_type,amount_requested,amount_approved,p2.name as country,p2.region from profile_61792 p1 /*p1.countries as country*/
+left join profile_83347 p2
+on p1.country = p2._id
 )
 
-select grant_status, requesting_organization, t2.name as therapeutic_area, time_period_timerange as time_period, year, t3.name as grant_type, /*country*//*t1.name as region_global,*/p2.name as country,p2.region, program_type, amount_requested,
+select grant_status, requesting_organization, t2.name as therapeutic_area, time_period_timerange as time_period, year, t3.name as grant_type, /*country*//*t1.name as region_global,*/country,p2.region, program_type, amount_requested,
 case 
 	when amount_approved is null then 0
 	else amount_approved
@@ -13,8 +15,6 @@ left join ds_mysql_prod_tagelement t
 on table1.country = t.id
 left join ds_mysql_prod_tagelement t1
 on t.parent = t1.id
-left join profile_83347 p2
-on table1.country = p2._id
 left join ds_mysql_prod_tagelement t2
 on table1.therapeutic_area = t2.id
 left join ds_mysql_prod_tagelement t3
