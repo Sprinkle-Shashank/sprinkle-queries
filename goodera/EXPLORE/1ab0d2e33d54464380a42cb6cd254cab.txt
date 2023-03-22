@@ -1,6 +1,7 @@
-select datatable,xprojectId,time.name as Time_period,split_part(split_part(fy_timerange,'|',1),'-',1) as time, case
-when time<='2018' then keyword in ('products_in_pipeline')
-else keyword in ('products_in_pipeline_new')
+select datatable,keyword,xprojectId,time.name as Time_period,split_part(split_part(fy_timerange,'|',1),'-',1) as time,
+case
+when time<='2018' then keyword ='products_in_pipeline'
+else keyword ='products_in_pipeline_new'
 end as d1
 
   from sus_60317 sus
@@ -8,4 +9,31 @@ end as d1
 Left join ds_mysql_prod_tagelement time
 on sus.financialperiod = time.id
 
-where keyword in ('products_in_pipeline', 'products_in_pipeline_new')
+where keyword in ('products_in_pipeline','products_in_pipeline_new')
+
+
+
+/*table2 as (select datatable,xprojectId,time.name as Time_period,split_part(split_part(fy_timerange,'|',1),'-',1) as time
+
+  from sus_60317 sus
+
+Left join ds_mysql_prod_tagelement time
+on sus.financialperiod = time.id
+
+where keyword in ('products_in_pipeline_new')
+		   ),
+table3 as(
+select xprojectId,t1.Time_period,t1.time,d1.region,SUM(d1.prod_count) as total from table1 t1, unpivot t1.datatable  d1
+
+
+group  by xprojectId,t1.Time_period,t1.time,d1.region
+  ),
+  table4 as(
+select xprojectId,t1.Time_period,t1.time,d2.region,SUM(d2.prod_count) as total from table2 t2, unpivot t2.datatable  d2
+
+
+group  by xprojectId,t1.Time_period,t1.time,d2.region
+  ),
+  table4 as (select t3.*,CAST(reg as varchar) from table3 t3,t3.region reg	*/
+
+  
