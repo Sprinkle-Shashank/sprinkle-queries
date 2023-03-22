@@ -1,4 +1,4 @@
-with s as (Select prod.name,cast((split_part(split_part(prod.name,'|',1),'.',1)) as varchar) as prj_code,cast((split_part(split_part(prod.name,'|',1),'.',2)) as varchar) as prj_village,split_part(prod.name,'|',4) as proj_name,t.name as fy,
+with s as (Select prod.name,cast((split_part(split_part(prod.name,'|',1),'.',1)) as varchar) as proj_code,cast((split_part(split_part(prod.name,'|',1),'.',2)) as varchar) as prj_village,split_part(prod.name,'|',4) as proj_name,t.name as fy,
 case
 	when prj_village is not null then 1
 	else 0
@@ -10,16 +10,16 @@ left join tagElement_4188 t
 on t.id=r.fy
 ),
 ss1 as (
-Select prj_code,proj_name,fy,sum(vill_count) villages
+Select proj_code,proj_name,fy,proj_code||'-'||fy as jc,sum(vill_count) villages
 from s
-group by prj_code,proj_name, fy
+group by proj_code,proj_name, fy
 ),
 
 s2 as (
-Select s.name as proj_code,ngo_ref as ia,t1.name as project_manager,s.state,s.curr_yr_budget
+Select s.name as proj_code,t.name asngo_ref as ia,t1.name as project_manager,s.state,s.curr_yr_budget
 from profile_27396 s
---left join tagElement_4188 t
---on t.id=s.fy
+left join tagElement_4188 t
+on t.id=s.fy
 left join tagElement_4188 t1
 on t1.id=s.project_manager
 ),
@@ -55,8 +55,8 @@ Union all
 Select * from s5
 )
 
-
-
+Select * from ss1
+/*
 
 Select prj_code,proj_name,ss1.fy,s6.ia,s6.project_manager,s6.curr_yr_budget as allocated,s6.state,villages
 
@@ -67,9 +67,9 @@ where s6.project_manager is not null
 group by prj_code,proj_name,ss1.fy,s6.ia,s6.project_manager,s6.curr_yr_budget ,s6.state,villages
 
 
-/*
 
-Select * from s
+
+
 
 
 with s as(
