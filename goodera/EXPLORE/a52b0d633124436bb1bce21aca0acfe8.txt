@@ -1,4 +1,21 @@
-select p.fy_timerange,p2.name as van,p3.name as partner,p.name,p.bene_age,p.bene_gender as gender,t1.name as dis1,t2.name as dis2,count(*) count(dis1+dis2) as dis_count, 1 as unique_count,
+select p.fy_timerange,p2.name as van,p3.name as partner,p.name,p.bene_age,p.bene_gender as gender,t1.name as dis1,t2.name as dis2,count(*), count(t1.name) as dis1_count, count(t2.name) as dis2_count, 1 as unique_count,
+CASE 
+		when p.bene_age > 0 and p.bene_age <= 5 then '0-5 Yrs'
+		when p.bene_age >= 6 and p.bene_age <=18 then '6-18 Yrs'
+		when p.bene_age >= 19 and p.bene_age <=40 then '19-40 Yrs'
+		when p.bene_age >= 41 and p.bene_age <=50 then '41-50 Yrs'
+		when p.bene_age >= 51 and p.bene_age <=60 then '51-60 Yrs'		
+		else 'Above 60 Yrs'
+	end as age_group,
+case
+when age_group = '0-5 Yrs' then 1
+when age_group = '6-18 Yrs' then 2
+when age_group = '19-40 Yrs' then 3
+when age_group = '41-50 Yrs' then 4
+when age_group = '51-60 Yrs' then 5
+else 6
+end as age_sort
+--case when 
 
 --case when 
 
@@ -13,4 +30,4 @@ where p.projectid like '%%'
 --and p2.name <> 'Chennai - TN 10 AS 5135'
 --and t2.name <> 'No Referral'
 
-group by p.fy_timerange,p2.name, p3.name, p.name,p.bene_age,p.bene_gender,t1.name, t2.name,t3.name
+group by p.fy_timerange,p2.name, p3.name, p.name,p.bene_age,p.bene_gender,t1.name, t2.name,age_group,age_sort
