@@ -1,4 +1,4 @@
-with sub1 as(select p.fy_timerange,p2.name as van,p3.name as partner,p.name,p.bene_age,p.bene_gender as gender,t1.name as dis1,t2.name as dis2,count(*), count(t1.name) as dis1_count, count(t2.name) as dis2_count, 1 as unique_count,
+with sub1 as (select * from(select p.fy_timerange,p2.name as van,p3.name as partner,p.name,p.bene_age,p.bene_gender as gender,t1.name as dis1, t2.name as dis2,count(*), count(t1.name) as dis1_count, count(t2.name) as dis2_count, 1 as unique_count,
 CASE 
 		when p.bene_age > 0 and p.bene_age <= 5 then '0-5 Yrs'
 		when p.bene_age >= 6 and p.bene_age <=18 then '6-18 Yrs'
@@ -19,12 +19,15 @@ end as age_sort
 
 --case when 
 
-from profile_83301 p
-
+from profile_83301 p 
 left join ds_mysql_prod_project p2 on p2.id=p.projectid 
 left join ds_mysql_prod_project p3 on p3.id=p2.parent
 left join tagElement_10099 t1 on p.sys_affected1 = t1.id
-left join tagElement_10099 t2 on p.sys_affected2 = t2.id
+left join tagElement_10099 t2 on p.sys_affected2 = t2.id)					   
+						   
+
+unpivot( val for dim in ( dis1_count, dis2_count))
+select * from sub1
 
 where p.projectid like '%%' 
 --and p2.name <> 'Chennai - TN 10 AS 5135'
