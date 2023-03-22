@@ -1,0 +1,76 @@
+With tab1 as(SELECT BH.fy_timerange, BH.amount,
+P.name AS projectname,
+CAST(BH.fy_timerange.start AS DATE) AS start_date,
+EXTRACT(YEAR FROM start_date) AS year,
+E.name AS entity,
+C.name AS category
+
+FROM profile_55699 AS BH
+
+LEFT JOIN ds_mysql_prod_project AS P
+ON BH.projectId = P.id
+
+LEFT JOIN ds_mysql_prod_tagelement AS E
+ON BH.entity = E.id
+
+LEFT JOIN ds_mysql_prod_tagelement AS C
+ON BH.category = C.id),
+
+tab2 as (with tab1 as
+(Select P.name AS projectname,p1.month_timerange as fy_timerange,p1.amount,p2.name as head,
+substring(p1.name,1,3) as month,substring(p1.name,6,4) as year,p1.name as h
+
+from profile_55698 p1
+LEFT JOIN ds_mysql_prod_project AS P
+ON p1.projectid = P.id
+left join profile_55699 p2
+on p2._id = p1.head)
+
+
+,tab2 as(with tab1 as
+(Select P.name AS projectname,p1.month_timerange as fy_timerange,p1.amount,p2.name as head,t1.name as category,
+substring(p1.name,1,3) as month,substring(p1.name,6,4) as year,p1.name as h
+
+from profile_55698 p1
+LEFT JOIN ds_mysql_prod_project AS P
+ON p1.projectid = P.id
+left join profile_55699 p2
+on p2._id = p1.head
+left join ds_mysql_prod_tagelement t1
+on t1.id = p2.category)
+
+
+,tab2 as( 
+Select projectname,
+case 
+when month in ('Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec') and year =2018 then 'FY ' || '2018' || ' - ' || '2019'
+when month in ('Jan','Feb','Mar') and year= 2019 then  'FY ' || '2018' || ' - ' || '2019'
+when h like 'FY (2018 - 2019)%' then 'FY ' || '2018' || ' - ' || '2019'
+
+when month in ('Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec') and year =2019 then  'FY ' || '2019' || ' - ' || '2020'
+when month in ('Jan','Feb','Mar') and year= 2020 then  'FY ' || '2019' || ' - ' || '2020'
+when h like 'FY (2019 - 2020)%' then 'FY ' || '2019' || ' - ' || '2020'
+
+when month in ('Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec') and year =2020 then 'FY ' || '2020' || ' - ' || '2021'
+when month in ('Jan','Feb','Mar') and year= 2021 then  'FY ' || '2020' || ' - ' || '2021'
+when h like 'FY (2020 - 2021)%' then 'FY ' || '2020' || ' - ' || '2021'
+
+when month in ('Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec') and year =2021 then 'FY ' || '2021' || ' - ' || '2022'
+when month in ('Jan','Feb','Mar') and year= 2022 then 'FY ' || '2021' || ' - ' || '2022'
+when h like 'FY (2021 - 2022)%' then 'FY ' || '2021' || ' - ' || '2022'
+  
+when month in ('Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec') and year =2022 then 'FY ' || '2022' || ' - ' || '2023'
+when month in ('Jan','Feb','Mar') and year= 2023 then  'FY ' || '2022' || ' - ' || '2023'
+when h like 'FY (2022 - 2023)%' then 'FY ' || '2022' || ' - ' || '2023'
+
+end as year_1
+,category,sum(amount) as amount
+from tab1
+group by  1,2,3)
+
+Select projectname,year_1 as financial_year,category,amount
+from tab2
+)
+		 
+Select *
+From tab1
