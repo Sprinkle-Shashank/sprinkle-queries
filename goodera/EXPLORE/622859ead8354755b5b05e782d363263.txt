@@ -6,7 +6,7 @@ table1 as(Select p.* ,(countries_arr) from  profile_61792 p
 )
 
 select p.projectId,p.grant_status, p.requesting_organization, therap.name as therapeutic_area, CAST(time_period_timerange.start as date) as time_period,
-Substring(time_period,1,4) as year_axis,type.name as grant_type, x1.name as country,x2.name as region_global,ptype.name as program_type,p.title,
+Substring(time_period,1,4) as year_axis,type.name as grant_type, /*x1.name as country,x2.name as region_global,*/ptype.name as program_type,p.title,p1.name as country,p1.region,
 sum(amount_requested) as Requested,
 sum(amount_approved) as Approved,
 sum(expected_participants) as Participants,
@@ -27,6 +27,9 @@ on p.countries_arr = x1.id
 Left join ds_mysql_prod_tagelement ptype
 on p.program_type = ptype.id
 
+left join profile_83347 p1
+on p.country = p1._id
+
 
 Left join ds_mysql_prod_tagelement x2
 on x1.parent = x2.id
@@ -39,6 +42,6 @@ where grant_status = 1095277
 
 
 group by p.projectId,p.grant_status, p.requesting_organization, therap.name,p.time_period_timerange,
-type.name ,x1.name ,x2.name ,ptype.name,p.title
+type.name ,p1.name,p1.region,ptype.name,p.title
 
 order by Approved desc
