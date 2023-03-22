@@ -1,10 +1,20 @@
-with s as (Select prod.name,cast((split_part(split_part(prod.name,'|',1),'.',1)) as varchar) as prj_code,cast((split_part(split_part(prod.name,'|',1),'.',2)) as varchar) as prj_village,split_part(prod.name,'|',4) as proj_name,t.name as fy,(split_part(split_part(prod.name,'|',1),'.',1))||'-'||t.name as join_c
+with s as (Select prod.name,cast((split_part(split_part(prod.name,'|',1),'.',1)) as varchar) as prj_code,cast((split_part(split_part(prod.name,'|',1),'.',2)) as varchar) as prj_village,split_part(prod.name,'|',4) as proj_name,t.name as fy,
+case
+	when prj_village is not null then 1
+	else 0
+end as vill_count
 from profile_54963 r
 left join project_4188 prod
 on r.projectid=prod.id
 left join tagElement_4188 t
 on t.id=r.fy
 ),
+ss1 as (
+Select prod.name,prj_code,prj_village,proj_name, fy, prj_village,sum(vill_count) as villages
+from s
+group by prod.name,prj_code,prj_village,proj_name, fy, prj_village
+),
+
 s2 as (
 Select s.name as proj_code,t.name as fy,ngo_ref as ia,t1.name as project_manager,s.state,s.curr_yr_budget
 from profile_27396 s
@@ -44,17 +54,19 @@ Select * from s4
 Union all
 Select * from s5
 )
-Select * from s
 
-/*
-Select prj_code,proj_name,s.fy,s6.ia,s6.project_manager,s6.curr_yr_budget as allocated,s6.state
+Select prj_code,proj_name,s.fy,s6.ia,s6.project_manager,s6.curr_yr_budget as allocated,s6.state,villages
 
-from s
+from ss1
 left join s6 
 on s.prj_code=s6.proj_code
 group by prj_code,proj_name,s.fy,s6.ia,s6.project_manager,s6.curr_yr_budget ,s6.state
 
+/*
 
+Select * from s
+
+/*
 
 with s as(
 Select prod.name,cast((split_part(split_part(prod.name,'|',1),'.',1)) as varchar) as prj_code,cast((split_part(split_part(prod.name,'|',1),'.',2)) as varchar) as prj_village,
