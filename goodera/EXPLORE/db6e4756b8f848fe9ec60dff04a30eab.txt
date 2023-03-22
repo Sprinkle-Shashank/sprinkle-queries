@@ -1,0 +1,89 @@
+with s as (Select prod.name,cast((split_part(split_part(prod.name,'|',1),'.',1)) as varchar) as proj_code,cast((split_part(split_part(prod.name,'|',1),'.',2)) as varchar) as prj_village,split_part(prod.name,'|',4) as proj_name,t.name as fy,
+case
+ 	when split_part(prod.name,'|',1) like '%.%' then 1
+    else 0
+   end as vill_count
+from profile_54963 r
+left join project_4188 prod
+on r.projectid=prod.id
+left join tagElement_4188 t
+on t.id=r.fy
+group by prod.name,proj_code,prj_village,proj_name,t.name
+),
+ss1 as (
+Select proj_code,proj_name,fy,(proj_code||'-'||fy) as j,sum(vill_count) villages
+from s
+group by proj_code,proj_name, fy
+),  
+
+s2 as (
+Select s.name as proj_code,t.name as fy, ngo_ref as ia,t1.name as project_manager,s.state,s.curr_yr_budget
+from profile_27396 s
+left join tagElement_4188 t
+on t.id=s.fy
+left join tagElement_4188 t1
+on t1.id=s.project_manager
+),
+s3 as (
+Select proj_code,ia,fy,project_manager,st,curr_yr_budget
+from s2 as sq,sq.state as st
+),
+s4 as (
+Select proj_code,ia,fy,project_manager,listagg(t.name) as state,curr_yr_budget,(proj_code||'-'||fy) as j
+from s3
+left join tagElement_4188 t
+on t.id=s3.st
+group by proj_code,ia,fy,project_manager,curr_yr_budget
+),
+
+s5 as(
+Select ss.name as proj_code,sp.ngo_ref as ia,t.name as fy,t1.name as project_manager,t2.name as state,sp.curr_yr_budget,(ss.name||'-'||t.name) as j
+from profile_27420 sp
+left join profile_27396 ss
+on ss._id=sp.project_code
+left join tagElement_4188 t
+on t.id=sp.fy
+left join tagElement_4188 t1
+on t1.id=sp.project_manager
+left join tagElement_4188 t2
+on t2.id=sp.state
+)
+,
+s6 as
+(
+Select * from s4
+Union all
+Select * from s5
+),
+s7 as
+(
+Select * from s6
+group by proj_code, ia, fy, project_manager, state, curr_yr_budget, j
+),
+
+s8 as (
+Select t.name as pm,approver,name
+from profile_27424
+left join tagElement_4188 t
+on t.id=pm_name
+
+
+),
+s9 as (
+
+Select ss1.proj_code,ss1.proj_name,ss1.fy,ss1.villages,s7.ia,s7.project_manager,s7.curr_yr_budget as allocated,s7.state,
+s8.approver
+
+from ss1
+left join s7
+on ss1.j=s7.j
+left join s8
+on s8.pm=s7.project_manager
+group by ss1.proj_code,ss1.proj_name,ss1.fy,ss1.villages,s7.ia,s7.project_manager,s7.curr_yr_budget ,s7.state
+
+)
+Select proj_code,proj_name,fy,villages,ia,project_manager level1,allocated,state,approver,s8.pm as level2
+
+from s9
+left join s8
+on s9.approver=s8.name
