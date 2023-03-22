@@ -1,3 +1,4 @@
+--mylan_employee_health_WHS_2final
 select 1 as total , projectId ,  SUBSTRING(CAST(p.time_period_timerange.start as VARCHAR),1,4) as time , case when month_ytd in  ('2','3' , '4')
 then 'Q1'
 when month_ytd in ('5' ,'6' , '7')
@@ -6,7 +7,20 @@ when month_ytd in ('8', '9', '10')
 then 'Q3'
 when month_ytd in ('11', '12',  '1')
 then 'Q4'
-end as quarter  ,  reg.name as region,reg_parent.name as region_global,  ver.name as  vertical  from profile_59545 p
+end as quarter  ,
+--reg.name as region,reg_parent.name as region_global,  
+ver.name as  vertical
+,
+case 
+when time < 2020 then p1.region 
+end as region_global
+,
+case 
+when time > 2020 then p1.name
+end as country
+  from profile_59545 p
+left join profile_83347 p1
+on p.country = p1._id
 
 left join ds_mysql_prod_tagelement ver
 on p.vertical = ver.id
