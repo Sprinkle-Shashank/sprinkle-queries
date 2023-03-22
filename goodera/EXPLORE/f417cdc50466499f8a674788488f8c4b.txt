@@ -1,4 +1,4 @@
-With tab1 as (Select p1.month_timerange, p1.project_code_new, sum(p1.amount) as amt,
+With tab1 as (Select p1.month_timerange, p2.name as project_code_new, sum(p1.amount) as amt,
 p2.project_name, t2.name as focus, t1.name as entity,
 case
   when is_array(p2.vertical) = false or get_array_length(p2.vertical) = 0 then 
@@ -19,21 +19,31 @@ Select t.*,vt
   From tab1 as t,t.vertical as vt
 ),
 
-tab3 as (Select t.month_timerange,t.project_code_new,t.amt,t.project_name,t.focus,t.entity,t1.name as vertical,t2.name as sdgs
+tab3 as (Select t.month_timerange,t.project_code_new,t.amt,t.project_name,t.focus,t.entity,t1.name as vertical
 From tab2 t
 left join tagElement_6575 as t1
-on t.vt = t1.id 
-left join profile_61044 p
+on t.vt = t1.id ),
+
+tab33 as (
+Select t2.name as sdgs, p2.name as project_code_new
+From profile_61044 p
 on p.proj=t.project_code_new
+left join profile_62881 p2
+on t.project_code_new=p2._id
 left join tagElement_6575 as t2
 on p.sdgs = t2.id 
-order by sdgs asc),
+),
+
+tab44 as (
+Select t.month_timerange,t.project_code_new,t.amt,t.project_name,t.focus,t.entity,t1.name as vertical
+From tab3 as t
+left join tab33 t2
+on t2.project_code_new=t.project_code_new
+)
 
 tab4 as(Select tab3.month_timerange, p2.name as project_code, tab3.project_name, tab3.vertical, tab3.focus, tab3.amt, tab3.entity,tab3.sdgs
 From tab3
-left join profile_62881 p2
-on tab3.project_code_new=p2._id
 group by tab3.month_timerange, p2.name, tab3.project_name, tab3.vertical, tab3.focus, tab3.amt, tab3.entity,tab3.sdgs)
 
 Select *
-From tab4
+From tab44
