@@ -1,12 +1,12 @@
 --Mylan_Med Grant Amount
 with 
-table1 as(Select p.* ,(countries_arr) from  profile_61792 p
+table1 as((Select p.* ,(countries_arr) from  profile_61792 p
 , p.countries countries_arr union all
  select p.*,NULL as countries_arr from profile_61792 p where countries IS NULL
 )
 
 select p.projectId,p.grant_status, p.requesting_organization, p.therapeutic_area, CAST(time_period_timerange.start as date) as time_period,
-Substring(time_period,1,4) as year_axis,type.name as grant_type, x1.name as country,x2.name as region_global,p.program_type,
+Substring(time_period,1,4) as year_axis,type.name as grant_type, /*x1.name as country,x2.name as region_global,*/p.program_type,p1.name as country,p1.region
 sum(amount_requested) as Requested,
 sum(amount_approved) as Approved,
 sum(expected_participants) as Participants,
@@ -24,7 +24,8 @@ on p.grant_type = type.id
 Left join ds_mysql_prod_tagelement x1
 on p.countries_arr = x1.id
 
-
+left join profile_83347 p1
+on p.country = p1._id
 
 
 Left join ds_mysql_prod_tagelement x2
@@ -35,4 +36,10 @@ where grant_status = 1095277
 
 
 group by p.projectId,p.grant_status, p.requesting_organization, p.therapeutic_area,p.time_period_timerange,
-type.name ,x1.name ,x2.name ,p.program_type
+type.name ,p1.name,p1.region ,p.program_type)
+
+select *,case 
+when time_period < 2020 then  region
+end as region
+, case when time_period >2020 then country
+end as country from t1
