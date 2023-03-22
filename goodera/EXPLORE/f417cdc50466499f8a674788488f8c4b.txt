@@ -1,5 +1,5 @@
 With tab1 as (Select p1.month_timerange, p1.project_code_new, sum(p1.amount) as amt,
-p2.project_name, p2.focus, t1.name as entity,
+p2.project_name, t2.name as focus, t1.name as entity,
 case
   when is_array(p2.vertical) = false or get_array_length(p2.vertical) = 0 then 
   	   array(p2.vertical)
@@ -10,6 +10,8 @@ left join profile_62881 p2
 on p1.project_code_new=p2._id
 left join tagElement_6575 as t1
 on p2.entity = t1.id 
+left join tagElement_6575 as t2
+on p2.focus = t2.id 
 group by 1,2,4,5,6,7),
 
 tab2 as (
@@ -17,14 +19,16 @@ Select t.*,vt
   From tab1 as t,t.vertical as vt
 ),
 
-tab3 as (Select t.month_timerange,t.project_code_new,t.amt,t.project_name,t.focus,t.entity,t1.name as vertical,p.sdgs
+tab3 as (Select t.month_timerange,t.project_code_new,t.amt,t.project_name,t.focus,t.entity,t1.name as vertical,t2.name as sdgs
 From tab2 t
 left join tagElement_6575 as t1
 on t.vt = t1.id 
 left join profile_61044 p
 on p.proj=t.project_code_new
+left join tagElement_6575 as t2
+on p.sdgs = t2.id 
 order by sdgs asc)
 
-Select *
+Select *,row_number() over(partition by sdgs) as row
 From tab3
 group by month_timerange, project_code_new, project_name, vertical, focus, amt, entity,sdgs
