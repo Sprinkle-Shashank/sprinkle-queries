@@ -1,0 +1,40 @@
+--HDFC_FRD_Indirect_Projects_State
+with Lookup as
+(select p.name as ProjectCode,f.name as fy_timerange,p.name_project as Project_Name,l.name as NGO,concat(p.start_date,concat('-',p.end_date)) as Start_End_Date,m.name  as Project_Manager,p.state as State,l1.name as focus_area
+from profile_27396 p
+left join profile_27395 l on
+p.ngo_partner=l._id
+left join tagelement_4188 m on
+p.project_manager=m.id
+left join tagelement_4188 f on
+p.fy=f.id
+left join tagelement_4188 l1 
+on l1.id=p.focus_area
+union all 
+select p.name as ProjectCode,f.name as fy_timerange,p.name_project as Project_Name,l.name as NGO,concat(p.start_date,concat('-',p.end_date)) as Start_End_Date,m.name  as Project_Manager,p.state as State,l1.name as focus_area
+from profile_27396 p
+left join profile_80183 l on
+p.ngo_partner=l._id
+left join tagelement_4188 m on
+p.project_manager=m.id
+left join tagelement_4188 f on
+p.fy=f.id
+left join tagelement_4188 l1 
+on l1.id=p.focus_area),
+
+Base1 as(select b.ProjectCode,b.fy_timerange,b.Project_Name,b.NGO,b.start_End_Date,b.Project_Manager ,State1,focus_area from lookup b ,b.State State1
+
+),
+
+Base2 as(
+select ProjectCode,fy_timerange,Project_Name,NGO,start_End_Date,Project_Manager,s.name as state,count(*),focus_area
+from Base1 
+left join tagelement_4188 s on
+State1=s.id
+group by ProjectCode,fy_timerange,Project_Name,NGO,start_End_Date,Project_Manager,s.name,focus_area)
+
+
+select fy_timerange,ProjectCode,Project_Name,NGO,start_End_Date,Project_Manager,count,listagg(state,',') within group(order by Project_Manager) as state,focus_area as core_area 
+from Base2
+where core_area='Eradicating Poverty'
+group by fy_timerange,ProjectCode,Project_Name,NGO,start_End_Date,Project_Manager,count,focus_area
