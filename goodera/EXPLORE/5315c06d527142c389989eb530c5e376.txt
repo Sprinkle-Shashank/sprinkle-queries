@@ -1,4 +1,4 @@
-select * from(select p.fy_timerange,p2.name as van,p3.name as partner,p.name,p.bene_age,p.bene_gender as gender,
+with sub1 as(select * from(select p.fy_timerange,p2.name as van,p3.name as partner,p.name,p.bene_age,p.bene_gender as gender,
 			  
 	t1.name as dis1, t2.name as dis2,count(*), count(t1.name) as dis1_count, count(t2.name) as dis2_count, 1 as unique_count
 /*CASE 
@@ -32,8 +32,14 @@ group by p.fy_timerange,p2.name, p3.name, p.name,p.bene_age,p.bene_gender,t1.nam
 )				   
 						   
 
-unpivot( val for dim in ( dis1_count as '1st System Affected', dis2_count as '2nd System Affected'))
---select * from sub1
+unpivot( val for dim in ( dis1_count , dis2_count)))
+select * ,
+case
+when dis1_count then '1st System Affected'
+when dis1_count then '2nd System Affected'
+else null
+end as sys
+from sub1
 
 
 --and p2.name <> 'Chennai - TN 10 AS 5135'
