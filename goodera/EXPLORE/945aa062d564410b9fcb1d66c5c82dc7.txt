@@ -1,27 +1,35 @@
 
-with Base1 as(select f.name as fy_timerange,split_part(split_part(prod.name,'|',1),'.',1) as ProjectCode from profile_60787
+with Base1 as(select f.name as fy_timerange,split_part(split_part(prod.name,'|',1),'.',1) as ProjectCode 
+			  from profile_60787
 left join  project_4188 prod  on
 prod.id=projectid
 left join tagelement_4188 f 
 on fy=f.id),
 
-Base2 as(select distinct(ProjectCode), fy_timerange,f.name as Core_area,m.name as Project_Manager from Base1 left join profile_27396 on
+Base2 as(select distinct(ProjectCode), m1.name fy,f.name as Core_area,m.name as Project_Manager 
+		 from Base1 left join profile_27396 p on
 ProjectCode=name
 left join tagelement_4188 f on 
 focus_area=f.id
 left join tagelement_4188 m on 
 project_manager=m.id
+left join tagelement_4188 m1 on 
+p.fy=m1.id
 where Core_area='Eradicating Poverty'
 ),
 
-Base3 as(select p.name as ProjectCode, k.focus_area as Core_area,m.name as Project_Manager
+Base3 as(select p.name as ProjectCode, k.focus_area as Core_area,m.name as Project_Manager, p1.name fy
 		 from profile_27420 k
 left join profile_27396 p
 on k.project_code=p._id
+left join tagelement_4188 p1
+on p1.id=k.fy
 left join tagelement_4188 m on 
 k.project_manager=m.id),
 
-Base4 as(select distinct(p.ProjectCode), p.fy_timerange, k.Core_area,k.Project_Manager from Base1 p left join Base3 k on p.ProjectCode=k.ProjectCode
+Base4 as(select distinct(p.ProjectCode), k.fy, k.Core_area,k.Project_Manager 
+		 from Base1 p 
+		 left join Base3 k on p.ProjectCode=k.ProjectCode
 where core_area='Eradicating Poverty'
 		)
 
