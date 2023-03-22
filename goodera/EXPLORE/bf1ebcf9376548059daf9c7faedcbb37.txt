@@ -1,0 +1,27 @@
+--HDFC_FRD_Project_Progress_Tracking
+with Base1 as(select split_part(split_part(prod.name,'|',1),'.',1) as ProjectCode,
+			  split_part(prod.name,'|',1) as Region1,
+  case 
+      when Region1 like '%.%' then split_part(prod.name,'|',2)
+     else '-'
+ end as Region, 
+			  
+			  p.fy,p.select_quarter,case when p.file_upload is null then 'No' else 'Yes'end as Report_submission_status from profile_60787 p 
+left join ds_mysql_prod_project prod on
+prod.id=p.projectid
+left join ds_mysql_prod_project prod1 on
+prod1.id=prod.parent
+left join ds_mysql_prod_project prod2 on
+prod2.id=prod1.parent
+			 )
+select f.name as fy_timerange,q.name as Quarter,
+ProjectCode,
+case when Region like 'FUEL%' 
+then substring(Region,6,100) 
+else  Region
+end as Region
+,Report_submission_status from Base1
+left join ds_mysql_prod_tagelement f on
+fy=f.id
+left join ds_mysql_prod_tagelement q on
+select_quarter=q.id
