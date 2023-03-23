@@ -1,25 +1,84 @@
+--mylan_project_health_table3
 with table1 as(select datatable,xprojectId,time.name as Time_period,split_part(split_part(fy_timerange,'|',1),'-',1) as time
 
-  from sus_60317 sus
+  from sus_60316 sus
 
 Left join ds_mysql_prod_tagelement time
 on sus.financialperiod = time.id
 
 where keyword in ('cust_service_level')
-),table3 as(
-select xprojectId,t1.Time_period,t1.time,table2.region,SUM(table2.value) as total from table1 t1, unpivot t1.datatable  table2
+)
+,table3 as(
+select xprojectId,t1.Time_period,t1.time,SUM(table2.value) as total,table2.region , case when Time_period like 'F%' then 'Yearly' 
+ when Time_period like 'Q%' then 'Quarterly' 
+  
+ end as timerange from table1 t1, unpivot t1.datatable  table2
+  
+
 
 
 group  by xprojectId,t1.Time_period,t1.time,table2.region
-),
-
-table4 as (select t3.*,CAST(reg as varchar) from table3 t3,t3.region reg	
-
 )
 
-SELECT re.name as reg,xprojectId,t4.Time_period,t4.time,total from table4 t4
+,
+
+table4 as (select t3.*,CAST(reg as varchar) from table3 t3,t3.region reg	
+	
+
+),
+
+
+table5 as(SELECT xprojectId,t4.Time_period, t4.time, total, re.name as region , timerange from table4 t4
 
 LEFT JOIN ds_mysql_prod_tagelement re on
-t4.reg = re.id
+t4.reg = re.id 
+)
+,
+
+table6 as (select xprojectId, t3.Time_period, t3.time, total, decode(region, null , 'Global' , region) , timerange from table3 t3 where region is null)
+
+table7 as(select datatable,xprojectId,time.name as Time_period,split_part(split_part(fy_timerange,'|',1),'-',1) as time
+
+  from sus_60316 sus
+
+Left join ds_mysql_prod_tagelement time
+on sus.financialperiod = time.id
+
+where keyword in ('cust_service_level_new')
+)
+,table8 as(
+select xprojectId,t7.Time_period,t7.time,SUM(table2.value) as total,table2.region , case when Time_period like 'F%' then 'Yearly' 
+ when Time_period like 'Q%' then 'Quarterly' 
+  
+ end as timerange from table7 t7, unpivot t7.datatable  table2
+  
+
+
+
+group  by xprojectId,t7.Time_period,t7.time,table2.region
+)
+
+,
+
+table9 as (select t8.*,CAST(reg as varchar) from table8 t8,t8.region reg	
+	
+
+),
+
+
+table10 as(SELECT xprojectId,t9.Time_period, t9.time, total, re.name as region , timerange from table9 t9
+
+LEFT JOIN ds_mysql_prod_tagelement re on
+t9.reg = re.id 
+)
+,
+
+table11 as (select xprojectId, t8.Time_period, t8.time, total, decode(region, null , 'Global' , region) , timerange from table8 t8 where region is null)
+
+select * from table5 
+union
+select * from table6
+union all
+select * from table11
 
 
