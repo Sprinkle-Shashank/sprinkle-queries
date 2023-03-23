@@ -1,3 +1,4 @@
+--Edwards_Waste_Level_Filter_mm_EMS
 with temp as(select p1.name as projectid,t.name as financialPeriod, p1.fy_timerange, p1.datanumbase as amt_ton,amt_ton*1000 as amt_kg,t1.name as half_fy,t2.name as full_fy,t3.name as FY,
 case 
 	when keyword ='paper_purchased' then 'Paper/Cardboard'
@@ -16,10 +17,10 @@ end as types_of_waste,
 nvl(t3.name,t2.name,t1.name,t.name) as financialyear_num
 
 from sus_62370 p1
-left join ds_mysql_prod_tagelement t on p1.financialPeriod =t.id
-left join ds_mysql_prod_tagelement t1 on t.parent =t1.id	
-left join ds_mysql_prod_tagelement t2 on t1.parent =t2.id	
-left join ds_mysql_prod_tagelement t3 on t2.parent =t3.id		 
+left join tagelement_7076 t on p1.financialPeriod =t.id
+left join tagelement_7076 t1 on t.parent =t1.id	
+left join tagelement_7076 t2 on t1.parent =t2.id	
+left join tagelement_7076 t3 on t2.parent =t3.id		 
 where p1.keyword in ('paper_purchased','cafe_grease', 'plastic', 'metals', 'electronics_medical', 'electronics_it', 'batteries', 'organic_waste', 'batteries__on_market', 'residual_waste') and datanumbase is not null)
 
 select temp.projectid,temp.fy_timerange,temp.types_of_waste,temp.financialyear_num,sum(temp.amt_kg) from temp
