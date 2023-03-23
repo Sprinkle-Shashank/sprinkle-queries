@@ -16,9 +16,9 @@ module_ongoing as ( select class, count(*)as ongoing from profile_4228
 					 group by class),
 table7 as ( SELECT _id,mon.creatorid, u.email as cemail, mon.modifierid, m.email as memail
 from ds_mongo_profileinstance mon
-left join produser_1137 u on
+left join ds_mysql_prod_user u on
 mon.creatorid = u.id
-left join produser_1137 m  on
+left join ds_mysql_prod_user m  on
 mon.modifierid = m.id
 where mon.profileId='4227' and mon.active = 't' and mon.securitycontextid is not null
 			 ),		
@@ -29,9 +29,9 @@ creationdate_table_for_batch as (	select p._id,p.projectid,p.name,/*substring(cr
 	
 table8 as ( SELECT _id,mon.creatorid, u.email as cemail, mon.modifierid, m.email as memail
 from ds_mongo_profileinstance mon
-left join produser_1137 u on
+left join ds_mysql_prod_user u on
 mon.creatorid = u.id
-left join produser_1137 m  on
+left join ds_mysql_prod_user m  on
 mon.modifierid = m.id
 where mon.profileId='4228' and mon.active = 't' and mon.securitycontextid is not null
 			 ),	
@@ -53,6 +53,9 @@ table5 as ( select * from creationdate_table_for_batch
   
   left join table6 t6 on 
   t5._id= t6.class ),	
+  
+  
+  
 test as (					 
 select p._id,p.projectid,
 case when add_factory.sourcing_yn =57472 and t2.facility_status = 845114 then   		  			mapping.name_factory
@@ -68,7 +71,7 @@ case when add_factory.sourcing_yn =57472 then vpid_1
 case when add_community.pace_status = 182398 then add_community.cp_id
      else add_factory.child_vendor_vpid end as vp_id_and_cp_id
 
-,mapping.name_country,mapping.name_vendor,mapping.name_rp,start_date,
+,mapping.name_country,mapping.name_vendor, case when mapping.name_rp is null then 'NA' else mapping.name_rp end as name_rp,start_date,
 concat('FY ' ,to_char(start_date,'YYYY')) as start_year ,
 end_date,num_females,module_completed.completed, module_ongoing.ongoing,
 case when t_cd.module_date > t_cd.batch_date then t_cd.module_date
@@ -81,7 +84,7 @@ case when current_date-latest_date<= 30 then 'Updated in last 30 days'
 	when 30< current_date-latest_date<= 90 then 'No updates in the last 30 days'
 		  else 'No updates in the last 90 days' end as Date_range
 	 
-	 
+	
 	 from profile_4227 p
 
 
@@ -118,7 +121,7 @@ where name_factory is not null */
 
 no_batches_running as ( 
   
-  select p.projectid,batch.projectid as batch_projectid,name_factory,name_vendor_filter, name_country,add_factory.sourcing_yn,add_factory.pace_status_2,add_community.pace_status as community_status,t2.facility_status ,name_rp,
+  select p.projectid,batch.projectid as batch_projectid,name_factory,name_vendor_filter, name_country,add_factory.sourcing_yn,add_factory.pace_status_2,add_community.pace_status as community_status,t2.facility_status ,case when name_rp is null then 'NA' else name_rp end as name_rp,
   cast(add_factory.factory_vpid_1 as varchar(65535)) as vpid_1,
  case when add_factory.sourcing_yn =57472 then vpid_1 
      when add_factory.sourcing_yn =57473 then add_factory.factory_vpid_2
