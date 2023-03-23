@@ -1,4 +1,5 @@
-with table1 as (select projectId, SUBSTRING(CAST(p.time_period_timerange.start as CHAR(256)),1,4) as time  , case when month_ytd in  ('2','3' , '4')
+--mylan_employee_health_WHS_heatmap_incident
+with table1 as (select p.projectId, SUBSTRING(CAST(p.time_period_timerange.start as CHAR(256)),1,4) as time  , case when month_ytd in  ('2','3' , '4')
 then 'Q1'
 when month_ytd in ('5' ,'6' , '7')
 then 'Q2'
@@ -15,10 +16,23 @@ else
 NULL
 end as new_time,
 
+				,
+case 
+when time < 2020 then p1.region 
+end as region_global
+,
+case 
+when time > 2020 then p1.name
+end as country,
 
 
-time as temp, case when quarter like 'Q4%' then 'Yearly' end as timerange,  reg.name as region,reg_parent.name as region_global,  ver.name as  vertical , hours_worked, dart_incident, lost_time_incidents, recordable_incidents , site_region , SUM(hours_worked) as hours_ytd , month_ytd , time_period_timerange , 'Total Lost Time Incident' as Heat_Map from profile_59545 p
 
+time as temp, case when quarter like 'Q4%' then 'Yearly' end as timerange,
+				--reg.name as region,reg_parent.name as region_global, 
+				ver.name as  vertical , hours_worked, dart_incident, lost_time_incidents, recordable_incidents , site_region , SUM(hours_worked) as hours_ytd , month_ytd , time_period_timerange , 'Total Lost Time Incident' as Heat_Map from profile_59545 p
+
+				left join profile_83347 p1
+on p.country = p1._id
 left join ds_mysql_prod_tagelement ver
 on p.vertical = ver.id
 Left join ds_mysql_prod_tagelement reg
@@ -28,9 +42,11 @@ left join ds_mysql_prod_tagelement reg_parent
 on reg.parent = reg_parent.id
 
 
-group by reg_parent.name, reg.name ,  site_region, ver.name, dart_incident, lost_time_incidents, recordable_incidents, month_ytd , p.projectId  ,  p.time_period_timerange , p.hours_worked , month_ytd
+group by 
+		--		reg_parent.name, reg.name ,
+p1.region ,p1.name,	site_region, ver.name, dart_incident, lost_time_incidents, recordable_incidents, month_ytd , p.projectId  ,  p.time_period_timerange , p.hours_worked , month_ytd
 ) , 
-table2 as ( select projectId, SUBSTRING(CAST(p.time_period_timerange.start as CHAR(256)),1,4) as time  , case when month_ytd in  ('2','3' , '4')
+table2 as ( select p.projectId, SUBSTRING(CAST(p.time_period_timerange.start as CHAR(256)),1,4) as time  , case when month_ytd in  ('2','3' , '4')
 then 'Q1'
 when month_ytd in ('5' ,'6' , '7')
 then 'Q2'
@@ -46,11 +62,22 @@ time
 else 
 NULL
 end as new_time,
+		   			
+case 
+when time < 2020 then p1.region 
+end as region_global
+,
+case 
+when time > 2020 then p1.name
+end as country,
 
 
 
-concat(quarter, concat (',' ,new_time)) as temp, case when temp like 'Q%' then 'Quarterly' end as timerange,  reg.name as region,reg_parent.name as region_global,  ver.name as  vertical , hours_worked, dart_incident, lost_time_incidents, recordable_incidents , site_region , SUM(hours_worked) as hours_ytd , month_ytd , time_period_timerange  , 'Total Lost Time Incident' as Heat_Map from profile_59545 p
+concat(quarter, concat (',' ,new_time)) as temp, case when temp like 'Q%' then 'Quarterly' end as timerange,  --reg.name as region,reg_parent.name as region_global, 
+		   ver.name as  vertical , hours_worked, dart_incident, lost_time_incidents, recordable_incidents , site_region , SUM(hours_worked) as hours_ytd , month_ytd , time_period_timerange  , 'Total Lost Time Incident' as Heat_Map from profile_59545 p
 
+		   left join profile_83347 p1
+on p.country = p1._id
 left join ds_mysql_prod_tagelement ver
 on p.vertical = ver.id
 Left join ds_mysql_prod_tagelement reg
@@ -60,7 +87,9 @@ left join ds_mysql_prod_tagelement reg_parent
 on reg.parent = reg_parent.id
 
 
-group by reg_parent.name, reg.name ,  site_region, ver.name, dart_incident, lost_time_incidents, recordable_incidents, month_ytd , p.projectId  ,  p.time_period_timerange , p.hours_worked , month_ytd
+group by
+		   reg_parent.name, reg.name , 
+p1.region ,p1.name,		   site_region, ver.name, dart_incident, lost_time_incidents, recordable_incidents, month_ytd , p.projectId  ,  p.time_period_timerange , p.hours_worked , month_ytd
 )
 
 select * from table2 
