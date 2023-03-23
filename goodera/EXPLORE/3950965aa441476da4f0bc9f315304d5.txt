@@ -1,4 +1,3 @@
---mylan_project_health_table2
 with table1 as(select datatable,xprojectId,time.name as Time_period,split_part(split_part(fy_timerange,'|',1),'-',1) as time
 
   from sus_60317 sus
@@ -16,11 +15,29 @@ group  by xprojectId,t1.Time_period,t1.time,table2.region
 
 table4 as (select t3.*,CAST(reg as varchar) from table3 t3,t3.region reg	
 
-)
+),
+table5 as(select datatable,xprojectId,time.name as Time_period,split_part(split_part(fy_timerange,'|',1),'-',1) as time
+
+  from sus_60317 sus
+
+Left join ds_mysql_prod_tagelement time
+on sus.financialperiod = time.id
+
+where keyword in ('products_in_pipeline_new')
+		  ),
+table6 as (select xprojectId,t5.Time_period,t5.time,table2.region,SUM(table2.prod_count) as total from table5 t5, unpivot t5.datatable  table2
+
+
+group  by xprojectId,t5.Time_period,t5.time,table2.region),
+
+table7 as(select t6.*,CAST(reg as varchar) from table6 t6,t6.region reg)
 
 SELECT re.name as reg,xprojectId,t4.Time_period,t4.time,total from table4 t4
 
 LEFT JOIN ds_mysql_prod_tagelement re on
 t4.reg = re.id
+union all
+SELECT re2.name as reg,xprojectId,t7.Time_period,t7.time,total from table7 t7
 
-
+LEFT JOIN ds_mysql_prod_tagelement re2 on
+t7.reg = re2.id
