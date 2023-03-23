@@ -4,7 +4,8 @@ with s1 as(
       when Region1 like '%.%' then split_part(prod.name,'|',2)
      else '-'
  end as Region, 
-  CONCAT(ProjectCode,fy_timerange) as CODE,
+ProjectCode||'-'||f.name  as j,
+  --CONCAT(ProjectCode,fy_timerange) as CODE,
 t.name as select_quarter,file_upload,
 case 
   	when file_upload  is not null and t.name='Quarter 1' then file_upload
@@ -33,9 +34,43 @@ on fy=f.id
 left join ds_mysql_prod_tagelement t
 on select_quarter=t.id
 )
-Select * from s1
+,
+s2 as(
+Select s.name as proj_code,t.name as fy, t1.name as project_manager,start_date,end_date,s.name||'-'||t.name  as j
+from profile_27396 s
+left join tagElement_4188 t
+on t.id=s.fy
+left join tagElement_4188 t1
+on t1.id=s.project_manager
 
+),
+s3 as(
+Select ss.name as proj_code,t.name as fy,t1.name as project_manager,start_date,end_date,ss.name||'-'||t.name  as j
+from profile_27420 sp
+left join profile_27396 ss
+on ss._id=sp.project_code
+left join tagElement_4188 t
+on t.id=sp.fy
+left join tagElement_4188 t1
+on t1.id=sp.project_manager
 
+),
+s4 as(
+Select * from s2
+Union all
+Select * from s3
+)
+,
+s5 as (
+Select * from s4
+group by proj_code,fy,project_manager,start_date,end_date,j
+)
+
+Select sp.*,s5.project_manager,s5.start_date,s5.end_date
+
+from s1 sp
+left join s5
+on s5.j=sp.j
 
 
 
