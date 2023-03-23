@@ -1,11 +1,12 @@
 with s1 as(
-  Select f.name as fy_timerange, split_part(split_part(prod.name,'|',1),'.',1) as ProjectCode, split_part(prod.name,'|',1) as Region1,
+  Select f.name as fy_timerange, prod.name,split_part(split_part(prod.name,'|',1),'.',1) as ProjectCode, split_part(prod.name,'|',1) as Region1,
   case 
       when Region1 like '%.%' then split_part(prod.name,'|',2)
      else '-'
  end as Region, 
   CONCAT(ProjectCode,fy_timerange) as CODE,
-   case 
+t.name as select_quarter,file_upload
+   /*case 
   when file_upload like 'https://api.p3fy.com%'  then file_upload
   else 'No'
   end as file_upload1,
@@ -25,7 +26,7 @@ with s1 as(
    case
    when select_quarter='434776' and file_upload1 != 'No' then file_upload1
   else 'N2'
-  end as q4
+  end as q4*/
   
 from profile_60787
 left join  ds_mysql_prod_project prod  on
@@ -33,6 +34,9 @@ prod.id=projectid
   
 left join ds_mysql_prod_tagelement f 
 on fy=f.id
+
+left join ds_mysql_prod_tagelement t
+on select_quarter=t.id
 )
 Select * from s1
 
