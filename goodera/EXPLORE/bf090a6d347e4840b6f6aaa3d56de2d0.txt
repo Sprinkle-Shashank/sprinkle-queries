@@ -1,4 +1,5 @@
-with table1 as (select projectId, SUBSTRING(CAST(p.time_period_timerange.start as CHAR(256)),1,4) as time  , case when month_ytd in  ('2','3' , '4')
+--mylan_employee_health_WHS_map3
+with table1 as (select p.projectId, SUBSTRING(CAST(p.time_period_timerange.start as CHAR(256)),1,4) as time  , case when month_ytd in  ('2','3' , '4')
 then 'Q1'
 when month_ytd in ('5' ,'6' , '7')
 then 'Q2'
@@ -8,15 +9,30 @@ when month_ytd in ('11', '12',  '1')
 then 'Q4'
 end as quarter  ,
 
-reg.name as region,reg_parent.name as region_global,  ver.name as  vertical , hours_worked, dart_incident, lost_time_incidents, recordable_incidents , site_region , SUM(hours_worked) as hours_ytd , month_ytd , time_period_timerange  , 'Total Lost Time Incident' as Heat_Map ,  
-		   case when reg.name = 'US'
+--reg.name as region,reg_parent.name as region_global,
+				ver.name as  vertical , hours_worked, dart_incident, lost_time_incidents, recordable_incidents , site_region , SUM(hours_worked) as hours_ytd , month_ytd , time_period_timerange  , 'Total Lost Time Incident' as Heat_Map ,
+	
+case 
+when time < 2020 then p1.region 
+end as region_global
+,
+case 
+when time > 2020 then p1.name
+end as country,
+				
+				
+				case when country = 'U.S.'
 		   then 'United States'
-		   when reg.name = 'UK'
+		   when country = 'U.K.'
 		   then 'United Kingdom'
 		   else
-		   reg.name
-		   END AS reg_new
+		   country
+				
+		   END AS country_new 
+		  
 		    from profile_59545 p
+				 left join profile_83347 p1
+on p.country = p1._id
 
 left join ds_mysql_prod_tagelement ver
 on p.vertical = ver.id
@@ -29,9 +45,18 @@ on reg.parent = reg_parent.id
 
   
 
-group by reg_parent.name, reg.name ,  site_region, ver.name, dart_incident, lost_time_incidents, recordable_incidents, month_ytd , p.projectId  ,  p.time_period_timerange , p.hours_worked , month_ytd)
+group by 
+				--reg_parent.name, reg.name ,
+p1.region ,p1.name,p.country,site_region, ver.name, dart_incident, lost_time_incidents, recordable_incidents, month_ytd , p.projectId  ,  p.time_period_timerange , p.hours_worked , month_ytd)
 
 
-select * , reftag.code from table1 
+select * , reftag.code as code_new from table1 
  left join ds_mongo_reftagelementmetadata reftag
-		 on table1.reg_new = reftag.name 
+		 on table1.country_new = reftag.name 
+		 /* case when reg.name = 'US'
+		   then 'United States'
+		   when reg.name = 'UK'
+		   then 'United Kingdom'
+		   else
+		   reg.name
+		   END AS reg_new*/
