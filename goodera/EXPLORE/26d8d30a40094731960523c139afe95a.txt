@@ -1,19 +1,21 @@
-Select f1.name fy_timerange,q.name ProjectCode,f.name as Core_area,m.name as Project_Manager
-from profile_27396 q
-left join ds_mysql_prod_tagelement f1 on
-fy=f1.id
-left join ds_mysql_prod_tagelement f on 
+
+with Base1 as(select f.name as fy_timerange,split_part(split_part(prod.name,'|',1),'.',1) as ProjectCode, 
+			  concat(fy_timerange,ProjectCode) as CODE
+			  from profile_60787
+left join  project_4188 prod  on
+prod.id=projectid
+left join tagelement_4188 f 
+on fy=f.id)
+
+select distinct(ProjectCode) ProjectCode, m1.name fy_timerange,f.name as Core_area,m.name as Project_Manager, 
+		 CONCAT(m1.name,p.ProjectCode) CODE
+		 from Base1 
+		 left join profile_27396 p on
+base1.CODE=CODE
+left join tagelement_4188 f on 
 focus_area=f.id
-left join ds_mysql_prod_tagelement m on 
+left join tagelement_4188 m on 
 project_manager=m.id
-where Core_area in ('Eradicating Poverty')
-union all
-Select f1.name fy_timerange,p.name ProjectCode,q.focus_area as Core_area,m.name as Project_Manager
-from profile_27420 q
-left join ds_mysql_prod_tagelement f1 on
-fy=f1.id
-left join profile_27396 p
-on p._id=q.project_code
-left join ds_mysql_prod_tagelement m on 
-q.project_manager=m.id
-where Core_area in ('Eradicating Poverty')
+left join tagelement_4188 m1 on 
+p.fy=m1.id
+where Core_area='Eradicating Poverty'
