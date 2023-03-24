@@ -104,7 +104,8 @@ from s1 sp
 left join s5
 on s5.j=sp.j
 
-)
+),
+s7 as(
 
 Select ProjectCode,region,quarter1,quarter2,quarter3,quarter4,start_date,end_date,fy_timerange,
 case
@@ -117,141 +118,50 @@ case
 end as end_yes
 
 from s6
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-/*
-with s as (Select prod.name,cast((split_part(split_part(prod.name,'|',1),'.',1)) as varchar) as proj_code,cast((split_part(split_part(prod.name,'|',1),'.',2)) as varchar) as prj_village,split_part(prod.name,'|',4) as proj_name,t.name as fy,
+)
+Select  ProjectCode,region,quarter1,quarter2,quarter3,quarter4,start_date,end_date,fy_timerange,start_yes,end_yes,extract(month from end_date) as em,extract(month from start_date) as sm,
 case
- 	when split_part(prod.name,'|',1) like '%.%' then 1
-    else 0
-   end as vill_count
-from profile_54963 r
-left join project_4188 prod
-on r.projectid=prod.id
-left join tagElement_4188 t
-on t.id=r.fy
-group by prod.name,proj_code,prj_village,proj_name,t.name
-),
-ss1 as (
-Select proj_code,proj_name,fy,(proj_code||'-'||fy) as j,sum(vill_count) villages
-from s
-group by proj_code,proj_name, fy
-),  
+	when start_yes=1 and end_yes=1 then 
+		case 
+			when start_date >= start_fy and end_date <= 
 
-s2 as (
-Select s.name as proj_code,t.name as fy, ngo_ref as ia,t1.name as project_manager,s.state,s.curr_yr_budget
-from profile_27396 s
-left join tagElement_4188 t
-on t.id=s.fy
-left join tagElement_4188 t1
-on t1.id=s.project_manager
-),
-s3 as (
-Select proj_code,ia,fy,project_manager,st,curr_yr_budget
-from s2 as sq,sq.state as st
-),
-s4 as (
-Select proj_code,ia,fy,project_manager,listagg(t.name) as state,curr_yr_budget,(proj_code||'-'||fy) as j
-from s3
-left join tagElement_4188 t
-on t.id=s3.st
-group by proj_code,ia,fy,project_manager,curr_yr_budget
-),
-
-s5 as(
-Select ss.name as proj_code,sp.ngo_ref as ia,t.name as fy,t1.name as project_manager,t2.name as state,sp.curr_yr_budget,(ss.name||'-'||t.name) as j
-from profile_27420 sp
-left join profile_27396 ss
-on ss._id=sp.project_code
-left join tagElement_4188 t
-on t.id=sp.fy
-left join tagElement_4188 t1
-on t1.id=sp.project_manager
-left join tagElement_4188 t2
-on t2.id=sp.state
-)
-,
-s6 as
-(
-Select * from s4
-Union all
-Select * from s5
-),
-s7 as
-(
-Select * from s6
-group by proj_code, ia, fy, project_manager, state, curr_yr_budget, j
-)
-
-Select ss1.proj_code,ss1.proj_name,ss1.fy,ss1.villages,s7.ia,s7.project_manager,s7.curr_yr_budget as allocated,s7.state
-
-from ss1
-left join s7
-on ss1.j=s7.j
-
-group by ss1.proj_code,ss1.proj_name,ss1.fy,ss1.villages,s7.ia,s7.project_manager,s7.curr_yr_budget ,s7.state
---27424- project manager 2
---. ke baad no count
-
-
-
-
-
-
-
-
-
-with s as(
-Select prod.name,cast((split_part(split_part(prod.name,'|',1),'.',1)) as varchar) as prj_code,cast((split_part(split_part(prod.name,'|',1),'.',2)) as varchar) as prj_village,
 case
-	when prj_village is not null then 1
-	else 0
-end as vill_count,
-t.name as fy,ss.ngo_ref as Imp_agency,ss.project_manager ,ss.curr_yr_budget,ss.state
+	when sm between 4 and 6 and em between 4 and 6 then 'Q1'
+	else null 
+	end as q1,
+case
+	when sm between 4 and 6 and em between 7 and 9 then 'Q1Q2'
+	else null 
+	end as q1q2,
+case
+	when sm between 4 and 6 and em between 10 and 12 then 'Q1Q2Q3'
+	else null 
+	end as q1q2q3,
+case
+	when sm between 4 and 6 and em between 1 and 3 then 'Q1Q2Q3Q4'
+	else null 
+	end as q1q2q3q4
 
-from profile_54963 r
-left join project_4188 prod
-on r.projectid=prod.id
-left join profile_27396 ss
-on prj_code=ss.name
-left join tagElement_4188 t
-on t.id=r.fy
-group by 1,2,3,4,5,6,7,8,9
 
-),
-s2 as (
-Select prj_code, vill_count, fy, imp_agency, project_manager, curr_yr_budget, st from s as uw,uw.state st
-)
-, 
-s3 as(
-Select prj_code, vill_count, fy, imp_agency, project_manager, curr_yr_budget, t.name as state,sum(vill_count) as count from s2
-left join tagElement_4188 t
-on t.id=st
-GROUP BY prj_code, vill_count, fy, imp_agency, project_manager, curr_yr_budget, t.name
 
-)
-Select * from s */
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
