@@ -1,3 +1,4 @@
+--dell_pem_breakup_target
   with temp as (
   select 'female_direct_beneficiaries' as col
   union all
@@ -66,8 +67,8 @@
 ) 
 Select tt.name as projectId, pt.fy_timerange, t5.name as program_name,pd.end_date,t2.name as Partner,t3.name as Country,t4.name as Region,
 case 
-  when (extract(month from pd.end_date) <=2) then ('FY' || (extract(year from pd.end_date)-2000))
-  when (extract(month from pd.end_date) >2) then ('FY'|| (extract(year from pd.end_date)+1-2000))
+  when (extract(month from pd.end_date) <2) then ('FY' || (extract(year from pd.end_date)-2000))
+  when (extract(month from pd.end_date) >=2) then ('FY'|| (extract(year from pd.end_date)+1-2000))
   end as FY,
 temp.col as Dimensions,
 sum(case col
@@ -114,17 +115,17 @@ from profile_67394 pt
 cross join temp
 
 left join profile_62886 pd on pt.program_name=pd._id
-  left join ds_mysql_prod_project as t 
+  left join project_7636 as t 
   on pt.projectId = t.id
-  left join ds_mysql_prod_project as t2
+  left join project_7636 as t2
   on t.parent=t2.id
-  left join ds_mysql_prod_project as t3
+  left join project_7636 as t3
   on t2.parent=t3.id 
-  left join ds_mysql_prod_project as t4
+  left join project_7636 as t4
   on t3.parent=t4.id 
   left join profile_62886  t5 on
   pt.program_name=t5._id
-    left join ds_mysql_prod_project tt on
+    left join project_7636 tt on
   pt.projectId=tt.id
   
  group by   pt.projectId , pt.fy_timerange, pd.end_date ,t2.name ,t3.name ,t4.name, Dimensions, t5.name,tt.name
