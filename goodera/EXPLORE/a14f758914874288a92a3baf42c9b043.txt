@@ -1,59 +1,55 @@
---HDFC_IA_001_Approval
- with s1 as(
-   Select p._id, p.name ia, t4.name fy, 
-   case when p._id is not null then 'New Project' 
-   end as Type_of_Project
-   from profile_27395 p
-   left join ds_mysql_prod_tagelement t4
-ON t4.id=p.fy 
-   
-   union all
-   
-   Select p._id, p2.name as ia, t4.name fy,
-    case when p._id is not null then 'Renewal Project' 
-end as Type_of_Project
-   from profile_27405 p
-   left join ds_mysql_prod_tagelement t4
-  ON t4.id=p.fy 
-   left join profile_27395 p2 
-  on p2._id = p.ia
-   
-   union all
-   
-   Select p._id, p.name ia, t3.name fy,
-     case when p._id is not null then 'New Project' 
-   end as Type_of_Project
-   from profile_80183 p
-   left join ds_mysql_prod_tagelement t3
-ON t3.id=p.fy 
-   
-   union all
-   
-   Select p._id, p.sink ia, t3.name fy,
-     case when p._id is not null then 'Renewal Project' 
-end as Type_of_Project
-   from profile_80188 p
-   left join ds_mysql_prod_tagelement t3
-ON t3.id=p.fy 
- ),
- 
- s3 as (
- select s1.ia, s1.fy, s1.Type_of_Project, approvalLog[0].["approvalStatus"] as status0, approvalLog[1].["approvalStatus"] as status1, approvalLog[2].["approvalStatus"] as status2, approvalLog[3].["approvalStatus"] as status3, approvalLog[4].["approvalStatus"] as status4, approvalLog[0].["approverEmail"] as email0, approvalLog[1].["approverEmail"] as email1, approvalLog[2].["approverEmail"] as email2, approvalLog[3].["approverEmail"] as email3, approvalLog[4].["approverEmail"] as email4, approvalLog[0].["approverComments"] as cmt0, approvalLog[1].["approverComments"] as cmt1, approvalLog[2].["approverComments"] as cmt2, approvalLog[3].["approverComments"] as cmt3, approvalLog[4].["approverComments"] as cmt4, approvalLog[0].["timestamp"] as timestamp0, approvalLog[1].["timestamp"] as timestamp1, approvalLog[2].["timestamp"] as timestamp2, approvalLog[3].["timestamp"] as timestamp3, approvalLog[4].["timestamp"] as timestamp4
+--HDFC_FRD_Indirect_Projects
+with Base1 as(select p.name as ProjectCode,p.name_project  as Project_name,ngo_ref as IA,concat(p.start_date,concat('-',p.end_date)) as Start_End_Date, m.name as Project_manager,case when p._id is not null then 'https://api.p3fy.com/api/containers/nextgen-objects/download/Bonzv9lH2AbONxEeI80eqxU7dXtcxfzEYq6ju4DqiwIy1IP4gF7L0ajpmBoEnxM6_logo.jpg' end as Picture 
+			  ,f.name as Core_area
+			  -------, f1.name fy_timerange
+from profile_27396 p
+---left join profile_80183 k on
+----p.ngo_partner=k._id
+left join ds_mysql_prod_tagelement m on
+p.project_manager=m.id
+left join tagelement_4188 f on 
+p.focus_area=f.id
+-----left join tagelement_4188 f1 on
+-----f1.id=p.fy
+where Core_area='Eradicating Poverty'
+			  
+union all
+			  
+select p.name as ProjectCode,p.name_project  as Project_name,ngo_ref as IA,concat(p.start_date,concat('-',p.end_date)) as Start_End_Date, m.name as Project_manager,case when p._id is not null then 'https://api.p3fy.com/api/containers/nextgen-objects/download/Bonzv9lH2AbONxEeI80eqxU7dXtcxfzEYq6ju4DqiwIy1IP4gF7L0ajpmBoEnxM6_logo.jpg' end as Picture 
+			  ,f.name as Core_area
+			  ------, f1.name fy_timerange
+from profile_27396 p
+---left join profile_27395 k on
+----p.ngo_partner=k._id
+left join ds_mysql_prod_tagelement m on
+p.project_manager=m.id
+left join tagelement_4188 f on 
+p.focus_area=f.id
+---left join tagelement_4188 f1 on
+---f1.id=p.fy
+where Core_area='Eradicating Poverty'
 
-from ds_mongo_taskresponse x1 
-left join ds_mysql_prod_taskuser x2 on x2.id = x1.taskuserid
-left join ds_mysql_prod_task x3 on x3.id = x2.taskid
-left join ds_mysql_prod_flowtask x4 on x4.id = x3.flowtaskid
-left join ds_mysql_prod_projectflow x5 on x5.id = x3.projectflowid
-left join ds_mysql_prod_section x6 on x6.id = x4.sectionid
-left join ds_mysql_prod_profile x7 on x7.id = x6.profileid
-left join ds_mysql_prod_project x8 on x8.id = x5.projectid
-left join s1 on s1._id=x1.profileinstanceid
+union all
+			  
+select l.name as ProjectCode,p.name_project Project_Name,p.ngo_ref as IA,concat(p.start_date,concat('-',p.end_date)) as Start_End_Date ,m.name as Project_Manager,case when p._id is not null then  'https://api.p3fy.com/api/containers/nextgen-objects/download/Bonzv9lH2AbONxEeI80eqxU7dXtcxfzEYq6ju4DqiwIy1IP4gF7L0ajpmBoEnxM6_logo.jpg' end as Picture ,
+			  p.focus_area
+			  ------,f1.name fy_timerange
+from profile_27420 p
+left join profile_27396 l on
+p.project_code=l._id
+left join ds_mysql_prod_tagelement m on
+p.project_manager=m.id
+left join ds_mysql_prod_tagelement f on
+p.fy=f.id
+---left join tagelement_4188 f1 on
+---f1.id=p.fy
+where p.focus_area='Eradicating Poverty'
+)
 
-where x6.profileid in (27395, 27405, 80183, 80188) and x1.active = 't' 
-and x1.status in ('REJECTED', 'PENDING_APPROVAL', 'SUBMITTED','APPROVED') and x6.name in ('Details', 'Basic Qualifier', 'Internal Approval/Rejection', 'Internal Approval/ Rejection')
-   )
- 
- Select ia, fy, Type_of_Project, status0, status1, status2, status3, status4, email0, email1, email2, email3, email4, cmt0, cmt1, cmt2, cmt3, cmt4, substring(CAST(timestamp0 as VARCHAR), 1, 10) time0, substring(CAST(timestamp1 as VARCHAR), 1, 10) time1, substring(CAST(timestamp2 as VARCHAR), 1, 10) time2, substring(CAST(timestamp3 as VARCHAR), 1, 10) time3, substring(CAST(timestamp4 as VARCHAR), 1, 10) time4
- 
-from s3
+Select 
+----fy_timerange, 
+ProjectCode, Project_name,IA,Picture, listagg(distinct Project_manager,',') within group(order by ProjectCode) as Project_manager 
+from base1
+group by 
+---fy_timerange,
+ProjectCode,Project_name,IA,Picture, Project_manager
