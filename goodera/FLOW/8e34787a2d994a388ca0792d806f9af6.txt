@@ -1,0 +1,22 @@
+drop table if exists Genpact_Udayan_Financials_Allocated;
+ create table Genpact_Udayan_Financials_Allocated as
+With tab1 as(SELECT BH.amount,
+P.name AS projectname,
+CAST(BH.fy_timerange.start AS DATE) AS start_date,
+EXTRACT(YEAR FROM start_date) AS year,
+E.name AS entity,
+C.name AS category
+
+FROM profile_55699 AS BH
+
+LEFT JOIN ds_mysql_prod_project AS P
+ON BH.projectId = P.id
+
+LEFT JOIN ds_mysql_prod_tagelement AS E
+ON BH.entity = E.id
+
+LEFT JOIN ds_mysql_prod_tagelement AS C
+ON BH.category = C.id)
+
+Select 'FY'||' ' ||year || ' - '||year+1 as financial_year,amount,projectname,category
+From tab1
