@@ -1,33 +1,43 @@
-Select s.name as proj_code,t.name as fy, t1.name as project_manager,s.start_date,s.end_date,s.name||'-'||t.name  as j,
-extract(year from s.start_date) as s_year,cast('2022-04-01T00:00:00.000+00:00' as datetime) as hh,cast('2023-03-31T00:00:00.000+00:00' as datetime) as hy,left(fy,4) as jjj,
-extract (month from hh) as jj,
-cast('2017-04-01T00:00:00.000+00:00' as datetime) as start17,
-cast('2018-04-01T00:00:00.000+00:00' as datetime) as start18,
-cast('2019-04-01T00:00:00.000+00:00' as datetime) as start19,
-cast('2020-04-01T00:00:00.000+00:00' as datetime) as start20,
-cast('2021-04-01T00:00:00.000+00:00' as datetime) as start21,
-cast('2022-04-01T00:00:00.000+00:00' as datetime) as start22,
-cast('2023-04-01T00:00:00.000+00:00' as datetime) as start23,
-cast('2024-04-01T00:00:00.000+00:00' as datetime) as start24,
-cast('2025-04-01T00:00:00.000+00:00' as datetime) as start25,
+with s1 as(
+  Select f.name as fy_timerange, prod.name,split_part(split_part(prod.name,'|',1),'.',1) as ProjectCode, split_part(prod.name,'|',1) as Region1,
+  case 
+      when Region1 like '%.%' then split_part(prod.name,'|',2)
+     else '-'
+ end as Region, 
+ProjectCode||'-'||f.name  as j,
+  --CONCAT(ProjectCode,fy_timerange) as CODE,
+t.name as select_quarter,file_upload,
+case 
+  	when file_upload  is not null and t.name='Quarter 1' then file_upload
+	else 'NA'
+    end as Quarter1,
+case 
+  	when file_upload is not null and t.name='Quarter 2' then file_upload
+	else 'NA'
+    end as Quarter2,
+case 
+  	when file_upload is not null and t.name='Quarter 3' then file_upload
+	else 'NA'
+    end as Quarter3,
+case 
+  	when file_upload is not null and t.name='Quarter 4' then file_upload
+	else 'NA'
+    end as Quarter4
+  
+from profile_60787
+left join  ds_mysql_prod_project prod  on
+prod.id=projectid
+  
+left join ds_mysql_prod_tagelement f 
+on fy=f.id
 
-cast('2018-03-31T00:00:00.000+00:00' as datetime) as end18,
-cast('2019-03-31T00:00:00.000+00:00' as datetime) as end19,
-cast('2020-03-31T00:00:00.000+00:00' as datetime) as end20,
-cast('2021-03-31T00:00:00.000+00:00' as datetime) as end21,
-cast('2022-03-31T00:00:00.000+00:00' as datetime) as end22,
-cast('2023-03-31T00:00:00.000+00:00' as datetime) as end23,
-cast('2024-03-31T00:00:00.000+00:00' as datetime) as end24,
-cast('2025-03-31T00:00:00.000+00:00' as datetime) as end25,
-cast('2026-03-31T00:00:00.000+00:00' as datetime) as end26,
-
-
-case
-	when 3 between 3 and 5 then 1
-	else 0
-	end as hhh
-
-
+left join ds_mysql_prod_tagelement t
+on select_quarter=t.id
+)
+,
+s2 as(
+Select s.name as proj_code,t.name as fy, t1.name as project_manager,s.start_date,s.end_date,s.name||'-'||t.name  as j
+--extract(year from s.start_date) as s_year
 --extract(month from (cast (s.start_date as datetime)) as s_month
 
 from profile_27396 s
@@ -35,3 +45,184 @@ left join tagElement_4188 t
 on t.id=s.fy
 left join tagElement_4188 t1
 on t1.id=s.project_manager
+
+),
+s3 as(
+Select ss.name as proj_code,t.name as fy,t1.name as project_manager,ss.start_date,ss.end_date,ss.name||'-'||t.name  as j
+--extract(year from ss.start_date) as s_year
+from profile_27420 sp
+left join profile_27396 ss
+on ss._id=sp.project_code
+left join tagElement_4188 t
+on t.id=sp.fy
+left join tagElement_4188 t1
+on t1.id=sp.project_manager
+
+),
+s4 as(
+Select * from s2
+Union all
+Select * from s3
+)
+,
+s5 as (
+Select * from s4
+group by proj_code,fy,project_manager,start_date,end_date,j
+)
+
+,
+s6 as (
+
+Select sp.*,s5.project_manager,s5.start_date,s5.end_date,
+case
+	when left(sp.fy_timerange,4)=2017 then cast('2017-04-01T00:00:00.000+00:00' as datetime)
+	when left(sp.fy_timerange,4)=2018 then cast('2018-04-01T00:00:00.000+00:00' as datetime)
+	when left(sp.fy_timerange,4)=2019 then cast('2019-04-01T00:00:00.000+00:00' as datetime)
+	when left(sp.fy_timerange,4)=2020 then cast('2020-04-01T00:00:00.000+00:00' as datetime)
+	when left(sp.fy_timerange,4)=2021 then cast('2021-04-01T00:00:00.000+00:00' as datetime)
+	when left(sp.fy_timerange,4)=2022 then cast('2022-04-01T00:00:00.000+00:00' as datetime)
+	when left(sp.fy_timerange,4)=2023 then cast('2023-04-01T00:00:00.000+00:00' as datetime)
+	when left(sp.fy_timerange,4)=2024 then cast('2024-04-01T00:00:00.000+00:00' as datetime)
+	else null
+end as start_fy,
+case
+	when right(sp.fy_timerange,4)=2017 then cast('2017-03-31T00:00:00.000+00:00' as datetime)
+	when right(sp.fy_timerange,4)=2018 then cast('2018-03-31T00:00:00.000+00:00' as datetime)
+	when right(sp.fy_timerange,4)=2019 then cast('2019-03-31T00:00:00.000+00:00' as datetime)
+	when right(sp.fy_timerange,4)=2020 then cast('2020-03-31T00:00:00.000+00:00' as datetime)
+	when right(sp.fy_timerange,4)=2021 then cast('2021-03-31T00:00:00.000+00:00' as datetime)
+	when right(sp.fy_timerange,4)=2022 then cast('2022-03-31T00:00:00.000+00:00' as datetime)
+	when right(sp.fy_timerange,4)=2023 then cast('2023-03-31T00:00:00.000+00:00' as datetime)
+	when right(sp.fy_timerange,4)=2024 then cast('2024-03-31T00:00:00.000+00:00' as datetime)
+	when right(sp.fy_timerange,4)=2025 then cast('2025-03-31T00:00:00.000+00:00' as datetime)
+	else null
+end as end_fy
+
+
+
+from s1 sp
+left join s5
+on s5.j=sp.j
+
+),
+s7 as(
+
+Select ProjectCode,project_manager,region,quarter1,quarter2,quarter3,quarter4,start_date,end_date,fy_timerange,
+case
+	when start_date between start_fy and end_fy then 1
+	else 0
+end as start_yes,
+case
+	when end_date between start_fy and end_fy then 1
+	else 0
+end as end_yes
+
+from s6
+),
+
+s8 as (
+Select  ProjectCode,project_manager,region,quarter1,quarter2,quarter3,quarter4,start_date,end_date,fy_timerange,start_yes,end_yes,extract(month from end_date) as em,extract(month from start_date) as sm,
+
+
+case
+	when sm>=4 and sm<=6 and em>=1 and em<=12 then 'Q1Q2Q3Q4'
+    else '-'
+end as q1q2q3q4,
+case
+	when sm>=4 and sm<=6 and em>=4 and em<=12 then 'Q1Q2Q3'
+	else '-'
+end as q1q2q3,
+case
+	when sm>=4 and sm<=6 and em>=4 and em<=9 then 'Q1Q2'
+	else '-'
+end as q1q2,
+case
+	when sm>=4 and sm<=6 and em>=4 and em<=6 then 'Q1'
+	else '-'
+end as q1,
+case
+    when sm>=7 and sm<=9 and em>=7 and em<=9 then 'Q2'
+	else '-'
+end as q2,
+case
+    when sm>=10 and sm<=12 and em>=10 and em<=12 then 'Q3'
+	else '-'
+end as q3,
+case
+	when sm>=1 and sm<=3 and em>=1 and em<=3 then 'Q4'
+	else '-'
+end as q4,
+case
+	when sm>=7 and sm<=9 and em>10 and em<=12 then 'Q2Q3'
+	else '-'
+end as q2q3,
+case
+    when sm>=7 and sm<=9 and em>=1 and em<=3 then 'Q2Q3Q4'
+	else '-'
+end as q2q3q4,
+case
+	when sm>=10 and sm<=12 and em>=1 and em<=3 then 'Q3Q4'
+	else '-'
+end as q3q4
+
+
+
+/*
+april to jan feb mar-q1q2q3q4
+apr to oct nov dec q1q2q3
+apr to jul aug sep q1q2
+apr to  */
+
+from s7
+
+),
+s9 as(
+Select ProjectCode,project_manager,region,quarter1,quarter2,quarter3,quarter4,start_date,end_date,fy_timerange,start_yes,end_yes,
+q1,q2,q3,q4,q1q2,q1q2q3,q1q2q3q4,q2q3,q3q4,q2q3q4,
+--Concat(Concat(Concat(Concat(Concat(Concat(Concat(Concat(Concat(q1,q2),q3),q4),q1q2),q1q2q3),q1q2q3q4),q2q3),q3q4),q2q3q4) as final_quarter,
+--q1q2q3q4 || q1q2q3 as final_quarter,
+q1||'-'||q2||'-'||q3||'-'||q4||'-'||q1q2||'-'||q1q2q3||'-'||q1q2q3q4||'-'||q2q3||'-'||q3q4||'-'||q2q3q4 as final_quarter,
+case 
+	when start_yes=1 and end_yes=1 then 1
+    else 0
+end as final_yes
+from s8
+),
+ss1 as (
+Select t.name as pm,sd.approver,sd.name
+from profile_27424 sd
+left join tagElement_4188 t
+on t.id=sd.pm_name
+),
+
+s10 as (
+Select ProjectCode,project_manager,region,final_yes,final_quarter,q1,q2,q3,q4,q1q2,q1q2q3,q1q2q3q4,q2q3,q3q4,q2q3q4,
+case
+	when final_yes=1 and final_quarter like '%Q1%'  and  quarter1='NA' then 'Pending'
+    else quarter1
+end as Quarter1Pending,
+case
+	when final_yes=1 and final_quarter like '%Q2%'  and  quarter2='NA' then 'Pending'
+    else quarter2
+end as Quarter2Pending,
+case
+	when final_yes=1 and final_quarter like '%Q3%'  and  quarter3='NA' then 'Pending'
+    else quarter3
+end as Quarter3Pending,
+case
+	when final_yes=1 and final_quarter like '%Q4%'  and  quarter4='NA' then 'Pending'
+    else quarter4
+end as Quarter4Pending,start_date,end_date,fy_timerange,ss1.approver
+
+from s9
+left join ss1
+on ss1.pm=project_manager
+),
+s11 as(
+Select ProjectCode,project_manager as level1,ss1.pm as level2,region,Quarter1Pending,Quarter2Pending,Quarter3Pending,Quarter4Pending,fy_timerange,'Submitted' as submitted 
+from s10
+left join ss1
+on ss1.name=s10.approver
+group by ProjectCode,project_manager,level2,region,Quarter1Pending,Quarter2Pending,Quarter3Pending,Quarter4Pending,fy_timerange,submitted
+)
+Select * from s11
