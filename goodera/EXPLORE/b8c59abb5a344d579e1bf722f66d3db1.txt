@@ -107,7 +107,7 @@ on s5.j=sp.j
 ),
 s7 as(
 
-Select ProjectCode,region,quarter1,quarter2,quarter3,quarter4,start_date,end_date,fy_timerange,
+Select ProjectCode,project_manager,region,quarter1,quarter2,quarter3,quarter4,start_date,end_date,fy_timerange,
 case
 	when start_date between start_fy and end_fy then 1
 	else 0
@@ -121,7 +121,7 @@ from s6
 ),
 
 s8 as (
-Select  ProjectCode,region,quarter1,quarter2,quarter3,quarter4,start_date,end_date,fy_timerange,start_yes,end_yes,extract(month from end_date) as em,extract(month from start_date) as sm,
+Select  ProjectCode,project_manager,region,quarter1,quarter2,quarter3,quarter4,start_date,end_date,fy_timerange,start_yes,end_yes,extract(month from end_date) as em,extract(month from start_date) as sm,
 
 
 case
@@ -177,7 +177,7 @@ from s7
 
 ),
 s9 as(
-Select ProjectCode,region,quarter1,quarter2,quarter3,quarter4,start_date,end_date,fy_timerange,start_yes,end_yes,
+Select ProjectCode,project_manager,region,quarter1,quarter2,quarter3,quarter4,start_date,end_date,fy_timerange,start_yes,end_yes,
 q1,q2,q3,q4,q1q2,q1q2q3,q1q2q3q4,q2q3,q3q4,q2q3q4,
 --Concat(Concat(Concat(Concat(Concat(Concat(Concat(Concat(Concat(q1,q2),q3),q4),q1q2),q1q2q3),q1q2q3q4),q2q3),q3q4),q2q3q4) as final_quarter,
 --q1q2q3q4 || q1q2q3 as final_quarter,
@@ -187,8 +187,16 @@ case
     else 0
 end as final_yes
 from s8
-)
-Select ProjectCode,region,final_yes,final_quarter,q1,q2,q3,q4,q1q2,q1q2q3,q1q2q3q4,q2q3,q3q4,q2q3q4,
+),
+ss1 as (
+Select t.name as pm,sd.approver,sd.name
+from profile_27424 sd
+left join tagElement_4188 t
+on t.id=sd.pm_name
+),
+
+s10 as (
+Select ProjectCode,project_manager,region,final_yes,final_quarter,q1,q2,q3,q4,q1q2,q1q2q3,q1q2q3q4,q2q3,q3q4,q2q3q4,
 case
 	when final_yes=1 and final_quarter like '%Q1%'  and  quarter1='NA' then 'Pending'
     else quarter1
@@ -204,9 +212,20 @@ end as Quarter3Pending,
 case
 	when final_yes=1 and final_quarter like '%Q4%'  and  quarter4='NA' then 'Pending'
     else quarter4
-end as Quarter4Pending,start_date,end_date,fy_timerange
+end as Quarter4Pending,start_date,end_date,fy_timerange,ss1.approver
 
 from s9
+left join ss1
+on ss1.pm=s7.project_manager
+),
+s11 as(
+Select ProjectCode,project_manager as level1,ss1.pm as level2,region,Quarter1Pending,Quarter2Pending,Quarter3Pending,Quarter4Pending,fy_timerange
+from s10
+left join ss1
+on ss1.name=s10.approver
+)
+Select * from s11
+
 
 
 
