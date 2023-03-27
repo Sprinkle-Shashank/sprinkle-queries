@@ -1,52 +1,25 @@
- with s1 as(
-   Select p._id, p.name ia, t4.name fy, 
-   case when p._id is not null then 'New Project' 
-   end as Type_of_Project
-   from profile_27395 p
-   left join ds_mysql_prod_tagelement t4
-ON t4.id=p.fy 
-   
-   union all
-   
-   Select p._id, p2.name as ia, t4.name fy,
-    case when p._id is not null then 'Renewal Project' 
-end as Type_of_Project
-   from profile_27405 p
-   left join ds_mysql_prod_tagelement t4
-  ON t4.id=p.fy 
-   left join profile_27395 p2 
-  on p2._id = p.ia
-   
-   union all
-   
-   Select p._id, p.name ia, t3.name fy,
-     case when p._id is not null then 'New Project' 
-   end as Type_of_Project
-   from profile_80183 p
-   left join ds_mysql_prod_tagelement t3
-ON t3.id=p.fy 
-   
-   union all
-   
-   Select p._id, p.sink ia, t3.name fy,
-     case when p._id is not null then 'Renewal Project' 
-end as Type_of_Project
-   from profile_80188 p
-   left join ds_mysql_prod_tagelement t3
-ON t3.id=p.fy 
- )
+--HDFC_FRD_Project_Manager_filter
+with Base1 as(select f.name as fy_timerange,split_part(split_part(prod.name,'|',1),'.',1) as ProjectCode,
+			  concat(fy_timerange,ProjectCode) as code
+			  from profile_60787
+left join  project_4188 prod  on
+prod.id=projectid
+left join tagelement_4188 f 
+on fy=f.id),
 
-select s1.ia, s1.fy, s1.Type_of_Project, approvalLog, x6.name as section
+Base2 as(select f1.name fy_timerange,ProjectCode,f.name as Core_area,m.name as Project_Manager, concat(f1.name,profile_27396.name) CODE
+		 from Base1 
+		 left join profile_27396 on
+Base1.code=profile_27396.CODE
+left join tagelement_4188 f on 
+focus_area=f.id
+left join tagelement_4188 m on 
+project_manager=m.id
+left join tagelement_4188 f1 on 
+f1.id=profile_27396.fy
+where Core_area!= 'Others' and Core_area!='Eradicating Poverty' and Core_area!='Holistic Rural Development'
+)
 
-from ds_mongo_taskresponse x1 
-left join ds_mysql_prod_taskuser x2 on x2.id = x1.taskuserid
-left join ds_mysql_prod_task x3 on x3.id = x2.taskid
-left join ds_mysql_prod_flowtask x4 on x4.id = x3.flowtaskid
-left join ds_mysql_prod_projectflow x5 on x5.id = x3.projectflowid
-left join ds_mysql_prod_section x6 on x6.id = x4.sectionid
-left join ds_mysql_prod_profile x7 on x7.id = x6.profileid
-left join ds_mysql_prod_project x8 on x8.id = x5.projectid
-left join s1 on s1._id=x1.profileinstanceid
 
-where x6.profileid in (27395, 27405, 80183, 80188) and x1.active = 't' 
-and x1.status in ('REJECTED', 'PENDING_APPROVAL', 'SUBMITTED','APPROVED')
+Select *
+from base2
