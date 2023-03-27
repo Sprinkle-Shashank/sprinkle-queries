@@ -7,17 +7,23 @@ prod.id=projectid
 left join tagelement_4188 f 
 on fy=f.id),
 
-Base2 as(select f1.name fy_timerange,ProjectCode,f.name as Core_area,m.name as Project_Manager, concat(f1.name,profile_27396.name) CODE
+p1 as(
+  Select f1.name fy_timerange, name ProjectCode, f.name as Core_area, m.name as Project_Manager, 
+  concat(fy_timerange,ProjectCode) CODE
+  from profile_27396 p
+  left join tagelement_4188 f1 on 
+  f1.id=p.fy
+  left join tagelement_4188 f on 
+  p.focus_area=f.id
+  left join tagelement_4188 m on 
+  p.project_manager=m.id
+  where Core_area!= 'Others' and Core_area!='Eradicating Poverty' and Core_area!='Holistic Rural Development'
+)
+
+Base2 as(select p1.fy_timerange,ProjectCode,p1.Core_area,p1.Project_Manager
 		 from Base1 
-		 left join profile_27396 on
-Base1.code=CODE
-left join tagelement_4188 f on 
-focus_area=f.id
-left join tagelement_4188 m on 
-project_manager=m.id
-left join tagelement_4188 f1 on 
-f1.id=profile_27396.fy
-where Core_area!= 'Others' and Core_area!='Eradicating Poverty' and Core_area!='Holistic Rural Development'
+		 left join p1 on
+Base1.code=p1.CODE
 )
 
 /*,
