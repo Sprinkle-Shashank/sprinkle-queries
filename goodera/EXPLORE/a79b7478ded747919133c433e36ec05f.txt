@@ -74,6 +74,12 @@ group by proj_code,fy,project_manager,start_date,end_date,j
 s6 as (
 
 Select sp.*,s5.project_manager,s5.start_date,s5.end_date,
+  cast(sp.fy_timerange as VARCHAR) as f1, 
+  CAST(sp.ProjectCode as VARCHAR) as f2, 
+  CAST(s5.Project_Manager as VARCHAR) as f3,
+  CAST(sp.Region as VARCHAR) as f4,
+  (f1 || f2 || f3 || f4) as ok,
+
 case
 	when left(sp.fy_timerange,4)=2017 then cast('2017-04-01T00:00:00.000+00:00' as datetime)
 	when left(sp.fy_timerange,4)=2018 then cast('2018-04-01T00:00:00.000+00:00' as datetime)
@@ -122,9 +128,34 @@ left join s5
 on s5.j=sp.j
 
 ),
+q1 as (
+Select ProjectCode,project_manager,region,fy_timerange,ok, Q1 as q11
+from s6
+where Q1 is not null
+)
+,
+
+q2 as (
+Select ProjectCode,project_manager,region,fy_timerange,ok, Q2 as q22
+from s6
+where Q2 is not null
+
+),
+
+q3 as (
+Select ProjectCode,project_manager,region,fy_timerange,ok, Q3 as q33
+from s6
+where Q3 is not null
+),
+
+q4 as (
+Select ProjectCode,project_manager,region,fy_timerange,ok, Q4 as q44
+from s6
+where Q4 is not null
+),
 s7 as(
 
-Select ProjectCode,project_manager,region,quarter1,quarter2,quarter3,quarter4,start_date,end_date,fy_timerange,
+Select ProjectCode,project_manager,region,start_date,end_date,fy_timerange,q1.q11 as q1,q2.q22 as q2,q3.q33 as q3,q4.q44 as q4,
 case
 	when start_date between start_fy and end_fy then 1
 	else 0
@@ -135,6 +166,16 @@ case
 end as end_yes
 
 from s6
+left join q1
+on q1.ok=s6.ok
+left join q2
+on q2.ok=s6.ok
+left join q3
+on q3.ok=s6.ok
+left join q4
+on q4.ok=s6.ok
+
+
 ),
 
 s8 as (
