@@ -1,51 +1,21 @@
-with table1 as (
-  Select p3.name as projectId,p1.name as projectpartner,p2.name as partner,p.name,p.fy_timerange,
---substring(cast(fy_timerange.start as varchar),1,4) as year1,
-				--substring(cast(fy_timerange.start as varchar),6,2) as month,
-CAST(fy_timerange.start AS DATE) AS startt,
-				extract(month from CAST(fy_timerange.start AS DATE) ) as month,
---to_char(cast(fy_timerange.start as datetime), 'MONTH') as mm,
-
-extract(year from startt) as year,
-CASE
-	WHEN month = 1 THEN 'January'
-	WHEN month = 2 THEN 'February'
-	WHEN month = 3 THEN 'Mar'
-	WHEN month = 4 THEN 'April'
-	WHEN month = 5 THEN 'May'
-	WHEN month = 6 THEN 'June'
-	WHEN month = 7 THEN 'July'
-	WHEN month = 8 THEN 'August'
-	WHEN month = 9 THEN 'September'
-	WHEN month = 10 THEN 'October'
-	WHEN month = 11 THEN 'November'
-	WHEN month = 12 THEN 'December'
-	ELSE 'No Data Entry'
-	END AS quarter,
-
-p.file, t.name as type_doc,t1.name as doc_name,p.remarks,
-case
-when p.file IS NOT NULL then 'Download'
-else 'NA'
-end as download,
-x1.approvallog[0].["approvalStatus"] as status,x1.approvallog[0].["approverEmail"] as email,substring(CAST(x1.approvallog[0].["timestamp"] as VARCHAR), 1, 10) as approverdate, substring(CAST(x1.approvallog[0].["timestamp"] as VARCHAR), 12, 5) as time
-from ds_mongo_taskresponse x1
-left join ds_mysql_prod_taskuser x2 on x2.id = x1.taskuserid
-left join ds_mysql_prod_task x3 on x3.id = x2.taskid
-left join ds_mysql_prod_flowtask x4 on x4.id = x3.flowtaskid
-left join ds_mysql_prod_projectflow x5 on x5.id = x3.projectflowid
-left join ds_mysql_prod_section x6 on x6.id = x4.sectionid
-left join ds_mysql_prod_profile x7 on x7.id = x6.profileid
-left join ds_mysql_prod_project x8 on x8.id = x5.projectid
-left join profile_81314 p on p._id = x1.profileinstanceid
+--AU_Bank_Skills_Initiative_Batch_details
+select p3.name as projectId,p1.name as projectname,p2.name as partner,
+--p.fy_timerange,
+concat(concat(concat(concat('{"start":"',(TO_CHAR(p.start_date, 'YYYY-MM-DD"T"HH24":"MI:SS.000"Z"'))),'","end":"'),(TO_CHAR(p.proposed_end_date, 'YYYY-MM-DD"T"HH24":"MI:SS.000"Z"'))),'"}') as fy_timerange,
+t1.name as district, t2.name as state, t4.name as domain,t3.name as trade,p.batch_name,p.batch_id,t5.name as batch_completed,p.start_date,p.bene_attended,p.end_date,1 as count,getdate(),
+--when p.proposed_end_date
+from profile_81360 p
 
 left join project_9730 p1 on p1.id = p.projectid
 left join project_9730 p2 on p2.id = p1.parent
 left join project_9730 p3 on p3.id=p2.parent
-left join tagelement_9730 t on t.id = p.type
-left join tagelement_9730 t1 on t1.id = t.parent
 
-where x1.profileid = '81314' and x1.active = 't'
-			   )
+left join tagelement_9730 t1 on t1.id=p.state_district
+left join tagelement_9730 t2 on t2.id=t1.parent
+left join tagelement_9730 t3 on t3.id=p.domain_trade
+left join tagelement_9730 t4 on t4.id=t3.parent
+left join tagelement_9730 t5 on t5.id=p.batch_completed
 
-Select  projectId,partner,(projectId||'-'||partner) as project, projectpartner,fy_timerange,year,quarter,file,type_doc,doc_name,remarks,download,(quarter ||'-'|| year) as myy,email,approverdate,time from table1
+where p.projectid like '%%' 
+
+--group by p2.name,p1.name, p.fy_timerange,t1.name, t2.name, t4.name,t3.name,p.batch_name,p.batch_id,t5.name,p.start_date,p.bene_attended,p.end_date,p3.name,p.proposed_end_date
