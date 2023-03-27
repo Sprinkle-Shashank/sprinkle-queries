@@ -122,10 +122,7 @@ from s6
 
 s8 as (
 Select  ProjectCode,project_manager,region,quarter1,quarter2,quarter3,quarter4,start_date,end_date,
-case
-  	when ProjectCode='P0428' and fy_timerange='2021-2022' then '2021-2023'
-    else fy_timerange
-end as fy_timerange,start_yes,end_yes,extract(month from end_date) as em,extract(month from start_date) as sm,
+fy_timerange,start_yes,end_yes,extract(month from end_date) as em,extract(month from start_date) as sm,
 
 
 case
@@ -183,8 +180,6 @@ from s7
 s9 as(
 Select ProjectCode,project_manager,region,quarter1,quarter2,quarter3,quarter4,start_date,end_date,fy_timerange,start_yes,end_yes,
 q1,q2,q3,q4,q1q2,q1q2q3,q1q2q3q4,q2q3,q3q4,q2q3q4,
---Concat(Concat(Concat(Concat(Concat(Concat(Concat(Concat(Concat(q1,q2),q3),q4),q1q2),q1q2q3),q1q2q3q4),q2q3),q3q4),q2q3q4) as final_quarter,
---q1q2q3q4 || q1q2q3 as final_quarter,
 q1||'-'||q2||'-'||q3||'-'||q4||'-'||q1q2||'-'||q1q2q3||'-'||q1q2q3q4||'-'||q2q3||'-'||q3q4||'-'||q2q3q4 as final_quarter,
 case 
 	when start_yes=1 and end_yes=1 then 1
@@ -224,6 +219,10 @@ on ss1.pm=project_manager
 ),
 s11 as(
 Select ProjectCode,project_manager,start_date,end_date,ss1.pm as level2,region,Quarter1Pending,Quarter2Pending,Quarter3Pending,Quarter4Pending,fy_timerange,
+  cast(b1.fy_timerange as VARCHAR) as f1, 
+  CAST(b1.ProjectCode as VARCHAR) as f2, 
+  CAST(b2.Project_Manager as VARCHAR) as f3,
+  CAST(b1.Region as VARCHAR) as f4,(f1 || f2 || f3 || f4) as ok, q11
 case
 	when Quarter1Pending like 'https%' then 'Submitted'
  	when Quarter1Pending like 'Pending' then 'Pending'
@@ -249,4 +248,4 @@ left join ss1
 on ss1.name=s10.approver
 group by ProjectCode,project_manager,level2,region,Quarter1Pending,Quarter2Pending,Quarter3Pending,Quarter4Pending,fy_timerange,submitted1,submitted2,submitted3,submitted4,start_date,end_date
 )
-Select * from s1
+Select * from s11
