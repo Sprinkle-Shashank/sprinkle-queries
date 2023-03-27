@@ -1,0 +1,18 @@
+--HDFC_FRD_Indirect_Projects
+with Base1 as(select p.name as ProjectCode,p.name_project  as Project_name,ngo_ref as IA,concat(p.start_date,concat('-',p.end_date)) as Start_End_Date, m.name as Project_manager,case when p._id is not null then 'https://api.p3fy.com/api/containers/nextgen-objects/download/Bonzv9lH2AbONxEeI80eqxU7dXtcxfzEYq6ju4DqiwIy1IP4gF7L0ajpmBoEnxM6_logo.jpg' end as Picture 
+			  from profile_27396 p
+left join ds_mysql_prod_tagelement m on
+p.project_manager=m.id	
+			  
+union all
+			  
+select l.name as ProjectCode,p.name_project Project_Name,p.ngo_ref as IA,concat(p.start_date,concat('-',p.end_date)) as Start_End_Date ,m.name as Project_Manager,case when p._id is not null then  'https://api.p3fy.com/api/containers/nextgen-objects/download/Bonzv9lH2AbONxEeI80eqxU7dXtcxfzEYq6ju4DqiwIy1IP4gF7L0ajpmBoEnxM6_logo.jpg' end as Picture 
+from profile_27420 p
+left join profile_27396 l on
+p.project_code=l._id
+left join ds_mysql_prod_tagelement m on
+p.project_manager=m.id
+left join ds_mysql_prod_tagelement f on
+p.fy=f.id
+)
+select ProjectCode,Project_name,IA,Picture,listagg(distinct Project_manager,',') within group(order by ProjectCode) as Project_manager from Base1 group by ProjectCode,Project_name,IA,Picture
