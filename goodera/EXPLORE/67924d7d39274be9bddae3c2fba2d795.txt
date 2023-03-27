@@ -1,9 +1,30 @@
-with Q1 as (Select p3.name as projectId,p1.name as projectname,p2.name as Partner,p.fy_timerange,p4.name as p.school,rainfall_mm as Rainfall(mm),p.rainwater_in_tank as Rainwater_Tank,p.ground_water_recharged as water_recharged
+with temp as (
+  select 'Total Beneficiaries' as col
+  union all
+  select 'Litres of Rainwater' as col
+  union all
+  select 'Groundwater Recharged' as col
+  union all
+  select 'Rainwater in Tank' as col),
+
+
+
+Q1 as (Select p3.name as projectId,p1.name as projectname,p2.name as Partner,p.fy_timerange,p4.name as school,temp.col as dimensions, (p4.students_num + p4.teachers_num) as total_num,
+	sum
+	(case col
+	when 'Total Beneficiaries' then total_num
+	when 'Litres of Rainwater' then p.rainfall_mm
+	when 'Groundwater Recharged' then p.ground_water_recharged 
+	when 'Rainwater in Tank' then p.rainwater_in_tank  
+    else Null
+	end) as Values
 from profile_83748 p
+cross join temp
 left join profile_83747 p4 on p4._id = p.school	
 left join ds_mysql_prod_project p1 on p1.id = p.projectid
 left join ds_mysql_prod_project p2 on p2.id = p1.parent
-left join ds_mysql_prod_project p3 on p3.id=p2.parent)
+left join ds_mysql_prod_project p3 on p3.id=p2.parent
+group by 1,2,3,4,5,6	  )
 
 
 Select * from Q1
