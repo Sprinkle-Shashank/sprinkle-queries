@@ -1,0 +1,142 @@
+--HDFC_FRD_Summary_Proj_Tracking
+with Base1 as(
+  Select f.name as fy_timerange, split_part(split_part(prod.name,'|',1),'.',1) as ProjectCode, split_part(prod.name,'|',1) as Region1,
+  case 
+      when Region1 like '%.%' then split_part(prod.name,'|',2)
+     else '-'
+ end as Region, 
+  CONCAT(ProjectCode,fy_timerange) as CODE,
+   case 
+  when file_upload like 'https://api.p3fy.com%'  then file_upload
+  else 'No'
+  end as file_upload1,
+  
+  case
+   when select_quarter='434773' and file_upload1 != 'No' then file_upload1
+  else 'N2'
+  end as q1,
+   case
+   when select_quarter='434774' and file_upload1 != 'No' then file_upload1
+  else 'N2'
+  end as q2,
+   case
+   when select_quarter='434775' and file_upload1 != 'No' then file_upload1
+  else 'N2'
+  end as q3,
+   case
+   when select_quarter='434776' and file_upload1 != 'No' then file_upload1
+  else 'N2'
+  end as q4
+  
+from profile_60787
+left join  ds_mysql_prod_project prod  on
+prod.id=projectid
+  
+left join ds_mysql_prod_tagelement f 
+on fy=f.id),
+
+b2 as(
+  Select cast(q.name as varchar) as ProjectCode,f.name as fy_timerange,m.name as Project_Manager,CONCAT(ProjectCode,fy_timerange) as CODE
+from profile_27420 d
+left join ds_mysql_prod_tagelement f on
+d.fy=f.id
+left join ds_mysql_prod_tagelement m on
+d.project_manager=m.id
+left join profile_27396 q on
+d.project_code=q._id
+		   
+union all
+		   
+select cast(c.name as varchar)as ProjectCode,f.name as fy_timerange,m.name as Project_Manager,CONCAT(ProjectCode,fy_timerange) as CODE 
+from profile_27396 c	
+left join ds_mysql_prod_tagelement f on
+c.fy=f.id
+left join ds_mysql_prod_tagelement m on
+c.project_manager=m.id
+),
+
+t5 as
+(
+Select b1.fy_timerange, b1.ProjectCode, b2.Project_Manager, b1.Region, 
+  cast(b1.fy_timerange as VARCHAR) as f1, 
+  CAST(b1.ProjectCode as VARCHAR) as f2, 
+  CAST(b2.Project_Manager as VARCHAR) as f3,
+  CAST(b1.Region as VARCHAR) as f4,
+  (f1 || f2 || f3 || f4) as ok,
+case 
+	when q1 like 'https%' then q1
+	else NULL
+end as q11,
+case 
+	when q2 like 'https%' then q2
+	else NULL
+end as q12,
+case 
+	when q3 like 'https%' then q3
+	else NULL
+end as q13,
+case 
+	when q4 like 'https%' then q4
+	else NULL
+end as q14
+from base1 b1
+left join b2
+on b1.CODE=b2.CODE
+),
+
+t6 as(
+Select  fy_timerange, ProjectCode, Project_Manager, Region,
+(f1 || f2 || f3 || f4) as ok, q11
+from t5
+where q11 is not NULL
+),
+
+t7 as(
+Select  fy_timerange, ProjectCode, Project_Manager, Region,
+(f1 || f2 || f3 || f4) as ok, q12
+from t5
+where q12 is not NULL),
+
+t8 as(
+Select  fy_timerange, ProjectCode, Project_Manager, Region,
+(f1 || f2 || f3 || f4) as ok, q13
+from t5
+where q13 is not NULL),
+
+t9 as(
+Select  fy_timerange, ProjectCode, Project_Manager, Region,
+(f1 || f2 || f3 || f4) as ok, q14
+from t5
+where q14 is not NULL)
+
+Select * from t5
+/*
+Select distinct(t5.ProjectCode) ProjectCode, t5.fy_timerange, t5.Project_Manager, t5.Region, t6.q11 as Submitted1,t7.q12 Submitted2, t8.q13 Submitted3, t9.q14 Submitted4,  
+case
+	when t6.q11 like 'https%' then 'Submitted'
+	else 'NA'
+	end as Click1,
+	case
+	when t7.q12 like 'https%' then 'Submitted'
+	else 'NA'
+	end as Click2,
+	case
+	when t8.q13 like 'https%' then 'Submitted'
+	else 'NA'
+	end as Click3,
+	case
+	when t9.q14 like 'https%' then 'Submitted'
+	else 'NA'
+	end as Click4
+
+from t5
+left join t6
+on t5.ok=t6.ok
+left join t7
+ON t5.ok=t7.ok
+left join t8
+ON t5.ok=t8.ok
+left join t9
+ON t5.ok=t9.ok
+where t5.Project_Manager <> 'Test PM1'
+group by 2,3,4,5,6,7,8, t5.ProjectCode */
