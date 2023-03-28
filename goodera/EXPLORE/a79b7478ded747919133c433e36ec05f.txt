@@ -182,6 +182,7 @@ on q4.ok=s6.ok
 s8 as (
 Select  ProjectCode,project_manager,region,quarter1,quarter2,quarter3,quarter4,start_date,end_date,
 fy_timerange,start_yes,end_yes,extract(month from end_date) as em,extract(month from start_date) as sm,
+extract(year from start_date) as sy,extract(year from end_date) as ey,
 
 
 case
@@ -222,9 +223,12 @@ case
 end as q2q3q4,
 case
 	when sm>=10 and sm<=12 and em>=1 and em<=3 then 'Q3Q4'
-	when sm>=10 and sm>=12 and em >3 then 'Q3Q4'
 	else '-'
-end as q3q4
+end as q3q4,
+case
+	when sm>=10 and sm>=12 and (em >3 and ey=sy+1) then 'Q3Q4'
+	else '-'
+end as q3q4q
 
 
 
@@ -239,8 +243,8 @@ from s7
 ),
 s9 as(
 Select ProjectCode,project_manager,region,quarter1,quarter2,quarter3,quarter4,start_date,end_date,fy_timerange,start_yes,end_yes,
-q1,q2,q3,q4,q1q2,q1q2q3,q1q2q3q4,q2q3,q3q4,q2q3q4,
-q1||'-'||q2||'-'||q3||'-'||q4||'-'||q1q2||'-'||q1q2q3||'-'||q1q2q3q4||'-'||q2q3||'-'||q3q4||'-'||q2q3q4 as final_quarter,
+q1,q2,q3,q4,q1q2,q1q2q3,q1q2q3q4,q2q3,q3q4,q2q3q4,q3q4q
+q1||'-'||q2||'-'||q3||'-'||q4||'-'||q1q2||'-'||q1q2q3||'-'||q1q2q3q4||'-'||q2q3||'-'||q3q4||'-'||q2q3q4||'-'||q3q4q as final_quarter,
 case 
 	when start_yes=1 and end_yes=1 then 1
     else 0
@@ -306,4 +310,4 @@ on ss1.name=s10.approver
 group by ProjectCode,project_manager,level2,region,Quarter1Pending,Quarter2Pending,Quarter3Pending,Quarter4Pending,fy_timerange,start_date,end_date
 )
 
-Select * from s8
+Select * from s11
