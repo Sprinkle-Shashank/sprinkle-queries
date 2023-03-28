@@ -1,15 +1,19 @@
---Au_Skills_Bene_outreach_map
-select p3.name as projectId,p1.name as projectname,p2.name as partner, p.fy_timerange, t3.name as district,t4.name as state, p.bene_name,t1.name as bene_enrolled,m1.code as map_code,m2.code as district_code, 1 as count
+select tag1.name as projectId,tag2.name as parent1, tag3.name as parent2, p.fy_timerange, tag4.name as district,tag5.name as state, p.bene_name,tag7.name as bene_enrolled,tag6.code as map_code, 1 as count
 from profile_83716 p
-left join ds_mysql_prod_project p1 on p1.id = p.projectid
-left join ds_mysql_prod_project p2 on p2.id = p1.parent
-left join ds_mysql_prod_project p3 on p3.id=p2.parent
+left join ds_mysql_prod_project tag1 
+on tag1.id = p.projectid
+left join ds_mysql_prod_project tag2 --No Parent Available
+on tag2.id = tag1.parent
+left join ds_mysql_prod_project tag3 -- No Parent Available
+on tag3.id = tag2.parent
 
-left join ds_mysql_prod_tagelement t1 on t1.id=p.bene_enrolled
-left join ds_mysql_prod_tagelement t3 on t3.id=p.state_district
-left join ds_mysql_prod_tagelement t4 on t4.id=t3.parent
-left join ds_mongo_reftagelementmetadata m1 on m1._id=t4.reftagelementmetadataid
-left join ds_mongo_reftagelementmetadata m2 on m2._id=t3.reftagelementmetadataid
+left join ds_mysql_prod_tagelement tag7 on tag7.id=p.bene_enrolled
+left join ds_mysql_prod_tagelement tag4
+on p.state_district = tag4.id
+left join ds_mysql_prod_tagelement tag5 -- Parent done as state
+on tag5.id = tag4.parent
+left join ds_mongo_reftagelementmetadata tag6 -- mapcodes
+on tag6._id = tag5.reftagelementmetadataid
 
-where p.projectid like '%%'
-group by p3.name,p1.name,p2.name,p.fy_timerange,t3.name,t4.name,p.bene_name,m1.code,m2.code,t1.name
+where p.projectid like '%%' and tag4.name is not null
+group by tag1.name,tag2.name,tag3.name,p.fy_timerange,tag4.name,tag5.name,p.bene_name,tag6.code,tag7.name
