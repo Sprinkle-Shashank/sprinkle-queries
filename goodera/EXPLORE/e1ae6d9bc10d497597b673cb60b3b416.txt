@@ -1,0 +1,56 @@
+--Genpact Communications Gallery
+WITH SUB1 AS (
+  SELECT P1.pic,
+  P1.month_timerange AS fy_timerange,
+  P1.title AS title1,
+  P1.projectId AS ProjectID3,
+  P2.name AS project,
+  CAST(P1.month_timerange.start AS date) AS start,
+  P3.name AS  projectid1,
+  P4.name AS projectid2,
+  EXTRACT(MONTH FROM start) AS month,
+  EXTRACT(YEAR FROM start) AS year,
+  
+  CASE
+  	WHEN month = 1 THEN 'Jan'
+  	WHEN month = 2 THEN 'Feb'
+  	WHEN month = 3 THEN 'Mar'
+  	WHEN month = 4 THEN 'Apr'
+  	WHEN month = 5 THEN 'May'
+	WHEN month = 6 THEN 'Jun'
+	WHEN month = 7 THEN 'July'
+	WHEN month = 8 THEN 'Aug'
+	WHEN month = 9 THEN 'Sep'
+	WHEN month = 10 THEN 'Oct'
+	WHEN month = 11 THEN 'Nov'
+	WHEN month = 12 THEN 'Dec'
+	--ELSE 'No Data Entry'
+  	END AS month1,
+  
+  CASE 
+	WHEN P3.name  = 'SCCD'
+	THEN 'SCCD' 
+	ELSE P4.name 
+	END AS projectname
+  
+  FROM profile_55828 AS P1
+
+  LEFT JOIN ds_mysql_prod_project AS P2
+  ON P2.id = P1.projectId
+  
+  LEFT JOIN ds_mysql_prod_project AS P3
+  ON P3.id = P1.projectId
+  
+  LEFT JOIN ds_mysql_prod_project AS P4
+  ON P4.id = P3.parent
+  
+  LEFT JOIN ds_mysql_prod_project AS P5
+  ON P5.id = P4.parent
+  
+  ORDER BY fy_timerange DESC
+)
+
+SELECT /*SUB1.**/ fy_timerange, pic, projectname,
+project || ' - ' || month1 || ' (' || year || ')' || ' - ' || title1  AS title,pic as link2,pic as link3
+
+FROM SUB1
