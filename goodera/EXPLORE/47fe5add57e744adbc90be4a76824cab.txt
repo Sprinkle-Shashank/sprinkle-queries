@@ -1,6 +1,17 @@
 with table1 as( 
-  select p._id, p.projectid, p1.year_timerange, cast(d1 as varchar) as d1_update  
+  select p._id, p.projectid, p.year_timerange, cast(d1 as varchar) as d1_update  
 from profile_76755 as p, p.impact_wcp_arr as d1
 )
 
-select * from table1
+select p1.absenteeism_rate  , p1.labor_disputes , p1.person_days_lost , p1.bc_meetings,
+
+((nvl(p1.last_day_workers,0) + nvl(p1.day_1_workers,0)) / 2) as d2,
+
+((nvl(p1.workers_exited)/d2)  * 100) as inside, 
+
+extract(year from cast(p.year_timerange.start as DATE)) as start_year,
+extract(month from cast(p.year_timerange.start as DATE)) as start_month
+
+from table1 p
+
+left join profile_76928 p1 on p1._id = p.d1_update
