@@ -2,7 +2,7 @@ drop table if exists sakshi_hdfc_activity_dashboard_tab3;
 create table sakshi_hdfc_activity_dashboard_tab3 as
 
 with Lookup as
-(select cast((split_part(split_part(prod.name,'|',1),'.',1)) as varchar) as ProjectCode,f.name as fy_timerange,split_part(prod.name,'|',2) as Village,o.name as Focusarea,CONCAT(ProjectCode,fy_timerange) as CODE,p.sub_cat_out_plan as Planned,p.subcat_output as Actual,m.name as Month,a.name as Activity_Category,s.name as Activity_Sub_Category,p.flag_deviation_delay as Deviation
+(select cast((split_part(split_part(prod.name,'|',1),'.',1)) as varchar) as ProjectCode,f.name as fy_timerange,split_part(prod.name,'|',2) as Village,o.name as Focusarea,CONCAT(ProjectCode,fy_timerange) as CODE,p.sub_cat_out_plan as Planned,p.subcat_output as Actual,m.name as Month,a.name as Activity_Category,s.name as Activity_Sub_Category,p.flag_deviation_delay as Deviation,  prod.name p1
  from profile_54963 p 
 left join project_4188 prod on
 prod.id=p.projectid
@@ -36,6 +36,12 @@ left join tagelement_4188 m on
 c.project_manager=m.id)
 
 ,Base2 as
-(select p.fy_timerange,l.Project_Manager,p.ProjectCode,p.Village,p.Focusarea,p.Month,p.Activity_Category,p.Activity_Sub_Category,sum(p.Planned) as Planned,sum(p.Actual) as Actual,p.Deviation from lookup p left join Base1 l on p.CODE=l.CODE group by p.fy_timerange,l.Project_Manager,p.ProjectCode,p.Village,p.Focusarea,p.Month,p.Activity_Category,p.Activity_Sub_Category ,p.Deviation
+(select p.fy_timerange,l.Project_Manager,p.ProjectCode,
+ CASE
+        WHEN p.p1 LIKE '%.%' THEN p.Village
+        ELSE 'cluster'
+    END AS village, 
+
+ p.Focusarea,p.Month,p.Activity_Category,p.Activity_Sub_Category,sum(p.Planned) as Planned,sum(p.Actual) as Actual,p.Deviation from lookup p left join Base1 l on p.CODE=l.CODE group by p.fy_timerange,l.Project_Manager,p.ProjectCode,p.Village,p.Focusarea,p.Month,p.Activity_Category,p.Activity_Sub_Category ,p.Deviation, p1
  )
 Select * from Base2
