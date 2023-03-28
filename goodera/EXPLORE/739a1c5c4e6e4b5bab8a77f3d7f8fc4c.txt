@@ -58,11 +58,12 @@ END AS start,
 start+1 as end1,
 concat(start,'-04-01T00:00:00.000Z') as start1,
 concat(end1,'-04-01T00:00:00.000Z') as end2,
-concat(concat(concat(concat('{"start":"',start1),'","end":"'),end2),'"}') as fy_1
+concat(concat(concat(concat('{"start":"',start1),'","end":"'),end2),'"}') as fy_1,
+concat('FY',concat(' ',concat(start,concat('-',right(end1,2))))) as fy_2 	  
 	  
 	  ,name From sus_82955 as p where keyword='ac_epr_compliace'),
 table2 as (
-select finperiod,fy_1 as fy_timerange,name, coun.vendor_name, coun.state_name	,coun.mlp_eol+coun.mlp_recycled as mlp_new,coun.flexible_recycled,coun.rigid_recycled From y as p, unpivot p.datatablebase as coun ),
+select finperiod,fy_1 as fy_timerange,fy_2,name, coun.vendor_name, coun.state_name	,coun.mlp_eol+coun.mlp_recycled as mlp_new,coun.flexible_recycled,coun.rigid_recycled From y as p, unpivot p.datatablebase as coun ),
 
 temp1 as (
   select 'mlp_new' as C
@@ -73,9 +74,9 @@ temp1 as (
    ),
 actual as (   
  select 
- case C when 'mlp_new' then concat(('FY' || ' '||left(right(t2.finperiod,8),7)),concat(ven.name,concat(stat.name,'mlp')))
-        when 'flexible_recycled' then concat(('FY' || ' '||left(right(t2.finperiod,8),7)),concat(ven.name,concat(stat.name,'flexible')))
-		when 'rigid_recycled' then concat(('FY' || ' '||left(right(t2.finperiod,8),7)),concat(ven.name,concat(stat.name,'rigid')))
+ case C when 'mlp_new' then concat(fy_2,concat(ven.name,concat(stat.name,'mlp')))
+        when 'flexible_recycled' then concat(fy_2,concat(ven.name,concat(stat.name,'flexible')))
+		when 'rigid_recycled' then concat(fy_2,concat(ven.name,concat(stat.name,'rigid')))
 	end as unique	
  ,t2.fy_timerange,t2.name,ven.name as vendor,stat.name as state,
  
