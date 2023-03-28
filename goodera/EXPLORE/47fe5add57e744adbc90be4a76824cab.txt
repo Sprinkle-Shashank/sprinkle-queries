@@ -7,10 +7,25 @@ select p1.absenteeism_rate  , p1.labor_disputes , p1.person_days_lost , p1.bc_me
 
 ((nvl(cast(p1.last_day_workers as FLOAT),0) + nvl(cast(p1.day_1_workers as FLOAT),0)) / 2) as d2,
 
-((nvl(p1.workers_exited, 0)/ nullif(d2,0))  * 100) as inside, 
+round(nvl(((nvl(p1.workers_exited, 0)/ nullif(d2,0))  * 100), 0),2) as inside, 
 
 extract(year from cast(p.year_timerange.start as DATE)) as start_year,
-extract(month from cast(p.year_timerange.start as DATE)) as start_month
+extract(month from cast(p.year_timerange.start as DATE)) as start_month,
+
+case start_month
+	when 1 then 'January'
+	when 2 then 'February'
+	when 3 then 'March'
+	when 4 then 'April'
+	when 5 then 'May'
+	when 6 then 'Jun'
+	when 7 then 'July'
+	when 8 then 'August'
+	when 9 then 'September'
+	when 10 then 'October'
+	when 11 then 'November'
+	else 'December'
+end as month
 
 from table1 p
 
