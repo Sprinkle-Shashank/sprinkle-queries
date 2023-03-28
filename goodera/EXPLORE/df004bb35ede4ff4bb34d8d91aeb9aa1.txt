@@ -1,0 +1,16 @@
+select  projectId.name as projectId, state1.name as state, fy_timerange, villagers, phcs, budget_allocated, budget_utilized, patients_before_construction, patients_after_construction, long, lat, count(*), location.name as location, photo, 
+
+case
+WHEN state1.name IS NULL THEN location.name else state1.name END as state
+
+
+from profile_51092 as m
+
+left join ds_mysql_prod_project projectId 
+ on m.projectId = projectId.id
+left join ds_mysql_prod_tagelement state1 
+ on m.state = state1.id
+left join ds_mysql_prod_project location on state1.parent = location.id
+
+
+group by projectId.name, state1.name, photo, fy_timerange, villagers, phcs, budget_allocated, budget_utilized, patients_before_construction, patients_after_construction, long, lat, location.name
