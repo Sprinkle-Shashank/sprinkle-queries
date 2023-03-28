@@ -13,7 +13,7 @@ concat(end1,'-04-01T00:00:00.000Z') as end2,
 concat(concat(concat(concat('{"start":"',start1),'","end":"'),end2),'"}') as fy_1
 ,name From sus_82955 as p where keyword='epr_compliance_target'),
 table1 as (
-select finperiod,fy_timerange,name, coun.vendor, coun.state,coun.mlp,coun.flexible,coun.rigid From x as p, unpivot p.datatablebase as coun ),
+select finperiod,fy_1 as fy_timerange,name, coun.vendor, coun.state,coun.mlp,coun.flexible,coun.rigid From x as p, unpivot p.datatablebase as coun ),
 
 temp as (
   select 'mlp' as C
@@ -45,9 +45,24 @@ t1.state = stat.id
 
 group by finperiod,fy_timerange,t1.name,ven.name,stat.name,temp.c	),
 
-y as (select finperiod,datatablebase,fy_timerange,name From sus_82955 as p where keyword='ac_epr_compliace'),
+y as (select finperiod,datatablebase,fy_timerange,startdate,
+	  
+	  EXTRACT(MONTH FROM cast (startdate as datetime))AS month1,
+EXTRACT(YEAR FROM cast (startdate as datetime))AS year1,
+CASE
+WHEN MONTH1 <= 3
+THEN YEAR1-1
+ELSE
+YEAR1
+END AS start,
+start+1 as end1,
+concat(start,'-04-01T00:00:00.000Z') as start1,
+concat(end1,'-04-01T00:00:00.000Z') as end2,
+concat(concat(concat(concat('{"start":"',start1),'","end":"'),end2),'"}') as fy_1
+	  
+	  ,name From sus_82955 as p where keyword='ac_epr_compliace'),
 table2 as (
-select finperiod,fy_timerange,name, coun.vendor_name, coun.state_name	,coun.mlp_eol+coun.mlp_recycled as mlp_new,coun.flexible_recycled,coun.rigid_recycled From y as p, unpivot p.datatablebase as coun ),
+select finperiod,fy_1 as fy_timerange,name, coun.vendor_name, coun.state_name	,coun.mlp_eol+coun.mlp_recycled as mlp_new,coun.flexible_recycled,coun.rigid_recycled From y as p, unpivot p.datatablebase as coun ),
 
 temp1 as (
   select 'mlp_new' as C
@@ -62,7 +77,7 @@ actual as (
         when 'flexible_recycled' then concat(('FY' || ' '||left(right(t2.finperiod,8),7)),concat(ven.name,concat(stat.name,'flexible')))
 		when 'rigid_recycled' then concat(('FY' || ' '||left(right(t2.finperiod,8),7)),concat(ven.name,concat(stat.name,'rigid')))
 	end as unique	
- ,t2.finperiod,t2.fy_timerange,t2.name,ven.name as vendor,stat.name as state,
+ ,t2.fy_timerange,t2.name,ven.name as vendor,stat.name as state,
  
  Sum(Case C
 	When 'mlp_new' then t2.mlp_new
@@ -82,7 +97,7 @@ left join tagelement_9427 stat on
 t2.state_name = stat.id
 
 
-group by finperiod,fy_timerange,t2.name,ven.name,stat.name,temp1.c)
+group by fy_timerange,t2.name,ven.name,stat.name,temp1.c)
 
 /*select act.finperiod,act.fy_timerange,act.name,act.vendor,act.state,actual,type,targ.val as target,
 case when target = 0 then null
@@ -93,7 +108,7 @@ round(cast((actual*100/target) as float),2) end as compliance,
 
 left join target targ
 on act.unique = targ.unique*/
-select * from x
+select * from actual
 
 
 --where keyword = 'ac_epr_compliance'
