@@ -5,11 +5,26 @@ with x as (select xprojectId,time.name as Time_period,datatablebase,split_part(s
 Left join ds_mysql_prod_tagelement time
 on sus.financialperiod = time.id
 
-where keyword = 'products_in_pipeline_new')
+where keyword = 'products_in_pipeline_new'),
+
+with y as (select xprojectId,time.name as Time_period,datatablebase,split_part(split_part(fy_timerange,'|',1),'-',1) as time  from sus_60317 sus
+
+Left join ds_mysql_prod_tagelement time
+on sus.financialperiod = time.id
+
+where keyword = 'product_pending_approval_new')
 
 
-select xprojectid,time_period,p.time,coun.region,coun.prod_count From x as p, unpivot p.datatablebase as coun
 
+select xprojectid,time_period,p.time,reg.name as region,coun.prod_count as total From x as p, unpivot p.datatablebase as coun
+
+Left join ds_mysql_prod_tagelement reg
+coun.region = reg.id 
+union all
+
+select xprojectid,time_period,p.time,reg2.name as region,coun.count From y as p, unpivot p.datatablebase as coun
+Left join ds_mysql_prod_tagelement reg2
+coun.region = reg2.id 
 
 /*select xprojectId,time.name as Time_period,SUM(dataNum) as total,split_part(split_part(fy_timerange,'|',1),'-',1) as time  from sus_60316 sus
 
