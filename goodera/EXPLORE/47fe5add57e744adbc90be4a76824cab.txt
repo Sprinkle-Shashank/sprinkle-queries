@@ -11,7 +11,7 @@ table2 as(
 nvl(((nvl(p1.workers_exited, 0)/ nullif(d2,0))  * 100), 0) as inside, 
 
 extract(year from cast(p.year_timerange.start as DATE)) as start_year,
-extract(month from cast(p.year_timerange.start as DATE)) as start_month,
+extract(month from cast(p.year_timerange.start as DATE)) as start_month, p1.code,
 
 case start_month
 	when 1 then 'January'
@@ -26,14 +26,16 @@ case start_month
 	when 10 then 'October'
 	when 11 then 'November'
 	else 'December'
-end as month
+end as month,
+  
+(p1.code || ',' || start_year) as b
 
 from table1 p
 
 left join profile_76928 p1 on p1._id = p.d1_update
 where start_year is not null)
 
-select 
+select b,
 
 case
 	when t2.month in ('February','March','April') then 'Q1'
