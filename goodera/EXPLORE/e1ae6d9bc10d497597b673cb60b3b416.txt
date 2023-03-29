@@ -1,64 +1,11 @@
---Genpact Communications Galler
+--AU_Bank_Gallery
+with sub1 as(select a.fy_timerange, p3.name as projectId,p1.name as projectname,p2.name as partner, a.about, a.caption, a.photo
+from profile_81312 a
 
-WITH SUB1 AS (
-  SELECT P1.pic,
-  P1.month_timerange AS fy_timerange,
-  P1.title AS title1,
-  P1.projectId AS ProjectID3,
-  P2.name AS project,
-  CAST(P1.month_timerange.start AS date) AS start,
-  P3.name AS  projectid1,
-  P4.name AS projectid2,
-  EXTRACT(MONTH FROM start) AS month,
-  EXTRACT(YEAR FROM start) AS year,
-  
-  CASE
-  	WHEN month = 1 THEN 'Jan'
-  	WHEN month = 2 THEN 'Feb'
-  	WHEN month = 3 THEN 'Mar'
-  	WHEN month = 4 THEN 'Apr'
-  	WHEN month = 5 THEN 'May'
-	WHEN month = 6 THEN 'Jun'
-	WHEN month = 7 THEN 'July'
-	WHEN month = 8 THEN 'Aug'
-	WHEN month = 9 THEN 'Sep'
-	WHEN month = 10 THEN 'Oct'
-	WHEN month = 11 THEN 'Nov'
-	WHEN month = 12 THEN 'Dec'
-	--ELSE 'No Data Entry'
-  	END AS month1,
-  
-  CASE 
-	WHEN P3.name  = 'SCCD'
-	THEN 'SCCD' 
-	ELSE P4.name 
-	END AS projectname
-  
-  FROM profile_55828 AS P1
-
-  LEFT JOIN ds_mysql_prod_project AS P2
-  ON P2.id = P1.projectId
-  
-  LEFT JOIN ds_mysql_prod_project AS P3
-  ON P3.id = P1.projectId
-  
-  LEFT JOIN ds_mysql_prod_project AS P4
-  ON P4.id = P3.parent
-  
-  LEFT JOIN ds_mysql_prod_project AS P5
-  ON P5.id = P4.parent
-  
-  ORDER BY fy_timerange DESC
-),
-sub2 as (
-SELECT fy_timerange, cast(pc as varchar) pp, projectname,
-project || ' - ' || month1 || ' (' || year || ')' || ' - ' || title1  AS title
-
-FROM SUB1 as s1,s1.pic as pc
-
+left join project_9730 p1 on p1.id = a.projectid
+left join project_9730 p2 on p2.id = p1.parent
+left join project_9730 p3 on p3.id=p2.parent
 )
 
-
-
-SELECT *
-FROM SUB2
+select s1.*, cast(pic as varchar) from sub1 as s1, s1.photo as pic,s1.photo as pic2,s1.photo as pi3
+order by fy_timerange desc
