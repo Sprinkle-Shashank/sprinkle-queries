@@ -1,0 +1,80 @@
+drop table if exists hdfc_hrd_overview_ngo_repo_toal_activities_flow;
+create table hdfc_hrd_overview_ngo_repo_toal_activities_flow as
+with sub1 as(
+  select p1._id as id, t1.name as fy, split_part(p2.name, '|', 1) as projectcode, t2.name as month,
+  p2.name as pc,
+case
+	when p2.parent = 18943 then split_part(p2.name, '|', 1)
+	else split_part(p3.name, '|', 1)
+end as parentcode
+
+from profile_54963 p1
+
+left join project_4188 p2 on p2.id = p1.projectid
+left join project_4188 p3 on p3.id = p2.parent
+
+left join tagelement_4188 t1 on t1.id = p1.fy
+left join tagelement_4188 t2 on t2.id = p1.month),
+
+sub2 as(
+  select s1.id, s1.projectcode, s1.fy, s1.month, s1.parentcode, t1.name as fy_27396, t2.name as project_manager_27396, t3.name as fy_27420, t4.name as project_manager_27420,pc,
+  
+case
+  	when t3.name is null or (split_part(s1.fy, '-', 1) < split_part(t3.name, '-', 1))
+  		 then t1.name
+  	else t3.name
+end as fy_27420_new,
+ 
+nvl(t4.name, t2.name) as project_manager_27420_new
+  
+from sub1 s1
+  
+left join profile_27396 p4 on p4.name = s1.parentcode
+left join profile_27420 p5 on p5.project_code = p4._id
+
+left join tagelement_4188 t1 on t1.id = p4.fy
+left join tagelement_4188 t2 on t2.id = p4.project_manager
+
+left join tagelement_4188 t3 on t3.id = p5.fy
+left join tagelement_4188 t4 on t4.id = p5.project_manager
+),
+
+sub3 as(
+  select s2.id, s2.projectcode, s2.fy, s2.month, s2.fy_27396, s2.project_manager_27396, s2.fy_27420_new, s2.project_manager_27420_new, s2.fy_27420,pc,
+  
+case
+  	when (split_part(s2.fy_27420_new, '-', 1) <= split_part(s2.fy, '-', 1)) or 
+  		 (split_part(s2.fy_27396, '-', 1) <= split_part(s2.fy, '-', 1)) then 1
+    else 0
+end as flag,
+
+row_number() over(partition by s2.id order by split_part(s2.fy_27420_new, '-', 1) desc) as row
+  
+from sub2 s2),
+
+sub4 as(
+  select s3.id, s3.projectcode, s3.fy, s3.month months, s3.fy_27396, s3.project_manager_27396, s3.fy_27420_new, s3.project_manager_27420_new,pc
+from sub3 s3
+
+where s3.row = 1 and s3.flag = 1),
+
+sub5 as(
+  select s4.projectcode, s4.fy, s4.fy_27420_new, s4.fy_27396, months, 1 as total_count, s4.project_manager_27420_new, s4.project_manager_27396,pc,
+  
+case
+  when (split_part(s4.fy_27420_new, '-', 1) <= split_part(s4.fy, '-', 1)) 
+  		then s4.project_manager_27420_new
+  else s4.project_manager_27396
+end as project_manager
+  
+from sub4 s4),
+
+sub6 as(
+  select s5.projectcode, s5.fy as fy_timerange,months, s5.project_manager,s5.pc,
+sum(s5.total_count) as total_count, 'Total No. of Activities' x_axis
+  
+from sub5 s5
+
+group by s5.projectcode, s5.fy, s5.project_manager, months,s5.pc)
+
+select * from sub6
