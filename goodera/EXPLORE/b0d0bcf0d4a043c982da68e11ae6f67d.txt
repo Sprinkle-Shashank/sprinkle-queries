@@ -5,7 +5,6 @@ with s1 as(
      else '-'
  end as Region, 
 ProjectCode||'-'||f.name  as j,
-  --CONCAT(ProjectCode,fy_timerange) as CODE,
 t.name as select_quarter,file_upload,
 case 
   	when file_upload  is not null and t.name='Quarter 1' then file_upload
@@ -37,9 +36,6 @@ on select_quarter=t.id
 ,
 s2 as(
 Select s.name as proj_code,t.name as fy, t1.name as project_manager,s.start_date,s.end_date,s.name||'-'||t.name  as j
---extract(year from s.start_date) as s_year
---extract(month from (cast (s.start_date as datetime)) as s_month
-
 from profile_27396 s
 left join tagElement_4188 t
 on t.id=s.fy
@@ -49,7 +45,7 @@ on t1.id=s.project_manager
 ),
 s3 as(
 Select ss.name as proj_code,t.name as fy,t1.name as project_manager,sp.start_date,sp.end_date,ss.name||'-'||t.name  as j
---extract(year from ss.start_date) as s_year
+
 from profile_27420 sp
 left join profile_27396 ss
 on ss._id=sp.project_code
@@ -79,30 +75,7 @@ Select sp.*,s5.project_manager,s5.start_date,s5.end_date,
   CAST(s5.Project_Manager as VARCHAR) as f3,
   CAST(sp.Region as VARCHAR) as f4,
   (f1 || f2 || f3 || f4) as ok,
-
-case
-	when left(sp.fy_timerange,4)=2017 then cast('2017-04-01T00:00:00.000+00:00' as datetime)
-	when left(sp.fy_timerange,4)=2018 then cast('2018-04-01T00:00:00.000+00:00' as datetime)
-	when left(sp.fy_timerange,4)=2019 then cast('2019-04-01T00:00:00.000+00:00' as datetime)
-	when left(sp.fy_timerange,4)=2020 then cast('2020-04-01T00:00:00.000+00:00' as datetime)
-	when left(sp.fy_timerange,4)=2021 then cast('2021-04-01T00:00:00.000+00:00' as datetime)
-	when left(sp.fy_timerange,4)=2022 then cast('2022-04-01T00:00:00.000+00:00' as datetime)
-	when left(sp.fy_timerange,4)=2023 then cast('2023-04-01T00:00:00.000+00:00' as datetime)
-	when left(sp.fy_timerange,4)=2024 then cast('2024-04-01T00:00:00.000+00:00' as datetime)
-	else null
-end as start_fy,
-case
-	when right(sp.fy_timerange,4)=2017 then cast('2017-03-31T00:00:00.000+00:00' as datetime)
-	when right(sp.fy_timerange,4)=2018 then cast('2018-03-31T00:00:00.000+00:00' as datetime)
-	when right(sp.fy_timerange,4)=2019 then cast('2019-03-31T00:00:00.000+00:00' as datetime)
-	when right(sp.fy_timerange,4)=2020 then cast('2020-03-31T00:00:00.000+00:00' as datetime)
-	when right(sp.fy_timerange,4)=2021 then cast('2021-03-31T00:00:00.000+00:00' as datetime)
-	when right(sp.fy_timerange,4)=2022 then cast('2022-03-31T00:00:00.000+00:00' as datetime)
-	when right(sp.fy_timerange,4)=2023 then cast('2023-03-31T00:00:00.000+00:00' as datetime)
-	when right(sp.fy_timerange,4)=2024 then cast('2024-03-31T00:00:00.000+00:00' as datetime)
-	when right(sp.fy_timerange,4)=2025 then cast('2025-03-31T00:00:00.000+00:00' as datetime)
-	else null
-end as end_fy,
+	
 case 
 	when Quarter1 like 'https%' then Quarter1
 	else NULL
@@ -155,16 +128,7 @@ where Q4 is not null
 ),
 s7 as(
 
-Select s6.ProjectCode,s6.project_manager,s6.region,s6.start_date,s6.end_date,s6.fy_timerange,q1.q11 as quarter1,q2.q22 as quarter2,q3.q33 as quarter3,q4.q44 as quarter4,
-case
-	when s6.start_date between s6.start_fy and s6.end_fy then 1
-	else 0
-end as start_yes,
-case
-	when s6.end_date between s6.start_fy and s6.end_fy then 1
-	when s6.end_date > s6.end_fy then 1
-	else 0
-end as end_yes
+Select s6.ProjectCode,s6.project_manager,s6.region,s6.start_date,s6.end_date,s6.fy_timerange,q1.q11 as quarter1,q2.q22 as quarter2,q3.q33 as quarter3,q4.q44 as quarter4
 
 from s6
 left join q1
@@ -428,4 +392,4 @@ else quarter4
 from u2
 group by ProjectCode,project_manager,region,start_date,end_date,fy_timerange,quarter1,quarter2,quarter3,quarter4,Q1,Q2,Q3,Q4
 )
-Select * from s6
+Select * from s7
