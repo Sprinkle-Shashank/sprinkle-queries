@@ -1,5 +1,6 @@
 --HDFC_Indirect_Others_Code_Filter
-Select split_part(p.name,'|',1) as Project_Code, t.name fy
+with t1 as 
+(Select split_part(p.name,'|',1) as Project_Code, t.name fy
 from profile_27396 p
 left join tagelement_4188 t1
 on p.fy = t1.id
@@ -8,4 +9,16 @@ on p1._id=p.intervention_type
 left join tagelement_4188 t
 on p.fy=t.id
 where intervention_type='5af01047fb81ee9205d12787' and focus_area != '430784' and focus_area != '430786' and focus_area != '430789' 
-order by Project_Code asc
+union all
+Select cast(q.name as varchar) as ProjectCode,f.name as fy
+from profile_27420 d
+left join profile_27396 q on
+d.project_code=q._id
+left join tagelement_4188 f on
+d.fy=f.id
+where d.focus_area!='Eradicating Poverty' and d.focus_area!='Others' and d.focus_area!='Holistic Rural Development' and int_type_calc2='Indirect'
+)
+
+Select *
+from t1
+order by ProjectCode asc
