@@ -1,45 +1,18 @@
-
-with Lookup as
-(select cast((split_part(split_part(prod.name,'|',1),'.',1)) as varchar) as ProjectCode,f.name as fy_timerange,CONCAT(ProjectCode,fy_timerange) as CODE
- from profile_54963 p 
- 
- 
-left join project_4188 prod on
-prod.id=p.projectid
-left join tagelement_4188 f on
-p.fy=f.id
-)
-
-,Base1 as
-(select cast(q.name as varchar) as ProjectCode,f.name as fy_timerange,m.name as Project_Manager,CONCAT(ProjectCode,fy_timerange) as CODE, d.focus_area focus_area
+--HDFC_Indirect_Others_Code_Filter
+Select split_part(p.name,'|',1) as Project_Code, t.name fy
+from profile_27396 p
+left join tagelement_4188 t1
+on p.fy = t1.id
+left join profile_28235 p1
+on p1._id=p.intervention_type
+left join tagelement_4188 t
+on p.fy=t.id
+where intervention_type='5af01047fb81ee9205d12787' and focus_area != '430784' and focus_area != '430786' and focus_area != '430789' 
+union all
+Select cast(q.name as varchar) as ProjectCode,f.name as fy
 from profile_27420 d
-left join tagelement_4188 f on
-d.fy=f.id
-left join tagelement_4188 m on
-d.project_manager=m.id
 left join profile_27396 q on
 d.project_code=q._id
- 
-union
-select cast(c.name as varchar)as ProjectCode,f.name as fy_timerange,m.name as Project_Manager,CONCAT(ProjectCode,fy_timerange) as CODE , t.name focus_area
-from profile_27396 c	
 left join tagelement_4188 f on
-c.fy=f.id
-left join tagelement_4188 m on
-c.project_manager=m.id
-left join tagelement_4188 t on
-t.id=c.focus_area
-),
-
-Base2 as
-(select l.fy_timerange,l.Project_Manager,p.ProjectCode, l.focus_area
- from Base1 l 
- left join lookup p on p.CODE=l.CODE 
-  where l.focus_area='Holistic Rural Development'
- group by l.fy_timerange,l.Project_Manager,p.ProjectCode,  l.focus_area
- )
-
-Select *
-from base1
-where ProjectCode='P0233'
-group by 1,2,3,4,5
+d.fy=f.id
+where d.focus_area!='Eradicating Poverty' and d.focus_area!='Others' and d.focus_area!='Holistic Rural Development' and int_type_calc2='Indirect'
