@@ -5,9 +5,9 @@ with table1 as
 
 table2 as
 ( 
-  select p.*, p1.absenteeism_rate  , p1.labor_disputes , p1.person_days_lost , p1.bc_meetings , case when p1.last_day_workers is null then 0 else p1.last_day_workers end as last_day_workers_update , case when p1.day_1_workers is null then 0 else p1.day_1_workers end as day_1_workers_update , case when p1.workers_exited is null then 0 else p1.workers_exited end as workers_exited_update , (last_day_workers_update + day_1_workers_update)/2 as d2 
+  select p.*, p1.absenteeism_rate  , p1.labor_disputes , p1.person_days_lost , p1.bc_meetings , case when p1.last_day_workers is null then 0 else p1.last_day_workers end as last_day_workers_update , case when p1.day_1_workers is null then 0 else p1.day_1_workers end as day_1_workers_update , case when p1.workers_exited is null then 0 else p1.workers_exited end as workers_exited_update , cast(last_day_workers_update as float) as last_day_workers_f, cast(day_1_workers_update as float) as day_1_workers_f,   cast(workers_exited_update as float) as workers_exited_f , (last_day_workers_f + day_1_workers_f)/2 as d2 
   
-  , case when workers_exited_update = 0 or d2=0 then 0 else ((workers_exited_update/d2)*100) end as inside 
+  , case when workers_exited_f =0 or d2=0 then 0 else ((workers_exited_update/d2)*100) end as inside 
   
   , 1 as count_new ,  cast(year_timerange.start as date) as fy_1 , extract(year from fy_1) as fy_2 , extract(month from fy_1) as month1 , 
 case when month1 = 1 then 'January' 
@@ -32,7 +32,7 @@ when quarter_check =  '3rd(Aug-Oct)' then 'Q3'
 when quarter_check = '4th(Nov-Jan)' then 'Q4' 
   else 'NA' end as quarter_1 ,
   
-    cast(fy_2 as varchar) as year_new,
+    cast(fy_2 as varchar) as year_new,  (quarter_1+','+year_new) as quarter_fy ,
   
   
 cou.name as country , 
@@ -46,8 +46,6 @@ then 'Americas'
 when country in ('Philippines', 'Cambodia',  'Vietnam',  'Indonesia', 'Myanmar')
 then 'South East Asia'
 end as region ,  
-  
-  (cast(quarter_1 as varchar)+','+cast(fy_2 as varchar)) as qua_new ,
   
   
 case when p2.name_subunit is null or p2.name_subunit=' ' then 'N/A' when country='Bangladesh' then p2.name_subunit else 'N/A' end as unit, p2.status from table1 as p
