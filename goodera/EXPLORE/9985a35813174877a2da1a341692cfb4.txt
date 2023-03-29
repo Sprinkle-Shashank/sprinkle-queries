@@ -1,2 +1,119 @@
---select distinct name_vendor_filter from profile_54646
-select * from profile_60699
+--GapInc_wcp_data_monitor_Overview
+
+with table1 as
+(select p.projectid , p._id ,  p.facility_project_name as factory,  status from profile_16619 as p
+ 
+ left join project_1137 fac 
+on p.projectId = fac.id
+
+where status !=437658 and status!=437659),
+
+
+table2 as 
+( select p.projectid , p._id , factory_id  from profile_4722 as p
+ 
+), 
+
+ 
+ table4 as 
+ (
+   select p.projectid , p._id , 1 as Number_of_Modules_Completed 
+   
+   , substring(p.date, 0,11) as date, substring(p.date_2, 0,11) as Date_2 , substring(p.date_3, 0,11) as Date_3, substring(p.date_4, 0,11)  as Date_4, substring(p.date_5, 0,11) as Date_5, substring(p.date_6, 0,11) as Date_6, substring(p.date_7, 0,11) as Date_7, substring(p.date_8, 0,11) as date_8 
+   from profile_16619 as p 
+   
+   where p.date is not null 
+   and Date_2 is not null and Date_3 is not null and Date_4 is not null   and Date_5 is not null and Date_6 is not null and Date_7 is not null and Date_8 is not null 
+),
+  
+
+table7 as ( SELECT _id,projectid,mon.creatorid, u.email as cemail, mon.modifierid, m.email as memail
+from ds_mongo_profileinstance mon
+left join ds_mysql_prod_user u on
+mon.creatorid = u.id
+left join ds_mysql_prod_user m  on
+mon.modifierid = m.id
+where mon.profileId='16619' and mon.active = 't' and mon.securitycontextid is not null
+),
+
+
+table8 as
+( select p.projectid , p._id , memail , row_number() over 
+(partition by projectid
+ order by _id desc) as row
+ , 
+ POSITION('@goodera.com' IN memail ) as p1 from table7 as p
+ 
+ where  p1=0
+ ),
+ 
+ table9 as 
+ ( select * from table8 where row=1),
+ 
+ 
+table3 as
+( select ROW_NUMBER() over (order by p.projectid ) as serial_number ,  p.projectid , p._id , 
+ 
+ven.name as vendor1,nvl2(SUBSTRING(vendor1, 1, POSITION(' (' in vendor1)), SUBSTRING(vendor1, 1, POSITION(' (' in vendor1)), vendor1) as vendor_name, case when vendor_name='' then vendor1 else vendor_name end as vendor,cou.name as country,case when country in ('India', 'Bangladesh', 'Sri Lanka')
+then 'South Asia'
+when country in ('China')
+then 'North Asia'
+when country in ('Guatemala', 'El Salvador', 'Dominican Republic')
+then 'Americas'
+when country in ('Philippines', 'Cambodia',  'Vietnam',  'Indonesia', 'Myanmar')
+then 'South East Asia'
+end as region,DATEPART(YEAR,p.date_enrollment) as year_new,case when p.name_subunit is null or p.name_subunit=' ' then 'N/A' else p.name_subunit end  as unit , esa.name as last_level , case when extract(month from date_enrollment)=1 then (extract(year from date_enrollment)-1) else extract(year from date_enrollment) end as batch , substring(date_enrollment, 0,11) as WCP_Start_Date ,  substring(p.date, 0,11) as module_1, substring(p.date_2, 0,11) as module_2 , substring(p.date_3, 0,11) module_3, substring(p.date_4, 0,11) module_4, substring(p.date_5, 0,11) module_5, substring(p.date_6, 0,11) module_6, substring(p.date_7, 0,11) module_7, substring(p.date_8, 0,11) module_8 , substring(p.date_completion, 0,11) as end_date , memail ,  t4.date, t4.Date_2, t4.Date_3, t4.Date_4, t4.Date_5, t4.Date_6, t4.Date_7, t4.Date_8 , t4.Number_of_Modules_Completed , t2.factory_id , sta.name as wcp_status , t1.factory  ,  case when date_completion is null then 'Ongoing' else 'Completed' end as status , extract( year from date_enrollment) as year_new from profile_16619  as p
+
+left join project_1137 fac 
+on p.projectId = fac.id
+
+left join project_1137 ven 
+on fac.parent = ven.id
+
+left join project_1137 cou 
+on ven.parent = cou.id
+
+left join tagelement_1137 sta 
+on p.status = sta.id
+ 
+left join project_1137 esa 
+on cou.parent = esa.id
+ 
+left join table9 t9 on
+ p.projectid = t9.projectid
+ 
+left join table4 t4 on
+ p.projectid = t4.projectid
+ 
+left join table2 t2 on
+ p.projectid = t2.projectid
+ 
+left join table1 t1 on
+ p.projectid = t1.projectid
+ 
+ where country != 'Test Country' and country != 'GAP Inc.'
+ 
+ )
+ 
+ select * from table3
+ 
+ 
+   
+   /*
+   
+
+table6 as 
+(
+select p.projectid ,  case when date is not null then total_trained end as total_trained_s1 , case when date_2 is not null then total_trained_2 end as total_trained_s2 , case when date_3 is not null then total_trained_3 end as total_trained_s3 ,case when date_4 is not null then total_trained_4 end as total_trained_s4 ,case when date_5 is not null then total_trained_5 end as total_trained_s5 ,case when date_6 is not null then total_trained_6 end as total_trained_s6 ,case when date_7 is not null then total_trained_7 end as total_trained_s7 , case when date_8 is not null then total_trained_8 end as total_trained_s8 , avg(total_trained_s1 + total_trained_s2 + total_trained_s3 + total_trained_s4 + total_trained_s5 + total_trained_s6 + total_trained_s7 +total_trained_s8) as average_value from profile_16619 as p 
+  
+  group by p.projectid ,  date, Date_2, Date_3, Date_4, Date_5, Date_6, Date_7, Date_8 , total_trained , total_trained_2 , total_trained_3 , total_trained_4 , total_trained_5 , total_trained_6 , total_trained_7 , total_trained_8
+ ),
+ 
+ 
+    date, Date_2, Date_3, Date_4, Date_5, Date_6, Date_7, Date_8
+  
+-------------------------------
+ table6 and table 7 for average 
+-------------------------------
+  case when date is not null then total_trained end as total_trained_a1 , case when date_2 is not null then total_trained_2 end as total_trained_s2 , case when date_3 is not null then total_trained_3 end as total_trained_s3 ,case when date_4 is not null then total_trained_4 end as total_trained_s4 ,case when date_5 is not null then total_trained_5 end as total_trained_s5 ,case when date_6 is not null then total_trained_6 end as total_trained_s6 ,case when date_7 is not null then total_trained_7 end as total_trained_s7 , case when date_8 is not null then total_trained_8 end as total_trained_s8
+   */
