@@ -1,7 +1,68 @@
 --mylan_employee_health_WHS_1
+--gapinc_overview_FACILITY SUSTAINABILITY SCORES OVER TIME
+
+with table2 as(select p._id,p.projectId, 0 as rating_2 , decode(p.sustainability_rating,null,0,p.sustainability_rating) as rating_1
+ ,  row_number() over 
+(partition by p.projectid
+ order by p._id desc) as row,to_char(p.date,'DD-MM-YYYY') as current_date
+			   from profile_17526 p		
+
+),
+table6 as 
+(select * from table2 where row=1 
+),
+
+table3 as(select p._id,p.projectId,fac.name as factory,ven.name as vendor1,nvl2(SUBSTRING(vendor1, 1, POSITION(' (' in vendor1)), SUBSTRING(vendor1, 1, POSITION(' (' in vendor1)), vendor1) as vendor_name, case when vendor_name='' then vendor1 else vendor_name end as vendor,cou.name as country,case when country in ('India', 'Bangladesh', 'Sri Lanka')
+then 'South Asia'
+when country in ('China')
+then 'North Asia'
+when country in ('Guatemala', 'El Salvador', 'Dominican Republic')
+then 'Americas'
+when country in ('Philippines', 'Cambodia',  'Vietnam',  'Indonesia', 'Myanmar')
+then 'South East Asia'
+end as region,case when p2.name_subunit is null or p2.name_subunit=' ' then 'N/A' when country='Bangladesh' then p2.name_subunit else 'N/A' end as unit,p2.status,
+		  t6.rating_1,DATEPART('YEAR',p2.date_enrollment) as year_new,
+		  
+		  t6.rating_2,t6.current_date,abs(rating_1-rating_2) as differential
+		  /*,case when (differential >0) then 'down' 
+when (differential < 0)
+		  then 'up'
+when (differential = 0)
+		  then '-'
+end as trend*/
+		  from profile_17526 p
+
+		  
+
+left join profile_16619 p2
+on p.projectId = p2.projectId		  
+		  
+left join project_1137 fac
+on p.projectid = fac.id
+left join project_1137 ven
+on fac.parent = ven.id
+left join project_1137 cou
+on ven.parent = cou.id
 
 
---mylan_employee_health_WHS_1
+
+left join table6 t6 on
+p.projectId = t6.projectId
+
+
+--where (p2.status = 1400365 or p2.status is null) and (cou.name <> 'Test Country' and cou.name <> 'GAP Inc.') 
+		  and p.projectid like '%%' and year_new is not null 
+ 
+ group by p._id,p.projectId,fac.name ,ven.name ,vendor,region,year_new,cou.name ,p2.status,t6.rating_1 ,p.date,t6.rating_2, differential,t6.current_date,p2.name_subunit
+)
+
+select  differential  from table3
+
+
+
+
+
+-/*-mylan_employee_health_WHS_1
 --mylan_employee_health_WHS_map1
 with table1 as (select p.projectId, SUBSTRING(CAST(p.time_period_timerange.start as CHAR(256)),1,4) as time  , case when month_ytd in  ('2','3' , '4')
 then 'Q1'
@@ -47,3 +108,4 @@ on reg.parent = reg_parent.id
 select * , reftag.code from table1 
  left join ds_mongo_reftagelementmetadata reftag
 		 on table1.reg_new = reftag.name 
+		 */
