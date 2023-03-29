@@ -1,10 +1,9 @@
 with table1 as( 
   select p._id, p.projectid, p.year_timerange, cast(d1 as varchar) as d1_update  
 from profile_76755 as p, p.impact_wcp_arr as d1
-),
+)
 
-table2 as(
-  select p1.absenteeism_rate  , p1.labor_disputes , p1.person_days_lost , p1.bc_meetings,
+select p1.absenteeism_rate  , p1.labor_disputes , p1.person_days_lost , p1.bc_meetings,
 
 ((nvl(cast(p1.last_day_workers as FLOAT),0) + nvl(cast(p1.day_1_workers as FLOAT),0)) / 2) as d2,
 
@@ -28,20 +27,24 @@ case start_month
 	else 'December'
 end as month,
   
-(p1.code || ',' || start_year) as b
+case month
+	when 'January' then 'Q4'
+	when 'February' then 'Q1'
+	when 'March' then 'Q1'
+	when 'April' then 'Q1'
+	when 'May' then 'Q2'
+	when 'June' then 'Q2'
+	when 'July' then 'Q2'
+	when 'August' then 'Q3'
+	when 'September' then 'Q3'
+	when 'October' then 'Q3'
+	when 'November' then 'Q4'
+	else 'Q4'
+end as quarter,
+
+(quarter || ',' || start_year) as quarter_new
 
 from table1 p
 
 left join profile_76928 p1 on p1._id = p.d1_update
-where start_year is not null)
-
-select b,
-
-case
-	when t2.month = 'February' then 'Q4'
-	else 'Q1'
-end as quarter,
-
-(cast(quarter as VARCHAR) || ',' || t2.start_year) as a
-
-from table2 t2 where quarter is not null
+where start_year is not null
