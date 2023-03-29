@@ -1,0 +1,33 @@
+with temp as(
+Select pc,projectcode, fy_timerange, months, project_manager, total_count t_count, x_axis
+from hdfc_hrd_overview_ngo_repo_toal_activities_flow_f1
+
+union all
+
+Select pc,projectcode, fy_timerange, months, project_manager, subcat_not_null t_count, x_axis
+from hdfc_hrd_overview_ngo_repo_activities_by_NGO_flow_f6
+
+union all
+
+Select pc,projectcode, fy_timerange, months, level1 project_manager, deviations t_count, x_axis
+from hdfc_overview_ngo_partner_deviation_flow_f2
+
+union all
+
+Select pc,projectcode, fy_timerange, months, project_manager, pending_second t_count, x_axis
+from hdfc_hrd_overview_ngo_task_status_2nd_pending_f3
+
+union all
+
+Select pc,projectcode, fy_timerange, months, project_manager, approved_second t_count, x_axis
+from hdfc_hrd_overview_ngo_task_status_2nd_pending_f3
+  
+union all
+  
+Select pc,projectcode, fy_timerange, months, project_manager, approved_second t_count, x_axis
+ from hdfc_hrd_overview_ngo_approved_pending_2nd_f5
+  )
+  
+Select pc,split_part(projectcode,'.',1) as projectcode, fy_timerange, months as month, project_manager, t_count, x_axis
+from temp
+group by projectcode, fy_timerange, months, project_manager, t_count, x_axis,pc
