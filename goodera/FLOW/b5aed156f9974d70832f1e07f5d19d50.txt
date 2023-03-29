@@ -1,0 +1,92 @@
+drop table if exists hdfc_overview_ngo_partner_deviation_flow_f2;
+create table hdfc_overview_ngo_partner_deviation_flow_f2 as
+with sub1 as(
+  select p2.name as projectid, p1._id as id, t1.name as focus_area, t2.name as fy, t3.name as month, p1.subcat_output, p1.flag_deviation_delay, 
+split_part(p2.name, '|', 1) as projectcode,
+  
+case
+	when p2.parent = 18943 then split_part(p2.name, '|', 2)
+	else split_part(p2.name, '|', 4)
+end as project_name,
+  
+case
+	when p2.parent = 18943 then split_part(p2.name, '|', 1)
+	else split_part(p3.name, '|', 1)
+end as parentcode
+
+from profile_54963 p1
+
+left join project_4188 p2 on p2.id = p1.projectid
+left join project_4188 p3 on p3.id = p2.parent
+
+left join tagelement_4188 t1 on t1.id = p1.focus_area
+left join tagelement_4188 t2 on t2.id = p1.fy
+left join tagelement_4188 t3 on t3.id = p1.month),
+
+sub2 as(
+  select s1.id, s1.projectcode,s1.projectid, s1.fy, s1.month, s1.project_name, s1.parentcode, s1.focus_area, s1.subcat_output, s1.flag_deviation_delay, t1.name as fy_27396, t2.name as project_manager_27396, t3.name as fy_27420, t4.name as project_manager_27420,
+  
+case
+  	when t3.name is null or (split_part(s1.fy, '-', 1) < split_part(t3.name, '-', 1))
+  		 then t1.name
+  	else t3.name
+end as fy_27420_new,
+ 
+nvl(t4.name, t2.name) as project_manager_27420_new
+  
+from sub1 s1
+  
+left join profile_27396 p4 on p4.name = s1.parentcode
+left join profile_27420 p5 on p5.project_code = p4._id
+
+left join tagelement_4188 t1 on t1.id = p4.fy
+left join tagelement_4188 t2 on t2.id = p4.project_manager
+
+left join tagelement_4188 t3 on t3.id = p5.fy
+left join tagelement_4188 t4 on t4.id = p5.project_manager),
+
+sub3 as(
+  select s2.id, s2.projectcode, s2.projectid,s2.fy, s2.month, s2.project_name, s2.focus_area, s2.subcat_output, s2.flag_deviation_delay, s2.fy_27396, s2.project_manager_27396, s2.fy_27420_new, s2.project_manager_27420_new, s2.fy_27420,
+  
+case
+  	when (split_part(s2.fy_27420_new, '-', 1) <= split_part(s2.fy, '-', 1)) or 
+  		 (split_part(s2.fy_27396, '-', 1) <= split_part(s2.fy, '-', 1)) then 1
+    else 0
+end as flag,
+
+row_number() over(partition by s2.id order by split_part(s2.fy_27420_new, '-', 1) desc) as row
+  
+from sub2 s2),
+
+sub4 as(
+  select s3.id, s3.projectcode, s3.fy, s3.month, s3.project_name, s3.focus_area, s3.subcat_output, s3.flag_deviation_delay, s3.fy_27396, s3.project_manager_27396, s3.fy_27420_new, s3.project_manager_27420_new,s3.projectid
+
+from sub3 s3
+
+where s3.row = 1 and s3.flag = 1),
+
+sub5 as(
+  select s4.projectcode, s4.fy, s4.fy_27420_new, s4.fy_27396, s4.project_name, s4.month, s4.project_manager_27420_new, s4.project_manager_27396, s4.focus_area, s4.subcat_output, s4.flag_deviation_delay,s4.projectid,
+  
+case
+  when (split_part(s4.fy_27420_new, '-', 1) <= split_part(s4.fy, '-', 1)) 
+  		then s4.project_manager_27420_new
+  else s4.project_manager_27396
+end as project_manager,
+  
+case
+  when s4.subcat_output is not null and s4.flag_deviation_delay = 1 then 1
+  else 0
+end as deviations
+  
+from sub4 s4),
+
+sub6 as(
+  select s5.fy fy_timerange, s5.project_manager as level1, projectcode, s5.month as months, 
+'No. of Deviations' as x_axis, sum(s5.deviations) as deviations,s5.projectid as pc
+  
+from sub5 s5
+
+group by s5.fy, s5.project_manager, s5.month, projectcode,s5.projectid)
+
+select * from sub6
