@@ -5,7 +5,7 @@ with table1 as
 
 table2 as
 ( 
-  select p.*, p1.rights_based as right_based , p1.interest_based , cast(year_timerange.start as date) as fy_1 , extract(year from fy_1) as fy_2 , extract(month from fy_1) as month1 , 
+  select p.projectid , p._id , year_timerange , d1_update, p1.rights_based as right_based , p1.interest_based , cast(year_timerange.start as date) as fy_1 , extract(year from fy_1) as fy_2 , extract(month from fy_1) as month1 , 
 case when month1 = 1 then 'January' 
      when month1 = 2 then 'February'
 	 when month1 = 3 then 'March'
@@ -26,7 +26,7 @@ end as month
 when quarter_check = '2nd(May-Jul)' then 'Q2'
 when quarter_check =  '3rd(Aug-Oct)' then 'Q3'
 when quarter_check = '4th(Nov-Jan)' then 'Q4' 
-else 'NA' end as quarter_1 , cast(fy_2 as varchar) as year_new , (quarter_1+','+year_new) as quarter_fy ,
+else 'NA' end as quarter , cast(fy_2 as varchar) as year_new , (quarter+','+year_new) as quarter_fy ,
   
   
 cou.name as country , 
@@ -57,8 +57,8 @@ on ven.parent = cou.id
 left join profile_16619 p2
   on p.projectid = p2.projectid
   
-where ((fy_2=2021 and quarter_1='Q4') or fy_2>2021) and (p2.status=1400365 or p2.status is null)
+where ((fy_2=2021 and quarter='Q4') or fy_2>2021)
 )
 
 
-select * from table2
+select * from table2 where status=1400365 or status is null
