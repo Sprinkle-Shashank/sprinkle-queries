@@ -1,1 +1,64 @@
-select * from GapInc_CB_Form
+
+with table1 as
+( select p.projectid , p._id , year_timerange , cast(d1 as varchar) as d1_update  from profile_76755 as p, p.grievances_wcp_arr as d1
+),
+
+table2 as
+( 
+  select p.projectid , p._id , year_timerange , d1_update, p1.rights_based as right_based , p1.interest_based , cast(year_timerange.start as date) as fy_1 , extract(year from fy_1) as fy_2 , extract(month from fy_1) as month1 , 
+case when month1 = 1 then 'January' 
+     when month1 = 2 then 'February'
+	 when month1 = 3 then 'March'
+	 when month1 = 4 then 'April'
+	 when month1 = 5 then 'May'
+	 when month1 = 6 then 'June'
+	 when month1 = 7 then 'July'
+	 when month1 = 8 then 'August'
+	 when month1 = 9 then 'September'
+	 when month1 = 10 then 'October'
+	 when month1 = 11 then 'November'
+	 when month1 = 12 then 'December'
+end as month 
+,case when month in ('February','March','April') then '1st(Feb-Apr)'
+                  when month in ('May','June','July') then  '2nd(May-Jul)'
+				  when month in ('August','September','October') then '3rd(Aug-Oct)'
+				  when month in ('November','December','January') then '4th(Nov-Jan)' end as quarter_check, Case when quarter_check = '1st(Feb-Apr)'then 'Q1'
+when quarter_check = '2nd(May-Jul)' then 'Q2'
+when quarter_check =  '3rd(Aug-Oct)' then 'Q3'
+when quarter_check = '4th(Nov-Jan)' then 'Q4' 
+else 'NA' end as quarter , cast(fy_2 as varchar) as year_new , (quarter+','+year_new) as quarter_fy ,
+  
+  
+cou.name as country , 
+nvl2(SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)),ven.name) as vendor_name, case when vendor_name='' then ven.name else vendor_name end as vendor, fac.name as factory ,
+case when country in ('India', 'Bangladesh', 'Sri Lanka')
+then 'South Asia'
+when country in ('China')
+then 'North Asia'
+when country in ('Guatemala', 'El Salvador', 'Dominican Republic')
+then 'Americas'
+when country in ('Philippines', 'Cambodia',  'Vietnam',  'Indonesia', 'Myanmar')
+then 'South East Asia'
+end as region ,  
+case when p2.name_subunit is null or p2.name_subunit=' ' then 'N/A' when country='Bangladesh' then p2.name_subunit else 'N/A' end as unit, (right_based + interest_based) as Total_raised , p2.status from table1 as p
+
+left join profile_76927 p1
+on p.d1_update = p1._id
+  
+left join project_1137 fac
+on p.projectid = fac.id
+  
+left join project_1137 ven
+on fac.parent = ven.id
+  
+left join project_1137 cou
+on ven.parent = cou.id
+ 
+left join profile_16619 p2
+  on p.projectid = p2.projectid
+  
+where ((fy_2=2021 and quarter='Q4') or fy_2>2021)
+)
+
+
+select * from table2 where status=1400365 or status is null
