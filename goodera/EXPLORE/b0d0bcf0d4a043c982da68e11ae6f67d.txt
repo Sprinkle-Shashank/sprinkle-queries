@@ -362,5 +362,45 @@ else quarter4
 	end as Quart4
 from u2
 group by ProjectCode,project_manager,region,start_date,end_date,fy_timerange,quarter1,quarter2,quarter3,quarter4,Q1,Q2,Q3,Q4
+),
+pp1 as (
+Select t.name as pm,sd.approver,sd.name
+from profile_27424 sd
+left join tagElement_4188 t
+on t.id=sd.pm_name
+),
+pp2 as(
+Select ProjectCode,project_manager,region,start_date,end_date,fy_timerange,Quart1,Quart2,Quart3,pp1.approver,
+case
+	when Quart1 like 'https%' then 'Submitted'
+ 	when Quart1 like 'Pending' then 'Pending'
+	when Quart1 like 'NA' then 'NA'
+	end as submitted1,
+case
+	when Quart2 like 'https%' then 'Submitted'
+ 	when Quart2 like 'Pending' then 'Pending'
+	when Quart2 like 'NA' then 'NA'
+	end as submitted2,
+case
+	when Quart3 like 'https%' then 'Submitted'
+ 	when Quart3 like 'Pending' then 'Pending'
+	when Quart3 like 'NA' then 'NA'
+	end as submitted3,
+case
+	when Quart4 like 'https%' then 'Submitted'
+ 	when Quart4 like 'Pending' then 'Pending'
+	when Quart4 like 'NA' then 'NA'
+	end as submitted4
+
+
+from u3
+left join pp1
+on pp1.pm=pp2.project_manager),
+pp3 as (
+Select ProjectCode,project_manager,region,start_date,end_date,fy_timerange,Quart1,Quart2,Quart3,pp1.pm as level2,submitted1,submitted2,submitted3,submitted4
+from pp2
+left join pp1
+on pp1.name=pp2.approver
+
 )
-Select * from u3
+Select * from pp3
