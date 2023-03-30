@@ -1,0 +1,37 @@
+with t1 as (
+Select proj.name as project_name ,p.fy_timerange,act.name as category,act1.name as subcategory,p.plan_start,p.plan_end,p.act_start,p.act_end,milestone_date
+from profile_83834 p
+
+left join ds_mysql_prod_project as pro
+on p.projectid = pro.id
+  
+LEFT JOIN ds_mysql_prod_tagelement act
+on p.category = act.id
+
+LEFT JOIN ds_mysql_prod_tagelement act1
+on p.subcategory = act1.id
+
+LEFT JOIN ds_mysql_prod_project AS proj
+on p.projectid = proj.id
+
+  ),
+  t2 as (
+select project_name ,fy_timerange,category,subcategory,trunc(milestone_date) as milestone_date
+	,datediff(day,act_start,act_end) as act_dur,
+	datediff(day,plan_start,plan_end) as plan_dur,
+	trunc(act_start) as ad,trunc(plan_start) as pd,
+	trunc(act_end) as ae,trunc(plan_end) as pe
+	
+	
+	from t1
+	     ),
+		 t3 as (
+		   select *, 
+	case when ad>pd and ae=pe then 'We started late but achieved the task on time'
+	 when ad>pd and ae>pe then 'We started late and running late'
+	 when ad=pd and ae=pe then 'We achieved the task on time'   
+		   else 'Started early and We achieved the task on time'
+	end as resp
+		   from t2)
+  
+select * from t3 
