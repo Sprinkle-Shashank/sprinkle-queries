@@ -36,21 +36,17 @@ t.id=c.focus_area
 where t.name='Holistic Rural Development')
 
 ,Base2 as
-(select p.fy_timerange,p.Project_Manager,p.ProjectCode,l.censuscode,l.pc
+(select p.fy_timerange,p.Project_Manager,p.ProjectCode,l.censuscode,l.village
 from Base1 p
 left join lookup l
 on p.CODE=l.CODE),
-Base3 as(select l.village as Village, p.fy_timerange,p.Project_Manager,p.ProjectCode as projectcode,
-CASE
-        WHEN p.pc LIKE '%.%' THEN split_part(p.pc,'|',2)
-        ELSE concat(concat('Cluster','-'),p.projectcode)
-    END AS village,p.pc
+Base3 as(select l.village as Village, p.fy_timerange,p.Project_Manager,p.ProjectCode as projectcode
 from Base2 p 
 left join profile_27489 l 
 on p.censuscode=l.name
-group by fy_timerange,Project_Manager,ProjectCode,village,p.pc) 
+group by fy_timerange,Project_Manager,ProjectCode,village) 
 
-select * from lookup 
+select * from Base2 
 
 
 /*with sub1 as(select a.fy_timerange, p3.name as projectId,p1.name as projectname,p2.name as partner, a.about, a.caption, a.photo
