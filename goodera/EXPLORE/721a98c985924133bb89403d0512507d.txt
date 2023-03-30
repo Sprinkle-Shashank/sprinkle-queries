@@ -1,0 +1,37 @@
+with temp as ( select 'Active Participation' as c
+			   Union all
+			   select 'Passive Participation' as c
+			   Union all
+			   select 'Highly Engaged Participation' as c
+			   Union all
+			   select 'Effective Engagement' as c
+			   Union all
+			   select 'Moderately Effective Engagement' as c
+			   Union all 
+			   select 'Ineffective Engagement' as c
+			   Union all
+			   select 'Effective Understanding' as c
+			   Union all
+			   select 'Moderately Effective Understanding' as c
+			   Union all
+			   select 'Ineffective Understanding' as c
+)
+
+select pro.name as projectid,fy_timerange,
+sum (case c when 'Active Participation' then p.active_participation
+       when 'Passive Participation' then p.passive_participation
+	   when 'Highly Engaged Participation' then p.highly_engaged_participation
+	   when 'Effective Engagement' then p.effective_engagement
+	   when 'Moderately Effective Engagement' then p.mod_effective_engagement
+	   when 'Ineffective Engagement' then p.ineffective_engagement
+	   when 'Effective Understanding' then p.effective_understanding
+	   when 'Moderately Effective Understanding' then p.mod_effective_understanding
+	   when 'Ineffective Understanding' then p.ineffective_understanding end ) as val, temp.c as dim
+	 
+from profile_55443 p
+
+cross join temp
+ 
+  left join ds_mysql_prod_project as pro
+  on p.projectid = pro.id
+group by pro.name,fy_timerange,temp.c
