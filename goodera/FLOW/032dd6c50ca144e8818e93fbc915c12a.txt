@@ -2,7 +2,11 @@ drop table if exists HDFC_HRD_Villlage_filter_flow_vv;
 create table HDFC_HRD_Villlage_filter_flow_vv as
 --HDFC_HRD_Villlage_filter
 with Lookup as
-(select cast((split_part(split_part(prod.name,'|',1),'.',1)) as varchar) as ProjectCode,split_part(prod.name,'|',3) as censuscode,f.name as fy_timerange,CONCAT(ProjectCode,fy_timerange) as CODE,prod.name as pc
+(select cast((split_part(split_part(prod.name,'|',1),'.',1)) as varchar) as ProjectCode,split_part(prod.name,'|',3) as censuscode,f.name as fy_timerange,CONCAT(ProjectCode,fy_timerange) as CODE,prod.name as pc,
+CASE
+        WHEN prod.name LIKE '%.%' THEN split_part(prod.name,'|',2)
+        ELSE concat(concat('Cluster','-'),projectcode)
+    END AS village1
 from profile_54963 p 
 left join ds_mysql_prod_project prod on
 prod.id=p.projectid
@@ -32,18 +36,15 @@ t.id=c.focus_area
 where t.name='Holistic Rural Development')
 
 ,Base2 as
-(select p.fy_timerange,p.Project_Manager,p.ProjectCode,l.censuscode,l.pc
+(select p.fy_timerange,p.Project_Manager,p.ProjectCode,l.censuscode,l.village1
 from Base1 p
 left join lookup l
 on p.CODE=l.CODE),
-Base3 as(select p.fy_timerange,p.Project_Manager,p.ProjectCode as projectcode,
-CASE
-        WHEN p.pc LIKE '%.%' THEN split_part(p.pc,'|',2)
-        ELSE concat(concat('Cluster','-'),p.projectcode)
-    END AS village,p.pc
+
+Base3 as(select p.village1 as Village, p.fy_timerange,p.Project_Manager,p.ProjectCode as projectcode
 from Base2 p 
 left join profile_27489 l 
 on p.censuscode=l.name
-group by fy_timerange,Project_Manager,ProjectCode,village,p.pc) 
+group by fy_timerange,Project_Manager,ProjectCode,p.village1) 
 
 select * from Base3
