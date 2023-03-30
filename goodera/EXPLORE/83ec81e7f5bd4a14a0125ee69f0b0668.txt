@@ -12,14 +12,25 @@ where keyword = 'products_in_pipeline_new'),
 Left join ds_mysql_prod_tagelement time
 on sus.financialperiod = time.id
 
-where keyword = 'product_pending_approval_new')
+where keyword = 'product_pending_approval_new'),
 
 
+inprogress as (
+select xprojectid,time_period,p.time, coun.region,coun.prod_count as total From x as p, unpivot p.datatablebase as coun ),
 
-select xprojectid,time_period,p.time,reg.name as region,coun.prod_count as total From x as p, unpivot p.datatablebase as coun
+pending_for_approval as (select xprojectid,time_period,p.time,coun.region,coun.count From y as p, unpivot p.datatablebase as coun)
 
-Left join ds_mysql_prod_tagelement reg
-coun.region = reg.id 
+select xprojectid,time_period,reg.nam as region,prod_count as total from inprogress inp
+
+Left join ds_mysql_prod_tagelement reg on
+inp.region = reg.id 
+
+Union all 
+
+select xprojectid,time_period,reg2.nam as region,prod_count as total pending_for_approval pending
+
+Left join ds_mysql_prod_tagelement reg2
+pending.region = reg2.id 
 /*union all
 
 select xprojectid,time_period,p.time,reg2.name as region,coun.count From y as p, unpivot p.datatablebase as coun
