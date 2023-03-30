@@ -1,4 +1,5 @@
-Select P.name AS project,p1.fy_timerange,t1.name as focus,t2.name as entity,/*t3.name as year*/t4.name as project_name,p1.q1,p1.q2,p1.q3,sum(q1)+sum(q2)+sum(q3) as AprtoDec,p1.q4 as JantoMarch
+Select P.name AS project,p1.fy_timerange,t1.name as focus,t2.name as entity,t4.name as project_name,
+sum(q2)+sum(q3)+sum(q4) as current,sum(p1.q1) as previous
 from profile_61799 p1
 LEFT JOIN ds_mysql_prod_project AS P
 ON p1.projectid = P.id
@@ -11,5 +12,22 @@ on t3.id = p1.year
 left join ds_mysql_prod_tagelement t4
 on t4.id = p1.project_name
 where entity is not null
---group by 1,2,3,4,5,6,7,8,9,11
-group by 1,2,3,4,5,6,7,8,10
+group by 1,2,3,4,5
+
+
+/*
+Base profile 61799
+where project_name not null or empty
+sort by created in descending order
+q1 as previous
+q2+q3+q4 as current
+group by project_name, year
+group by project and take first(focus) as focus, sum(current) as current, sum(previous) as previous
+left join tagelement (project to tagelementId) as project
+left join tagelement (focus to tagelementId) as focus
+focus.name as focus
+project.name as project
+
+
+Here current is apr-dec and previous is jan-march
+*/
