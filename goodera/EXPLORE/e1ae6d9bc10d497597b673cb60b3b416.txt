@@ -3,7 +3,10 @@
 
 --HDFC_HRD_Villlage_filter
 with Lookup as
-(select cast((split_part(split_part(prod.name,'|',1),'.',1)) as varchar) as ProjectCode,split_part(prod.name,'|',3) as censuscode,f.name as fy_timerange,CONCAT(ProjectCode,fy_timerange) as CODE,prod.name as pc
+(select cast((split_part(split_part(prod.name,'|',1),'.',1)) as varchar) as ProjectCode,split_part(prod.name,'|',3) as censuscode,f.name as fy_timerange,CONCAT(ProjectCode,fy_timerange) as CODE,prod.name as pc,CASE
+        WHEN p.pc LIKE '%.%' THEN split_part(p.pc,'|',2)
+        ELSE concat(concat('Cluster','-'),p.projectcode)
+    END AS village
 from profile_54963 p 
 left join ds_mysql_prod_project prod on
 prod.id=p.projectid
