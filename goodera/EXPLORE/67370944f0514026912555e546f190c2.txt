@@ -1,4 +1,4 @@
-with tab1 as (select P.name as projectname,sum(p1.allocation),p1.fy_timerange,t1.name as entity,t2.name as focus
+select P.name as projectname,sum(p1.allocation),p1.fy_timerange,t1.name as entity,t2.name as focus
 from profile_61799 p1
 left join ds_mysql_prod_tagelement t1
 on t1.id = p1.entity
@@ -7,9 +7,9 @@ on t2.id = p1.focus
 LEFT JOIN ds_mysql_prod_project AS P
 ON p1.projectid = P.id
 where entity is not null
-group by 1,3,4,5),
+group by 1,3,4,5
 
-tab2 as 
+/*tab2 as 
 (Select projectname,sum,fy_timerange,entity,focus,
 		 LAG(sum,1)
 		 OVER (PARTITION BY focus ORDER BY [fy_timerange] AS V1,
@@ -17,16 +17,29 @@ tab2 as
 		 OVER (PARTITION NY indicator ORDER BY [fy_timerange]) AS V2
 			 from tab1)
 		 Select projectname,sum,fy_timerange,entity,focus,V1,V2
-		 from tab2
+		 from tab2*/
 			 
 	
 	
 	
-	/*tab3 as (Select indicator, [Year1], value,fy_timerange,
-LAG (value,1)
-OVER (PARTITION BY indicator ORDER BY [Year1]) AS PrevYearRevenue1, 
-LAG (year1,1)
-OVER (PARTITION BY indicator ORDER BY [Year1]) AS PrevYear 
-from tab2
-ORDER BY indicator, [Year1]
-),*/
+	/*2 queries 
+1st Query:
+Base profile 61799
+where focus is not null
+if fy_timerange.start > 3 then fy_timerange.start else fy_timerange.start-1 as year
+group by name and take first(year) as year, first(q1), first(q2),first(q3),first(q4),first(focus)
+group by focus,year and take sum(q1) as q1,sum(q2),sum(q3),sum(q4)
+left join tagelement (focus to tagelementId) as focus,
+focus.name as focus
+sort by year in ascending order
+
+2nd Query
+Base profile 61799
+where type not null or empty
+if fy_timerange.start > 3 then fy_timerange.start else fy_timerange.start-1 as year
+group by name and take first(year) as year, first(q1), first(q2),first(q3),first(q4),first(type)
+group by type,year and take sum(q1) as q1,sum(q2),sum(q3),sum(q4)
+left join tagelement (type to tagelementId) as type,
+type.name as type
+sort by year in ascending order
+ */
