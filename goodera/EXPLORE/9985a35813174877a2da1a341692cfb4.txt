@@ -1,326 +1,63 @@
---GapInc_wcp_data_monitor_surveys
+--GapInc_data_monitor_button6
 
-with table1 as
-(select p.projectid , p._id ,  /*fac.name as factory ,*/ sta.name as status_update , p2.factory_id , cou.name as country from profile_16619 as p
- 
- left join project_1137 fac 
-on p.projectId = fac.id
- 
-left join profile_4722 p2 on 
-p.projectid = p2.projectid
- 
-left join tagelement_1137 sta 
-on p.status = sta.id
- 
-left join project_1137 ven 
-on fac.parent = ven.id
+with table4 as(
+  select p.projectid,ROW_NUMBER() over (partition by p.projectid order by p._id desc),facility_score,female_workers,primary_category from profile_54267 p
+  ),
+table5 as(Select t4.*, cast(category as int) from table4 t4, t4.primary_category category
+where ROW_NUMBER = 1),
+table3 as
+( select p.projectid,type_program,sum(num_females) as total_women,count(case when p.end_date_2 is not null then 1
+ end) as completed ,count(case when p.end_date_2 isnull then 1 end) as ongoing/*t5.facility_score,t5.female_workers,cat.name as category,pr_46.name_rp as name_rp,t6.vpid_and_cpid,t2.status,t2.st_year*/ from profile_4227 p 
 
-left join project_1137 cou 
-on ven.parent = cou.id
-
- where status_update = 'Completed' or status_update is null 
- and cou.name != 'Test Country' and cou.name !='GAP Inc.' 
--- where status <> 437658 and status <> 437659
+/*where t2.community_partner is not null and t2.factory is not null and t2.name_country is not null and t2.location_id is not null and t6.vpid_and_cpid is not null
+group by p.projectid,type_program,end_date_2,start_year,t2.projectId,t2.factory,t2.community_partner,t2.name_country,
+ t2.location_id, t5.facility_score,t5.female_workers,cat.name,t2.status,t2.st_year,pr_46.name_rp,t6.vpid_and_cpid )*/
+group by 1,2
 ),
 
+table2 as (select p.projectid,p.name_factory,t3.type_program,sum(t3.total_women) as total_woman,sum(t3.completed) as completed,sum(t3.ongoing) as ongoing,t5.facility_score,t5.female_workers,a.name as primary_category,name_vendor_filter,name_country,name_vendor,p2.sourcing_yn as sourcing1,case when p.name_rp isnull then 'NA' else p.name_rp end as name_rp,p5.sourcing_yn sourcing2,
+cast(p2.factory_vpid_1 as varchar) vpid_1_id ,cast(p2.factory_vpid_2 as varchar) as vpid_2_id,p3.cp_id,case when p3.pace_status = 182398 then p3.cp_id else (case when p2.sourcing_yn =57472 then vpid_1_id 
+    else vpid_2_id end) end as factory_vpid,
+case when p3.pace_status = 182398 then p4.cp_id else (case when p5.sourcing_yn =57472 then cast(p5.vpid_1 as varchar)
+    else cast(p5.vpid_2 as varchar) end) end as vendor_vpid,
+ case when d.name isnull then e.name else d.name end as status,case when cast(b.name as int) isnull then cast(c.name as int) else cast(b.name as int) end as st_year from profile_54646 p
 
-table11 as 
-( select p.projectid , p._id , factory_id  from profile_4722 as p ), 
+left join profile_52713 p2  on
+p.projectid = p2.projectid 
 
-table5 as 
-(
-select p.projectid , substring(createddate,1,10) as createddate_update_1 , cast(createddate_update_1 as date) as create_1 from profile_18299 as p ),
+left join profile_4948 p3 on
+p.projectid = p3.projectid
+		   
+left join profile_5997 p4
+on p.projectid = p4.projectid
 
+left join profile_52162 p5
+on p.projectid = p5.projectid		   
+		   
+left join table3 t3
+on t3.projectid = p.projectid
 
-table6 as 
-(
-select p.projectid , p._id , substring(createddate,1,10) as createddate_update_2 ,  t5.create_1 , cast(createddate_update_2 as date) as create_2 , datediff(day,create_1, current_date) as f1 ,  datediff(day, create_2 , current_date) as f2 , case when f1>f2 then t5.create_1 else create_2 end as Baseline , row_number() over (partition by p.projectid order by p._id) as row from profile_18224 as p
+left join table5 t5
+on t5.projectid = p.projectid
 
-left join table5 t5 on 
-p.projectid = t5.projectid 
-),
+left join tagelement_1137 a
+on a.id = t5.category
 
+left join tagelement_1137 b
+on b.id = p2.pace_start_year
+		   
+left join tagelement_1137 c
+on c.id = p3.pace_start_yr
 
-table7 as
-(select p.projectid , p._id , Baseline from table6 as p where row=1),
+left join tagelement_1137 d
+on d.id = p2.pace_status_2
 
-table15 as 
-(
-select p.projectid , substring(createddate,1,10) as createddate_update_1 , cast(createddate_update_1 as date) as create_1 from profile_20703 as p ),
-
-table16 as 
-(
-select p.projectid , p._id , substring(createddate,1,10) as createddate_update_2 ,  t5.create_1 , cast(createddate_update_2 as date) as create_2 , datediff(day,create_1, current_date) as f1 ,  datediff(day, create_2 , current_date) as f2 , case when f1>f2 then t5.create_1 else create_2 end as Endline , row_number() over (partition by p.projectid order by p._id) as row from profile_20704 as p
-
-left join table15 t5 on 
-p.projectid = t5.projectid 
-),
-
-table17 as
-(select p.projectid , p._id , Endline from table16 as p where row=1),
-
-
-table9 as 
-( select p.projectid , p._id , fac.name as factory , ven.name as vendor , cou.name as country , p.name_subunit as unit , case when p.name_subunit is not null then count(p.projectid) else count(p2.projectid) end as Baseline_BC_Respondents from profile_16619 as p 
- 
-  left join profile_18224 p2 on 
-  p.projectid = p2.projectid
- 
-left join project_1137 fac 
-on p.projectId = fac.id
-
-left join project_1137 ven 
-on fac.parent = ven.id
-
-left join project_1137 cou 
-on ven.parent = cou.id
- 
- where cou.name != 'Test Country' and cou.name !='GAP Inc.'
-
- group by  p.projectid , p.name_subunit , p2.projectid, fac.name , ven.name , cou.name , p._id
-),
-
-
-table10 as 
-( select p.projectid , p._id , fac.name as factory , ven.name as vendor , cou.name as country , p.name_subunit , case when p.name_subunit is not null then count(p.projectid) else count(p2.projectid) end as Baseline_Non_BC_Respondents from profile_16619 as p 
- 
-  left join profile_18299 p2 on 
-  p.projectid = p2.projectid
- 
-left join project_1137 fac 
-on p.projectId = fac.id
-
-left join project_1137 ven 
-on fac.parent = ven.id
-
-left join project_1137 cou 
-on ven.parent = cou.id
-
- where cou.name != 'Test Country' and cou.name !='GAP Inc.'
- 
- group by  p.projectid , p.name_subunit , p2.projectid, fac.name , ven.name , cou.name , p._id
-),
-
-
-table19 as 
-( select p.projectid , p._id , fac.name as factory , ven.name as vendor , cou.name as country , p.name_subunit , case when p.name_subunit is not null then count(p.projectid) else count(p2.projectid) end as Endline_BC_Respondents from profile_16619 as p 
- 
-  left join profile_20703 p2 on 
-  p.projectid = p2.projectid
- 
-left join project_1137 fac 
-on p.projectId = fac.id
-
-left join project_1137 ven 
-on fac.parent = ven.id
-
-left join project_1137 cou 
-on ven.parent = cou.id
- 
- where cou.name != 'Test Country' and cou.name !='GAP Inc.'
-
- group by  p.projectid , p.name_subunit , p2.projectid, fac.name , ven.name , cou.name , p._id
-),
-
-
-table100 as 
-( select p.projectid , p._id , fac.name as factory , ven.name as vendor , cou.name as country , p.name_subunit , case when p.name_subunit is not null then count(p.projectid) else count(p2.projectid) end as Endline_Non_BC_Respondents from profile_16619 as p 
- 
-  left join profile_20704 p2 on 
-  p.projectid = p2.projectid
- 
-left join project_1137 fac 
-on p.projectId = fac.id
-
-left join project_1137 ven 
-on fac.parent = ven.id
-
-left join project_1137 cou 
-on ven.parent = cou.id
-
- where cou.name != 'Test Country' and cou.name !='GAP Inc.'
- 
- group by  p.projectid , p.name_subunit , p2.projectid, fac.name , ven.name , cou.name , p._id
-),
-
-
-
----- email gathering ---
-
- -- profile 18224
-table_a1 as ( SELECT _id,projectid, mon.modifierid, m.email as memail
-				
-from ds_mongo_profileinstance mon
-left join ds_mysql_prod_user u on
-mon.creatorid = u.id
-left join ds_mysql_prod_user m  on
-mon.modifierid = m.id
-where mon.profileId='18224' and mon.active = 't' and mon.securitycontextid is not null
-),
-
-
-table_a2 as
-( select p.projectid , p._id , memail , row_number() over 
-(partition by projectid
- order by _id desc) as row
- , POSITION('@gap.com' IN memail ) as p0 , POSITION('gaptable1@gmail.com' IN memail ) as p1 ,  POSITION('gaptable2@gmail.com' IN memail ) as p2 , POSITION('gaptable3@gmail.com' IN memail ) as p3 , POSITION('gaptable4@gmail.com' IN memail ) as p4
- from table_a1 as p
- 
- where p0=0 and p1=0 and p2=0 and p3=0 and p4=0
- ),
- 
- table_a3 as 
- ( select p.projectid , p._id , memail from table_a2  p where row=1),
- 
- 
- -- profile 18299
- table_a11 as ( SELECT _id,projectid, mon.modifierid, m.email as memail			
-from ds_mongo_profileinstance mon
-left join ds_mysql_prod_user u on
-mon.creatorid = u.id
-left join ds_mysql_prod_user m  on
-mon.modifierid = m.id
-where mon.profileId='18299' and mon.active = 't' and mon.securitycontextid is not null
-),
-
-
-table_a12 as
-( select p.projectid , p._id , memail , row_number() over 
-(partition by projectid
- order by _id desc) as row
-, POSITION('@gap.com' IN memail ) as p0 , POSITION('gaptable1@gmail.com' IN memail ) as p1 ,  POSITION('gaptable2@gmail.com' IN memail ) as p2 , POSITION('gaptable3@gmail.com' IN memail ) as p3 , POSITION('gaptable4@gmail.com' IN memail ) as p4
- from table_a11 as p
- 
-where p0=0 and p1=0 and p2=0 and p3=0 and p4=0
- ),
- 
- table_a13 as 
- ( select p.projectid , p._id , memail from table_a12 p where row=1),
- 
- 
-  -- profile 20703
- table_a111 as ( SELECT _id,projectid, mon.modifierid, m.email as memail
-from ds_mongo_profileinstance mon
-left join ds_mysql_prod_user u on
-mon.creatorid = u.id
-left join ds_mysql_prod_user m  on
-mon.modifierid = m.id
-where mon.profileId='20703' and mon.active = 't' and mon.securitycontextid is not null
-),
-
-
-table_a112 as
-( select p.projectid , p._id , memail , row_number() over 
-(partition by projectid
- order by _id desc) as row
-, POSITION('@gap.com' IN memail ) as p0 , POSITION('gaptable1@gmail.com' IN memail ) as p1 ,  POSITION('gaptable2@gmail.com' IN memail ) as p2 , POSITION('gaptable3@gmail.com' IN memail ) as p3 , POSITION('gaptable4@gmail.com' IN memail ) as p4
- from table_a111 as p
- 
-where p0=0 and p1=0 and p2=0 and p3=0 and p4=0
-),
- 
- table_a113 as 
- ( select p.projectid , p._id , memail  from table_a112 p where row=1),
- 
- 
-  -- profile 20704
- table_a1111 as ( SELECT _id,projectid, mon.modifierid, m.email as memail
-from ds_mongo_profileinstance mon
-left join ds_mysql_prod_user u on
-mon.creatorid = u.id
-left join ds_mysql_prod_user m  on
-mon.modifierid = m.id
-where mon.profileId='20704' and mon.active = 't' and mon.securitycontextid is not null
-),
-
-
-table_a1112 as
-( select p.projectid , p._id , memail , row_number() over 
-(partition by projectid
- order by _id desc) as row
-, POSITION('@gap.com' IN memail ) as p0 , POSITION('gaptable1@gmail.com' IN memail ) as p1 ,  POSITION('gaptable2@gmail.com' IN memail ) as p2 , POSITION('gaptable3@gmail.com' IN memail ) as p3 , POSITION('gaptable4@gmail.com' IN memail ) as p4
- from table_a1111 as p
- 
-where p0=0 and p1=0 and p2=0 and p3=0 and p4=0
-),
- 
- table_a1113 as 
- ( select p.projectid , p._id , memail from table_a1112 p where row=1),
- 
-table_union_all_memail as
-(
-select * from table_a3
-union all
-select * from table_a13
-union all
-select * from table_a113
-union all
-select * from table_a1113
- ),
- 
-table_all_mail as
-(
- select p.projectid , listagg(memail,',') as modified_email from table_union_all_memail p
- 
- group by p.projectid  
-),
-
-
-table2 as 
-(
-   select ROW_NUMBER() over (order by p.projectid ) as serial_number  , p._id, p.projectid , 
-  case when p.name_subunit is null or p.name_subunit=' ' then 'N/A' else p.name_subunit end  as unit , ven.name as vendor , cou.name as country 
-  
-  , fac.name as factory , t1.factory_id
- ,  case when extract(month from date_enrollment)=1 then (extract(year from date_enrollment)-1) else extract(year from date_enrollment) end as batch 
-  , t7.Baseline
-  , t9.Baseline_BC_Respondents , t10.Baseline_Non_BC_Respondents , t17.endline , t19.Endline_BC_Respondents , t100.Endline_Non_BC_Respondents , all_mail.modified_email,extract( year from date_enrollment) as year_new,cou.name as country,case when cou.name in ('India', 'Bangladesh', 'Sri Lanka')
-then 'South Asia'
-when cou.name in ('China')
-then 'North Asia'
-when cou.name in ('Guatemala', 'El Salvador', 'Dominican Republic')
-then 'Americas'
-when cou.name in ('Philippines', 'Cambodia',  'Vietnam',  'Indonesia', 'Myanmar')
-then 'South East Asia'
-end as region
-  
-  from profile_16619 as p
-  
-left join project_1137 fac 
-on p.projectId = fac.id
-
-left join project_1137 ven 
-on fac.parent = ven.id
-
-left join project_1137 cou 
-on ven.parent = cou.id
-  
- 
-left join table1 t1 on 
-p._id = t1._id
- 
-left join table7 t7 on 
-p._id = t7._id
-  
-left join table17 t17 on 
-p._id = t17._id
-  
-left join table9 t9 on 
-p._id = t9._id
-  
-left join table10 t10 on 
-p._id = t10._id
-  
-left join table19 t19 on 
-p._id = t19._id
-  
-left join table100 t100 on 
-p._id = t100._id
-  
-left join table_all_mail all_mail on 
-p.projectid = all_mail.projectid
-
-where cou.name != 'Test Country' and cou.name !='GAP Inc.'
+left join tagelement_1137 e
+on e.id = p3.pace_status_2
+		   
+group by p.projectid,p.name_factory,p.name_vendor_filter,name_country,name_vendor, 
+ factory_vpid,status,st_year,p5.sourcing_yn,p2.factory_vpid_1,p2.factory_vpid_2,p3.cp_id,t3.type_program,p.name_rp,a.name,p2.sourcing_yn,p3.pace_status,p4.cp_id,p5.vpid_1,p5.vpid_2,t5.facility_score,t5.female_workers
 )
-  
- select * from table1
+
+
+select * from table2
