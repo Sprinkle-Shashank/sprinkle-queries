@@ -1,5 +1,3 @@
-drop table if exists GapInc_CB_Form;
- create table GapInc_CB_Form as
 
 with table1 as
 ( select p.projectid , p._id , year_timerange , cast(d1 as varchar) as d1_update  from profile_76755 as p, p.grievances_wcp_arr as d1
@@ -7,7 +5,7 @@ with table1 as
 
 table2 as
 ( 
-  select p.projectid , p._id , year_timerange , d1_update, p1.rights_based as right_based , p1.interest_based , cast(year_timerange.start as date) as fy_1 , extract(year from fy_1) as fy_2 , extract(month from fy_1) as month1 , 
+  select p.projectid , p._id , year_timerange , p1.rights_based as right_based , p1.interest_based , cast(year_timerange.start as date) as fy_1 , extract(year from fy_1) as fy_2 , extract(month from fy_1) as month1 , 
 case when month1 = 1 then 'January' 
      when month1 = 2 then 'February'
 	 when month1 = 3 then 'March'
@@ -30,8 +28,13 @@ when quarter_check =  '3rd(Aug-Oct)' then 'Q3'
 when quarter_check = '4th(Nov-Jan)' then 'Q4' 
 else 'NA' end as quarter , cast(fy_2 as varchar) as year_new , (quarter+','+year_new) as quarter_fy ,
   
+  Case when quarter_check = '1st(Feb-Apr)'then 1
+when quarter_check = '2nd(May-Jul)' then 2
+when quarter_check =  '3rd(Aug-Oct)' then 3
+when quarter_check = '4th(Nov-Jan)' then 4 
+else 0 end as quarter_number , (quarter_number+year_new) as x_axis_sort
   
-cou.name as country , 
+, cou.name as country , 
 nvl2(SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)),ven.name) as vendor_name, case when vendor_name='' then ven.name else vendor_name end as vendor, fac.name as factory ,
 case when country in ('India', 'Bangladesh', 'Sri Lanka')
 then 'South Asia'
