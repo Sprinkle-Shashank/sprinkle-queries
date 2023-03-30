@@ -26,8 +26,17 @@ union all
   
 Select pc,projectcode, fy_timerange, months, project_manager, approved_second t_count, x_axis
  from hdfc_hrd_overview_ngo_approved_pending_2nd_f5
-  )
+  ),
+aa as (
   
-Select pc,split_part(projectcode,'.',1) as projectcode, fy_timerange, months as month, project_manager, t_count, x_axis
+Select pc,split_part(projectcode,'.',1) as projectcode1, fy_timerange, months as month, project_manager, t_count, x_axis,
+CASE
+        WHEN pc LIKE '%.%' THEN split_part(pc,'|',2)
+        ELSE concat(concat('Cluster','-'),projectcode1)
+    END AS village
 from temp
 group by projectcode, fy_timerange, months, project_manager, t_count, x_axis,pc
+
+)
+Select pc,projectcode1 as projectcode, fy_timerange,  month, project_manager, t_count, x_axis, village
+from aa
