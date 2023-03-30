@@ -1,5 +1,5 @@
 --Marico_CE_EPR_Table
-with x as (select finperiod,datatablebase,fy_timerange,startdate,EXTRACT(MONTH FROM cast (startdate as datetime))AS month1,
+with x as (select finperiod,datatablebase,fy_timerange,/*startdate,EXTRACT(MONTH FROM cast (startdate as datetime))AS month1,
 EXTRACT(YEAR FROM cast (startdate as datetime))AS year1,
 CASE
 WHEN MONTH1 <= 3
@@ -11,9 +11,9 @@ start+1 as end1,
 concat(start,'-04-01T00:00:00.000Z') as start1,
 concat(end1,'-04-01T00:00:00.000Z') as end2,
 concat(concat(concat(concat('{"start":"',start1),'","end":"'),end2),'"}') as fy_1
-,name From sus_82955 as p where keyword='epr_compliance_target'),
+,*/name From sus_82955 as p where keyword='epr_compliance_target'),
 table1 as (
-select finperiod,fy_1 as fy_timerange,name, coun.vendor, coun.state,coun.mlp,coun.flexible,coun.rigid From x as p, unpivot p.datatablebase as coun ),
+select finperiod,fy_timerange,name, coun.vendor, coun.state,coun.mlp,coun.flexible,coun.rigid From x as p, unpivot p.datatablebase as coun ),
 
 temp as (
   select 'mlp' as C
@@ -23,11 +23,11 @@ temp as (
   select 'rigid' as C
    ),
    target as (
- select case C when 'mlp' then concat(finperiod,concat(ven.name,concat(stat.name,'mlp')))
+ select /*case C when 'mlp' then concat(finperiod,concat(ven.name,concat(stat.name,'mlp')))
         when 'flexible' then concat(finperiod,concat(ven.name,concat(stat.name,'flexible')))
 		when 'rigid' then concat(finperiod,concat(ven.name,concat(stat.name,'rigid')))
 	end as unique	
-,finperiod,fy_timerange,t1.name,ven.name as vendor,stat.name as state,
+,*/finperiod,fy_timerange,t1.name,ven.name as vendor,stat.name as state,
 	 
  
  Sum(Case C
@@ -100,7 +100,7 @@ t2.state_name = stat.id
 
 group by fy_2,fy_timerange,t2.name,ven.name,stat.name,temp1.c)
 
-select act.fy_timerange,act.name,act.vendor,act.state,actual,type,targ.val as target,
+/*select act.fy_timerange,act.name,act.vendor,act.state,actual,type,targ.val as target,
 case when target = 0 then null
 else
 round(cast((actual*100/target) as float),2) end as compliance,
@@ -108,8 +108,8 @@ round(cast((actual*100/target) as float),2) end as compliance,
 (LEFT(cast(compliance as VARCHAR),5) || '%') as new_comp from actual act
 
 left join target targ
-on act.unique = targ.unique
---select * from actual
+on act.unique = targ.unique*/
+select * from actual
 
 
 --where keyword = 'ac_epr_compliance'
