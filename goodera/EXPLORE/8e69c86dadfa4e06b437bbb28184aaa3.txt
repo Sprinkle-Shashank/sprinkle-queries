@@ -1,17 +1,20 @@
-with t1 as(
+with lookup as(
 Select prod.name as dataproj, split_part(split_part(prod.name,'|',1),'.',1) as projectcode, split_part(prod.name,'|',4) as projectname
 from profile_59426 p
 left join project_4188 prod on
 prod.id=p.projectid
 )
 
-Select p1.name, t.name as project_manager
-from t1
+Select p1.name, t.name as project_manager, t2.name
+from lookup
 left join profile_27396 p1
-  on p1.name=t1.projectcode
+  on p1.name=lookup.projectcode
 left join tagelement_4188 t
 on t.id=p1.project_manager
-
+left join profile_27420 p2
+on p2.project_code=p1._id
+left join tagelement_4188 t1
+on t1.id=p2.project_manager
 /*
 with Lookup as
 (select cast((split_part(split_part(prod.name,'|',1),'.',1)) as varchar) as ProjectCode,f.name as fy_timerange,CONCAT(ProjectCode,fy_timerange) as CODE
