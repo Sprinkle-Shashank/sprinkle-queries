@@ -26,7 +26,7 @@ quarter1.name as quarter, fy1.name as fy, (quarter1.name + (',' + fy1.name )) as
 	else 4
 end as quarter_sort,
 
-(fy1.name || quarter_sort) as x_axis_sort,
+cast((fy1.name || quarter_sort) as int) as x_axis_sort,
   
   p.total_raised , p.total_raised_2 , p.total_raised_3 , p.total_raised_4 , p.total_raised_5 , p.total_raised_6 , p.total_raised_7 , p.total_raised_8 , p.total_raised_9 , 
    case when p.rights_based is null then 0 else p.rights_based end ,
@@ -82,10 +82,18 @@ group by p._id,p.sub_unit ,cou.name , fac.name , ven.name , quarter1.name , fy1.
   
   )
 
- select _id,sub_unit , year_new , quarter , cast(x_axis_sort as int) as x_axis_sort
+ select _id,sub_unit , country , factory , vendor , unit ,region , year_new ,quarter ,status,fy,
+ (quarter + (',' + fy)) as quarter_fy ,
+Sum(total_raised+total_raised_2+total_raised_3+total_raised_4+total_raised_5+total_raised_6+total_raised_7+total_raised_8+total_raised_9) as total_raised,     
+sum ( rights_based+rights_based_2+rights_based_3+rights_based_4+rights_based_5+rights_based_6+rights_based_7+rights_based_8+rights_based_9) as right_based, 
+sum(interest_based+interest_based_2+interest_based_3+interest_based_4+interest_based_5+interest_based_6+interest_based_7+interest_based_8+interest_based_9) as interest_based,   
+sum(resolved + resolved_2 + resolved_3 + resolved_4 + resolved_5 + resolved_6 + resolved_7 + resolved_8 + resolved_9) as resolved, x_axis_sort
 
 from table1
 
+group by sub_unit, country , factory , vendor , unit ,region ,year_new ,quarter  ,status ,fy ,_id,x_axis_sort
+
 where year_new<2021 or (year_new=2021 and quarter in ('Q1','Q2','Q3'))
 
---or ((year_new=2021 and quarter in ('Q1','Q2','Q3'))
+order by quarter_fy desc
+
