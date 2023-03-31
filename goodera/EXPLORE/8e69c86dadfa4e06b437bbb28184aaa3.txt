@@ -1,11 +1,18 @@
 with lookup as(
-Select prod.name as dataproj, split_part(split_part(prod.name,'|',1),'.',1) as projectcode, split_part(prod.name,'|',4) as projectname
+Select prod.name as dataproj, split_part(split_part(prod.name,'|',1),'.',1) as projectcode, split_part(prod.name,'|',4) as projectname, t.name fy_timerange
 from profile_59426 p
 left join project_4188 prod on
 prod.id=p.projectid
-)
+left join tagelement_4188 t 
+  on t.id=p.fy
+),
 
-Select p1.name, t.name as project_manager, t1.name
+sub1 as(
+Select projectcode , fy_timerange, 
+case
+	when t1.name=NULL then t.name
+	else t1.name
+	end as Project_Manager
 from lookup
 left join profile_27396 p1
   on p1.name=lookup.projectcode
@@ -15,6 +22,11 @@ left join profile_27420 p2
 on p2.project_code=p1._id
 left join tagelement_4188 t1
 on t1.id=p2.project_manager
+ )
+
+Select projectcode , listagg(fy_timerange) as fy_timerange, listagg(Project_Manager) as Project_Manager
+from sub1
+group by 1
 /*
 with Lookup as
 (select cast((split_part(split_part(prod.name,'|',1),'.',1)) as varchar) as ProjectCode,f.name as fy_timerange,CONCAT(ProjectCode,fy_timerange) as CODE
