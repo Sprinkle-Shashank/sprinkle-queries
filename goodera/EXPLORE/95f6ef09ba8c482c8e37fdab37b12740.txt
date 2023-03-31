@@ -1,0 +1,80 @@
+--dell_region vs rest_New
+with temp as (
+  select 'male_indirect_beneficiaries' as col
+  union all
+  select 'neither_gender_indirect_beneficiaries' as col
+	union all
+  select 'male_direct_beneficiaries' as col
+	union all
+  select 'female_indirect_beneficiaries' as col
+	union all
+  select 'no_gender_disclosure_indirect_beneficiaries' as col
+	union all
+  select 'no_gender_disclosure_direct_beneficiaries' as col
+	union all
+  select 'female_direct_beneficiaries' as col
+	union all
+  select 'neither_gender_direct_beneficiaries' as col
+)
+
+Select sq.fy_timerange, t2.name as Partner,t3.name as Country,t4.name as Region, sta.name as location1,cou.name as location2,t5.name as location,t6.name as program_name, t7.name as projectId,temp.col as Dimensions,
+case
+	when Region='North America' then 'North America' 
+	else 'Rest of the World'
+	end as NAvsRest,
+case
+	when Region='APJ' then 'Asia Pacific Japan'
+	else 'Rest of the World'
+	end as APJvsRest,
+case
+	when Region='EMEA' then 'Europe Middle-East Africa'
+	else 'Rest of the World'
+	end as EMEAvsRest,
+case
+	when Region='LATAM' then 'Latin America'
+	else 'Rest of the World'
+	end as LATAMvsRest,
+case
+	when Region='Greater China' then 'Greater China'
+	else 'Rest of the World'
+	end as ChinavsRest,
+case 
+  when (extract(month from pd.end_date) <2) then ('FY' || (extract(year from pd.end_date)-2000))
+  when (extract(month from pd.end_date) >=2) then ('FY'|| (extract(year from pd.end_date)+1-2000))
+  end as FY, 
+sum(case col
+	when 'male_indirect_beneficiaries' then sq.male_indirect_beneficiaries
+	when 'neither_gender_indirect_beneficiaries' then sq.neither_gender_indirect_beneficiaries
+	when 'male_direct_beneficiaries' then sq.male_direct_beneficiaries
+	when 'female_indirect_beneficiaries' then sq.female_indirect_beneficiaries
+	when 'no_gender_disclosure_indirect_beneficiaries' then sq.no_gender_disclosure_indirect_beneficiaries
+	when 'no_gender_disclosure_direct_beneficiaries' then sq.no_gender_disclosure_direct_beneficiaries
+	when 'female_direct_beneficiaries' then sq.female_direct_beneficiaries
+	when 'neither_gender_direct_beneficiaries' then sq.neither_gender_direct_beneficiaries
+	else Null
+	end) as Values
+FROM dell_profile_67395 sq
+cross join temp
+left join dell_profile_62886 pd 
+on sq.program_name=pd._id 
+left join project_7636 as t 
+  on sq.projectId = t.id
+  left join project_7636 as t2
+  on t.parent=t2.id
+  left join project_7636 as t3
+  on t2.parent=t3.id 
+  left join project_7636 as t4
+  on t3.parent=t4.id 
+   left join tagelement_7636 cit
+on sq.location = cit.id
+left join tagelement_7636 sta
+on cit.parent = sta.id
+left join tagelement_7636 cou
+on sta.parent = cou.id
+left join tagelement_7636 t5
+on sq.location = t5.id
+left join dell_profile_62886  t6 on
+  sq.program_name=t6._id
+ left join project_7636 t7 on
+  sq.projectId=t7.id
+group by  sq.fy_timerange, t2.name, t3.name, t4.name, t5.name,t6.name,t7.name , pd.end_date, Dimensions, NAvsRest, APJvsRest, EMEAvsRest, LATAMvsRest, ChinavsRest, t.name, sta.name, cou.name,t7.name,t2.id
