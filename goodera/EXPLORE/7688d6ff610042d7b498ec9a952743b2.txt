@@ -1,3 +1,4 @@
+--WCP_NON_BC_who_bc_total_respondents_midline_percent
 with table1 as(select p.projectId,p.status,decode(DATEPART(YEAR,p.date_enrollment),null,0,DATEPART(YEAR,p.date_enrollment)) as year_new from profile_16619 p
 
 			   
@@ -14,7 +15,9 @@ when country in ('Guatemala', 'El Salvador', 'Dominican Republic')
 then 'Americas'
 when country in ('Philippines', 'Cambodia',  'Vietnam',  'Indonesia', 'Myanmar')
 then 'South East Asia'
-end as region,case when p2.name_subunit is null or p2.name_subunit=' ' then 'N/A' else p2.name_subunit end  as unit,t1.year_new,bc.name as who from profile_20702 p
+end as region,
+case when p2.name_subunit is null or p2.name_subunit=' ' then 'N/A' when country='Bangladesh' then p2.name_subunit else 'N/A' end as unit,
+t1.year_new,bc.name as who from profile_20702 p
 
 left join project_1137 fac
 on p.projectid = fac.id
@@ -32,7 +35,7 @@ p.projectId = t1.projectId
 left join tagelement_1137 bc
 on p.who_bc = bc.id
 
-where  (cou.name <> 'Test Country' and cou.name <> 'GAP Inc.') and (p.projectId ilike '%%') and (t1.projectId is not null) and (t1.status = 1400365 or t1.status is null)
+where  (cou.name <> 'Test Country' and cou.name <> 'GAP Inc.') and (p.projectId like '%%') and (t1.projectId is not null) and (t1.status = 1400365 or t1.status is null)
 ),
 table3 as(SELECT * 
 FROM (SELECT projectId,factory,vendor,country,region,year_new,unit,who,count(who) as total 
