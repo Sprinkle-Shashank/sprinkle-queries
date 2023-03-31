@@ -1,49 +1,16 @@
---HDFC_FRD_Project_Manager_filter
-with Base1 as(select f.name as fy_timerange,split_part(split_part(prod.name,'|',1),'.',1) as ProjectCode,
-			  concat(fy_timerange,ProjectCode) as code
-			  from profile_60787
-left join  project_4188 prod  on
-prod.id=projectid
-left join tagelement_4188 f 
-on fy=f.id),
+Select prod.name as dataproj
+from profile_59426 p
+left join project_4188 prod on
+prod.id=p.projectid
 
-p1 as(
-  Select f1.name fy_timerange, p.name ProjectCode, f.name as Core_area, m.name as Project_Manager, 
-  concat(fy_timerange,ProjectCode) CODE
-  from profile_27396 p
-  left join tagelement_4188 f1 on 
-  f1.id=p.fy
-  left join tagelement_4188 f on 
-  p.focus_area=f.id
-  left join tagelement_4188 m on 
-  p.project_manager=m.id
+/*
+with Lookup as
+(select cast((split_part(split_part(prod.name,'|',1),'.',1)) as varchar) as ProjectCode,f.name as fy_timerange,CONCAT(ProjectCode,fy_timerange) as CODE
+from profile_59426 p 
+left join project_4188 prod on
+prod.id=p.projectid
+left join tagelement_4188 f on
+p.fy=f.id
+ group by ProjectCode, f.name
 ),
-
-Base2 as(select Base1.fy_timerange, Base1.ProjectCode, p1.Core_area, p1.Project_Manager
-		 from Base1 
-		 left join p1 on
-Base1.code=p1.CODE
-where Core_area!= 'Others' and Core_area!='Eradicating Poverty' and Core_area!='Holistic Rural Development'
-		group by 1,2,3,4),
-
-Base3 as(select f1.name fy_timerange, k.focus_area as Core_area,m.name as Project_Manager,p.name as ProjectCode,
-		 concat(fy_timerange,ProjectCode) CODE
-		 from profile_27420 k
-	left join tagelement_4188 f1 on 
-  f1.id=k.fy
-left join profile_27396 p
-on k.project_code=p._id
-left join tagelement_4188 m on 
-k.project_manager=m.id),
-
-Base4 as(select p.fy_timerange,p.ProjectCode, k.Core_area,k.Project_Manager 
-		 from Base1 p 
-		 left join Base3 k 
-		 on k.code=p.CODE
-where core_area!= 'Others' and core_area!='Eradicating Poverty' and core_area!='Holistic Rural Development'
-		 group by 1,2,3,4
-)
-
-select * from Base4
-union all
-select * from Base2
+*/
