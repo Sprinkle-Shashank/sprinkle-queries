@@ -1,78 +1,48 @@
-with sub1 as(
-  select p1._id as id, t1.name as fy, split_part(p2.name, '|', 1) as projectcode, t2.name as month,
-
-case
-	when p2.parent = 18943 then split_part(p2.name, '|', 1)
-	else split_part(p3.name, '|', 1)
-end as parentcode
-
-from profile_54963 p1
-
-left join project_4188 p2 on p2.id = p1.projectid
-left join project_4188 p3 on p3.id = p2.parent
-
-left join tagelement_4188 t1 on t1.id = p1.fy
-left join tagelement_4188 t2 on t2.id = p1.month),
-
-sub2 as(
-  select s1.id, s1.projectcode, s1.fy, s1.month, s1.parentcode, t1.name as fy_27396, t2.name as project_manager_27396, t3.name as fy_27420, t4.name as project_manager_27420,
-  
-case
-  	when t3.name is null or (split_part(s1.fy, '-', 1) < split_part(t3.name, '-', 1))
-  		 then t1.name
-  	else t3.name
-end as fy_27420_new,
- 
-nvl(t4.name, t2.name) as project_manager_27420_new
-  
-from sub1 s1
-  
-left join profile_27396 p4 on p4.name = s1.parentcode
-left join profile_27420 p5 on p5.project_code = p4._id
-
-left join tagelement_4188 t1 on t1.id = p4.fy
-left join tagelement_4188 t2 on t2.id = p4.project_manager
-
-left join tagelement_4188 t3 on t3.id = p5.fy
-left join tagelement_4188 t4 on t4.id = p5.project_manager
+--hdfc_filter_year
+/*
+with main as (select r.name as fy_timerange, cast((split_part(split_part(prod.name,'|',1),'.',1)) as varchar) as ProjectCode,CONCAT(ProjectCode,fy_timerange) as code from profile_54963 p
+left join ds_mysql_prod_project prod on
+prod.id=p.projectid
+left join ds_mysql_prod_tagelement r on
+r.id=p.fy),
+*/
+lookup as (select cast(q.name as varchar) as ProjectCode,f.name as fy_timerange,m.name as Project_Manager,CONCAT(ProjectCode,fy_timerange) as code, d.focus_area focus_area
+from profile_27420 d
+left join ds_mysql_prod_tagelement f on
+d.fy=f.id
+left join ds_mysql_prod_tagelement m on
+d.project_manager=m.id
+left join profile_27396 q on
+d.project_code=q._id
+		   
+union all
+		   
+select cast(c.name as varchar)as ProjectCode,f.name as fy_timerange,m.name as Project_Manager,CONCAT(ProjectCode,fy_timerange) as code, t.name focus_area
+from profile_27396 c	
+left join ds_mysql_prod_tagelement f on
+c.fy=f.id
+left join ds_mysql_prod_tagelement m on
+c.project_manager=m.id
+left join tagelement_4188 t on
+t.id=c.focus_area
 ),
+/*
+main2 as (
+select b.fy_timerange as fy,q.Project_Manager as level1 from main b
+left join lookup q on
+q.code = b.code
+group by b.fy_timerange,q.Project_Manager),
+*/
+level1tab as (select m.name as level1 ,p.approver as level2,p.name as level1email from profile_27424 p
+left join ds_mysql_prod_tagelement m on
+m.id = p.pm_name),
 
-sub3 as(
-  select s2.id, s2.projectcode, s2.fy, s2.month, s2.fy_27396, s2.project_manager_27396, s2.fy_27420_new, s2.project_manager_27420_new, s2.fy_27420,
-  
-case
-  	when (split_part(s2.fy_27420_new, '-', 1) <= split_part(s2.fy, '-', 1)) or 
-  		 (split_part(s2.fy_27396, '-', 1) <= split_part(s2.fy, '-', 1)) then 1
-    else 0
-end as flag,
+level2tab as (select m.name as level1 , z.level1 as level2 from profile_27424 p
+left join ds_mysql_prod_tagelement m on
+m.id = p.pm_name
+left join level1tab z on
+z.level1email = p.approver)
 
-row_number() over(partition by s2.id order by split_part(s2.fy_27420_new, '-', 1) desc) as row
-  
-from sub2 s2),
-
-sub4 as(
-  select s3.id, s3.projectcode, s3.fy, s3.month months, s3.fy_27396, s3.project_manager_27396, s3.fy_27420_new, s3.project_manager_27420_new
-from sub3 s3
-
-where s3.row = 1 and s3.flag = 1),
-
-sub5 as(
-  select s4.projectcode, s4.fy, s4.fy_27420_new, s4.fy_27396, months, 1 as total_count, s4.project_manager_27420_new, s4.project_manager_27396,
-  
-case
-  when (split_part(s4.fy_27420_new, '-', 1) <= split_part(s4.fy, '-', 1)) 
-  		then s4.project_manager_27420_new
-  else s4.project_manager_27396
-end as project_manager
-  
-from sub4 s4),
-
-sub6 as(
-  select s5.projectcode, s5.fy as fy_timerange,months, s5.project_manager,
-sum(s5.total_count) as total_count, 'Total No. of Activities' x_axis
-  
-from sub5 s5
-
-group by s5.projectcode, s5.fy, s5.project_manager, months)
-
-select * from sub6
+select p.*,d.level2 from main2 p
+left join level2tab d on
+d.level1 = p.level1
