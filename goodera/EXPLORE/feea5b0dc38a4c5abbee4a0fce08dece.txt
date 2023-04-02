@@ -5,29 +5,8 @@ SELECT p.month_timerange, p.kannada, p.evs, p.maths, p.science, p.social_science
 FROM profile_60441 p
 LEFT JOIN profile_60437 p1 ON p1._id = p.sats
 )
-UNPIVOT (val FOR dim IN (kannada, evs, maths, science, social_science, hindi, computer, english))
-),
-t2 AS (
-SELECT school, month_timerange AS fy_timerange, AVG(val) AS val, dim
-FROM t1 AS p
-WHERE val IS NOT NULL
-GROUP BY school, fy_timerange, dim
-),
-t3 AS (
-SELECT t2.school, t2.fy_timerange, t2.val, t2.dim, t4._id, t4.schoolname, t4.name
-FROM t2
-LEFT JOIN profile_60426 t4 ON t2.school = t4._id
-)
-SELECT t3._id,t3.fy_timerange, t3.schoolname,   t5.month_timerange,
- t5.ddc, t5.newstudents, t5.dropouts, t5.trust_registration, t5.bank_account_no,
- CASE WHEN t5.summercamp THEN 'Yes' ELSE 'No' END AS Summer,
-  CASE WHEN t5.ddc THEN 'Yes' ELSE 'No' END AS DDC,
-  CASE WHEN t5.digitalearning THEN 'Yes' ELSE 'No' END AS DL,avg(t3.val) AS Average
-FROM t3
-LEFT JOIN profile_60433 t5 ON t3.schoolname = t5._id
-group by t3._id,t3.fy_timerange,t3.schoolname,   t5.month_timerange,t5.ddc, t5.newstudents, t5.dropouts, t5.trust_registration, t5.bank_account_no,t5.summercamp,t5.digitalearning
-ORDER BY t3.fy_timerange, t3.schoolname
-/*
+
+
 with t1 as
 (SELECT * 
 FROM
@@ -46,4 +25,4 @@ select school, month_timerange as fy_timerange,   avg(val) as val,dim  from t1 a
 Group By school, fy_timerange,dim
   
 
-*/
+
