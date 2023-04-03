@@ -31,6 +31,45 @@ left join tagelement_9427 stat on
 t2.state_name = stat.id
 
 
-group by  fy_timerange,t2.name,ven.name,stat.name,temp1.c)
+group by  fy_timerange,t2.name,ven.name,stat.name,temp1.c),
 
-select * from actual
+--select * from actual
+
+--Marico_CE_EPR_Table
+x as (select finperiod,datatablebase,fy_timerange,name From sus_82955 as p where keyword='epr_compliance_target'),
+table1 as (
+select finperiod,fy_timerange,name, coun.vendor, coun.state,coun.mlp,coun.flexible,coun.rigid From x as p, unpivot p.datatablebase as coun ),
+
+temp as (
+  select 'MLP' as C
+  Union all
+  select 'Flexible' as C
+  Union all 
+  select 'Rigid' as C
+   ),
+   target as (
+ select finperiod,fy_timerange,t1.name,ven.name as vendor,stat.name as state,
+	 
+ 
+ Sum(Case C
+	When 'MLP' then t1.mlp
+	when 'Flexible' then t1.flexible
+	when 'Rigid' then t1.rigid 
+	else null end) as val, temp.c as dim from table1 t1
+	
+	cross join temp
+left join tagelement_9427 ven on 
+t1.vendor = ven.id
+
+left join tagelement_9427 stat on 
+t1.state = stat.id
+
+group by finperiod,fy_timerange,t1.name,ven.name,stat.name,temp.c	)
+select finperiod,fy_timerange,name,vendor,state,val/1000 as val, dim from target
+
+
+--where keyword = 'ac_epr_compliance'
+select * from target
+
+
+
