@@ -1,0 +1,36 @@
+with y as (select finperiod,datatablebase,fy_timerange,name From sus_82955 as p where keyword='ac_epr_compliace'),
+table2 as (
+select finperiod,fy_timerange,name, coun.vendor_name, coun.state_name	,coun.mlp_eol+coun.mlp_recycled as mlp_new,coun.flexible_recycled,coun.rigid_recycled From y as p, unpivot p.datatablebase as coun ),
+
+temp1 as (
+  select 'mlp_new' as C
+  Union all
+  select 'flexible_recycled' as C
+  Union all 
+  select 'rigid_recycled' as C
+   ),
+actual as (   
+ select 
+ t2.fy_timerange,t2.name,ven.name as vendor,stat.name as state,
+ 
+ Sum(Case C
+	When 'mlp_new' then t2.mlp_new
+	when 'flexible_recycled' then t2.flexible_recycled
+	when 'rigid_recycled' then t2.rigid_recycled 
+	else null end) as actual,/* temp1.c as dim ,*/
+ case c when 'mlp_new' then 'MLP'
+        when 'flexible_recycled' then 'Flexible'
+		else 'Rigid' end as dim
+	from table2 t2
+	
+	cross join temp1
+left join tagelement_9427 ven on 
+t2.vendor_name = ven.id
+
+left join tagelement_9427 stat on 
+t2.state_name = stat.id
+
+
+group by  fy_timerange,t2.name,ven.name,stat.name,temp1.c)
+
+select * from actual
