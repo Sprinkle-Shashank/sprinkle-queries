@@ -1,27 +1,42 @@
-Select x1._id as id, x1.profileinstanceid, x1.status, x1.active, x1.data, x1.taskuserid, x2.taskid, x5.projectid, x6.profileid, x4.sectionid, x6.name as section, x7.name as profile, x8.name as project, x1.created, x1.modified,
-  
-case
-  when is_array(x1.submissionlog) = false or get_array_length(x1.submissionlog) = 0 then 
-  	   array(x1.submissionlog)
-  else x1.submissionlog
-end as submissionlog_new,
-case
-  when is_array(x1.approvallog) = false or get_array_length(x1.approvallog) = 0 then 
-  	   array(x1.approvallog)
-  else x1.approvallog
-end as approvallog_new
-  
-from ds_mongo_taskresponse x1 
+with payment_table as(
+SELECT project_name, project_renew, status ,  SUBSTRING(CAST(approvalLog[0].["timestamp"] AS DATETIME), 1, 10) AS t1,
+		
+    CASE 
+        WHEN (EXTRACT(MONTH FROM t1::DATE) > 3) THEN CONCAT(CONCAT('20' || (EXTRACT(YEAR FROM t1::DATE) - 2000), '-'), CONCAT('20', (EXTRACT(YEAR FROM t1::DATE) + 1 - 2000)))
+		
+        WHEN (EXTRACT(MONTH FROM t1::DATE) <= 3) THEN CONCAT(CONCAT('20' || (EXTRACT(YEAR FROM t1::DATE) - 1 - 2000), '-'), CONCAT('20', (EXTRACT(YEAR FROM t1::DATE) - 2000)))
+    END AS fy_timerange,
+	
+	case
+		when (EXTRACT(MONTH FROM t1::DATE) = 1) then 'Quarter 4'
+		when (EXTRACT(MONTH FROM t1::DATE) = 2) then 'Quarter 4'
+		when (EXTRACT(MONTH FROM t1::DATE) = 3) then 'Quarter 4'
+		when (EXTRACT(MONTH FROM t1::DATE) = 4) then 'Quarter 1'
+		when (EXTRACT(MONTH FROM t1::DATE) = 5) then 'Quarter 1'
+		when (EXTRACT(MONTH FROM t1::DATE) = 6) then 'Quarter 1'
+		when (EXTRACT(MONTH FROM t1::DATE) = 7) then 'Quarter 2'
+		when (EXTRACT(MONTH FROM t1::DATE) = 8) then 'Quarter 2'
+		when (EXTRACT(MONTH FROM t1::DATE) = 9) then 'Quarter 2'
+		when (EXTRACT(MONTH FROM t1::DATE) = 10) then 'Quarter 3'
+		when (EXTRACT(MONTH FROM t1::DATE) = 11) then 'Quarter 3'
+		when (EXTRACT(MONTH FROM t1::DATE) = 12) then 'Quarter 3'
+		end as Quarter
+	
+FROM taskresp_27398
+where status in ('REJECTED', 'PENDING_APPROVAL', 'SUBMITTED')
+  )
 
-left join ds_mysql_prod_taskuser x2 on x2.id = x1.taskuserid
-left join ds_mysql_prod_task x3 on x3.id = x2.taskid
-left join ds_mysql_prod_flowtask x4 on x4.id = x3.flowtaskid
-left join ds_mysql_prod_projectflow x5 on x5.id = x3.projectflowid
-left join ds_mysql_prod_section x6 on x6.id = x4.sectionid
-left join ds_mysql_prod_profile x7 on x7.id = x6.profileid
-left join ds_mysql_prod_project x8 on x8.id = x5.projectid
-
-where x6.profileid = 27398 and x1.active = 't'
-and x1.status in ('SAVED', 'REJECTED', 'PENDING_APPROVAL')
-
-group by x1._id, x1.profileinstanceid, x1.status, x1.active, x1.data, x1.taskuserid, x2.taskid, x5.projectid, x6.profileid, x4.sectionid, x6.name, x7.name, x8.name, x1.submissionlog, x1.approvallog, x1.created, x1.modified
+SELECT 'Payment Approved' AS "Value Name",
+SUM(CASE WHEN Status = 'SUBMITTED' THEN 1 ELSE 0 END) AS "Values",
+SUM(CASE WHEN Status = 'SUBMITTED' THEN 1 ELSE 0 END) / NULLIF(SUM(CASE WHEN Status IN ('SUBMITTED', 'REJECTED', 'PENDING_APPROVAL') THEN 1 ELSE 0 END), 0) AS "Approved Percentage"
+FROM payment_table
+UNION
+SELECT 'Payment Pending' AS "Value Name",
+SUM(CASE WHEN Status = 'PENDING_APPROVAL' THEN 1 ELSE 0 END) AS "Values",
+SUM(CASE WHEN Status = 'PENDING_APPROVAL' THEN 1 ELSE 0 END) / NULLIF(SUM(CASE WHEN Status IN ('SUBMITTED', 'REJECTED', 'PENDING_APPROVAL') THEN 1 ELSE 0 END), 0) AS "Pending Percentage"
+FROM payment_table
+UNION
+SELECT '-' AS "Value Name",
+SUM(CASE WHEN Status IN ('SUBMITTED', 'REJECTED', 'PENDING_APPROVAL') THEN 1 ELSE 0 END) AS "Values",
+NULL AS "Percentage"
+FROM payment_table;
