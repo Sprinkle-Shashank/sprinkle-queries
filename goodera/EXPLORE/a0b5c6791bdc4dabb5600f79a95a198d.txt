@@ -1,13 +1,5 @@
-with main as(
+with main1 as(
 SELECT project_name, project_renew, status as a1,  SUBSTRING(CAST(approvalLog[0].["timestamp"] AS DATETIME), 1, 10) AS t1,
-
-
-  COUNT(CASE
-		WHEN a1 = 'SUBMITTED' THEN 1
-        WHEN a1 = 'REJECTED' THEN 2
-        WHEN a1 ='PENDING_APPROVAL' THEN 3
-		ELSE 0 END) 
-  AS total_count,
 		
     CASE 
         WHEN (EXTRACT(MONTH FROM t1::DATE) > 3) THEN CONCAT(CONCAT('20' || (EXTRACT(YEAR FROM t1::DATE) - 2000), '-'), CONCAT('20', (EXTRACT(YEAR FROM t1::DATE) + 1 - 2000)))
@@ -32,11 +24,45 @@ SELECT project_name, project_renew, status as a1,  SUBSTRING(CAST(approvalLog[0]
 	
 FROM taskresp_27398
 where a1 in ('REJECTED', 'PENDING_APPROVAL', 'SUBMITTED')
-group by 1,2,3,4,6,7
   ),
   
+  main as(
+	  SELECT
+  'Payment Raised' AS x_axis, t1, fy_timerange, Quarter,
+  count(CASE 
+        WHEN a1 = 'SUBMITTED' THEN 1 
+        WHEN a1 = 'PENDING' THEN 1 
+        WHEN a1 = 'REJECTED' THEN 1 
+        ELSE 0 
+      END) AS total_count
+FROM main1
+group by 2,3,4
+
+UNION ALL
+
+SELECT
+  'Payment Approved' AS x_axis, t1, fy_timerange, Quarter,
+  count(CASE 
+        WHEN a1 = 'SUBMITTED' THEN 1 
+        ELSE 0 
+      END) AS total_count
+FROM main1
+group by 2,3,4
+
+UNION ALL
+SELECT
+  'Payment Pending' AS x_axis, t1, fy_timerange, Quarter,
+  count(CASE 
+        WHEN a1 = 'PENDING' THEN 1 
+        ELSE 0 
+      END) AS total_count
+FROM main1
+group by 2,3,4
+  )
+  
+  
  lookup as (
-  Select a.a1 x_axis, a.fy_timerange, a.quarter, m.name as level1, a.total_count
+  Select a.x_axis, a.fy_timerange, a.quarter, m.name as level1, a.total_count
    from main a
    left join profile_27396 p
    on p._id=a.project_name
@@ -46,7 +72,7 @@ group by 1,2,3,4,6,7
    
    union all
    
-   Select a.a1 x_axis, a.fy_timerange, a.quarter, m.name as level1, a.total_count
+   Select a.x_axis, a.fy_timerange, a.quarter, m.name as level1, a.total_count
    from main a
    left join profile_27420 p
    on p._id=a.project_renew
@@ -65,7 +91,7 @@ m.id = p.pm_name
 left join level1tab z on
 z.level1email = p.approver)
  
- Select a.fy_timerange, a.quarter, a.level1, d.level2, a.X_AXIS, a.total_count
+ Select a.fy_timerange, a.quarter, a.level1, d.level2, a.x_axis, a.total_count
  from lookup a
  left join level2tab d on
 a.level1 = d.level1
