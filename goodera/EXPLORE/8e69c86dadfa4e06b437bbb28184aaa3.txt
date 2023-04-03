@@ -1,18 +1,9 @@
-with temp as (
-  Select 'APPROVED' as col
-  union all 
-  Select 'PENDING_APPROVAL' as col
-  union all
-  Select 'REJECTED' as col
-)
-SELECT status as a1,  SUBSTRING(CAST(approvalLog[0].["timestamp"] AS DATETIME), 1, 10) AS t1, temp.col as dim,
+SELECT status as a1,  SUBSTRING(CAST(approvalLog[0].["timestamp"] AS DATETIME), 1, 10) AS t1,
 
-count(
-	  CASE col
-	  	WHEN a1='SUBMITTED' then 'APPROVED'
-  		WHEN a1='REJECTED' then 'REJECTED'
- 		WHEN a1='PENDING_APPROVAL' then 'PENDING_APPROVAL'
-		end) as value,
+  SUM(CASE WHEN a1 = 'SUBMITTED' THEN 1 ELSE 0 END) AS submitted_count,
+  SUM(CASE WHEN a1 = 'PENDING' THEN 1 ELSE 0 END) AS pending_count,
+  SUM(CASE WHEN a1 IN ('SUBMITTED', 'REJECTED', 'PENDING_APPROVAL') THEN 1 ELSE 0 END) 
+  AS total_count,
 		
     CASE 
         WHEN (EXTRACT(MONTH FROM t1::DATE) > 3) THEN CONCAT(CONCAT('20' || (EXTRACT(YEAR FROM t1::DATE) - 2000), '-'), CONCAT('20', (EXTRACT(YEAR FROM t1::DATE) + 1 - 2000)))
@@ -36,6 +27,6 @@ count(
 		end as Quarter
 	
 FROM taskresp_27398
-CROSS JOIN temp
-group by 1,2,4,5
+where a1 in ('REJECTED', 'PENDING_APPROVAL', 'SUBMITTED')
+group by 1,2,6,7
  
