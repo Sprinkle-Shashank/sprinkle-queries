@@ -40,5 +40,39 @@ s1.data.email_org,
 s1.data.contact_org
 
 from sub1 s1, s1.submissionlog_new as submission_log)
+,
 
-Select * from sub_80183
+sub3 as (
+  select s3.profileid, s3.profileinstanceid, s3.id, s3.status, s3.data, s3.submissionlog_new, s3.approvallog_new, cast(s3.submission_log_timestamp as DATE) as final_submission_date,
+approval_log, cast(approval_log."timestamp" as DATETIME) as approval_log_timestamp, cast(approval_log."approverEmail" as VARCHAR) as approver_email, cast(approval_log."approvalStatus" as VARCHAR) as approval_status,
+s3.Imp_agency, s3.Focus_area, s3.fy,s3.contact_person,s3.email,s3.mobile_number,
+row_number() over(partition by s3.id, approver_email order by approval_log_timestamp desc) as row2
+
+
+
+from sub_80183 s3, s3.approvallog_new as approval_log
+
+
+where s3.row1 = 1
+
+)
+
+
+
+Select sub3.*,
+cast(sub3.approval_log_timestamp as DATE) approval_date,
+case
+	when sub3.approver_email = 'nusrat.pathan@hdfcbank.com' then approval_date
+	else NULL
+end as date_of_last_approval,
+dateadd(year,1,date_of_last_approval) as date_of_renewal,
+case
+	when current_Date > date_of_renewal then 'Pending Renewal'
+	when current_Date < date_of_renewal then 'New'
+end as Empanelment_Type
+ 
+
+
+ from sub3
+
+where row2=1
