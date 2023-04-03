@@ -1,3 +1,4 @@
+--GapInc_WCP_Turnover_Value
 
 
 with table12 as
@@ -23,7 +24,15 @@ table18 as
   select p.projectid , p._id , last_day_workers , workers_exited , day_1_workers , fac.name as factory , 
 nvl2(SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)),ven.name) as vendor_name, case when vendor_name='' then ven.name else vendor_name end as vendor , cou.name as country , t5.status_update , ((last_day_workers + day_1_workers)/2) as d1 , (workers_exited/d1)*100 as inside, extract(year from t5.date_enrollment)as s_year, extract(month from t5.date_enrollment)as month,
 case when month = 1 then s_year-1
-ELSE s_year END AS year_new from profile_16862 as p
+ELSE s_year END AS year_new , 
+case
+	when qa.name = 'Q1' then 1
+	when qa.name = 'Q2' then 2
+	when qa.name = 'Q3' then 3
+	else 4
+end as quarter_sort,
+
+(fy1.name || quarter_sort) as x_axis_sort , (qa.name + (',' + fy1.name )) as quarter_fy  from profile_16862 as p
 
 left join ds_mysql_prod_project fac
 on  p.projectid = fac.id
@@ -36,6 +45,12 @@ on ven.parent = cou.id
 
 left join table15 t5
 on p.projectid = t5.projectid 
+  
+ LEFT JOIN tagelement_1137 AS qa ON
+p.quarter = qa.id
+			   
+LEFT JOIN tagelement_1137 AS fy1 ON
+p.fy = fy1.id
 
 where country != 'Test Country' and (t5.status_update is null or t5.status_update='Completed') ),
 
