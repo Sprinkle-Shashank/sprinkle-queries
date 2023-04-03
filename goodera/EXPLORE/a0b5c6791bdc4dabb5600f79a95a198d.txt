@@ -29,35 +29,22 @@ where a1 in ('REJECTED', 'PENDING_APPROVAL', 'SUBMITTED')
   main as(
 	  SELECT
   'Payment Raised' AS x_axis, t1, fy_timerange, Quarter,project_name, project_renew,
-  SUM(CASE 
-        WHEN a1 = 'SUBMITTED' THEN '1'
-        WHEN a1 = 'PENDING_APPROVAL' THEN '1' 
-        WHEN a1 = 'REJECTED' THEN '1'
-        ELSE 0 
-      END) AS total_count
+ 1 AS total_count
 FROM main1
-group by 2,3,4,5,6
 
 UNION ALL
 
 SELECT
-  'Payment Approved' AS x_axis, t1, fy_timerange, Quarter,project_name, project_renew,
-  SUM(CASE 
-        WHEN a1 = 'SUBMITTED' THEN '1'
-        ELSE 0 
-      END) AS total_count
+  'Payment Approved' AS x_axis, t1, fy_timerange, Quarter,project_name, project_renew, 1 AS total_count
 FROM main1
-group by 2,3,4,5,6
+WHERE a1='SUBMITTED'
 
 UNION ALL
 SELECT
   'Payment Pending' AS x_axis, t1, fy_timerange, Quarter,project_name, project_renew,
-  SUM(CASE 
-        WHEN a1 = 'PENDING_APPROVAL' THEN '1' 
-        ELSE 0 
-      END) AS total_count
+    1 AS total_count
 FROM main1
-group by 2,3,4,5,6
+where a1='PENDING_APPROVAL'
   ),
   
   
@@ -91,7 +78,7 @@ m.id = p.pm_name
 left join level1tab z on
 z.level1email = p.approver)
  
- Select a.fy_timerange, a.quarter, a.level1, d.level2, a.x_axis, a.total_count
+ Select a.fy_timerange, a.quarter, a.level1, d.level2, a.x_axis, sum(a.total_count) as total_count
  from lookup a
  left join level2tab d on
 a.level1 = d.level1
