@@ -38,10 +38,27 @@ s1.data.contact_person as contact_person,
 s1.data.email,
 s1.data.mobile_number
   
---row_number() over(partition by s1.id order by submission_log_timestamp asc) as row1
+row_number() over(partition by s1.id order by submission_log_timestamp desc) as row1
 from sub1 s1, s1.submissionlog_new as submission_log)
 
 ,
+
+sub3 as (
+  select s3.profileid, s3.profileinstanceid, s3.id, s3.status, s3.data, s3.submissionlog_new, s3.approvallog_new, s3.initial_submission_date, cast(s3.submission_log_timestamp2 as DATE) as final_submission_date,
+approval_log, cast(approval_log."timestamp" as DATETIME) as approval_log_timestamp, cast(approval_log."approverEmail" as VARCHAR) as approver_email, cast(approval_log."approvalStatus" as VARCHAR) as approval_status,
+
+row_number() over(partition by s3.id, approver_email order by approval_log_timestamp desc) as row2
+from sub_27395 s3, s3.approvallog_new as approval_log
+
+where s3.row1 = 1
+
+
+)
+
+
+
+
+
 sub2 as(
 Select x1._id as id, x1.profileinstanceid, x1.status, x1.active, x1.data, x1.taskuserid, x2.taskid, x5.projectid, x6.profileid, x4.sectionid, x6.name as section, x7.name as profile, x8.name as project, x1.created, x1.modified,
   
@@ -173,4 +190,4 @@ s1.data.contact_org
 
 from sub4 s1, s1.submissionlog_new as submission_log)
 
-Select * from sub_80188
+Select * from sub_27395
