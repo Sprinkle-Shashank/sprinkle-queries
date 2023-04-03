@@ -1,5 +1,5 @@
 with main1 as(
-SELECT project_name, project_renew, status as a1,  SUBSTRING(CAST(approvalLog[0].["timestamp"] AS DATETIME), 1, 10) AS t1,
+SELECT project_name, project_renew, status,  SUBSTRING(CAST(approvalLog[0].["timestamp"] AS DATETIME), 1, 10) AS t1,
 		
     CASE 
         WHEN (EXTRACT(MONTH FROM t1::DATE) > 3) THEN CONCAT(CONCAT('20' || (EXTRACT(YEAR FROM t1::DATE) - 2000), '-'), CONCAT('20', (EXTRACT(YEAR FROM t1::DATE) + 1 - 2000)))
@@ -23,49 +23,83 @@ SELECT project_name, project_renew, status as a1,  SUBSTRING(CAST(approvalLog[0]
 		end as Quarter
 	
 FROM taskresp_27398
-where a1 in ('REJECTED', 'PENDING_APPROVAL', 'SUBMITTED')
+where status in ('REJECTED', 'PENDING_APPROVAL', 'SUBMITTED')
   ),
   
   main as(
 	  SELECT
   'Payment Raised' AS x_axis, t1, fy_timerange, Quarter,project_name, project_renew,
-   COALESCE(SUM(CASE WHEN "Status" IN ('SUBMITTED', 'REJECTED', 'PENDING') THEN 1 ELSE 0 END), 0) AS "Values",
-  '-' AS "Additional column"
+	
+SUM(CASE WHEN Status IN ('SUBMITTED', 'REJECTED', 'PENDING_APPROVAL') THEN 1 ELSE 0 END) AS Value,
+	
+NULL AS Approved_Percentage
 FROM main1
-WHERE a1 IN ('SUBMITTED', 'REJECTED', 'PENDING_APPROVAL')
 group by 2,3,4,5,6
-
+	
 UNION ALL
 
 SELECT
-  'Payment Approved' AS x_axis, t1, fy_timerange, Quarter,project_name, project_renew,
-	 COALESCE(SUM(CASE WHEN "Status" = 'SUBMITTED' THEN 1 ELSE 0 END), 0) AS "Values",
+  'Payment Approved' AS x_axis, t1, fy_timerange, Quarter,project_name, project_renew, 
 	
-  CASE 
-	WHEN COALESCE(SUM(CASE WHEN "Status" IN ('SUBMITTED', 'REJECTED', 'PENDING') THEN 1 ELSE 0 END), 0) = 0
-       THEN '-'
-       ELSE CAST(COALESCE(SUM(CASE WHEN "Status" = 'SUBMITTED' THEN 1 ELSE 0 END), 0) AS DECIMAL(18,2))
-            / COALESCE(SUM(CASE WHEN "Status" IN ('SUBMITTED', 'REJECTED', 'PENDING') THEN 1 ELSE 0 END), 0)
-  END AS "Additional column"
+	SUM(CASE WHEN Status = 'SUBMITTED' THEN 1 ELSE 0 END) AS Value,
+	
+  ROUND((SUM(CASE WHEN Status = 'SUBMITTED' THEN 1 ELSE 0 END) * 100.0) / NULLIF(SUM(CASE WHEN Status IN ('SUBMITTED', 'REJECTED', 'PENDING_APPROVAL') THEN 1 ELSE 0 END), 0), 2) AS Approved_Percentage
+	
 FROM main1
-WHERE a1='SUBMITTED'
+
 group by 2,3,4,5,6
 	
 UNION ALL
 SELECT
   'Payment Pending' AS x_axis, t1, fy_timerange, Quarter,project_name, project_renew,
-	COALESCE(SUM(CASE WHEN "Status" = 'PENDING' THEN 1 ELSE 0 END), 0) AS "Values",
-  CASE WHEN COALESCE(SUM(CASE WHEN "Status" IN ('SUBMITTED', 'REJECTED', 'PENDING') THEN 1 ELSE 0 END), 0) = 0
-       THEN '-'
-       ELSE CAST(COALESCE(SUM(CASE WHEN "Status" = 'PENDING' THEN 1 ELSE 0 END), 0) AS DECIMAL(18,2))
-            / COALESCE(SUM(CASE WHEN "Status" IN ('SUBMITTED', 'REJECTED', 'PENDING') THEN 1 ELSE 0 END), 0)
-  END AS "Additional column"
-
+	
+    SUM(CASE WHEN Status = 'PENDING_APPROVAL' THEN 1 ELSE 0 END) AS Value,
+	
+ ROUND((SUM(CASE WHEN Status = 'PENDING_APPROVAL' THEN 1 ELSE 0 END) * 100.0) / NULLIF(SUM(CASE WHEN Status IN ('SUBMITTED', 'REJECTED', 'PENDING_APPROVAL') THEN 1 ELSE 0 END), 0), 2) AS Approved_Percentage
 FROM main1
-where a1='PENDING_APPROVAL'
+
 group by 2,3,4,5,6
-  )
+  ),
   
+  
+ lookup as (
+  Select a.x_axis, a.fy_timerange, a.quarter, m.name as level1, Approved_Percentage, Value
+   from main a
+   left join profile_27396 p
+   on p._id=a.project_name
+   left join tagelement_4188 m on
+   p.project_manager=m.id
+   where a.project_name is not NULL
+   
+   union all
+   
+   Select a.x_axis, a.fy_timerange, a.quarter, m.name as level1, Approved_Percentage, Value
+   from main a
+   left join profile_27420 p
+   on p._id=a.project_renew
+	left join tagelement_4188 m on
+	p.project_manager=m.id
+    where a.project_renew is not NULL
+ ),
+ ----Profile 27424 - Level1 
+ level1tab as (select m.name as level1 ,p.approver as level2,p.name as level1email from profile_27424 p
+left join ds_mysql_prod_tagelement m on
+m.id = p.pm_name),
+
+level2tab as (select m.name as level1 , z.level1 as level2 from profile_27424 p
+left join ds_mysql_prod_tagelement m on
+m.id = p.pm_name
+left join level1tab z on
+z.level1email = p.approver),
+
+t3 as(
+ 
+ Select a.fy_timerange, a.quarter, a.level1, d.level2, a.x_axis, a.Approved_Percentage, cast(a.Value as INT) VALUE
+ from lookup a
+ left join level2tab d on
+a.level1 = d.level1
+group by 1,2,3,4,5,6,7
+  )
   
   Select *
   from main
