@@ -1,27 +1,71 @@
+with main as(
+SELECT project_name, project_renew, status as a1,  SUBSTRING(CAST(approvalLog[0].["timestamp"] AS DATETIME), 1, 10) AS t1,
 
-  select x1.status, x1._id as id, x1.profileinstanceid, x1.status, x1.active, x1.data, x1.taskuserid, x2.taskid, x5.projectid, x6.profileid, x4.sectionid, x6.name as section, x7.name as profile, x8.name as project, x1.created, x1.modified,
+
+  COUNT(CASE
+		WHEN a1 = 'SUBMITTED' THEN 'APPROVED'
+        WHEN a1 = 'REJECTED' THEN 'REJECTED'
+        WHEN a1 ='PENDING_APPROVAL') THEN 'PENDING_APPROVAL'
+		ELSE 0 END) 
+  AS total_count,
+		
+    CASE 
+        WHEN (EXTRACT(MONTH FROM t1::DATE) > 3) THEN CONCAT(CONCAT('20' || (EXTRACT(YEAR FROM t1::DATE) - 2000), '-'), CONCAT('20', (EXTRACT(YEAR FROM t1::DATE) + 1 - 2000)))
+		
+        WHEN (EXTRACT(MONTH FROM t1::DATE) <= 3) THEN CONCAT(CONCAT('20' || (EXTRACT(YEAR FROM t1::DATE) - 1 - 2000), '-'), CONCAT('20', (EXTRACT(YEAR FROM t1::DATE) - 2000)))
+    END AS fy_timerange,
+	
+	case
+		when (EXTRACT(MONTH FROM t1::DATE) = 1) then 'Quarter 4'
+		when (EXTRACT(MONTH FROM t1::DATE) = 2) then 'Quarter 4'
+		when (EXTRACT(MONTH FROM t1::DATE) = 3) then 'Quarter 4'
+		when (EXTRACT(MONTH FROM t1::DATE) = 4) then 'Quarter 1'
+		when (EXTRACT(MONTH FROM t1::DATE) = 5) then 'Quarter 1'
+		when (EXTRACT(MONTH FROM t1::DATE) = 6) then 'Quarter 1'
+		when (EXTRACT(MONTH FROM t1::DATE) = 7) then 'Quarter 2'
+		when (EXTRACT(MONTH FROM t1::DATE) = 8) then 'Quarter 2'
+		when (EXTRACT(MONTH FROM t1::DATE) = 9) then 'Quarter 2'
+		when (EXTRACT(MONTH FROM t1::DATE) = 10) then 'Quarter 3'
+		when (EXTRACT(MONTH FROM t1::DATE) = 11) then 'Quarter 3'
+		when (EXTRACT(MONTH FROM t1::DATE) = 12) then 'Quarter 3'
+		end as Quarter
+	
+FROM taskresp_27398
+where a1 in ('REJECTED', 'PENDING_APPROVAL', 'SUBMITTED')
+group by 1,2,3,4,8,9
+  ),
   
-case
-  when is_array(x1.submissionlog) = false or get_array_length(x1.submissionlog) = 0 then 
-  	   array(x1.submissionlog)
-  else x1.submissionlog
-end as submissionlog_new,
-case
-  when is_array(x1.approvallog) = false or get_array_length(x1.approvallog) = 0 then 
-  	   array(x1.approvallog)
-  else x1.approvallog
-end as approvallog_new
-  
-from ds_mongo_taskresponse x1 
+ lookup as (
+  Select a.a1 x_axis, a.fy_timerange, a.quarter, m.name as level1, a.submitted_count, a.pending_count,    
+   a.total_count
+   from main a
+   left join profile_27396 p
+   on p._id=a.project_name
+   left join tagelement_4188 m on
+   p.project_manager=m.id
+   
+   union all
+   
+   Select a.a1 x_axis, a.fy_timerange, a.quarter, m.name as level1, a.submitted_count, a.pending_count,    
+   a.total_count
+   from main a
+   left join profile_27420 p
+   on p._id=a.project_renew
+	left join tagelement_4188 m on
+	p.project_manager=m.id
+ ),
+ ----Profile 27424 - Level1 
+ level1tab as (select m.name as level1 ,p.approver as level2,p.name as level1email from profile_27424 p
+left join ds_mysql_prod_tagelement m on
+m.id = p.pm_name),
 
-left join ds_mysql_prod_taskuser x2 on x2.id = x1.taskuserid
-left join ds_mysql_prod_task x3 on x3.id = x2.taskid
-left join ds_mysql_prod_flowtask x4 on x4.id = x3.flowtaskid
-left join ds_mysql_prod_projectflow x5 on x5.id = x3.projectflowid
-left join ds_mysql_prod_section x6 on x6.id = x4.sectionid
-left join ds_mysql_prod_profile x7 on x7.id = x6.profileid
-left join ds_mysql_prod_project x8 on x8.id = x5.projectid
-
-where x6.profileid = 27398 and x1.active = 't'
-
-group by x1._id, x1.profileinstanceid, x1.status, x1.active, x1.data, x1.taskuserid, x2.taskid, x5.projectid, x6.profileid, x4.sectionid, x6.name, x7.name, x8.name, x1.submissionlog, x1.approvallog, x1.created, x1.modified
+level2tab as (select m.name as level1 , z.level1 as level2 from profile_27424 p
+left join ds_mysql_prod_tagelement m on
+m.id = p.pm_name
+left join level1tab z on
+z.level1email = p.approver)
+ 
+ Select a.fy_timerange, a.quarter, a.level1, d.level2, a.X_AXIS, a.submitted_count, a.pending_count, total_count
+ from lookup a
+ left join level2tab d on
+a.level1 = d.level1
