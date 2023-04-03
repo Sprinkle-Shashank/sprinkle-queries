@@ -43,13 +43,27 @@ from sub1 s1, s1.submissionlog_new as submission_log)
 
 ,
 sub3 as (
-  select s3.profileid, s3.profileinstanceid, s3.id, s3.status, s3.data, s3.submissionlog_new, s3.approvallog_new, --cast(s3.submission_log_timestamp as DATE) as final_submission_date,
-approval_log, cast(approval_log."timestamp" as DATETIME) as approval_log_timestamp, cast(approval_log."approverEmail" as VARCHAR) as approver_email, cast(approval_log."approvalStatus" as VARCHAR) as approval_status
+  select s3.profileid, s3.profileinstanceid, s3.id, s3.status, s3.data, s3.submissionlog_new, s3.approvallog_new, cast(s3.submission_log_timestamp as DATE) as final_submission_date,
+approval_log, cast(approval_log."timestamp" as DATETIME) as approval_log_timestamp, cast(approval_log."approverEmail" as VARCHAR) as approver_email, cast(approval_log."approvalStatus" as VARCHAR) as approval_status,
+row_number() over(partition by s3.id, approver_email order by approval_log_timestamp desc) as row2
+
+
+
 from sub_27405 s3, s3.approvallog_new as approval_log
+
 
 where s3.row1 = 1
 
 
 )
 
-Select * from sub3
+Select sub3.*,
+
+case
+	when sub3.approver_email = 'sharukh.taraporewala@hdfcbank.com' then approval_date
+	else NULL
+end as date_of_action_by_goodera,
+
+ from sub3
+
+where row2=1
