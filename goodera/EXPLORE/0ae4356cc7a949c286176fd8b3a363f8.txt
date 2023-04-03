@@ -33,7 +33,7 @@ sub_27405 as(
   select s1.profileid, s1.profileinstanceid, s1.id, s1.status, s1.data, s1.submissionlog_new, s1.approvallog_new, submission_log, cast(submission_log."timestamp" as DATETIME) as submission_log_timestamp,
 row_number() over(partition by s1.id order by submission_log_timestamp desc) as row1,
 s1.data.ia as Imp_agency,
-s1.data.core_area as Focus_area,
+cast(null as varchar) as Focus_area,
 s1.data.fy as fy,
 s1.data.contact_person as contact_person,
 s1.data.email,
@@ -80,18 +80,22 @@ where row2=1
 )
 ,
 sub5 as (
-Select s4.Imp_agency,s4.yearr,s4.contact_person,s4.email,s4.mobile_number,s4.date_of_last_approval,s4.date_of_renewal,s4.Empanelment_Type,fa
-from sub4 as s4,s4.focus_area as fa
+Select s4.profileinstanceid,s4.Imp_agency,s4.yearr,s4.contact_person,s4.email,s4.mobile_number,s4.date_of_last_approval,s4.date_of_renewal,s4.Empanelment_Type,s4.focus_area
+from sub4 as s4
+--,s4.focus_area as fa
 
 ),
 sub6 as (
-Select s5.Imp_agency,s5.yearr,s5.contact_person,s5.email,s5.mobile_number,s5.date_of_last_approval,s5.date_of_renewal,s5.Empanelment_Type,t.name as faa
+Select s4.profileinstanceid,s5.Imp_agency,s5.yearr,s5.contact_person,s5.email,s5.mobile_number,s5.date_of_last_approval,s5.date_of_renewal,s5.Empanelment_Type,s5.focus_area
 
 from sub5 s5
-left join tagelement_4188 t
-on t.id=s5.fa
+--left join tagelement_4188 t
+--on t.id=s5.fa
 )
 
-Select s6.Imp_agency,s6.yearr,s6.contact_person,s6.email,s6.mobile_number,s6.date_of_last_approval,s6.date_of_renewal,s6.Empanelment_Type,listagg(faa,',') as fa1
+Select ss.name as ia,s6.Imp_agency,s6.yearr,s6.contact_person,s6.email,s6.mobile_number,s6.date_of_last_approval,s6.date_of_renewal,s6.Empanelment_Type,s6.focus_area
+--listagg(faa,',') as fa1
 from sub6 s6
-group by s6.Imp_agency,s6.yearr,s6.contact_person,s6.email,s6.mobile_number,s6.date_of_last_approval,s6.date_of_renewal,s6.Empanelment_Type
+left join profile_27395 ss
+on ss._id=s6.Imp_agency
+group by s6.Imp_agency,s6.yearr,s6.contact_person,s6.email,s6.mobile_number,s6.date_of_last_approval,s6.date_of_renewal,s6.Empanelment_Type,s6.focus_area,ss.name
