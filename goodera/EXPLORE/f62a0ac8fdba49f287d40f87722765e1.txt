@@ -1,4 +1,4 @@
-with main1 as(
+with payment_table as(
 SELECT project_name, project_renew, status ,  SUBSTRING(CAST(approvalLog[0].["timestamp"] AS DATETIME), 1, 10) AS t1,
 		
     CASE 
@@ -24,42 +24,23 @@ SELECT project_name, project_renew, status ,  SUBSTRING(CAST(approvalLog[0].["ti
 	
 FROM taskresp_27398
 where status in ('REJECTED', 'PENDING_APPROVAL', 'SUBMITTED')
-  ),
-  
-  main as(
-	  SELECT
-  'Payment Raised' AS x_axis, t1, fy_timerange, Quarter,project_name, project_renew,
-	
-SUM(CASE WHEN Status IN ('SUBMITTED', 'REJECTED', 'PENDING_APPROVAL') THEN 1 ELSE 0 END) AS Value,
-	
-NULL AS Approved_Percentage
-FROM main1
-group by 2,3,4,5,6
-	
-UNION ALL
-
-SELECT
-  'Payment Approved' AS x_axis, t1, fy_timerange, Quarter,project_name, project_renew, 
-	
-	SUM(CASE WHEN Status = 'SUBMITTED' THEN 1 ELSE 0 END) AS Value,
-	
-  ROUND((SUM(CASE WHEN Status = 'SUBMITTED' THEN 1 ELSE 0 END) * 100) / NULLIF(SUM(CASE WHEN Status IN ('SUBMITTED', 'REJECTED', 'PENDING_APPROVAL') THEN 1 ELSE 0 END), 0), 2) AS Approved_Percentage
-	
-FROM main1
-WHERE status='SUBMITTED'
-group by 2,3,4,5,6
-	
-UNION ALL
-SELECT
-  'Payment Pending' AS x_axis, t1, fy_timerange, Quarter,project_name, project_renew,
-	
-    SUM(CASE WHEN Status = 'PENDING_APPROVAL' THEN 1 ELSE 0 END) AS Value,
-	
- ROUND((SUM(CASE WHEN Status = 'PENDING_APPROVAL' THEN 1 ELSE 0 END) * 100) / NULLIF(SUM(CASE WHEN Status IN ('SUBMITTED', 'REJECTED', 'PENDING_APPROVAL') THEN 1 ELSE 0 END), 0), 2) AS Approved_Percentage
-FROM main1
-where status='PENDING_APPROVAL'
-group by 2,3,4,5,6
   )
   
-  Select *
-  from main
+SELECT 'Payment Raised' AS "Value Name",
+SUM(CASE WHEN Status IN ('SUBMITTED', 'REJECTED', 'PENDING_APPROVAL') THEN 1 ELSE 0 END) AS "Values",
+NULL AS "Approved Percentage"
+FROM payment_table
+
+union all
+
+SELECT 'Payment Approved' AS "Value Name",
+SUM(CASE WHEN Status = 'SUBMITTED' THEN 1 ELSE 0 END) AS "Values",
+ROUND((SUM(CASE WHEN Status = 'SUBMITTED' THEN 1 ELSE 0 END) * 100.0) / NULLIF(SUM(CASE WHEN Status IN ('SUBMITTED', 'REJECTED', 'PENDING_APPROVAL') THEN 1 ELSE 0 END), 0), 2) AS "Approved Percentage"
+FROM payment_table
+
+UNION all
+
+SELECT 'Payment Pending' AS "Value Name",
+SUM(CASE WHEN Status = 'PENDING_APPROVAL' THEN 1 ELSE 0 END) AS "Values",
+ROUND((SUM(CASE WHEN Status = 'PENDING_APPROVAL' THEN 1 ELSE 0 END) * 100.0) / NULLIF(SUM(CASE WHEN Status IN ('SUBMITTED', 'REJECTED', 'PENDING_APPROVAL') THEN 1 ELSE 0 END), 0), 2) AS "Approved Percentage"
+FROM payment_table;
