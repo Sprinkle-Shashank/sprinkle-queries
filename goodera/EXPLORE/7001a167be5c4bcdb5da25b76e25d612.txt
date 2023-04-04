@@ -1,4 +1,4 @@
-with tab1 as (Select P.name AS projectname,t4.name as project_name,p1.fy_timerange,t1.name as type,sum(p1.q1) as previous,sum(p1.q2) + sum(p1.q3) + sum(p1.q4) as current,p1.focus,t3.name as entity
+with tab1 as (Select P.name AS projectname,t4.name as project_name,p1.fy_timerange,t1.name as type,sum(p1.q1) as previous,sum(p1.q2) + sum(p1.q3) + sum(p1.q4) as current,p1.focus,t3.name as entity,rank() over(partition by fy_timerange,entity,project_name order by fy_timerange asc) as rnk
 from profile_61799 p1
 LEFT JOIN ds_mysql_prod_project AS P
 ON p1.projectid = P.id
@@ -14,10 +14,12 @@ where entity is not null and t1.name = 'Strategic'
 group by 1,2,3,4,7,8
 order by fy_timerange desc)
 
-Select projectname,project_name,fy_timerange,type,focus,entity,current as total_c,previous as total_p,sum(total_c) as sub1_c,sum(total_p) as sub1_p
+Select projectname,project_name,fy_timerange,type,focus,entity,current as total_c,previous as total_p,sum(total_c) as sub1_c,sum(total_p) as sub1_p,rnk
 from tab1
 where focus = '929921' and focus = '929921'
 group by 1,2,3,4,5,6,7,8
+
+--rank() over(partition by quarter order by saajhamonth_timerange asc) as rnk
 
 /*
 Base profile 61799
