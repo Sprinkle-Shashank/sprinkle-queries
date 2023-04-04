@@ -1,0 +1,102 @@
+with sub1 as(
+Select x1._id as id, x1.profileinstanceid, x1.status, x1.active, x1.data, x1.taskuserid, x2.taskid, x5.projectid, x6.profileid, x4.sectionid, x6.name as section, x7.name as profile, x8.name as project, x1.created, x1.modified,
+  
+case
+  when is_array(x1.submissionlog) = false or get_array_length(x1.submissionlog) = 0 then 
+  	   array(x1.submissionlog)
+  else x1.submissionlog
+end as submissionlog_new,
+case
+  when is_array(x1.approvallog) = false or get_array_length(x1.approvallog) = 0 then 
+  	   array(x1.approvallog)
+  else x1.approvallog
+end as approvallog_new
+  
+from ds_mongo_taskresponse x1 
+
+left join ds_mysql_prod_taskuser x2 on x2.id = x1.taskuserid
+left join ds_mysql_prod_task x3 on x3.id = x2.taskid
+left join ds_mysql_prod_flowtask x4 on x4.id = x3.flowtaskid
+left join ds_mysql_prod_projectflow x5 on x5.id = x3.projectflowid
+left join ds_mysql_prod_section x6 on x6.id = x4.sectionid
+left join ds_mysql_prod_profile x7 on x7.id = x6.profileid
+left join ds_mysql_prod_project x8 on x8.id = x5.projectid
+
+where x6.profileid =27405 and x1.active = 't'
+and x1.status in ('REJECTED', 'PENDING_APPROVAL', 'SUBMITTED','SAVED','APPROVED')
+
+group by x1._id, x1.profileinstanceid, x1.status, x1.active, x1.data, x1.taskuserid, x2.taskid, x5.projectid, x6.profileid, x4.sectionid, x6.name, x7.name, x8.name, x1.submissionlog, x1.approvallog, x1.created, x1.modified),
+
+--xx--FLOW
+
+sub_27405 as(
+  select s1.profileid, s1.profileinstanceid, s1.id, s1.status, s1.data, s1.submissionlog_new, s1.approvallog_new, submission_log, cast(submission_log."timestamp" as DATETIME) as submission_log_timestamp,
+row_number() over(partition by s1.id order by submission_log_timestamp desc) as row1,
+s1.data.ia as Imp_agency,
+cast(null as varchar) as Focus_area,
+s1.data.fy as fy,
+s1.data.contact_person as contact_person,
+s1.data.email,
+s1.data.mobile_number
+
+from sub1 s1, s1.submissionlog_new as submission_log)
+
+,
+sub3 as (
+  select s3.profileid, s3.profileinstanceid, s3.id, s3.status, s3.data, s3.submissionlog_new, s3.approvallog_new, cast(s3.submission_log_timestamp as DATE) as final_submission_date,
+approval_log, cast(approval_log."timestamp" as DATETIME) as approval_log_timestamp, cast(approval_log."approverEmail" as VARCHAR) as approver_email, cast(approval_log."approvalStatus" as VARCHAR) as approval_status,
+s3.Imp_agency, s3.Focus_area, s3.fy,s3.contact_person,s3.email,s3.mobile_number,
+row_number() over(partition by s3.id, approver_email order by approval_log_timestamp desc) as row2
+
+
+
+from sub_27405 s3, s3.approvallog_new as approval_log
+
+
+where s3.row1 = 1
+
+
+),
+sub4 as (
+
+Select sub3.*,
+cast(sub3.approval_log_timestamp as DATE) approval_date,
+case
+	when sub3.approver_email = 'sharukh.taraporewala@hdfcbank.com' then approval_date
+	else NULL
+end as date_of_last_approval,
+dateadd(year,1,date_of_last_approval) as date_of_renewal,
+case
+	when current_Date > date_of_renewal then 'Pending Renewal'
+	when current_Date < date_of_renewal then 'Renewed'
+end as Empanelment_Type,t.name as yearr
+ 
+
+
+ from sub3
+left join tagelement_4188 t
+on t.id=sub3.fy
+where row2=1
+)
+,
+sub5 as (
+Select s4.profileinstanceid,s4.Imp_agency,s4.yearr,s4.contact_person,s4.email,s4.mobile_number,s4.date_of_last_approval,s4.date_of_renewal,s4.Empanelment_Type,s4.focus_area,s4.status,s4.approval_Status
+from sub4 as s4
+--,s4.focus_area as fa
+
+),
+sub6 as (
+Select s5.Imp_agency,s5.yearr,s5.contact_person,s5.email,s5.mobile_number,s5.date_of_last_approval,s5.date_of_renewal,s5.Empanelment_Type,s5.focus_area,s5.status,s5.approval_Status,
+extract(year from current_date) as ty,(ty-left(s5.yearr,4)) as no_yrs_eng
+
+from sub5 s5
+--left join tagelement_4188 t
+--on t.id=s5.fa
+)
+
+Select ss.name as ia,s6.Imp_agency,s6.yearr,s6.contact_person,s6.email,s6.mobile_number,s6.date_of_last_approval,s6.date_of_renewal,s6.Empanelment_Type,s6.focus_area,s6.status,s6.approval_Status,s6.no_yrs_eng
+--listagg(faa,',') as fa1
+from sub6 s6
+left join profile_27395 ss
+on ss._id=s6.Imp_agency
+group by s6.Imp_agency,s6.yearr,s6.contact_person,s6.email,s6.mobile_number,s6.date_of_last_approval,s6.date_of_renewal,s6.Empanelment_Type,s6.focus_area,ss.name,s6.approval_Status,s6.status,s6.no_yrs_eng
