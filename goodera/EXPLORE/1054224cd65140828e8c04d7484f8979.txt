@@ -3,7 +3,7 @@ with s1 as
 from profile_83305 as a,
 a.topics as unwind_topics)
 
-select s1._id, p2.name as van, p3.name as partner, s1.fy_timerange, p1.name as assoc_impl_partner, s1.awareness_sessions, listagg(distinct cast(T1.name as varchar),',') AS Topics_Unwind, sublocation || ' | ' || p2.name as camp_loc,
+select s1._id, p2.name as van, p3.name as partner, s1.fy_timerange, p1.name as assoc_impl_partner, s1.awareness_sessions, listagg(distinct cast(T1.name as varchar),',') AS Topics_Unwind, p4.name || ' | ' || p2.name as camp_loc,
 case
 when Topics_Unwind = 'Other' then s1.other_sessions
 else Topics_Unwind
@@ -15,7 +15,9 @@ Left join ds_mysql_prod_tagelement AS T1
 ON T1.id = S1.unwind_topics
 left join profile_83303 p1
 on s1.assoc_impl_partner = p1._id
+left join profile_83299 p4
+on s1.sublocation = p4._id
 
 where s1.projectid like '%%'
 group by 
-s1._id, p2.name, p3.name, s1.fy_timerange, s1.awareness_sessions, p1.name,s1.other_sessions
+s1._id, p2.name, p3.name, s1.fy_timerange, s1.awareness_sessions, p1.name,s1.other_sessions,camp_loc
