@@ -1,5 +1,11 @@
 with main1 as(
-SELECT project_name, project_renew, status,  SUBSTRING(CAST(approvalLog[0].["timestamp"] AS DATETIME), 1, 10) AS t1,
+SELECT project_name, project_renew, status,  
+  
+case
+	when SUBSTRING(CAST(approvalLog[0].["timestamp"] AS DATETIME), 1, 10) is NULL
+	then  SUBSTRING(CAST(submissionlog[0].["timestamp"] AS DATETIME), 1, 10)
+	else SUBSTRING(CAST(approvalLog[0].["timestamp"] AS DATETIME), 1, 10)
+	end AS t1,
 		
     CASE 
         WHEN (EXTRACT(MONTH FROM t1::DATE) > 3) THEN CONCAT(CONCAT('20' || (EXTRACT(YEAR FROM t1::DATE) - 2000), '-'), CONCAT('20', (EXTRACT(YEAR FROM t1::DATE) + 1 - 2000)))
@@ -28,42 +34,46 @@ where status in ('REJECTED', 'PENDING_APPROVAL', 'SUBMITTED')
   
   main as(
 	  SELECT
-  'Payment Raised' AS x_axis, t1, fy_timerange, Quarter,project_name, project_renew,
+  'Payment Raised' AS x_axis, t1, fy_timerange, Quarter,project_name, project_renew, count(*) as t_c,
 	
-SUM(CASE WHEN Status IN ('SUBMITTED', 'REJECTED', 'PENDING_APPROVAL') THEN 1 ELSE 0 END) AS Value,
+---SUM(CASE WHEN Status IN ('SUBMITTED', 'REJECTED', 'PENDING_APPROVAL') THEN 1 ELSE 0 END) AS Value,
 	
-NULL AS Approved_Percentage
+----NULL AS Approved_Percentage
 FROM main1
+where Status IN ('SUBMITTED', 'REJECTED', 'PENDING_APPROVAL')
 group by 2,3,4,5,6
 	
 UNION ALL
 
 SELECT
-  'Payment Approved' AS x_axis, t1, fy_timerange, Quarter,project_name, project_renew, 
+  'Payment Approved' AS x_axis, t1, fy_timerange, Quarter,project_name, project_renew, count(*) as t_c,
 	
-	SUM(CASE WHEN Status = 'SUBMITTED' THEN 1 ELSE 0 END) AS Value,
+	---SUM(CASE WHEN Status = 'SUBMITTED' THEN 1 ELSE 0 END) AS Value,
 	
-  ROUND((SUM(CASE WHEN Status = 'SUBMITTED' THEN 1 ELSE 0 END) * 100.0) / NULLIF(SUM(CASE WHEN Status IN ('SUBMITTED', 'REJECTED', 'PENDING_APPROVAL') THEN 1 ELSE 0 END), 0), 2) AS Approved_Percentage
+  ---ROUND((SUM(CASE WHEN Status = 'SUBMITTED' THEN 1 ELSE 0 END) * 100.0) / NULLIF(SUM(CASE WHEN Status IN ('SUBMITTED', 'REJECTED', 'PENDING_APPROVAL') THEN 1 ELSE 0 END), 0), 2) AS Approved_Percentage
 	
 FROM main1
-
+where Status='SUBMITTED'
 group by 2,3,4,5,6
 	
 UNION ALL
 SELECT
-  'Payment Pending' AS x_axis, t1, fy_timerange, Quarter,project_name, project_renew,
+  'Payment Pending' AS x_axis, t1, fy_timerange, Quarter,project_name, project_renew, count(*) as t_c,
 	
-    SUM(CASE WHEN Status = 'PENDING_APPROVAL' THEN 1 ELSE 0 END) AS Value,
+   --- SUM(CASE WHEN Status = 'PENDING_APPROVAL' THEN 1 ELSE 0 END) AS Value,
 	
- ROUND((SUM(CASE WHEN Status = 'PENDING_APPROVAL' THEN 1 ELSE 0 END) * 100.0) / NULLIF(SUM(CASE WHEN Status IN ('SUBMITTED', 'REJECTED', 'PENDING_APPROVAL') THEN 1 ELSE 0 END), 0), 2) AS Approved_Percentage
+---- ROUND((SUM(CASE WHEN Status = 'PENDING_APPROVAL' THEN 1 ELSE 0 END) * 100.0) / NULLIF(SUM(CASE WHEN Status IN ('SUBMITTED', 'REJECTED', 'PENDING_APPROVAL') THEN 1 ELSE 0 END), 0), 2) AS Approved_Percentage
 FROM main1
-
+WHERE Status='PENDING_APPROVAL'
 group by 2,3,4,5,6
   ),
   
   
  lookup as (
-  Select a.x_axis, a.fy_timerange, a.quarter, m.name as level1, Approved_Percentage, Value
+  Select a.x_axis, a.fy_timerange, a.quarter, m.name as level1,
+   --Approved_Percentage, 
+   t_c 
+   ---Value
    from main a
    left join profile_27396 p
    on p._id=a.project_name
@@ -73,7 +83,10 @@ group by 2,3,4,5,6
    
    union all
    
-   Select a.x_axis, a.fy_timerange, a.quarter, m.name as level1, Approved_Percentage, Value
+   Select a.x_axis, a.fy_timerange, a.quarter, m.name as level1, 
+   --Approved_Percentage, 
+   t_c
+   ---Value
    from main a
    left join profile_27420 p
    on p._id=a.project_renew
@@ -93,11 +106,12 @@ left join level1tab z on
 z.level1email = p.approver)
  
  Select a.fy_timerange, a.quarter, a.level1, d.level2, a.x_axis, 
- case
- 	when a.Approved_Percentage!=NULL then a.Approved_Percentage
-	else 0
-	end as Approved_Percentage, 
- cast(a.Value as INT) VALUE
+-- case
+ --	when a.Approved_Percentage!=NULL then a.Approved_Percentage
+--	else 0
+--	end as Approved_Percentage, 
+	t_c
+--- cast(a.Value as INT) VALUE
  from lookup a
  left join level2tab d on
 a.level1 = d.level1
