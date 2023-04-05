@@ -1,4 +1,15 @@
-with tab1 as (Select P.name AS projectname,t4.name as project_name,p1.fy_timerange,t1.name as type,sum(p1.q1) as previous,sum(p1.q2) + sum(p1.q3) + sum(p1.q4) as current,p1.focus,t3.name as entity,rank() over(partition by p1.project_name,p1.entity order by p1.fy_timerange asc) as rnk
+Select P.name AS projectname,t4.name as project_name,p1.fy_timerange,t1.name as type,sum(p1.q1) as previous,sum(p1.q2+p1.q3+p1.q4) as current
+from profile_61799 p1
+LEFT JOIN ds_mysql_prod_project AS P
+ON p1.projectid = P.id
+left join ds_mysql_prod_tagelement t1
+on t1.id = p1.type
+ left join ds_mysql_prod_tagelement t4
+on t4.id = p1.project_name
+where entity is not null
+group by P.name,t4.name,p1.fy_timerange,t1.name
+order by fy_timerange desc
+/*with tab1 as (Select P.name AS projectname,t4.name as project_name,p1.fy_timerange,t1.name as type,sum(p1.q1) as previous,sum(p1.q2+p1.q3+p1.q4) as current,p1.focus,t3.name as entity,rank() over(partition by p1.project_name,p1.entity order by p1.fy_timerange asc) as rnk
 from profile_61799 p1
 LEFT JOIN ds_mysql_prod_project AS P
 ON p1.projectid = P.id
@@ -17,6 +28,16 @@ order by fy_timerange desc)
 Select * from tab1
 where rnk = 1
 
+Base profile 61799
+Where type not null and project_name not null
+sort by created in descending order
+q1 as previous
+q2+q3+q4 as current
+group by project_name
+group by type and 
+take sum(current) as total_c, sum(previous) as total_p, sum(current) when focus = 929921 as sub1_c, sum(previous) when focus = 929921 as sub1_p,
+sum(current) when focus = 929922 as sub2_c , sum(previous) when focus = 929922 as sub2_p, 
+sum(current) when focus = 929923 as sub3_c , sum(previous) when focus = 929923 as sub3_p*/
 /*Select projectname,project_name,fy_timerange,type,focus,entity,current as total_c,previous as total_p,sum(total_c) as sub1_c,sum(total_p) as sub1_p,rnk
 from tab1
 where focus = '929921' and focus = '929921'
