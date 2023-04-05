@@ -1,1 +1,24 @@
-select * from profile_51206
+with t1 as
+(SELECT * 
+FROM
+(Select  projectId, fy_1, state, school_name, fy_timerange, quarter, score_maths, score_science, score_computer, score_socialscience, score_kannada, score_hindi, score_english from profile_60441 p
+ left join profile_51206 p1
+on p1._id= p.sats
+ 
+)
+UNPIVOT (
+    score FOR subject IN ( score_maths, score_science, score_english, score_computer, score_socialscience, score_kannada, score_hindi))
+
+)
+
+select  projectId, fy_1, reg2.name as state, reg3.name as school_name, fy_timerange,reg4.name as quarter,subject,score,count(*)
+
+from t1 as p
+  left join ds_mysql_prod_tagelement reg2
+on p.state= reg2.id
+  left join ds_mysql_prod_tagelement reg3
+on p.school_name= reg3.id
+ left join ds_mysql_prod_tagelement reg4
+on p.quarter= reg4.id
+  where score is not null 
+Group By   projectId, fy_1, state, school_name, fy_timerange, quarter, Subject, Score,reg2.name,reg3.name,reg4.name
