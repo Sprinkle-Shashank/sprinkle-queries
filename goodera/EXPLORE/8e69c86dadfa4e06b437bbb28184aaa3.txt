@@ -1,7 +1,7 @@
 with main1 as(
 SELECT project_name, project_renew, status, 
   
---- p.name fy,
+ p.name fy,
   
 case
 	when SUBSTRING(CAST(approvalLog[0].["timestamp"] AS DATETIME), 1, 10) is NULL
@@ -9,11 +9,11 @@ case
 	else SUBSTRING(CAST(approvalLog[0].["timestamp"] AS DATETIME), 1, 10)
 	end AS t1,
 		
- CASE 
-       WHEN (EXTRACT(MONTH FROM t1::DATE) > 3) THEN CONCAT(CONCAT('20' || (EXTRACT(YEAR FROM t1::DATE) - 2000), '-'), CONCAT('20', (EXTRACT(YEAR FROM t1::DATE) + 1 - 2000)))
+ --CASE 
+ ---      WHEN (EXTRACT(MONTH FROM t1::DATE) > 3) THEN CONCAT(CONCAT('20' || (EXTRACT(YEAR FROM t1::DATE) - 2000), '-'), CONCAT('20', (EXTRACT(YEAR FROM t1::DATE) + 1 - 2000)))
 		
-      WHEN (EXTRACT(MONTH FROM t1::DATE) <= 3) THEN CONCAT(CONCAT('20' || (EXTRACT(YEAR FROM t1::DATE) - 1 - 2000), '-'), CONCAT('20', (EXTRACT(YEAR FROM t1::DATE) - 2000)))
-  END AS fy_timerange,
+ --       WHEN (EXTRACT(MONTH FROM t1::DATE) <= 3) THEN CONCAT(CONCAT('20' || (EXTRACT(YEAR FROM t1::DATE) - 1 - 2000), '-'), CONCAT('20', (EXTRACT(YEAR FROM t1::DATE) - 2000)))
+  --  END AS fy_timerange,
 	
 	case
 		when (EXTRACT(MONTH FROM t1::DATE) = 1) then 'Quarter 4'
@@ -33,15 +33,16 @@ case
 FROM taskresp_27398 m
  left join tagelement_4188 p
  on m.fy=p.id
-where status in ('REJECTED', 'PENDING_APPROVAL', 'SUBMITTED')
+where status='SUBMITTED'
+  ----in ('REJECTED', 'PENDING_APPROVAL', 'SUBMITTED')
   group by 1,2,3,4,5,6
   ),
   
   main as(
 	  SELECT
   'Payment Raised' AS x_axis, t1,
-	fy_timerange,
-	---fy,
+	--fy_timerange,
+	fy,
 	Quarter,project_name, project_renew, count(*) as t_c
 	
 ---SUM(CASE WHEN Status IN ('SUBMITTED', 'REJECTED', 'PENDING_APPROVAL') THEN 1 ELSE 0 END) AS Value,
@@ -55,12 +56,12 @@ UNION ALL
 
 SELECT
   'Payment Approved' AS x_axis, t1, 
-	fy_timerange, 
-	--fy,
+	--fy_timerange, 
+	fy,
 	Quarter,project_name, project_renew, count(*) as t_c
 	
 	---SUM(CASE WHEN Status = 'SUBMITTED' THEN 1 ELSE 0 END) AS Value,
-	----ROUND((SUM(CASE WHEN Status = 'SUBMITTED' THEN 1 ELSE 0 END) * 100.0) / NULLIF(SUM(CASE WHEN Status IN ('SUBMITTED', 'REJECTED', 'PENDING_APPROVAL') THEN 1 ELSE 0 END), 0), 2) AS Approved_Percentage
+	---ROUND((SUM(CASE WHEN Status = 'SUBMITTED' THEN 1 ELSE 0 END) * 100.0) / NULLIF(SUM(CASE WHEN Status IN ('SUBMITTED', 'REJECTED', 'PENDING_APPROVAL') THEN 1 ELSE 0 END), 0), 2) AS Approved_Percentage
 	
 
 	
@@ -71,8 +72,8 @@ group by 2,3,4,5,6
 UNION ALL
 SELECT
   'Payment Pending' AS x_axis, t1,
-	fy_timerange, 
-	----fy,
+	---fy_timerange, 
+	fy,
 	Quarter,project_name, project_renew, count(*) as t_c
 	
    --- SUM(CASE WHEN Status = 'PENDING_APPROVAL' THEN 1 ELSE 0 END) AS Value,
@@ -86,9 +87,8 @@ group by 2,3,4,5,6
   ----------lookup
  lookup as (
    Select 
-  a.fy_timerange,
-  --- a.fy, 
-   a.quarter, m.name as level1, 
+  -- a.fy_timerange,
+   a.fy, a.quarter, m.name as level1, 
    ------Approved_Percentage, 
    a.x_axis,  t_c
    ---Value
@@ -102,9 +102,8 @@ group by 2,3,4,5,6
    union all
    
    Select 
-   a.fy_timerange, 
-  --- a.fy,
-   a.quarter, m.name as level1, 
+   --a.fy_timerange, 
+   a.fy, a.quarter, m.name as level1, 
    ------Approved_Percentage, 
    a.x_axis,  t_c
    ---Value
@@ -141,4 +140,4 @@ group by 1,2,3,4,5,6,7
 */
   
 Select *
-  from lookup
+  from main1
