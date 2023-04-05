@@ -43,7 +43,7 @@ where status='SUBMITTED'
   'Payment Raised' AS x_axis, t1,
 	--fy_timerange,
 	fy,
-	Quarter,project_name, project_renew, count(*) as t_c, NULL t_c1, NULL t_c2
+	Quarter,project_name, project_renew, count(*) as t_c, '0' t_c1, '0' t_c2
 	
 ---SUM(CASE WHEN Status IN ('SUBMITTED', 'REJECTED', 'PENDING_APPROVAL') THEN 1 ELSE 0 END) AS Value,
 	
@@ -58,7 +58,7 @@ SELECT
   'Payment Approved' AS x_axis, t1, 
 	--fy_timerange, 
 	fy,
-	Quarter,project_name, project_renew, NULL t_c, count(*) as t_c1, NULL t_c2
+	Quarter,project_name, project_renew, '0' t_c, count(*) as t_c1, '0' t_c2
 	
 	---SUM(CASE WHEN Status = 'SUBMITTED' THEN 1 ELSE 0 END) AS Value,
 	---ROUND((SUM(CASE WHEN Status = 'SUBMITTED' THEN 1 ELSE 0 END) * 100.0) / NULLIF(SUM(CASE WHEN Status IN ('SUBMITTED', 'REJECTED', 'PENDING_APPROVAL') THEN 1 ELSE 0 END), 0), 2) AS Approved_Percentage
@@ -74,7 +74,7 @@ SELECT
   'Payment Pending' AS x_axis, t1,
 	---fy_timerange, 
 	fy,
-	Quarter,project_name, project_renew, NULL t_c, '0' t_c1, count(*) as t_c2
+	Quarter,project_name, project_renew, '0' t_c, '0' t_c1, count(*) as t_c2
 	
    --- SUM(CASE WHEN Status = 'PENDING_APPROVAL' THEN 1 ELSE 0 END) AS Value,
 	
@@ -141,8 +141,8 @@ group by 1,2,3,4,5,6,7
   
 Select fy, quarter, level1, x_axis,
 	case
-		when x_axis='Payment Pending' then sum(t_c2)/sum(t_c)
-		when x_axis='Payment Approved' then sum(t_c1)/sum(t_c)
+		when x_axis='Payment Pending' then sum(t_c2)/NULLIF(sum(t_c) , 0) 
+		when x_axis='Payment Approved' then sum(t_c1)/NULLIF(sum(t_c) , 0) 
 		else '0'
 		end as t_count
   from lookup
