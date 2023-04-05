@@ -1,4 +1,5 @@
-Select reg.name as region,reg2.name as new_region,reg_parent.name as region_global,reg2_parent.name as regional2_global,met.name as pv_metric,SUBSTRING(CAST(p.time_period_timerange.start as VARCHAR),1,4) as time,sum(count) as count from profile_59371 p
+--mylan_product_safety_Number of RMPs
+Select /*reg.name as region,reg2.name as new_region,reg_parent.name as region_global,reg2_parent.name as regional2_global,*/met.name as pv_metric,p1.name as country,p1.region,SUBSTRING(CAST(p.time_period_timerange.start as VARCHAR),1,4) as time,sum(count) as count from profile_59371 p
 
 Left join ds_mysql_prod_tagelement reg
 on p.region = reg.id
@@ -9,12 +10,15 @@ on p.region_2 = reg2.id
 Left join ds_mysql_prod_tagelement reg2_parent
 on reg2.parent = reg2_parent.id
 
+left join profile_83347 p1
+on p.country = p1._id
+
 left join ds_mysql_prod_tagelement reg_parent
 on reg.parent = reg_parent.id
 
 Left join ds_mysql_prod_tagelement met
 on p.pv_metric = met.id
 
-where met.name = 'Number of RMPs'
+where met.name = 'Number of RMPs' --and p1.region is not NULL
 
-group by  reg.name,reg_parent.name,met.name,time_period_timerange, reg2.name , reg2_parent.name
+group by  p1.name,p1.region,met.name,time_period_timerange, reg2.name , reg2_parent.name
