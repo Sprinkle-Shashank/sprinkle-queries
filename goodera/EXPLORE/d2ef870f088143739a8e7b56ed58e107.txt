@@ -5,8 +5,8 @@ with temp as (
 
 Q1 as (Select p1.name as projectname,
 concat(concat(concat(concat('{"start":"',(TO_CHAR(p2.batch_start_date, 'YYYY-MM-DD"T"HH24":"MI:SS.000"Z"'))),'","end":"'),(TO_CHAR(p2.batch_end_date, 'YYYY-MM-DD"T"HH24":"MI:SS.000"Z"'))),'"}') as fy_timerange,p.beneficiary_id,t6.name as course, t7.name as centre,t4.name as placement_status, t5.name as continuing_job,
-when  t4.name = 'Placed' then 1 else 0 end as placed_count,
-when  t5.name = 'Yes' then 1 else 0 end as still_placed_count,temp.col as dimensions,
+case when  t4.name = 'Placed' then 1 else 0 end as placed_count,
+case when  t5.name = 'Yes' then 1 else 0 end as still_placed_count,temp.col as dimensions,
 sum
 	(case col
 	when 'Placed' then placed_count
@@ -21,4 +21,9 @@ left join ds_mysql_prod_tagelement t6 on t6.id=p2.course_enroll
 left join ds_mysql_prod_tagelement t7 on t7.id=p2.center_detail
 left join ds_mysql_prod_tagelement t4 on t4.id=p.placement_status
 left join ds_mysql_prod_tagelement t5 on t5.id=p.continuing
-where p.projectid like '%%' 
+where p.projectid like '%%' )
+
+Select projectname,
+ fy_timerange, course, centre,
+ dimensions,
+ Values from Q1
