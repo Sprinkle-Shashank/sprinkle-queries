@@ -1,20 +1,20 @@
 with t1 as(
- select projectId.name as projectId, fy_timerange, theme1.name as theme,doc_type1.name as doc_type,remarks, COALESCE(upload,'') as upload_update,
+ select projectId.name as projectId, fy_timerange, theme1.name as theme,t2.name as doc_type,remarks, COALESCE(upload,'') as upload_update,
 case 
 when upload_update = '' then '-' else 'Download' end as upload_doc
  from profile_71358 as m
 left join ds_mysql_prod_project as projectId
 on m.projectId = projectId.id
 left join ds_mysql_prod_tagelement as theme1
-on m.theme = theme1.id,
-left join ds_mysql_prod_tagelement as doc_type1
-on m.doc_type = doc_type1.id
+on m.theme = theme1.id
+  left join ds_mysql_prod_tagelement as t2
+on m.doc_type = t2.id
 ),
 t2 as
 (select *, CAST(t1.fy_timerange.start AS DATE) AS start,
 EXTRACT(YEAR FROM start) AS year,
  CAST(t1.fy_timerange.end AS DATE) AS end,
- EXTRACT(YEAR FROM start) AS year1,
+ EXTRACT(YEAR FROM end) AS year1,
  concat(concat(year,'-'),year1) as fy_new
 From t1)
 select * from t2
