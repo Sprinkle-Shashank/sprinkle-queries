@@ -1,0 +1,24 @@
+with temp as ( 
+select 'employment_generated' as c
+  Union all 
+select 'green_cover' as c
+  Union all 
+select 'increased_green_cover' as c  ) 
+  
+select pro.name as projectid,fy_timerange,t.name city,
+sum( case c when 'employment_generated' then p.employment_generated
+	        when 'green_cover' then p.green_cover
+	        when 'increased_green_cover' then p.increased_green_cover
+
+	
+	        else null end ) as val, temp.c as dim from profile_83826 p
+			
+			left join ds_mysql_prod_project pro
+             on p.projectid = pro.id
+			 left join ds_mysql_prod_tagelement t
+             on p.city = t.id
+			cross join temp
+			
+group by projectid,fy_timerange,temp.c,pro.name,t.name
+
+
