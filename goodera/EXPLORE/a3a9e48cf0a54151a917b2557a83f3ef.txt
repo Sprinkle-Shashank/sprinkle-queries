@@ -1,11 +1,11 @@
 --mylan_product_safety_ICSR Region Split
-Select p1.name as country,p1.region,met.name as pv_metric,SUBSTRING(CAST(p.time_period_timerange.start as VARCHAR),1,4)  as time,sum(count) as count from profile_59371 p
+Select met.name as pv_metric,cast(SUBSTRING(CAST(p.time_period_timerange.start as VARCHAR),1,4) as int) as time,sum(count) as count,case when time< 2020 then reg.name else p1.name end as country, case when time<2020 then reg_parent.name else p1.region end as region from profile_59371 p
 
-/*Left join ds_mysql_prod_tagelement reg
+Left join ds_mysql_prod_tagelement reg
 on p.region = reg.id
 
 left join ds_mysql_prod_tagelement reg_parent
-on reg.parent = reg_parent.id*/
+on reg.parent = reg_parent.id
 
 left join profile_83347 p1 on 
 p.country = p1._id
@@ -15,4 +15,4 @@ on p.pv_metric = met.id
 
 where met.name = 'ICSR Percentage'
 
-group by  p1.name,p1.region,met.name,time_period_timerange
+group by  reg.name,reg_parent.name,p1.name,p1.region,met.name,time_period_timerange
