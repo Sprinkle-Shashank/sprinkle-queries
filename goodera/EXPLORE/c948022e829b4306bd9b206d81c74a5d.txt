@@ -16,15 +16,15 @@ cross join temp
 ),
 ss as (
 
-Select year as financial_year,'Vidya and Child' as projectname,'Indirect' as catergory,value
+Select year as financial_year,'Vidhya and Child' as projectname,'Indirect' as catergory,value
 from s
 group by 1,2,value
 ),
 
 
 tab1 as (Select p1.financial_year,p1.projectname,sum(p1.amount) as allocated,avg(p2.amount) as utilized,p1.category
-From Genpact_Vidya_Financials_Allocated p1
-left join Genpact_VidyaandChild_Financials_Utilized p2
+From Genpact_Udayan_Financials_Allocated p1
+left join Genpact_UdayanCare_Financials_Utilized p2
 on p2.projectname=p1.projectname
 and p2.financial_year=p1.financial_year
 and p2.category=p1.category
@@ -32,7 +32,7 @@ group by p1.financial_year,p1.projectname,p1.amount,p2.amount,p1.category),
 
 tab2 as(Select financial_year,projectname,category, sum(allocated)-avg(utilized) as value
 From tab1
-where projectname='Vidya and Child' and category='Indirect'
+where projectname='Udayan Care' and category='Indirect'
 group by financial_year,projectname,category),
 
 sss as (
@@ -43,8 +43,11 @@ group by 1,2,3,4
 
 main as (Select * from sss
 union all
-Select * from ss)
+Select * from ss),
 
-select financial_year,projectname,category,
+tab123 as (select financial_year,projectname,category,
 sum(value) over (order by category,financial_year rows unbounded preceding) as value
-From main
+From main)
+
+Select financial_year,projectname,category, cast(value as int) as value
+From tab123
