@@ -2,18 +2,20 @@ with temp as (
 select 'survivability' as c
   Union all 
 select 'wildlife_spotted' as c  ) 
+  
+select pro.name as projectid,fy_timerange,t.name city,
+sum( case c when 'survivability' then p.survivability
+	        when 'wildlife_spotted' then p.wildlife_spotted
 
-select pro.name as projectid,fy_timerange,t.name city,height_of_forest,mention_name
-sum( case c when 'guide_ground_team' then p.guide_ground_team
-	        when 'master_trainer' then p.master_trainer
-	        when 'storytelling_app' then p.storytelling_app
+	
 	        else null end ) as val, temp.c as dim from profile_83825 p
 			
 			left join ds_mysql_prod_project pro
              on p.projectid = pro.id
-			left join ds_mysql_prod_project t
-             on p.projectid = t.id
+			 left join ds_mysql_prod_tagelement t
+             on p.city = t.id
 			cross join temp
 			
-group by projectid,fy_timerange,temp.c,pro.name,t.name,height_of_forest,mention_name		
-			
+group by projectid,fy_timerange,temp.c,pro.name,t.name		
+
+
