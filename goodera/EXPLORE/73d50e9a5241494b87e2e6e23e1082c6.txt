@@ -1,0 +1,184 @@
+with main1 as(
+SELECT project_name, project_renew, status, 
+  
+ p.name fy,
+  
+case
+	when SUBSTRING(CAST(approvalLog[0].["timestamp"] AS DATETIME), 1, 10) is NULL
+	then  SUBSTRING(CAST(submissionlog[0].["timestamp"] AS DATETIME), 1, 10)
+	else SUBSTRING(CAST(approvalLog[0].["timestamp"] AS DATETIME), 1, 10)
+	end AS t1,
+		
+ --CASE 
+ ---      WHEN (EXTRACT(MONTH FROM t1::DATE) > 3) THEN CONCAT(CONCAT('20' || (EXTRACT(YEAR FROM t1::DATE) - 2000), '-'), CONCAT('20', (EXTRACT(YEAR FROM t1::DATE) + 1 - 2000)))
+		
+ --       WHEN (EXTRACT(MONTH FROM t1::DATE) <= 3) THEN CONCAT(CONCAT('20' || (EXTRACT(YEAR FROM t1::DATE) - 1 - 2000), '-'), CONCAT('20', (EXTRACT(YEAR FROM t1::DATE) - 2000)))
+  --  END AS fy_timerange,
+	
+	case
+		when (EXTRACT(MONTH FROM t1::DATE) = 1) then 'Quarter 4'
+		when (EXTRACT(MONTH FROM t1::DATE) = 2) then 'Quarter 4'
+		when (EXTRACT(MONTH FROM t1::DATE) = 3) then 'Quarter 4'
+		when (EXTRACT(MONTH FROM t1::DATE) = 4) then 'Quarter 1'
+		when (EXTRACT(MONTH FROM t1::DATE) = 5) then 'Quarter 1'
+		when (EXTRACT(MONTH FROM t1::DATE) = 6) then 'Quarter 1'
+		when (EXTRACT(MONTH FROM t1::DATE) = 7) then 'Quarter 2'
+		when (EXTRACT(MONTH FROM t1::DATE) = 8) then 'Quarter 2'
+		when (EXTRACT(MONTH FROM t1::DATE) = 9) then 'Quarter 2'
+		when (EXTRACT(MONTH FROM t1::DATE) = 10) then 'Quarter 3'
+		when (EXTRACT(MONTH FROM t1::DATE) = 11) then 'Quarter 3'
+		when (EXTRACT(MONTH FROM t1::DATE) = 12) then 'Quarter 3'
+		end as Quarter
+	
+FROM taskresp_27398 m
+ left join tagelement_4188 p
+ on m.fy=p.id
+where status in ('REJECTED', 'PENDING_APPROVAL', 'SUBMITTED')
+  group by 1,2,3,4,5,6
+  ),
+  
+  main as(
+	  SELECT
+  'Payment Raised' AS x_axis, t1,
+	--fy_timerange,
+	fy,
+	Quarter,project_name, project_renew, count(*) as t_c, 0 t_c1, 0 t_c2
+	
+---SUM(CASE WHEN Status IN ('SUBMITTED', 'REJECTED', 'PENDING_APPROVAL') THEN 1 ELSE 0 END) AS Value,
+	
+----'0' AS Approved_Percentage
+FROM main1
+where Status IN ('SUBMITTED', 'REJECTED', 'PENDING_APPROVAL')
+group by 2,3,4,5,6
+	
+UNION ALL
+
+SELECT
+  'Payment Approved' AS x_axis, t1, 
+	--fy_timerange, 
+	fy,
+	Quarter,project_name, project_renew, 0 t_c, count(*) as t_c1, 0 t_c2
+	
+	---SUM(CASE WHEN Status = 'SUBMITTED' THEN 1 ELSE 0 END) AS Value,
+	---ROUND((SUM(CASE WHEN Status = 'SUBMITTED' THEN 1 ELSE 0 END) * 100.0) / NULLIF(SUM(CASE WHEN Status IN ('SUBMITTED', 'REJECTED', 'PENDING_APPROVAL') THEN 1 ELSE 0 END), 0), 2) AS Approved_Percentage
+	
+
+	
+FROM main1
+where Status='SUBMITTED'
+group by 2,3,4,5,6
+	
+UNION ALL
+	
+SELECT 'Payment Pending' AS x_axis, t1,
+	--fy_timerange,
+	fy,
+	Quarter,project_name, project_renew, 0 t_c, 0 t_c1, count(*) as t_c2
+	
+   --- SUM(CASE WHEN Status = 'PENDING_APPROVAL' THEN 1 ELSE 0 END) AS Value,
+	
+ ----ROUND((SUM(CASE WHEN Status = 'PENDING_APPROVAL' THEN 1 ELSE 0 END) * 100.0) / NULLIF(SUM(CASE WHEN Status IN ('SUBMITTED', 'REJECTED', 'PENDING_APPROVAL') THEN 1 ELSE 0 END), 0), 2) AS Approved_Percentage
+FROM main1
+WHERE Status='PENDING_APPROVAL'
+group by 2,3,4,5,6
+  ),
+  
+  ----------lookup
+ lookup as (
+   Select 
+  -- a.fy_timerange,
+   a.fy, a.quarter, m.name as level1, t_c, t_c1, t_c2,
+   ------Approved_Percentage, 
+   a.x_axis
+   ---Value
+   from main a
+   left join profile_27396 p
+   on p._id=a.project_name
+   left join tagelement_4188 m on
+   p.project_manager=m.id
+   where a.project_name is not NULL
+   
+   union all
+   
+   Select 
+   --a.fy_timerange, 
+   a.fy, a.quarter, m.name as level1, t_c, t_c1, t_c2,
+   ------Approved_Percentage, 
+   a.x_axis
+   ---Value
+   from main a
+   left join profile_27420 p
+   on p._id=a.project_renew
+	left join tagelement_4188 m on
+	p.project_manager=m.id
+    where a.project_renew is not NULL
+ )
+ /*
+ ,
+ ----Profile 27424 - Level1 
+ level1tab as (select m.name as level1 ,p.approver as level2,p.name as level1email from profile_27424 p
+left join ds_mysql_prod_tagelement m on
+m.id = p.pm_name),
+
+level2tab as (select m.name as level1 , z.level1 as level2 from profile_27424 p
+left join ds_mysql_prod_tagelement m on
+m.id = p.pm_name
+left join level1tab z on
+z.level1email = p.approver),
+
+t3 as(
+ 
+ Select a.fy_timerange, a.quarter, a.level1, d.level2, a.x_axis, a.Approved_Percentage, t_c
+  ---cast(a.Value as INT) VALUE
+ from lookup a
+ left join level2tab d on
+a.level1 = d.level1
+group by 1,2,3,4,5,6,7
+  )
+
+*/
+ , m2 as( 
+Select fy, quarter, level1, x_axis,
+
+		sum(case
+		when x_axis='Payment Raised' then t_c
+		end) as t1_c,
+		
+			sum(case
+		when x_axis='Payment Approved' then t_c1
+		end) as t1_c1,
+		
+			sum(case
+		when x_axis='Payment Pending' then t_c2
+		end) as t1_c2
+		
+	/*
+	case
+		when x_axis='Payment Pending' then sum(t_c2)/NULLIF(t1,0)
+		when x_axis='Payment Approved' then sum(t_c1)/NULLIF(t1,0)
+		else '0'
+		end as t_count
+		*/
+		
+  from lookup
+group by 1,2,3,4
+   ),
+   
+ m4 as(  
+   Select fy, quarter, level1, x_axis,
+   		case
+			when x_axis='Payment Raised' then sum(t1_c)
+			when x_axis='Payment Approved' then sum(t1_c1)
+			when x_axis='Payment Pending' then sum(t1_c2)
+			end as t11
+			from m2
+			group by 1,2,3,4
+   )
+	 
+	 Select fy, quarter, level1, 
+	 case
+	 	when x_axis='Payment Pending' then 'Payment Raised'
+		else x_axis
+		end as x_axis, t11
+	 from m4
+	 where x_axis='Payment Pending'
