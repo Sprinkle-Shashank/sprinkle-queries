@@ -1,24 +1,10 @@
-With tab1 as(SELECT BH.amount,
-P.name AS projectname,
-CAST(BH.fy_timerange.start AS DATE) AS start_date,
-EXTRACT(YEAR FROM start_date) AS year,
-E.name AS entity,
-C.name AS category
-
-FROM profile_55699 AS BH
-
-LEFT JOIN ds_mysql_prod_project AS P
-ON BH.projectId = P.id
-
-LEFT JOIN ds_mysql_prod_tagelement AS E
-ON BH.entity = E.id
-
-LEFT JOIN ds_mysql_prod_tagelement AS C
-ON BH.category = C.id)
-
-Select 'FY'||' ' ||year || ' - '||year+1 as financial_year,amount,projectname,category
-From tab1
-where projectname='Udayan Care' and category='Employee Engagement'/*with temp as (
+Select p1.financial_year,p1.projectname,sum(p1.amount) as allocated,avg(p2.amount) as utilized,p1.category
+From Genpact_Udayan_Financials_Allocated p1
+left join Genpact_UdayanCare_Financials_Utilized p2
+on p2.projectname=p1.projectname
+and p2.financial_year=p1.financial_year
+and p2.category=p1.category
+group by p1.financial_year,p1.projectname,p1.amount,p2.amount,p1.category/*with temp as (
 Select 'FY 2016 - 2017' as col
 union all
 Select 'FY 2017 - 2018' as col
