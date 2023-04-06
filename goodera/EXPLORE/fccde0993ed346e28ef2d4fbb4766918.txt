@@ -1,51 +1,8 @@
-
-
 with table1 as
-(
-  select p.projectId as project,cou.name as country,
-case when country in ('India', 'Bangladesh', 'Sri Lanka', 'Afghanistan' , 'Bhutan' , 'Nepal' , 'Maldives' , 'Pakistan')
-then 'South Asia'
-when country in ('China', 'Japan', 'Mongolia', 'North Korea', 'South Korea', 'Taiwan')
-then 'North Asia'
-when country in ('Guatemala', 'El Salvador', 'Dominican Republic')
-then 'Americas'
-when country in ('Philippines', 'Cambodia',  'Vietnam',  'Indonesia', 'Myanmar')
-then 'South East Asia'
-end as region
+(select p.projectid , p.date_enrollment , cast( date_enrollment as date) as date_update , extract(year from date_update) as year_new from profile_16619 as p
+),
 
-from profile_16619 p
+table2 as
+( select  p.projectid , p.year_timerange.start , cast( year_timerange.start as date) as date_update , extract(year from date_update) as year_new from profile_76755 as p
 
-left join ds_mysql_prod_project fac
-on p.projectid = fac.id
-left join ds_mysql_prod_project ven
-on fac.parent = ven.id
-left join ds_mysql_prod_project cou
-on ven.parent = cou.id
-
-where project like '%%' 
-
-group by country, project , region 
-order by region
-  ),
-  
-  
-  table2 as
-  ( 
-	select p.projectid , p._id , 
- cou.name as country , 
-nvl2(SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)),ven.name) as vendor_name, case when vendor_name='' then ven.name else vendor_name end as vendor, fac.name as factory ,
-director_region as region , country as cou from profile_76755 as p 
-	
-left join project_1137 fac
-on p.projectid = fac.id
-  
-left join project_1137 ven
-on fac.parent = ven.id
-  
-left join project_1137 cou
-on ven.parent = cou.id
-	)
-  
-  
-  select distinct country , cou, region from table2
- --- select distinct country, region from table1
+select distinct year_new from table1 order by year_new asc
