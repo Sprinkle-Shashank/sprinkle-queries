@@ -1,16 +1,73 @@
-with temp as (
+drop table if exists Genpact_UdayanCare_Financials_Utilized;
+ create table Genpact_UdayanCare_Financials_Utilized as
+with tab1 as
+(Select P.name AS projectname,p1.month_timerange as fy_timerange,p1.amount,p2.name as head,t1.name as category,
+substring(p1.name,1,3) as month,substring(p1.name,6,4) as year,p1.name as h
+
+from profile_55698 p1
+LEFT JOIN ds_mysql_prod_project AS P
+ON p1.projectid = P.id
+left join profile_55699 p2
+on p2._id = p1.head
+left join ds_mysql_prod_tagelement t1
+on t1.id = p2.category)
+
+
+,tab2 as( 
+Select projectname,
+case 
+when month in ('Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec') and year =2018 then 'FY ' || '2018' || ' - ' || '2019'
+when month in ('Jan','Feb','Mar') and year= 2019 then  'FY ' || '2018' || ' - ' || '2019'
+when h like 'FY (2018 - 2019)%' then 'FY ' || '2018' || ' - ' || '2019'
+
+when month in ('Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec') and year =2019 then  'FY ' || '2019' || ' - ' || '2020'
+when month in ('Jan','Feb','Mar') and year= 2020 then  'FY ' || '2019' || ' - ' || '2020'
+when h like 'FY (2019 - 2020)%' then 'FY ' || '2019' || ' - ' || '2020'
+
+when month in ('Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec') and year =2020 then 'FY ' || '2020' || ' - ' || '2021'
+when month in ('Jan','Feb','Mar') and year= 2021 then  'FY ' || '2020' || ' - ' || '2021'
+when h like 'FY (2020 - 2021)%' then 'FY ' || '2020' || ' - ' || '2021'
+
+when month in ('Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec') and year =2021 then 'FY ' || '2021' || ' - ' || '2022'
+when month in ('Jan','Feb','Mar') and year= 2022 then 'FY ' || '2021' || ' - ' || '2022'
+when h like 'FY (2021 - 2022)%' then 'FY ' || '2021' || ' - ' || '2022'
+  
+when month in ('Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec') and year =2022 then 'FY ' || '2022' || ' - ' || '2023'
+when month in ('Jan','Feb','Mar') and year= 2023 then  'FY ' || '2022' || ' - ' || '2023'
+when h like 'FY (2022 - 2023)%' then 'FY ' || '2022' || ' - ' || '2023'
+
+end as year_1
+,category,sum(amount) as amount
+from tab1
+group by  1,2,3)
+
+Select year_1 as financial_year,amount,projectname,category
+from tab2
+where projectname='Udayan Care' and category='Employee Engagement'/*with temp as (
 Select 'FY 2016 - 2017' as col
 union all
 Select 'FY 2017 - 2018' as col
 union all
+Select 'FY 2018 - 2019' as col
+union all
+Select 'FY 2019 - 2029' as col
+union all
 Select 'FY 2020 - 2021' as col
+union all
+Select 'FY 2021 - 2022' as col
+union all
+Select 'FY 2022 - 2023' as col
 ),
 s as (
 Select *,
 case col
-		when 'FY 2016 - 2017' then 0
-		when 'FY 2017 - 2018' then 0
-  		when 'FY 2020 - 2021' then 0
+  when 'FY 2016 - 2017' then 0
+  when 'FY 2017 - 2018' then 0
+  when 'FY 2018 - 2019' then 0
+  when 'FY 2019 - 2020' then 0
+  when 'FY 2021 - 2022' then 0
+  when 'FY 2020 - 2021' then 0
+  when 'FY 2022 - 2023' then 0
   		
 		else 0
 end as Value1,temp.col as year
@@ -51,4 +108,4 @@ Select * from ss)
 
 select financial_year,projectname,category,
 sum(value) over (order by category,financial_year rows unbounded preceding) as value
-From main
+From main*/
