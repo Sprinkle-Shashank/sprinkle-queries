@@ -1,6 +1,9 @@
 drop table if exists GapInc_WCP_Country_Filter_New;
  create table GapInc_WCP_Country_Filter_New as
-
+ 
+ 
+with table1 as
+(
 select p.projectId,cou.name as country,case when country in ('India', 'Bangladesh', 'Sri Lanka')
 then 'South Asia'
 when country in ('China')
@@ -24,4 +27,18 @@ on ven.parent = cou.id
 where (cou.name <> 'Test Country' and cou.name <> 'GAP Inc.'
 and projectId like '%%' )
 group by country, projectId , region , ven.name , fac.name , p.name_subunit
---order by country asc
+),
+ 
+  table2 as
+  (
+	select country ,case when director_region='Southeast Asia' then 'South East Asia' else director_region end as region from profile_76755 as p
+	),
+	
+  table3 as
+  (
+  select  country, region from table1
+	union all
+	select country , region from table2 
+	)
+	
+	select country , region from table3 order by country asc
