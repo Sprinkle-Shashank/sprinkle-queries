@@ -1,16 +1,43 @@
+
 with table1 as
-(select p.projectid , p.date_enrollment , cast( date_enrollment as date) as date_update , extract(year from date_update) as year_new from profile_16619 as p
-),
-
-table2 as
-( select  p.projectid , p.year_timerange.start , cast( year_timerange.start as date) as date_update , extract(year from date_update) as year_new from profile_76755 as p
-),
-
-table3 as
 (
-select  year_new from table2 
-union all
-select  year_new from table1 
- )
- 
- select distinct year_new from table3 order by year_new asc
+  select p.projectId as project,cou.name as country,
+case when country in ('India', 'Bangladesh', 'Sri Lanka')
+then 'South Asia'
+when country in ('China')
+then 'North Asia'
+when country in ('Guatemala', 'El Salvador', 'Dominican Republic')
+then 'Americas'
+when country in ('Philippines', 'Cambodia',  'Vietnam',  'Indonesia', 'Myanmar')
+then 'South East Asia'
+end as region
+
+from profile_16619 p
+
+left join ds_mysql_prod_project fac
+on p.projectid = fac.id
+left join ds_mysql_prod_project ven
+on fac.parent = ven.id
+left join ds_mysql_prod_project cou
+on ven.parent = cou.id
+
+where project like '%%' 
+
+group by country, project , region 
+order by region
+  ),
+  
+  
+  table2 as
+  (
+	select country ,director_region from profile_76755 as p
+	),
+	
+  table3 as
+  (
+  select  country, region from table1
+	union all
+	select country , region from table2 
+	)
+	
+	select distinct country , regio from table3 
