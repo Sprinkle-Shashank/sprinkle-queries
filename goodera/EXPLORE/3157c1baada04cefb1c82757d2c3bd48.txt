@@ -1,12 +1,79 @@
 --Gap_WCP_outcomes_factory_filter_new
-with sub1 as(
-select a.projectid from profile_16619 a
-union
-select b.projectid from profile_16862 b
-union
-select c.projectid from profile_16863 c)
-select distinct(p1.name) as factory from sub1
-left join ds_mysql_prod_project p1 on p1.id = sub1.projectid
-left join ds_mysql_prod_project p2 on p2.id = p1.parent
-left join ds_mysql_prod_project p3 on p3.id = p2.parent
-where p1.name not like '%%Test%%' 
+
+with table1 as 
+( 
+  select p.projectid , 
+ cou.name as country , 
+nvl2(SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)),ven.name) as vendor_name, case when vendor_name='' then ven.name else vendor_name end as vendor, fac.name as factory from profile_16619  as p
+  
+left join project_1137 fac
+on p.projectid = fac.id
+  
+left join project_1137 ven
+on fac.parent = ven.id
+  
+left join project_1137 cou
+on ven.parent = cou.id
+ ),
+ 
+ table2 as
+ (
+    select p.projectid , 
+ cou.name as country , 
+nvl2(SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)),ven.name) as vendor_name, case when vendor_name='' then ven.name else vendor_name end as vendor, fac.name as factory from profile_16862  as p
+  
+left join project_1137 fac
+on p.projectid = fac.id
+  
+left join project_1137 ven
+on fac.parent = ven.id
+  
+left join project_1137 cou
+on ven.parent = cou.id
+),
+
+table3 as
+(
+    select p.projectid , 
+ cou.name as country , 
+nvl2(SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)),ven.name) as vendor_name, case when vendor_name='' then ven.name else vendor_name end as vendor, fac.name as factory from profile_16863  as p
+  
+left join project_1137 fac
+on p.projectid = fac.id
+  
+left join project_1137 ven
+on fac.parent = ven.id
+  
+left join project_1137 cou
+on ven.parent = cou.id
+),
+
+table4 as
+(
+  select p.projectid , 
+ cou.name as country , 
+nvl2(SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)),ven.name) as vendor_name, case when vendor_name='' then ven.name else vendor_name end as vendor, fac.name as factory from profile_76755 as p
+  
+left join project_1137 fac
+on p.projectid = fac.id
+  
+left join project_1137 ven
+on fac.parent = ven.id
+  
+left join project_1137 cou
+on ven.parent = cou.id
+),
+
+table5 as
+( 
+  select projectid , country , factory , vendor from table1 
+  union all
+   select projectid , country , factory , vendor from table2 
+  union all
+   select projectid , country , factory , vendor from table3
+  union all
+   select projectid , country , factory , vendor from table4
+)
+
+select * from table5 where factory not like '%Test%' 
+  
