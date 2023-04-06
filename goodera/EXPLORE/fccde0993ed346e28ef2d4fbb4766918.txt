@@ -1,8 +1,6 @@
-
 with table1 as
 (
-  select p.projectId as project,cou.name as country,
-case when country in ('India', 'Bangladesh', 'Sri Lanka')
+select p.projectId,cou.name as country,case when country in ('India', 'Bangladesh', 'Sri Lanka')
 then 'South Asia'
 when country in ('China')
 then 'North Asia'
@@ -10,7 +8,8 @@ when country in ('Guatemala', 'El Salvador', 'Dominican Republic')
 then 'Americas'
 when country in ('Philippines', 'Cambodia',  'Vietnam',  'Indonesia', 'Myanmar')
 then 'South East Asia'
-end as region
+end as region , nvl2(SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), ven.name) as vendor_name, case when vendor_name='' then ven.name else vendor_name end as vendor, fac.name as factory , 
+case when p.name_subunit is null or p.name_subunit=' ' then 'N/A' else p.name_subunit end  as unit
 
 from profile_16619 p
 
@@ -21,16 +20,14 @@ on fac.parent = ven.id
 left join ds_mysql_prod_project cou
 on ven.parent = cou.id
 
-where project like '%%' 
-
-group by country, project , region 
-order by region
-  ),
-  
-  
+where (cou.name <> 'Test Country' and cou.name <> 'GAP Inc.'
+and projectId like '%%' )
+group by country, projectId , region , ven.name , fac.name , p.name_subunit
+),
+ 
   table2 as
   (
-	select country ,director_region as region from profile_76755 as p
+	select country ,case when director_region='Southeast Asia' then 'South East Asia' else director_region end as region from profile_76755 as p
 	),
 	
   table3 as
@@ -40,4 +37,4 @@ order by region
 	select country , region from table2 
 	)
 	
-	select distinct country , region from table3 where country != 'Test Country' order by region asc
+	select country , region from table3 order by country asc
