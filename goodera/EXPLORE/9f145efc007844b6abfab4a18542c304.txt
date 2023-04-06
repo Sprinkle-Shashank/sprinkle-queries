@@ -33,6 +33,8 @@ sub_80188 as(
   select s1.profileid, s1.profileinstanceid,s1.section, s1.id, s1.status, s1.data, s1.submissionlog_new, s1.approvallog_new, submission_log, cast(submission_log."timestamp" as DATETIME) as submission_log_timestamp,
 row_number() over(partition by s1.id order by submission_log_timestamp desc) as row1,
 s1.data.sink as Imp_agency,
+s1.data.ia_old as ia1,
+s1.data.ia as ia2,
 s1.data.area_intervention as Focus_area,
 s1.data.fy as fy,
 s1.data.name_org as contact_person,
@@ -44,7 +46,7 @@ from sub1 s1, s1.submissionlog_new as submission_log)
 sub3 as (
 Select s3.profileid, s3.profileinstanceid,s3.section, s3.id, s3.status, s3.data, s3.submissionlog_new, s3.approvallog_new, cast(s3.submission_log_timestamp as DATE) as final_submission_date,
 approval_log, cast(approval_log."timestamp" as DATETIME) as approval_log_timestamp, cast(approval_log."approverEmail" as VARCHAR) as approver_email, cast(approval_log."approvalStatus" as VARCHAR) as approval_status,
-s3.Imp_agency, s3.Focus_area, s3.fy,s3.contact_person,s3.email,s3.mobile_number,
+s3.Imp_agency, s3.Focus_area, s3.fy,s3.contact_person,s3.email,s3.mobile_number,s3.ia1,s3.ia2,
 row_number() over(partition by s3.id, approver_email order by approval_log_timestamp desc) as row2
 
 
@@ -87,19 +89,28 @@ where sub3.row2=1
 )
 ,
 sub5 as (
-Select s4.profileinstanceid,s4.status,s4.Imp_agency,s4.yearr,s4.contact_person,s4.email,s4.mobile_number,s4.date_of_last_approval,s4.date_of_renewal,s4.Empanelment_Type,s4.focus_area,s4.approval_Status
+Select s4.profileinstanceid,s4.status,s4.Imp_agency,s4.yearr,s4.contact_person,s4.email,s4.mobile_number,s4.date_of_last_approval,s4.date_of_renewal,s4.Empanelment_Type,s4.focus_area,s4.approval_Status,s4.ia1,s4.ia2
 from sub4 as s4
 
 ),
 
 sub6 as (
-Select s5.Imp_agency,s5.yearr,s5.contact_person,s5.email,s5.mobile_number,s5.date_of_last_approval,s5.date_of_renewal,s5.Empanelment_Type,s5.focus_area,s5.status,s5.approval_Status
+Select  s5.profileinstanceid,s5.Imp_agency,s5.yearr,s5.contact_person,s5.email,s5.mobile_number,s5.date_of_last_approval,s5.date_of_renewal,s5.Empanelment_Type,s5.focus_area,s5.status,s5.approval_Status,s5.ia1,s5.ia2
 
 from sub5 s5
 --left join tagelement_4188 t
 --on t.id=s5.fa
 )
-Select * from sub1
+Select sub6.*,
+case 
+	when sub6.ia1 is not null then ss.fy
+	when sub6.ia2 is not null then st.fy
+
+ from sub6
+left join profile_80188 ss
+on ss._id=sub6.ia1
+left join profile_27395 st
+on st._id=sub6.ia2
 --where section='Internal Approval/Rejection'
 
 /*
