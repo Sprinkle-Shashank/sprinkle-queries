@@ -56,12 +56,20 @@ from sub_80183 s3, s3.approvallog_new as approval_log
 where s3.row1 = 1
 
 ),
+
+,
+subsection as (
+Select * from sub3
+where sub3.section='Internal Approval/Rejection'
+
+)
+,
 sub4 as (
 
 Select sub3.*,
-cast(sub3.approval_log_timestamp as DATE) approval_date,
+cast(s.approval_log_timestamp as DATE) approval_date,
 case
-	when sub3.approver_email = 'nusrat.pathan@hdfcbank.com' then approval_date
+	when s.approver_email = 'nusrat.pathan@hdfcbank.com' then approval_date
 	else NULL
 end as date_of_last_approval,
 dateadd(year,1,date_of_last_approval) as date_of_renewal,
@@ -72,7 +80,9 @@ end as Empanelment_Type,t.name as yearr
  
 
 
- from sub3
+from sub3
+left join subsection s
+on sub3.profileinstanceid=s.profileinstanceid
 left join tagelement_4188 t
 on t.id=sub3.fy
 where row2=1
