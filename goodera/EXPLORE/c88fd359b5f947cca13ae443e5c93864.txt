@@ -1,0 +1,65 @@
+with temp as (
+Select 'FY 2016 - 2017' as col
+union all
+Select 'FY 2017 - 2018' as col
+),
+s as (
+Select *,
+case col
+		when 'FY 2016 - 2017' then 0
+		when 'FY 2017 - 2018' then 0
+		else 0
+end as Value,temp.col as year
+
+from profile_27420
+cross join temp
+),
+ss as (
+
+Select year as financial_year,'Teach for India' as projectname,'Direct' as catergory,value
+from s
+group by 1,2,value
+),
+
+
+tab1 as (Select p1.financial_year,p1.projectname,sum(p1.amount) as allocated,avg(p2.amount) as utilized,p1.category
+From Genpact_Udayan_Financials_Allocated p1
+left join Genpact_UdayanCare_Financials_Utilized p2
+on p2.projectname=p1.projectname
+and p2.financial_year=p1.financial_year
+and p2.category=p1.category
+group by p1.financial_year,p1.projectname,p1.amount,p2.amount,p1.category),
+
+tab2 as(Select financial_year,projectname,category, sum(allocated)-avg(utilized) as value
+From tab1
+where projectname='Teach for India' and category='Direct'
+group by financial_year,projectname,category),
+
+sss as (
+Select financial_year,projectname,category,value
+ from tab2
+group by 1,2,3,4
+),
+
+main as (Select * from sss
+union all
+Select * from ss),
+
+tab123 as(select financial_year,projectname,category,
+sum(value) over (order by category,financial_year rows unbounded preceding) as value
+From main),
+
+tab11 as(Select financial_year,projectname,category,cast(value as int) as value
+From tab123)
+
+Select 
+CASE 
+	WHEN financial_year='FY 2016 - 2017' THEN 'FY 2017 - 2018'
+	WHEN financial_year='FY 2017 - 2018' THEN 'FY 2018 - 2019'
+	WHEN financial_year='FY 2018 - 2019' THEN 'FY 2019 - 2020'
+	WHEN financial_year='FY 2019 - 2020' THEN 'FY 2020 - 2021'
+	WHEN financial_year='FY 2020 - 2021' THEN 'FY 2021 - 2022'
+	WHEN financial_year='FY 2021 - 2022' THEN 'FY 2022 - 2023'
+	ELSE 'FY 2023 - 2024'
+END AS financial_year,projectname,category, value
+From tab11
