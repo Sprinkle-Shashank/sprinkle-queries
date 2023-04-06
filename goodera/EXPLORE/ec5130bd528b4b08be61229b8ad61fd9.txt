@@ -1,3 +1,4 @@
+--mylan_employee_health_our_table_6
 with table1 as(select datatable,xprojectId,time.name as Time_period,split_part(split_part(fy_timerange,'|',1),'-',1) as time , Substring(finPeriod,1,2) as finPeriod
 
   from sus_59938 sus
@@ -6,7 +7,8 @@ Left join ds_mysql_prod_tagelement time
 on sus.financialperiod = time.id
 
 where keyword in ('workforce_by_age')
-),table3 as(
+)
+,table3 as(
 select xprojectId,t1.Time_period,t1.time,table2.age_group,SUM(table2.percentage_value) as total , finPeriod from table1 t1, unpivot t1.datatable  table2
 
 group  by xprojectId,t1.Time_period, finPeriod ,  t1.time,table2.age_group
@@ -16,8 +18,32 @@ group  by xprojectId,t1.Time_period, finPeriod ,  t1.time,table2.age_group
 table4 as (select t3.*,CAST(wt as varchar) from table3 t3,t3.age_group wt	
 
 )
+, new_workforce_age as (select datatable,xprojectId,time.name as Time_period,split_part(split_part(fy_timerange,'|',1),'-',1) as time , Substring(finPeriod,1,2) as finPeriod
 
-SELECT wtype.name as wt,xprojectId,t4.Time_period,t4.time,total , finPeriod from table4 t4
+  from sus_59938 sus
+
+Left join ds_mysql_prod_tagelement time
+on sus.financialperiod = time.id
+
+where keyword in ('workforce_by_age_new')
+),
+
+table5 as (select xprojectId,t1.Time_period,t1.time,table2.age_group,SUM(table2.percentage_value) as total , finPeriod,table2.gender from table1 t1, unpivot t1.datatable  table2
+
+group  by xprojectId,t1.Time_period, finPeriod ,  t1.time,table2.age_group,table2.gender)
+
+
+SELECT wtype.name as wt,xprojectId,t4.Time_period,t4.time,total , finPeriod, null as gender from table4 t4
 
 LEFT JOIN ds_mysql_prod_tagelement wtype on
 t4.wt = wtype.id
+
+union all
+
+SELECT wtype.name as wt,xprojectId,t5.Time_period,t5.time,total , finPeriod, gen.name as gender from table5 t5
+
+LEFT JOIN ds_mysql_prod_tagelement wtype on
+t4.wt = wtype.id
+
+LEFT JOIN ds_mysql_prod_tagelement gen on
+t4.gender = gen.id
