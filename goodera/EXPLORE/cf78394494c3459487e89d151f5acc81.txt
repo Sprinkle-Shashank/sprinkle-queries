@@ -1,3 +1,4 @@
+--mylan_employee_health_our_table_3
 with table1 as(select datatable,xprojectId,time.name as Time_period,split_part(split_part(fy_timerange,'|',1),'-',1) as time
 
   from sus_59938 sus
@@ -6,7 +7,9 @@ Left join ds_mysql_prod_tagelement time
 on sus.financialperiod = time.id
 
 where keyword in ('emp_turnover')
-),table3 as(
+)
+
+,table3 as(
 select xprojectId,t1.Time_period,t1.time,table2.turnover_type, table2.gender, SUM(table2.value) as total , case when Time_period like 'F%' then 'Yearly' 
  when Time_period like 'Q%' then 'Quarterly' 
   
@@ -18,7 +21,25 @@ group  by xprojectId,t1.Time_period,t1.time,table2.turnover_type , table2.gender
 
 table4 as (select t3.*,CAST(wt as varchar) from table3 t3,t3.turnover_type wt 
 ) , 
-table5 as (select t4.*,CAST(gn as varchar)from table4 t4,t4.gender gn )
+table5 as (select t4.*,CAST(gn as varchar)from table4 t4,t4.gender gn ),
+
+new_turnover_rate as (select datatable,xprojectId,time.name as Time_period,split_part(split_part(fy_timerange,'|',1),'-',1) as time
+
+  from sus_59938 sus
+
+Left join ds_mysql_prod_tagelement time
+on sus.financialperiod = time.id
+
+where keyword in ('emp_turnover_rate_new')),
+
+table6 as (select xprojectId,t1.Time_period,t1.time,table2.turnover_type, table2.gender, SUM(table2.value) as total , case when Time_period like 'F%' then 'Yearly' 
+ when Time_period like 'Q%' then 'Quarterly' 
+  
+ end as timerange from new_turnover_rate t1, unpivot t1.datatable  table2
+
+group  by xprojectId,t1.Time_period,t1.time,table2.turnover_type , table2.gender , timerange)
+
+
 
 SELECT wtype.name as wt, gtype.name as gn , xprojectId,t5.Time_period,t5.time,total  , t5.timerange
 
@@ -28,4 +49,16 @@ LEFT JOIN ds_mysql_prod_tagelement wtype on
 t5.wt = wtype.id
 LEFT JOIN ds_mysql_prod_tagelement gtype on
 t5.gn = gtype.id
+where wtype.name = 'Overall' and time > 2019
+
+union all
+
+SELECT wtype.name as wt, gtype.name as gn , xprojectId,t6.Time_period,t6.time,total  , t6.timerange
+
+from table6 t6
+
+LEFT JOIN ds_mysql_prod_tagelement wtype on
+t6.turnover_type = wtype.id
+LEFT JOIN ds_mysql_prod_tagelement gtype on
+t6.gender = gtype.id
 where wtype.name = 'Overall' and time > 2019
