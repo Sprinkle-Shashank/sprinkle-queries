@@ -1,7 +1,110 @@
---HDFC_Financials_Intervntion_type_Filter
-Select p6.name as Intervention_Type, fy
+--HDFC_Financial_Temporal_1
+With tab1 as(Select split_part(split_part(prod.name,'|',1),'.',1) as projectcode,
+t.name as fy_timerange,
+concat(projectcode,fy_timerange) as CODE,sum(p.hdfc_cost_monthly) as hdfc_cost,p1.village,p1.state,
+case
+when t2.name='January' then 'Quarter 4'
+when t2.name='February' then 'Quarter 4'
+when t2.name='March' then 'Quarter 4'
+when t2.name='April' then 'Quarter 1'
+when t2.name='May' then 'Quarter 1'
+when t2.name='June' then 'Quarter 1'
+when t2.name='July' then 'Quarter 2'
+when t2.name='August' then 'Quarter 2'
+when t2.name='September' then 'Quarter 2'
+when t2.name='October' then 'Quarter 3'
+when t2.name='November' then 'Quarter 3'
+when t2.name='December' then 'Quarter 3'
+end as Quarter
+
+from profile_29974 p
+left join ds_mysql_prod_project prod on
+prod.id=p.projectid
+left join ds_mysql_prod_tagelement t
+on p.fy=t.id
+left join ds_mysql_prod_tagelement t1
+on p.month_number=t1.id
+left join ds_mysql_prod_tagelement t2
+on p.month=t2.id
+left join profile_27489 p1 on
+split_part(prod.name,'|',3)=p1.name
+group by 1,2,3,5,6,7),
+
+tab2 as (Select split_part(split_part(prod.name,'|',1),'.',1) as projectcode,
+t.name as fy_timerange,
+concat(projectcode,fy_timerange) as CODE,sum(p.monthly_cost) as monthlycost,
+case
+when t1.name='January' then 'Quarter 4'
+when t1.name='February' then 'Quarter 4'
+when t1.name='March' then 'Quarter 4'
+when t1.name='April' then 'Quarter 1'
+when t1.name='May' then 'Quarter 1'
+when t1.name='June' then 'Quarter 1'
+when t1.name='July' then 'Quarter 2'
+when t1.name='August' then 'Quarter 2'
+when t1.name='September' then 'Quarter 2'
+when t1.name='October' then 'Quarter 3'
+when t1.name='November' then 'Quarter 3'
+when t1.name='December' then 'Quarter 3'
+end as Quarter
+
+from profile_30171 p
+left join ds_mysql_prod_project prod on
+prod.id=p.projectid
+left join ds_mysql_prod_tagelement t
+on p.fy=t.id
+left join ds_mysql_prod_tagelement t1
+on p.month=t1.id
+group by 1,2,3,5),
+
+tab3 as(Select t.projectcode as projectcode,t.fy_timerange fy,t.quarter Quarter,t.CODE as CODE,(t.hdfc_cost+t1.monthlycost) as Allocated,t.village Village,t.state State
+from tab1 t
+left join tab2 t1 on
+t.CODE=t1.CODE and t.Quarter=t1.Quarter),
+
+tab4 as(select p1.name as projectcode ,sum(d.payment_amount) as DisbursedAmount,sum(d.amnt_utlzd) as Utilized,f.name  as financial_year,concat(projectcode,financial_year) as CODE,t3.name as Core_Ares,t4.name as ProjectManager,p6.name as Intervention_Type,p7.name as Ngo_Partner,
+case 
+when substring(d.submission_date,6,2)='01' then 'Quarter 4' 
+when substring(d.submission_date,6,2)='02' then 'Quarter 4' 
+when substring(d.submission_date,6,2)='03' then 'Quarter 4' 
+when substring(d.submission_date,6,2)='04' then 'Quarter 1' 
+when substring(d.submission_date,6,2)='05' then 'Quarter 1' 
+when substring(d.submission_date,6,2)='06' then 'Quarter 1' 
+when substring(d.submission_date,6,2)='07' then 'Quarter 2' 
+when substring(d.submission_date,6,2)='08' then 'Quarter 2' 
+when substring(d.submission_date,6,2)='09' then 'Quarter 2' 
+when substring(d.submission_date,6,2)=10 then 'Quarter 3' 
+when substring(d.submission_date,6,2)=11 then 'Quarter 3' 
+when substring(d.submission_date,6,2)=12 then 'Quarter 3' 
+end as Quarter
+
 from profile_27396 p1
+left join profile_27398 d on
+p1._id=d.project_name 
+left join ds_mysql_prod_tagelement f on
+d.fy=f.id 
+left join ds_mysql_prod_tagelement t3
+on p1.focus_area=t3.id
+left join ds_mysql_prod_tagelement t4
+on p1.project_manager=t4.id
 left join profile_28235 p6
 on p1.intervention_type=p6._id
-group by p6.name, p1.fy
-order by p6.name asc
+left join profile_27395 p7
+on p1.ngo_partner=p7._id
+group by f.name,p1.name,t3.name,t4.name,P6.NAME,P7.NAME,Quarter)
+
+Select t1.projectcode,t1.fy,t1.Quarter,t1.Allocated,t1.Village,t1.State,
+case 
+when t2.DisbursedAmount is null then 0 
+else t2.DisbursedAmount 
+end as Amount_Disbursed,
+case 
+when t2.Utilized is null then 0 
+else t2.Utilized 
+end as Amount_Utilized,
+(Amount_Disbursed+Amount_Utilized) as Balance,t2.Core_Ares,t2.ProjectManager,t2.Intervention_Type,t2.Ngo_Partner
+
+From tab3 t1
+left join tab4 t2
+on t1.CODE=t2.CODE
+where t1.Quarter=t2.Quarter
