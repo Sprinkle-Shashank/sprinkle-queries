@@ -25,16 +25,47 @@ and projectId like '%%' )
 group by country, projectId , region , ven.name , fac.name , p.name_subunit
 ),
  
-  table2 as
-  (
-	select country ,case when director_region='Southeast Asia' then 'South East Asia' else director_region end as region from profile_76755 as p
-	),
+ table2 as
+( select p.projectid , p._id , year_timerange , case when director_region='Southeast Asia'
+then 'South East Asia' else director_region end as region , cast(d1 as varchar) as d1_update  from profile_76755 as p, p.grievances_wcp_arr as d1
+),
+
+table3 as
+( 
+  select p.projectid  ,
+ cou.name as country , 
+nvl2(SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)),ven.name) as vendor_name, case when vendor_name='' then ven.name else vendor_name end as vendor, fac.name as factory ,
+ region ,  
+case when p2.name_subunit is null or p2.name_subunit=' ' then 'N/A' when country='Bangladesh' then p2.name_subunit else 'N/A' end as unit , p2.status from table2 as p
+
+left join profile_76927 p1
+on p.d1_update = p1._id
+  
+left join project_1137 fac
+on p.projectid = fac.id
+  
+left join project_1137 ven
+on fac.parent = ven.id
+  
+left join project_1137 cou
+on ven.parent = cou.id
+ 
+left join profile_16619 p2
+  on p.projectid = p2.projectid
+  
+where (fy_2>2021 or (fy_2=2021 and quarter='Q4'))
+),
+
+table4 as
+(
+select * from table2 where status=1400365 or status is null
+),
+
+table5 as
+(
+select  projectid,country,region,vendor_name,vendor,factory,unit from table1
+union all
+select projectid,country,region,vendor_name,vendor,factory,unit from table2 
+)
 	
-  table3 as
-  (
-  select  country, region from table1
-	union all
-	select country , region from table2 
-	)
-	
-	select country , region from table3 order by country asc
+	select * from table5 order by country asc
