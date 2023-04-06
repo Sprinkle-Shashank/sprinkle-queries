@@ -1,4 +1,24 @@
-with temp as (
+With tab1 as(SELECT BH.amount,
+P.name AS projectname,
+CAST(BH.fy_timerange.start AS DATE) AS start_date,
+EXTRACT(YEAR FROM start_date) AS year,
+E.name AS entity,
+C.name AS category
+
+FROM profile_55699 AS BH
+
+LEFT JOIN ds_mysql_prod_project AS P
+ON BH.projectId = P.id
+
+LEFT JOIN ds_mysql_prod_tagelement AS E
+ON BH.entity = E.id
+
+LEFT JOIN ds_mysql_prod_tagelement AS C
+ON BH.category = C.id)
+
+Select 'FY'||' ' ||year || ' - '||year+1 as financial_year,amount,projectname,category
+From tab1
+where projectname='Udayan Care'/*with temp as (
 Select 'FY 2016 - 2017' as col
 union all
 Select 'FY 2017 - 2018' as col
@@ -51,4 +71,4 @@ Select * from ss)
 
 select financial_year,projectname,category,
 sum(value) over (order by category,financial_year rows unbounded preceding) as value
-From main
+From main*/
