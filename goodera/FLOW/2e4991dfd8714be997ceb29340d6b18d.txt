@@ -33,7 +33,7 @@ group by x1._id, x1.profileinstanceid, x1.status, x1.active, x1.data, x1.taskuse
 --xx--FLOW
 
 sub_80183 as(
-  select s1.profileid, s1.profileinstanceid, s1.id, s1.status, s1.data, s1.submissionlog_new, s1.approvallog_new, submission_log, cast(submission_log."timestamp" as DATETIME) as submission_log_timestamp,
+  select s1.profileid, s1.section,s1.profileinstanceid, s1.id, s1.status, s1.data, s1.submissionlog_new, s1.approvallog_new, submission_log, cast(submission_log."timestamp" as DATETIME) as submission_log_timestamp,
 row_number() over(partition by s1.id order by submission_log_timestamp desc) as row1,
 s1.data.name as Imp_agency,
 s1.data.area_intervention as Focus_area,
@@ -46,7 +46,7 @@ from sub1 s1, s1.submissionlog_new as submission_log)
 ,
 
 sub3 as (
-  select s3.profileid, s3.profileinstanceid, s3.id, s3.status, s3.data, s3.submissionlog_new, s3.approvallog_new, cast(s3.submission_log_timestamp as DATE) as final_submission_date,
+  select s3.profileid,s3.section, s3.profileinstanceid, s3.id, s3.status, s3.data, s3.submissionlog_new, s3.approvallog_new, cast(s3.submission_log_timestamp as DATE) as final_submission_date,
 approval_log, cast(approval_log."timestamp" as DATETIME) as approval_log_timestamp, cast(approval_log."approverEmail" as VARCHAR) as approver_email, cast(approval_log."approvalStatus" as VARCHAR) as approval_status,
 s3.Imp_agency, s3.Focus_area, s3.fy,s3.contact_person,s3.email,s3.mobile_number,
 row_number() over(partition by s3.id, approver_email order by approval_log_timestamp desc) as row2
@@ -59,12 +59,19 @@ from sub_80183 s3, s3.approvallog_new as approval_log
 where s3.row1 = 1
 
 ),
+
+
+subsection as (
+Select * from sub3
+where sub3.section='Internal Approval/Rejection'
+
+),
 sub4 as (
 
 Select sub3.*,
-cast(sub3.approval_log_timestamp as DATE) approval_date,
+cast(s.approval_log_timestamp as DATE) approval_date,
 case
-	when sub3.approver_email = 'nusrat.pathan@hdfcbank.com' then approval_date
+	when s.approver_email = 'nusrat.pathan@hdfcbank.com' then approval_date
 	else NULL
 end as date_of_last_approval,
 dateadd(year,1,date_of_last_approval) as date_of_renewal,
@@ -75,7 +82,9 @@ end as Empanelment_Type,t.name as yearr
  
 
 
- from sub3
+from sub3
+left join subsection s
+on sub3.profileinstanceid=s.profileinstanceid
 left join tagelement_4188 t
 on t.id=sub3.fy
 where row2=1
