@@ -76,7 +76,7 @@ dateadd(year,1,date_of_last_approval) as date_of_renewal,
 case
 	when current_Date > date_of_renewal then 'Pending Renewal'
 	when current_Date < date_of_renewal then 'Renewed'
-end as Empanelment_Type,t.name as yearr,st.name as ia_old,ss.name as ia_new
+end as Empanelment_Type,t.name as yearr,st.name as ia_old,ss.name as ia_new,t1.name as fy1,t2.name as fy2
  
 
 
@@ -89,23 +89,38 @@ left join profile_27395 st
 on st._id=sub3.ia1
 left join profile_80183 ss
 on ss._id=sub3.ia2
+left join tagelement_4188 t1
+on t1.d=st.fy
+left join tagelement_4188 t2
+on t2.d=ss.fy
 where sub3.row2=1
 )
 ,
 sub5 as (
-Select s4.profileinstanceid,s4.status,s4.Imp_agency,s4.yearr,s4.contact_person,s4.email,s4.mobile_number,s4.date_of_last_approval,s4.date_of_renewal,s4.Empanelment_Type,s4.focus_area,s4.approval_Status,s4.ia_old,s4.ia_new,s4.id
+Select s4.profileinstanceid,s4.status,s4.Imp_agency,s4.yearr,s4.contact_person,s4.email,s4.mobile_number,s4.date_of_last_approval,s4.date_of_renewal,s4.Empanelment_Type,s4.focus_area,s4.approval_Status,s4.ia_old,s4.ia_new,s4.id,
+case
+	when s4.ia_old is not null then s4.fy1
+    when s4.ia_new is not null then s4.fy2
+end as final_fy
+	
+  
+
+
 from sub4 as s4
 
 ),
 
 sub6 as (
-Select  s5.profileinstanceid,s5.Imp_agency,s5.yearr,s5.contact_person,s5.email,s5.mobile_number,s5.date_of_last_approval,s5.date_of_renewal,s5.Empanelment_Type,s5.focus_area,s5.status,s5.approval_Status,s5.ia_old ,s5.ia_new,s5.id
+Select  s5.profileinstanceid,s5.Imp_agency,s5.yearr,s5.contact_person,s5.email,s5.mobile_number,s5.date_of_last_approval,s5.date_of_renewal,s5.Empanelment_Type,s5.focus_area,s5.status,s5.approval_Status,s5.ia_old ,s5.ia_new,s5.id,s5.final_fy
 
 from sub5 s5
 --left join tagelement_4188 t
 --on t.id=s5.fa
 )
-Select * from sub6
+Select *
+
+
+from sub6
 
 --where section='Internal Approval/Rejection'
 
