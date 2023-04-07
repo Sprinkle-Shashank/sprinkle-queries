@@ -1,51 +1,30 @@
 WITH t1 AS (
-  SELECT 
-    *,
-    CONCAT_WS(',', reg3.name) AS school_array
+  SELECT *
   FROM (
-    SELECT 
-      projectId, 
-      reg2.name AS ideal_school, 
-      LISTAGG(reg3.name, ',') AS school, 
-      reg4.name AS state, 
-      fy_timerange, 
-      facilities
-    FROM 
-      t1 AS p
-      LEFT JOIN ds_mysql_prod_tagelement reg2 ON p.ideal_school= reg2.id
-      LEFT JOIN ds_mysql_prod_tagelement reg3 ON p.school_name= reg3.id
-      LEFT JOIN ds_mysql_prod_tagelement reg4 ON p.state= reg4.id
-    WHERE 
-      reg2.name  IN ('Satisfactory', 'Available')
-    GROUP BY 
-      projectId, 
-      fy_timerange, 
-      state, 
-      facilities, 
-      ideal_school, 
-      reg2.name, 
-      reg4.name
-  ) t
+    SELECT projectId, fy_1, state, school_name, fy_timerange, good_buildings, library_facility, computer_education, lab_facility, good_seating_facility, gender_segregated_toilet_facility, good_enrollment, advanced_teaching_facility, sufficient_faculty, highly_competent_faculty, english_teaching_faculty, uniforms_and_shoes, good_drinking_water_system, midday_meals, playground, sports_promotion, cultural_promotion, yoga_and_exercises, special_coaching_for_weak_learners, students_commutation_system, parent_teachers_meeting, green_campus, green_energy, rain_water_harvesting, health_checkups
+    FROM profile_53370 p
+  )
+  UNPIVOT (
+    ideal_school FOR facilities IN (library_facility, computer_education, lab_facility, good_seating_facility, gender_segregated_toilet_facility, good_enrollment, advanced_teaching_facility, sufficient_faculty, highly_competent_faculty, english_teaching_faculty, uniforms_and_shoes, good_drinking_water_system, midday_meals, playground, sports_promotion, cultural_promotion, yoga_and_exercises, special_coaching_for_weak_learners, students_commutation_system, parent_teachers_meeting, green_campus, green_energy, rain_water_harvesting, health_checkups, good_buildings)
+  )
 )
-SELECT 
-  projectId, 
-  ideal_school, 
-  SPLIT_PART(school_array, ',', num) AS school_array, 
-  state, 
-  fy_timerange, 
+SELECT
+  projectId,
+  reg2.name AS ideal_school,
+  (
+    SELECT LISTAGG(SPLIT_PART(reg3.name, ',', i), ',') WITHIN GROUP (ORDER BY SPLIT_PART(reg3.name, ',', i))
+    FROM generate_series(1, array_length(string_to_array(reg3.name, ','), 1)) AS s(i)
+  ) AS school,
+  reg4.name AS state,
+  fy_timerange,
   facilities
-FROM 
-  t1, 
-  (SELECT ROW_NUMBER() OVER () AS num FROM t1 LIMIT 100) nums
-WHERE 
-  SPLIT_PART(school_array, ',', num) <> ''
-ORDER BY 
-  projectId, 
-  ideal_school, 
-  state, 
-  fy_timerange, 
-  facilities, 
-  num;
+FROM t1 AS p
+LEFT JOIN ds_mysql_prod_tagelement reg2 ON p.ideal_school = reg2.id
+LEFT JOIN ds_mysql_prod_tagelement reg3 ON p.school_name = reg3.id
+LEFT JOIN ds_mysql_prod_tagelement reg4 ON p.state = reg4.id
+WHERE reg2.name IN ('Satisfactory', 'Available')
+GROUP BY projectId, fy_timerange, state, facilities, ideal_school, reg2.name, reg4.name;
+
 
 
 
