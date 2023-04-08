@@ -1,16 +1,38 @@
-with temp as (
-  Select f.name as fy
-from profile_27395 p
-left join tagelement_4188 f
-on f.id=p.fy
-union all
-Select f.name fy
+SELECT new_profiles.fy fy_timerange, COUNT(*) AS output
+FROM (
+  
+Select p.name ia, f.name fy
 from profile_80183 p
 left join tagelement_4188 f
 on f.id=p.fy
-)
+  
+  UNION
+  
+  SELECT p.name ia, f.name as fy
+  FROM profile_27395 p
+ left join tagelement_4188 f
+on f.id=p.fy
+  
+) AS new_profiles
+LEFT JOIN (
+  
+  SELECT sink ia, f.name fy
+  FROM profile_80188 p
+  left join tagelement_4188 f on
+f.id=p.fy
+  
+  UNION
+  
+  SELECT p1.name ia, f.name fy
+  FROM profile_27405 p
+  left join profile_27395 p1
+  ON p1._id=p.ia
+  left join tagelement_4188 f on
+  f.id=p.fy
+  
+) AS old_profiles
 
-Select distinct(fy) fy_timerange, count(*) output 
-from temp
-where fy_timerange is not null
-order by fy_timerange
+ON new_profiles.fy = old_profiles.fy AND new_profiles.ia = old_profiles.ia
+WHERE old_profiles.ia IS NULL AND old_profiles.fy IS NULL
+group by 1
+order by new_profiles.fy;
