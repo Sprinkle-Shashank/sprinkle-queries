@@ -1,7 +1,22 @@
- Select f.name as fy_timerange,count(*)
+ Select f.name as fy_timerange,count(*) as entry_count
+from (
+  
+Select name_project, f.name fy
 from profile_27396 p
 left join tagelement_4188 f
 on f.id=p.fy
-where fy_timerange is not NULL
-group by f.name
-order by fy_timerange
+ 
+) AS new_profiles
+LEFT JOIN (
+  
+  SELECT name_project, f.name fy
+  FROM profile_27420 p
+  left join tagelement_4188 f on
+f.id=p.fy
+
+) AS old_profiles
+
+ON new_profiles.fy = old_profiles.fy AND new_profiles.name_project = old_profiles.name_project
+WHERE old_profiles.name_project IS NULL AND old_profiles.fy IS NULL
+group by 1
+order by new_profiles.fy;
