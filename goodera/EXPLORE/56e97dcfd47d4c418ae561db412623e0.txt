@@ -1,0 +1,58 @@
+with tab1 as
+(Select P.name AS projectname,p1.month_timerange as fy_timerange,p1.amount,p2.name as head,
+substring(p1.name,1,3) as month,substring(p1.name,6,4) as year,p1.name as h
+
+from profile_55698 p1
+LEFT JOIN ds_mysql_prod_project AS P
+ON p1.projectid = P.id
+left join profile_55699 p2
+on p2._id = p1.head)
+
+
+,tab2 as( 
+Select projectname,
+case 
+when month in ('Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec') and year =2018 then 'FY ' || '2018' || ' - ' || '2019'
+when month in ('Jan','Feb','Mar') and year= 2019 then  'FY ' || '2018' || ' - ' || '2019'
+when h like 'FY (2018 - 2019)%' then 'FY ' || '2018' || ' - ' || '2019'
+
+when month in ('Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec') and year =2019 then 'FY ' || '2019' || ' - ' || '2020'
+when month in ('Jan','Feb','Mar') and year= 2020 then  'FY ' || '2019' || ' - ' || '2020'
+when h like 'FY (2019 - 2020)%' then 'FY ' || '2019' || ' - ' || '2020'
+
+when month in ('Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec') and year =2020 then 'FY ' || '2020' || ' - ' || '2021'
+when month in ('Jan','Feb','Mar') and year= 2021 then  'FY ' || '2020' || ' - ' || '2021'
+when h like 'FY (2020 - 2021)%' then 'FY ' || '2020' || ' - ' || '2021'
+
+when month in ('Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec') and year =2021 then 'FY ' || '2021' || ' - ' || '2022'
+when month in ('Jan','Feb','Mar') and year= 2022 then  'FY ' || '2021' || ' - ' || '2022'
+when h like 'FY (2021 - 2022)%' then 'FY ' || '2021' || ' - ' || '2022'
+  
+when month in ('Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec') and year =2022 then 'FY ' || '2022' || ' - ' || '2023'
+when month in ('Jan','Feb','Mar') and year= 2023 then  'FY ' || '2022' || ' - ' || '2023'
+when h like 'FY (2022 - 2023)%' then 'FY ' || '2022' || ' - ' || '2023'
+
+end as year_1
+,sum(amount) as amount
+from tab1
+group by 1,2),
+
+tab3 as(Select projectname,year_1 as financial_year,0 - amount as value
+from tab2
+where projectname='Udayan Care'),
+
+tab4 as(Select projectname,financial_year,
+cast(sum(value) over (order by projectname,financial_year rows unbounded preceding) as int)as amountunutilized
+From tab3)
+
+Select 
+CASE col
+	WHEN financial_year = 'FY 2016 - 2017' THEN 'FY 2017 - 2018'
+	WHEN financial_year = 'FY 2017 - 2018' THEN 'FY 2018 - 2019'
+	WHEN financial_year = 'FY 2018 - 2019' THEN 'FY 2019 - 2020'
+	WHEN financial_year = 'FY 2019 - 2020' THEN 'FY 2020 - 2021'
+	WHEN financial_year = 'FY 2020 - 2021' THEN 'FY 2021 - 2022'
+	WHEN financial_year = 'FY 2021 - 2022' THEN 'FY 2022 - 2023'
+	WHEN financial_year = 'FY 2022 - 2023' THEN 'FY 2023 - 2024'
+END AS financial_year,amountunutilized
+From tab4
