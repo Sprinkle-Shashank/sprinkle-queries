@@ -1,1 +1,22 @@
-select * from profile_83188
+select tag1.name as projectid, fy_timerange, student_name, tag2.name as engineering_branch, tag3.name as fathers_occu, tag4.name as mothers_occu, family_income :: INT,
+case 
+when family_income <= 50000 then '0-50000 INR'
+when family_income > 50000 and family_income <= 100000 then '50,001-1,00,000 INR'
+when family_income > 100000 and family_income <= 200000 then '1,00,000-2,00,000 INR'
+when family_income > 200000 and family_income <= 300000 then '2,00,000-3,00,000 INR'
+when family_income > 300000 then 'more than 3,00,000 INR'
+else null 
+end as income_bucket,
+count(*)
+from profile_83188 p1
+left join ds_mysql_prod_project tag1
+on p1.projectid = tag1.id
+left join ds_mysql_prod_tagelement tag2
+on p1.engineering_branch = tag2.id
+left join ds_mysql_prod_tagelement tag3
+on p1.fathers_occu = tag3.id
+left join ds_mysql_prod_tagelement tag4
+on p1.mothers_occu= tag4.id
+group by 
+tag1.name, fy_timerange, student_name, tag2.name, tag3.name, tag4.name, family_income
+
