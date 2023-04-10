@@ -1,5 +1,12 @@
 --mylan_environment_health_renewable_energy_consumption
-Select p.time_period_timerange,CAST(p.time_period_timerange.start as date) as timerange,SUBSTRING(timerange,1,4) as year_axis,ver.name as vertical, reg.name as region,reg_parent.name as region_parent,case when reg_parent.name is null then reg.name else reg_parent.name end as region_global, category.name as category_ehs, p.act_category, site.name as site_region, p.emission_scope,  p.s_c_act_type, activity.name as activity_output, unit.name as output_unit,Sum(p.output_value) as total_energy  from profile_58283 p
+Select p.time_period_timerange,CAST(p.time_period_timerange.start as date) as timerange,SUBSTRING(timerange,1,4) as year_axis,ver.name as vertical, 
+--reg.name as region,reg_parent.name as region_parent,case when reg_parent.name is null then reg.name else reg_parent.name end as region_global, 
+p1.name as country,p1.market as  region_global, 
+category.name as category_ehs, p.act_category, site.name as site_region, p.emission_scope,  p.s_c_act_type, activity.name as activity_output, unit.name as output_unit,Sum(p.output_value) as total_energy  from profile_58283 p
+
+
+left join profile_83347 p1
+on p.country = p1._id
 
 
 Left join ds_mysql_prod_tagelement ver
@@ -25,5 +32,5 @@ on reg.parent = reg_parent.id
 
 where unit.name = 'MWh' and activity.name = 'Renewable energy sources'
 
-group by time_period_timerange,ver.name,reg.name,reg_parent.name,category.name,p.act_category, site.name, p.emission_scope,p.s_c_act_type, activity.name,unit.name
+group by time_period_timerange,ver.name, p1.name , p1.market,category.name,p.act_category, site.name, p.emission_scope,p.s_c_act_type, activity.name,unit.name
 			
