@@ -1,96 +1,27 @@
-
+--GapInc_PACE_CP_CommunityLocationDetails
 with table1 as
-( select p.projectid , p._id , year_timerange , case when director_region='Southeast Asia'
-then 'South East Asia' else director_region end as region , cast(d1 as varchar) as d1_update  from profile_76755 as p, p.grievances_wcp_arr as d1
-),
+(
+  select profile_4227.projectId, name_country, cast(concat('FY ' ,start_year) as varchar) as start_year ,case when start_quarter=1 then '1st (Feb-Apr)'
+ when start_quarter=2 then '2nd (May-Jul)'
+  when start_quarter=3 then '3rd (Aug-Oct)'
+   when start_quarter=4 then '4th (Nov-Jan)'
+   else null end as start_quarter, num_females, num_females_graduated, lg_status, profile_54646.name_vendor, profile_54646.name_vendor_filter, type_program, profile_54646.projcode_factory as codes, profile_54646.name_factory as locations, ven.name as regional_partner --, profile_54646.name_rp as regional_partner,
 
-table2 as
-( 
-  select p.projectid , p._id , year_timerange , cast(year_timerange.start as date) as fy_1 , extract(year from fy_1) as fy_2 , extract(month from fy_1) as month1 , 
-case when month1 = 1 then 'January' 
-     when month1 = 2 then 'February'
-	 when month1 = 3 then 'March'
-	 when month1 = 4 then 'April'
-	 when month1 = 5 then 'May'
-	 when month1 = 6 then 'June'
-	 when month1 = 7 then 'July'
-	 when month1 = 8 then 'August'
-	 when month1 = 9 then 'September'
-	 when month1 = 10 then 'October'
-	 when month1 = 11 then 'November'
-	 when month1 = 12 then 'December'
-end as month 
-,case when month in ('February','March','April') then '1st(Feb-Apr)'
-                  when month in ('May','June','July') then  '2nd(May-Jul)'
-				  when month in ('August','September','October') then '3rd(Aug-Oct)'
-				  when month in ('November','December','January') then '4th(Nov-Jan)' end as quarter_check, Case when quarter_check = '1st(Feb-Apr)'then 'Q1'
-when quarter_check = '2nd(May-Jul)' then 'Q2'
-when quarter_check =  '3rd(Aug-Oct)' then 'Q3'
-when quarter_check = '4th(Nov-Jan)' then 'Q4' 
-else 'NA' end as quarter ,
-  
- cou.name as country , 
-nvl2(SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)),ven.name) as vendor_name, case when vendor_name='' then ven.name else vendor_name end as vendor, fac.name as factory ,
- region ,  
-case when p2.name_subunit is null or p2.name_subunit=' ' then 'N/A' when country='Bangladesh' then p2.name_subunit else 'N/A' end as unit , p2.status from table1 as p
+from profile_4227
 
-left join profile_76927 p1
-on p.d1_update = p1._id
-  
+
 left join project_1137 fac
-on p.projectid = fac.id
-  
+on profile_4227.projectid = fac.id
 left join project_1137 ven
 on fac.parent = ven.id
-  
-left join project_1137 cou
-on ven.parent = cou.id
- 
-left join profile_16619 p2
-  on p.projectid = p2.projectid
-  
-where (fy_2>2021 or (fy_2=2021 and quarter='Q4'))
-),
 
-table6 as
-( 
-select unit, country from table2 where status=1400365 or status is null
- ),
+left join profile_54646 on 
+profile_4227.projectId = profile_54646.projectId
 
-table4 as
-(
-  
-select  projectid, fac.name as factory, cou.name as country , 
-case when p.name_subunit is null or p.name_subunit=' ' then 'N/A' when country='Bangladesh' then p.name_subunit else 'N/A' end as unit,
-nvl2(SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), SUBSTRING(ven.name, 1, POSITION(' (' in ven.name)), ven.name) as vendor_name, case when vendor_name='' then ven.name else vendor_name end as vendor1,case when vendor_name='' then ven.name else vendor_name end as vendor,p.projectId as project,p.status 
+where lg_status =848007 or lg_status is null and name_vendor is not NULL and type_program in ('Academic','Community','Leadership','Vocational School','Girls') and projcode_factory like 'CP%' 
+--or  projcode_rp LIKE 'N%'
 
-from profile_16619 p
+group by profile_4227.projectId, name_country, start_year , start_quarter, num_females, num_females_graduated, lg_status, name_vendor, name_vendor_filter, type_program, codes, locations, regional_partner
+)
 
-left join ds_mysql_prod_project fac
-on p.projectid = fac.id
-left join ds_mysql_prod_project ven
-on fac.parent = ven.id
-left join ds_mysql_prod_project cou
-on ven.parent = cou.id
-
-where (cou.name <> 'Test Country' and cou.name <> 'GAP Inc.') and (p.status = 1400365 or p.status is null)
-and project like '%%' 
-group by  projectid,unit,ven.name,vendor,fac.name , cou.name, project,p.status , p.name_subunit
-
-order by unit 
-),
-
-table5 as 
-(
-  select unit, country from table4
-),
-
-
-table7 as
-(
-  select unit , country from table5
-  union all
-  select unit, country from table6 
-  )
-  
-  select * from table7 order by unit asc
+select * from table1 
