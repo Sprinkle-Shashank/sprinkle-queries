@@ -31,7 +31,7 @@ left join ds_mysql_prod_flowtask x4 on x4.id = x3.flowtaskid
 left join ds_mysql_prod_projectflow x5 on x5.id = x3.projectflowid
 left join ds_mysql_prod_section x6 on x6.id = x4.sectionid
 left join ds_mysql_prod_profile x7 on x7.id = x6.profileid
-left join project_4188 x8 on x8.id = x5.projectid
+left join ds_mysql_prod_project x8 on x8.id = x5.projectid
 
 where x6.profileid = 54963 and x1.active = 't' and flag = 1
 and x1.status in ('PENDING_APPROVAL', 'SUBMITTED')
@@ -42,9 +42,14 @@ sub2 as(
   select s1.id, split_part(p2.name, '|', 1) as projectcode, s1.approvallog_new, t1.name as fy, t2.name as month, s1.status, p2.parent as project_parent, s1.subcat_output,
   
 case
+	when p2.parent = 18943 then split_part(p2.name, '|', 2)
+	else split_part(p2.name, '|', 4)
+end as project_name,
+  
+case
 	when p2.parent = 18943 then split_part(p2.name, '|', 1)
 	else split_part(p3.name, '|', 1)
-end as parentcode, p2.name as pc
+end as parentcode,p2.name as pc
 
 from sub1 s1
 
@@ -56,7 +61,7 @@ left join tagelement_4188 t1 on t1.id = p1.fy
 left join tagelement_4188 t2 on t2.id = p1.month),
 
 sub3 as(
-  select s2.id, s2.projectcode, s2.approvallog_new, s2.fy, s2.month months, s2.status, s2.project_parent, s2.parentcode, t1.name as fy_27396, t2.name as project_manager_27396, t3.name as fy_27420, t4.name as project_manager_27420, s2.subcat_output,s2.pc,
+  select s2.id, s2.projectcode, s2.approvallog_new, s2.fy, s2.month, s2.status, s2.project_parent, s2.project_name, s2.parentcode, t1.name as fy_27396, t2.name as project_manager_27396, t3.name as fy_27420, t4.name as project_manager_27420, s2.subcat_output,s2.pc,
   
 case
   	when t3.name is null or (split_part(s2.fy, '-', 1) < split_part(t3.name, '-', 1))
@@ -78,7 +83,7 @@ left join tagelement_4188 t3 on t3.id = p5.fy
 left join tagelement_4188 t4 on t4.id = p5.project_manager),
 
 sub4 as(
-  select s3.id, s3.projectcode, s3.approvallog_new, s3.fy, months, s3.fy_27396, s3.project_manager_27396, s3.fy_27420_new, s3.project_manager_27420_new, s3.fy_27420, s3.status, s3.subcat_output,s3.pc,
+  select s3.id, s3.projectcode, s3.approvallog_new, s3.fy, s3.month, s3.project_name, s3.fy_27396, s3.project_manager_27396, s3.fy_27420_new, s3.project_manager_27420_new, s3.fy_27420, s3.status, s3.subcat_output,s3.pc,
   
 case
   	when (split_part(s3.fy_27420_new, '-', 1) <= split_part(s3.fy, '-', 1)) or 
@@ -91,20 +96,29 @@ row_number() over(partition by s3.id order by split_part(s3.fy_27420_new, '-', 1
 from sub3 s3),
 
 sub5 as(
-  select s4.id, s4.projectcode, s4.approvallog_new, s4.fy, months, s4.fy_27396, s4.project_manager_27396, s4.fy_27420_new, s4.project_manager_27420_new, s4.status, s4.subcat_output,s4.pc
-  
+  select s4.id, s4.projectcode, s4.approvallog_new, s4.fy, s4.month, s4.project_name, s4.fy_27396, s4.project_manager_27396, s4.fy_27420_new, s4.project_manager_27420_new, s4.status, s4.subcat_output,s4.pc
 from sub4 s4 
 
 where s4.row = 1 and s4.flag = 1),
 
 sub6 as(
-  select s5.projectcode, s5.fy, s5.fy_27420_new, s5.fy_27396, months, s5.project_manager_27420_new, s5.project_manager_27396, s5.status, s5.approvallog_new, s5.subcat_output,s5.pc,
+  select s5.projectcode, s5.fy, s5.fy_27420_new, s5.fy_27396, s5.project_name, s5.month,  s5.project_manager_27420_new, s5.project_manager_27396, s5.status, s5.approvallog_new, s5.subcat_output,s5.pc,
   
 case
   when (split_part(s5.fy_27420_new, '-', 1) <= split_part(s5.fy, '-', 1)) 
   		then s5.project_manager_27420_new
   else s5.project_manager_27396
 end as project_manager,
+  
+case 
+  when s5.subcat_output is not null or s5.subcat_output != ' ' then
+  	case
+  			when s5.status = 'PENDING_APPROVAL' and 
+       		 	  json_serialize(s5.approvallog_new) like '%APPROVED%' then 1
+  			else 0
+  	end
+  else 0
+end as pending_second,
   
 case
   when s5.subcat_output is not null or s5.subcat_output != ' ' then 
@@ -118,11 +132,18 @@ end as approved_second
 from sub5 s5),
 
 sub7 as(
-  select s6.projectcode, s6.fy as fy_timerange, s6.project_manager,
-months, sum(s6.approved_second) as approved_second, 'No. of Activities approved by the 2nd Manager' x_axis,s6.pc
+  select s6.projectcode, s6.fy as fy_timerange, s6.project_name, s6.project_manager,
+s6.month as months,  sum(s6.pending_second) as pending_second, sum(s6.approved_second) as approved_second,s6.pc
 
 from sub6 s6
 
-group by s6.projectcode, months, s6.fy, s6.project_manager,s6.pc)
+group by s6.projectcode, s6.fy, s6.project_name,s6.month, s6.project_manager),
 
-select * from sub7
+sub8 as (
+select s7.projectcode, s7.fy_timerange,s7.project_name, s7.project_manager,
+s7.months,  (s7.pending_second+s7.approved_second) as approved_second, 'No. of Activities approved by the 2nd Manager' x_axis,s7.pc
+fromm sub7 s7
+
+)
+
+select * from sub8
