@@ -1,0 +1,162 @@
+with tab1 as(
+  Select 'Total Projects' as x_axis, f.name fy_timerange, status, m.name as level1, count(*) as t_count,
+	
+	0 as t_a_count,
+	0 as t_csr_count,
+	0 as t_l_count
+	
+from taskresp_27396 p
+left join tagelement_4188 t
+on t.id=p.monitoring_live
+ left join tagelement_4188 m on
+   p.project_manager=m.id
+left join tagelement_4188 f on
+f.id=p.fy
+group by 3,2, t.name,approvallog, m.name
+
+union all
+
+Select 'Approved at Goodera' as x_axis, f.name fy_timerange, status, m.name as level1, 0 as t_count,
+	case
+		when approvallog[0].["approverEmail"]='hdfcbank@goodera.com' and status='PENDING_APPROVAL' then count(*)
+	end as t_a_count, 
+	0 as t_csr_count,
+	0 as t_l_count
+	
+	
+from taskresp_27396 p
+left join tagelement_4188 t
+on t.id=p.monitoring_live
+ left join tagelement_4188 m on
+   p.project_manager=m.id
+left join tagelement_4188 f on
+f.id=p.fy
+group by 3,2, t.name,approvallog, m.name	
+
+union all
+
+Select 'Approved at CSR Head' as x_axis, f.name fy_timerange, status, m.name as level1, 0 as t_count,
+	0 as t_a_count, 
+		case
+		when approvallog[0].["approverEmail"]='nusrat.pathan@hdfcbank.com' and status='PENDING_APPROVAL' then count(*)
+		end as t_csr_count,
+		
+	0 as t_l_count
+	
+	
+from taskresp_27396 p
+left join tagelement_4188 t
+on t.id=p.monitoring_live
+ left join tagelement_4188 m on
+   p.project_manager=m.id
+left join tagelement_4188 f on
+f.id=p.fy
+group by 3,2, t.name,approvallog, m.name	
+
+union all
+
+Select 'Projects live for Reporting' as x_axis, f.name fy_timerange, status, m.name as level1, 0 as t_count,
+	
+	0 as t_a_count,
+	0 as t_csr_count,
+	case
+		when t.name='Yes' then count(*)
+	end as t_l_count
+	
+from taskresp_27396 p
+left join tagelement_4188 t
+on t.id=p.monitoring_live
+ left join tagelement_4188 m on
+   p.project_manager=m.id
+left join tagelement_4188 f on
+f.id=p.fy
+group by 3,2, t.name,approvallog, m.name
+
+union all
+
+Select 'Total Projects' as x_axis, f.name fy_timerange, status, m.name as level1, count(*) as t_count,
+	
+	0 as t_a_count,
+	0 as t_csr_count,
+	0 as t_l_count
+	
+from taskresp_27420 p
+left join tagelement_4188 t
+on t.id=p.monitoring_live
+ left join tagelement_4188 m on
+   p.project_manager=m.id
+left join tagelement_4188 f on
+f.id=p.fy
+group by 3,2, t.name,approvallog, m.name
+
+union all
+
+Select 'Approved at Goodera' as x_axis, f.name fy_timerange, status, m.name as level1, 
+	0 as t_count,
+	
+	case
+		when approvallog[0].["approverEmail"]='hdfcbank@goodera.com' and status='PENDING_APPROVAL' then count(*)
+	end as t_a_count,
+	
+	0 as t_csr_count,
+	0 as t_l_count
+from taskresp_27420 p
+left join tagelement_4188 t
+on t.id=p.monitoring_live
+ left join tagelement_4188 m on
+   p.project_manager=m.id
+left join tagelement_4188 f on
+f.id=p.fy
+group by 3,2, t.name,approvallog, m.name
+
+union all
+
+Select 'Approved at CSR Head' as x_axis, f.name fy_timerange, status, m.name as level1, 
+	0 as t_count,
+	0 as t_a_count,
+	
+	case
+		when approvallog[0].["approverEmail"]='nusrat.pathan@hdfcbank.com' and status='PENDING_APPROVAL' then count(*)
+		end as t_csr_count,
+		
+	0 as t_l_count
+from taskresp_27420 p
+left join tagelement_4188 t
+on t.id=p.monitoring_live
+ left join tagelement_4188 m on
+   p.project_manager=m.id
+left join tagelement_4188 f on
+f.id=p.fy
+group by 3,2, t.name,approvallog, m.name
+
+union all
+
+Select 'Projects live for Reporting' as x_axis, f.name fy_timerange, status, m.name as level1, 
+    
+	0 as t_count,
+	0 as t_a_count,
+	0 t_csr_count,
+	
+	case
+		when t.name='Yes' then count(*)
+	end as t_l_count
+	
+from taskresp_27420 p
+left join tagelement_4188 t
+on t.id=p.monitoring_live
+ left join tagelement_4188 m on
+   p.project_manager=m.id
+left join tagelement_4188 f on
+f.id=p.fy
+group by 3,2, t.name,approvallog, m.name
+  )
+  
+  Select 
+  case
+  	when x_axis='Total Projects' then 'Approved at Goodera'
+	when x_axis='Approved at Goodera' then 'Approved at CSR Head'
+	when x_axis='Approved at CSR Head' then 'Projects live for Reporting'
+	when x_axis='Projects live for Reporting' then '0'
+	end as x_axis, 
+  fy_timerange, status, level1, t_count, t_a_count, t_csr_count, t_l_count
+  from tab1
