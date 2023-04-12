@@ -2,11 +2,13 @@
 with table1 as(Select p.projectId,x1.name as material,x11.name as material_description_parent,
 CAST(time_period_timerange.start as date) as time_period,
 Substring(time_period,1,4) as year_axis,
-x2.name as ship_city,/*x21.name as region,x22.name as region_global,*/x23.name as region_global_parent,x3.name as therap_cat,x31.name as therap_cat_parent,
+/*x2.name as ship_city,*//*x21.name as region,x22.name as region_global,*/
+case when year_axis < 2020 then x23.name else p1.market end as region_global_parent,			   
+/*x23.name as region_global_parent,*/x3.name as therap_cat,x31.name as therap_cat_parent,
 x4.name as sold_ship_to,x43.name as partner_organization_parent,
 x5.name as sales_org,
 p.shlf_life_buckt,p.shelf_life,p.total_cost,Sum(p.doses_delivered) as doses,'DOSES' as doses_column,case when x22.name = 'US' then 'United States' else x22.name 
-end as region_code,p1.name as country,p1.region from profile_56340 p
+end as region_code,case when year_axis < 2020 then x22.name else p1.name end as country from profile_56340 p
 
 
 Left join ds_mysql_prod_tagelement x1
@@ -56,8 +58,8 @@ on p.sales_org = x5.id
 
 
 group by p.projectId,x1.name,x11.name,
-time_period_timerange.start,x2.name,p1.name,p1.region, x23.name,x3.name,x31.name,x4.name,x43.name,
-x5.name,p.shlf_life_buckt,p.shelf_life,p.total_cost,region_code
+time_period_timerange.start,x2.name,p1.name,p1.region, x22.name,x23.name,x3.name,x31.name,x4.name,x43.name,
+x5.name,p.shlf_life_buckt,p.shelf_life,p.total_cost,region_code,p1.market
 )
 select *, reftag.code from table1
 
