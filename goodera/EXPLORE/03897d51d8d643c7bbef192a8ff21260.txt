@@ -1,0 +1,73 @@
+--HDFC_FRD_Summary_Year_total_Benef
+with temp as(
+  Select 'Villages' as col
+  union all
+  Select 'Schools' as col
+  union all
+  Select 'Youth' as col
+    union all
+  Select 'Students' as col
+  union all
+  Select 'Teachers' as col
+    union all
+  Select 'Fellows' as col
+  union all
+  Select 'Farmers' as col
+    union all
+  Select 'Women' as col
+  union all
+  Select 'Others' as col
+  ),
+ 
+ t1 as(
+     Select cast(q.name as varchar) as ProjectCode,f.name as fy_timerange,m.name as Project_Manager,CONCAT(ProjectCode,fy_timerange) as CODE, int_type_calc2 as intervention_type
+from profile_27420 d
+left join ds_mysql_prod_tagelement f on
+d.fy=f.id
+left join ds_mysql_prod_tagelement m on
+d.project_manager=m.id
+left join profile_27396 q on
+d.project_code=q._id	
+   
+union all		   
+   
+select cast(c.name as varchar)as ProjectCode,f.name as fy_timerange,m.name as Project_Manager,CONCAT(ProjectCode,fy_timerange) as CODE , p.name as intervention_type
+from profile_27396 c	
+left join ds_mysql_prod_tagelement f on
+c.fy=f.id
+left join ds_mysql_prod_tagelement m on
+c.project_manager=m.id
+ left join profile_28235 p
+   on p._id=c.intervention_type
+ ),
+
+t2 as(
+Select t1.name fy_timerange, temp.col as dim,t.name select_quarter, split_part(split_part(prod.name,'|',1),'.',1) as ProjectCode, CONCAT(ProjectCode,fy_timerange) as CODE,
+sum(case col
+  when 'Villages' then sq.new_villages
+  when 'Schools' then sq.new_schools
+  when 'Youth' then sq.new_youth
+  when 'Students' then sq.new_students
+  when 'Teachers' then sq.new_teachers
+  when 'Fellows' then sq.new_fellows
+  when 'Farmers' then sq.new_farmers
+  when 'Women' then sq.new_women
+  when 'Others' then sq.new_other
+	else NULL
+	end) as Values
+from profile_60787 sq
+cross join temp
+left join ds_mysql_prod_tagelement t
+on t.id=sq.select_quarter
+left join ds_mysql_prod_tagelement t1
+ON t1.id=sq.fy
+left join  ds_mysql_prod_project prod  on
+prod.id=projectid
+group by new_villages, new_schools, temp.col, new_youth, t.name, t1.name, prod.name
+  )
+  
+Select t2.fy_timerange, Project_Manager level1, dim, select_quarter quarter, sum(Values), intervention_type
+from t2
+left join t1
+on t2.CODE=t1.code
+group by t2.fy_timerange, Project_Manager, dim, select_quarter 
