@@ -1,0 +1,466 @@
+drop table if exists HDFC_leadership_overall_frd;
+ create table HDFC_leadership_overall_frd as
+
+with s1 as(
+  Select f.name as fy_timerange, prod.name,split_part(split_part(prod.name,'|',1),'.',1) as ProjectCode, split_part(prod.name,'|',1) as Region1,
+  case 
+      when Region1 like '%.%' then split_part(prod.name,'|',2)
+     else '-'
+ end as Region, 
+ProjectCode||'-'||f.name  as j,
+t.name as select_quarter,file_upload,
+case 
+  	when file_upload  is not null and t.name='Quarter 1' then file_upload
+	else 'NA'
+    end as Quarter1,
+case 
+  	when file_upload is not null and t.name='Quarter 2' then file_upload
+	else 'NA'
+    end as Quarter2,
+case 
+  	when file_upload is not null and t.name='Quarter 3' then file_upload
+	else 'NA'
+    end as Quarter3,
+case 
+  	when file_upload is not null and t.name='Quarter 4' then file_upload
+	else 'NA'
+    end as Quarter4
+  
+from profile_60787
+left join  ds_mysql_prod_project prod  on
+prod.id=projectid
+  
+left join ds_mysql_prod_tagelement f 
+on fy=f.id
+
+left join ds_mysql_prod_tagelement t
+on select_quarter=t.id
+)
+,
+s2 as(
+Select s.name as proj_code,t.name as fy, t1.name as project_manager,s.start_date,s.end_date,s.name||'-'||t.name  as j,t2.name as focus_area
+from profile_27396 s
+left join tagElement_4188 t
+on t.id=s.fy
+left join tagElement_4188 t1
+on t1.id=s.project_manager
+left join tagElement_4188 t2
+on t2.id=s.focus_area
+
+),
+s3 as(
+Select ss.name as proj_code,t.name as fy,t1.name as project_manager,sp.start_date,sp.end_date,ss.name||'-'||t.name  as j,t2.name as focus_area
+
+from profile_27420 sp
+left join profile_27396 ss
+on ss._id=sp.project_code
+left join tagElement_4188 t
+on t.id=sp.fy
+left join tagElement_4188 t1
+on t1.id=sp.project_manager
+left join tagElement_4188 t2
+on t2.id=sp.focus_area
+
+),
+s4 as(
+Select * from s2
+Union all
+Select * from s3
+)
+,
+s5 as (
+Select * from s4
+where focus_area like 'Focused Rural Development%'
+group by proj_code,fy,project_manager,start_date,end_date,j,focus_area
+)
+
+,
+s6 as (
+
+Select sp.*,s5.project_manager,s5.start_date,s5.end_date,
+  cast(sp.fy_timerange as VARCHAR) as f1, 
+  CAST(sp.ProjectCode as VARCHAR) as f2, 
+  --CAST(s5.Project_Manager as VARCHAR) as f3,
+  CAST(sp.Region as VARCHAR) as f4,
+  (f1 || f2  || f4) as ok,
+	
+case 
+	when Quarter1 like 'https%' then Quarter1
+	else NULL
+end as Q1,
+case 
+	when Quarter2 like 'https%' then Quarter2
+	else NULL
+end as Q2,
+case 
+	when Quarter3 like 'https%' then Quarter3
+	else NULL
+end as Q3,
+case 
+	when Quarter4 like 'https%' then Quarter4
+	else NULL
+end as Q4
+from s1 sp
+left join s5
+on s5.j=sp.j
+
+),
+q1 as (
+Select s6.ProjectCode,s6.project_manager,s6.region,s6.fy_timerange,s6.ok, s6.Q1 as q11
+from s6
+where Q1 is not null
+)
+,
+
+q2 as (
+Select s6.ProjectCode,s6.project_manager,s6.region,s6.fy_timerange,s6.ok, s6.Q2 as q22
+from s6
+where Q2 is not null
+
+),
+
+q3 as (
+Select s6.ProjectCode,s6.project_manager,s6.region,s6.fy_timerange,s6.ok, s6.Q3 as q33
+from s6
+where Q3 is not null
+),
+
+q4 as (
+Select s6.ProjectCode,s6.project_manager,s6.region,s6.fy_timerange,s6.ok, s6.Q4 as q44
+from s6
+where Q4 is not null
+),
+s7 as(
+
+Select s6.ProjectCode,s6.project_manager,s6.region,s6.start_date,s6.end_date,s6.fy_timerange,q1.q11 as quarter1,q2.q22 as quarter2,q3.q33 as quarter3,q4.q44 as quarter4
+
+from s6
+left join q1
+on q1.ok=s6.ok
+left join q2
+on q2.ok=s6.ok
+left join q3
+on q3.ok=s6.ok
+left join q4
+on q4.ok=s6.ok
+
+
+)
+
+,
+
+ww as (
+Select ProjectCode,project_manager,region,start_date,end_date,fy_timerange,
+ProjectCode||project_manager||region as j,
+quarter1,quarter2,quarter3,quarter4,
+case 
+when ((start_date between '2017-04-01' and '2017-06-30') or (start_date < '2017-04-01'))  and ((end_date between '2017-04-01' and '2017-06-30') or end_date > '2017-06-30' ) 
+then '1' end as Q12017,
+
+case 
+when ((start_date between '2017-07-01' and '2017-09-30') or (start_date < '2017-07-01')) and ((end_date between '2017-07-01' and '2017-09-30') or 
+end_date > '2017-09-30' )
+then '1' end as Q22017,
+case 
+when ((start_date between '2017-10-01' and '2017-12-31') or (start_date < '2017-10-01'))  and ((end_date between '2017-10-01' and '2017-12-31') or end_date > '2017-12-31' )
+ then '1' end as Q32017,
+case 
+when ((start_date between '2018-01-01' and '2018-03-31') or (start_date < '2018-01-01'))  and ((end_date between '2018-01-01' and '2018-03-31') or 
+end_date > '2018-03-31' )
+ then '1' end as Q42017,
+
+
+case 
+when ((start_date between '2018-04-01' and '2018-06-30') or (start_date < '2018-04-01'))  and ((end_date between '2018-04-01' and '2018-06-30') or end_date > '2018-06-30' ) 
+then 1 end as Q12018,
+case when ((start_date between '2018-07-01' and '2018-09-30') or (start_date < '2018-07-01'))  and ((end_date between '2018-07-01' and '2018-09-30') or end_date > '2018-09-30' )
+ then 1 end as Q22018,
+case when ((start_date between '2018-10-01' and '2018-12-31') or (start_date < '2018-10-01'))   and ((end_date between
+'2018-10-01' and '2018-12-31') or end_date > '2018-12-31' )
+ then 1 end as Q32018,
+case when ((start_date between '2019-01-01' and '2019-03-31') or (start_date < '2019-01-01'))  and ((end_date between
+'2019-01-01' and '2019-03-31') or end_date > '2019-03-31' )
+ then 1 end as Q42018,
+
+case 
+when ((start_date between '2019-04-01' and '2019-06-30') or (start_date < '2019-04-01')) and ((end_date between '2019-04-01' and '2019-06-30') or end_date > '2019-06-30' ) 
+then 1 end as Q12019,
+case when ((start_date between '2019-07-01' and '2019-09-30') or (start_date < '2019-07-01')) and ((end_date between '2019-07-01' and '2019-09-30') or end_date > '2019-09-30' )
+ then 1 end as Q22019,
+case when ((start_date between '2019-10-01' and '2019-12-31') or (start_date < '2019-10-01'))   and ((end_date between
+'2019-10-01' and '2019-12-31') or end_date > '2019-12-31' )
+ then 1 end as Q32019,
+case when ((start_date between '2020-01-01' and '2020-03-31') or (start_date < '2020-01-01'))  and ((end_date between
+'2020-01-01' and '2020-03-31') or end_date > '2020-03-31' )
+ then 1 end as Q42019,
+
+
+case 
+when ((start_date between '2020-04-01' and '2020-06-30') or (start_date < '2020-04-01')) and ((end_date between '2020-04-01' and '2020-06-30') or end_date > '2020-06-30' ) 
+then 1 
+
+end as Q12020,
+case when ((start_date between '2020-07-01' and '2020-09-30') or (start_date < '2020-07-01')) and ((end_date between '2020-07-01' and '2020-09-30') or end_date > '2020-09-30' )
+ then 1 end as Q22020,
+case when ((start_date between '2020-10-01' and '2020-12-31' ) or (start_date < '2020-12-31')) and ((end_date between
+'2020-10-01' and '2020-12-31') or end_date > '2020-12-31' )
+ then 1 end as Q32020,
+case when ((start_date between '2021-01-01' and '2021-03-31' ) or ( start_date < '2021-01-01'))  and ((end_date between
+'2021-01-01' and '2021-03-31') or end_date > '2021-03-31' )
+ then 1 end as Q42020,
+
+case 
+when ((start_date between '2021-04-01' and '2021-06-30') or (start_date < '2021-04-01')) and ((end_date between '2021-04-01' and '2021-06-30') or end_date > '2021-06-30' ) 
+then 1 end as Q12021,
+case when ((start_date between '2021-07-01' and '2021-09-30') or (start_date < '2021-07-01')) and ((end_date between '2021-07-01' and '2021-09-30') or end_date > '2021-09-30' )
+ then 1 end as Q22021,
+case when ((start_date between '2021-10-01' and '2021-12-31') or (start_date < '2021-10-01'))  and ((end_date between
+'2021-10-01' and '2021-12-31') or end_date > '2021-12-31' )
+ then 1 end as Q32021,
+case when ((start_date between '2022-01-01' and '2022-03-31')  or (start_date < '2022-01-01')) and ((end_date between
+'2022-01-01' and '2022-03-31') or end_date > '2022-03-31' )
+ then 1 end as Q42021,
+
+
+case 
+when ((start_date between '2022-04-01' and '2022-06-30') or (start_date < '2022-04-01'))  and ((end_date between '2022-04-01' and '2022-06-30') or end_date > '2022-06-30' ) 
+then 1 end as Q12022,
+case when ((start_date between '2022-07-01' and '2022-09-30') or (start_date < '2022-07-01'))  and ((end_date between '2022-07-01' and '2022-09-30') or end_date > '2022-09-30' )
+ then 1 end as Q22022,
+case when ((start_date between '2022-10-01' and '2022-12-31') or (start_date < '2022-10-01'))   and ((end_date between
+'2022-10-01' and '2022-12-31') or end_date > '2022-12-31' )
+ then 1 end as Q32022,
+case when ((start_date between '2023-01-01' and '2023-03-31') or (start_date < '2023-01-01'))  and ((end_date between
+'2023-01-01' and '2023-03-31') or end_date > '2023-03-31' )
+ then 1 end as Q42022,
+
+case 
+when ((start_date between '2023-04-01' and '2023-06-30') or (start_date < '2023-04-01'))  and ((end_date between '2023-04-01' and '2023-06-30') or end_date > '2023-06-30' ) 
+then 1 end as Q12023,
+case when ((start_date between '2023-07-01' and '2023-09-30') or (start_date < '2023-07-01'))  and ((end_date between '2023-07-01' and '2023-09-30') or end_date > '2023-09-30' )
+ then 1 end as Q22023,
+case when  ((start_date between '2023-10-01' and '2023-12-31' ) or (start_date < '2023-10-01'))  and ((end_date between
+'2023-10-01' and '2023-12-31') or end_date > '2023-12-31' )
+ then 1 end as Q32023,
+case when ((start_date between '2024-01-01' and '2024-03-31') or (start_date < '2024-01-01'))  and ((end_date between
+'2024-01-01' and '2024-03-31') or end_date > '2024-03-31' )
+ then 1 end as Q42023,
+
+case 
+when ((start_date between '2024-04-01' and '2024-06-30') or (start_date < '2024-04-01')) and ((end_date between '2024-04-01' and '2024-06-30') or end_date > '2024-06-30' ) 
+then 1 end as Q12024,
+case when ((start_date between '2024-07-01' and '2024-09-30') or (start_date < '2024-07-01'))  and ((end_date between '2024-07-01' and '2024-09-30') or end_date > '2024-09-30' )
+ then 1 end as Q22024,
+case when ((start_date between '2024-10-01' and '2024-12-31' ) or (start_date < '2024-10-01'))  and ((end_date between
+'2024-10-01' and '2024-12-31') or end_date > '2024-12-31' )
+ then 1 end as Q32024,
+case when ((start_date between '2025-01-01' and '2025-03-31' ) or (start_date < '2025-01-01'))  and ((end_date between
+'2025-01-01' and '2025-03-31') or end_date > '2025-03-31' )
+ then 1 end as Q42024
+
+
+from s7
+
+
+),
+sub as (
+
+Select ProjectCode,
+sum(Q12017) as Q12017,sum(Q22017) as Q22017,sum(Q32017) as Q32017,sum(Q42017) as Q42017,sum(Q12018) as Q12018,sum(Q22018) as Q22018,sum(Q32018) as Q32018,sum(Q42018) as Q42018,sum(Q12019) as Q12019,sum(Q22019) as Q22019,sum(Q32019) as Q32019,sum(Q42019)  as Q42019,sum(Q12020) as Q12020,sum(Q22020) as Q22020,sum(Q32020) as Q32020,sum(Q42020) as Q42020,sum(Q12021) as Q12021,sum(Q22021) as Q22021,sum(Q32021) as Q32021,sum(Q42021) as Q42021,sum(Q12022) as Q12022,sum(Q22022) as Q22022,sum(Q32022) as Q32022,sum(Q42022) as Q42022,sum(Q12023) as Q12023,sum(Q22023)  as Q22023,sum(Q32023)  as Q32023,sum(Q42023)  as Q42023,sum(Q12024)  as Q12024,sum(Q22024)  as Q22024,sum(Q32024)  as Q32024,sum(Q42024)  as Q42024
+
+
+ from ww
+group by projectcode
+--,Q12017,Q22017,Q32017,Q42017,Q12018,Q22018,Q32018,Q42018,Q12019,Q22019,Q32019,Q42019,Q12020,Q22020,Q32020,Q42020,Q12021,Q22021,Q32021,Q42021,Q12022,Q22022,Q32022,Q42022,Q12023,Q22023,Q32023,Q42023,Q12024,Q22024,Q32024,Q42024
+),
+
+u1 as (
+Select ww.ProjectCode,ww.project_manager,ww.region,ww.start_date,ww.end_date,ww.fy_timerange,sub.Q12017,sub.Q22017,sub.Q32017,sub.Q42017,sub.Q12018,sub.Q22018,sub.Q32018,sub.Q42018,sub.Q12019,sub.Q22019,sub.Q32019,sub.Q42019,sub.Q12020,sub.Q22020,sub.Q32020,sub.Q42020,sub.Q12021,sub.Q22021,sub.Q32021,sub.Q42021,sub.Q12022,sub.Q22022,sub.Q32022,sub.Q42022,sub.Q12023,sub.Q22023,sub.Q32023,sub.Q42023,sub.Q12024,sub.Q22024,sub.Q32024,sub.Q42024,left(ww.fy_timerange,4),
+ww.quarter1,ww.quarter2,ww.quarter3,ww.quarter4,
+ 
+case 
+	when left(ww.fy_timerange,4)=2017 then sub.Q12017
+    when left(ww.fy_timerange,4)=2018 then sub.Q12018
+    when left(ww.fy_timerange,4)=2019 then sub.Q12019
+    when left(ww.fy_timerange,4)=2020 then sub.Q12020
+  when left(ww.fy_timerange,4)=2021 then sub.Q12021
+  when left(ww.fy_timerange,4)=2022 then sub.Q12022
+when left(ww.fy_timerange,4)=2023 then sub.Q12023
+when left(ww.fy_timerange,4)=2024 then sub.Q12024
+end as Q1,
+case 
+	when left(ww.fy_timerange,4)=2017 then sub.Q22017
+    when left(ww.fy_timerange,4)=2018 then sub.Q22018
+    when left(ww.fy_timerange,4)=2019 then sub.Q22019
+    when left(ww.fy_timerange,4)=2020 then sub.Q22020
+  when left(ww.fy_timerange,4)=2021 then sub.Q22021
+  when left(ww.fy_timerange,4)=2022 then sub.Q22022
+when left(ww.fy_timerange,4)=2023 then sub.Q22023
+when left(ww.fy_timerange,4)=2024 then sub.Q22024
+end as Q2,
+case 
+	when left(ww.fy_timerange,4)=2017 then sub.Q32017
+    when left(ww.fy_timerange,4)=2018 then sub.Q32018
+    when left(ww.fy_timerange,4)=2019 then sub.Q32019
+    when left(ww.fy_timerange,4)=2020 then sub.Q32020
+  when left(ww.fy_timerange,4)=2021 then sub.Q32021
+  when left(ww.fy_timerange,4)=2022 then sub.Q32022
+when left(ww.fy_timerange,4)=2023 then sub.Q32023
+when left(ww.fy_timerange,4)=2024 then sub.Q32024
+end as Q3,
+case 
+	when left(ww.fy_timerange,4)=2017 then sub.Q42017
+    when left(ww.fy_timerange,4)=2018 then sub.Q42018
+    when left(ww.fy_timerange,4)=2019 then sub.Q42019
+    when left(ww.fy_timerange,4)=2020 then sub.Q42020
+  when left(ww.fy_timerange,4)=2021 then sub.Q42021
+  when left(ww.fy_timerange,4)=2022 then sub.Q42022
+when left(ww.fy_timerange,4)=2023 then sub.Q42023
+when left(ww.fy_timerange,4)=2024 then sub.Q42024
+end as Q4
+--case 
+	--when 'Q1'||'left(ww.fy_timerange,4)' is not null then 'Pending'
+	--else 'NA'
+--end as Q1
+from ww
+left join sub 
+on ww.ProjectCode=sub.ProjectCode
+
+),
+u2 as (
+Select ProjectCode,project_manager,region,start_date,end_date,fy_timerange,
+quarter1,quarter2,quarter3,quarter4,
+
+case
+	when Q1 is not null then 'Pending'
+  	else 'NA'
+	end as Q1,
+case
+	when Q2 is not null then 'Pending'
+  	else 'NA'
+	end as Q2,
+case
+	when Q3 is not null then 'Pending'
+  	else 'NA'
+	end as Q3,
+case
+	when Q4 is not null then 'Pending'
+  	else 'NA'
+	end as Q4
+from u1
+group by ProjectCode,project_manager,region,start_date,end_date,fy_timerange,Q1,Q2,Q3,Q4,quarter1,quarter2,quarter3,quarter4
+),
+u3 as (
+Select ProjectCode,project_manager,region,start_date,end_date,fy_timerange,
+case 
+	when quarter1 is null then Q1
+	else quarter1
+	end as Quart1,
+case 
+	when quarter2 is null then Q2
+else quarter2
+	end as Quart2,
+case 
+	when quarter3 is null then Q3
+else quarter3
+	end as Quart3,
+case 
+	when quarter4 is null then Q4
+else quarter4
+	end as Quart4
+from u2
+group by ProjectCode,project_manager,region,start_date,end_date,fy_timerange,quarter1,quarter2,quarter3,quarter4,Q1,Q2,Q3,Q4
+),
+pp1 as (
+Select t.name as pm,sd.approver,sd.name
+from profile_27424 sd
+left join tagElement_4188 t
+on t.id=sd.pm_name
+),
+pp2 as(
+Select ProjectCode,project_manager,region,start_date,end_date,fy_timerange,Quart1,Quart2,Quart3,Quart4,pp1.approver,
+case
+	when Quart1 like 'https%' then 'Submitted'
+ 	when Quart1 like 'Pending' then 'Pending'
+	when Quart1 like 'NA' then 'NA'
+	end as submitted1,
+case
+	when Quart2 like 'https%' then 'Submitted'
+ 	when Quart2 like 'Pending' then 'Pending'
+	when Quart2 like 'NA' then 'NA'
+	end as submitted2,
+case
+	when Quart3 like 'https%' then 'Submitted'
+ 	when Quart3 like 'Pending' then 'Pending'
+	when Quart3 like 'NA' then 'NA'
+	end as submitted3,
+case
+	when Quart4 like 'https%' then 'Submitted'
+ 	when Quart4 like 'Pending' then 'Pending'
+	when Quart4 like 'NA' then 'NA'
+	end as submitted4
+
+
+from u3
+left join pp1
+on pp1.pm=u3.project_manager
+group by ProjectCode,project_manager,region,start_date,end_date,fy_timerange,Quart1,Quart2,Quart3,Quart4,pp1.approver),
+
+
+pp3 as (
+Select project_manager,region, fy_timerange, pp1.pm as level2, submitted1, submitted2,submitted3,submitted4
+from pp2
+left join pp1
+on pp1.name=pp2.approver
+
+)
+
+Select 'Quarter 1' as x_axis, project_manager as level1, region, fy_timerange, level2,
+case
+	when submitted1='Submitted' then 1
+	when submitted1='Pending' then 1
+	end as target,
+	
+	case
+	when submitted1='Submitted' then 1
+	end as actuals
+from pp3
+
+union all
+
+Select 'Quarter 2' as x_axis, project_manager as level1, region, fy_timerange, level2,
+case
+	when submitted2='Submitted' then 1
+	when submitted2='Pending' then 1
+	end as target,
+	
+	case
+	when submitted2='Submitted' then 1
+	end as actuals
+from pp3
+
+union all
+
+Select 'Quarter 3' as x_axis, project_manager as level1, region, fy_timerange, level2,
+case
+	when submitted3='Submitted' then 1
+	when submitted3='Pending' then 1
+	end as target,
+	
+	case
+	when submitted3='Submitted' then 1
+	end as actuals
+from pp3
+
+union all
+
+Select 'Quarter 4' as x_axis, project_manager as level1, region, fy_timerange, level2,
+case
+	when submitted4='Submitted' then 1
+	when submitted4='Pending' then 1
+	end as target,
+	
+	case
+	when submitted4='Submitted' then 1
+	end as actuals
+from pp3
