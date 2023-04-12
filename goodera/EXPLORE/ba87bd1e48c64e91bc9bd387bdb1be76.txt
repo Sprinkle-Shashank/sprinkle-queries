@@ -17,14 +17,14 @@ SUM(P.amt_apprvd) AS amt_given,
 eve.name as state,
 cou.name as country,*/
 p1.name as country,
-p1.region,
 /*reg_new.name as new_region,*/
 case when event_Type=960523 then 1 else 0 end as q,
 cast(timerange_timerange.start as varchar) as t1 ,
 LEFT(t1,4) as start_year ,
 p.timerange_timerange as fy_timerange,
-cout.name as new_country ,
-reg2.name,abc.code as map_code
+cout.name as new_country,
+
+nvl(p1.market, reg2.name, reg.name) as region, nvl(p1.map_code, abc.code) as map_code 
 
 from profile_56375 p 
 
@@ -54,22 +54,14 @@ on P.category= cat.id
 left join ds_mysql_prod_tagelement reg2
 on reg.parent= reg2.id
 
---left join ds_mysql_prod_tagelement reg3
---on reg2.parent= reg3.id
-
-
-
-left join ds_mysql_prod_tagelement reg_new
-on P.region_2= reg_new.id
-
 left join ds_mongo_reftagelementmetadata abc
-on abc._id=reg_new.reftagelementmetadataid
+on abc._id= nvl(reg2.reftagelementmetadataid, reg.reftagelementmetadataid)
 
 where start_year is not null /*and abc.code is not null */
-and map_code is not NULL
+--and map_code is not NULL
 
 GROUP BY P.projectid, P._id, p.amt_rqst,aprv.name, don_spon, purpose, event_type, request_type, eve_city, timerange_timerange, category, p1.name ,
-p1.region,don.name , cat.name,reg2.name,abc.code , cout.name ,/*reg_new.name*/
+p1.region,don.name , cat.name,reg2.name,abc.code , cout.name/*reg_new.name*/
 
 order by  category desc, amt_given desc, q desc
 
