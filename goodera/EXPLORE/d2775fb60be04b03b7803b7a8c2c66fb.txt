@@ -1,17 +1,20 @@
 --location_allocation
 
 
-Select _id,projectid,approval_status, don_spon, purpose, event_type, request_type, /*org_name, */eve_city, cat.name as category,   reg.name as region,p.timerange_timerange as fy_timerange, sum(1) as count , cast(timerange_timerange.start as varchar) as t1 , LEFT(t1,4) as start_year,  count(projectid) as project_counts from profile_56375 p
+Select _id,projectid,approval_status, don_spon, purpose, event_type, request_type, /*org_name, */eve_city, cat.name as category,   nvl(p1.market,reg2.name, reg.name) as region,p.timerange_timerange as fy_timerange, sum(1) as count , cast(timerange_timerange.start as varchar) as t1 , LEFT(t1,4) as start_year,  count(projectid) as project_counts from profile_56375 p
   
    left join ds_mysql_prod_tagelement reg
 on P.region= reg.id
+left join ds_mysql_prod_tagelement reg2 on reg2.id = reg.parent
+
+left join profile_83347 on p1._id = p.country
 
 left join ds_mysql_prod_tagelement cat
 on P.category= cat.id
 
 WHERE approval_status = 960515 and start_year is not null
 
-GROUP BY projectid , approval_status ,don_spon, purpose, event_type, request_type, /*org_name,*/ eve_city, p.timerange_timerange, reg.name , cat.name , _id
+GROUP BY projectid , approval_status ,don_spon, purpose, event_type, request_type, /*org_name,*/ eve_city, p.timerange_timerange, reg.name , cat.name , _id, reg2.name, p1.market
 
 
 /*
