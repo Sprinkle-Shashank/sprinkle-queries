@@ -1,14 +1,18 @@
+--Viatraris_Mylan_Total_Donations_Second
 with table1 as (
-Select  timerange_timerange , SUM(amt_apprvd) as amt_apprvd , reg.name as region , cat.name as category from profile_56375 as p
+Select  timerange_timerange , SUM(amt_apprvd) as amt_apprvd , nvl(p1.market, reg2.name, reg.name) as region , cat.name as category from profile_56375 as p
+  
+left join profile_83347 p1 on p1._id = p.country  
   
 left join ds_mysql_prod_tagelement reg
 on P.region= reg.id
+left join ds_mysql_prod_tagelement reg2 on reg2.id = reg.parent
 
 left join ds_mysql_prod_tagelement cat
 on P.category= cat.id
   
   GROUP BY 
-   timerange_timerange , cat.name , reg.name 
+   timerange_timerange , cat.name , reg.name, reg2.name, p1.market
 ),
 table2 as (
   Select timerange_timerange  , amt_apprvd as amt_apprvd ,
