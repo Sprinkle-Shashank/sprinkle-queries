@@ -1,12 +1,15 @@
+--mylan_Product Donation Shelf life
 Select p.projectId,
 x1.name as material_description,
 
 CAST(time_period_timerange.start as date) as time_period,
 Substring(time_period,1,4) as year_axis,
-x2.name as ship_city,x21.name as region,x22.name as region_global,x23.name as region_global_parent,x3.name as therap_cat,
+/*x2.name as ship_city,*//*x21.name as region,x22.name as region_global,*/
+case when year_axis < 2020 then x23.name else p1.market end as region_global_parent,
+x23.name as region_global_parent,x3.name as therap_cat,
 x4.name as sold_ship_to,
 x5.name as sales_org,
-p.shlf_life_buckt,AVG(p.shelf_life) as avg_life from profile_56340 p
+p.shlf_life_buckt,p1.name as country,AVG(p.shelf_life) as avg_life from profile_56340 p
 
 Left join ds_mysql_prod_tagelement x1
 on p.material_descr = x1.id
@@ -26,6 +29,9 @@ on x22.parent = x23.id
 Left join ds_mysql_prod_tagelement x3
 on p.therap_cat = x3.id
 
+left join profile_83347 p1
+on p.country = p1._id
+
 
 Left join ds_mysql_prod_tagelement x4
 on p.sold_ship_to = x4.id
@@ -40,5 +46,5 @@ on p.sales_org = x5.id
 
 group by p.projectId,
 
-time_period_timerange.start,x1.name,x2.name,x21.name,x22.name, x23.name,x3.name,x4.name,
+time_period_timerange.start,x1.name,x2.name,p1.name ,p1.market,x23.name,x3.name,x4.name,
 x5.name,p.shlf_life_buckt
