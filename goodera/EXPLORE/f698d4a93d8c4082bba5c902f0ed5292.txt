@@ -2,30 +2,13 @@
 with t1 as
 (SELECT * 
 FROM
-(Select _id, projectId, fy_timerange, state, phc, topic, hw_type, pic_1, cap_1, count_trainings, attendees from profile_76557 p 
-
+(Select _id, projectId, fy_timerange, state, phc, topic, hw_type, pic_1, cap_1, count_trainings, attendees , p2.phase
+ from profile_76557 p 
+ left join profile_76552 p2
+ on p2._id=p.phc
  where attendees is not null
 
 )
-UNPIVOT (
-    val FOR dim IN (attendees, count_trainings))
-
-)
-select  p.projectId as projectid, p.fy_timerange, reg2.name as state, p2.name as phc, topic.name as topic, hw.name as hw_type, pic_1, cap_1, dim, sum(val) as val,reg.name from t1 as p
-
-left join ds_mysql_prod_tagelement reg
-on P.state= reg.id
-
-left join ds_mysql_prod_tagelement reg2
-on reg.parent= reg2.id
-
-left join ds_mysql_prod_tagelement hw
-on P.hw_type= hw.id
-
-left join ds_mysql_prod_tagelement topic
-on P.topic= topic.id
-
-left join profile_76552 p2
-on P.phc= p2._id
-
-  Group By reg2.name,p.projectId, p.fy_timerange,  phc, topic, hw_type, p.state, reg.name, dim,p.pic_1, p.cap_1,topic.name, hw.name , p2.name
+ 
+ Select *
+ from t1
