@@ -1,5 +1,6 @@
+--top_10_locations
 
-select  sum(amt_apprvd) as amt_aprvd, sum(1) as Approved_Requests, vert.name as eve_city , cat.name as category,   reg.name as region,p.timerange_timerange as fy_timerange from  profile_56375 p 
+select  sum(amt_apprvd) as amt_aprvd, sum(1) as Approved_Requests, vert.name as eve_city , cat.name as category,/*reg.name as region*/p1.name as country, nvl(p1.market, reg2.name, reg.name) as region, p.timerange_timerange as fy_timerange from  profile_56375 p 
 
 left join ds_mysql_prod_tagelement as vert
   on p.eve_city = vert.id
@@ -7,12 +8,18 @@ left join ds_mysql_prod_tagelement as vert
    left join ds_mysql_prod_tagelement reg
 on P.region= reg.id
 
+left join ds_mysql_prod_tagelement reg2
+on reg2.id = reg.parent
+
 left join ds_mysql_prod_tagelement cat
 on P.category= cat.id
 
+left join profile_83347 p1
+on p.country = p1._id
+
 where approval_status=960515 
 
-group by vert.name,p.timerange_timerange, reg.name , cat.name
+group by vert.name,p.timerange_timerange,cat.name,p1.market, reg2.name, reg.name,p1.name
 
 order by amt_aprvd desc limit 10
 
