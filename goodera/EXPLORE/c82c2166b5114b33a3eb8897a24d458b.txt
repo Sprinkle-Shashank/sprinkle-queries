@@ -1,9 +1,11 @@
+--mylan_product_donation_doses_time_period_level
 with table1 as(Select p.projectId,
 CAST(time_period_timerange.start as date) as time_period,
 Substring(CAST(time_period as CHAR(256)),1,4) as axis_value,
-x2.name as ship_city,x21.name as region,x22.name as region_global,x23.name as region_global_parent,
+/*x2.name as ship_city,*//*x21.name as region,x22.name as region_global,*//*x23.name as region_global_parent,*/
+case when axis_value <= 2020 then x23.name else p1.market end as region_global_parent,
 x5.name as sales_org,
-p.shlf_life_buckt,p.shelf_life,p.total_cost,sum(doses_delivered) as doses,'Yearly' as time_period_level, CASE when axis_value is not NULL
+p.shlf_life_buckt,p.shelf_life,p.total_cost,case when axis_value <= 2020 then x22.name else p1.name end as country,sum(doses_delivered) as doses,'Yearly' as time_period_level, CASE when axis_value is not NULL
 then 
 axis_value
 else 
@@ -23,12 +25,15 @@ on x21.parent = x22.id
 Left join ds_mysql_prod_tagelement x23
 on x22.parent = x23.id
 
+left join profile_83347 p1
+on p.country = p1._id
+
 Left join ds_mysql_prod_tagelement x5
 on p.sales_org = x5.id
 
 group by p.projectId,
-time_period_timerange.start,x2.name,x21.name,x22.name, x23.name,
-x5.name,p.shlf_life_buckt,p.shelf_life,p.total_cost,time_period_level,temp
+time_period_timerange.start,x2.name,p1.name, x23.name,
+x5.name,p.shlf_life_buckt,p.shelf_life,p.total_cost,time_period_level,temp,p1.market,x22.name
 
 order by doses desc),
 table2 as(Select p.projectId,
@@ -52,9 +57,10 @@ else
 NULL
 end as time_axis,concat(month_name, concat (',' ,time_axis)) as temp,
 		 
-x2.name as ship_city,x21.name as region,x22.name as region_global,x23.name as region_global_parent,
+/*x2.name as ship_city,*//*x21.name as region,x22.name as region_global,*//*x23.name as region_global_parent,*/
+case when temp <= 2020 then x23.name else p1.market end as region_global_parent,
 x5.name as sales_org,
-p.shlf_life_buckt,p.shelf_life,p.total_cost,sum(doses_delivered) as doses,'Monthly' as time_period_level from profile_56340 p
+p.shlf_life_buckt,p.shelf_life,p.total_cost,case when temp <= 2020 then x22.name else p1.name end as country,sum(doses_delivered) as doses,'Monthly' as time_period_level from profile_56340 p
 
 
 Left join ds_mysql_prod_tagelement x2
@@ -68,13 +74,16 @@ on x21.parent = x22.id
 
 Left join ds_mysql_prod_tagelement x23
 on x22.parent = x23.id
+		  
+left join profile_83347 p1
+on p.country = p1._id
 
 Left join ds_mysql_prod_tagelement x5
 on p.sales_org = x5.id
 
 group by p.projectId,
-time_period_timerange.start,x2.name,x21.name,x22.name, x23.name,
-x5.name,p.shlf_life_buckt,p.shelf_life,p.total_cost,month_value,month_name,time_period_level,axis_value
+time_period_timerange.start,x2.name,/*x21.name,x22.name,*/ x23.name,
+x5.name,p.shlf_life_buckt,p.shelf_life,p.total_cost,month_value,month_name,time_period_level,axis_value,p1.name,p1.market,x22.name
 
 order by doses desc),
 table3 as(Select p.projectId,
@@ -104,9 +113,10 @@ end as time_axis,
 		       end as quarter,concat(quarter, concat (',' ,time_axis)) as temp,
 		  
 		  
-x2.name as ship_city,x21.name as region,x22.name as region_global,x23.name as region_global_parent,
+x2.name as ship_city,/*x21.name as region,x22.name as region_global,*//*x23.name as region_global_parent,*/
+case when temp <= 2020 then x23.name else p1.market end as region_global_parent,
 x5.name as sales_org,
-p.shlf_life_buckt,p.shelf_life,p.total_cost,sum(doses_delivered) as doses,'Quarterly' as time_period_level from profile_56340 p
+p.shlf_life_buckt,p.shelf_life,p.total_cost,case when temp <= 2020 then x22.name else p1.name end as country,sum(doses_delivered) as doses,'Quarterly' as time_period_level from profile_56340 p
 
 
 Left join ds_mysql_prod_tagelement x2
@@ -123,20 +133,23 @@ on x22.parent = x23.id
 
 Left join ds_mysql_prod_tagelement x5
 on p.sales_org = x5.id
+		  
+left join profile_83347 p1
+on p.country = p1._id
 
 group by p.projectId,
-time_period_timerange.start,x2.name,x21.name,x22.name, x23.name,
-x5.name,p.shlf_life_buckt,p.shelf_life,p.total_cost,month_value,month_name,time_period_level,axis_value,quarter
+time_period_timerange.start,x2.name,/*x21.name,x22.name,*/ x23.name,
+x5.name,p.shlf_life_buckt,p.shelf_life,p.total_cost,month_value,month_name,time_period_level,axis_value,quarter,p1.name,p1.market,x22.name
 
 order by doses desc)
 
-select projectId,time_period,temp,region_global,region_global_parent,sales_org,shlf_life_buckt,total_cost,doses,time_period_level from table1
+select projectId,time_period,temp,region,country,region_global_parent,sales_org,shlf_life_buckt,total_cost,doses,time_period_level from table1
 where temp is not null
 union all
 select
-projectId,time_period,temp,region_global,region_global_parent,sales_org,shlf_life_buckt,total_cost,doses,time_period_level from table2
+projectId,time_period,temp,region,country,region_global_parent,sales_org,shlf_life_buckt,total_cost,doses,time_period_level from table2
 where temp is not null
 union all
 select
-projectId,time_period,temp,region_global,region_global_parent,sales_org,shlf_life_buckt,total_cost,doses,time_period_level from table3
+projectId,time_period,temp,region,country,region_global_parent,sales_org,shlf_life_buckt,total_cost,doses,time_period_level from table3
 where temp is not null
