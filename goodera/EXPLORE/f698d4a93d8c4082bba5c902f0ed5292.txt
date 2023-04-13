@@ -1,41 +1,33 @@
+--abbott4
+with t1 as
+(SELECT * 
+FROM
+(Select _id, projectId, fy_timerange, state, phc, topic, hw_type, pic_1, cap_1, count_trainings, attendees from profile_76557 p 
+
+ where attendees is not null
+
+)
+UNPIVOT (
+    val FOR dim IN (attendees, count_trainings))
+
+)
+select  p.projectId as projectid, p.fy_timerange, reg2.name as state, p2.name as phc, topic.name as topic, hw.name as hw_type, pic_1, cap_1, dim, sum(val) as val,reg.name from t1 as p, p2.phase phase
+
+left join ds_mysql_prod_tagelement reg
+on P.state= reg.id
+
+left join ds_mysql_prod_tagelement reg2
+on reg.parent= reg2.id
+
+left join ds_mysql_prod_tagelement hw
+on P.hw_type= hw.id
+
+left join ds_mysql_prod_tagelement topic
+on P.topic= topic.id
+
+left join profile_76552 p2
+on P.phc= p2._id
+
+  Group By reg2.name,p.projectId, p.fy_timerange,  phc, topic, hw_type, p.state, reg.name, dim,p.pic_1, p.cap_1,topic.name, hw.name , p2.name, p2.phase
 
 
-
-SELECT new_profiles.fy fy_timerange, COUNT(*) AS entry_count
-FROM (
-  
-Select p.name ia, f.name fy
-from profile_80183 p
-left join tagelement_4188 f
-on f.id=p.fy
-  
-  UNION
-  
-  SELECT p.name ia, f.name as fy
-  FROM profile_27395 p
- left join tagelement_4188 f
-on f.id=p.fy
-  
-) AS new_profiles
-LEFT JOIN (
-  
-  SELECT sink ia, f.name fy
-  FROM profile_80188 p
-  left join tagelement_4188 f on
-f.id=p.fy
-  
-  UNION
-  
-  SELECT p1.name ia, f.name fy
-  FROM profile_27405 p
-  left join profile_27395 p1
-  ON p1._id=p.ia
-  left join tagelement_4188 f on
-  f.id=p.fy
-  
-) AS old_profiles
-
-ON new_profiles.fy = old_profiles.fy AND new_profiles.ia = old_profiles.ia
-WHERE old_profiles.ia IS NULL AND old_profiles.fy IS NULL
-group by 1
-order by new_profiles.fy;
